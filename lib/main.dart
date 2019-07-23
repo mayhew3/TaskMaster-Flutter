@@ -1,4 +1,8 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 
 void main() => runApp(MyApp());
 
@@ -20,7 +24,7 @@ class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title, this.futureTasks}) : super(key: key);
 
   final String title;
-  final Future<TaskList> futureTasks;
+  final Future<Response> futureTasks;
 
   @override
   _MyHomePageState createState() => _MyHomePageState(futureTasks: futureTasks);
@@ -47,19 +51,12 @@ ListView buildTaskView({taskList: TaskList, context}) {
   return ListView(children: divided);
 }
 
-Future<TaskList> fetchTaskData() async =>
-    Future.delayed(Duration(seconds: 5), () {
-      TaskList _tasks = TaskList();
-      _tasks.add(name: "Build a glove");
-      _tasks.add(name: "Eat a doughnut");
-      _tasks.add(name: "More butter");
-      return _tasks;
-    });
+Future<Response> fetchTaskData() => get("https://taskmaster-general.herokuapp.com/api/tasks");
 
 class _MyHomePageState extends State<MyHomePage> {
   _MyHomePageState({this.futureTasks});
 
-  Future<TaskList> futureTasks;
+  Future<Response> futureTasks;
 
   @override
   Widget build(BuildContext context) {
@@ -67,11 +64,13 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: FutureBuilder<TaskList>(
+      body: FutureBuilder<Response>(
           future: futureTasks,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              TaskList taskList = snapshot.data;
+              Response response = snapshot.data;
+              List list = json.decode(response.body);
+              TaskList taskList = TaskList.fromJson(list);
               return buildTaskView(taskList: taskList, context: context);
             } else if (snapshot.hasError) {
               return Text("${snapshot.error}");
@@ -87,14 +86,39 @@ class _MyHomePageState extends State<MyHomePage> {
 class TaskList {
   final List<TaskItem> tasks = List();
 
+  TaskList();
+
+  factory TaskList.fromJson(List json) {
+    TaskList taskList = TaskList();
+    json.forEach((jsonObj) {
+      TaskItem taskItem = TaskItem.fromJson(jsonObj);
+      taskList.tasks.add(taskItem);
+    });
+    return taskList;
+  }
+
   void add({name: String}) {
-    TaskItem taskItem = TaskItem._(name: name);
+    TaskItem taskItem = TaskItem(name: name);
     tasks.add(taskItem);
   }
 }
 
 class TaskItem {
+  final int id;
   final String name;
+  final int personId;
+  final DateTime dateAdded;
+  final DateTime dateCompleted;
 
-  TaskItem._({this.name});
+  TaskItem({this.id, this.personId, this.dateAdded, this.dateCompleted, this.name});
+
+  factory TaskItem.fromJson(Map<String, dynamic> json) {
+    return TaskItem(
+      id: json['id'],
+      name: json['name'],
+      personId: json['person_id'],
+      dateAdded: DateTime.parse(json['date_added']),
+      dateCompleted: json['date_completed'] == null ? null : DateTime.parse(json['date_completed'])
+    );
+  }
 }
