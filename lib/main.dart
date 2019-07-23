@@ -64,23 +64,27 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: FutureBuilder<Response>(
-          future: futureTasks,
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              Response response = snapshot.data;
-              List list = json.decode(response.body);
-              TaskList taskList = TaskList.fromJson(list);
-              return buildTaskView(taskList: taskList, context: context);
-            } else if (snapshot.hasError) {
-              return Text("${snapshot.error}");
-            }
-
-            return CircularProgressIndicator();
-          }
-      ),
+      body: _buildFutureBuilder(futureTasks),
     );
   }
+}
+
+FutureBuilder<Response> _buildFutureBuilder(Future<Response> futureTasks) {
+  return FutureBuilder<Response>(
+      future: futureTasks,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          Response response = snapshot.data;
+          List list = json.decode(response.body);
+          TaskList taskList = TaskList.fromJson(list);
+          return buildTaskView(taskList: taskList, context: context);
+        } else if (snapshot.hasError) {
+          return Text("${snapshot.error}");
+        }
+
+        return CircularProgressIndicator();
+      }
+  );
 }
 
 class TaskList {
