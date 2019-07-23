@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
+import 'package:http/http.dart' as http;
 
 void main() => runApp(MyApp());
 
@@ -24,7 +24,7 @@ class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title, this.futureTasks}) : super(key: key);
 
   final String title;
-  final Future<Response> futureTasks;
+  final Future<TaskList> futureTasks;
 
   @override
   _MyHomePageState createState() => _MyHomePageState(futureTasks: futureTasks);
@@ -51,12 +51,27 @@ ListView buildTaskView({taskList: TaskList, context}) {
   return ListView(children: divided);
 }
 
-Future<Response> fetchTaskData() => get("https://taskmaster-general.herokuapp.com/api/tasks");
+Future<TaskList> fetchTaskData() async {
+  final response = await http.get("https://taskmaster-general.herokuapp.com/api/tasks");
+
+  if (response.statusCode == 200) {
+    try {
+      List list = json.decode(response.body);
+      return TaskList.fromJson(list);
+    } catch(exception, stackTrace) {
+      print(exception);
+      print(stackTrace);
+      throw Exception('Error retrieving task data from the server. Talk to Mayhew.');
+    }
+  } else {
+    throw Exception('Failed to load task list. Talk to Mayhew.');
+  }
+}
 
 class _MyHomePageState extends State<MyHomePage> {
   _MyHomePageState({this.futureTasks});
 
-  Future<Response> futureTasks;
+  Future<TaskList> futureTasks;
 
   @override
   Widget build(BuildContext context) {
@@ -69,20 +84,22 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-FutureBuilder<Response> _buildFutureBuilder(Future<Response> futureTasks) {
-  return FutureBuilder<Response>(
+FutureBuilder<TaskList> _buildFutureBuilder(Future<TaskList> futureTasks) {
+  return FutureBuilder<TaskList>(
       future: futureTasks,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          Response response = snapshot.data;
-          List list = json.decode(response.body);
-          TaskList taskList = TaskList.fromJson(list);
+          TaskList taskList = snapshot.data;
           return buildTaskView(taskList: taskList, context: context);
         } else if (snapshot.hasError) {
-          return Text("${snapshot.error}");
+          return Center(
+            child: Text("${snapshot.error}"),
+          );
         }
 
-        return CircularProgressIndicator();
+        return Center(
+          child: CircularProgressIndicator(),
+        );
       }
   );
 }
