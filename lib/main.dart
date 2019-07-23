@@ -13,7 +13,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'TaskMaster',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primaryColor: Colors.blueGrey,
+        brightness: Brightness.dark,
       ),
       home: MyHomePage(title: 'TaskMaster', futureTasks: fetchTaskData()),
     );
