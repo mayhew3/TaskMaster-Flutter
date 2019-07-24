@@ -3,8 +3,15 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:google_sign_in/google_sign_in.dart';
 
 void main() => runApp(MyApp());
+
+GoogleSignIn _googleSignIn = GoogleSignIn(
+  scopes: [
+    'email',
+  ]
+);
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -74,13 +81,62 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<TaskList> futureTasks;
 
+  // AUTH CODE
+
+  GoogleSignInAccount _currentUser;
+
+  Future<void> _handleSignIn() async {
+    try {
+      await _googleSignIn.signIn();
+    } catch (error, stackTrace) {
+      print("Login Errored!");
+      print(error);
+      print(stackTrace);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) {
+      setState(() {
+        _currentUser = account;
+      });
+      if (_currentUser != null) {
+        print("Login failed!");
+      } else {
+        print("Login success!");
+      }
+    });
+    _googleSignIn.signInSilently();
+  }
+
+  Widget buildBody(BuildContext context) {
+    if (_currentUser != null) {
+      return _buildFutureBuilder(futureTasks);
+    } else {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            const Text("You are not currently signed in."),
+            RaisedButton(
+              child: const Text('SIGN IN'),
+              onPressed: _handleSignIn,
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: _buildFutureBuilder(futureTasks),
+      body: buildBody(context),
     );
   }
 }
