@@ -18,7 +18,7 @@ class TaskMasterApp extends StatefulWidget {
 }
 
 class TaskMasterAppState extends State<TaskMasterApp> {
-  AppState appState = AppState.loading();
+  AppState appState = AppState();
 
 
   @override
@@ -27,9 +27,8 @@ class TaskMasterAppState extends State<TaskMasterApp> {
 
     widget.repository.loadTasks().then((loadedTasks) {
       setState(() {
-        appState = AppState(
-          taskItems: loadedTasks.map(TaskItem.fromEntity).toList(),
-        );
+        List<TaskItem> tasks = loadedTasks.map(TaskItem.fromEntity).toList();
+        appState.finishedLoading(tasks);
       });
     }).catchError((err) {
       setState(() {

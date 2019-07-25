@@ -1,13 +1,19 @@
+import 'package:google_sign_in/google_sign_in.dart';
+
 class AppState {
   bool isLoading;
   List<TaskItem> taskItems;
+  GoogleSignInAccount currentUser;
 
   AppState({
-    this.isLoading = false,
+    this.isLoading = true,
     this.taskItems = const [],
   });
 
-  factory AppState.loading() => AppState(isLoading: true);
+  void finishedLoading(List<TaskItem> taskItems) {
+    isLoading = false;
+    this.taskItems = taskItems;
+  }
 
   @override
   int get hashCode => taskItems.hashCode ^ isLoading.hashCode;
