@@ -103,9 +103,9 @@ class _MyHomePageState extends State<MyHomePage> {
         _currentUser = account;
       });
       if (_currentUser != null) {
-        print("Login failed!");
-      } else {
         print("Login success!");
+      } else {
+        print("Login failed!");
       }
     });
     _googleSignIn.signInSilently();
