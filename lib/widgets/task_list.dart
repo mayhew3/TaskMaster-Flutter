@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:taskmaster/models.dart';
 import 'package:taskmaster/widgets/task_item.dart';
 import 'package:taskmaster/keys.dart';
+import 'package:taskmaster/screens/detail_screen.dart';
 
 class TaskListWidget extends StatelessWidget {
   final List<TaskItem> taskItems;
@@ -19,6 +20,15 @@ class TaskListWidget extends StatelessWidget {
         (TaskItem taskItem) {
           return TaskItemWidget(
             taskItem: taskItem,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) {
+                  return DetailScreen(
+                    taskItem: taskItem,
+                  );
+                }),
+              );
+            }
           );
         }
     );
