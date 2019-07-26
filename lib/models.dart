@@ -1,19 +1,25 @@
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:taskmaster/auth.dart';
 import 'package:taskmaster/typedefs.dart';
+import 'package:flutter/foundation.dart';
 
 class AppState {
   bool isLoading;
   List<TaskItem> taskItems;
   TaskMasterAuth auth;
   GoogleSignInAccount currentUser;
+  String idToken;
 
   AppState({
     this.isLoading = true,
     this.taskItems = const [],
-    userUpdater: UserUpdater,
+    @required userUpdater: UserUpdater,
+    @required idTokenUpdater: IdTokenUpdater,
   }) {
-    auth = TaskMasterAuth(updateCurrentUser: userUpdater);
+    auth = TaskMasterAuth(
+        updateCurrentUser: userUpdater,
+        updateIdToken: idTokenUpdater,
+    );
   }
 
   void finishedLoading(List<TaskItem> taskItems) {
@@ -22,7 +28,7 @@ class AppState {
   }
 
   bool isAuthenticated() {
-    return currentUser != null;
+    return currentUser != null && idToken != null;
   }
 
   @override

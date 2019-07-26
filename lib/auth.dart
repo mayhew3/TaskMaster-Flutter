@@ -9,8 +9,12 @@ class TaskMasterAuth {
     ]
   );
   final UserUpdater updateCurrentUser;
+  final IdTokenUpdater updateIdToken;
 
-  TaskMasterAuth({@required this.updateCurrentUser});
+  TaskMasterAuth({
+    @required this.updateCurrentUser,
+    @required this.updateIdToken,
+  });
 
   Future<void> handleSignIn() async {
     try {
@@ -27,12 +31,16 @@ class TaskMasterAuth {
   }
 
   void addGoogleListener() {
-    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) {
+    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) async {
+      GoogleSignInAuthentication authentication = await account.authentication;
+      updateIdToken(authentication.idToken);
       updateCurrentUser(account);
-      if (account != null) {
-        print("Login success!");
+      if (account == null) {
+        print("Login failed! No SignInAccount returned.");
+      } else if (authentication.idToken == null) {
+        print("Login failed! No IdToken returned.");
       } else {
-        print("Login failed!");
+        print("Login success!");
       }
     });
     _googleSignIn.signInSilently();

@@ -22,7 +22,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   AppState appState;
 
   TaskMasterAppState() {
-    appState = AppState(userUpdater: updateCurrentUser);
+    appState = AppState(userUpdater: updateCurrentUser, idTokenUpdater: updateIdToken);
   }
 
   void loadMainTaskUI() {
@@ -41,6 +41,15 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   void updateCurrentUser(GoogleSignInAccount currentUser) {
     setState(() {
       appState.currentUser = currentUser;
+    });
+    if (appState.isAuthenticated()) {
+      loadMainTaskUI();
+    }
+  }
+
+  void updateIdToken(String idToken) {
+    setState(() {
+      appState.idToken = idToken;
     });
     if (appState.isAuthenticated()) {
       loadMainTaskUI();
