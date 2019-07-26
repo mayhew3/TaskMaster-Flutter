@@ -40,12 +40,10 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   }
 
   void updateCurrentUser(GoogleSignInAccount currentUser) {
-    print("Updating current user: " + currentUser.toString());
     setState(() {
       appState.currentUser = currentUser;
     });
     if (appState.isAuthenticated()) {
-      print("Loading Main Task UI");
       loadMainTaskUI();
     }
   }

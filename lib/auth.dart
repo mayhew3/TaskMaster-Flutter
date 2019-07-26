@@ -13,10 +13,8 @@ class TaskMasterAuth {
   TaskMasterAuth({@required this.updateCurrentUser});
 
   Future<void> handleSignIn() async {
-    print("Handling sign in!");
     try {
       await _googleSignIn.signIn();
-      print("Finished google signIn call.");
     } catch (error, stackTrace) {
       print("Login Errored!");
       print(error);
@@ -24,9 +22,12 @@ class TaskMasterAuth {
     }
   }
 
+  Future<void> handleSignOut() async {
+    _googleSignIn.disconnect();
+  }
+
   void addGoogleListener() {
     _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) {
-      print("Current User Changed!");
       updateCurrentUser(account);
       if (account != null) {
         print("Login success!");
