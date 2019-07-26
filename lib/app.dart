@@ -5,7 +5,6 @@ import 'package:taskmaster/screens/home_screen.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:taskmaster/routes.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:taskmaster/auth.dart';
 
 class TaskMasterApp extends StatefulWidget {
   final TaskRepository repository;

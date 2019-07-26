@@ -12,7 +12,7 @@ class TaskListWidget extends StatelessWidget {
   TaskListWidget({
     @required this.taskItems,
     @required this.loading,
-  }) : super(key: TaskMasterKeys.todoList);
+  }) : super(key: TaskMasterKeys.taskList);
 
   ListView _buildListView(BuildContext context) {
     final Iterable<TaskItem> taskIterable = taskItems;
@@ -48,7 +48,7 @@ class TaskListWidget extends StatelessWidget {
           ?
           Center(
             child: CircularProgressIndicator(
-              key: TaskMasterKeys.todosLoading,
+              key: TaskMasterKeys.tasksLoading,
             )
           )
           : _buildListView(context)
