@@ -4,6 +4,8 @@ import 'package:taskmaster/models.dart';
 import 'package:taskmaster/screens/home_screen.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:taskmaster/routes.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:taskmaster/auth.dart';
 
 class TaskMasterApp extends StatefulWidget {
   final TaskRepository repository;
@@ -18,13 +20,13 @@ class TaskMasterApp extends StatefulWidget {
 }
 
 class TaskMasterAppState extends State<TaskMasterApp> {
-  AppState appState = AppState();
+  AppState appState;
 
+  TaskMasterAppState() {
+    appState = AppState(userUpdater: updateCurrentUser);
+  }
 
-  @override
-  void initState() {
-    super.initState();
-
+  void loadMainTaskUI() {
     widget.repository.loadTasks().then((loadedTasks) {
       setState(() {
         List<TaskItem> tasks = loadedTasks.map(TaskItem.fromEntity).toList();
@@ -35,6 +37,17 @@ class TaskMasterAppState extends State<TaskMasterApp> {
         appState.isLoading = false;
       });
     });
+  }
+
+  void updateCurrentUser(GoogleSignInAccount currentUser) {
+    print("Updating current user: " + currentUser.toString());
+    setState(() {
+      appState.currentUser = currentUser;
+    });
+    if (appState.isAuthenticated()) {
+      print("Loading Main Task UI");
+      loadMainTaskUI();
+    }
   }
 
   @override

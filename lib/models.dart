@@ -1,18 +1,28 @@
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:taskmaster/auth.dart';
+import 'package:taskmaster/typedefs.dart';
 
 class AppState {
   bool isLoading;
   List<TaskItem> taskItems;
+  TaskMasterAuth auth;
   GoogleSignInAccount currentUser;
 
   AppState({
     this.isLoading = true,
     this.taskItems = const [],
-  });
+    userUpdater: UserUpdater,
+  }) {
+    auth = TaskMasterAuth(updateCurrentUser: userUpdater);
+  }
 
   void finishedLoading(List<TaskItem> taskItems) {
     isLoading = false;
     this.taskItems = taskItems;
+  }
+
+  bool isAuthenticated() {
+    return currentUser != null;
   }
 
   @override
