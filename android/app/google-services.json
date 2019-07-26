@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "689103212710-j618viin00ors83ev6dvo83d8b84aela.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mayhew3.taskmaster",
+            "certificate_hash": "5af464e87c95e5596080d3463b6fc86dc8376dc5"
+          }
+        },
+        {
           "client_id": "689103212710-6h1pqpshs3595ofufooff4rn7jsrc2bl.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -38,6 +46,13 @@
             {
               "client_id": "689103212710-h9bdp3rdjsppffckoi1udpmjdlv5cbdi.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "689103212710-dt9knuqtsdl75li6sbakvcjn2ha040s3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.mayhew3.taskmaster"
+              }
             }
           ]
         }
