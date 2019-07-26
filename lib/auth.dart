@@ -24,7 +24,7 @@ class TaskMasterAuth {
     }
   }
 
-  void addGoogleListener() async {
+  void addGoogleListener() {
     _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) {
       print("Current User Changed!");
       updateCurrentUser(account);
@@ -34,6 +34,6 @@ class TaskMasterAuth {
         print("Login failed!");
       }
     });
-    await _googleSignIn.signInSilently();
+    _googleSignIn.signInSilently();
   }
 }

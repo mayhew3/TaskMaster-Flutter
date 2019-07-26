@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "689103212710",
+    "firebase_url": "https://m3-taskmaster-3000.firebaseio.com",
+    "project_id": "m3-taskmaster-3000",
+    "storage_bucket": "m3-taskmaster-3000.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:689103212710:android:94b4812f1f81b128",
+        "android_client_info": {
+          "package_name": "com.mayhew3.taskmaster"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "689103212710-6h1pqpshs3595ofufooff4rn7jsrc2bl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mayhew3.taskmaster",
+            "certificate_hash": "afeb2d095b7c8b2db108fd69617b52218adb31f5"
+          }
+        },
+        {
+          "client_id": "689103212710-h9bdp3rdjsppffckoi1udpmjdlv5cbdi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCE2vhgb3xnwiicanE1LtA8QOFBJCUyT20"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "689103212710-h9bdp3rdjsppffckoi1udpmjdlv5cbdi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
