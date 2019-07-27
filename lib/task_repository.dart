@@ -3,13 +3,22 @@ import 'dart:async';
 import 'dart:core';
 import 'dart:io';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:taskmaster/models.dart';
 import 'package:http/http.dart' as http;
 
 class TaskRepository {
-  Future<List<TaskEntity>> loadTasks(String idToken) async {
+  AppState appState;
+
+  TaskRepository({@required this.appState});
+
+  Future<List<TaskEntity>> loadTasks() async {
+    if (!appState.isAuthenticated()) {
+      throw new Exception("Cannot load tasks before being signed in.");
+    }
+
     final response = await http.get("https://taskmaster-general.herokuapp.com/api/tasks",
-      headers: {HttpHeaders.authorizationHeader: idToken},
+      headers: {HttpHeaders.authorizationHeader: appState.idToken},
     );
 
     if (response.statusCode == 200) {

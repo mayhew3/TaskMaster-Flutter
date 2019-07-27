@@ -7,26 +7,23 @@ import 'package:taskmaster/routes.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class TaskMasterApp extends StatefulWidget {
-  final TaskRepository repository;
-
-  TaskMasterApp({@required this.repository});
-
   @override
   State<StatefulWidget> createState() {
     return TaskMasterAppState();
   }
-
 }
 
 class TaskMasterAppState extends State<TaskMasterApp> {
   AppState appState;
+  TaskRepository repository;
 
   TaskMasterAppState() {
     appState = AppState(userUpdater: updateCurrentUser, idTokenUpdater: updateIdToken);
+    repository = TaskRepository(appState: appState);
   }
 
   void loadMainTaskUI() {
-    widget.repository.loadTasks(appState.idToken).then((loadedTasks) {
+    repository.loadTasks().then((loadedTasks) {
       setState(() {
         List<TaskItem> tasks = loadedTasks.map(TaskItem.fromEntity).toList();
         appState.finishedLoading(tasks);
