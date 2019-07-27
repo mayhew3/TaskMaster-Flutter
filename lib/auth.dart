@@ -1,6 +1,7 @@
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart';
 import 'package:taskmaster/typedefs.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class TaskMasterAuth {
   final GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -8,6 +9,7 @@ class TaskMasterAuth {
       'email',
     ]
   );
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final UserUpdater updateCurrentUser;
   final IdTokenUpdater updateIdToken;
 
@@ -33,7 +35,13 @@ class TaskMasterAuth {
   void addGoogleListener() {
     _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) async {
       GoogleSignInAuthentication authentication = await account.authentication;
-      updateIdToken(authentication.idToken);
+      final AuthCredential credential = GoogleAuthProvider.getCredential(
+          idToken: authentication.idToken,
+          accessToken: authentication.accessToken,
+      );
+      final FirebaseUser user = await _firebaseAuth.signInWithCredential(credential);
+      String idToken = await user.getIdToken();
+      updateIdToken(idToken);
       updateCurrentUser(account);
       if (account == null) {
         print("Login failed! No SignInAccount returned.");

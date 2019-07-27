@@ -26,7 +26,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   }
 
   void loadMainTaskUI() {
-    widget.repository.loadTasks().then((loadedTasks) {
+    widget.repository.loadTasks(appState.idToken).then((loadedTasks) {
       setState(() {
         List<TaskItem> tasks = loadedTasks.map(TaskItem.fromEntity).toList();
         appState.finishedLoading(tasks);
