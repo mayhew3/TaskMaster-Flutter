@@ -51,27 +51,62 @@ class AppState {
 
 class TaskItem {
   final int id;
-  final String name;
   final int personId;
-  final DateTime dateAdded;
-  final DateTime completionDate;
 
-  TaskItem({this.id, this.name, this.personId, this.dateAdded, this.completionDate});
+  final String name;
+  final String description;
+  final String project;
+  final String context;
+
+  final int urgency;
+  final int priority;
+  final int duration;
+
+  final DateTime dateAdded;
+  final DateTime startDate;
+  final DateTime targetDate;
+  final DateTime dueDate;
+  final DateTime completionDate;
+  final DateTime urgentDate;
+
+  final int gamePoints;
+
+  final int recurNumber;
+  final String recurUnit;
+  final bool recurWait;
+
+  TaskItem({
+    this.id,
+    this.personId,
+    this.name,
+    this.description,
+    this.project,
+    this.context,
+    this.urgency,
+    this.priority,
+    this.duration,
+    this.dateAdded,
+    this.startDate,
+    this.targetDate,
+    this.dueDate,
+    this.completionDate,
+    this.urgentDate,
+    this.gamePoints,
+    this.recurNumber,
+    this.recurUnit,
+    this.recurWait
+  });
 
   @override
   int get hashCode =>
-      id.hashCode ^ name.hashCode ^ personId.hashCode ^ dateAdded.hashCode ^ completionDate.hashCode;
+      id.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
           other is TaskItem &&
               runtimeType == other.runtimeType &&
-              id == other.id &&
-              name == other.name &&
-              personId == other.personId &&
-              dateAdded == other.dateAdded &&
-              completionDate == other.completionDate;
+              id == other.id;
 
   TaskEntity toEntity() {
     return TaskEntity(
@@ -105,37 +140,86 @@ class TaskItem {
   factory TaskItem.fromJson(Map<String, dynamic> json) {
     return TaskItem(
         id: json['id'],
-        name: json['name'],
         personId: json['person_id'],
+        name: json['name'],
+        description: json['description'],
+        project: json['project'],
+        context: json['context'],
+        urgency: json['urgency'],
+        priority: json['priority'],
+        duration: json['duration'],
+        startDate: json['start_date'] == null ? null : DateTime.parse(json['start_date']),
+        targetDate: json['target_date'] == null ? null : DateTime.parse(json['target_date']),
+        dueDate: json['due_date'] == null ? null : DateTime.parse(json['due_date']),
+        completionDate: json['completion_date'] == null ? null : DateTime.parse(json['completion_date']),
+        urgentDate: json['urgent_date'] == null ? null : DateTime.parse(json['urgent_date']),
+        gamePoints: json['game_points'],
+        recurNumber: json['recur_number'],
+        recurUnit: json['recur_unit'],
+        recurWait: json['recur_wait'],
         dateAdded: DateTime.parse(json['date_added']),
-        completionDate: json['completion_date'] == null ? null : DateTime.parse(json['completion_date'])
     );
   }
 }
 
 class TaskEntity {
   final int id;
-  final String name;
   final int personId;
-  final DateTime dateAdded;
-  final DateTime completionDate;
 
-  TaskEntity({this.id, this.name, this.personId, this.dateAdded, this.completionDate});
+  final String name;
+  final String description;
+  final String project;
+  final String context;
+
+  final int urgency;
+  final int priority;
+  final int duration;
+
+  final DateTime dateAdded;
+  final DateTime startDate;
+  final DateTime targetDate;
+  final DateTime dueDate;
+  final DateTime completionDate;
+  final DateTime urgentDate;
+
+  final int gamePoints;
+
+  final int recurNumber;
+  final String recurUnit;
+  final bool recurWait;
+
+  TaskEntity({
+    this.id,
+    this.personId,
+    this.name,
+    this.description,
+    this.project,
+    this.context,
+    this.urgency,
+    this.priority,
+    this.duration,
+    this.dateAdded,
+    this.startDate,
+    this.targetDate,
+    this.dueDate,
+    this.completionDate,
+    this.urgentDate,
+    this.gamePoints,
+    this.recurNumber,
+    this.recurUnit,
+    this.recurWait
+  });
 
   @override
   int get hashCode =>
-      id.hashCode ^ name.hashCode ^ personId.hashCode ^ dateAdded.hashCode ^ completionDate.hashCode;
+      id.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
           other is TaskItem &&
               runtimeType == other.runtimeType &&
-              id == other.id &&
-              name == other.name &&
-              personId == other.personId &&
-              dateAdded == other.dateAdded &&
-              completionDate == other.completionDate;
+              id == other.id;
 
   @override
   String toString() {
@@ -149,11 +233,25 @@ class TaskEntity {
 
   factory TaskEntity.fromJson(Map<String, dynamic> json) {
     return TaskEntity(
-        id: json['id'],
-        name: json['name'],
-        personId: json['person_id'],
-        dateAdded: DateTime.parse(json['date_added']),
-        completionDate: json['completion_date'] == null ? null : DateTime.parse(json['completion_date'])
+      id: json['id'],
+      personId: json['person_id'],
+      name: json['name'],
+      description: json['description'],
+      project: json['project'],
+      context: json['context'],
+      urgency: json['urgency'],
+      priority: json['priority'],
+      duration: json['duration'],
+      startDate: json['start_date'] == null ? null : DateTime.parse(json['start_date']),
+      targetDate: json['target_date'] == null ? null : DateTime.parse(json['target_date']),
+      dueDate: json['due_date'] == null ? null : DateTime.parse(json['due_date']),
+      completionDate: json['completion_date'] == null ? null : DateTime.parse(json['completion_date']),
+      urgentDate: json['urgent_date'] == null ? null : DateTime.parse(json['urgent_date']),
+      gamePoints: json['game_points'],
+      recurNumber: json['recur_number'],
+      recurUnit: json['recur_unit'],
+      recurWait: json['recur_wait'],
+      dateAdded: DateTime.parse(json['date_added']),
     );
   }
 }
