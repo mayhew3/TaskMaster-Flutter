@@ -54,13 +54,13 @@ class TaskItem {
   final String name;
   final int personId;
   final DateTime dateAdded;
-  final DateTime dateCompleted;
+  final DateTime completionDate;
 
-  TaskItem({this.id, this.name, this.personId, this.dateAdded, this.dateCompleted});
+  TaskItem({this.id, this.name, this.personId, this.dateAdded, this.completionDate});
 
   @override
   int get hashCode =>
-      id.hashCode ^ name.hashCode ^ personId.hashCode ^ dateAdded.hashCode ^ dateCompleted.hashCode;
+      id.hashCode ^ name.hashCode ^ personId.hashCode ^ dateAdded.hashCode ^ completionDate.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -71,7 +71,7 @@ class TaskItem {
               name == other.name &&
               personId == other.personId &&
               dateAdded == other.dateAdded &&
-              dateCompleted == other.dateCompleted;
+              completionDate == other.completionDate;
 
   TaskEntity toEntity() {
     return TaskEntity(
@@ -79,7 +79,7 @@ class TaskItem {
         name: name,
         personId: personId,
         dateAdded: dateAdded,
-        dateCompleted: dateCompleted);
+        completionDate: completionDate);
   }
 
   static TaskItem fromEntity(TaskEntity entity) {
@@ -88,7 +88,7 @@ class TaskItem {
       name: entity.name,
       personId: entity.personId,
       dateAdded: entity.dateAdded,
-      dateCompleted: entity.dateCompleted
+      completionDate: entity.completionDate
     );
   }
 
@@ -99,7 +99,7 @@ class TaskItem {
         'name: $name, '
         'personId: $personId, '
         'dateAdded: $dateAdded, '
-        'dateCompleted: $dateCompleted}';
+        'completionDate: $completionDate}';
   }
 
   factory TaskItem.fromJson(Map<String, dynamic> json) {
@@ -108,7 +108,7 @@ class TaskItem {
         name: json['name'],
         personId: json['person_id'],
         dateAdded: DateTime.parse(json['date_added']),
-        dateCompleted: json['date_completed'] == null ? null : DateTime.parse(json['date_completed'])
+        completionDate: json['completion_date'] == null ? null : DateTime.parse(json['completion_date'])
     );
   }
 }
@@ -118,13 +118,13 @@ class TaskEntity {
   final String name;
   final int personId;
   final DateTime dateAdded;
-  final DateTime dateCompleted;
+  final DateTime completionDate;
 
-  TaskEntity({this.id, this.name, this.personId, this.dateAdded, this.dateCompleted});
+  TaskEntity({this.id, this.name, this.personId, this.dateAdded, this.completionDate});
 
   @override
   int get hashCode =>
-      id.hashCode ^ name.hashCode ^ personId.hashCode ^ dateAdded.hashCode ^ dateCompleted.hashCode;
+      id.hashCode ^ name.hashCode ^ personId.hashCode ^ dateAdded.hashCode ^ completionDate.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -135,7 +135,7 @@ class TaskEntity {
               name == other.name &&
               personId == other.personId &&
               dateAdded == other.dateAdded &&
-              dateCompleted == other.dateCompleted;
+              completionDate == other.completionDate;
 
   @override
   String toString() {
@@ -144,7 +144,7 @@ class TaskEntity {
         'name: $name, '
         'personId: $personId, '
         'dateAdded: $dateAdded, '
-        'dateCompleted: $dateCompleted}';
+        'completionDate: $completionDate}';
   }
 
   factory TaskEntity.fromJson(Map<String, dynamic> json) {
@@ -153,7 +153,7 @@ class TaskEntity {
         name: json['name'],
         personId: json['person_id'],
         dateAdded: DateTime.parse(json['date_added']),
-        dateCompleted: json['date_completed'] == null ? null : DateTime.parse(json['date_completed'])
+        completionDate: json['completion_date'] == null ? null : DateTime.parse(json['completion_date'])
     );
   }
 }
