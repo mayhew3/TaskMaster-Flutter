@@ -21,9 +21,23 @@ class DetailScreen extends StatelessWidget {
             padding: EdgeInsets.all(16.0),
             child: ListView(
               children: <Widget>[
-                Text(
-                  taskItem.name,
-                  style: Theme.of(context).textTheme.headline,
+                TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Name',
+                    filled: false,
+                    border: OutlineInputBorder(),
+                  ),
+                  initialValue: taskItem.name,
+                  style: Theme.of(context).textTheme.display1,
+                ),
+                TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Description',
+                    filled: false,
+                    border: OutlineInputBorder(),
+                  ),
+                  initialValue: taskItem.description,
+                  style: Theme.of(context).textTheme.display1,
                 ),
                 Text(
                   taskItem.dateAdded.toString(),
