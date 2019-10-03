@@ -55,9 +55,9 @@ class DetailScreenState extends State<DetailScreen> {
                 ),
                 DateTimePicker(
                   labelText: 'Start',
-                  initialDate: daysFromNow(7),
-                  selectedDate: widget.taskItem.startDate,
-                  selectDate: (DateTime pickedDate) {
+                  defaultDate: daysFromNow(7),
+                  objectDate: widget.taskItem.startDate,
+                  dateSetter: (DateTime pickedDate) {
                     setState(() {
                       widget.taskItem.startDate = pickedDate;
                     });

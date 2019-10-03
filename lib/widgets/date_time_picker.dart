@@ -57,47 +57,47 @@ class DateTimePicker extends StatelessWidget {
   const DateTimePicker({
     Key key,
     this.labelText,
-    this.initialDate,
-    this.selectedDate,
-    this.selectDate,
+    this.defaultDate,
+    this.objectDate,
+    this.dateSetter,
   }) : super(key: key);
 
   final String labelText;
-  final DateTime initialDate;
-  final DateTime selectedDate;
-  final ValueChanged<DateTime> selectDate;
+  final DateTime defaultDate;
+  final DateTime objectDate;
+  final ValueChanged<DateTime> dateSetter;
 
   TimeOfDay getSelectedTime() {
-    return getTimeFromDate(selectedDate);
+    return getTimeFromDate(objectDate);
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    var dateToSelect = selectedDate == null ? initialDate : selectedDate;
+    var dateToSelect = objectDate == null ? defaultDate : objectDate;
     final DateTime picked = await showDatePicker(
       context: context,
       initialDate: dateToSelect,
       firstDate: DateTime(2015, 8),
       lastDate: DateTime(2101),
     );
-    if (picked != null && picked != selectedDate) {
-      if (selectedDate == null) {
-        selectDate(picked);
+    if (picked != null && picked != objectDate) {
+      if (objectDate == null) {
+        dateSetter(picked);
       } else {
-        selectDate(combineDateWithTime(picked, selectedDate.hour, selectedDate.minute));
+        dateSetter(combineDateWithTime(picked, objectDate.hour, objectDate.minute));
       }
     }
   }
 
   Future<void> _selectTime(BuildContext context) async {
-    var timeToSelect = getSelectedTime() == null ? getTimeFromDate(initialDate) : getSelectedTime();
+    var timeToSelect = getSelectedTime() == null ? getTimeFromDate(defaultDate) : getSelectedTime();
     final TimeOfDay picked = await showTimePicker(
       context: context,
       initialTime: timeToSelect,
     );
     if (picked != null && picked != getSelectedTime()) {
-      var baseDate = selectedDate == null ? initialDate : selectedDate;
+      var baseDate = objectDate == null ? defaultDate : objectDate;
       var combinedDate = combineDateWithTime(baseDate, picked.hour, picked.minute);
-      selectDate(combinedDate);
+      dateSetter(combinedDate);
     }
   }
 
@@ -111,7 +111,7 @@ class DateTimePicker extends StatelessWidget {
           flex: 4,
           child: _InputDropdown(
             labelText: labelText,
-            valueText: selectedDate == null ? '' : DateFormat.yMMMd().format(selectedDate),
+            valueText: objectDate == null ? '' : DateFormat.yMMMd().format(objectDate),
             valueStyle: valueStyle,
             onPressed: () { _selectDate(context); },
           ),
