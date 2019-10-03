@@ -48,6 +48,7 @@ class DateTimePicker extends StatelessWidget {
   const DateTimePicker({
     Key key,
     this.labelText,
+    this.initialDate,
     this.selectedDate,
     this.selectedTime,
     this.selectDate,
@@ -55,29 +56,36 @@ class DateTimePicker extends StatelessWidget {
   }) : super(key: key);
 
   final String labelText;
+  final DateTime initialDate;
   final DateTime selectedDate;
   final TimeOfDay selectedTime;
   final ValueChanged<DateTime> selectDate;
   final ValueChanged<TimeOfDay> selectTime;
 
   Future<void> _selectDate(BuildContext context) async {
+    var dateToSelect = selectedDate == null ? initialDate : selectedDate;
     final DateTime picked = await showDatePicker(
       context: context,
-      initialDate: selectedDate,
+      initialDate: dateToSelect,
       firstDate: DateTime(2015, 8),
       lastDate: DateTime(2101),
     );
-    if (picked != null && picked != selectedDate)
+    if (picked != null && picked != selectedDate) {
       selectDate(picked);
+    }
   }
 
   Future<void> _selectTime(BuildContext context) async {
+    var timeToSelect = selectedTime == null ?
+      new TimeOfDay(hour: initialDate.hour, minute: initialDate.minute) :
+      selectedTime;
     final TimeOfDay picked = await showTimePicker(
       context: context,
-      initialTime: selectedTime,
+      initialTime: timeToSelect,
     );
-    if (picked != null && picked != selectedTime)
+    if (picked != null && picked != selectedTime) {
       selectTime(picked);
+    }
   }
 
   @override
@@ -90,7 +98,7 @@ class DateTimePicker extends StatelessWidget {
           flex: 4,
           child: _InputDropdown(
             labelText: labelText,
-            valueText: DateFormat.yMMMd().format(selectedDate),
+            valueText: selectedDate == null ? '' : DateFormat.yMMMd().format(selectedDate),
             valueStyle: valueStyle,
             onPressed: () { _selectDate(context); },
           ),
@@ -99,7 +107,7 @@ class DateTimePicker extends StatelessWidget {
         Expanded(
           flex: 3,
           child: _InputDropdown(
-            valueText: selectedTime.format(context),
+            valueText: selectedTime == null ? '' : selectedTime.format(context),
             valueStyle: valueStyle,
             onPressed: () { _selectTime(context); },
           ),

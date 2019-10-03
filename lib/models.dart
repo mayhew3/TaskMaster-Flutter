@@ -63,7 +63,7 @@ class TaskItem {
   final int duration;
 
   final DateTime dateAdded;
-  final DateTime startDate;
+  DateTime startDate;
   final DateTime targetDate;
   final DateTime dueDate;
   final DateTime completionDate;

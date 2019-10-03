@@ -13,17 +13,17 @@ class DetailScreen extends StatefulWidget {
     @required this.taskItem
   }) : super(key: key);
 
+  @override
+  State<StatefulWidget> createState() => DetailScreenState();
 }
 
 class DetailScreenState extends State<DetailScreen> {
 
-  final TaskItem taskItem;
-  
-  const DetailScreenState({
-    Key key, 
-    @required this.taskItem
-  }) : super(key: key);
-  
+  DateTime combineDateWithTime(DateTime originalDate, int hour, int minute) {
+    return new DateTime(originalDate.year, originalDate.month, originalDate.day,
+        hour, minute);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,7 +40,7 @@ class DetailScreenState extends State<DetailScreen> {
                     filled: false,
                     border: OutlineInputBorder(),
                   ),
-                  initialValue: taskItem.name,
+                  initialValue: widget.taskItem.name,
                   style: Theme.of(context).textTheme.display1,
                 ),
                 TextFormField(
@@ -49,26 +49,34 @@ class DetailScreenState extends State<DetailScreen> {
                     filled: false,
                     border: OutlineInputBorder(),
                   ),
-                  initialValue: taskItem.description,
+                  initialValue: widget.taskItem.description,
                   style: Theme.of(context).textTheme.display1,
                 ),
                 DateTimePicker(
                   labelText: 'Start',
-                  selectedDate: taskItem.startDate,
-                  selectedTime: taskItem.startDate == null ? null : TimeOfDay(hour: taskItem.startDate.hour, minute: taskItem.startDate.minute),
+                  initialDate: DateTime.now(),
+                  selectedDate: widget.taskItem.startDate,
+                  selectedTime: widget.taskItem.startDate == null ? null :
+                    TimeOfDay(hour: widget.taskItem.startDate.hour,
+                              minute: widget.taskItem.startDate.minute),
                   selectDate: (DateTime date) {
                     setState(() {
-                      _fromDate = date;
+                      var originalDate = widget.taskItem.startDate;
+                      widget.taskItem.startDate = originalDate == null ? date :
+                        combineDateWithTime(date, originalDate.hour, originalDate.minute);
                     });
                   },
                   selectTime: (TimeOfDay time) {
                     setState(() {
-                      _fromTime = time;
+                      var originalDate = widget.taskItem.startDate;
+                      widget.taskItem.startDate = originalDate == null ?
+                      combineDateWithTime(DateTime.now(), time.hour, time.minute) :
+                      combineDateWithTime(originalDate, time.hour, time.minute);
                     });
                   },
                 ),
                 Text(
-                  taskItem.dateAdded.toString(),
+                  widget.taskItem.dateAdded.toString(),
                   style: Theme.of(context).textTheme.subhead,
                 ),
               ],
