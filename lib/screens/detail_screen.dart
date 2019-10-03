@@ -56,9 +56,6 @@ class DetailScreenState extends State<DetailScreen> {
                   labelText: 'Start',
                   initialDate: DateTime.now(),
                   selectedDate: widget.taskItem.startDate,
-                  selectedTime: widget.taskItem.startDate == null ? null :
-                    TimeOfDay(hour: widget.taskItem.startDate.hour,
-                              minute: widget.taskItem.startDate.minute),
                   selectDate: (DateTime date) {
                     setState(() {
                       var originalDate = widget.taskItem.startDate;

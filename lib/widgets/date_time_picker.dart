@@ -50,7 +50,6 @@ class DateTimePicker extends StatelessWidget {
     this.labelText,
     this.initialDate,
     this.selectedDate,
-    this.selectedTime,
     this.selectDate,
     this.selectTime,
   }) : super(key: key);
@@ -58,9 +57,16 @@ class DateTimePicker extends StatelessWidget {
   final String labelText;
   final DateTime initialDate;
   final DateTime selectedDate;
-  final TimeOfDay selectedTime;
   final ValueChanged<DateTime> selectDate;
   final ValueChanged<TimeOfDay> selectTime;
+
+  TimeOfDay getTimeFromDate(DateTime dateTime) {
+    return dateTime == null ? null : new TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);
+  }
+
+  TimeOfDay getSelectedTime() {
+    return getTimeFromDate(selectedDate);
+  }
 
   Future<void> _selectDate(BuildContext context) async {
     var dateToSelect = selectedDate == null ? initialDate : selectedDate;
@@ -76,14 +82,12 @@ class DateTimePicker extends StatelessWidget {
   }
 
   Future<void> _selectTime(BuildContext context) async {
-    var timeToSelect = selectedTime == null ?
-      new TimeOfDay(hour: initialDate.hour, minute: initialDate.minute) :
-      selectedTime;
+    var timeToSelect = getSelectedTime() == null ? getTimeFromDate(initialDate) : getSelectedTime();
     final TimeOfDay picked = await showTimePicker(
       context: context,
       initialTime: timeToSelect,
     );
-    if (picked != null && picked != selectedTime) {
+    if (picked != null && picked != getSelectedTime()) {
       selectTime(picked);
     }
   }
@@ -107,7 +111,7 @@ class DateTimePicker extends StatelessWidget {
         Expanded(
           flex: 3,
           child: _InputDropdown(
-            valueText: selectedTime == null ? '' : selectedTime.format(context),
+            valueText: getSelectedTime() == null ? '' : getSelectedTime().format(context),
             valueStyle: valueStyle,
             onPressed: () { _selectTime(context); },
           ),
