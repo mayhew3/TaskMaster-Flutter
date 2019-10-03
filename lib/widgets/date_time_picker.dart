@@ -44,6 +44,15 @@ class _InputDropdown extends StatelessWidget {
   }
 }
 
+TimeOfDay getTimeFromDate(DateTime dateTime) {
+  return dateTime == null ? null : new TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);
+}
+
+DateTime combineDateWithTime(DateTime originalDate, int hour, int minute) {
+  return new DateTime(originalDate.year, originalDate.month, originalDate.day,
+      hour, minute);
+}
+
 class DateTimePicker extends StatelessWidget {
   const DateTimePicker({
     Key key,
@@ -51,18 +60,12 @@ class DateTimePicker extends StatelessWidget {
     this.initialDate,
     this.selectedDate,
     this.selectDate,
-    this.selectTime,
   }) : super(key: key);
 
   final String labelText;
   final DateTime initialDate;
   final DateTime selectedDate;
   final ValueChanged<DateTime> selectDate;
-  final ValueChanged<TimeOfDay> selectTime;
-
-  TimeOfDay getTimeFromDate(DateTime dateTime) {
-    return dateTime == null ? null : new TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);
-  }
 
   TimeOfDay getSelectedTime() {
     return getTimeFromDate(selectedDate);
@@ -77,7 +80,11 @@ class DateTimePicker extends StatelessWidget {
       lastDate: DateTime(2101),
     );
     if (picked != null && picked != selectedDate) {
-      selectDate(picked);
+      if (selectedDate == null) {
+        selectDate(picked);
+      } else {
+        selectDate(combineDateWithTime(picked, selectedDate.hour, selectedDate.minute));
+      }
     }
   }
 
@@ -88,7 +95,9 @@ class DateTimePicker extends StatelessWidget {
       initialTime: timeToSelect,
     );
     if (picked != null && picked != getSelectedTime()) {
-      selectTime(picked);
+      var baseDate = selectedDate == null ? initialDate : selectedDate;
+      var combinedDate = combineDateWithTime(baseDate, picked.hour, picked.minute);
+      selectDate(combinedDate);
     }
   }
 

@@ -17,12 +17,13 @@ class DetailScreen extends StatefulWidget {
   State<StatefulWidget> createState() => DetailScreenState();
 }
 
-class DetailScreenState extends State<DetailScreen> {
+DateTime daysFromNow(int days) {
+  DateTime now = DateTime.now();
+  DateTime atSeven = new DateTime(now.year, now.month, now.day, 19);
+  return atSeven.add(new Duration(days: days));
+}
 
-  DateTime combineDateWithTime(DateTime originalDate, int hour, int minute) {
-    return new DateTime(originalDate.year, originalDate.month, originalDate.day,
-        hour, minute);
-  }
+class DetailScreenState extends State<DetailScreen> {
 
   @override
   Widget build(BuildContext context) {
@@ -54,21 +55,11 @@ class DetailScreenState extends State<DetailScreen> {
                 ),
                 DateTimePicker(
                   labelText: 'Start',
-                  initialDate: DateTime.now(),
+                  initialDate: daysFromNow(7),
                   selectedDate: widget.taskItem.startDate,
-                  selectDate: (DateTime date) {
+                  selectDate: (DateTime pickedDate) {
                     setState(() {
-                      var originalDate = widget.taskItem.startDate;
-                      widget.taskItem.startDate = originalDate == null ? date :
-                        combineDateWithTime(date, originalDate.hour, originalDate.minute);
-                    });
-                  },
-                  selectTime: (TimeOfDay time) {
-                    setState(() {
-                      var originalDate = widget.taskItem.startDate;
-                      widget.taskItem.startDate = originalDate == null ?
-                      combineDateWithTime(DateTime.now(), time.hour, time.minute) :
-                      combineDateWithTime(originalDate, time.hour, time.minute);
+                      widget.taskItem.startDate = pickedDate;
                     });
                   },
                 ),
