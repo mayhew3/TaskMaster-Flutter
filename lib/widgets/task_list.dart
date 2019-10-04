@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/models.dart';
+import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/task_item.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
@@ -8,10 +9,12 @@ import 'package:taskmaster/screens/detail_screen.dart';
 class TaskListWidget extends StatelessWidget {
   final List<TaskItem> taskItems;
   final bool loading;
+  final TaskUpdater taskUpdater;
 
   TaskListWidget({
     @required this.taskItems,
     @required this.loading,
+    @required this.taskUpdater,
   }) : super(key: TaskMasterKeys.taskList);
 
   ListView _buildListView(BuildContext context) {
@@ -25,6 +28,7 @@ class TaskListWidget extends StatelessWidget {
                 MaterialPageRoute(builder: (_) {
                   return DetailScreen(
                     taskItem: taskItem,
+                    taskUpdater: taskUpdater,
                   );
                 }),
               );

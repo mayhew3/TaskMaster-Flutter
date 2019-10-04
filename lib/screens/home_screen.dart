@@ -1,16 +1,19 @@
 import 'package:taskmaster/models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/task_list.dart';
 import 'package:taskmaster/keys.dart';
 
 class HomeScreen extends StatefulWidget {
   final AppState appState;
   final String title;
+  final TaskUpdater taskUpdater;
 
   HomeScreen({
     @required this.appState,
     @required this.title,
+    @required this.taskUpdater,
     Key key,
   }) : super(key: TaskMasterKeys.homeScreen);
 
@@ -47,6 +50,7 @@ class HomeScreenState extends State<HomeScreen> {
     return TaskListWidget(
       taskItems: widget.appState.taskItems,
       loading: widget.appState.isLoading,
+      taskUpdater: widget.taskUpdater,
     );
   }
 

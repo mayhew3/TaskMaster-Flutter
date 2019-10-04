@@ -27,6 +27,12 @@ class AppState {
     this.taskItems = taskItems;
   }
 
+  void updateTaskListWithUpdatedTask(TaskEntity taskEntity) {
+    var taskItem = TaskItem.fromEntity(taskEntity);
+    var existingIndex = taskItems.indexWhere((element) => element.id == taskItem.id);
+    taskItems[existingIndex] = taskItem;
+  }
+
   bool isAuthenticated() {
     return currentUser != null && idToken != null;
   }
@@ -63,7 +69,7 @@ class TaskItem {
   final int duration;
 
   final DateTime dateAdded;
-  DateTime startDate;
+  final DateTime startDate;
   final DateTime targetDate;
   final DateTime dueDate;
   final DateTime completionDate;

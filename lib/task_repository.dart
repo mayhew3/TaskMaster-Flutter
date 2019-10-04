@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:taskmaster/models.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 class TaskRepository {
   AppState appState;
@@ -37,6 +38,45 @@ class TaskRepository {
       }
     } else {
       throw Exception('Failed to load task list. Talk to Mayhew.');
+    }
+  }
+
+  Future<TaskEntity> updateTask(TaskItem taskItem,
+      String name,
+      String description,
+      DateTime startDate) async {
+    if (!appState.isAuthenticated()) {
+      throw new Exception("Cannot update task before being signed in.");
+    }
+
+    var payload = {
+      "task": {
+        "id": taskItem.id,
+        "name": name,
+        "description": description,
+        "start_date": startDate == null ? '' : DateFormat('yyyy-MM-dd HH:mm').format(startDate)
+      }
+    };
+    var body = utf8.encode(json.encode(payload));
+
+    final response = await http.post("https://taskmaster-general.herokuapp.com/api/tasks",
+        headers: {HttpHeaders.authorizationHeader: appState.idToken,
+          "Content-Type": "application/json"},
+        body: body
+    );
+
+    if (response.statusCode == 200) {
+      try {
+        var jsonObj = json.decode(response.body);
+        TaskEntity inboundTask = TaskEntity.fromJson(jsonObj);
+        return inboundTask;
+      } catch(exception, stackTrace) {
+        print(exception);
+        print(stackTrace);
+        throw Exception('Error parsing updated task from the server. Talk to Mayhew.');
+      }
+    } else {
+      throw Exception('Failed to update task. Talk to Mayhew.');
     }
   }
 }

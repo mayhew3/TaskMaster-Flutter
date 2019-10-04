@@ -52,6 +52,16 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     }
   }
 
+  void updateTask(TaskItem taskItem,
+      String name,
+      String description,
+      DateTime startDate) async {
+    var inboundTask = await repository.updateTask(taskItem, name, description, startDate);
+    setState(() {
+      appState.updateTaskListWithUpdatedTask(inboundTask);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final String title = "TaskMaster 3000";
@@ -66,6 +76,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
           return HomeScreen(
             appState: appState,
             title: title,
+            taskUpdater: updateTask,
           );
         }
       },

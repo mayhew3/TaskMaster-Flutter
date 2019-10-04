@@ -58,32 +58,32 @@ class DateTimePicker extends StatelessWidget {
     Key key,
     this.labelText,
     this.defaultDate,
-    this.objectDate,
+    this.dateGetter,
     this.dateSetter,
   }) : super(key: key);
 
   final String labelText;
   final DateTime defaultDate;
-  final DateTime objectDate;
+  final ValueGetter<DateTime> dateGetter;
   final ValueChanged<DateTime> dateSetter;
 
   TimeOfDay getSelectedTime() {
-    return getTimeFromDate(objectDate);
+    return getTimeFromDate(dateGetter());
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    var dateToSelect = objectDate == null ? defaultDate : objectDate;
+    var dateToSelect = dateGetter() ?? defaultDate;
     final DateTime picked = await showDatePicker(
       context: context,
       initialDate: dateToSelect,
       firstDate: DateTime(2015, 8),
       lastDate: DateTime(2101),
     );
-    if (picked != null && picked != objectDate) {
-      if (objectDate == null) {
+    if (picked != null && picked != dateGetter()) {
+      if (dateGetter() == null) {
         dateSetter(picked);
       } else {
-        dateSetter(combineDateWithTime(picked, objectDate.hour, objectDate.minute));
+        dateSetter(combineDateWithTime(picked, dateGetter().hour, dateGetter().minute));
       }
     }
   }
@@ -95,7 +95,7 @@ class DateTimePicker extends StatelessWidget {
       initialTime: timeToSelect,
     );
     if (picked != null && picked != getSelectedTime()) {
-      var baseDate = objectDate == null ? defaultDate : objectDate;
+      var baseDate = dateGetter() == null ? defaultDate : dateGetter();
       var combinedDate = combineDateWithTime(baseDate, picked.hour, picked.minute);
       dateSetter(combinedDate);
     }
@@ -111,7 +111,7 @@ class DateTimePicker extends StatelessWidget {
           flex: 4,
           child: _InputDropdown(
             labelText: labelText,
-            valueText: objectDate == null ? '' : DateFormat.yMMMd().format(objectDate),
+            valueText: dateGetter() == null ? '' : DateFormat.yMMMd().format(dateGetter()),
             valueStyle: valueStyle,
             onPressed: () { _selectDate(context); },
           ),
