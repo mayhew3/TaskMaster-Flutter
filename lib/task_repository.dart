@@ -44,7 +44,8 @@ class TaskRepository {
   Future<TaskEntity> updateTask(TaskItem taskItem,
       String name,
       String description,
-      DateTime startDate) async {
+      DateTime startDate,
+      DateTime targetDate) async {
     if (!appState.isAuthenticated()) {
       throw new Exception("Cannot update task before being signed in.");
     }
@@ -54,7 +55,8 @@ class TaskRepository {
         "id": taskItem.id,
         "name": name,
         "description": description,
-        "start_date": startDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(startDate)
+        "start_date": startDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(startDate),
+        "target_date": targetDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(targetDate)
       }
     };
     var body = utf8.encode(json.encode(payload));

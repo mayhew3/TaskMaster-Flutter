@@ -1,9 +1,10 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:taskmaster/models.dart';
 import 'package:taskmaster/typedefs.dart';
-
+import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:taskmaster/widgets/date_time_picker.dart';
 
 class DetailScreen extends StatefulWidget {
@@ -32,6 +33,13 @@ class DetailScreenState extends State<DetailScreen> {
   String _name;
   String _description;
   DateTime _startDate;
+  DateTime _targetDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _targetDate = widget.taskItem.targetDate;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +64,6 @@ class DetailScreenState extends State<DetailScreen> {
                     border: OutlineInputBorder(),
                   ),
                   initialValue: widget.taskItem?.name,
-                  style: Theme.of(context).textTheme.display1,
                   onSaved: (value) => _name = value,
                 ),
                 TextFormField(
@@ -66,7 +73,6 @@ class DetailScreenState extends State<DetailScreen> {
                     border: OutlineInputBorder(),
                   ),
                   initialValue: widget.taskItem?.description,
-                  style: Theme.of(context).textTheme.display1,
                   onSaved: (value) => _description = value,
                 ),
                 DateTimePicker(
@@ -81,6 +87,17 @@ class DetailScreenState extends State<DetailScreen> {
                   dateSetter: (DateTime pickedDate) {
                     setState(() {
                       _startDate = pickedDate;
+                    });
+                  },
+                ),
+                BasicDateTimeField(
+                  labelText: 'Target',
+                  dateGetter: () {
+                    return _targetDate;
+                  },
+                  dateSetter: (DateTime pickedDate) {
+                    setState(() {
+                      _targetDate = pickedDate;
                     });
                   },
                 ),
@@ -102,8 +119,9 @@ class DetailScreenState extends State<DetailScreen> {
             final name = _name;
             final description = _description;
             final startDate = _startDate;
+            final targetDate = _targetDate;
 
-            widget.taskUpdater(widget.taskItem, name, description, startDate);
+            widget.taskUpdater(widget.taskItem, name, description, startDate, targetDate);
 
             Navigator.pop(context);
           }
@@ -113,4 +131,50 @@ class DetailScreenState extends State<DetailScreen> {
   }
 
   bool get isEditing => widget.taskItem != null;
+}
+
+final longDateFormat = DateFormat.yMMMMd().add_jm();
+
+class BasicDateTimeField extends StatelessWidget {
+  const BasicDateTimeField({
+    Key key,
+    this.labelText,
+    this.dateGetter,
+    this.dateSetter,
+  }) : super(key: key);
+
+  final String labelText;
+  final ValueGetter<DateTime> dateGetter;
+  final ValueChanged<DateTime> dateSetter;
+
+  @override
+  Widget build(BuildContext context) {
+    return InputDecorator(
+      decoration: InputDecoration(
+        labelText: labelText,
+      ),
+      child: DateTimeField(
+        format: longDateFormat,
+        initialValue: dateGetter(),
+        onChanged: (pickedDate) => dateSetter(pickedDate),
+        onShowPicker: (context, currentValue) async {
+          final date = await showDatePicker(
+              context: context,
+              firstDate: DateTime(1900),
+              initialDate: currentValue ?? daysFromNow(7),
+              lastDate: DateTime(2100));
+          if (date != null) {
+            final time = await showTimePicker(
+              context: context,
+              initialTime:
+              TimeOfDay.fromDateTime(currentValue ?? daysFromNow(7)),
+            );
+            return DateTimeField.combine(date, time);
+          } else {
+            return currentValue;
+          }
+        },
+      ),
+    );
+  }
 }

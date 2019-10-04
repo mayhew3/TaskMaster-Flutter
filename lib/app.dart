@@ -55,8 +55,9 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   void updateTask(TaskItem taskItem,
       String name,
       String description,
-      DateTime startDate) async {
-    var inboundTask = await repository.updateTask(taskItem, name, description, startDate);
+      DateTime startDate,
+      DateTime targetDate) async {
+    var inboundTask = await repository.updateTask(taskItem, name, description, startDate, targetDate);
     setState(() {
       appState.updateTaskListWithUpdatedTask(inboundTask);
     });
