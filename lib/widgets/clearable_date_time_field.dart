@@ -25,11 +25,12 @@ class ClearableDateTimeField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InputDecorator(
-      decoration: InputDecoration(
-        labelText: labelText,
-      ),
-      child: DateTimeField(
+    return DateTimeField(
+        decoration: InputDecoration(
+          labelText: labelText,
+          filled: false,
+          border: OutlineInputBorder(),
+        ),
         format: longDateFormat,
         initialValue: dateGetter(),
         onChanged: (pickedDate) => dateSetter(pickedDate),
@@ -50,7 +51,6 @@ class ClearableDateTimeField extends StatelessWidget {
             return currentValue;
           }
         },
-      ),
     );
   }
 }

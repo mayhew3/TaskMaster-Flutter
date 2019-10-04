@@ -41,58 +41,66 @@ class DetailScreenState extends State<DetailScreen> {
           title: Text("Task Details"),
         ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(8.0),
         child: Form(
             key: formKey,
             autovalidate: false,
             onWillPop: () {
               return Future(() => true);
             },
-            child: ListView(
+            child: Column(
               children: <Widget>[
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Name',
-                    filled: false,
-                    border: OutlineInputBorder(),
+                Container(
+                  margin: EdgeInsets.all(7.0),
+                  child: TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'Name',
+                      filled: false,
+                      border: OutlineInputBorder(),
+                    ),
+                    initialValue: widget.taskItem?.name,
+                    onSaved: (value) => _name = value,
                   ),
-                  initialValue: widget.taskItem?.name,
-                  onSaved: (value) => _name = value,
                 ),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Description',
-                    filled: false,
-                    border: OutlineInputBorder(),
+                Container(
+                  margin: EdgeInsets.all(7.0),
+                  child: TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'Description',
+                      filled: false,
+                      border: OutlineInputBorder(),
+                    ),
+                    initialValue: widget.taskItem?.description,
+                    onSaved: (value) => _description = value,
                   ),
-                  initialValue: widget.taskItem?.description,
-                  onSaved: (value) => _description = value,
                 ),
-                ClearableDateTimeField(
-                  labelText: 'Start',
-                  dateGetter: () {
-                    return _startDate;
-                  },
-                  dateSetter: (DateTime pickedDate) {
-                    setState(() {
-                      _startDate = pickedDate;
-                    });
-                  },
+                Container(
+                  margin: EdgeInsets.all(7.0),
+                  child: ClearableDateTimeField(
+                    labelText: 'Start Date',
+                    dateGetter: () {
+                      return _startDate;
+                    },
+                    dateSetter: (DateTime pickedDate) {
+                      setState(() {
+                        _startDate = pickedDate;
+                      });
+                    },
+                  ),
                 ),
-                ClearableDateTimeField(
-                  labelText: 'Target',
-                  dateGetter: () {
-                    return _targetDate;
-                  },
-                  dateSetter: (DateTime pickedDate) {
-                    setState(() {
-                      _targetDate = pickedDate;
-                    });
-                  },
-                ),
-                Text(
-                  widget.taskItem.dateAdded.toString(),
-                  style: Theme.of(context).textTheme.subhead,
+                Container(
+                  margin: EdgeInsets.all(7.0),
+                  child: ClearableDateTimeField(
+                    labelText: 'Target Date',
+                    dateGetter: () {
+                      return _targetDate;
+                    },
+                    dateSetter: (DateTime pickedDate) {
+                      setState(() {
+                        _targetDate = pickedDate;
+                      });
+                    },
+                  ),
                 ),
               ],
             )
