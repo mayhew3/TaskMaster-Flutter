@@ -117,23 +117,48 @@ class TaskItem {
   TaskEntity toEntity() {
     return TaskEntity(
         id: id,
+        personId: personId,
         name: name,
         description: description,
-        personId: personId,
+        project: project,
+        context: context,
+        urgency: urgency,
+        priority: priority,
+        duration: duration,
         dateAdded: dateAdded,
         startDate: startDate,
-        completionDate: completionDate);
+        targetDate: targetDate,
+        dueDate: dueDate,
+        completionDate: completionDate,
+        urgentDate: urgentDate,
+        gamePoints: gamePoints,
+        recurNumber: recurNumber,
+        recurUnit: recurUnit,
+        recurWait: recurWait
+    );
   }
 
   static TaskItem fromEntity(TaskEntity entity) {
     return TaskItem(
-      id: entity.id,
-      name: entity.name,
-      description: entity.description,
-      personId: entity.personId,
-      dateAdded: entity.dateAdded,
-      startDate: entity.startDate,
-      completionDate: entity.completionDate
+        id: entity.id,
+        personId: entity.personId,
+        name: entity.name,
+        description: entity.description,
+        project: entity.project,
+        context: entity.context,
+        urgency: entity.urgency,
+        priority: entity.priority,
+        duration: entity.duration,
+        dateAdded: entity.dateAdded,
+        startDate: entity.startDate,
+        targetDate: entity.targetDate,
+        dueDate: entity.dueDate,
+        completionDate: entity.completionDate,
+        urgentDate: entity.urgentDate,
+        gamePoints: entity.gamePoints,
+        recurNumber: entity.recurNumber,
+        recurUnit: entity.recurUnit,
+        recurWait: entity.recurWait
     );
   }
 
