@@ -54,7 +54,7 @@ class TaskRepository {
         "id": taskItem.id,
         "name": name,
         "description": description,
-        "start_date": startDate == null ? '' : DateFormat('yyyy-MM-dd HH:mm').format(startDate)
+        "start_date": startDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(startDate)
       }
     };
     var body = utf8.encode(json.encode(payload));

@@ -118,8 +118,10 @@ class TaskItem {
     return TaskEntity(
         id: id,
         name: name,
+        description: description,
         personId: personId,
         dateAdded: dateAdded,
+        startDate: startDate,
         completionDate: completionDate);
   }
 
@@ -127,8 +129,10 @@ class TaskItem {
     return TaskItem(
       id: entity.id,
       name: entity.name,
+      description: entity.description,
       personId: entity.personId,
       dateAdded: entity.dateAdded,
+      startDate: entity.startDate,
       completionDate: entity.completionDate
     );
   }
