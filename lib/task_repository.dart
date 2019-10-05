@@ -41,11 +41,24 @@ class TaskRepository {
     }
   }
 
-  Future<TaskEntity> updateTask(TaskItem taskItem,
-      String name,
-      String description,
-      DateTime startDate,
-      DateTime targetDate) async {
+  Future<TaskEntity> updateTask({
+    TaskItem taskItem,
+    String name,
+    String description,
+    String project,
+    String context,
+    int urgency,
+    int priority,
+    int duration,
+    DateTime startDate,
+    DateTime targetDate,
+    DateTime dueDate,
+    DateTime urgentDate,
+    int gamePoints,
+    int recurNumber,
+    String recurUnit,
+    bool recurWait,
+  }) async {
     if (!appState.isAuthenticated()) {
       throw new Exception("Cannot update task before being signed in.");
     }
@@ -55,8 +68,12 @@ class TaskRepository {
         "id": taskItem.id,
         "name": name,
         "description": description,
+        "project": project,
+        "context": context,
         "start_date": startDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(startDate),
-        "target_date": targetDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(targetDate)
+        "target_date": targetDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(targetDate),
+        "due_date": dueDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(dueDate),
+        "urgent_date": urgentDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(urgentDate),
       }
     };
     var body = utf8.encode(json.encode(payload));

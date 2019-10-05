@@ -52,12 +52,42 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     }
   }
 
-  void updateTask(TaskItem taskItem,
-      String name,
-      String description,
-      DateTime startDate,
-      DateTime targetDate) async {
-    var inboundTask = await repository.updateTask(taskItem, name, description, startDate, targetDate);
+  void updateTask({
+    TaskItem taskItem,
+    String name,
+    String description,
+    String project,
+    String context,
+    int urgency,
+    int priority,
+    int duration,
+    DateTime startDate,
+    DateTime targetDate,
+    DateTime dueDate,
+    DateTime urgentDate,
+    int gamePoints,
+    int recurNumber,
+    String recurUnit,
+    bool recurWait,
+  }) async {
+    var inboundTask = await repository.updateTask(
+        taskItem: taskItem,
+        name: name,
+        description: description,
+        project: project,
+        context: context,
+        urgency: urgency,
+        priority: priority,
+        duration: duration,
+        startDate: startDate,
+        targetDate: targetDate,
+        dueDate: dueDate,
+        urgentDate: urgentDate,
+        gamePoints: gamePoints,
+        recurNumber: recurNumber,
+        recurUnit: recurUnit,
+        recurWait: recurWait
+    );
     setState(() {
       appState.updateTaskListWithUpdatedTask(inboundTask);
     });

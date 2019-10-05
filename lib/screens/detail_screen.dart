@@ -24,14 +24,32 @@ class DetailScreenState extends State<DetailScreen> {
 
   String _name;
   String _description;
+  String _project;
+  String _context;
+
+  int _urgency;
+  int _priority;
+  int _duration;
+
   DateTime _startDate;
   DateTime _targetDate;
+  DateTime _dueDate;
+  DateTime _urgentDate;
+
+  int _gamePoints;
+
+  int _recurNumber;
+  String _recurUnit;
+  bool _recurWait;
+
 
   @override
   void initState() {
     super.initState();
     _startDate = widget.taskItem.startDate;
     _targetDate = widget.taskItem.targetDate;
+    _dueDate = widget.taskItem.dueDate;
+    _urgentDate = widget.taskItem.urgentDate;
   }
 
   @override
@@ -48,7 +66,7 @@ class DetailScreenState extends State<DetailScreen> {
             onWillPop: () {
               return Future(() => true);
             },
-            child: Column(
+            child: ListView(
               children: <Widget>[
                 Container(
                   margin: EdgeInsets.all(7.0),
@@ -66,12 +84,24 @@ class DetailScreenState extends State<DetailScreen> {
                   margin: EdgeInsets.all(7.0),
                   child: TextFormField(
                     decoration: const InputDecoration(
-                      labelText: 'Description',
+                      labelText: 'Project',
                       filled: false,
                       border: OutlineInputBorder(),
                     ),
-                    initialValue: widget.taskItem?.description,
-                    onSaved: (value) => _description = value,
+                    initialValue: widget.taskItem?.project,
+                    onSaved: (value) => _project = value,
+                  ),
+                ),
+                Container(
+                  margin: EdgeInsets.all(7.0),
+                  child: TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'Context',
+                      filled: false,
+                      border: OutlineInputBorder(),
+                    ),
+                    initialValue: widget.taskItem?.context,
+                    onSaved: (value) => _context = value,
                   ),
                 ),
                 Container(
@@ -102,23 +132,76 @@ class DetailScreenState extends State<DetailScreen> {
                     },
                   ),
                 ),
+                Container(
+                  margin: EdgeInsets.all(7.0),
+                  child: ClearableDateTimeField(
+                    labelText: 'Due Date',
+                    dateGetter: () {
+                      return _dueDate;
+                    },
+                    dateSetter: (DateTime pickedDate) {
+                      setState(() {
+                        _dueDate = pickedDate;
+                      });
+                    },
+                  ),
+                ),
+                Container(
+                  margin: EdgeInsets.all(7.0),
+                  child: ClearableDateTimeField(
+                    labelText: 'Urgent Date',
+                    dateGetter: () {
+                      return _urgentDate;
+                    },
+                    dateSetter: (DateTime pickedDate) {
+                      setState(() {
+                        _urgentDate = pickedDate;
+                      });
+                    },
+                  ),
+                ),
+                Container(
+                  margin: EdgeInsets.all(7.0),
+                  child: TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'Notes',
+                      filled: false,
+                      border: OutlineInputBorder(),
+                    ),
+                    initialValue: widget.taskItem?.description,
+                    onSaved: (value) => _description = value,
+                  ),
+                ),
+
               ],
             )
         ),
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.check),
-        onPressed: () {
+        onPressed: () async {
           final form = formKey.currentState;
           if (form.validate()) {
             form.save();
 
-            final name = _name;
-            final description = _description;
-            final startDate = _startDate;
-            final targetDate = _targetDate;
-
-            widget.taskUpdater(widget.taskItem, name, description, startDate, targetDate);
+            await widget.taskUpdater(
+                taskItem: widget.taskItem,
+                name: _name,
+                description: _description,
+                project: _project,
+                context: _context,
+                urgency: _urgency,
+                priority: _priority,
+                duration: _duration,
+                startDate: _startDate,
+                targetDate: _targetDate,
+                dueDate: _dueDate,
+                urgentDate: _urgentDate,
+                gamePoints: _gamePoints,
+                recurNumber: _recurNumber,
+                recurUnit: _recurUnit,
+                recurWait: _recurWait
+            );
 
             Navigator.pop(context);
           }
