@@ -27,16 +27,16 @@ class DetailScreenState extends State<DetailScreen> {
   String _project;
   String _context;
 
-  int _urgency;
-  int _priority;
-  int _duration;
+  String _urgency;
+  String _priority;
+  String _duration;
 
   DateTime _startDate;
   DateTime _targetDate;
   DateTime _dueDate;
   DateTime _urgentDate;
 
-  int _gamePoints;
+  String _gamePoints;
 
   int _recurNumber;
   String _recurUnit;
@@ -103,6 +103,71 @@ class DetailScreenState extends State<DetailScreen> {
                     initialValue: widget.taskItem?.context,
                     onSaved: (value) => _context = value,
                   ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    Expanded(
+                      child: Container(
+                        margin: EdgeInsets.all(7.0),
+                        child: TextFormField(
+                          decoration: const InputDecoration(
+                            labelText: 'Urgency',
+                            filled: false,
+                            border: OutlineInputBorder(),
+                          ),
+                          initialValue: widget.taskItem?.urgency?.toString(),
+                          keyboardType: TextInputType.number,
+                          onSaved: (value) => _urgency = value,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        margin: EdgeInsets.all(7.0),
+                        child: TextFormField(
+                          decoration: const InputDecoration(
+                            labelText: 'Priority',
+                            filled: false,
+                            border: OutlineInputBorder(),
+                          ),
+                          initialValue: widget.taskItem?.priority?.toString(),
+                          keyboardType: TextInputType.number,
+                          onSaved: (value) => _priority = value,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        margin: EdgeInsets.all(7.0),
+                        child: TextFormField(
+                          decoration: const InputDecoration(
+                            labelText: 'Points',
+                            filled: false,
+                            border: OutlineInputBorder(),
+                          ),
+                          initialValue: widget.taskItem?.gamePoints?.toString(),
+                          keyboardType: TextInputType.number,
+                          onSaved: (value) => _gamePoints = value,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        margin: EdgeInsets.all(7.0),
+                        child: TextFormField(
+                          decoration: const InputDecoration(
+                            labelText: 'Length',
+                            filled: false,
+                            border: OutlineInputBorder(),
+                          ),
+                          initialValue: widget.taskItem?.duration?.toString(),
+                          keyboardType: TextInputType.number,
+                          onSaved: (value) => _duration = value,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 Container(
                   margin: EdgeInsets.all(7.0),
@@ -190,14 +255,14 @@ class DetailScreenState extends State<DetailScreen> {
                 description: _description,
                 project: _project,
                 context: _context,
-                urgency: _urgency,
-                priority: _priority,
-                duration: _duration,
+                urgency: num.parse(_urgency),
+                priority: num.parse(_priority),
+                duration: num.parse(_duration),
                 startDate: _startDate,
                 targetDate: _targetDate,
                 dueDate: _dueDate,
                 urgentDate: _urgentDate,
-                gamePoints: _gamePoints,
+                gamePoints: num.parse(_gamePoints),
                 recurNumber: _recurNumber,
                 recurUnit: _recurUnit,
                 recurWait: _recurWait

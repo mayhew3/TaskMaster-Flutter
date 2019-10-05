@@ -70,10 +70,14 @@ class TaskRepository {
         "description": description,
         "project": project,
         "context": context,
+        "urgency": urgency,
+        "priority": priority,
+        "duration": duration,
         "start_date": startDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(startDate),
         "target_date": targetDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(targetDate),
         "due_date": dueDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(dueDate),
         "urgent_date": urgentDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(urgentDate),
+        "game_points": gamePoints,
       }
     };
     var body = utf8.encode(json.encode(payload));
