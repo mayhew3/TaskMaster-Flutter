@@ -4,6 +4,8 @@ import 'package:taskmaster/models.dart';
 typedef UserUpdater(GoogleSignInAccount account);
 typedef IdTokenUpdater(String idToken);
 
+typedef TaskAdder(TaskItem taskItem);
+
 typedef TaskUpdater({
   TaskItem taskItem,
   String name,

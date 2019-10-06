@@ -27,6 +27,11 @@ class AppState {
     this.taskItems = taskItems;
   }
 
+  void addNewTaskToList(TaskEntity taskEntity) {
+    var taskItem = TaskItem.fromEntity(taskEntity);
+    taskItems.add(taskItem);
+  }
+
   void updateTaskListWithUpdatedTask(TaskEntity taskEntity) {
     var taskItem = TaskItem.fromEntity(taskEntity);
     var existingIndex = taskItems.indexWhere((element) => element.id == taskItem.id);

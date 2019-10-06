@@ -52,6 +52,13 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     }
   }
 
+  void addTask(TaskItem taskItem) async {
+    var inboundTask = await repository.addTask(taskItem);
+    setState(() {
+      appState.addNewTaskToList(inboundTask);
+    });
+  }
+
   void updateTask({
     TaskItem taskItem,
     String name,
@@ -107,6 +114,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
           return HomeScreen(
             appState: appState,
             title: title,
+            taskAdder: addTask,
             taskUpdater: updateTask,
           );
         }

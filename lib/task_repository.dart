@@ -41,6 +41,31 @@ class TaskRepository {
     }
   }
 
+  Future<TaskEntity> addTask(TaskItem taskItem) async {
+    if (!appState.isAuthenticated()) {
+      throw new Exception("Cannot update task before being signed in.");
+    }
+
+    var payload = {
+      "task": {
+        "name": taskItem.name,
+        "person_id": 1,
+        "description": taskItem.description,
+        "project": taskItem.project,
+        "context": taskItem.context,
+        "urgency": taskItem.urgency,
+        "priority": taskItem.priority,
+        "duration": taskItem.duration,
+        "start_date": taskItem.startDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(taskItem.startDate),
+        "target_date": taskItem.targetDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(taskItem.targetDate),
+        "due_date": taskItem.dueDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(taskItem.dueDate),
+        "urgent_date": taskItem.urgentDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(taskItem.urgentDate),
+        "game_points": taskItem.gamePoints,
+      }
+    };
+    return _addOrUpdateJSON(payload, 'add');
+  }
+
   Future<TaskEntity> updateTask({
     TaskItem taskItem,
     String name,
@@ -80,6 +105,10 @@ class TaskRepository {
         "game_points": gamePoints,
       }
     };
+    return _addOrUpdateJSON(payload, 'update');
+  }
+
+  Future<TaskEntity> _addOrUpdateJSON(Map<String, Object> payload, String addOrUpdate) async {
     var body = utf8.encode(json.encode(payload));
 
     final response = await http.post("https://taskmaster-general.herokuapp.com/api/tasks",
@@ -96,10 +125,10 @@ class TaskRepository {
       } catch(exception, stackTrace) {
         print(exception);
         print(stackTrace);
-        throw Exception('Error parsing updated task from the server. Talk to Mayhew.');
+        throw Exception('Error parsing $addOrUpdate task from the server. Talk to Mayhew.');
       }
     } else {
-      throw Exception('Failed to update task. Talk to Mayhew.');
+      throw Exception('Failed to $addOrUpdate task. Talk to Mayhew.');
     }
   }
 }

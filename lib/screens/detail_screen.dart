@@ -1,4 +1,6 @@
 
+import 'dart:ui';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/models.dart';
@@ -7,12 +9,14 @@ import 'package:taskmaster/widgets/clearable_date_time_field.dart';
 
 class DetailScreen extends StatefulWidget {
   final TaskItem taskItem;
+  final TaskAdder taskAdder;
   final TaskUpdater taskUpdater;
 
   const DetailScreen({
     Key key,
-    @required this.taskItem,
-    @required this.taskUpdater,
+    this.taskItem,
+    this.taskAdder,
+    this.taskUpdater,
   }) : super(key: key);
 
   @override
@@ -46,10 +50,17 @@ class DetailScreenState extends State<DetailScreen> {
   @override
   void initState() {
     super.initState();
-    _startDate = widget.taskItem.startDate;
-    _targetDate = widget.taskItem.targetDate;
-    _dueDate = widget.taskItem.dueDate;
-    _urgentDate = widget.taskItem.urgentDate;
+
+    if (isEditing) {
+      assert(widget.taskUpdater != null);
+    } else {
+      assert(widget.taskAdder != null);
+    }
+
+    _startDate = widget.taskItem?.startDate;
+    _targetDate = widget.taskItem?.targetDate;
+    _dueDate = widget.taskItem?.dueDate;
+    _urgentDate = widget.taskItem?.urgentDate;
   }
 
   @override
@@ -243,30 +254,51 @@ class DetailScreenState extends State<DetailScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.check),
+        child: Icon(isEditing ? Icons.check : Icons.add),
         onPressed: () async {
           final form = formKey.currentState;
           if (form.validate()) {
             form.save();
 
-            await widget.taskUpdater(
-                taskItem: widget.taskItem,
-                name: _name,
-                description: _description,
-                project: _project,
-                context: _context,
-                urgency: num.parse(_urgency),
-                priority: num.parse(_priority),
-                duration: num.parse(_duration),
-                startDate: _startDate,
-                targetDate: _targetDate,
-                dueDate: _dueDate,
-                urgentDate: _urgentDate,
-                gamePoints: num.parse(_gamePoints),
-                recurNumber: _recurNumber,
-                recurUnit: _recurUnit,
-                recurWait: _recurWait
-            );
+            if (isEditing) {
+              await widget.taskUpdater(
+                  taskItem: widget.taskItem,
+                  name: _name,
+                  description: _description,
+                  project: _project,
+                  context: _context,
+                  urgency: num.parse(_urgency),
+                  priority: num.parse(_priority),
+                  duration: num.parse(_duration),
+                  startDate: _startDate,
+                  targetDate: _targetDate,
+                  dueDate: _dueDate,
+                  urgentDate: _urgentDate,
+                  gamePoints: num.parse(_gamePoints),
+                  recurNumber: _recurNumber,
+                  recurUnit: _recurUnit,
+                  recurWait: _recurWait
+              );
+            } else {
+              var addedItem = TaskItem(
+                  name: _name,
+                  description: _description,
+                  project: _project,
+                  context: _context,
+                  urgency: num.parse(_urgency),
+                  priority: num.parse(_priority),
+                  duration: num.parse(_duration),
+                  startDate: _startDate,
+                  targetDate: _targetDate,
+                  dueDate: _dueDate,
+                  urgentDate: _urgentDate,
+                  gamePoints: num.parse(_gamePoints),
+                  recurNumber: _recurNumber,
+                  recurUnit: _recurUnit,
+                  recurWait: _recurWait
+              );
+              await widget.taskAdder(addedItem);
+            }
 
             Navigator.pop(context);
           }
