@@ -2,6 +2,7 @@ import 'package:taskmaster/models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/typedefs.dart';
+import 'dart:typed_data';
 import 'package:taskmaster/widgets/task_list.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
@@ -72,7 +73,31 @@ class HomeScreenState extends State<HomeScreen> {
     var platformChannelSpecifics = NotificationDetails(
         androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
     await flutterLocalNotificationsPlugin.show(
-        0, 'plain title', 'plain body', platformChannelSpecifics,
+        0,
+        'plain title',
+        'plain body',
+        platformChannelSpecifics,
+        payload: 'item x');
+  }
+
+  /// Schedules a notification that specifies a different icon, sound and vibration pattern
+  Future<void> _scheduleNotification() async {
+    var scheduledNotificationDateTime = DateTime.now().add(Duration(seconds: 5));
+
+    var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+        'your other channel id',
+        'your other channel name',
+        'your other channel description',
+        importance: Importance.Max, priority: Priority.High, ticker: 'ticker');
+    var iOSPlatformChannelSpecifics = IOSNotificationDetails();
+    var platformChannelSpecifics = NotificationDetails(
+        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.schedule(
+        0,
+        'scheduled title',
+        'scheduled body',
+        scheduledNotificationDateTime,
+        platformChannelSpecifics,
         payload: 'item x');
   }
 
@@ -143,7 +168,7 @@ class HomeScreenState extends State<HomeScreen> {
           // action button
           IconButton(
             icon: Icon(Icons.notification_important),
-            onPressed: () => showNotification(),
+            onPressed: () => _scheduleNotification(),
           ),
         ],
       ),
