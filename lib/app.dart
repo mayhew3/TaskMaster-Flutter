@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:taskmaster/models.dart';
+import 'package:taskmaster/notification_scheduler.dart';
 import 'package:taskmaster/screens/home_screen.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:taskmaster/routes.dart';
@@ -15,10 +16,12 @@ class TaskMasterApp extends StatefulWidget {
 class TaskMasterAppState extends State<TaskMasterApp> {
   AppState appState;
   TaskRepository repository;
+  NotificationScheduler notificationScheduler;
 
   TaskMasterAppState() {
     appState = AppState(userUpdater: updateCurrentUser, idTokenUpdater: updateIdToken);
     repository = TaskRepository(appState: appState);
+    notificationScheduler = NotificationScheduler(context);
   }
 
   void loadMainTaskUI() {
@@ -26,6 +29,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       setState(() {
         List<TaskItem> tasks = loadedTasks.map(TaskItem.fromEntity).toList();
         appState.finishedLoading(tasks);
+        tasks.forEach((taskItem) => notificationScheduler.syncNotificationForTask(taskItem));
       });
     }).catchError((err) {
       setState(() {
