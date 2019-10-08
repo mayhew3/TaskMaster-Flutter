@@ -56,8 +56,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   Widget buildTaskList(BuildContext context) {
     return TaskListWidget(
-      taskItems: widget.appState.taskItems,
-      loading: widget.appState.isLoading,
+      appState: widget.appState,
       taskUpdater: widget.taskUpdater,
     );
   }

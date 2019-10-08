@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:taskmaster/auth.dart';
+import 'package:taskmaster/notification_scheduler.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:flutter/foundation.dart';
 
@@ -9,6 +11,7 @@ class AppState {
   TaskMasterAuth auth;
   GoogleSignInAccount currentUser;
   String idToken;
+  NotificationScheduler notificationScheduler;
 
   AppState({
     this.isLoading = true,
@@ -22,20 +25,26 @@ class AppState {
     );
   }
 
+  void updateNotificationScheduler(BuildContext context) {
+    notificationScheduler = NotificationScheduler(context);
+  }
+
   void finishedLoading(List<TaskItem> taskItems) {
     isLoading = false;
     this.taskItems = taskItems;
   }
 
-  void addNewTaskToList(TaskEntity taskEntity) {
+  TaskItem addNewTaskToList(TaskEntity taskEntity) {
     var taskItem = TaskItem.fromEntity(taskEntity);
     taskItems.add(taskItem);
+    return taskItem;
   }
 
-  void updateTaskListWithUpdatedTask(TaskEntity taskEntity) {
+  TaskItem updateTaskListWithUpdatedTask(TaskEntity taskEntity) {
     var taskItem = TaskItem.fromEntity(taskEntity);
     var existingIndex = taskItems.indexWhere((element) => element.id == taskItem.id);
     taskItems[existingIndex] = taskItem;
+    return taskItem;
   }
 
   bool isAuthenticated() {
@@ -271,6 +280,14 @@ class TaskEntity {
         'completionDate: $completionDate}';
   }
 
+  static DateTime nullSafeParseJSON(dynamic jsonVal) {
+    if (jsonVal == null) {
+      return null;
+    } else {
+      return DateTime.parse(jsonVal).toLocal();
+    }
+  }
+
   factory TaskEntity.fromJson(Map<String, dynamic> json) {
     return TaskEntity(
       id: json['id'],
@@ -282,16 +299,16 @@ class TaskEntity {
       urgency: json['urgency'],
       priority: json['priority'],
       duration: json['duration'],
-      startDate: json['start_date'] == null ? null : DateTime.parse(json['start_date']),
-      targetDate: json['target_date'] == null ? null : DateTime.parse(json['target_date']),
-      dueDate: json['due_date'] == null ? null : DateTime.parse(json['due_date']),
-      completionDate: json['completion_date'] == null ? null : DateTime.parse(json['completion_date']),
-      urgentDate: json['urgent_date'] == null ? null : DateTime.parse(json['urgent_date']),
+      startDate: nullSafeParseJSON(json['start_date']),
+      targetDate: nullSafeParseJSON(json['target_date']),
+      dueDate: nullSafeParseJSON(json['due_date']),
+      completionDate: nullSafeParseJSON(json['completion_date']),
+      urgentDate: nullSafeParseJSON(json['urgent_date']),
       gamePoints: json['game_points'],
       recurNumber: json['recur_number'],
       recurUnit: json['recur_unit'],
       recurWait: json['recur_wait'],
-      dateAdded: DateTime.parse(json['date_added']),
+      dateAdded: nullSafeParseJSON(json['date_added']),
     );
   }
 }

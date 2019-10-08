@@ -7,18 +7,17 @@ import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
 
 class TaskListWidget extends StatelessWidget {
-  final List<TaskItem> taskItems;
-  final bool loading;
+  final AppState appState;
   final TaskUpdater taskUpdater;
 
   TaskListWidget({
-    @required this.taskItems,
-    @required this.loading,
+    @required this.appState,
     @required this.taskUpdater,
   }) : super(key: TaskMasterKeys.taskList);
 
   ListView _buildListView(BuildContext context) {
-    final Iterable<TaskItem> taskIterable = taskItems;
+    appState.notificationScheduler.updateHomeScreenContext(context);
+    final Iterable<TaskItem> taskIterable = appState.taskItems;
     final Iterable<TaskItemWidget> tiles = taskIterable.map<TaskItemWidget>(
         (TaskItem taskItem) {
           return TaskItemWidget(
@@ -48,7 +47,7 @@ class TaskListWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: loading
+      child: appState.isLoading
           ?
           Center(
             child: CircularProgressIndicator(

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:core';
 import 'dart:io';
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:taskmaster/models.dart';
 import 'package:http/http.dart' as http;
@@ -56,10 +57,10 @@ class TaskRepository {
         "urgency": taskItem.urgency,
         "priority": taskItem.priority,
         "duration": taskItem.duration,
-        "start_date": taskItem.startDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(taskItem.startDate),
-        "target_date": taskItem.targetDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(taskItem.targetDate),
-        "due_date": taskItem.dueDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(taskItem.dueDate),
-        "urgent_date": taskItem.urgentDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(taskItem.urgentDate),
+        "start_date": wrapDate(taskItem.startDate),
+        "target_date": wrapDate(taskItem.targetDate),
+        "due_date": wrapDate(taskItem.dueDate),
+        "urgent_date": wrapDate(taskItem.urgentDate),
         "game_points": taskItem.gamePoints,
       }
     };
@@ -98,14 +99,23 @@ class TaskRepository {
         "urgency": urgency,
         "priority": priority,
         "duration": duration,
-        "start_date": startDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(startDate),
-        "target_date": targetDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(targetDate),
-        "due_date": dueDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(dueDate),
-        "urgent_date": urgentDate == null ? null : DateFormat('yyyy-MM-dd HH:mm').format(urgentDate),
+        "start_date": wrapDate(startDate),
+        "target_date": wrapDate(targetDate),
+        "due_date": wrapDate(dueDate),
+        "urgent_date": wrapDate(urgentDate),
         "game_points": gamePoints,
       }
     };
     return _addOrUpdateJSON(payload, 'update');
+  }
+
+  String wrapDate(DateTime dateTime) {
+    if (dateTime == null) {
+      return null;
+    } else {
+      var utc = dateTime.toUtc();
+      return DateFormat('yyyy-MM-dd HH:mm:ss').format(utc);
+    }
   }
 
   Future<TaskEntity> _addOrUpdateJSON(Map<String, Object> payload, String addOrUpdate) async {

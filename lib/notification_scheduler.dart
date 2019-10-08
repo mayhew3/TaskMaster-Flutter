@@ -13,6 +13,7 @@ FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 class NotificationScheduler {
 
   BuildContext context;
+  BuildContext homeScreenContext;
 
   NotificationScheduler(BuildContext context) {
     this.context = context;
@@ -26,6 +27,10 @@ class NotificationScheduler {
         initializationSettingsAndroid, initializationSettingsIOS);
     flutterLocalNotificationsPlugin.initialize(initializationSettings,
         onSelectNotification: onSelectNotification);
+  }
+
+  void updateHomeScreenContext(BuildContext context) {
+    homeScreenContext = context;
   }
 
   Future onSelectNotification(String payload) async {
@@ -71,7 +76,7 @@ class NotificationScheduler {
     var scheduledNotificationDateTime = taskItem.dueDate;
     var now = DateTime.now();
 
-    if (scheduledNotificationDateTime != null) {
+    if (scheduledNotificationDateTime != null && now.isBefore(scheduledNotificationDateTime)) {
       var taskPayload = 'task:${taskItem.id}';
 
       var pendingNotificationRequests = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
@@ -106,6 +111,9 @@ class NotificationScheduler {
           payload: taskPayload,
           androidAllowWhileIdle: true);
       print('Scheduled notification for task ${taskItem.name} at $scheduledNotificationDateTime');
+      Scaffold.of(homeScreenContext).showSnackBar(SnackBar(
+        content: Text('Scheduled notification for task ${taskItem.name} at $scheduledNotificationDateTime'),
+      ));
     }
   }
 

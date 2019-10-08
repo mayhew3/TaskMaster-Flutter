@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:taskmaster/models.dart';
-import 'package:taskmaster/notification_scheduler.dart';
 import 'package:taskmaster/screens/home_screen.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:taskmaster/routes.dart';
@@ -16,12 +15,11 @@ class TaskMasterApp extends StatefulWidget {
 class TaskMasterAppState extends State<TaskMasterApp> {
   AppState appState;
   TaskRepository repository;
-  NotificationScheduler notificationScheduler;
 
   TaskMasterAppState() {
     appState = AppState(userUpdater: updateCurrentUser, idTokenUpdater: updateIdToken);
     repository = TaskRepository(appState: appState);
-    notificationScheduler = NotificationScheduler(context);
+    appState.updateNotificationScheduler(context);
   }
 
   void loadMainTaskUI() {
@@ -29,7 +27,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       setState(() {
         List<TaskItem> tasks = loadedTasks.map(TaskItem.fromEntity).toList();
         appState.finishedLoading(tasks);
-        tasks.forEach((taskItem) => notificationScheduler.syncNotificationForTask(taskItem));
+        tasks.forEach((taskItem) => appState.notificationScheduler.syncNotificationForTask(taskItem));
       });
     }).catchError((err) {
       setState(() {
@@ -59,7 +57,8 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   void addTask(TaskItem taskItem) async {
     var inboundTask = await repository.addTask(taskItem);
     setState(() {
-      appState.addNewTaskToList(inboundTask);
+      var addedTask = appState.addNewTaskToList(inboundTask);
+      appState.notificationScheduler.syncNotificationForTask(addedTask);
     });
   }
 
@@ -100,7 +99,8 @@ class TaskMasterAppState extends State<TaskMasterApp> {
         recurWait: recurWait
     );
     setState(() {
-      appState.updateTaskListWithUpdatedTask(inboundTask);
+      var updatedTask = appState.updateTaskListWithUpdatedTask(inboundTask);
+      appState.notificationScheduler.syncNotificationForTask(updatedTask);
     });
   }
 
