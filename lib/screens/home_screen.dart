@@ -83,22 +83,42 @@ class HomeScreenState extends State<HomeScreen> {
   /// Schedules a notification that specifies a different icon, sound and vibration pattern
   Future<void> _scheduleNotification() async {
     var scheduledNotificationDateTime = DateTime.now().add(Duration(seconds: 5));
+    var vibrationPattern = Int64List(4);
+    vibrationPattern[0] = 0;
+    vibrationPattern[1] = 1000;
+    vibrationPattern[2] = 5000;
+    vibrationPattern[3] = 2000;
 
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
         'your other channel id',
         'your other channel name',
         'your other channel description',
-        importance: Importance.Max, priority: Priority.High, ticker: 'ticker');
-    var iOSPlatformChannelSpecifics = IOSNotificationDetails();
+        importance: Importance.Max,
+        priority: Priority.High,
+        ticker: 'ticker',
+        vibrationPattern: vibrationPattern,
+        enableLights: true,
+        color: const Color.fromARGB(255, 255, 0, 0),
+        ledColor: const Color.fromARGB(255, 255, 0, 0),
+        ledOnMs: 1000,
+        ledOffMs: 500);
+    var iOSPlatformChannelSpecifics = IOSNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
     var platformChannelSpecifics = NotificationDetails(
-        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+        androidPlatformChannelSpecifics,
+        iOSPlatformChannelSpecifics
+    );
     await flutterLocalNotificationsPlugin.schedule(
         0,
         'scheduled title',
         'scheduled body',
         scheduledNotificationDateTime,
         platformChannelSpecifics,
-        payload: 'item x');
+        payload: 'item x',
+        androidAllowWhileIdle: true);
   }
 
   Future<void> onDidReceiveLocalNotification(
