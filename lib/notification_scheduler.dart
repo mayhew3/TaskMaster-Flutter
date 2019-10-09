@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:taskmaster/widgets/second_screen.dart';
+import 'package:intl/intl.dart';
 
 
 FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
@@ -14,6 +15,7 @@ class NotificationScheduler {
 
   BuildContext context;
   BuildContext homeScreenContext;
+  int nextId = 0;
 
   NotificationScheduler(BuildContext context) {
     this.context = context;
@@ -73,73 +75,72 @@ class NotificationScheduler {
 
   /// Schedules a notification that specifies a different icon, sound and vibration pattern
   Future<void> syncNotificationForTask(TaskItem taskItem) async {
-    var scheduledNotificationDateTime = taskItem.dueDate;
+
+    var taskSearch = 'task:${taskItem.id}';
+    var removedDue = false;
+    var removedUrgent = false;
+
+    var pendingNotificationRequests = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
+    var existing = pendingNotificationRequests.where((notification) => notification.payload.startsWith(taskSearch));
+    existing.forEach((notification) {
+      if (notification.payload.endsWith('due')) {
+        removedDue = true;
+      }
+      if (notification.payload.endsWith('urgent')) {
+        removedUrgent = true;
+      }
+      print('Removing task: ${notification.payload}');
+      flutterLocalNotificationsPlugin.cancel(notification.id);
+    });
+
+    var dueDate = taskItem.dueDate;
+    var urgentDate = taskItem.urgentDate;
     var now = DateTime.now();
 
-    if (scheduledNotificationDateTime != null && now.isBefore(scheduledNotificationDateTime)) {
-      var taskPayload = 'task:${taskItem.id}';
+    var dueName = '${taskItem.name} (due)';
+    if (dueDate != null && now.isBefore(dueDate)) {
+      var taskPayload = 'task:${taskItem.id}:due';
+      await scheduleNotification(nextId, dueDate, dueName, taskPayload, 'due', removedDue);
+      nextId++;
+    } else if (removedDue) {
+      consoleAndSnack('Notification removed for $dueName');
+    }
 
-      var pendingNotificationRequests = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
-      var existing = pendingNotificationRequests.where((notification) => notification.payload == taskPayload);
-      existing.forEach((notification) {
-        flutterLocalNotificationsPlugin.cancel(notification.id);
-      });
-
-      var androidPlatformChannelSpecifics = AndroidNotificationDetails(
-        'taskmaster',
-        'TaskMaster',
-        'Notifications for the TaskMaster app',
-        importance: Importance.Max,
-        priority: Priority.High,
-        ticker: 'ticker',
-      );
-      var iOSPlatformChannelSpecifics = IOSNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
-      );
-      var platformChannelSpecifics = NotificationDetails(
-          androidPlatformChannelSpecifics,
-          iOSPlatformChannelSpecifics
-      );
-      await flutterLocalNotificationsPlugin.schedule(
-          0,
-          taskItem.name,
-          'Task has reached due date',
-          scheduledNotificationDateTime,
-          platformChannelSpecifics,
-          payload: taskPayload,
-          androidAllowWhileIdle: true);
-      print('Scheduled notification for task ${taskItem.name} at $scheduledNotificationDateTime');
-      Scaffold.of(homeScreenContext).showSnackBar(SnackBar(
-        content: Text('Scheduled notification for task ${taskItem.name} at $scheduledNotificationDateTime'),
-      ));
+    var urgentName = '${taskItem.name} (urgent)';
+    if (urgentDate != null && now.isBefore(urgentDate)) {
+      var taskPayload = 'task:${taskItem.id}:urgent';
+      await scheduleNotification(nextId, urgentDate, urgentName, taskPayload, 'urgent', removedUrgent);
+      nextId++;
+    } else if (removedUrgent) {
+      consoleAndSnack('Notification removed for $urgentName');
     }
   }
 
+  bool isSameDay(DateTime dateTime1, DateTime dateTime2) {
+    int diffDays = dateTime1.difference(dateTime2).inDays;
+    bool isSame = (diffDays == 0);
+    return isSame;
+  }
 
-  /// Schedules a notification that specifies a different icon, sound and vibration pattern
-  Future<void> _scheduleNotification() async {
-    var scheduledNotificationDateTime = DateTime.now().add(Duration(seconds: 5));
-    var vibrationPattern = Int64List(4);
-    vibrationPattern[0] = 0;
-    vibrationPattern[1] = 1000;
-    vibrationPattern[2] = 5000;
-    vibrationPattern[3] = 2000;
+  Future<void> scheduleNotification(int id, DateTime scheduledTime, String name, String payload, String dateType, bool replacingOriginal) async {
+    String verificationMessage;
+    var opener = replacingOriginal ? 'Replaced' : 'Scheduled';
+    if (isSameDay(DateTime.now(), scheduledTime)) {
+      var formattedTime = DateFormat.jm().format(scheduledTime);
+      verificationMessage = '$opener notification for task $name today at $formattedTime';
+    } else {
+      var formattedDay = DateFormat.MMMd().format(scheduledTime);
+      verificationMessage = '$opener notification for task $name on $formattedDay';
+    }
 
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
-        'your other channel id',
-        'your other channel name',
-        'your other channel description',
-        importance: Importance.Max,
-        priority: Priority.High,
-        ticker: 'ticker',
-        vibrationPattern: vibrationPattern,
-        enableLights: true,
-        color: const Color.fromARGB(255, 255, 0, 0),
-        ledColor: const Color.fromARGB(255, 255, 0, 0),
-        ledOnMs: 1000,
-        ledOffMs: 500);
+      'taskmaster',
+      'TaskMaster',
+      'Notifications for the TaskMaster app',
+      importance: Importance.Max,
+      priority: Priority.High,
+      ticker: 'ticker',
+    );
     var iOSPlatformChannelSpecifics = IOSNotificationDetails(
       presentAlert: true,
       presentBadge: true,
@@ -150,13 +151,21 @@ class NotificationScheduler {
         iOSPlatformChannelSpecifics
     );
     await flutterLocalNotificationsPlugin.schedule(
-        0,
-        'scheduled title',
-        'scheduled body',
-        scheduledNotificationDateTime,
+        id,
+        name,
+        'Task has reached $dateType date',
+        scheduledTime,
         platformChannelSpecifics,
-        payload: 'item x',
+        payload: payload,
         androidAllowWhileIdle: true);
+    consoleAndSnack(verificationMessage);
+  }
+
+  void consoleAndSnack(msg) {
+    print(msg);
+    Scaffold.of(homeScreenContext).showSnackBar(SnackBar(
+      content: Text(msg),
+    ));
   }
 
 }
