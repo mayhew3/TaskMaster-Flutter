@@ -19,16 +19,26 @@ class TaskRepository {
       throw new Exception("Cannot load tasks before being signed in.");
     }
 
-    final response = await http.get("https://taskmaster-general.herokuapp.com/api/tasks",
-      headers: {HttpHeaders.authorizationHeader: appState.idToken},
+    var queryParameters = {
+      'email': appState.currentUser.email
+    };
+
+    var uri = Uri.https('taskmaster-general.herokuapp.com', '/api/tasks', queryParameters);
+
+    final response = await http.get(uri,
+      headers: {HttpHeaders.authorizationHeader: appState.idToken,
+                HttpHeaders.contentTypeHeader: 'application/json'},
     );
 
     if (response.statusCode == 200) {
       try {
         List<TaskEntity> taskList = [];
-        List list = json.decode(response.body);
-        list.forEach((jsonObj) {
-          TaskEntity taskEntity = TaskEntity.fromJson(jsonObj);
+        var jsonObj = json.decode(response.body);
+        int personId = jsonObj['person_id'];
+        appState.personId = personId;
+        List tasks = jsonObj['tasks'];
+        tasks.forEach((taskJson) {
+          TaskEntity taskEntity = TaskEntity.fromJson(taskJson);
           taskList.add(taskEntity);
         });
         return taskList;
@@ -44,13 +54,16 @@ class TaskRepository {
 
   Future<TaskEntity> addTask(TaskItem taskItem) async {
     if (!appState.isAuthenticated()) {
-      throw new Exception("Cannot update task before being signed in.");
+      throw new Exception("Cannot add task before being signed in.");
+    }
+    if (appState.personId == null) {
+      throw new Exception("Cannot add task with no personId.");
     }
 
     var payload = {
       "task": {
         "name": taskItem.name,
-        "person_id": 1,
+        "person_id": appState.personId,
         "description": taskItem.description,
         "project": taskItem.project,
         "context": taskItem.context,

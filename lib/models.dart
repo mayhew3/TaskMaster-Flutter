@@ -11,6 +11,7 @@ class AppState {
   TaskMasterAuth auth;
   GoogleSignInAccount currentUser;
   String idToken;
+  int personId;
   NotificationScheduler notificationScheduler;
 
   AppState({
@@ -68,6 +69,13 @@ class AppState {
   }
 }
 
+DateTime nullSafeParseJSON(dynamic jsonVal) {
+  if (jsonVal == null) {
+    return null;
+  } else {
+    return DateTime.parse(jsonVal).toLocal();
+  }
+}
 
 class TaskItem {
   final int id;
@@ -197,11 +205,11 @@ class TaskItem {
         urgency: json['urgency'],
         priority: json['priority'],
         duration: json['duration'],
-        startDate: json['start_date'] == null ? null : DateTime.parse(json['start_date']),
-        targetDate: json['target_date'] == null ? null : DateTime.parse(json['target_date']),
-        dueDate: json['due_date'] == null ? null : DateTime.parse(json['due_date']),
-        completionDate: json['completion_date'] == null ? null : DateTime.parse(json['completion_date']),
-        urgentDate: json['urgent_date'] == null ? null : DateTime.parse(json['urgent_date']),
+        startDate: nullSafeParseJSON(json['start_date']),
+        targetDate: nullSafeParseJSON(json['target_date']),
+        dueDate: nullSafeParseJSON(json['due_date']),
+        completionDate: nullSafeParseJSON(json['completion_date']),
+        urgentDate: nullSafeParseJSON(json['urgent_date']),
         gamePoints: json['game_points'],
         recurNumber: json['recur_number'],
         recurUnit: json['recur_unit'],
@@ -278,14 +286,6 @@ class TaskEntity {
         'personId: $personId, '
         'dateAdded: $dateAdded, '
         'completionDate: $completionDate}';
-  }
-
-  static DateTime nullSafeParseJSON(dynamic jsonVal) {
-    if (jsonVal == null) {
-      return null;
-    } else {
-      return DateTime.parse(jsonVal).toLocal();
-    }
   }
 
   factory TaskEntity.fromJson(Map<String, dynamic> json) {
