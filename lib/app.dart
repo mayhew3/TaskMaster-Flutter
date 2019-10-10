@@ -62,6 +62,14 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     });
   }
 
+  void completeTask(TaskItem taskItem, bool completed) async {
+    var inboundTask = await repository.completeTask(taskItem, completed);
+    setState(() {
+      var updatedTask = appState.updateTaskListWithUpdatedTask(inboundTask);
+      appState.notificationScheduler.syncNotificationForTask(updatedTask);
+    });
+  }
+
   void updateTask({
     TaskItem taskItem,
     String name,
@@ -119,6 +127,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
             appState: appState,
             title: title,
             taskAdder: addTask,
+            taskCompleter: completeTask,
             taskUpdater: updateTask,
           );
         }

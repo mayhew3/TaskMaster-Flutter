@@ -15,12 +15,14 @@ class HomeScreen extends StatefulWidget {
   final AppState appState;
   final String title;
   final TaskAdder taskAdder;
+  final TaskCompleter taskCompleter;
   final TaskUpdater taskUpdater;
 
   HomeScreen({
     @required this.appState,
     @required this.title,
     @required this.taskAdder,
+    @required this.taskCompleter,
     @required this.taskUpdater,
     Key key,
   }) : super(key: TaskMasterKeys.homeScreen);
@@ -57,6 +59,7 @@ class HomeScreenState extends State<HomeScreen> {
   Widget buildTaskList(BuildContext context) {
     return TaskListWidget(
       appState: widget.appState,
+      taskCompleter: widget.taskCompleter,
       taskUpdater: widget.taskUpdater,
     );
   }

@@ -6,6 +6,8 @@ typedef IdTokenUpdater(String idToken);
 
 typedef TaskAdder(TaskItem taskItem);
 
+typedef TaskCompleter(TaskItem taskItem, bool completed);
+
 typedef TaskUpdater({
   TaskItem taskItem,
   String name,

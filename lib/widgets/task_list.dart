@@ -8,10 +8,12 @@ import 'package:taskmaster/screens/detail_screen.dart';
 
 class TaskListWidget extends StatelessWidget {
   final AppState appState;
+  final TaskCompleter taskCompleter;
   final TaskUpdater taskUpdater;
 
   TaskListWidget({
     @required this.appState,
+    @required this.taskCompleter,
     @required this.taskUpdater,
   }) : super(key: TaskMasterKeys.taskList);
 
@@ -31,7 +33,10 @@ class TaskListWidget extends StatelessWidget {
                   );
                 }),
               );
-            }
+            },
+            onCheckboxChanged: (complete) {
+              taskCompleter(taskItem, complete);
+            },
           );
         }
     );
@@ -54,7 +59,7 @@ class TaskListWidget extends StatelessWidget {
               key: TaskMasterKeys.tasksLoading,
             )
           )
-          : _buildListView(context)
+          : _buildListView(context),
     );
   }
 
