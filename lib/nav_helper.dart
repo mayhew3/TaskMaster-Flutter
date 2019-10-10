@@ -33,7 +33,7 @@ class NavHelper {
         return LoadingScreen(
           appState: appState,
           navHelper: this,
-          loadListStarter: () {},
+          msg: 'Loading tasks...',
         );
       }),
     );

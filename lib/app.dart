@@ -134,6 +134,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       home: LoadingScreen(
         appState: appState,
         navHelper: navHelper,
+        msg: 'Signing in...',
         loadListStarter: loadMainTaskUI,
       ),
     );

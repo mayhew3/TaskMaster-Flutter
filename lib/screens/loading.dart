@@ -9,12 +9,14 @@ class LoadingScreen extends StatefulWidget {
   final AppState appState;
   final NavHelper navHelper;
   final LoadListStarter loadListStarter;
+  final String msg;
 
   LoadingScreen({
     Key key,
     @required this.appState,
     @required this.navHelper,
-    @required this.loadListStarter,
+    @required this.msg,
+    this.loadListStarter,
   }) : super(key: key);
 
   @override
@@ -37,7 +39,7 @@ class LoadingScreenState extends State<LoadingScreen> {
       widget.appState.auth.addGoogleListener().then((value) {
         if (value == null) {
           widget.navHelper.goToSignInScreen();
-        } else {
+        } else if (widget.loadListStarter != null) {
           widget.loadListStarter();
         }
         widget.appState.updateNotificationScheduler(context);
@@ -53,9 +55,15 @@ class LoadingScreenState extends State<LoadingScreen> {
       ),
       body: Container(
         child: Center(
-            child: CircularProgressIndicator(
-              key: TaskMasterKeys.tasksLoading,
-            )
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: <Widget>[
+              CircularProgressIndicator(
+                key: TaskMasterKeys.tasksLoading,
+              ),
+              Text(widget.msg),
+            ],
+          )
         ),
       ),
     );

@@ -164,9 +164,13 @@ class NotificationScheduler {
 
   void consoleAndSnack(msg) {
     print(msg);
-    Scaffold.of(homeScreenContext).showSnackBar(SnackBar(
-      content: Text(msg),
-    ));
+    if (homeScreenContext != null) {
+      Scaffold.of(homeScreenContext).showSnackBar(SnackBar(
+        content: Text(msg),
+      ));
+    } else {
+      print("Weird error: no home screen context for snack bar.");
+    }
   }
 
 }
