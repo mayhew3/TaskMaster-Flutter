@@ -72,14 +72,11 @@ class HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: buildBody(context),
-      floatingActionButton: FloatingActionButton(
+  Widget buildActionButton(BuildContext context) {
+    if (widget.appState.isLoading) {
+      return null;
+    } else {
+      return FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
@@ -87,7 +84,18 @@ class HomeScreenState extends State<HomeScreen> {
           );
         },
         child: Icon(Icons.add),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
       ),
+      body: buildBody(context),
+      floatingActionButton: buildActionButton(context),
     );
   }
 
