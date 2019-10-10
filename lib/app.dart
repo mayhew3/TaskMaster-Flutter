@@ -31,6 +31,13 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+    appState.updateNotificationScheduler(context);
+    maybeKickOffSignIn();
+  }
+
   void loadMainTaskUI() {
     navHelper.goToLoadingScreen('Loading tasks...');
     repository.loadTasks().then((loadedTasks) {
@@ -46,6 +53,16 @@ class TaskMasterAppState extends State<TaskMasterApp> {
         appState.isLoading = false;
       });
     });
+  }
+
+  void maybeKickOffSignIn() {
+    if (!appState.isAuthenticated()) {
+      appState.auth.addGoogleListener().then((value) {
+        if (value == null) {
+          navHelper.goToSignInScreen();
+        }
+      });
+    }
   }
 
   void updateCurrentUser(GoogleSignInAccount currentUser) {

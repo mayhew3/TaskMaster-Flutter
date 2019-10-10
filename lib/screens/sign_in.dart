@@ -1,14 +1,17 @@
 import 'package:taskmaster/models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:taskmaster/nav_helper.dart';
 
 import 'package:flutter/cupertino.dart';
 
 class SignInScreen extends StatefulWidget {
   final AppState appState;
+  final NavHelper navHelper;
 
   SignInScreen({
     @required this.appState,
+    @required this.navHelper,
     Key key,
   }) : super(key: key);
 
@@ -23,7 +26,7 @@ class SignInScreenState extends State<SignInScreen> {
   @override
   void initState() {
     super.initState();
-    widget.appState.auth.addGoogleListener();
+    widget.navHelper.updateContext(context);
   }
 
   @override

@@ -28,7 +28,7 @@ class NavHelper {
   }
 
   void goToLoadingScreen(String msg) {
-    Navigator.of(context).push(
+    Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) {
         return LoadingScreen(
           appState: appState,
@@ -40,20 +40,22 @@ class NavHelper {
   }
 
   void goToSignInScreen() {
-    Navigator.of(context).push(
+    Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) {
         return SignInScreen(
           appState: appState,
+          navHelper: this,
         );
       }),
     );
   }
 
   void goToHomeScreen() {
-    Navigator.of(context).push(
+    Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) {
         return HomeScreen(
           appState: appState,
+          navHelper: this,
           taskAdder: taskAdder,
           taskCompleter: taskCompleter,
           taskUpdater: taskUpdater,

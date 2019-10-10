@@ -5,17 +5,20 @@ import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/task_list.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
+import 'package:taskmaster/nav_helper.dart';
 
 import 'package:flutter/cupertino.dart';
 
 class HomeScreen extends StatefulWidget {
   final AppState appState;
+  final NavHelper navHelper;
   final TaskAdder taskAdder;
   final TaskCompleter taskCompleter;
   final TaskUpdater taskUpdater;
 
   HomeScreen({
     @required this.appState,
+    @required this.navHelper,
     @required this.taskAdder,
     @required this.taskCompleter,
     @required this.taskUpdater,
@@ -33,7 +36,7 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    widget.appState.auth.addGoogleListener();
+    widget.navHelper.updateContext(context);
   }
 
   @override
