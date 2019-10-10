@@ -12,10 +12,12 @@ class TaskMasterAuth {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final UserUpdater updateCurrentUser;
   final IdTokenUpdater updateIdToken;
+  final LoginFailedCallback loginFailedCallback;
 
   TaskMasterAuth({
     @required this.updateCurrentUser,
     @required this.updateIdToken,
+    @required this.loginFailedCallback,
   });
 
   Future<void> handleSignIn() async {
@@ -32,7 +34,7 @@ class TaskMasterAuth {
     _googleSignIn.disconnect();
   }
 
-  void addGoogleListener() {
+  Future<GoogleSignInAccount> addGoogleListener() {
     _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) async {
       GoogleSignInAuthentication authentication = await account.authentication;
       final AuthCredential credential = GoogleAuthProvider.getCredential(
@@ -51,6 +53,6 @@ class TaskMasterAuth {
         print("Login success!");
       }
     });
-    _googleSignIn.signInSilently();
+    return _googleSignIn.signInSilently();
   }
 }

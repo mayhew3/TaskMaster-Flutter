@@ -26,3 +26,7 @@ typedef TaskUpdater({
   String recurUnit,
   bool recurWait,
 });
+
+typedef LoadListStarter();
+
+typedef LoginFailedCallback();

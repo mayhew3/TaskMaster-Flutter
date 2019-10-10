@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:taskmaster/models.dart';
-import 'package:taskmaster/screens/home_screen.dart';
+import 'package:taskmaster/nav_helper.dart';
+import 'package:taskmaster/screens/loading.dart';
 import 'package:taskmaster/task_repository.dart';
-import 'package:taskmaster/routes.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class TaskMasterApp extends StatefulWidget {
@@ -15,18 +15,29 @@ class TaskMasterApp extends StatefulWidget {
 class TaskMasterAppState extends State<TaskMasterApp> {
   AppState appState;
   TaskRepository repository;
+  NavHelper navHelper;
 
   TaskMasterAppState() {
-    appState = AppState(userUpdater: updateCurrentUser, idTokenUpdater: updateIdToken);
+    appState = AppState(userUpdater: updateCurrentUser,
+        idTokenUpdater: updateIdToken,
+    loginFailedCallback: () {});
     repository = TaskRepository(appState: appState);
-    appState.updateNotificationScheduler(context);
+    navHelper = NavHelper(
+      appState: appState,
+      taskRepository: repository,
+      taskAdder: addTask,
+      taskCompleter: completeTask,
+      taskUpdater: updateTask,
+    );
   }
 
   void loadMainTaskUI() {
+    navHelper.goToLoadingScreen();
     repository.loadTasks().then((loadedTasks) {
       setState(() {
         List<TaskItem> tasks = loadedTasks.map(TaskItem.fromEntity).toList();
         appState.finishedLoading(tasks);
+        navHelper.goToHomeScreen();
         tasks.forEach((taskItem) => appState.notificationScheduler.syncNotificationForTask(taskItem));
       });
     }).catchError((err) {
@@ -114,24 +125,17 @@ class TaskMasterAppState extends State<TaskMasterApp> {
 
   @override
   Widget build(BuildContext context) {
-    final String title = "TaskMaster 3000";
     return MaterialApp(
-      title: title,
+      title: appState.title,
       theme: ThemeData(
         primaryColor: Colors.blueGrey,
         brightness: Brightness.dark,
       ),
-      routes: {
-        TaskMasterRoutes.home: (context) {
-          return HomeScreen(
-            appState: appState,
-            title: title,
-            taskAdder: addTask,
-            taskCompleter: completeTask,
-            taskUpdater: updateTask,
-          );
-        }
-      },
+      home: LoadingScreen(
+        appState: appState,
+        navHelper: navHelper,
+        loadListStarter: loadMainTaskUI,
+      ),
     );
   }
 

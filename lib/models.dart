@@ -13,17 +13,21 @@ class AppState {
   String idToken;
   int personId;
   NotificationScheduler notificationScheduler;
+  String title;
 
   AppState({
     this.isLoading = true,
     this.taskItems = const [],
     @required userUpdater: UserUpdater,
     @required idTokenUpdater: IdTokenUpdater,
+    @required loginFailedCallback: LoginFailedCallback,
   }) {
     auth = TaskMasterAuth(
         updateCurrentUser: userUpdater,
         updateIdToken: idTokenUpdater,
+        loginFailedCallback: loginFailedCallback,
     );
+    title = 'TaskMaster 3000';
   }
 
   void updateNotificationScheduler(BuildContext context) {
