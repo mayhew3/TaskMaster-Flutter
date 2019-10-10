@@ -20,12 +20,10 @@ class AppState {
     this.taskItems = const [],
     @required userUpdater: UserUpdater,
     @required idTokenUpdater: IdTokenUpdater,
-    @required loginFailedCallback: LoginFailedCallback,
   }) {
     auth = TaskMasterAuth(
         updateCurrentUser: userUpdater,
         updateIdToken: idTokenUpdater,
-        loginFailedCallback: loginFailedCallback,
     );
     title = 'TaskMaster 3000';
   }

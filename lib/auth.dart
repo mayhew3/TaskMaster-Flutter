@@ -12,12 +12,10 @@ class TaskMasterAuth {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final UserUpdater updateCurrentUser;
   final IdTokenUpdater updateIdToken;
-  final LoginFailedCallback loginFailedCallback;
 
   TaskMasterAuth({
     @required this.updateCurrentUser,
     @required this.updateIdToken,
-    @required this.loginFailedCallback,
   });
 
   Future<void> handleSignIn() async {

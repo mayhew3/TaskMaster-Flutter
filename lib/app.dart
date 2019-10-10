@@ -18,9 +18,10 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   NavHelper navHelper;
 
   TaskMasterAppState() {
-    appState = AppState(userUpdater: updateCurrentUser,
-        idTokenUpdater: updateIdToken,
-    loginFailedCallback: () {});
+    appState = AppState(
+      userUpdater: updateCurrentUser,
+      idTokenUpdater: updateIdToken,
+    );
     repository = TaskRepository(appState: appState);
     navHelper = NavHelper(
       appState: appState,

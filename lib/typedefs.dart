@@ -28,6 +28,4 @@ typedef TaskUpdater({
   bool recurWait,
 });
 
-typedef LoginFailedCallback();
-
 typedef EndLoadingCallback(BuildContext context);
