@@ -87,6 +87,12 @@ class DetailScreenState extends State<DetailScreen> {
                     ),
                     initialValue: widget.taskItem?.name,
                     onSaved: (value) => _name = value,
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return 'Name is required';
+                      }
+                      return null;
+                    },
                   ),
                 ),
                 Container(
