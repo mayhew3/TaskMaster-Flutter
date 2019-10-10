@@ -32,13 +32,14 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   }
 
   void loadMainTaskUI() {
-    navHelper.goToLoadingScreen();
+    navHelper.goToLoadingScreen('Loading tasks...');
     repository.loadTasks().then((loadedTasks) {
       setState(() {
         List<TaskItem> tasks = loadedTasks.map(TaskItem.fromEntity).toList();
         appState.finishedLoading(tasks);
         navHelper.goToHomeScreen();
-        tasks.forEach((taskItem) => appState.notificationScheduler.syncNotificationForTask(taskItem));
+        tasks.forEach((taskItem) =>
+            appState.notificationScheduler.syncNotificationForTask(taskItem));
       });
     }).catchError((err) {
       setState(() {
@@ -135,7 +136,6 @@ class TaskMasterAppState extends State<TaskMasterApp> {
         appState: appState,
         navHelper: navHelper,
         msg: 'Signing in...',
-        loadListStarter: loadMainTaskUI,
       ),
     );
   }

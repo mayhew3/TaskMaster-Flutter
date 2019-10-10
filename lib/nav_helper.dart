@@ -27,13 +27,13 @@ class NavHelper {
     this.context = context;
   }
 
-  void goToLoadingScreen() {
+  void goToLoadingScreen(String msg) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) {
         return LoadingScreen(
           appState: appState,
           navHelper: this,
-          msg: 'Loading tasks...',
+          msg: msg,
         );
       }),
     );

@@ -27,6 +27,4 @@ typedef TaskUpdater({
   bool recurWait,
 });
 
-typedef LoadListStarter();
-
 typedef LoginFailedCallback();
