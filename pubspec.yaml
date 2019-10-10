@@ -40,6 +40,8 @@ flutter_icons:
   android: true
   image_path_ios: "assets/launcher/TaskMasterLogo.png"
   image_path_android: "assets/launcher/TaskMasterLogo.png"
+  adaptive_icon_background: "assets/launcher/TaskMasterLogo_bg.png"
+  adaptive_icon_foreground: "assets/launcher/TaskMasterLogo_fg.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
