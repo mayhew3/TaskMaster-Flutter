@@ -29,3 +29,5 @@ typedef TaskUpdater({
 });
 
 typedef EndLoadingCallback(BuildContext context);
+
+typedef TaskListReloader();

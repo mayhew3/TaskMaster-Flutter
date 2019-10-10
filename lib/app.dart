@@ -29,6 +29,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       taskAdder: addTask,
       taskCompleter: completeTask,
       taskUpdater: updateTask,
+      taskListReloader: reloadTasks,
     );
   }
 
@@ -41,6 +42,27 @@ class TaskMasterAppState extends State<TaskMasterApp> {
 
   void loadMainTaskUI() {
     navHelper.goToLoadingScreen('Loading tasks...');
+    repository.loadTasks().then((loadedTasks) {
+      setState(() {
+        List<TaskItem> tasks = loadedTasks.map(TaskItem.fromEntity).toList();
+        appState.finishedLoading(tasks);
+        navHelper.goToHomeScreen();
+        tasks.forEach((taskItem) =>
+            appState.notificationScheduler.syncNotificationForTask(taskItem));
+      });
+    }).catchError((err) {
+      setState(() {
+        appState.isLoading = false;
+      });
+    });
+  }
+
+  void reloadTasks() async {
+    navHelper.goToLoadingScreen('Reloading tasks...');
+    appState.isLoading = true;
+    appState.taskItems = [];
+
+    await appState.notificationScheduler.cancelAllNotifications();
     repository.loadTasks().then((loadedTasks) {
       setState(() {
         List<TaskItem> tasks = loadedTasks.map(TaskItem.fromEntity).toList();

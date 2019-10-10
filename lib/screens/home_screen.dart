@@ -15,6 +15,7 @@ class HomeScreen extends StatefulWidget {
   final TaskAdder taskAdder;
   final TaskCompleter taskCompleter;
   final TaskUpdater taskUpdater;
+  final TaskListReloader taskListReloader;
 
   HomeScreen({
     @required this.appState,
@@ -22,6 +23,7 @@ class HomeScreen extends StatefulWidget {
     @required this.taskAdder,
     @required this.taskCompleter,
     @required this.taskUpdater,
+    @required this.taskListReloader,
     Key key,
   }) : super(key: TaskMasterKeys.homeScreen);
 
@@ -44,6 +46,14 @@ class HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.appState.title),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: () {
+              widget.taskListReloader();
+            },
+          ),
+        ],
       ),
       body: TaskListWidget(
         appState: widget.appState,

@@ -72,6 +72,9 @@ class NotificationScheduler {
     );
   }
 
+  Future<void> cancelAllNotifications() async {
+    return flutterLocalNotificationsPlugin.cancelAll();
+  }
 
   /// Schedules a notification that specifies a different icon, sound and vibration pattern
   Future<void> syncNotificationForTask(TaskItem taskItem) async {
@@ -164,6 +167,7 @@ class NotificationScheduler {
 
   void consoleAndSnack(msg) {
     print(msg);
+    /*
     if (homeScreenContext != null) {
       Scaffold.of(homeScreenContext).showSnackBar(SnackBar(
         content: Text(msg),
@@ -171,6 +175,7 @@ class NotificationScheduler {
     } else {
       print("Weird error: no home screen context for snack bar.");
     }
+    */
   }
 
 }

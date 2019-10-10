@@ -12,15 +12,17 @@ class NavHelper {
   final TaskAdder taskAdder;
   final TaskCompleter taskCompleter;
   final TaskUpdater taskUpdater;
+  final TaskListReloader taskListReloader;
 
   BuildContext context;
 
   NavHelper({
-    this.appState,
-    this.taskRepository,
-    this.taskAdder,
-    this.taskCompleter,
-    this.taskUpdater,
+    @required this.appState,
+    @required this.taskRepository,
+    @required this.taskAdder,
+    @required this.taskCompleter,
+    @required this.taskUpdater,
+    @required this.taskListReloader,
   });
 
   void updateContext(BuildContext context) {
@@ -59,6 +61,7 @@ class NavHelper {
           taskAdder: taskAdder,
           taskCompleter: taskCompleter,
           taskUpdater: taskUpdater,
+          taskListReloader: taskListReloader,
         );
       }),
     );
