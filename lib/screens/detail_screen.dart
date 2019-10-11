@@ -80,6 +80,9 @@ class DetailScreenState extends State<DetailScreen> {
                 Container(
                   margin: EdgeInsets.all(7.0),
                   child: TextFormField(
+                    keyboardType: TextInputType.text,
+                    maxLines: null,
+                    textCapitalization: TextCapitalization.words,
                     decoration: const InputDecoration(
                       labelText: 'Name',
                       filled: false,
@@ -98,6 +101,8 @@ class DetailScreenState extends State<DetailScreen> {
                 Container(
                   margin: EdgeInsets.all(7.0),
                   child: TextFormField(
+                    keyboardType: TextInputType.text,
+                    textCapitalization: TextCapitalization.words,
                     decoration: const InputDecoration(
                       labelText: 'Project',
                       filled: false,
@@ -110,6 +115,8 @@ class DetailScreenState extends State<DetailScreen> {
                 Container(
                   margin: EdgeInsets.all(7.0),
                   child: TextFormField(
+                    keyboardType: TextInputType.text,
+                    textCapitalization: TextCapitalization.words,
                     decoration: const InputDecoration(
                       labelText: 'Context',
                       filled: false,
@@ -243,6 +250,9 @@ class DetailScreenState extends State<DetailScreen> {
                 Container(
                   margin: EdgeInsets.all(7.0),
                   child: TextFormField(
+                    keyboardType: TextInputType.multiline,
+                    maxLines: null,
+                    textCapitalization: TextCapitalization.sentences,
                     decoration: const InputDecoration(
                       labelText: 'Notes',
                       filled: false,
