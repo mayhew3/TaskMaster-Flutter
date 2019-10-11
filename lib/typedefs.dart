@@ -9,6 +9,8 @@ typedef TaskAdder(TaskItem taskItem);
 
 typedef TaskCompleter(TaskItem taskItem, bool completed);
 
+typedef TaskDeleter(TaskItem taskItem);
+
 typedef TaskUpdater({
   TaskItem taskItem,
   String name,

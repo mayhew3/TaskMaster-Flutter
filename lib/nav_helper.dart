@@ -11,6 +11,7 @@ class NavHelper {
   final TaskRepository taskRepository;
   final TaskAdder taskAdder;
   final TaskCompleter taskCompleter;
+  final TaskDeleter taskDeleter;
   final TaskUpdater taskUpdater;
   final TaskListReloader taskListReloader;
 
@@ -21,6 +22,7 @@ class NavHelper {
     @required this.taskRepository,
     @required this.taskAdder,
     @required this.taskCompleter,
+    @required this.taskDeleter,
     @required this.taskUpdater,
     @required this.taskListReloader,
   });
@@ -60,6 +62,7 @@ class NavHelper {
           navHelper: this,
           taskAdder: taskAdder,
           taskCompleter: taskCompleter,
+          taskDeleter: taskDeleter,
           taskUpdater: taskUpdater,
           taskListReloader: taskListReloader,
         );

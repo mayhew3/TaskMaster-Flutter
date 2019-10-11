@@ -10,11 +10,13 @@ class TaskListWidget extends StatelessWidget {
   final AppState appState;
   final TaskCompleter taskCompleter;
   final TaskUpdater taskUpdater;
+  final TaskDeleter taskDeleter;
 
   TaskListWidget({
     @required this.appState,
     @required this.taskCompleter,
     @required this.taskUpdater,
+    @required this.taskDeleter,
   }) : super(key: TaskMasterKeys.taskList);
 
   ListView _buildListView(BuildContext context) {
@@ -36,6 +38,17 @@ class TaskListWidget extends StatelessWidget {
             },
             onCheckboxChanged: (complete) {
               taskCompleter(taskItem, complete);
+            },
+            onDismissed: (direction) async {
+              if (direction == DismissDirection.endToStart) {
+                try {
+                  await taskDeleter(taskItem);
+                  return true;
+                } catch(err) {
+                  return false;
+                }
+              }
+              return false;
             },
           );
         }

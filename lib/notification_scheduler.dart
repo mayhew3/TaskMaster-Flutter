@@ -76,6 +76,16 @@ class NotificationScheduler {
     return flutterLocalNotificationsPlugin.cancelAll();
   }
 
+  Future<void> cancelNotificationsForTaskId(int taskId) async {
+    var taskSearch = 'task:$taskId';
+    var pendingNotificationRequests = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
+    var existing = pendingNotificationRequests.where((notification) => notification.payload.startsWith(taskSearch));
+    existing.forEach((notification) {
+      print('Removing task: ${notification.payload}');
+      flutterLocalNotificationsPlugin.cancel(notification.id);
+    });
+  }
+
   /// Schedules a notification that specifies a different icon, sound and vibration pattern
   Future<void> syncNotificationForTask(TaskItem taskItem) async {
 

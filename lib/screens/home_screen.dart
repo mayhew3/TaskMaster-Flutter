@@ -16,6 +16,7 @@ class HomeScreen extends StatefulWidget {
   final TaskCompleter taskCompleter;
   final TaskUpdater taskUpdater;
   final TaskListReloader taskListReloader;
+  final TaskDeleter taskDeleter;
 
   HomeScreen({
     @required this.appState,
@@ -24,6 +25,7 @@ class HomeScreen extends StatefulWidget {
     @required this.taskCompleter,
     @required this.taskUpdater,
     @required this.taskListReloader,
+    @required this.taskDeleter,
     Key key,
   }) : super(key: TaskMasterKeys.homeScreen);
 
@@ -59,6 +61,7 @@ class HomeScreenState extends State<HomeScreen> {
         appState: widget.appState,
         taskCompleter: widget.taskCompleter,
         taskUpdater: widget.taskUpdater,
+        taskDeleter: widget.taskDeleter,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

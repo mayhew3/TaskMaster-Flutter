@@ -139,6 +139,27 @@ class TaskRepository {
     return _addOrUpdateJSON(payload, 'update');
   }
 
+  Future<void> deleteTask(TaskItem taskItem) async {
+    if (!appState.isAuthenticated()) {
+      throw new Exception("Cannot delete task before being signed in.");
+    }
+
+    var queryParameters = {
+      'task_id': taskItem.id.toString()
+    };
+
+    var uri = Uri.https('taskmaster-general.herokuapp.com', '/api/tasks', queryParameters);
+
+    final response = await http.delete(uri,
+      headers: {HttpHeaders.authorizationHeader: appState.idToken,
+        HttpHeaders.contentTypeHeader: 'application/json'},
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete task. Talk to Mayhew.');
+    }
+  }
+
   String wrapDate(DateTime dateTime) {
     if (dateTime == null) {
       return null;

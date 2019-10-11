@@ -28,6 +28,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       taskRepository: repository,
       taskAdder: addTask,
       taskCompleter: completeTask,
+      taskDeleter: deleteTask,
       taskUpdater: updateTask,
       taskListReloader: reloadTasks,
     );
@@ -119,6 +120,16 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     setState(() {
       var updatedTask = appState.updateTaskListWithUpdatedTask(inboundTask);
       appState.notificationScheduler.syncNotificationForTask(updatedTask);
+    });
+  }
+
+  void deleteTask(TaskItem taskItem) async {
+    var taskId = taskItem.id;
+    await repository.deleteTask(taskItem);
+    print('Removal of task successful!');
+    await appState.notificationScheduler.cancelNotificationsForTaskId(taskId);
+    setState(() {
+      appState.deleteTaskFromList(taskItem);
     });
   }
 

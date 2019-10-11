@@ -43,6 +43,10 @@ class AppState {
     return taskItem;
   }
 
+  void deleteTaskFromList(TaskItem taskItem) {
+    taskItems.remove(taskItem);
+  }
+
   TaskItem updateTaskListWithUpdatedTask(TaskEntity taskEntity) {
     var taskItem = TaskItem.fromEntity(taskEntity);
     var existingIndex = taskItems.indexWhere((element) => element.id == taskItem.id);
