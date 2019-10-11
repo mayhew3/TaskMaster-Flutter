@@ -28,8 +28,21 @@ class AppState {
     title = 'TaskMaster 3000';
   }
 
-  void updateNotificationScheduler(BuildContext context) {
-    notificationScheduler = NotificationScheduler(context);
+  TaskItem findTaskItemWithId(int taskId) {
+    var matching = taskItems.where((task) => task.id == taskId);
+    return matching.isEmpty ? null : matching.first;
+  }
+
+  void updateNotificationScheduler(BuildContext context,
+      AppState appState,
+      TaskAdder taskAdder,
+      TaskUpdater taskUpdater) {
+    notificationScheduler = NotificationScheduler(
+      context: context,
+      appState: appState,
+      taskAdder: taskAdder,
+      taskUpdater: taskUpdater,
+    );
   }
 
   void finishedLoading(List<TaskItem> taskItems) {

@@ -37,7 +37,11 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   @override
   void initState() {
     super.initState();
-    appState.updateNotificationScheduler(context);
+    appState.updateNotificationScheduler(
+        context,
+        appState,
+        addTask,
+        updateTask);
     maybeKickOffSignIn();
   }
 

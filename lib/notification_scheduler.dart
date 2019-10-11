@@ -3,8 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:typed_data';
 
+import 'package:taskmaster/screens/detail_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/second_screen.dart';
 import 'package:intl/intl.dart';
 
@@ -13,12 +15,25 @@ FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
 class NotificationScheduler {
 
+  AppState appState;
+  TaskAdder taskAdder;
+  TaskUpdater taskUpdater;
+
   BuildContext context;
   BuildContext homeScreenContext;
   int nextId = 0;
 
-  NotificationScheduler(BuildContext context) {
+  NotificationScheduler({
+    @required BuildContext context,
+    @required AppState appState,
+    @required TaskAdder taskAdder,
+    @required TaskUpdater taskUpdater,
+  }) {
     this.context = context;
+    this.appState = appState;
+    this.taskAdder = taskAdder;
+    this.taskUpdater = taskUpdater;
+
     flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
     // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
     var initializationSettingsAndroid =
@@ -35,14 +50,33 @@ class NotificationScheduler {
     homeScreenContext = context;
   }
 
-  Future onSelectNotification(String payload) async {
+  Future<void> goToDetailScreen({
+    String payload,
+    BuildContext incomingContext
+  }) async {
     if (payload != null) {
       debugPrint('notification payload: ' + payload);
     }
+    var parts = payload.split(":");
+    var taskId = int.parse(parts[1]);
+    var taskItem = appState.findTaskItemWithId(taskId);
+
+    var contextToUse = incomingContext ?? homeScreenContext;
+
     await Navigator.push(
-      context,
-      new MaterialPageRoute(builder: (context) => new SecondScreen(payload)),
+        contextToUse,
+        new MaterialPageRoute(builder: (context) {
+          return new DetailScreen(
+            taskItem: taskItem,
+            taskAdder: taskAdder,
+            taskUpdater: taskUpdater,
+          );
+        })
     );
+  }
+
+  Future<void> onSelectNotification(String payload) async {
+    await goToDetailScreen(payload: payload);
   }
 
   Future<void> onDidReceiveLocalNotification(
@@ -59,12 +93,7 @@ class NotificationScheduler {
             child: Text('Ok'),
             onPressed: () async {
               Navigator.of(context, rootNavigator: true).pop();
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SecondScreen(payload),
-                ),
-              );
+              await goToDetailScreen(payload: payload, incomingContext: context);
             },
           )
         ],
