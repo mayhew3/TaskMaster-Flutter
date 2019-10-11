@@ -43,6 +43,7 @@ class TaskListWidget extends StatelessWidget {
               if (direction == DismissDirection.endToStart) {
                 try {
                   await taskDeleter(taskItem);
+                  displaySnackBar("Task Deleted!", context);
                   return true;
                 } catch(err) {
                   return false;
@@ -60,6 +61,12 @@ class TaskListWidget extends StatelessWidget {
     ).toList();
 
     return ListView(children: divided);
+  }
+
+  void displaySnackBar(String msg, BuildContext context) {
+    Scaffold.of(context).showSnackBar(SnackBar(
+      content: Text(msg),
+    ));
   }
 
   @override
