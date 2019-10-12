@@ -5,12 +5,12 @@ import 'package:taskmaster/models.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/clearable_date_time_field.dart';
 
-class DetailScreen extends StatefulWidget {
+class AddEditScreen extends StatefulWidget {
   final TaskItem taskItem;
   final TaskAdder taskAdder;
   final TaskUpdater taskUpdater;
 
-  const DetailScreen({
+  const AddEditScreen({
     Key key,
     this.taskItem,
     this.taskAdder,
@@ -18,10 +18,10 @@ class DetailScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => DetailScreenState();
+  State<StatefulWidget> createState() => AddEditScreenState();
 }
 
-class DetailScreenState extends State<DetailScreen> {
+class AddEditScreenState extends State<AddEditScreen> {
   static final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   String _name;

@@ -4,7 +4,7 @@ import 'package:taskmaster/models.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/task_item.dart';
 import 'package:taskmaster/keys.dart';
-import 'package:taskmaster/screens/detail_screen.dart';
+import 'package:taskmaster/screens/add_edit_screen.dart';
 
 class TaskListWidget extends StatelessWidget {
   final AppState appState;
@@ -29,7 +29,7 @@ class TaskListWidget extends StatelessWidget {
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) {
-                  return DetailScreen(
+                  return AddEditScreen(
                     taskItem: taskItem,
                     taskUpdater: taskUpdater,
                   );

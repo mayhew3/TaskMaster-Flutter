@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/task_list.dart';
 import 'package:taskmaster/keys.dart';
-import 'package:taskmaster/screens/detail_screen.dart';
+import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/nav_helper.dart';
 
 import 'package:flutter/cupertino.dart';
@@ -67,7 +67,7 @@ class HomeScreenState extends State<HomeScreen> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => DetailScreen(taskAdder: widget.taskAdder)),
+            MaterialPageRoute(builder: (_) => AddEditScreen(taskAdder: widget.taskAdder)),
           );
         },
         child: Icon(Icons.add),
