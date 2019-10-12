@@ -51,10 +51,11 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       setState(() {
         List<TaskItem> tasks = loadedTasks.map(TaskItem.fromEntity).toList();
         appState.finishedLoading(tasks);
-        navHelper.goToHomeScreen();
-        tasks.forEach((taskItem) =>
-            appState.notificationScheduler.syncNotificationForTask(taskItem));
       });
+      navHelper.goToHomeScreen();
+      appState.notificationScheduler.updateBadge();
+      appState.taskItems.forEach((taskItem) =>
+          appState.notificationScheduler.syncNotificationForTask(taskItem));
     }).catchError((err) {
       setState(() {
         appState.isLoading = false;

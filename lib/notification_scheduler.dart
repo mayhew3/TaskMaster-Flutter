@@ -7,7 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:intl/intl.dart';
-
+import 'package:flutter_app_badger/flutter_app_badger.dart';
 
 FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
@@ -48,6 +48,22 @@ class NotificationScheduler {
     homeScreenContext = context;
   }
 
+  bool hasPassed(DateTime dateTime) {
+    var now = DateTime.now();
+    return dateTime == null ? false : dateTime.isBefore(now);
+  }
+
+  int getNumberOfUrgentTasks() {
+    var urgentTasks = appState.taskItems.where((task) => hasPassed(task.urgentDate) || hasPassed(task.dueDate));
+    return urgentTasks.length;
+  }
+
+  void updateBadge() {
+    var numberOfUrgentTasks = getNumberOfUrgentTasks();
+    print('Updating badge with ${numberOfUrgentTasks.toString()} urgent tasks.');
+    FlutterAppBadger.updateBadgeCount(numberOfUrgentTasks);
+  }
+
   Future<void> goToDetailScreen({
     String payload,
     BuildContext incomingContext
@@ -74,11 +90,13 @@ class NotificationScheduler {
   }
 
   Future<void> onSelectNotification(String payload) async {
+    updateBadge();
     await goToDetailScreen(payload: payload);
   }
 
   Future<void> onDidReceiveLocalNotification(
       int id, String title, String body, String payload) async {
+    updateBadge();
     // display a dialog with the notification details, tap ok to go to another page
     await showDialog(
       context: context,
