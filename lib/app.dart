@@ -73,10 +73,11 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       setState(() {
         List<TaskItem> tasks = loadedTasks.map(TaskItem.fromEntity).toList();
         appState.finishedLoading(tasks);
-        navHelper.goToHomeScreen();
-        tasks.forEach((taskItem) =>
-            appState.notificationScheduler.syncNotificationForTask(taskItem));
       });
+      appState.notificationScheduler.updateBadge();
+      navHelper.goToHomeScreen();
+      appState.taskItems.forEach((taskItem) =>
+          appState.notificationScheduler.syncNotificationForTask(taskItem));
     }).catchError((err) {
       setState(() {
         appState.isLoading = false;
@@ -118,6 +119,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       var addedTask = appState.addNewTaskToList(inboundTask);
       appState.notificationScheduler.syncNotificationForTask(addedTask);
     });
+    appState.notificationScheduler.updateBadge();
   }
 
   void completeTask(TaskItem taskItem, bool completed) async {
@@ -126,6 +128,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       var updatedTask = appState.updateTaskListWithUpdatedTask(inboundTask);
       appState.notificationScheduler.syncNotificationForTask(updatedTask);
     });
+    appState.notificationScheduler.updateBadge();
   }
 
   void deleteTask(TaskItem taskItem) async {
@@ -136,6 +139,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     setState(() {
       appState.deleteTaskFromList(taskItem);
     });
+    appState.notificationScheduler.updateBadge();
   }
 
   void updateTask({
@@ -178,6 +182,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       var updatedTask = appState.updateTaskListWithUpdatedTask(inboundTask);
       appState.notificationScheduler.syncNotificationForTask(updatedTask);
     });
+    appState.notificationScheduler.updateBadge();
   }
 
   @override

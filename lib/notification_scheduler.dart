@@ -54,7 +54,8 @@ class NotificationScheduler {
   }
 
   int getNumberOfUrgentTasks() {
-    var urgentTasks = appState.taskItems.where((task) => hasPassed(task.urgentDate) || hasPassed(task.dueDate));
+    var urgentTasks = appState.taskItems.where((task) =>
+      (hasPassed(task.urgentDate) || hasPassed(task.dueDate)) && task.completionDate == null);
     return urgentTasks.length;
   }
 
