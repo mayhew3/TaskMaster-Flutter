@@ -1,13 +1,11 @@
 import 'package:taskmaster/models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'dart:typed_data';
 
 import 'package:taskmaster/screens/detail_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:taskmaster/typedefs.dart';
-import 'package:taskmaster/widgets/second_screen.dart';
 import 'package:intl/intl.dart';
 
 
