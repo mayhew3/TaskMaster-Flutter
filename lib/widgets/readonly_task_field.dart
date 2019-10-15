@@ -3,11 +3,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class ReadOnlyTaskField extends StatelessWidget {
+  final String headerName;
   final String textToShow;
 
   const ReadOnlyTaskField({
     Key key,
     this.textToShow,
+    this.headerName,
   }) : super(key: key);
 
   @override
@@ -23,7 +25,7 @@ class ReadOnlyTaskField extends StatelessWidget {
               children: <Widget>[
                 SizedBox(
                   width: 80.0,
-                  child: Text('Notes',
+                  child: Text(headerName,
                     style: Theme.of(context).textTheme.caption,),
                 ),
               ],

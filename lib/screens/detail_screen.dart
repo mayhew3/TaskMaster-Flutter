@@ -48,6 +48,7 @@ class DetailScreen extends StatelessWidget {
               ],
             ),
             ReadOnlyTaskField(
+              headerName: 'Notes',
               textToShow: taskItem.description,
             ),
           ],
