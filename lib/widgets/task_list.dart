@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/models.dart';
 import 'package:taskmaster/typedefs.dart';
-import 'package:taskmaster/widgets/task_item.dart';
+import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/keys.dart';
-import 'package:taskmaster/screens/add_edit_screen.dart';
+import 'package:taskmaster/screens/detail_screen.dart';
 
 class TaskListWidget extends StatelessWidget {
   final AppState appState;
@@ -22,14 +22,14 @@ class TaskListWidget extends StatelessWidget {
   ListView _buildListView(BuildContext context) {
     appState.notificationScheduler.updateHomeScreenContext(context);
     final Iterable<TaskItem> taskIterable = appState.taskItems;
-    final Iterable<TaskItemWidget> tiles = taskIterable.map<TaskItemWidget>(
+    final Iterable<EditableTaskItemWidget> tiles = taskIterable.map<EditableTaskItemWidget>(
         (TaskItem taskItem) {
-          return TaskItemWidget(
+          return EditableTaskItemWidget(
             taskItem: taskItem,
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) {
-                  return AddEditScreen(
+                  return DetailScreen(
                     taskItem: taskItem,
                     taskUpdater: taskUpdater,
                   );

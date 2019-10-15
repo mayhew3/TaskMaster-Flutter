@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models.dart';
 
-class TaskItemWidget extends StatelessWidget {
+class EditableTaskItemWidget extends StatelessWidget {
   final TaskItem taskItem;
   final GestureTapCallback onTap;
   final ValueChanged<bool> onCheckboxChanged;
   final DismissDirectionCallback onDismissed;
 
-  TaskItemWidget({
+  EditableTaskItemWidget({
     Key key,
     @required this.taskItem,
     @required this.onTap,
