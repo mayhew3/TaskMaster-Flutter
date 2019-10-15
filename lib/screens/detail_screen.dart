@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:taskmaster/models.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
+import 'package:taskmaster/widgets/readonly_task_field.dart';
 
 class DetailScreen extends StatelessWidget {
   final TaskItem taskItem;
@@ -46,27 +47,8 @@ class DetailScreen extends StatelessWidget {
                 ),
               ],
             ),
-            Visibility(
-              visible: taskItem.description != null && taskItem.description != '',
-              child: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Row(
-                  children: <Widget>[
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: <Widget>[
-                        SizedBox(
-                          width: 80.0,
-                          child: Text('Notes',
-                            style: Theme.of(context).textTheme.caption,),
-                        ),
-                      ],
-                    ),
-                    Text(taskItem.description,
-                      style: Theme.of(context).textTheme.subhead,),
-                  ],
-                ),
-              ),
+            ReadOnlyTaskField(
+              textToShow: taskItem.description,
             ),
           ],
         ),
