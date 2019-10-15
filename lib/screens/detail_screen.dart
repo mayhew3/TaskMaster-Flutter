@@ -130,6 +130,10 @@ class DetailScreenState extends State<DetailScreen> {
               textToShow: formatDateTime(widget.taskItem.dueDate),
             ),
             ReadOnlyTaskField(
+              headerName: 'Completed',
+              textToShow: formatDateTime(widget.taskItem.completionDate),
+            ),
+            ReadOnlyTaskField(
               headerName: 'Notes',
               textToShow: widget.taskItem.description,
             ),
