@@ -16,6 +16,7 @@ class NotificationScheduler {
   AppState appState;
   TaskAdder taskAdder;
   TaskUpdater taskUpdater;
+  TaskCompleter taskCompleter;
 
   BuildContext context;
   BuildContext homeScreenContext;
@@ -26,6 +27,7 @@ class NotificationScheduler {
     @required AppState appState,
     @required TaskAdder taskAdder,
     @required TaskUpdater taskUpdater,
+    @required TaskCompleter taskCompleter,
   }) {
     this.context = context;
     this.appState = appState;

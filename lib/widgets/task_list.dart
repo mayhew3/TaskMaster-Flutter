@@ -32,6 +32,7 @@ class TaskListWidget extends StatelessWidget {
                   return DetailScreen(
                     taskItem: taskItem,
                     taskUpdater: taskUpdater,
+                    taskCompleter: taskCompleter,
                   );
                 }),
               );

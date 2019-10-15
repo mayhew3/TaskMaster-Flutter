@@ -41,7 +41,8 @@ class TaskMasterAppState extends State<TaskMasterApp> {
         context,
         appState,
         addTask,
-        updateTask);
+        updateTask,
+        completeTask);
     maybeKickOffSignIn();
   }
 

@@ -10,9 +10,10 @@ import 'package:taskmaster/widgets/readonly_task_field_small.dart';
 
 final longDateFormat = DateFormat.yMMMMd().add_jm();
 
-class DetailScreen extends StatelessWidget {
+class DetailScreen extends StatefulWidget {
   final TaskItem taskItem;
   final TaskAdder taskAdder;
+  final TaskCompleter taskCompleter;
   final TaskUpdater taskUpdater;
 
   const DetailScreen({
@@ -20,7 +21,25 @@ class DetailScreen extends StatelessWidget {
     this.taskItem,
     this.taskAdder,
     this.taskUpdater,
+    this.taskCompleter,
   }) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() {
+    return DetailScreenState();
+  }
+
+}
+
+class DetailScreenState extends State<DetailScreen> {
+
+  bool completed;
+
+  @override
+  void initState() {
+    super.initState();
+    completed = (widget.taskItem.completionDate != null);
+  }
 
   String formatDateTime(DateTime dateTime) {
     return dateTime == null ? '' : longDateFormat.format(dateTime);
@@ -46,67 +65,72 @@ class DetailScreen extends StatelessWidget {
               children: [
                 Padding(
                     padding: EdgeInsets.all(16.0),
-                    child: Text(taskItem.name,
+                    child: Text(widget.taskItem.name,
                       style: Theme.of(context).textTheme.headline,
                     )
                 ),
                 Padding(
                   padding: EdgeInsets.all(4.0),
                   child: Checkbox(
-                    value: (taskItem.completionDate != null),
-                    onChanged: (value) => {},
+                    value: completed,
+                    onChanged: (complete) async {
+                      await widget.taskCompleter(widget.taskItem, complete);
+                      setState(() {
+                        completed = complete;
+                      });
+                    },
                   ),
                 ),
               ],
             ),
             ReadOnlyTaskField(
               headerName: 'Project',
-              textToShow: taskItem.project,
+              textToShow: widget.taskItem.project,
             ),
             ReadOnlyTaskField(
               headerName: 'Context',
-              textToShow: taskItem.context,
+              textToShow: widget.taskItem.context,
             ),
             ReadOnlyTaskField(
               headerName: 'Start',
-              textToShow: formatDateTime(taskItem.startDate),
+              textToShow: formatDateTime(widget.taskItem.startDate),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
                 ReadOnlyTaskFieldSmall(
                   headerName: 'Urgency',
-                  textToShow: formatNumber(taskItem.urgency),
+                  textToShow: formatNumber(widget.taskItem.urgency),
                 ),
                 ReadOnlyTaskFieldSmall(
                   headerName: 'Priority',
-                  textToShow: formatNumber(taskItem.priority),
+                  textToShow: formatNumber(widget.taskItem.priority),
                 ),
                 ReadOnlyTaskFieldSmall(
                   headerName: 'Points',
-                  textToShow: formatNumber(taskItem.gamePoints),
+                  textToShow: formatNumber(widget.taskItem.gamePoints),
                 ),
                 ReadOnlyTaskFieldSmall(
                   headerName: 'Length',
-                  textToShow: formatNumber(taskItem.duration),
+                  textToShow: formatNumber(widget.taskItem.duration),
                 ),
               ],
             ),
             ReadOnlyTaskField(
               headerName: 'Urgent',
-              textToShow: formatDateTime(taskItem.urgentDate),
+              textToShow: formatDateTime(widget.taskItem.urgentDate),
             ),
             ReadOnlyTaskField(
               headerName: 'Target',
-              textToShow: formatDateTime(taskItem.targetDate),
+              textToShow: formatDateTime(widget.taskItem.targetDate),
             ),
             ReadOnlyTaskField(
               headerName: 'Due',
-              textToShow: formatDateTime(taskItem.dueDate),
+              textToShow: formatDateTime(widget.taskItem.dueDate),
             ),
             ReadOnlyTaskField(
               headerName: 'Notes',
-              textToShow: taskItem.description,
+              textToShow: widget.taskItem.description,
             ),
           ],
         ),
@@ -119,9 +143,9 @@ class DetailScreen extends StatelessWidget {
             MaterialPageRoute(
               builder: (context) {
                 return AddEditScreen(
-                  taskUpdater: taskUpdater,
-                  taskAdder: taskAdder,
-                  taskItem: taskItem,
+                  taskUpdater: widget.taskUpdater,
+                  taskAdder: widget.taskAdder,
+                  taskItem: widget.taskItem,
                 );
               },
             ),

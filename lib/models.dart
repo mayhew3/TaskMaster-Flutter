@@ -36,12 +36,14 @@ class AppState {
   void updateNotificationScheduler(BuildContext context,
       AppState appState,
       TaskAdder taskAdder,
-      TaskUpdater taskUpdater) {
+      TaskUpdater taskUpdater,
+      TaskCompleter taskCompleter) {
     notificationScheduler = NotificationScheduler(
       context: context,
       appState: appState,
       taskAdder: taskAdder,
       taskUpdater: taskUpdater,
+      taskCompleter: taskCompleter,
     );
   }
 
