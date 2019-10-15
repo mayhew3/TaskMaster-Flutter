@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/widgets/readonly_task_field.dart';
 import 'package:taskmaster/widgets/readonly_task_field_small.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 final longDateFormat = DateFormat.yMMMMd().add_jm();
 
@@ -42,7 +43,7 @@ class DetailScreenState extends State<DetailScreen> {
   }
 
   String formatDateTime(DateTime dateTime) {
-    return dateTime == null ? '' : longDateFormat.format(dateTime);
+    return dateTime == null ? '' : timeago.format(dateTime, allowFromNow: true);
   }
 
   String formatNumber(num number) {
