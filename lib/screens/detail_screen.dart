@@ -6,6 +6,7 @@ import 'package:taskmaster/typedefs.dart';
 import 'package:intl/intl.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/widgets/readonly_task_field.dart';
+import 'package:taskmaster/widgets/readonly_task_field_small.dart';
 
 final longDateFormat = DateFormat.yMMMMd().add_jm();
 
@@ -23,6 +24,10 @@ class DetailScreen extends StatelessWidget {
 
   String formatDateTime(DateTime dateTime) {
     return dateTime == null ? '' : longDateFormat.format(dateTime);
+  }
+
+  String formatNumber(num number) {
+    return number == null ? '' : number.toString();
   }
 
   @override
@@ -65,6 +70,27 @@ class DetailScreen extends StatelessWidget {
             ReadOnlyTaskField(
               headerName: 'Start',
               textToShow: formatDateTime(taskItem.startDate),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                ReadOnlyTaskFieldSmall(
+                  headerName: 'Urgency',
+                  textToShow: formatNumber(taskItem.urgency),
+                ),
+                ReadOnlyTaskFieldSmall(
+                  headerName: 'Priority',
+                  textToShow: formatNumber(taskItem.priority),
+                ),
+                ReadOnlyTaskFieldSmall(
+                  headerName: 'Points',
+                  textToShow: formatNumber(taskItem.gamePoints),
+                ),
+                ReadOnlyTaskFieldSmall(
+                  headerName: 'Length',
+                  textToShow: formatNumber(taskItem.duration),
+                ),
+              ],
             ),
             ReadOnlyTaskField(
               headerName: 'Urgent',
