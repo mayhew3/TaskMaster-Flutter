@@ -55,8 +55,8 @@ class HomeScreenState extends State<HomeScreen> {
       );
     } else {
       return StatsCounter(
-        numActive: 8,
-        numCompleted: 4,
+        numActive: widget.appState.taskItems.where((task) => task.completionDate == null).length,
+        numCompleted: widget.appState.taskItems.where((task) => task.completionDate != null).length,
       );
     }
   }
