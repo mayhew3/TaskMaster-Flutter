@@ -137,11 +137,13 @@ class AddEditScreenState extends State<AddEditScreen> {
                 ),
                 NullableDropdown(
                   initialValue: widget.taskItem?.project,
+                  labelText: 'Project',
                   possibleValues: possibleProjects,
                   valueSetter: (newValue) => _project = newValue,
                 ),
                 NullableDropdown(
                   initialValue: widget.taskItem?.context,
+                  labelText: 'Context',
                   possibleValues: possibleContexts,
                   valueSetter: (newValue) => _context = newValue,
                 ),

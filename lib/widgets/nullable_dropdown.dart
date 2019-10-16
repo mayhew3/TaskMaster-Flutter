@@ -4,15 +4,16 @@ import 'package:flutter/material.dart';
 
 class NullableDropdown extends StatefulWidget {
   final String initialValue;
+  final String labelText;
   final List<String> possibleValues;
   final ValueSetter<String> valueSetter;
 
   const NullableDropdown({
     Key key,
     this.initialValue,
+    @required this.labelText,
     @required this.possibleValues,
     @required this.valueSetter,
-
   }) : super(key: key);
 
   @override
@@ -40,7 +41,12 @@ class NullableDropdownState extends State<NullableDropdown> {
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.all(7.0),
-      child: DropdownButton<String>(
+      child: DropdownButtonFormField<String>(
+        decoration: InputDecoration(
+          labelText: widget.labelText,
+          filled: false,
+          border: OutlineInputBorder(),
+        ),
         value: value,
         onChanged: (String newValue) {
           setState(() {
@@ -57,5 +63,6 @@ class NullableDropdownState extends State<NullableDropdown> {
         }).toList(),
       ),
     );
+
   }
 }
