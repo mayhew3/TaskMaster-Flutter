@@ -37,6 +37,14 @@ class NullableDropdownState extends State<NullableDropdown> {
     return value == '(none)' ? null : value;
   }
 
+  TextStyle getMenuItemStyle(String menuItem) {
+    if (menuItem != value) {
+      return TextStyle(color: Colors.lightBlueAccent);
+    } else {
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -55,10 +63,12 @@ class NullableDropdownState extends State<NullableDropdown> {
             widget.valueSetter(unwrapped);
           });
         },
-        items: widget.possibleValues.map<DropdownMenuItem<String>>((String value) {
+        items: widget.possibleValues.map<DropdownMenuItem<String>>((String itemValue) {
           return DropdownMenuItem<String>(
-            value: value,
-            child: Text(value),
+            value: itemValue,
+            child: Text(itemValue,
+              style: getMenuItemStyle(itemValue),
+            ),
           );
         }).toList(),
       ),
