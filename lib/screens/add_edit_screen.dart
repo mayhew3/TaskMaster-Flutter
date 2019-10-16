@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:taskmaster/models.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/clearable_date_time_field.dart';
+import 'package:taskmaster/widgets/nullable_dropdown.dart';
 
 class AddEditScreen extends StatefulWidget {
   final TaskItem taskItem;
@@ -64,8 +65,8 @@ class AddEditScreenState extends State<AddEditScreen> {
     _dueDate = widget.taskItem?.dueDate;
     _urgentDate = widget.taskItem?.urgentDate;
 
-    _project = widget.taskItem == null ? '(none)' : wrapNullValue(widget.taskItem.project);
-    _context = widget.taskItem == null ? '(none)' : wrapNullValue(widget.taskItem.context);
+    _project = widget.taskItem?.project;
+    _context = widget.taskItem?.context;
 
     possibleProjects = [
       '(none)',
@@ -95,14 +96,6 @@ class AddEditScreenState extends State<AddEditScreen> {
       'Reading',
       'Planning',
     ];
-  }
-
-  String wrapNullValue(String value) {
-    return value ?? '(none)';
-  }
-
-  String unwrapNullValue(String value) {
-    return value == '(none)' ? null : value;
   }
 
   @override
@@ -142,39 +135,15 @@ class AddEditScreenState extends State<AddEditScreen> {
                     },
                   ),
                 ),
-                Container(
-                  margin: EdgeInsets.all(7.0),
-                  child: DropdownButton<String>(
-                    value: _project,
-                    onChanged: (String newValue) {
-                      setState(() {
-                        _project = newValue;
-                      });
-                    },
-                    items: possibleProjects.map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                  ),
+                NullableDropdown(
+                  initialValue: widget.taskItem?.project,
+                  possibleValues: possibleProjects,
+                  valueSetter: (newValue) => _project = newValue,
                 ),
-                Container(
-                  margin: EdgeInsets.all(7.0),
-                  child: DropdownButton<String>(
-                    value: _context,
-                    onChanged: (String newValue) {
-                      setState(() {
-                        _context = newValue;
-                      });
-                    },
-                    items: possibleContexts.map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                  ),
+                NullableDropdown(
+                  initialValue: widget.taskItem?.context,
+                  possibleValues: possibleContexts,
+                  valueSetter: (newValue) => _context = newValue,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -329,8 +298,8 @@ class AddEditScreenState extends State<AddEditScreen> {
                   taskItem: widget.taskItem,
                   name: _name,
                   description: _description,
-                  project: unwrapNullValue(_project),
-                  context: unwrapNullValue(_context),
+                  project: _project,
+                  context: _context,
                   urgency: _urgency == null || _urgency == '' ? 3 : num.parse(_urgency),
                   priority: _priority == null || _priority == '' ? 5 : num.parse(_priority),
                   duration: _duration == null || _duration == '' ? null : num.parse(_duration),
@@ -350,8 +319,8 @@ class AddEditScreenState extends State<AddEditScreen> {
               var addedItem = TaskItem(
                   name: _name,
                   description: _description,
-                  project: unwrapNullValue(_project),
-                  context: unwrapNullValue(_context),
+                  project: _project,
+                  context: _context,
                   urgency: _urgency == null || _urgency == '' ? 3 : num.parse(_urgency),
                   priority: _priority == null || _priority == '' ? 5 : num.parse(_priority),
                   duration: _duration == null || _duration == '' ? null : num.parse(_duration),
