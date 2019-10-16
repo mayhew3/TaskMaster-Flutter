@@ -195,10 +195,11 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     return MaterialApp(
       title: appState.title,
       theme: ThemeData(
-        primaryColor: Colors.blueGrey,
         brightness: Brightness.dark,
-        accentColor: Colors.pink,
-        toggleableActiveColor: Colors.pink,
+        primaryColor: Color.fromRGBO(102, 106, 186, 1.0),
+        canvasColor: Color.fromRGBO(55, 56, 81, 1.0),
+        accentColor: Color.fromRGBO(196, 37, 114, 1.0),
+        toggleableActiveColor: Color.fromRGBO(196, 37, 114, 1.0),
       ),
       home: LoadingScreen(
         appState: appState,
