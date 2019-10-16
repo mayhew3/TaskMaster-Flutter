@@ -5,6 +5,8 @@ import 'package:taskmaster/notification_scheduler.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:flutter/foundation.dart';
 
+enum AppTab { tasks, stats }
+
 class AppState {
   bool isLoading;
   List<TaskItem> taskItems;

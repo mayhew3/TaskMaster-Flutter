@@ -2,6 +2,7 @@ import 'package:taskmaster/models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/typedefs.dart';
+import 'package:taskmaster/widgets/stats_counter.dart';
 import 'package:taskmaster/widgets/task_list.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
@@ -36,11 +37,34 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
+  AppTab activeTab = AppTab.tasks;
 
   @override
   void initState() {
     super.initState();
     widget.navHelper.updateContext(context);
+  }
+
+  Widget getSelectedTab() {
+    if (activeTab == AppTab.tasks) {
+      return TaskListWidget(
+        appState: widget.appState,
+        taskCompleter: widget.taskCompleter,
+        taskUpdater: widget.taskUpdater,
+        taskDeleter: widget.taskDeleter,
+      );
+    } else {
+      return StatsCounter(
+        numActive: 8,
+        numCompleted: 4,
+      );
+    }
+  }
+
+  _updateTab(AppTab tab) {
+    setState(() {
+      activeTab = tab;
+    });
   }
 
   @override
@@ -57,12 +81,7 @@ class HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: TaskListWidget(
-        appState: widget.appState,
-        taskCompleter: widget.taskCompleter,
-        taskUpdater: widget.taskUpdater,
-        taskDeleter: widget.taskDeleter,
-      ),
+      body: getSelectedTab(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -71,6 +90,24 @@ class HomeScreenState extends State<HomeScreen> {
           );
         },
         child: Icon(Icons.add),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: AppTab.values.indexOf(activeTab),
+        onTap: (index) {
+          _updateTab(AppTab.values[index]);
+        },
+        items: AppTab.values.map((tab) {
+          return BottomNavigationBarItem(
+            icon: Icon(
+              tab == AppTab.tasks ? Icons.list : Icons.show_chart,
+            ),
+            title: Text(
+              tab == AppTab.stats
+                  ? 'Stats'
+                  : 'Tasks',
+            ),
+          );
+        }).toList(),
       ),
     );
   }
