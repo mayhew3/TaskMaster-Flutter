@@ -123,13 +123,15 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     appState.notificationScheduler.updateBadge();
   }
 
-  void completeTask(TaskItem taskItem, bool completed) async {
+  Future<TaskItem> completeTask(TaskItem taskItem, bool completed) async {
     var inboundTask = await repository.completeTask(taskItem, completed);
+    TaskItem updatedTask;
     setState(() {
-      var updatedTask = appState.updateTaskListWithUpdatedTask(inboundTask);
+      updatedTask = appState.updateTaskListWithUpdatedTask(inboundTask);
       appState.notificationScheduler.syncNotificationForTask(updatedTask);
     });
     appState.notificationScheduler.updateBadge();
+    return updatedTask;
   }
 
   void deleteTask(TaskItem taskItem) async {
@@ -143,7 +145,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     appState.notificationScheduler.updateBadge();
   }
 
-  void updateTask({
+  Future<TaskItem> updateTask({
     TaskItem taskItem,
     String name,
     String description,
@@ -179,11 +181,13 @@ class TaskMasterAppState extends State<TaskMasterApp> {
         recurUnit: recurUnit,
         recurWait: recurWait
     );
+    TaskItem updatedTask;
     setState(() {
-      var updatedTask = appState.updateTaskListWithUpdatedTask(inboundTask);
+      updatedTask = appState.updateTaskListWithUpdatedTask(inboundTask);
       appState.notificationScheduler.syncNotificationForTask(updatedTask);
     });
     appState.notificationScheduler.updateBadge();
+    return updatedTask;
   }
 
   @override

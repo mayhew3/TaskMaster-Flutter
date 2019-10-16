@@ -7,11 +7,11 @@ typedef IdTokenUpdater(String idToken);
 
 typedef TaskAdder(TaskItem taskItem);
 
-typedef TaskCompleter(TaskItem taskItem, bool completed);
+typedef Future<TaskItem> TaskCompleter(TaskItem taskItem, bool completed);
 
 typedef TaskDeleter(TaskItem taskItem);
 
-typedef TaskUpdater({
+typedef Future<TaskItem> TaskUpdater({
   TaskItem taskItem,
   String name,
   String description,
@@ -33,3 +33,4 @@ typedef TaskUpdater({
 typedef EndLoadingCallback(BuildContext context);
 
 typedef TaskListReloader();
+typedef TaskItemRefresher(TaskItem taskItem);

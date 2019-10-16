@@ -9,12 +9,14 @@ class AddEditScreen extends StatefulWidget {
   final TaskItem taskItem;
   final TaskAdder taskAdder;
   final TaskUpdater taskUpdater;
+  final TaskItemRefresher taskItemRefresher;
 
   const AddEditScreen({
     Key key,
     this.taskItem,
     this.taskAdder,
     this.taskUpdater,
+    this.taskItemRefresher,
   }) : super(key: key);
 
   @override
@@ -44,6 +46,8 @@ class AddEditScreenState extends State<AddEditScreen> {
   String _recurUnit;
   bool _recurWait;
 
+  List<String> possibleProjects;
+  List<String> possibleContexts;
 
   @override
   void initState() {
@@ -59,6 +63,46 @@ class AddEditScreenState extends State<AddEditScreen> {
     _targetDate = widget.taskItem?.targetDate;
     _dueDate = widget.taskItem?.dueDate;
     _urgentDate = widget.taskItem?.urgentDate;
+
+    _project = widget.taskItem == null ? '(none)' : wrapNullValue(widget.taskItem.project);
+    _context = widget.taskItem == null ? '(none)' : wrapNullValue(widget.taskItem.context);
+
+    possibleProjects = [
+      '(none)',
+      'Career',
+      'Hobby',
+      'Friends',
+      'Family',
+      'Health',
+      'Maintenance',
+      'Organization',
+      'Shopping',
+      'Entertainment',
+      'WIG Mentorship',
+      'Writing',
+      'Bugs',
+      'Projects',
+    ];
+
+    possibleContexts = [
+      '(none)',
+      'Computer',
+      'Home',
+      'Office',
+      'E-Mail',
+      'Phone',
+      'Outside',
+      'Reading',
+      'Planning',
+    ];
+  }
+
+  String wrapNullValue(String value) {
+    return value ?? '(none)';
+  }
+
+  String unwrapNullValue(String value) {
+    return value == '(none)' ? null : value;
   }
 
   @override
@@ -100,30 +144,36 @@ class AddEditScreenState extends State<AddEditScreen> {
                 ),
                 Container(
                   margin: EdgeInsets.all(7.0),
-                  child: TextFormField(
-                    keyboardType: TextInputType.text,
-                    textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(
-                      labelText: 'Project',
-                      filled: false,
-                      border: OutlineInputBorder(),
-                    ),
-                    initialValue: widget.taskItem?.project,
-                    onSaved: (value) => _project = value,
+                  child: DropdownButton<String>(
+                    value: _project,
+                    onChanged: (String newValue) {
+                      setState(() {
+                        _project = newValue;
+                      });
+                    },
+                    items: possibleProjects.map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
                   ),
                 ),
                 Container(
                   margin: EdgeInsets.all(7.0),
-                  child: TextFormField(
-                    keyboardType: TextInputType.text,
-                    textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(
-                      labelText: 'Context',
-                      filled: false,
-                      border: OutlineInputBorder(),
-                    ),
-                    initialValue: widget.taskItem?.context,
-                    onSaved: (value) => _context = value,
+                  child: DropdownButton<String>(
+                    value: _context,
+                    onChanged: (String newValue) {
+                      setState(() {
+                        _context = newValue;
+                      });
+                    },
+                    items: possibleContexts.map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
                   ),
                 ),
                 Row(
@@ -275,12 +325,12 @@ class AddEditScreenState extends State<AddEditScreen> {
             form.save();
 
             if (isEditing) {
-              await widget.taskUpdater(
+              var updatedItem = await widget.taskUpdater(
                   taskItem: widget.taskItem,
                   name: _name,
                   description: _description,
-                  project: _project,
-                  context: _context,
+                  project: unwrapNullValue(_project),
+                  context: unwrapNullValue(_context),
                   urgency: _urgency == null || _urgency == '' ? 3 : num.parse(_urgency),
                   priority: _priority == null || _priority == '' ? 5 : num.parse(_priority),
                   duration: _duration == null || _duration == '' ? null : num.parse(_duration),
@@ -293,12 +343,15 @@ class AddEditScreenState extends State<AddEditScreen> {
                   recurUnit: _recurUnit,
                   recurWait: _recurWait
               );
+              if (widget.taskItemRefresher != null) {
+                widget.taskItemRefresher(updatedItem);
+              }
             } else {
               var addedItem = TaskItem(
                   name: _name,
                   description: _description,
-                  project: _project,
-                  context: _context,
+                  project: unwrapNullValue(_project),
+                  context: unwrapNullValue(_context),
                   urgency: _urgency == null || _urgency == '' ? 3 : num.parse(_urgency),
                   priority: _priority == null || _priority == '' ? 5 : num.parse(_priority),
                   duration: _duration == null || _duration == '' ? null : num.parse(_duration),

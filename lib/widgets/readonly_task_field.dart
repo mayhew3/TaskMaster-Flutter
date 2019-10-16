@@ -15,7 +15,7 @@ class ReadOnlyTaskField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Visibility(
-      visible: textToShow.isNotEmpty,
+      visible: textToShow != null && textToShow.isNotEmpty,
       child: Padding(
         padding: EdgeInsets.all(16.0),
         child: Row(
@@ -30,7 +30,7 @@ class ReadOnlyTaskField extends StatelessWidget {
                 ),
               ],
             ),
-            Text(textToShow,
+            Text(textToShow ?? '',
               style: Theme.of(context).textTheme.subhead,),
           ],
         ),

@@ -27,7 +27,7 @@ class DetailScreen extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return DetailScreenState();
+    return DetailScreenState(taskItem);
   }
 
 }
@@ -35,11 +35,16 @@ class DetailScreen extends StatefulWidget {
 class DetailScreenState extends State<DetailScreen> {
 
   bool completed;
+  TaskItem taskItem;
+
+  DetailScreenState(TaskItem taskItem) {
+    this.taskItem = taskItem;
+  }
 
   @override
   void initState() {
     super.initState();
-    completed = (widget.taskItem.completionDate != null);
+    completed = (taskItem.completionDate != null);
   }
 
   String formatDateTime(DateTime dateTime) {
@@ -48,6 +53,13 @@ class DetailScreenState extends State<DetailScreen> {
 
   String formatNumber(num number) {
     return number == null ? '' : number.toString();
+  }
+
+  void refreshLocalTaskItem(TaskItem taskItem) {
+    setState(() {
+      this.taskItem = taskItem;
+      completed = (taskItem.completionDate != null);
+    });
   }
 
   @override
@@ -66,7 +78,7 @@ class DetailScreenState extends State<DetailScreen> {
               children: [
                 Padding(
                     padding: EdgeInsets.all(16.0),
-                    child: Text(widget.taskItem.name,
+                    child: Text(taskItem.name,
                       style: Theme.of(context).textTheme.headline,
                     )
                 ),
@@ -75,10 +87,8 @@ class DetailScreenState extends State<DetailScreen> {
                   child: Checkbox(
                     value: completed,
                     onChanged: (complete) async {
-                      await widget.taskCompleter(widget.taskItem, complete);
-                      setState(() {
-                        completed = complete;
-                      });
+                      var updatedTask = await widget.taskCompleter(taskItem, complete);
+                      refreshLocalTaskItem(updatedTask);
                     },
                   ),
                 ),
@@ -86,56 +96,56 @@ class DetailScreenState extends State<DetailScreen> {
             ),
             ReadOnlyTaskField(
               headerName: 'Project',
-              textToShow: widget.taskItem.project,
+              textToShow: taskItem.project,
             ),
             ReadOnlyTaskField(
               headerName: 'Context',
-              textToShow: widget.taskItem.context,
+              textToShow: taskItem.context,
             ),
             ReadOnlyTaskField(
               headerName: 'Start',
-              textToShow: formatDateTime(widget.taskItem.startDate),
+              textToShow: formatDateTime(taskItem.startDate),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
                 ReadOnlyTaskFieldSmall(
                   headerName: 'Urgency',
-                  textToShow: formatNumber(widget.taskItem.urgency),
+                  textToShow: formatNumber(taskItem.urgency),
                 ),
                 ReadOnlyTaskFieldSmall(
                   headerName: 'Priority',
-                  textToShow: formatNumber(widget.taskItem.priority),
+                  textToShow: formatNumber(taskItem.priority),
                 ),
                 ReadOnlyTaskFieldSmall(
                   headerName: 'Points',
-                  textToShow: formatNumber(widget.taskItem.gamePoints),
+                  textToShow: formatNumber(taskItem.gamePoints),
                 ),
                 ReadOnlyTaskFieldSmall(
                   headerName: 'Length',
-                  textToShow: formatNumber(widget.taskItem.duration),
+                  textToShow: formatNumber(taskItem.duration),
                 ),
               ],
             ),
             ReadOnlyTaskField(
               headerName: 'Urgent',
-              textToShow: formatDateTime(widget.taskItem.urgentDate),
+              textToShow: formatDateTime(taskItem.urgentDate),
             ),
             ReadOnlyTaskField(
               headerName: 'Target',
-              textToShow: formatDateTime(widget.taskItem.targetDate),
+              textToShow: formatDateTime(taskItem.targetDate),
             ),
             ReadOnlyTaskField(
               headerName: 'Due',
-              textToShow: formatDateTime(widget.taskItem.dueDate),
+              textToShow: formatDateTime(taskItem.dueDate),
             ),
             ReadOnlyTaskField(
               headerName: 'Completed',
-              textToShow: formatDateTime(widget.taskItem.completionDate),
+              textToShow: formatDateTime(taskItem.completionDate),
             ),
             ReadOnlyTaskField(
               headerName: 'Notes',
-              textToShow: widget.taskItem.description,
+              textToShow: taskItem.description,
             ),
           ],
         ),
@@ -150,7 +160,8 @@ class DetailScreenState extends State<DetailScreen> {
                 return AddEditScreen(
                   taskUpdater: widget.taskUpdater,
                   taskAdder: widget.taskAdder,
-                  taskItem: widget.taskItem,
+                  taskItem: taskItem,
+                  taskItemRefresher: refreshLocalTaskItem,
                 );
               },
             ),

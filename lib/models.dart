@@ -90,6 +90,10 @@ class AppState {
   }
 }
 
+String nullifyEmptyString(String inputString) {
+  return inputString.isEmpty ? null : inputString.trim();
+}
+
 DateTime nullSafeParseJSON(dynamic jsonVal) {
   if (jsonVal == null) {
     return null;
@@ -219,10 +223,10 @@ class TaskItem {
     return TaskItem(
         id: json['id'],
         personId: json['person_id'],
-        name: json['name'],
-        description: json['description'],
-        project: json['project'],
-        context: json['context'],
+        name: nullifyEmptyString(json['name']),
+        description: nullifyEmptyString(json['description']),
+        project: nullifyEmptyString(json['project']),
+        context: nullifyEmptyString(json['context']),
         urgency: json['urgency'],
         priority: json['priority'],
         duration: json['duration'],
@@ -238,6 +242,7 @@ class TaskItem {
         dateAdded: DateTime.parse(json['date_added']),
     );
   }
+
 }
 
 class TaskEntity {

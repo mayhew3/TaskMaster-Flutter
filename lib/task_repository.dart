@@ -64,9 +64,9 @@ class TaskRepository {
       "task": {
         "name": taskItem.name,
         "person_id": appState.personId,
-        "description": taskItem.description,
-        "project": taskItem.project,
-        "context": taskItem.context,
+        "description": nullifyEmptyString(taskItem.description),
+        "project": nullifyEmptyString(taskItem.project),
+        "context": nullifyEmptyString(taskItem.context),
         "urgency": taskItem.urgency,
         "priority": taskItem.priority,
         "duration": taskItem.duration,
@@ -122,10 +122,10 @@ class TaskRepository {
     var payload = {
       "task": {
         "id": taskItem.id,
-        "name": name,
-        "description": description,
-        "project": project,
-        "context": context,
+        "name": nullifyEmptyString(name),
+        "description": nullifyEmptyString(description),
+        "project": nullifyEmptyString(project),
+        "context": nullifyEmptyString(context),
         "urgency": urgency,
         "priority": priority,
         "duration": duration,
@@ -137,6 +137,10 @@ class TaskRepository {
       }
     };
     return _addOrUpdateJSON(payload, 'update');
+  }
+
+  String nullifyEmptyString(String inputString) {
+    return inputString == null || inputString.isEmpty ? null : inputString.trim();
   }
 
   Future<void> deleteTask(TaskItem taskItem) async {
