@@ -192,14 +192,15 @@ class TaskMasterAppState extends State<TaskMasterApp> {
 
   @override
   Widget build(BuildContext context) {
+    var myPink = Color.fromRGBO(217, 71, 142, 1.0);
     return MaterialApp(
       title: appState.title,
       theme: ThemeData(
         brightness: Brightness.dark,
         primaryColor: Color.fromRGBO(102, 106, 186, 1.0),
         canvasColor: Color.fromRGBO(55, 56, 81, 1.0),
-        accentColor: Color.fromRGBO(196, 37, 114, 1.0),
-        toggleableActiveColor: Color.fromRGBO(196, 37, 114, 1.0),
+        accentColor: myPink,
+        toggleableActiveColor: myPink,
       ),
       home: LoadingScreen(
         appState: appState,
