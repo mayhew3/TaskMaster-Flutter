@@ -197,6 +197,8 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       theme: ThemeData(
         primaryColor: Colors.blueGrey,
         brightness: Brightness.dark,
+        accentColor: Colors.pink,
+        toggleableActiveColor: Colors.pink,
       ),
       home: LoadingScreen(
         appState: appState,
