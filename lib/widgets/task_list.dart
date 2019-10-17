@@ -19,49 +19,48 @@ class TaskListWidget extends StatelessWidget {
     @required this.taskDeleter,
   }) : super(key: TaskMasterKeys.taskList);
 
+  EditableTaskItemWidget _createWidget(TaskItem taskItem, BuildContext context) {
+    return EditableTaskItemWidget(
+      taskItem: taskItem,
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) {
+            return DetailScreen(
+              taskItem: taskItem,
+              taskUpdater: taskUpdater,
+              taskCompleter: taskCompleter,
+            );
+          }),
+        );
+      },
+      onCheckboxChanged: (complete) {
+        taskCompleter(taskItem, complete);
+      },
+      onDismissed: (direction) async {
+        if (direction == DismissDirection.endToStart) {
+          try {
+            await taskDeleter(taskItem);
+            displaySnackBar("Task Deleted!", context);
+            return true;
+          } catch(err) {
+            return false;
+          }
+        }
+        return false;
+      },
+    );
+  }
+
   ListView _buildListView(BuildContext context) {
     appState.notificationScheduler.updateHomeScreenContext(context);
-    final Iterable<TaskItem> taskIterable = appState.taskItems;
-    final Iterable<EditableTaskItemWidget> tiles = taskIterable.map<EditableTaskItemWidget>(
-        (TaskItem taskItem) {
-          return EditableTaskItemWidget(
-            taskItem: taskItem,
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) {
-                  return DetailScreen(
-                    taskItem: taskItem,
-                    taskUpdater: taskUpdater,
-                    taskCompleter: taskCompleter,
-                  );
-                }),
-              );
-            },
-            onCheckboxChanged: (complete) {
-              taskCompleter(taskItem, complete);
-            },
-            onDismissed: (direction) async {
-              if (direction == DismissDirection.endToStart) {
-                try {
-                  await taskDeleter(taskItem);
-                  displaySnackBar("Task Deleted!", context);
-                  return true;
-                } catch(err) {
-                  return false;
-                }
-              }
-              return false;
-            },
-          );
-        }
-    );
+    final List<TaskItem> taskList = appState.taskItems.toList(growable: false);
 
-    final List<Widget> divided = ListTile.divideTiles(
-      context: context,
-      tiles: tiles,
-    ).toList();
-
-    return ListView(children: divided);
+    return ListView.builder(
+        itemCount: taskList.length,
+        itemBuilder: (context, index) {
+      final item = taskList[index];
+      return _createWidget(item, context);
+    });
   }
 
   void displaySnackBar(String msg, BuildContext context) {
