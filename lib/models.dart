@@ -92,6 +92,11 @@ class AppState {
   }
 }
 
+bool hasPassed(DateTime dateTime) {
+  var now = DateTime.now();
+  return dateTime == null ? false : dateTime.isBefore(now);
+}
+
 String nullifyEmptyString(String inputString) {
   return inputString.isEmpty ? null : inputString.trim();
 }
@@ -151,6 +156,18 @@ class TaskItem {
     this.recurUnit,
     this.recurWait
   });
+
+  bool isCompleted() {
+    return completionDate != null;
+  }
+
+  bool isPastDue() {
+    return hasPassed(dueDate);
+  }
+
+  bool isUrgent() {
+    return hasPassed(urgentDate);
+  }
 
   @override
   int get hashCode =>
