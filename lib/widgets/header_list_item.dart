@@ -8,10 +8,17 @@ class HeadingItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(
-        heading,
-        style: Theme.of(context).textTheme.subhead,
+    return Container(
+      color: Color.fromRGBO(128, 128, 128, 0.2),
+      padding: EdgeInsets.only(
+        top: 4.0,
+        bottom: 4.0,
+        left: 16.0,
+        right: 16.0,
+      ),
+      child:  Text(
+        heading.toUpperCase(),
+        style: Theme.of(context).textTheme.caption,
       ),
     );
   }
