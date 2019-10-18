@@ -9,10 +9,10 @@ class HeadingItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Color.fromRGBO(128, 128, 128, 0.2),
+      margin: EdgeInsets.symmetric(horizontal: 0.0, vertical: 3.0),
       padding: EdgeInsets.only(
-        top: 4.0,
-        bottom: 4.0,
+        top: 0.0,
+        bottom: 0.0,
         left: 16.0,
         right: 16.0,
       ),
