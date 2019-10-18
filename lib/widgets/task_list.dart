@@ -1,12 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:taskmaster/models.dart';
-import 'package:taskmaster/typedefs.dart';
-import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
+import 'package:taskmaster/typedefs.dart';
+import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/widgets/header_list_item.dart';
 
 class TaskListWidget extends StatelessWidget {

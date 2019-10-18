@@ -1,15 +1,13 @@
-import 'package:taskmaster/models.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-import 'package:flutter/cupertino.dart';
+import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/intl.dart';
 import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
 import 'package:taskmaster/typedefs.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter_app_badger/flutter_app_badger.dart';
 
 FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 

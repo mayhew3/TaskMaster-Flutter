@@ -1,20 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:taskmaster/auth.dart';
-import 'package:taskmaster/notification_scheduler.dart';
-import 'package:taskmaster/typedefs.dart';
-import 'package:flutter/foundation.dart';
 import 'package:taskmaster/models/task_item.dart';
-
-
-bool hasPassed(DateTime dateTime) {
-  var now = DateTime.now();
-  return dateTime == null ? false : dateTime.isBefore(now);
-}
-
-String nullifyEmptyString(String inputString) {
-  return inputString.isEmpty ? null : inputString.trim();
-}
 
 DateTime nullSafeParseJSON(dynamic jsonVal) {
   if (jsonVal == null) {

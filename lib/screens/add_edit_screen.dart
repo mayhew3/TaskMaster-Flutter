@@ -1,7 +1,6 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:taskmaster/models.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/clearable_date_time_field.dart';

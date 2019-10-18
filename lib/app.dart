@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:taskmaster/models.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:taskmaster/models/app_state.dart';
+import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/screens/loading.dart';
 import 'package:taskmaster/task_repository.dart';
-import 'package:taskmaster/models/app_state.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:taskmaster/models/task_item.dart';
 
 class TaskMasterApp extends StatefulWidget {
   @override

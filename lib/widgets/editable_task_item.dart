@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
-import 'package:taskmaster/models.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:timeago/timeago.dart' as timeago;
 

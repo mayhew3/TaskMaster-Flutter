@@ -1,11 +1,10 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:taskmaster/models.dart';
-import 'package:taskmaster/typedefs.dart';
-import 'package:taskmaster/models/task_item.dart';
 import 'package:intl/intl.dart';
+import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
+import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/readonly_task_field.dart';
 import 'package:taskmaster/widgets/readonly_task_field_small.dart';
 import 'package:timeago/timeago.dart' as timeago;
