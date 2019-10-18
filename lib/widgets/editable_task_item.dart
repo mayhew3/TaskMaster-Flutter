@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class EditableTaskItemWidget extends StatelessWidget {
   final TaskItem taskItem;
@@ -38,6 +39,20 @@ class EditableTaskItemWidget extends StatelessWidget {
     }
   }
 
+  String formatDateTime(DateTime dateTime) {
+    var preliminaryString = dateTime == null ? '' : timeago.format(
+        dateTime,
+        locale: 'en_short',
+        allowFromNow: true
+    );
+    return preliminaryString.replaceAll(' ', '');
+  }
+
+  bool dueInThreshold(int thresholdDays) {
+    DateTime inXDays = DateTime.now().add(Duration(days: thresholdDays));
+    return taskItem.dueDate != null && taskItem.dueDate.isBefore(inXDays);
+  }
+
   @override
   Widget build(BuildContext context) {
     var completed = taskItem.completionDate != null;
@@ -60,34 +75,46 @@ class EditableTaskItemWidget extends StatelessWidget {
               color: getBackgroundColor(),
               child: Row(
                 children: <Widget>[
-                  Column(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 7.0),
-                          child: Checkbox(
-                            value: completed,
-                            onChanged: onCheckboxChanged,
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 7.0),
+                    child: Checkbox(
+                      value: completed,
+                      onChanged: onCheckboxChanged,
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                            taskItem.name,
+                            style: const TextStyle(fontSize: 17.0)
+                        ),
+                        Visibility(
+                          visible: taskItem.project != null,
+                          child: Text(
+                            taskItem.project == null ? '' : taskItem.project,
+                            style: const TextStyle(fontSize: 12.0,
+                                color: Colors.white70),
                           ),
                         ),
-                      ]
+                      ],
+                    )
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                          taskItem.name,
-                          style: const TextStyle(fontSize: 17.0)
+                  Visibility(
+                    visible: !taskItem.isCompleted() && dueInThreshold(10),
+                    child: Container(
+                      padding: EdgeInsets.only(
+                        top: 5.0,
+                        bottom: 5.0,
+                        right: 15.0,
+                        left: 5.0,
                       ),
-                      Visibility(
-                        visible: taskItem.project != null,
-                        child: Text(
-                          taskItem.project == null ? '' : taskItem.project,
-                          style: const TextStyle(fontSize: 12.0,
-                              color: Colors.white70),
-                        ),
+                      child: Text(
+                        'Due in ' + formatDateTime(taskItem.dueDate),
                       ),
-                    ],
-                  )
+                    ),
+                  ),
                 ],
               ),
             ),
