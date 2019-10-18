@@ -2,6 +2,7 @@ import 'package:taskmaster/models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/nav_helper.dart';
+import 'package:taskmaster/models/app_state.dart';
 
 import 'package:flutter/cupertino.dart';
 

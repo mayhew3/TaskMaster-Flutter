@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/stats_counter.dart';
 import 'package:taskmaster/widgets/task_list.dart';
+import 'package:taskmaster/models/app_state.dart';
+import 'package:taskmaster/models/app_tab.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/nav_helper.dart';
