@@ -43,34 +43,59 @@ class EditableTaskItemWidget extends StatelessWidget {
     var completed = taskItem.completionDate != null;
 
     return Dismissible(
-        key: TaskMasterKeys.taskItem(taskItem.id.toString()),
-        confirmDismiss: onDismissed,
+      key: TaskMasterKeys.taskItem(taskItem.id.toString()),
+      confirmDismiss: onDismissed,
+      child: GestureDetector(
+        onTap: onTap,
         child: Card(
           elevation: 1.0,
           margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
           child: ClipPath(
             clipper: ShapeBorderClipper(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(3.0),
-              )
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(3.0),
+                )
             ),
             child: Container(
               color: getBackgroundColor(),
-              child: ListTile(
-                onTap: onTap,
-                leading: Checkbox(
-                  value: completed,
-                  onChanged: onCheckboxChanged,
-                ),
-                title: Text(
-                    taskItem.name,
-                    style: const TextStyle(fontSize: 18.0)
-                ),
+              child: Row(
+                children: <Widget>[
+                  Column(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 7.0),
+                          child: Checkbox(
+                            value: completed,
+                            onChanged: onCheckboxChanged,
+                          ),
+                        ),
+                      ]
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                          taskItem.name,
+                          style: const TextStyle(fontSize: 17.0)
+                      ),
+                      Visibility(
+                        visible: taskItem.project != null,
+                        child: Text(
+                          taskItem.project == null ? '' : taskItem.project,
+                          style: const TextStyle(fontSize: 12.0,
+                              color: Colors.white70),
+                        ),
+                      ),
+                    ],
+                  )
+                ],
               ),
             ),
           ),
         ),
-      );
+      ),
+
+    );
 
   }
 
