@@ -42,31 +42,35 @@ class EditableTaskItemWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     var completed = taskItem.completionDate != null;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(15.0),
-      child: Dismissible(
+    return Dismissible(
         key: TaskMasterKeys.taskItem(taskItem.id.toString()),
         confirmDismiss: onDismissed,
         child: Card(
           elevation: 1.0,
           margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
-          child: Container(
-            color: getBackgroundColor(),
-            child: ListTile(
-              onTap: onTap,
-              leading: Checkbox(
-                value: completed,
-                onChanged: onCheckboxChanged,
-              ),
-              title: Text(
-                  taskItem.name,
-                  style: const TextStyle(fontSize: 18.0)
+          child: ClipPath(
+            clipper: ShapeBorderClipper(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(3.0),
+              )
+            ),
+            child: Container(
+              color: getBackgroundColor(),
+              child: ListTile(
+                onTap: onTap,
+                leading: Checkbox(
+                  value: completed,
+                  onChanged: onCheckboxChanged,
+                ),
+                title: Text(
+                    taskItem.name,
+                    style: const TextStyle(fontSize: 18.0)
+                ),
               ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
   }
 
