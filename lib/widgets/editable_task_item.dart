@@ -39,13 +39,24 @@ class EditableTaskItemWidget extends StatelessWidget {
     }
   }
 
+  String getDueDateString() {
+    var dueDate = taskItem.dueDate;
+    if (dueDate == null) {
+      return '';
+    } else if (taskItem.isPastDue()) {
+      return 'Due ' + formatDateTime(dueDate) + ' ago';
+    } else {
+      return 'Due in ' + formatDateTime(dueDate);
+    }
+  }
+
   String formatDateTime(DateTime dateTime) {
     var preliminaryString = dateTime == null ? '' : timeago.format(
         dateTime,
         locale: 'en_short',
         allowFromNow: true
     );
-    return preliminaryString.replaceAll(' ', '');
+    return preliminaryString.replaceAll(' ', '').replaceAll('~', '');
   }
 
   bool dueInThreshold(int thresholdDays) {
@@ -111,7 +122,9 @@ class EditableTaskItemWidget extends StatelessWidget {
                         left: 5.0,
                       ),
                       child: Text(
-                        'Due in ' + formatDateTime(taskItem.dueDate),
+                        getDueDateString(),
+                        style: const TextStyle(fontSize: 14.0,
+                            color: Color.fromRGBO(235, 167, 167, 1.0)),
                       ),
                     ),
                   ),
