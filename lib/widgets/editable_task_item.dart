@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:taskmaster/models/task_colors.dart';
 
 class EditableTaskItemWidget extends StatelessWidget {
   final TaskItem taskItem;
@@ -29,13 +30,13 @@ class EditableTaskItemWidget extends StatelessWidget {
     var completed = taskItem.completionDate != null;
 
     if (completed) {
-      return Color.fromRGBO(95, 49, 92, 1.0);
+      return TaskColors.completedColor;
     } else if (due) {
-      return Color.fromRGBO(95, 45, 63, 1.0);
+      return TaskColors.dueColor;
     } else if (urgent) {
-      return Color.fromRGBO(95, 71, 66, 1.0);
+      return TaskColors.urgentColor;
     } else {
-      return Color.fromRGBO(76, 77, 105, 1.0);
+      return TaskColors.cardColor;
     }
   }
 
@@ -74,7 +75,8 @@ class EditableTaskItemWidget extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Card(
-          elevation: 1.0,
+          color: getBackgroundColor(),
+          elevation: 3.0,
           margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
           child: ClipPath(
             clipper: ShapeBorderClipper(
@@ -82,18 +84,16 @@ class EditableTaskItemWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(3.0),
                 )
             ),
-            child: Container(
-              color: getBackgroundColor(),
-              child: Row(
-                children: <Widget>[
-                  Container(
-                    padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 7.0),
-                    child: Checkbox(
-                      value: completed,
-                      onChanged: onCheckboxChanged,
-                    ),
+            child: Row(
+              children: <Widget>[
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 7.0),
+                  child: Checkbox(
+                    value: completed,
+                    onChanged: onCheckboxChanged,
                   ),
-                  Expanded(
+                ),
+                Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
@@ -111,25 +111,24 @@ class EditableTaskItemWidget extends StatelessWidget {
                         ),
                       ],
                     )
-                  ),
-                  Visibility(
-                    visible: !taskItem.isCompleted() && dueInThreshold(10),
-                    child: Container(
-                      padding: EdgeInsets.only(
-                        top: 5.0,
-                        bottom: 5.0,
-                        right: 15.0,
-                        left: 5.0,
-                      ),
-                      child: Text(
-                        getDueDateString(),
-                        style: const TextStyle(fontSize: 14.0,
-                            color: Color.fromRGBO(235, 167, 167, 1.0)),
-                      ),
+                ),
+                Visibility(
+                  visible: !taskItem.isCompleted() && dueInThreshold(10),
+                  child: Container(
+                    padding: EdgeInsets.only(
+                      top: 5.0,
+                      bottom: 5.0,
+                      right: 15.0,
+                      left: 5.0,
+                    ),
+                    child: Text(
+                      getDueDateString(),
+                      style: const TextStyle(fontSize: 14.0,
+                          color: Color.fromRGBO(235, 167, 167, 1.0)),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

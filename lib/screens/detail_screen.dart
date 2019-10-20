@@ -2,6 +2,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/typedefs.dart';
@@ -53,6 +54,21 @@ class DetailScreenState extends State<DetailScreen> {
 
   String formatNumber(num number) {
     return number == null ? '' : number.toString();
+  }
+
+  Color getUrgentBackgroundColor() {
+    var urgent = hasPassed(taskItem.urgentDate);
+    return urgent ? TaskColors.urgentColor : TaskColors.cardColor;
+  }
+
+  Color getDueBackgroundColor() {
+    var due = hasPassed(taskItem.dueDate);
+    return due ? TaskColors.dueColor : TaskColors.cardColor;
+  }
+
+  Color getCompletedBackgroundColor() {
+    var completed = hasPassed(taskItem.completionDate);
+    return completed ? TaskColors.completedColor : TaskColors.cardColor;
   }
 
   void refreshLocalTaskItem(TaskItem taskItem) {
@@ -130,6 +146,7 @@ class DetailScreenState extends State<DetailScreen> {
             ReadOnlyTaskField(
               headerName: 'Urgent',
               textToShow: formatDateTime(taskItem.urgentDate),
+              optionalBackgroundColor: getUrgentBackgroundColor(),
             ),
             ReadOnlyTaskField(
               headerName: 'Target',
@@ -138,10 +155,12 @@ class DetailScreenState extends State<DetailScreen> {
             ReadOnlyTaskField(
               headerName: 'Due',
               textToShow: formatDateTime(taskItem.dueDate),
+              optionalBackgroundColor: getDueBackgroundColor(),
             ),
             ReadOnlyTaskField(
               headerName: 'Completed',
               textToShow: formatDateTime(taskItem.completionDate),
+              optionalBackgroundColor: getCompletedBackgroundColor(),
             ),
             ReadOnlyTaskField(
               headerName: 'Notes',
