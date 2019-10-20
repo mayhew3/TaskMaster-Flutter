@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/clearable_date_time_field.dart';
+import 'package:taskmaster/widgets/editable_task_field.dart';
 import 'package:taskmaster/widgets/nullable_dropdown.dart';
 
 class AddEditScreen extends StatefulWidget {
@@ -114,26 +115,13 @@ class AddEditScreenState extends State<AddEditScreen> {
             },
             child: ListView(
               children: <Widget>[
-                Container(
-                  margin: EdgeInsets.all(7.0),
-                  child: TextFormField(
-                    keyboardType: TextInputType.text,
-                    maxLines: null,
-                    textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(
-                      labelText: 'Name',
-                      filled: false,
-                      border: OutlineInputBorder(),
-                    ),
-                    initialValue: widget.taskItem?.name,
-                    onSaved: (value) => _name = value,
-                    validator: (value) {
-                      if (value.isEmpty) {
-                        return 'Name is required';
-                      }
-                      return null;
-                    },
-                  ),
+                EditableTaskField(
+                  initialText: widget.taskItem?.name,
+                  labelText: 'Name',
+                  fieldSetter: (value) => _name = value,
+                  isRequired: true,
+                  multiline: true,
+                  wordCaps: true,
                 ),
                 NullableDropdown(
                   initialValue: widget.taskItem?.project,
@@ -268,22 +256,12 @@ class AddEditScreenState extends State<AddEditScreen> {
                     },
                   ),
                 ),
-                Container(
-                  margin: EdgeInsets.all(7.0),
-                  child: TextFormField(
-                    keyboardType: TextInputType.multiline,
-                    maxLines: null,
-                    textCapitalization: TextCapitalization.sentences,
-                    decoration: const InputDecoration(
-                      labelText: 'Notes',
-                      filled: false,
-                      border: OutlineInputBorder(),
-                    ),
-                    initialValue: widget.taskItem?.description,
-                    onSaved: (value) => _description = value,
-                  ),
+                EditableTaskField(
+                  initialText: widget.taskItem?.description,
+                  labelText: 'Notes',
+                  fieldSetter: (value) => _description = value,
+                  multiline: true,
                 ),
-
               ],
             )
         ),
