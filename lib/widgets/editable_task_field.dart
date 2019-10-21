@@ -7,26 +7,30 @@ class EditableTaskField extends StatelessWidget {
   final String labelText;
   final ValueSetter<String> fieldSetter;
   final bool isRequired;
-  final bool multiline;
   final bool wordCaps;
+  final TextInputType inputType;
 
   const EditableTaskField({
     Key key,
     @required this.initialText,
     @required this.labelText,
     @required this.fieldSetter,
+    @required this.inputType,
     this.isRequired = false,
-    this.multiline = false,
     this.wordCaps = false,
   }) : super(key: key);
+
+  int getMaxLines() {
+    return TextInputType.multiline == inputType ? null : 1;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.all(7.0),
       child: TextFormField(
-        keyboardType: TextInputType.text,
-        maxLines: multiline ? null : 1,
+        keyboardType: inputType,
+        maxLines: getMaxLines(),
         textCapitalization: wordCaps ? TextCapitalization.words : TextCapitalization.sentences,
         decoration: InputDecoration(
           labelText: labelText,

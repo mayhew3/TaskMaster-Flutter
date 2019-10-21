@@ -119,8 +119,8 @@ class AddEditScreenState extends State<AddEditScreen> {
                   initialText: widget.taskItem?.name,
                   labelText: 'Name',
                   fieldSetter: (value) => _name = value,
+                  inputType: TextInputType.multiline,
                   isRequired: true,
-                  multiline: true,
                   wordCaps: true,
                 ),
                 NullableDropdown(
@@ -139,70 +139,40 @@ class AddEditScreenState extends State<AddEditScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
                     Expanded(
-                      child: Container(
-                        margin: EdgeInsets.all(7.0),
-                        child: TextFormField(
-                          decoration: const InputDecoration(
-                            labelText: 'Urgency',
-                            filled: false,
-                            border: OutlineInputBorder(),
-                          ),
-                          initialValue: widget.taskItem?.urgency?.toString(),
-                          keyboardType: TextInputType.number,
-                          onSaved: (value) => _urgency = value,
-                        ),
+                      child: EditableTaskField(
+                        initialText: widget.taskItem?.urgency?.toString(),
+                        labelText: 'Urgency',
+                        fieldSetter: (value) => _urgency = value,
+                        inputType: TextInputType.number,
                       ),
                     ),
                     Expanded(
-                      child: Container(
-                        margin: EdgeInsets.all(7.0),
-                        child: TextFormField(
-                          decoration: const InputDecoration(
-                            labelText: 'Priority',
-                            filled: false,
-                            border: OutlineInputBorder(),
-                          ),
-                          initialValue: widget.taskItem?.priority?.toString(),
-                          keyboardType: TextInputType.number,
-                          onSaved: (value) => _priority = value,
-                        ),
+                      child: EditableTaskField(
+                        initialText: widget.taskItem?.priority?.toString(),
+                        labelText: 'Priority',
+                        fieldSetter: (value) => _priority = value,
+                        inputType: TextInputType.number,
                       ),
                     ),
                     Expanded(
-                      child: Container(
-                        margin: EdgeInsets.all(7.0),
-                        child: TextFormField(
-                          decoration: const InputDecoration(
-                            labelText: 'Points',
-                            filled: false,
-                            border: OutlineInputBorder(),
-                          ),
-                          initialValue: widget.taskItem?.gamePoints?.toString(),
-                          keyboardType: TextInputType.number,
-                          onSaved: (value) => _gamePoints = value,
-                        ),
+                      child: EditableTaskField(
+                        initialText: widget.taskItem?.gamePoints?.toString(),
+                        labelText: 'Points',
+                        fieldSetter: (value) => _gamePoints = value,
+                        inputType: TextInputType.number,
                       ),
                     ),
                     Expanded(
-                      child: Container(
-                        margin: EdgeInsets.all(7.0),
-                        child: TextFormField(
-                          decoration: const InputDecoration(
-                            labelText: 'Length',
-                            filled: false,
-                            border: OutlineInputBorder(),
-                          ),
-                          initialValue: widget.taskItem?.duration?.toString(),
-                          keyboardType: TextInputType.number,
-                          onSaved: (value) => _duration = value,
-                        ),
+                      child: EditableTaskField(
+                        initialText: widget.taskItem?.duration?.toString(),
+                        labelText: 'Length',
+                        fieldSetter: (value) => _duration = value,
+                        inputType: TextInputType.number,
                       ),
                     ),
                   ],
                 ),
-                Container(
-                  margin: EdgeInsets.all(7.0),
-                  child: ClearableDateTimeField(
+                ClearableDateTimeField(
                     labelText: 'Start Date',
                     dateGetter: () {
                       return _startDate;
@@ -213,10 +183,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                       });
                     },
                   ),
-                ),
-                Container(
-                  margin: EdgeInsets.all(7.0),
-                  child: ClearableDateTimeField(
+                ClearableDateTimeField(
                     labelText: 'Target Date',
                     dateGetter: () {
                       return _targetDate;
@@ -227,10 +194,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                       });
                     },
                   ),
-                ),
-                Container(
-                  margin: EdgeInsets.all(7.0),
-                  child: ClearableDateTimeField(
+                ClearableDateTimeField(
                     labelText: 'Due Date',
                     dateGetter: () {
                       return _dueDate;
@@ -241,10 +205,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                       });
                     },
                   ),
-                ),
-                Container(
-                  margin: EdgeInsets.all(7.0),
-                  child: ClearableDateTimeField(
+                ClearableDateTimeField(
                     labelText: 'Urgent Date',
                     dateGetter: () {
                       return _urgentDate;
@@ -255,12 +216,11 @@ class AddEditScreenState extends State<AddEditScreen> {
                       });
                     },
                   ),
-                ),
                 EditableTaskField(
                   initialText: widget.taskItem?.description,
                   labelText: 'Notes',
                   fieldSetter: (value) => _description = value,
-                  multiline: true,
+                  inputType: TextInputType.multiline,
                 ),
               ],
             )

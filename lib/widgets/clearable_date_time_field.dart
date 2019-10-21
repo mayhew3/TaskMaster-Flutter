@@ -25,7 +25,9 @@ class ClearableDateTimeField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DateTimeField(
+    return Container(
+      margin: EdgeInsets.all(7.0),
+      child: DateTimeField(
         decoration: InputDecoration(
           labelText: labelText,
           filled: false,
@@ -51,6 +53,7 @@ class ClearableDateTimeField extends StatelessWidget {
             return currentValue;
           }
         },
+      ),
     );
   }
 }
