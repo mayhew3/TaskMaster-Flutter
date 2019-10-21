@@ -51,6 +51,8 @@ class AddEditScreenState extends State<AddEditScreen> {
   List<String> possibleProjects;
   List<String> possibleContexts;
 
+  bool _hasChanges;
+
   @override
   void initState() {
     super.initState();
@@ -68,6 +70,8 @@ class AddEditScreenState extends State<AddEditScreen> {
 
     _project = widget.taskItem?.project;
     _context = widget.taskItem?.context;
+
+    _hasChanges = false;
 
     possibleProjects = [
       '(none)',
@@ -113,6 +117,7 @@ class AddEditScreenState extends State<AddEditScreen> {
             onWillPop: () {
               return Future(() => true);
             },
+            onChanged: () => _hasChanges = true,
             child: ListView(
               children: <Widget>[
                 EditableTaskField(
@@ -226,59 +231,62 @@ class AddEditScreenState extends State<AddEditScreen> {
             )
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(isEditing ? Icons.check : Icons.add),
-        onPressed: () async {
-          final form = formKey.currentState;
-          if (form.validate()) {
-            form.save();
+      floatingActionButton: Visibility(
+        visible: _hasChanges,
+        child: FloatingActionButton(
+          child: Icon(isEditing ? Icons.check : Icons.add),
+          onPressed: () async {
+            final form = formKey.currentState;
+            if (form.validate()) {
+              form.save();
 
-            if (isEditing) {
-              var updatedItem = await widget.taskUpdater(
-                  taskItem: widget.taskItem,
-                  name: _name,
-                  description: _description,
-                  project: _project,
-                  context: _context,
-                  urgency: _urgency == null || _urgency == '' ? 3 : num.parse(_urgency),
-                  priority: _priority == null || _priority == '' ? 5 : num.parse(_priority),
-                  duration: _duration == null || _duration == '' ? null : num.parse(_duration),
-                  startDate: _startDate,
-                  targetDate: _targetDate,
-                  dueDate: _dueDate,
-                  urgentDate: _urgentDate,
-                  gamePoints: _gamePoints == null || _gamePoints == '' ? 1 : num.parse(_gamePoints),
-                  recurNumber: _recurNumber,
-                  recurUnit: _recurUnit,
-                  recurWait: _recurWait
-              );
-              if (widget.taskItemRefresher != null) {
-                widget.taskItemRefresher(updatedItem);
+              if (isEditing) {
+                var updatedItem = await widget.taskUpdater(
+                    taskItem: widget.taskItem,
+                    name: _name,
+                    description: _description,
+                    project: _project,
+                    context: _context,
+                    urgency: _urgency == null || _urgency == '' ? 3 : num.parse(_urgency),
+                    priority: _priority == null || _priority == '' ? 5 : num.parse(_priority),
+                    duration: _duration == null || _duration == '' ? null : num.parse(_duration),
+                    startDate: _startDate,
+                    targetDate: _targetDate,
+                    dueDate: _dueDate,
+                    urgentDate: _urgentDate,
+                    gamePoints: _gamePoints == null || _gamePoints == '' ? 1 : num.parse(_gamePoints),
+                    recurNumber: _recurNumber,
+                    recurUnit: _recurUnit,
+                    recurWait: _recurWait
+                );
+                if (widget.taskItemRefresher != null) {
+                  widget.taskItemRefresher(updatedItem);
+                }
+              } else {
+                var addedItem = TaskItem(
+                    name: _name,
+                    description: _description,
+                    project: _project,
+                    context: _context,
+                    urgency: _urgency == null || _urgency == '' ? 3 : num.parse(_urgency),
+                    priority: _priority == null || _priority == '' ? 5 : num.parse(_priority),
+                    duration: _duration == null || _duration == '' ? null : num.parse(_duration),
+                    startDate: _startDate,
+                    targetDate: _targetDate,
+                    dueDate: _dueDate,
+                    urgentDate: _urgentDate,
+                    gamePoints: _gamePoints == null || _gamePoints == '' ? 1 : num.parse(_gamePoints),
+                    recurNumber: _recurNumber,
+                    recurUnit: _recurUnit,
+                    recurWait: _recurWait
+                );
+                await widget.taskAdder(addedItem);
               }
-            } else {
-              var addedItem = TaskItem(
-                  name: _name,
-                  description: _description,
-                  project: _project,
-                  context: _context,
-                  urgency: _urgency == null || _urgency == '' ? 3 : num.parse(_urgency),
-                  priority: _priority == null || _priority == '' ? 5 : num.parse(_priority),
-                  duration: _duration == null || _duration == '' ? null : num.parse(_duration),
-                  startDate: _startDate,
-                  targetDate: _targetDate,
-                  dueDate: _dueDate,
-                  urgentDate: _urgentDate,
-                  gamePoints: _gamePoints == null || _gamePoints == '' ? 1 : num.parse(_gamePoints),
-                  recurNumber: _recurNumber,
-                  recurUnit: _recurUnit,
-                  recurWait: _recurWait
-              );
-              await widget.taskAdder(addedItem);
-            }
 
-            Navigator.pop(context);
-          }
-        },
+              Navigator.pop(context);
+            }
+          },
+        ),
       ),
     );
   }
