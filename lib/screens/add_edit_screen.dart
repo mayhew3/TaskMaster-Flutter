@@ -63,6 +63,9 @@ class AddEditScreenState extends State<AddEditScreen> {
       assert(widget.taskAdder != null);
     }
 
+    _name = widget.taskItem?.name;
+    _description = widget.taskItem?.description;
+
     _startDate = widget.taskItem?.startDate;
     _targetDate = widget.taskItem?.targetDate;
     _dueDate = widget.taskItem?.dueDate;
