@@ -126,7 +126,10 @@ class AddEditScreenState extends State<AddEditScreen> {
                 EditableTaskField(
                   initialText: widget.taskItem?.name,
                   labelText: 'Name',
-                  fieldSetter: (value) => _name = value,
+                  fieldSetter: (value) {
+                    print('Saving NAME');
+                    _name = value;
+                  },
                   inputType: TextInputType.multiline,
                   isRequired: true,
                   wordCaps: true,
@@ -227,7 +230,10 @@ class AddEditScreenState extends State<AddEditScreen> {
                 EditableTaskField(
                   initialText: widget.taskItem?.description,
                   labelText: 'Notes',
-                  fieldSetter: (value) => _description = value,
+                  fieldSetter: (value) {
+                    print('Saving DESCRIPTION');
+                    _description = value;
+                  },
                   inputType: TextInputType.multiline,
                 ),
               ],
