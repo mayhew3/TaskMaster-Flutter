@@ -1,4 +1,5 @@
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -39,8 +40,10 @@ class ReadOnlyTaskField extends StatelessWidget {
                   ),
                 ],
               ),
-              Text(textToShow ?? '',
-                style: Theme.of(context).textTheme.subhead,),
+              Expanded(
+                child: Text(textToShow ?? '',
+                  style: Theme.of(context).textTheme.subhead,),
+              ),
             ],
           ),
         ),

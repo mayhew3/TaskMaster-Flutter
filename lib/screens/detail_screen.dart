@@ -92,11 +92,13 @@ class DetailScreenState extends State<DetailScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Text(taskItem.name,
-                      style: Theme.of(context).textTheme.headline,
-                    )
+                Expanded(
+                  child: Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Text(taskItem.name,
+                        style: Theme.of(context).textTheme.headline,
+                      )
+                  ),
                 ),
                 Padding(
                   padding: EdgeInsets.all(4.0),
