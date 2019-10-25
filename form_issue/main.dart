@@ -158,6 +158,7 @@ class FormTestAppState extends State<FormTestApp> {
                 labelText: 'Name',
                 fieldSetter: (value) {
                   print('Saving NAME');
+                  _formUpdates++;
                   _name = value;
                 },
                 inputType: TextInputType.multiline,
@@ -294,6 +295,7 @@ class FormTestAppState extends State<FormTestApp> {
                 labelText: 'Notes',
                 fieldSetter: (value) {
                   print('Saving DESCRIPTION');
+                  _formUpdates++;
                   _description = value;
                 },
                 inputType: TextInputType.multiline,
