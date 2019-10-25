@@ -4,6 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:taskmaster/auth.dart';
 import 'package:taskmaster/models/task_entity.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/notification_scheduler.dart';
 import 'package:taskmaster/typedefs.dart';
 
@@ -16,12 +17,14 @@ class AppState {
   int personId;
   NotificationScheduler notificationScheduler;
   String title;
+  final NavHelper navHelper;
 
   AppState({
     this.isLoading = true,
     this.taskItems = const [],
     @required userUpdater: UserUpdater,
     @required idTokenUpdater: IdTokenUpdater,
+    @required this.navHelper,
   }) {
     auth = TaskMasterAuth(
       updateCurrentUser: userUpdater,
@@ -31,7 +34,13 @@ class AppState {
   }
 
   Future<String> getIdToken() async {
-    return await auth.getIdToken();
+    try {
+      return await auth.getIdToken();
+    } catch (err) {
+      print("Error getting ID token. Redirecting to signin screen.");
+      this.navHelper.goToSignInScreen();
+      throw err;
+    }
   }
 
   TaskItem findTaskItemWithId(int taskId) {
