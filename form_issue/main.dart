@@ -65,11 +65,11 @@ class FormTestAppState extends State<FormTestApp> {
   String _name; // ignore: unused_field
   String _description; // ignore: unused_field
 
-  String _project;
-  String _context;
+  String _project; // ignore: unused_field
+  String _context; // ignore: unused_field
 
-  String _priority;
-  String _duration;
+  String _priority; // ignore: unused_field
+  String _duration; // ignore: unused_field
   String _urgency; // ignore: unused_field
 
   DateTime _startDate;
@@ -77,9 +77,12 @@ class FormTestAppState extends State<FormTestApp> {
   DateTime _dueDate;
   DateTime _urgentDate;
 
-  String _gamePoints;
+  String _gamePoints; // ignore: unused_field
 
   int _formUpdates;
+
+  List<String> possibleProjects;
+  List<String> possibleContexts;
 
   void saveForm() async {
     final form = formKey.currentState;
@@ -98,7 +101,40 @@ class FormTestAppState extends State<FormTestApp> {
     _targetDate = widget.taskItem?.targetDate;
     _dueDate = widget.taskItem?.dueDate;
     _urgentDate = widget.taskItem?.urgentDate;
+
+    _project = widget.taskItem?.project;
+    _context = widget.taskItem?.context;
+
     _formUpdates = 0;
+
+    possibleProjects = [
+      '(none)',
+      'Career',
+      'Hobby',
+      'Friends',
+      'Family',
+      'Health',
+      'Maintenance',
+      'Organization',
+      'Shopping',
+      'Entertainment',
+      'WIG Mentorship',
+      'Writing',
+      'Bugs',
+      'Projects',
+    ];
+
+    possibleContexts = [
+      '(none)',
+      'Computer',
+      'Home',
+      'Office',
+      'E-Mail',
+      'Phone',
+      'Outside',
+      'Reading',
+      'Planning',
+    ];
   }
 
   @override
@@ -117,57 +153,28 @@ class FormTestAppState extends State<FormTestApp> {
           },
           child: ListView(
             children: <Widget>[
-              TextFormField(
-                keyboardType: TextInputType.text,
-                maxLines: null,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  labelText: 'Name',
-                  filled: false,
-                  border: OutlineInputBorder(),
-                ),
-                initialValue: widget.taskItem?.name,
-                onSaved: (value) {
-                  print('Saving name field!');
-                  _formUpdates++;
+              EditableTaskField(
+                initialText: widget.taskItem?.name,
+                labelText: 'Name',
+                fieldSetter: (value) {
+                  print('Saving NAME');
                   _name = value;
                 },
-                validator: (value) {
-                  if (value.isEmpty) {
-                    return 'Name is required';
-                  }
-                  return null;
-                },
+                inputType: TextInputType.multiline,
+                isRequired: true,
+                wordCaps: true,
               ),
-              TextFormField(
-                keyboardType: TextInputType.text,
-                maxLines: null,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  labelText: 'Project',
-                  filled: false,
-                  border: OutlineInputBorder(),
-                ),
+              NullableDropdown(
                 initialValue: widget.taskItem?.project,
-                onSaved: (value) {
-                  _formUpdates++;
-                  _project = value;
-                },
+                labelText: 'Project',
+                possibleValues: possibleProjects,
+                valueSetter: (newValue) => _project = newValue,
               ),
-              TextFormField(
-                keyboardType: TextInputType.text,
-                maxLines: null,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  labelText: 'Context',
-                  filled: false,
-                  border: OutlineInputBorder(),
-                ),
+              NullableDropdown(
                 initialValue: widget.taskItem?.context,
-                onSaved: (value) {
-                  _formUpdates++;
-                  _context = value;
-                },
+                labelText: 'Context',
+                possibleValues: possibleContexts,
+                valueSetter: (newValue) => _context = newValue,
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -282,21 +289,14 @@ class FormTestAppState extends State<FormTestApp> {
                   });
                 },
               ),
-              TextFormField(
-                keyboardType: TextInputType.multiline,
-                maxLines: null,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(
-                  labelText: 'Description',
-                  filled: false,
-                  border: OutlineInputBorder(),
-                ),
-                initialValue: widget.taskItem?.description,
-                onSaved: (value) {
-                  print('Saving description field!');
-                  _formUpdates++;
+              EditableTaskField(
+                initialText: widget.taskItem?.description,
+                labelText: 'Notes',
+                fieldSetter: (value) {
+                  print('Saving DESCRIPTION');
                   _description = value;
                 },
+                inputType: TextInputType.multiline,
               ),
             ],
           ),
@@ -316,6 +316,70 @@ DateTime daysFromNow(int days) {
   DateTime now = DateTime.now();
   DateTime atSeven = new DateTime(now.year, now.month, now.day, 19);
   return atSeven.add(new Duration(days: days));
+}
+
+class EditableTaskField extends StatefulWidget {
+  final String initialText;
+  final String labelText;
+  final ValueSetter<String> fieldSetter;
+  final bool isRequired;
+  final bool wordCaps;
+  final TextInputType inputType;
+
+  const EditableTaskField({
+    Key key,
+    @required this.initialText,
+    @required this.labelText,
+    @required this.fieldSetter,
+    @required this.inputType,
+    this.isRequired = false,
+    this.wordCaps = false,
+  }) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() {
+    return EditableTaskFieldState(initialText: this.initialText);
+  }
+}
+
+class EditableTaskFieldState extends State<EditableTaskField> {
+
+  String initialText;
+
+  EditableTaskFieldState({
+    @required this.initialText
+  });
+
+  int getMaxLines() {
+    return TextInputType.multiline == widget.inputType ? null : 1;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.all(7.0),
+      child: TextFormField(
+        keyboardType: widget.inputType,
+        maxLines: getMaxLines(),
+        textCapitalization: widget.wordCaps ? TextCapitalization.words : TextCapitalization.sentences,
+        decoration: InputDecoration(
+          labelText: widget.labelText,
+          filled: false,
+          border: OutlineInputBorder(),
+        ),
+        initialValue: this.initialText,
+        onSaved: widget.fieldSetter,
+        validator: (value) {
+          if (value.isEmpty && widget.isRequired) {
+            return '${widget.labelText} is required';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+
 }
 
 class ClearableDateTimeField extends StatelessWidget {
@@ -362,6 +426,81 @@ class ClearableDateTimeField extends StatelessWidget {
         },
       ),
     );
+  }
+}
+
+class NullableDropdown extends StatefulWidget {
+  final String initialValue;
+  final String labelText;
+  final List<String> possibleValues;
+  final ValueSetter<String> valueSetter;
+
+  const NullableDropdown({
+    Key key,
+    this.initialValue,
+    @required this.labelText,
+    @required this.possibleValues,
+    @required this.valueSetter,
+  }) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => NullableDropdownState();
+}
+
+class NullableDropdownState extends State<NullableDropdown> {
+  String value;
+
+  @override
+  void initState() {
+    super.initState();
+    value = wrapNullValue(widget.initialValue);
+  }
+
+  String wrapNullValue(String value) {
+    return value ?? '(none)';
+  }
+
+  String unwrapNullValue(String value) {
+    return value == '(none)' ? null : value;
+  }
+
+  TextStyle getMenuItemStyle(String menuItem) {
+    if (menuItem != value) {
+      return TextStyle(color: Colors.lightBlueAccent);
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.all(7.0),
+      child: DropdownButtonFormField<String>(
+        decoration: InputDecoration(
+          labelText: widget.labelText,
+          filled: false,
+          border: OutlineInputBorder(),
+        ),
+        value: value,
+        onChanged: (String newValue) {
+          setState(() {
+            value = newValue;
+            var unwrapped = unwrapNullValue(newValue);
+            widget.valueSetter(unwrapped);
+          });
+        },
+        items: widget.possibleValues.map<DropdownMenuItem<String>>((String itemValue) {
+          return DropdownMenuItem<String>(
+            value: itemValue,
+            child: Text(itemValue,
+              style: getMenuItemStyle(itemValue),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+
   }
 }
 
