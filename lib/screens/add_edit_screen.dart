@@ -106,131 +106,135 @@ class AddEditScreenState extends State<AddEditScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text("Task Details"),
-        ),
+      appBar: AppBar(
+        title: Text("Task Details"),
+      ),
       body: Padding(
         padding: EdgeInsets.all(8.0),
         child: Form(
-            key: formKey,
-            autovalidate: false,
-            onWillPop: () {
-              return Future(() => true);
-            },
-            onChanged: () => _hasChanges = true,
-            child: SingleChildScrollView(
-                child: Column(
-                  children: <Widget>[
-                    EditableTaskField(
-                      initialText: widget.taskItem?.name,
-                      labelText: 'Name',
-                      fieldSetter: (value) => _name = value,
-                      inputType: TextInputType.multiline,
-                      isRequired: true,
-                      wordCaps: true,
-                    ),
-                    NullableDropdown(
-                      initialValue: widget.taskItem?.project,
-                      labelText: 'Project',
-                      possibleValues: possibleProjects,
-                      valueSetter: (newValue) => _project = newValue,
-                    ),
-                    NullableDropdown(
-                      initialValue: widget.taskItem?.context,
-                      labelText: 'Context',
-                      possibleValues: possibleContexts,
-                      valueSetter: (newValue) => _context = newValue,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: <Widget>[
-                        Expanded(
-                          child: EditableTaskField(
-                            initialText: widget.taskItem?.urgency?.toString(),
-                            labelText: 'Urgency',
-                            fieldSetter: (value) => _urgency = value,
-                            inputType: TextInputType.number,
-                          ),
+          key: formKey,
+          autovalidate: false,
+          onWillPop: () {
+            return Future(() => true);
+          },
+          onChanged: () {
+            setState(() {
+              _hasChanges = true;
+            });
+          },
+          child: SingleChildScrollView(
+              child: Column(
+                children: <Widget>[
+                  EditableTaskField(
+                    initialText: widget.taskItem?.name,
+                    labelText: 'Name',
+                    fieldSetter: (value) => _name = value,
+                    inputType: TextInputType.multiline,
+                    isRequired: true,
+                    wordCaps: true,
+                  ),
+                  NullableDropdown(
+                    initialValue: widget.taskItem?.project,
+                    labelText: 'Project',
+                    possibleValues: possibleProjects,
+                    valueSetter: (newValue) => _project = newValue,
+                  ),
+                  NullableDropdown(
+                    initialValue: widget.taskItem?.context,
+                    labelText: 'Context',
+                    possibleValues: possibleContexts,
+                    valueSetter: (newValue) => _context = newValue,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      Expanded(
+                        child: EditableTaskField(
+                          initialText: widget.taskItem?.urgency?.toString(),
+                          labelText: 'Urgency',
+                          fieldSetter: (value) => _urgency = value,
+                          inputType: TextInputType.number,
                         ),
-                        Expanded(
-                          child: EditableTaskField(
-                            initialText: widget.taskItem?.priority?.toString(),
-                            labelText: 'Priority',
-                            fieldSetter: (value) => _priority = value,
-                            inputType: TextInputType.number,
-                          ),
+                      ),
+                      Expanded(
+                        child: EditableTaskField(
+                          initialText: widget.taskItem?.priority?.toString(),
+                          labelText: 'Priority',
+                          fieldSetter: (value) => _priority = value,
+                          inputType: TextInputType.number,
                         ),
-                        Expanded(
-                          child: EditableTaskField(
-                            initialText: widget.taskItem?.gamePoints?.toString(),
-                            labelText: 'Points',
-                            fieldSetter: (value) => _gamePoints = value,
-                            inputType: TextInputType.number,
-                          ),
+                      ),
+                      Expanded(
+                        child: EditableTaskField(
+                          initialText: widget.taskItem?.gamePoints?.toString(),
+                          labelText: 'Points',
+                          fieldSetter: (value) => _gamePoints = value,
+                          inputType: TextInputType.number,
                         ),
-                        Expanded(
-                          child: EditableTaskField(
-                            initialText: widget.taskItem?.duration?.toString(),
-                            labelText: 'Length',
-                            fieldSetter: (value) => _duration = value,
-                            inputType: TextInputType.number,
-                          ),
+                      ),
+                      Expanded(
+                        child: EditableTaskField(
+                          initialText: widget.taskItem?.duration?.toString(),
+                          labelText: 'Length',
+                          fieldSetter: (value) => _duration = value,
+                          inputType: TextInputType.number,
                         ),
-                      ],
-                    ),
-                    ClearableDateTimeField(
-                      labelText: 'Start Date',
-                      dateGetter: () {
-                        return _startDate;
-                      },
-                      dateSetter: (DateTime pickedDate) {
-                        setState(() {
-                          _startDate = pickedDate;
-                        });
-                      },
-                    ),
-                    ClearableDateTimeField(
-                      labelText: 'Target Date',
-                      dateGetter: () {
-                        return _targetDate;
-                      },
-                      dateSetter: (DateTime pickedDate) {
-                        setState(() {
-                          _targetDate = pickedDate;
-                        });
-                      },
-                    ),
-                    ClearableDateTimeField(
-                      labelText: 'Due Date',
-                      dateGetter: () {
-                        return _dueDate;
-                      },
-                      dateSetter: (DateTime pickedDate) {
-                        setState(() {
-                          _dueDate = pickedDate;
-                        });
-                      },
-                    ),
-                    ClearableDateTimeField(
-                      labelText: 'Urgent Date',
-                      dateGetter: () {
-                        return _urgentDate;
-                      },
-                      dateSetter: (DateTime pickedDate) {
-                        setState(() {
-                          _urgentDate = pickedDate;
-                        });
-                      },
-                    ),
-                    EditableTaskField(
-                      initialText: widget.taskItem?.description,
-                      labelText: 'Notes',
-                      fieldSetter: (value) => _description = value,
-                      inputType: TextInputType.multiline,
-                    ),
-                  ],
-                )
-            ),
+                      ),
+                    ],
+                  ),
+                  ClearableDateTimeField(
+                    labelText: 'Start Date',
+                    dateGetter: () {
+                      return _startDate;
+                    },
+                    dateSetter: (DateTime pickedDate) {
+                      setState(() {
+                        _startDate = pickedDate;
+                      });
+                    },
+                  ),
+                  ClearableDateTimeField(
+                    labelText: 'Target Date',
+                    dateGetter: () {
+                      return _targetDate;
+                    },
+                    dateSetter: (DateTime pickedDate) {
+                      setState(() {
+                        _targetDate = pickedDate;
+                      });
+                    },
+                  ),
+                  ClearableDateTimeField(
+                    labelText: 'Due Date',
+                    dateGetter: () {
+                      return _dueDate;
+                    },
+                    dateSetter: (DateTime pickedDate) {
+                      setState(() {
+                        _dueDate = pickedDate;
+                      });
+                    },
+                  ),
+                  ClearableDateTimeField(
+                    labelText: 'Urgent Date',
+                    dateGetter: () {
+                      return _urgentDate;
+                    },
+                    dateSetter: (DateTime pickedDate) {
+                      setState(() {
+                        _urgentDate = pickedDate;
+                      });
+                    },
+                  ),
+                  EditableTaskField(
+                    initialText: widget.taskItem?.description,
+                    labelText: 'Notes',
+                    fieldSetter: (value) => _description = value,
+                    inputType: TextInputType.multiline,
+                  ),
+                ],
+              )
+          ),
         ),
       ),
       floatingActionButton: Visibility(
