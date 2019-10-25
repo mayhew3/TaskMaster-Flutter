@@ -12,7 +12,7 @@ class AppState {
   List<TaskItem> taskItems;
   TaskMasterAuth auth;
   GoogleSignInAccount currentUser;
-  String idToken;
+  bool tokenRetrieved = false;
   int personId;
   NotificationScheduler notificationScheduler;
   String title;
@@ -28,6 +28,10 @@ class AppState {
       updateIdToken: idTokenUpdater,
     );
     title = 'TaskMaster 3000';
+  }
+
+  Future<String> getIdToken() async {
+    return await auth.getIdToken();
   }
 
   TaskItem findTaskItemWithId(int taskId) {
@@ -72,7 +76,7 @@ class AppState {
   }
 
   bool isAuthenticated() {
-    return currentUser != null && idToken != null;
+    return currentUser != null && tokenRetrieved;
   }
 
   @override

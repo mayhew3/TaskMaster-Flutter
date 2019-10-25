@@ -108,7 +108,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
 
   void updateIdToken(String idToken) {
     setState(() {
-      appState.idToken = idToken;
+      appState.tokenRetrieved = true;
     });
     if (appState.isAuthenticated()) {
       loadMainTaskUI();

@@ -28,8 +28,10 @@ class TaskRepository {
 
     var uri = Uri.https('taskmaster-general.herokuapp.com', '/api/tasks', queryParameters);
 
+    var idToken = await appState.getIdToken();
+
     final response = await http.get(uri,
-      headers: {HttpHeaders.authorizationHeader: appState.idToken,
+      headers: {HttpHeaders.authorizationHeader: idToken,
                 HttpHeaders.contentTypeHeader: 'application/json'},
     );
 
@@ -157,8 +159,10 @@ class TaskRepository {
 
     var uri = Uri.https('taskmaster-general.herokuapp.com', '/api/tasks', queryParameters);
 
+    var idToken = await appState.getIdToken();
+
     final response = await http.delete(uri,
-      headers: {HttpHeaders.authorizationHeader: appState.idToken,
+      headers: {HttpHeaders.authorizationHeader: idToken,
         HttpHeaders.contentTypeHeader: 'application/json'},
     );
 
@@ -179,8 +183,10 @@ class TaskRepository {
   Future<TaskEntity> _addOrUpdateJSON(Map<String, Object> payload, String addOrUpdate) async {
     var body = utf8.encode(json.encode(payload));
 
+    var idToken = await appState.getIdToken();
+
     final response = await http.post("https://taskmaster-general.herokuapp.com/api/tasks",
-        headers: {HttpHeaders.authorizationHeader: appState.idToken,
+        headers: {HttpHeaders.authorizationHeader: idToken,
           "Content-Type": "application/json"},
         body: body
     );
