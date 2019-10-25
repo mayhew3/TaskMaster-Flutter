@@ -124,10 +124,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                     EditableTaskField(
                       initialText: widget.taskItem?.name,
                       labelText: 'Name',
-                      fieldSetter: (value) {
-                        print('Saving NAME');
-                        _name = value;
-                      },
+                      fieldSetter: (value) => _name = value,
                       inputType: TextInputType.multiline,
                       isRequired: true,
                       wordCaps: true,
@@ -228,10 +225,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                     EditableTaskField(
                       initialText: widget.taskItem?.description,
                       labelText: 'Notes',
-                      fieldSetter: (value) {
-                        print('Saving DESCRIPTION');
-                        _description = value;
-                      },
+                      fieldSetter: (value) => _description = value,
                       inputType: TextInputType.multiline,
                     ),
                   ],
@@ -240,7 +234,7 @@ class AddEditScreenState extends State<AddEditScreen> {
         ),
       ),
       floatingActionButton: Visibility(
-        visible: true,
+        visible: _hasChanges,
         child: FloatingActionButton(
           child: Icon(isEditing ? Icons.check : Icons.add),
           onPressed: () async {
