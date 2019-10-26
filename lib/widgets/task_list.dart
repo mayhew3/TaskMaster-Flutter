@@ -8,7 +8,7 @@ import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/widgets/header_list_item.dart';
 
-class TaskListWidget extends StatelessWidget {
+class TaskListWidget extends StatefulWidget {
   final AppState appState;
   final TaskCompleter taskCompleter;
   final TaskUpdater taskUpdater;
@@ -21,6 +21,25 @@ class TaskListWidget extends StatelessWidget {
     @required this.taskDeleter,
   }) : super(key: TaskMasterKeys.taskList);
 
+  @override
+  State<StatefulWidget> createState() => TaskListState();
+
+}
+
+class TaskListState extends State<TaskListWidget> {
+
+  void _displaySnackBar(String msg, BuildContext context) {
+    Scaffold.of(context).showSnackBar(SnackBar(
+      content: Text(msg),
+    ));
+  }
+
+  List<TaskItem> _moveSublist(List<TaskItem> superList, bool Function(TaskItem) condition) {
+    List<TaskItem> subList = superList.where(condition).toList(growable: false);
+    subList.forEach((task) => superList.remove(task));
+    return subList;
+  }
+
   EditableTaskItemWidget _createWidget(TaskItem taskItem, BuildContext context) {
     return EditableTaskItemWidget(
       taskItem: taskItem,
@@ -29,20 +48,20 @@ class TaskListWidget extends StatelessWidget {
           MaterialPageRoute(builder: (_) {
             return DetailScreen(
               taskItem: taskItem,
-              taskUpdater: taskUpdater,
-              taskCompleter: taskCompleter,
+              taskUpdater: widget.taskUpdater,
+              taskCompleter: widget.taskCompleter,
             );
           }),
         );
       },
       onCheckboxChanged: (complete) {
-        taskCompleter(taskItem, complete);
+        widget.taskCompleter(taskItem, complete);
       },
       onDismissed: (direction) async {
         if (direction == DismissDirection.endToStart) {
           try {
-            await taskDeleter(taskItem);
-            displaySnackBar("Task Deleted!", context);
+            await widget.taskDeleter(taskItem);
+            _displaySnackBar("Task Deleted!", context);
             return true;
           } catch(err) {
             return false;
@@ -53,19 +72,13 @@ class TaskListWidget extends StatelessWidget {
     );
   }
 
-  List<TaskItem> moveSublist(List<TaskItem> superList, bool Function(TaskItem) condition) {
-    List<TaskItem> subList = superList.where(condition).toList(growable: false);
-    subList.forEach((task) => superList.remove(task));
-    return subList;
-  }
-
   ListView _buildListView(BuildContext context) {
-    appState.notificationScheduler.updateHomeScreenContext(context);
-    final List<TaskItem> otherTasks = List.from(appState.taskItems);
+    widget.appState.notificationScheduler.updateHomeScreenContext(context);
+    final List<TaskItem> otherTasks = List.from(widget.appState.taskItems);
 
-    final List<TaskItem> completedTasks = moveSublist(otherTasks, (task) => task.isCompleted());
-    final List<TaskItem> dueTasks = moveSublist(otherTasks, (task) => task.isPastDue());
-    final List<TaskItem> urgentTasks = moveSublist(otherTasks, (task) => task.isUrgent());
+    final List<TaskItem> completedTasks = _moveSublist(otherTasks, (task) => task.isCompleted());
+    final List<TaskItem> dueTasks = _moveSublist(otherTasks, (task) => task.isPastDue());
+    final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (task) => task.isUrgent());
 
     List<StatelessWidget> tiles = [];
 
@@ -92,29 +105,22 @@ class TaskListWidget extends StatelessWidget {
     return ListView.builder(
         itemCount: tiles.length,
         itemBuilder: (context, index) {
-      return tiles[index];
-    });
-  }
-
-  void displaySnackBar(String msg, BuildContext context) {
-    Scaffold.of(context).showSnackBar(SnackBar(
-      content: Text(msg),
-    ));
+          return tiles[index];
+        });
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: appState.isLoading
+      child: widget.appState.isLoading
           ?
-          Center(
-            child: CircularProgressIndicator(
-              key: TaskMasterKeys.tasksLoading,
-            )
+      Center(
+          child: CircularProgressIndicator(
+            key: TaskMasterKeys.tasksLoading,
           )
+      )
           : _buildListView(context),
     );
   }
-
 
 }
