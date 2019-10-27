@@ -109,6 +109,7 @@ class TaskListScreenState extends State<TaskListScreen> {
     final List<TaskItem> completedTasks = _moveSublist(otherTasks, (task) => task.isCompleted());
     final List<TaskItem> dueTasks = _moveSublist(otherTasks, (task) => task.isPastDue());
     final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (task) => task.isUrgent());
+    final List<TaskItem> scheduledTasks = _moveSublist(otherTasks, (task) => task.isScheduled());
 
     List<StatelessWidget> tiles = [];
 
@@ -125,6 +126,11 @@ class TaskListScreenState extends State<TaskListScreen> {
     if (otherTasks.isNotEmpty) {
       tiles.add(HeadingItem('Tasks'));
       otherTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+    }
+
+    if (scheduledTasks.isNotEmpty) {
+      tiles.add(HeadingItem('Scheduled'));
+      scheduledTasks.forEach((task) => tiles.add(_createWidget(task, context)));
     }
 
     if (completedTasks.isNotEmpty) {
