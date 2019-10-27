@@ -6,6 +6,7 @@ import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/editable_task_item.dart';
+import 'package:taskmaster/widgets/filter_button.dart';
 import 'package:taskmaster/widgets/header_list_item.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
@@ -145,6 +146,7 @@ class TaskListScreenState extends State<TaskListScreen> {
         appBar: AppBar(
           title: Text(widget.appState.title),
           actions: <Widget>[
+            FilterButton(),
             IconButton(
               icon: Icon(Icons.refresh),
               onPressed: () {

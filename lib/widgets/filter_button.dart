@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class CheckboxInPopupMenu extends StatelessWidget {
+class FilterButton extends StatelessWidget {
   final ValueGetter<bool> scheduledGetter;
   final ValueGetter<bool> completedGetter;
 
   final ValueSetter<bool> scheduledSetter;
   final ValueSetter<bool> completedSetter;
 
-  const CheckboxInPopupMenu({Key key,
+  const FilterButton({Key key,
     this.scheduledGetter,
     this.completedGetter,
     this.scheduledSetter,
