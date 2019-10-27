@@ -69,6 +69,10 @@ class TaskItem {
     return completionDate != null;
   }
 
+  bool isScheduled() {
+    return startDate != null && !hasPassed(startDate);
+  }
+
   bool isPastDue() {
     return hasPassed(dueDate);
   }

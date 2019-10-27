@@ -27,6 +27,15 @@ class TaskListWidget extends StatefulWidget {
 }
 
 class TaskListState extends State<TaskListWidget> {
+  bool showScheduled;
+  bool showCompleted;
+
+  @override
+  void initState() {
+    super.initState();
+    this.showScheduled = false;
+    this.showCompleted = false;
+  }
 
   void _displaySnackBar(String msg, BuildContext context) {
     Scaffold.of(context).showSnackBar(SnackBar(
@@ -74,7 +83,7 @@ class TaskListState extends State<TaskListWidget> {
 
   ListView _buildListView(BuildContext context) {
     widget.appState.notificationScheduler.updateHomeScreenContext(context);
-    final List<TaskItem> otherTasks = List.from(widget.appState.taskItems);
+    final List<TaskItem> otherTasks = widget.appState.getFilteredTasks(showScheduled, showCompleted);
 
     final List<TaskItem> completedTasks = _moveSublist(otherTasks, (task) => task.isCompleted());
     final List<TaskItem> dueTasks = _moveSublist(otherTasks, (task) => task.isPastDue());

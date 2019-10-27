@@ -22,6 +22,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     appState = AppState(
       userUpdater: updateCurrentUser,
       idTokenUpdater: updateIdToken,
+      navHelper: navHelper,
     );
     repository = TaskRepository(appState: appState);
     navHelper = NavHelper(

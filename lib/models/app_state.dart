@@ -43,6 +43,15 @@ class AppState {
     }
   }
 
+  List<TaskItem> getFilteredTasks(bool showScheduled, bool showCompleted) {
+    List<TaskItem> filtered = taskItems.where((taskItem) {
+      bool passesScheduleFilter = showScheduled || !taskItem.isScheduled();
+      bool passesCompletedFilter = showCompleted || !taskItem.isCompleted();
+      return passesScheduleFilter && passesCompletedFilter;
+    }).toList();
+    return filtered;
+  }
+
   TaskItem findTaskItemWithId(int taskId) {
     var matching = taskItems.where((task) => task.id == taskId);
     return matching.isEmpty ? null : matching.first;
