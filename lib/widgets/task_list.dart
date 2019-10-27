@@ -8,13 +8,13 @@ import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/widgets/header_list_item.dart';
 
-class TaskListWidget extends StatefulWidget {
+class TaskListScreen extends StatefulWidget {
   final AppState appState;
   final TaskCompleter taskCompleter;
   final TaskUpdater taskUpdater;
   final TaskDeleter taskDeleter;
 
-  TaskListWidget({
+  TaskListScreen({
     @required this.appState,
     @required this.taskCompleter,
     @required this.taskUpdater,
@@ -22,11 +22,11 @@ class TaskListWidget extends StatefulWidget {
   }) : super(key: TaskMasterKeys.taskList);
 
   @override
-  State<StatefulWidget> createState() => TaskListState();
+  State<StatefulWidget> createState() => TaskListScreenState();
 
 }
 
-class TaskListState extends State<TaskListWidget> {
+class TaskListScreenState extends State<TaskListScreen> {
   bool showScheduled;
   bool showCompleted;
 

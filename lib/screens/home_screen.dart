@@ -47,7 +47,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   Widget getSelectedTab() {
     if (activeTab == AppTab.tasks) {
-      return TaskListWidget(
+      return TaskListScreen(
         appState: widget.appState,
         taskCompleter: widget.taskCompleter,
         taskUpdater: widget.taskUpdater,
