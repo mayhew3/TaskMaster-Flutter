@@ -4,26 +4,38 @@ class FilterButton extends StatelessWidget {
   final ValueGetter<bool> scheduledGetter;
   final ValueGetter<bool> completedGetter;
 
-  final ValueSetter<bool> scheduledSetter;
-  final ValueSetter<bool> completedSetter;
+  final Function toggleScheduled;
+  final Function toggleCompleted;
 
   const FilterButton({Key key,
-    this.scheduledGetter,
-    this.completedGetter,
-    this.scheduledSetter,
-    this.completedSetter
+    @required this.scheduledGetter,
+    @required this.completedGetter,
+    @required this.toggleScheduled,
+    @required this.toggleCompleted
   }) : super(key: key);
+
+  void toggleFilter(String key) {
+    if (key == 'scheduled') {
+      toggleScheduled();
+    } else if (key == 'completed') {
+      toggleCompleted();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton(
+    return PopupMenuButton<String>(
       icon: Icon(Icons.filter_list),
+      onSelected: toggleFilter,
       itemBuilder: (context) => [
-        CheckedPopupMenuItem(
-          checked: true,
+        CheckedPopupMenuItem<String>(
+          checked: scheduledGetter(),
+          value: 'scheduled',
           child: Text("Show Scheduled"),
         ),
-        CheckedPopupMenuItem(
+        CheckedPopupMenuItem<String>(
+          checked: completedGetter(),
+          value: 'completed',
           child: Text("Show Completed"),
         ),
       ],

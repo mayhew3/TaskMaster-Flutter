@@ -146,7 +146,12 @@ class TaskListScreenState extends State<TaskListScreen> {
         appBar: AppBar(
           title: Text(widget.appState.title),
           actions: <Widget>[
-            FilterButton(),
+            FilterButton(
+              scheduledGetter: () => showScheduled,
+              completedGetter: () => showCompleted,
+              toggleScheduled: _toggleShowScheduled,
+              toggleCompleted: _toggleShowCompleted,
+            ),
             IconButton(
               icon: Icon(Icons.refresh),
               onPressed: () {
