@@ -8,7 +8,7 @@ import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/stats_counter.dart';
-import 'package:taskmaster/widgets/task_list.dart';
+import 'package:taskmaster/screens/task_list.dart';
 
 class HomeScreen extends StatefulWidget {
   final AppState appState;
@@ -45,18 +45,44 @@ class HomeScreenState extends State<HomeScreen> {
     widget.navHelper.updateContext(context);
   }
 
+  BottomNavigationBar getBottomNavigationBar() {
+    return BottomNavigationBar(
+      currentIndex: AppTab.values.indexOf(activeTab),
+      onTap: (index) {
+        _updateTab(AppTab.values[index]);
+      },
+      items: AppTab.values.map((tab) {
+        return BottomNavigationBarItem(
+          icon: Icon(
+            tab == AppTab.tasks ? Icons.list : Icons.show_chart,
+          ),
+          title: Text(
+            tab == AppTab.stats
+                ? 'Stats'
+                : 'Tasks',
+          ),
+        );
+      }).toList(),
+    );
+  }
+
   Widget getSelectedTab() {
     if (activeTab == AppTab.tasks) {
       return TaskListScreen(
         appState: widget.appState,
+        taskAdder: widget.taskAdder,
         taskCompleter: widget.taskCompleter,
         taskUpdater: widget.taskUpdater,
         taskDeleter: widget.taskDeleter,
+        taskListReloader: widget.taskListReloader,
+        bottomNavigationBar: getBottomNavigationBar(),
       );
     } else {
       return StatsCounter(
+        appState: widget.appState,
         numActive: widget.appState.taskItems.where((task) => task.completionDate == null).length,
         numCompleted: widget.appState.taskItems.where((task) => task.completionDate != null).length,
+        bottomNavigationBar: getBottomNavigationBar(),
       );
     }
   }
@@ -69,47 +95,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.appState.title),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: () {
-              widget.taskListReloader();
-            },
-          ),
-        ],
-      ),
-      body: getSelectedTab(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => AddEditScreen(taskAdder: widget.taskAdder)),
-          );
-        },
-        child: Icon(Icons.add),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: AppTab.values.indexOf(activeTab),
-        onTap: (index) {
-          _updateTab(AppTab.values[index]);
-        },
-        items: AppTab.values.map((tab) {
-          return BottomNavigationBarItem(
-            icon: Icon(
-              tab == AppTab.tasks ? Icons.list : Icons.show_chart,
-            ),
-            title: Text(
-              tab == AppTab.stats
-                  ? 'Stats'
-                  : 'Tasks',
-            ),
-          );
-        }).toList(),
-      ),
-    );
+    return getSelectedTab();
   }
 
 }

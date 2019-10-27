@@ -7,18 +7,26 @@ import 'package:taskmaster/screens/detail_screen.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/widgets/header_list_item.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:taskmaster/screens/add_edit_screen.dart';
 
 class TaskListScreen extends StatefulWidget {
   final AppState appState;
+  final TaskAdder taskAdder;
   final TaskCompleter taskCompleter;
   final TaskUpdater taskUpdater;
   final TaskDeleter taskDeleter;
+  final TaskListReloader taskListReloader;
+  final BottomNavigationBar bottomNavigationBar;
 
   TaskListScreen({
     @required this.appState,
     @required this.taskCompleter,
     @required this.taskUpdater,
     @required this.taskDeleter,
+    @required this.bottomNavigationBar,
+    @required this.taskAdder,
+    @required this.taskListReloader,
   }) : super(key: TaskMasterKeys.taskList);
 
   @override
@@ -132,16 +140,41 @@ class TaskListScreenState extends State<TaskListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: widget.appState.isLoading
-          ?
-      Center(
-          child: CircularProgressIndicator(
-            key: TaskMasterKeys.tasksLoading,
+    return
+      Scaffold(
+        appBar: AppBar(
+          title: Text(widget.appState.title),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.refresh),
+              onPressed: () {
+                widget.taskListReloader();
+              },
+            ),
+          ],
+        ),
+        body:  Container(
+          child: widget.appState.isLoading
+              ?
+          Center(
+              child: CircularProgressIndicator(
+                key: TaskMasterKeys.tasksLoading,
+              )
           )
-      )
-          : _buildListView(context),
-    );
+              : _buildListView(context),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => AddEditScreen(taskAdder: widget.taskAdder)),
+            );
+          },
+          child: Icon(Icons.add),
+        ),
+        bottomNavigationBar: widget.bottomNavigationBar,
+      );
+
   }
 
 }
