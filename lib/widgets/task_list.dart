@@ -43,6 +43,18 @@ class TaskListState extends State<TaskListWidget> {
     ));
   }
 
+  void _toggleShowScheduled() {
+    setState(() {
+      this.showScheduled = !this.showScheduled;
+    });
+  }
+
+  void _toggleShowCompleted() {
+    setState(() {
+      this.showCompleted = !this.showCompleted;
+    });
+  }
+
   List<TaskItem> _moveSublist(List<TaskItem> superList, bool Function(TaskItem) condition) {
     List<TaskItem> subList = superList.where(condition).toList(growable: false);
     subList.forEach((task) => superList.remove(task));
