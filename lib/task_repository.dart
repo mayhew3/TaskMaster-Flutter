@@ -31,7 +31,7 @@ class TaskRepository {
     var idToken = await appState.getIdToken();
 
     final response = await http.get(uri,
-      headers: {HttpHeaders.authorizationHeader: idToken,
+      headers: {HttpHeaders.authorizationHeader: idToken.token,
                 HttpHeaders.contentTypeHeader: 'application/json'},
     );
 
@@ -162,7 +162,7 @@ class TaskRepository {
     var idToken = await appState.getIdToken();
 
     final response = await http.delete(uri,
-      headers: {HttpHeaders.authorizationHeader: idToken,
+      headers: {HttpHeaders.authorizationHeader: idToken.token,
         HttpHeaders.contentTypeHeader: 'application/json'},
     );
 
@@ -186,7 +186,7 @@ class TaskRepository {
     var idToken = await appState.getIdToken();
 
     final response = await http.post("https://taskmaster-general.herokuapp.com/api/tasks",
-        headers: {HttpHeaders.authorizationHeader: idToken,
+        headers: {HttpHeaders.authorizationHeader: idToken.token,
           "Content-Type": "application/json"},
         body: body
     );

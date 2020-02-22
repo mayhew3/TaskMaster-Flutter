@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:taskmaster/models/app_state.dart';
@@ -107,7 +108,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     }
   }
 
-  void updateIdToken(String idToken) {
+  void updateIdToken(IdTokenResult idToken) {
     setState(() {
       appState.tokenRetrieved = true;
     });

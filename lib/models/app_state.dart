@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -33,7 +34,7 @@ class AppState {
     title = 'TaskMaster 3000';
   }
 
-  Future<String> getIdToken() async {
+  Future<IdTokenResult> getIdToken() async {
     try {
       return await auth.getIdToken();
     } catch (err) {

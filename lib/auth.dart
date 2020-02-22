@@ -10,7 +10,7 @@ class TaskMasterAuth {
     ]
   );
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  FirebaseUser _firebaseUser;
+  AuthResult _firebaseUser;
   final UserUpdater updateCurrentUser;
   final IdTokenUpdater updateIdToken;
 
@@ -33,8 +33,8 @@ class TaskMasterAuth {
     _googleSignIn.disconnect();
   }
 
-  Future<String> getIdToken() async {
-    return await _firebaseUser.getIdToken();
+  Future<IdTokenResult> getIdToken() async {
+    return await _firebaseUser.user.getIdToken();
   }
 
   Future<GoogleSignInAccount> addGoogleListener() {
@@ -45,7 +45,7 @@ class TaskMasterAuth {
           accessToken: authentication.accessToken,
       );
       _firebaseUser = await _firebaseAuth.signInWithCredential(credential);
-      String idToken = await _firebaseUser.getIdToken();
+      IdTokenResult idToken = await _firebaseUser.user.getIdToken();
       updateIdToken(idToken);
       updateCurrentUser(account);
       if (account == null) {
