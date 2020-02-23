@@ -232,6 +232,31 @@ class AddEditScreenState extends State<AddEditScreen> {
                     fieldSetter: (value) => _description = value,
                     inputType: TextInputType.multiline,
                   ),
+                  Card(
+                    elevation: 3.0,
+                    color: Color.fromRGBO(76, 77, 105, 1.0),
+                    child: Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Row(
+                        children: <Widget>[
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: <Widget>[
+                              SizedBox(
+                                width: 80.0,
+                                child: Text('Repeat',
+                                  style: Theme.of(context).textTheme.caption,),
+                              ),
+                            ],
+                          ),
+                          Expanded(
+                            child: Text('Repeat',
+                              style: Theme.of(context).textTheme.subhead,),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               )
           ),
