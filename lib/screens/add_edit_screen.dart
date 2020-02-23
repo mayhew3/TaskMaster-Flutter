@@ -53,6 +53,8 @@ class AddEditScreenState extends State<AddEditScreen> {
 
   bool _hasChanges;
 
+  bool _repeatOn;
+
   @override
   void initState() {
     super.initState();
@@ -72,6 +74,8 @@ class AddEditScreenState extends State<AddEditScreen> {
     _context = widget.taskItem?.context;
 
     _hasChanges = false;
+
+    _repeatOn = false;
 
     possibleProjects = [
       '(none)',
@@ -236,22 +240,23 @@ class AddEditScreenState extends State<AddEditScreen> {
                     elevation: 3.0,
                     color: Color.fromRGBO(76, 77, 105, 1.0),
                     child: Padding(
-                      padding: EdgeInsets.all(16.0),
+                      padding: EdgeInsets.symmetric(vertical: 6.0, horizontal: 16.0),
                       child: Row(
                         children: <Widget>[
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: <Widget>[
-                              SizedBox(
-                                width: 80.0,
-                                child: Text('Repeat',
-                                  style: Theme.of(context).textTheme.caption,),
-                              ),
-                            ],
-                          ),
                           Expanded(
                             child: Text('Repeat',
                               style: Theme.of(context).textTheme.subhead,),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: <Widget>[
+                              Switch(
+                                value: true,
+                                onChanged: (value) => {},
+                                activeTrackColor: Colors.pinkAccent,
+                                activeColor: Colors.pink,
+                              ),
+                            ],
                           ),
                         ],
                       ),
