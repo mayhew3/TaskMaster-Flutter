@@ -53,7 +53,7 @@ class AddEditScreenState extends State<AddEditScreen> {
 
   bool _hasChanges;
 
-  bool _repeatOn;
+  bool _repeatOn = false;
 
   @override
   void initState() {
@@ -74,8 +74,6 @@ class AddEditScreenState extends State<AddEditScreen> {
     _context = widget.taskItem?.context;
 
     _hasChanges = false;
-
-    _repeatOn = false;
 
     possibleProjects = [
       '(none)',
@@ -230,12 +228,6 @@ class AddEditScreenState extends State<AddEditScreen> {
                       });
                     },
                   ),
-                  EditableTaskField(
-                    initialText: widget.taskItem?.description,
-                    labelText: 'Notes',
-                    fieldSetter: (value) => _description = value,
-                    inputType: TextInputType.multiline,
-                  ),
                   Card(
                     elevation: 3.0,
                     color: Color.fromRGBO(76, 77, 105, 1.0),
@@ -251,8 +243,13 @@ class AddEditScreenState extends State<AddEditScreen> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: <Widget>[
                               Switch(
-                                value: true,
-                                onChanged: (value) => {},
+                                value: _repeatOn,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _repeatOn = value;
+                                    print(_repeatOn);
+                                  });
+                                },
                                 activeTrackColor: Colors.pinkAccent,
                                 activeColor: Colors.pink,
                               ),
@@ -261,6 +258,12 @@ class AddEditScreenState extends State<AddEditScreen> {
                         ],
                       ),
                     ),
+                  ),
+                  EditableTaskField(
+                    initialText: widget.taskItem?.description,
+                    labelText: 'Notes',
+                    fieldSetter: (value) => _description = value,
+                    inputType: TextInputType.multiline,
                   ),
                 ],
               )
