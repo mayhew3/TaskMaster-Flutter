@@ -80,6 +80,7 @@ class TaskRepository {
         "due_date": wrapDate(taskItem.dueDate),
         "urgent_date": wrapDate(taskItem.urgentDate),
         "game_points": taskItem.gamePoints,
+        "recur_wait": taskItem.recurWait,
       }
     };
     return _addOrUpdateJSON(payload, 'add');
@@ -139,6 +140,7 @@ class TaskRepository {
         "due_date": wrapDate(dueDate),
         "urgent_date": wrapDate(urgentDate),
         "game_points": gamePoints,
+        "recur_wait": recurWait,
       }
     };
     return _addOrUpdateJSON(payload, 'update');

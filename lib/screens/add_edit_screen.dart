@@ -50,10 +50,13 @@ class AddEditScreenState extends State<AddEditScreen> {
 
   List<String> possibleProjects;
   List<String> possibleContexts;
+  List<String> possibleAnchorDates;
 
   bool _hasChanges;
 
   bool _repeatOn = false;
+
+  String _anchorDate;
 
   @override
   void initState() {
@@ -74,6 +77,9 @@ class AddEditScreenState extends State<AddEditScreen> {
     _context = widget.taskItem?.context;
 
     _hasChanges = false;
+
+    _anchorDate = widget.taskItem?.recurWait == null ?
+        '(none)' : !widget.taskItem.recurWait ? 'Schedule Dates' : 'Completed Date';
 
     possibleProjects = [
       '(none)',
@@ -102,6 +108,12 @@ class AddEditScreenState extends State<AddEditScreen> {
       'Outside',
       'Reading',
       'Planning',
+    ];
+
+    possibleAnchorDates = [
+      '(none)',
+      'Schedule Dates',
+      'Completed Date',
     ];
   }
 
@@ -259,6 +271,12 @@ class AddEditScreenState extends State<AddEditScreen> {
                       ),
                     ),
                   ),
+                  NullableDropdown(
+                    initialValue: _anchorDate,
+                    labelText: 'Anchor',
+                    possibleValues: possibleAnchorDates,
+                    valueSetter: (newValue) => _anchorDate = newValue,
+                  ),
                   EditableTaskField(
                     initialText: widget.taskItem?.description,
                     labelText: 'Notes',
@@ -296,7 +314,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                     gamePoints: _gamePoints == null || _gamePoints == '' ? 1 : num.parse(_gamePoints),
                     recurNumber: _recurNumber,
                     recurUnit: _recurUnit,
-                    recurWait: _recurWait
+                    recurWait: _anchorDate == '(none)' ? null : (_anchorDate != 'Schedule Dates'),
                 );
                 if (widget.taskItemRefresher != null) {
                   widget.taskItemRefresher(updatedItem);
@@ -317,7 +335,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                     gamePoints: _gamePoints == null || _gamePoints == '' ? 1 : num.parse(_gamePoints),
                     recurNumber: _recurNumber,
                     recurUnit: _recurUnit,
-                    recurWait: _recurWait
+                    recurWait: _anchorDate == '(none)' ? null : (_anchorDate != 'Schedule Dates'),
                 );
                 await widget.taskAdder(addedItem);
               }
