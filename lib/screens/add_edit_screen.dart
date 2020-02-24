@@ -44,13 +44,13 @@ class AddEditScreenState extends State<AddEditScreen> {
 
   String _gamePoints;
 
-  int _recurNumber;
+  String _recurNumber;
   String _recurUnit;
-  bool _recurWait;
 
   List<String> possibleProjects;
   List<String> possibleContexts;
   List<String> possibleAnchorDates;
+  List<String> possibleRecurUnits;
 
   bool _hasChanges;
 
@@ -77,6 +77,8 @@ class AddEditScreenState extends State<AddEditScreen> {
     _context = widget.taskItem?.context;
 
     _hasChanges = false;
+
+
 
     _anchorDate = widget.taskItem?.recurWait == null ?
         '(none)' : !widget.taskItem.recurWait ? 'Schedule Dates' : 'Completed Date';
@@ -114,6 +116,14 @@ class AddEditScreenState extends State<AddEditScreen> {
       '(none)',
       'Schedule Dates',
       'Completed Date',
+    ];
+
+    possibleRecurUnits = [
+      '(none)',
+      'Days',
+      'Weeks',
+      'Months',
+      'Years',
     ];
   }
 
@@ -271,6 +281,32 @@ class AddEditScreenState extends State<AddEditScreen> {
                       ),
                     ),
                   ),
+                  Row(
+                    children: <Widget>[
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          SizedBox(
+                            width: 80.0,
+                            child: EditableTaskField(
+                              initialText: widget.taskItem?.recurNumber?.toString(),
+                              labelText: 'Num',
+                              fieldSetter: (value) => _recurNumber = value,
+                              inputType: TextInputType.number,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Expanded(
+                        child: NullableDropdown(
+                          initialValue: widget.taskItem?.recurUnit,
+                          labelText: 'Unit',
+                          possibleValues: possibleRecurUnits,
+                          valueSetter: (newValue) => _recurUnit = newValue,
+                        ),
+                      ),
+                    ],
+                  ),
                   NullableDropdown(
                     initialValue: _anchorDate,
                     labelText: 'Anchor',
@@ -312,7 +348,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                     dueDate: _dueDate,
                     urgentDate: _urgentDate,
                     gamePoints: _gamePoints == null || _gamePoints == '' ? 1 : num.parse(_gamePoints),
-                    recurNumber: _recurNumber,
+                    recurNumber: _recurNumber == null || _recurNumber == '' ? null : num.parse(_recurNumber),
                     recurUnit: _recurUnit,
                     recurWait: _anchorDate == '(none)' ? null : (_anchorDate != 'Schedule Dates'),
                 );
@@ -333,7 +369,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                     dueDate: _dueDate,
                     urgentDate: _urgentDate,
                     gamePoints: _gamePoints == null || _gamePoints == '' ? 1 : num.parse(_gamePoints),
-                    recurNumber: _recurNumber,
+                    recurNumber: _recurNumber == null || _recurNumber == '' ? null : num.parse(_recurNumber),
                     recurUnit: _recurUnit,
                     recurWait: _anchorDate == '(none)' ? null : (_anchorDate != 'Schedule Dates'),
                 );

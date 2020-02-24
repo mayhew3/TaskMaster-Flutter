@@ -80,6 +80,8 @@ class TaskRepository {
         "due_date": wrapDate(taskItem.dueDate),
         "urgent_date": wrapDate(taskItem.urgentDate),
         "game_points": taskItem.gamePoints,
+        "recur_number": taskItem.recurNumber,
+        "recur_unit": taskItem.recurUnit,
         "recur_wait": taskItem.recurWait,
       }
     };
@@ -140,6 +142,8 @@ class TaskRepository {
         "due_date": wrapDate(dueDate),
         "urgent_date": wrapDate(urgentDate),
         "game_points": gamePoints,
+        "recur_number": recurNumber,
+        "recur_unit": recurUnit,
         "recur_wait": recurWait,
       }
     };
