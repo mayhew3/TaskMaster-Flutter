@@ -50,6 +50,7 @@ class NullableDropdownState extends State<NullableDropdown> {
     return Container(
       margin: EdgeInsets.all(7.0),
       child: DropdownButtonFormField<String>(
+        isDense: true,
         decoration: InputDecoration(
           labelText: widget.labelText,
           filled: false,
