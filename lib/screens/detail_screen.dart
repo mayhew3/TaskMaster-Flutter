@@ -165,6 +165,11 @@ class DetailScreenState extends State<DetailScreen> {
               optionalBackgroundColor: getCompletedBackgroundColor(),
             ),
             ReadOnlyTaskField(
+              headerName: 'Repeat',
+              textToShow: taskItem.recurNumber == null ? null :
+                        'Every ' + taskItem.recurNumber.toString() + ' ' + taskItem.recurUnit,
+            ),
+            ReadOnlyTaskField(
               headerName: 'Notes',
               textToShow: taskItem.description,
             ),
