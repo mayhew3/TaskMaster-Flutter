@@ -7,6 +7,7 @@ class NullableDropdown extends StatefulWidget {
   final String labelText;
   final List<String> possibleValues;
   final ValueSetter<String> valueSetter;
+  final FormFieldValidator validator;
 
   const NullableDropdown({
     Key key,
@@ -14,6 +15,7 @@ class NullableDropdown extends StatefulWidget {
     @required this.labelText,
     @required this.possibleValues,
     @required this.valueSetter,
+    this.validator,
   }) : super(key: key);
 
   @override
@@ -64,6 +66,7 @@ class NullableDropdownState extends State<NullableDropdown> {
             widget.valueSetter(unwrapped);
           });
         },
+        validator: widget.validator,
         items: widget.possibleValues.map<DropdownMenuItem<String>>((String itemValue) {
           return DropdownMenuItem<String>(
             value: itemValue,

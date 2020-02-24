@@ -9,6 +9,7 @@ class EditableTaskField extends StatefulWidget {
   final bool isRequired;
   final bool wordCaps;
   final TextInputType inputType;
+  final FormFieldValidator<String> validator;
 
   const EditableTaskField({
     Key key,
@@ -18,6 +19,7 @@ class EditableTaskField extends StatefulWidget {
     @required this.inputType,
     this.isRequired = false,
     this.wordCaps = false,
+    this.validator,
   }) : super(key: key);
 
   @override
@@ -54,7 +56,12 @@ class EditableTaskFieldState extends State<EditableTaskField> {
         initialValue: this.initialText,
         onSaved: widget.fieldSetter,
         validator: (value) {
-          if (value.isEmpty && widget.isRequired) {
+          if (widget.validator != null) {
+            var validatorResult = widget.validator(value);
+            if (validatorResult != null) {
+              return validatorResult;
+            }
+          } else if (value.isEmpty && widget.isRequired) {
             return '${widget.labelText} is required';
           }
           return null;

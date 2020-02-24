@@ -55,6 +55,7 @@ class AddEditScreenState extends State<AddEditScreen> {
   bool _hasChanges;
 
   bool _repeatOn = false;
+  bool _initialRepeatOn = false;
 
   String _anchorDate;
 
@@ -78,10 +79,11 @@ class AddEditScreenState extends State<AddEditScreen> {
 
     _hasChanges = false;
 
-
+    _initialRepeatOn = widget.taskItem?.recurNumber != null;
+    _repeatOn = _initialRepeatOn;
 
     _anchorDate = widget.taskItem?.recurWait == null ?
-        '(none)' : !widget.taskItem.recurWait ? 'Schedule Dates' : 'Completed Date';
+    '(none)' : !widget.taskItem.recurWait ? 'Schedule Dates' : 'Completed Date';
 
     possibleProjects = [
       '(none)',
@@ -254,64 +256,96 @@ class AddEditScreenState extends State<AddEditScreen> {
                     elevation: 3.0,
                     color: Color.fromRGBO(76, 77, 105, 1.0),
                     child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 6.0, horizontal: 16.0),
-                      child: Row(
-                        children: <Widget>[
-                          Expanded(
-                            child: Text('Repeat',
-                              style: Theme.of(context).textTheme.subhead,),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: <Widget>[
-                              Switch(
-                                value: _repeatOn,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _repeatOn = value;
-                                    print(_repeatOn);
-                                  });
-                                },
-                                activeTrackColor: Colors.pinkAccent,
-                                activeColor: Colors.pink,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Row(
-                    children: <Widget>[
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: <Widget>[
-                          SizedBox(
-                            width: 80.0,
-                            child: EditableTaskField(
-                              initialText: widget.taskItem?.recurNumber?.toString(),
-                              labelText: 'Num',
-                              fieldSetter: (value) => _recurNumber = value,
-                              inputType: TextInputType.number,
+                        padding: EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
+                        child: Column(
+                          children: <Widget>[
+                            Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
+                                    child: Text('Repeat',
+                                      style: Theme.of(context).textTheme.subhead,),
+                                  ),
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: <Widget>[
+                                    Switch(
+                                      value: _repeatOn,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _repeatOn = value;
+                                          print(_repeatOn);
+                                        });
+                                      },
+                                      activeTrackColor: Colors.pinkAccent,
+                                      activeColor: Colors.pink,
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
-                      Expanded(
-                        child: NullableDropdown(
-                          initialValue: widget.taskItem?.recurUnit,
-                          labelText: 'Unit',
-                          possibleValues: possibleRecurUnits,
-                          valueSetter: (newValue) => _recurUnit = newValue,
-                        ),
-                      ),
-                    ],
-                  ),
-                  NullableDropdown(
-                    initialValue: _anchorDate,
-                    labelText: 'Anchor',
-                    possibleValues: possibleAnchorDates,
-                    valueSetter: (newValue) => _anchorDate = newValue,
+                            Visibility(
+                              visible: _repeatOn,
+                              child: Column(
+                                children: <Widget>[
+                                  Row(
+                                    children: <Widget>[
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        children: <Widget>[
+                                          SizedBox(
+                                            width: 80.0,
+                                            child: EditableTaskField(
+                                              initialText: widget.taskItem?.recurNumber?.toString(),
+                                              labelText: 'Num',
+                                              fieldSetter: (value) => _recurNumber = value,
+                                              inputType: TextInputType.number,
+                                              validator: (value) {
+                                                if (_repeatOn && value.isEmpty) {
+                                                  return 'Required';
+                                                }
+                                                return null;
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Expanded(
+                                        child: NullableDropdown(
+                                          initialValue: widget.taskItem?.recurUnit,
+                                          labelText: 'Unit',
+                                          possibleValues: possibleRecurUnits,
+                                          valueSetter: (newValue) => _recurUnit = newValue,
+                                          validator: (value) {
+                                            if (_repeatOn && value == '(none)') {
+                                              return 'Unit is required for repeat.';
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  NullableDropdown(
+                                    initialValue: _anchorDate,
+                                    labelText: 'Anchor',
+                                    possibleValues: possibleAnchorDates,
+                                    valueSetter: (newValue) => _anchorDate = newValue,
+                                    validator: (value) {
+                                      if (_repeatOn && value == '(none)') {
+                                        return 'Anchor Date is required for repeat.';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        )
+                    ),
                   ),
                   EditableTaskField(
                     initialText: widget.taskItem?.description,
@@ -325,7 +359,7 @@ class AddEditScreenState extends State<AddEditScreen> {
         ),
       ),
       floatingActionButton: Visibility(
-        visible: _hasChanges,
+        visible: _hasChanges || (_initialRepeatOn && !_repeatOn),
         child: FloatingActionButton(
           child: Icon(isEditing ? Icons.check : Icons.add),
           onPressed: () async {
@@ -335,43 +369,43 @@ class AddEditScreenState extends State<AddEditScreen> {
 
               if (isEditing) {
                 var updatedItem = await widget.taskUpdater(
-                    taskItem: widget.taskItem,
-                    name: _name,
-                    description: _description,
-                    project: _project,
-                    context: _context,
-                    urgency: _urgency == null || _urgency == '' ? 3 : num.parse(_urgency),
-                    priority: _priority == null || _priority == '' ? 5 : num.parse(_priority),
-                    duration: _duration == null || _duration == '' ? null : num.parse(_duration),
-                    startDate: _startDate,
-                    targetDate: _targetDate,
-                    dueDate: _dueDate,
-                    urgentDate: _urgentDate,
-                    gamePoints: _gamePoints == null || _gamePoints == '' ? 1 : num.parse(_gamePoints),
-                    recurNumber: _recurNumber == null || _recurNumber == '' ? null : num.parse(_recurNumber),
-                    recurUnit: _recurUnit,
-                    recurWait: _anchorDate == '(none)' ? null : (_anchorDate != 'Schedule Dates'),
+                  taskItem: widget.taskItem,
+                  name: _name,
+                  description: _description,
+                  project: _project,
+                  context: _context,
+                  urgency: _urgency == null || _urgency == '' ? 3 : num.parse(_urgency),
+                  priority: _priority == null || _priority == '' ? 5 : num.parse(_priority),
+                  duration: _duration == null || _duration == '' ? null : num.parse(_duration),
+                  startDate: _startDate,
+                  targetDate: _targetDate,
+                  dueDate: _dueDate,
+                  urgentDate: _urgentDate,
+                  gamePoints: _gamePoints == null || _gamePoints == '' ? 1 : num.parse(_gamePoints),
+                  recurNumber: !_repeatOn || _recurNumber == null || _recurNumber == '' ? null : num.parse(_recurNumber),
+                  recurUnit: _repeatOn ? _recurUnit : null,
+                  recurWait: !_repeatOn || _anchorDate == '(none)' ? null : (_anchorDate != 'Schedule Dates'),
                 );
                 if (widget.taskItemRefresher != null) {
                   widget.taskItemRefresher(updatedItem);
                 }
               } else {
                 var addedItem = TaskItem(
-                    name: _name,
-                    description: _description,
-                    project: _project,
-                    context: _context,
-                    urgency: _urgency == null || _urgency == '' ? 3 : num.parse(_urgency),
-                    priority: _priority == null || _priority == '' ? 5 : num.parse(_priority),
-                    duration: _duration == null || _duration == '' ? null : num.parse(_duration),
-                    startDate: _startDate,
-                    targetDate: _targetDate,
-                    dueDate: _dueDate,
-                    urgentDate: _urgentDate,
-                    gamePoints: _gamePoints == null || _gamePoints == '' ? 1 : num.parse(_gamePoints),
-                    recurNumber: _recurNumber == null || _recurNumber == '' ? null : num.parse(_recurNumber),
-                    recurUnit: _recurUnit,
-                    recurWait: _anchorDate == '(none)' ? null : (_anchorDate != 'Schedule Dates'),
+                  name: _name,
+                  description: _description,
+                  project: _project,
+                  context: _context,
+                  urgency: _urgency == null || _urgency == '' ? 3 : num.parse(_urgency),
+                  priority: _priority == null || _priority == '' ? 5 : num.parse(_priority),
+                  duration: _duration == null || _duration == '' ? null : num.parse(_duration),
+                  startDate: _startDate,
+                  targetDate: _targetDate,
+                  dueDate: _dueDate,
+                  urgentDate: _urgentDate,
+                  gamePoints: _gamePoints == null || _gamePoints == '' ? 1 : num.parse(_gamePoints),
+                  recurNumber: !_repeatOn || _recurNumber == null || _recurNumber == '' ? null : num.parse(_recurNumber),
+                  recurUnit: _repeatOn ? _recurUnit : null,
+                  recurWait: !_repeatOn || _anchorDate == '(none)' ? null : (_anchorDate != 'Schedule Dates'),
                 );
                 await widget.taskAdder(addedItem);
               }
