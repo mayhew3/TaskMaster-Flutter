@@ -78,6 +78,21 @@ class DetailScreenState extends State<DetailScreen> {
     });
   }
 
+  String getFormattedRecurrence(TaskItem taskItem) {
+    return 'Every ' + taskItem.recurNumber.toString() + ' ' + getFormattedRecurUnit(taskItem) + (taskItem.recurWait ? ' (after completion)' : '');
+  }
+
+  String getFormattedRecurUnit(TaskItem taskItem) {
+    if (taskItem.recurUnit == null) {
+      return '';
+    }
+    var unit = taskItem?.recurUnit;
+    if (taskItem.recurNumber == 1) {
+      unit = unit.substring(0, unit.length-1);
+    }
+    return unit.toLowerCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -167,7 +182,7 @@ class DetailScreenState extends State<DetailScreen> {
             ReadOnlyTaskField(
               headerName: 'Repeat',
               textToShow: taskItem.recurNumber == null ? null :
-                        'Every ' + taskItem.recurNumber.toString() + ' ' + taskItem.recurUnit,
+                        getFormattedRecurrence(taskItem),
             ),
             ReadOnlyTaskField(
               headerName: 'Notes',

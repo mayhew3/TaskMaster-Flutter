@@ -126,14 +126,99 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     appState.notificationScheduler.updateBadge();
   }
 
+  Duration createDuration(TaskItem taskItem) {
+    // todo: use Jiffy library for month and year durations.
+    switch (taskItem.recurUnit) {
+      case 'Days': return Duration(days: taskItem.recurNumber);
+      case 'Weeks': return Duration(days: taskItem.recurNumber * 7);
+      case 'Months': return Duration(days: taskItem.recurNumber * 31);
+      case 'Years': return Duration(days: taskItem.recurNumber * 365);
+      default: return null;
+    }
+  }
+
+  DateTime addToDate(DateTime previousDate, Duration duration) {
+    if (previousDate == null) {
+      return null;
+    } else {
+      return previousDate.add(duration);
+    }
+  }
+
+  Duration getAdjustedCompletionDuration(TaskItem previousItem, Duration duration, DateTime completionDate) {
+    DateTime anchorDate;
+    if (previousItem.dueDate != null) {
+      anchorDate = previousItem.dueDate;
+    } else if (previousItem.urgentDate != null) {
+      anchorDate = previousItem.urgentDate;
+    } else if (previousItem.targetDate != null) {
+      anchorDate = previousItem.targetDate;
+    } else if (previousItem.startDate != null) {
+      anchorDate = previousItem.startDate;
+    } else {
+      throw new Exception('Cannot repeat task with no dates.');
+    }
+
+    // todo: instead of calculating the start date, etc from the duration and the other
+    // todo: start date, calculate the new date based on anchor date, then use the diffs
+    // todo: between the original anchor date and the other dates, and use those.
+
+    Duration difference = completionDate.difference(anchorDate);
+    return duration + difference;
+  }
+
   Future<TaskItem> completeTask(TaskItem taskItem, bool completed) async {
-    var inboundTask = await repository.completeTask(taskItem, completed);
+    TaskItem nextScheduledTask;
+    DateTime completionDate = completed ? DateTime.now() : null;
+
+    if (taskItem.recurNumber != null && completed) {
+      Duration duration = createDuration(taskItem);
+      DateTime nextStart;
+      DateTime nextTarget;
+      DateTime nextUrgent;
+      DateTime nextDue;
+
+      if (taskItem.recurWait) {
+        duration = getAdjustedCompletionDuration(taskItem, duration, completionDate);
+      }
+      nextStart = addToDate(taskItem.startDate, duration);
+      nextTarget = addToDate(taskItem.targetDate, duration);
+      nextUrgent = addToDate(taskItem.urgentDate, duration);
+      nextDue = addToDate(taskItem.dueDate, duration);
+
+      nextScheduledTask = TaskItem(
+          personId: taskItem.personId,
+          name: taskItem.name,
+          description: taskItem.description,
+          project: taskItem.project,
+          context: taskItem.context,
+          urgency: taskItem.urgency,
+          priority: taskItem.priority,
+          duration: taskItem.duration,
+          dateAdded: DateTime.now(),
+          startDate: nextStart,
+          targetDate: nextTarget,
+          dueDate: nextDue,
+          completionDate: null,
+          urgentDate: nextUrgent,
+          gamePoints: taskItem.gamePoints,
+          recurNumber: taskItem.recurNumber,
+          recurUnit: taskItem.recurUnit,
+          recurWait: taskItem.recurWait
+      );
+    }
+    var inboundTask = await repository.completeTask(taskItem, completionDate);
     TaskItem updatedTask;
     setState(() {
       updatedTask = appState.updateTaskListWithUpdatedTask(inboundTask);
       appState.notificationScheduler.syncNotificationForTask(updatedTask);
     });
     appState.notificationScheduler.updateBadge();
+
+    if (nextScheduledTask != null) {
+      addTask(nextScheduledTask);
+    }
+
     return updatedTask;
   }
 

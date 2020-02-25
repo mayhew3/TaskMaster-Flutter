@@ -88,12 +88,10 @@ class TaskRepository {
     return _addOrUpdateJSON(payload, 'add');
   }
 
-  Future<TaskEntity> completeTask(TaskItem taskItem, bool completed) {
+  Future<TaskEntity> completeTask(TaskItem taskItem, DateTime completionDate) {
     if (!appState.isAuthenticated()) {
       throw new Exception("Cannot update task before being signed in.");
     }
-
-    var completionDate = completed ? DateTime.now() : null;
 
     var payload = {
       "task": {

@@ -77,6 +77,8 @@ class AddEditScreenState extends State<AddEditScreen> {
     _project = widget.taskItem?.project;
     _context = widget.taskItem?.context;
 
+    _recurUnit = widget.taskItem?.recurUnit;
+
     _hasChanges = false;
 
     _initialRepeatOn = widget.taskItem?.recurNumber != null;
