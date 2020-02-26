@@ -131,6 +131,18 @@ class AddEditScreenState extends State<AddEditScreen> {
     ];
   }
 
+  bool hasDate() {
+    return
+        _startDate != null ||
+        _targetDate != null ||
+        _urgentDate != null ||
+        _dueDate != null;
+  }
+
+  void clearRepeatOn() {
+    _repeatOn = false;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -218,6 +230,9 @@ class AddEditScreenState extends State<AddEditScreen> {
                     dateSetter: (DateTime pickedDate) {
                       setState(() {
                         _startDate = pickedDate;
+                        if (!hasDate()) {
+                          clearRepeatOn();
+                        }
                       });
                     },
                   ),
@@ -229,6 +244,9 @@ class AddEditScreenState extends State<AddEditScreen> {
                     dateSetter: (DateTime pickedDate) {
                       setState(() {
                         _targetDate = pickedDate;
+                        if (!hasDate()) {
+                          clearRepeatOn();
+                        }
                       });
                     },
                   ),
@@ -240,6 +258,9 @@ class AddEditScreenState extends State<AddEditScreen> {
                     dateSetter: (DateTime pickedDate) {
                       setState(() {
                         _dueDate = pickedDate;
+                        if (!hasDate()) {
+                          clearRepeatOn();
+                        }
                       });
                     },
                   ),
@@ -251,102 +272,108 @@ class AddEditScreenState extends State<AddEditScreen> {
                     dateSetter: (DateTime pickedDate) {
                       setState(() {
                         _urgentDate = pickedDate;
+                        if (!hasDate()) {
+                          clearRepeatOn();
+                        }
                       });
                     },
                   ),
-                  Card(
-                    elevation: 3.0,
-                    color: Color.fromRGBO(76, 77, 105, 1.0),
-                    child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
-                        child: Column(
-                          children: <Widget>[
-                            Row(
-                              children: <Widget>[
-                                Expanded(
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
-                                    child: Text('Repeat',
-                                      style: Theme.of(context).textTheme.subhead,),
-                                  ),
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: <Widget>[
-                                    Switch(
-                                      value: _repeatOn,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _repeatOn = value;
-                                          print(_repeatOn);
-                                        });
-                                      },
-                                      activeTrackColor: Colors.pinkAccent,
-                                      activeColor: Colors.pink,
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            Visibility(
-                              visible: _repeatOn,
-                              child: Column(
+                  Visibility(
+                    visible: hasDate(),
+                    child: Card(
+                      elevation: 3.0,
+                      color: Color.fromRGBO(76, 77, 105, 1.0),
+                      child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
+                          child: Column(
+                            children: <Widget>[
+                              Row(
                                 children: <Widget>[
-                                  Row(
+                                  Expanded(
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
+                                      child: Text('Repeat',
+                                        style: Theme.of(context).textTheme.subhead,),
+                                    ),
+                                  ),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
                                     children: <Widget>[
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.end,
-                                        children: <Widget>[
-                                          SizedBox(
-                                            width: 80.0,
-                                            child: EditableTaskField(
-                                              initialText: widget.taskItem?.recurNumber?.toString(),
-                                              labelText: 'Num',
-                                              fieldSetter: (value) => _recurNumber = value,
-                                              inputType: TextInputType.number,
-                                              validator: (value) {
-                                                if (_repeatOn && value.isEmpty) {
-                                                  return 'Required';
-                                                }
-                                                return null;
-                                              },
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Expanded(
-                                        child: NullableDropdown(
-                                          initialValue: widget.taskItem?.recurUnit,
-                                          labelText: 'Unit',
-                                          possibleValues: possibleRecurUnits,
-                                          valueSetter: (newValue) => _recurUnit = newValue,
-                                          validator: (value) {
-                                            if (_repeatOn && value == '(none)') {
-                                              return 'Unit is required for repeat.';
-                                            }
-                                            return null;
-                                          },
-                                        ),
+                                      Switch(
+                                        value: _repeatOn,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _repeatOn = value;
+                                            print(_repeatOn);
+                                          });
+                                        },
+                                        activeTrackColor: Colors.pinkAccent,
+                                        activeColor: Colors.pink,
                                       ),
                                     ],
                                   ),
-                                  NullableDropdown(
-                                    initialValue: _anchorDate,
-                                    labelText: 'Anchor',
-                                    possibleValues: possibleAnchorDates,
-                                    valueSetter: (newValue) => _anchorDate = newValue,
-                                    validator: (value) {
-                                      if (_repeatOn && value == '(none)') {
-                                        return 'Anchor Date is required for repeat.';
-                                      }
-                                      return null;
-                                    },
-                                  ),
                                 ],
                               ),
-                            ),
-                          ],
-                        )
+                              Visibility(
+                                visible: _repeatOn,
+                                child: Column(
+                                  children: <Widget>[
+                                    Row(
+                                      children: <Widget>[
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.end,
+                                          children: <Widget>[
+                                            SizedBox(
+                                              width: 80.0,
+                                              child: EditableTaskField(
+                                                initialText: widget.taskItem?.recurNumber?.toString(),
+                                                labelText: 'Num',
+                                                fieldSetter: (value) => _recurNumber = value,
+                                                inputType: TextInputType.number,
+                                                validator: (value) {
+                                                  if (_repeatOn && value.isEmpty) {
+                                                    return 'Required';
+                                                  }
+                                                  return null;
+                                                },
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Expanded(
+                                          child: NullableDropdown(
+                                            initialValue: widget.taskItem?.recurUnit,
+                                            labelText: 'Unit',
+                                            possibleValues: possibleRecurUnits,
+                                            valueSetter: (newValue) => _recurUnit = newValue,
+                                            validator: (value) {
+                                              if (_repeatOn && value == '(none)') {
+                                                return 'Unit is required for repeat.';
+                                              }
+                                              return null;
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    NullableDropdown(
+                                      initialValue: _anchorDate,
+                                      labelText: 'Anchor',
+                                      possibleValues: possibleAnchorDates,
+                                      valueSetter: (newValue) => _anchorDate = newValue,
+                                      validator: (value) {
+                                        if (_repeatOn && value == '(none)') {
+                                          return 'Anchor Date is required for repeat.';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          )
+                      ),
                     ),
                   ),
                   EditableTaskField(
