@@ -149,36 +149,33 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     }
   }
 
-  DateTime getDateAdjustedByDuration(DateTime dateTime, Duration duration) {
-    if (dateTime == null) {
-      return null;
+  DateTime applyTimeToDate(DateTime dateWithTime, DateTime targetDate) {
+    var jiffy = Jiffy([
+      targetDate.year,
+      targetDate.month,
+      targetDate.day,
+      dateWithTime.hour,
+      dateWithTime.minute,
+      dateWithTime.second]);
+    return jiffy.dateTime;
+  }
+
+  DateTime getClosestDateForTime(DateTime dateWithTime, DateTime targetDate) {
+    DateTime prev = applyTimeToDate(dateWithTime, Jiffy(targetDate).subtract(days:1));
+    DateTime current = applyTimeToDate(dateWithTime, targetDate);
+    DateTime next = applyTimeToDate(dateWithTime, Jiffy(targetDate).add(days:1));
+
+    var prevDiff = prev.difference(targetDate).abs();
+    var currDiff = current.difference(targetDate).abs();
+    var nextDiff = next.difference(targetDate).abs();
+
+    if (prevDiff < currDiff && prevDiff < nextDiff) {
+      return prev;
+    } else if (currDiff < nextDiff) {
+      return current;
     } else {
-      return dateTime.add(duration);
+      return next;
     }
-  }
-
-  Duration getDuration(DateTime dateTime, int recurNumber, String recurUnit) {
-    if (dateTime == null) {
-      return null;
-    }
-    var adjustedDate = getAdjustedDate(dateTime, recurNumber, recurUnit);
-    return adjustedDate.difference(dateTime);
-  }
-
-  Duration getAdjustedCompletionDuration(TaskItem previousItem, Duration duration, DateTime completionDate, TaskDateHolder dateHolder) {
-    DateTime anchorDate = previousItem.getAnchorDate();
-    if (anchorDate == null) {
-      throw new Exception('Cannot repeat task with no dates.');
-    }
-
-    // todo: instead of calculating the start date, etc from the duration and the other
-    // todo: start date, calculate the new date based on anchor date, then use the diffs
-    // todo: between the original anchor date and the other dates, and use those.
-
-    // todo: Also, use same time of day as original anchor date
-
-    Duration difference = completionDate.difference(anchorDate);
-    return duration + difference;
   }
 
   Future<TaskItem> completeTask(TaskItem taskItem, bool completed) async {
@@ -186,19 +183,22 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     DateTime completionDate = completed ? DateTime.now() : null;
 
     if (taskItem.recurNumber != null && completed) {
-      Duration duration;
       DateTime anchorDate = taskItem.getAnchorDate();
-
-      if (taskItem.recurWait) {
-        
-      } else {
-        DateTime nextAnchorDate = getAdjustedDate(anchorDate, taskItem.recurNumber, taskItem.recurUnit);
-        duration = nextAnchorDate.difference(anchorDate);
-      }
+      DateTime nextAnchorDate;
 
       String anchorDateFieldName = taskItem.getAnchorDateFieldName();
-
       TaskDateHolder dateHolder = new TaskDateHolder(anchorDateFieldName: anchorDateFieldName);
+
+      if (taskItem.recurWait) {
+        nextAnchorDate = getAdjustedDate(completionDate, taskItem.recurNumber, taskItem.recurUnit);
+      } else {
+        nextAnchorDate = getAdjustedDate(anchorDate, taskItem.recurNumber, taskItem.recurUnit);
+      }
+
+      DateTime dateWithTime = getClosestDateForTime(anchorDate, nextAnchorDate);
+
+      Duration duration = dateWithTime.difference(anchorDate);
+
       dateHolder.startDate = addToDate(taskItem.startDate, duration);
       dateHolder.targetDate = addToDate(taskItem.targetDate, duration);
       dateHolder.urgentDate = addToDate(taskItem.urgentDate, duration);
@@ -224,7 +224,6 @@ class TaskMasterAppState extends State<TaskMasterApp> {
           recurUnit: taskItem.recurUnit,
           recurWait: taskItem.recurWait
       );
-
 
     }
     var inboundTask = await repository.completeTask(taskItem, completionDate);
