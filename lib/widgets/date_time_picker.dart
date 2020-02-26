@@ -45,11 +45,11 @@ class _InputDropdown extends StatelessWidget {
 }
 
 TimeOfDay getTimeFromDate(DateTime dateTime) {
-  return dateTime == null ? null : new TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);
+  return dateTime == null ? null : TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);
 }
 
 DateTime combineDateWithTime(DateTime originalDate, int hour, int minute) {
-  return new DateTime(originalDate.year, originalDate.month, originalDate.day,
+  return DateTime(originalDate.year, originalDate.month, originalDate.day,
       hour, minute);
 }
 

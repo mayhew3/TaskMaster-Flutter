@@ -19,7 +19,7 @@ class TaskRepository {
 
   Future<List<TaskEntity>> loadTasks() async {
     if (!appState.isAuthenticated()) {
-      throw new Exception("Cannot load tasks before being signed in.");
+      throw Exception("Cannot load tasks before being signed in.");
     }
 
     var queryParameters = {
@@ -59,10 +59,10 @@ class TaskRepository {
 
   Future<TaskEntity> addTask(TaskItem taskItem) async {
     if (!appState.isAuthenticated()) {
-      throw new Exception("Cannot add task before being signed in.");
+      throw Exception("Cannot add task before being signed in.");
     }
     if (appState.personId == null) {
-      throw new Exception("Cannot add task with no personId.");
+      throw Exception("Cannot add task with no personId.");
     }
 
     var payload = {
@@ -91,7 +91,7 @@ class TaskRepository {
 
   Future<TaskEntity> completeTask(TaskItem taskItem, DateTime completionDate) {
     if (!appState.isAuthenticated()) {
-      throw new Exception("Cannot update task before being signed in.");
+      throw Exception("Cannot update task before being signed in.");
     }
 
     var payload = {
@@ -125,7 +125,7 @@ class TaskRepository {
     int recurrenceId,
   }) async {
     if (!appState.isAuthenticated()) {
-      throw new Exception("Cannot update task before being signed in.");
+      throw Exception("Cannot update task before being signed in.");
     }
 
     var payload = {
@@ -158,7 +158,7 @@ class TaskRepository {
 
   Future<void> deleteTask(TaskItem taskItem) async {
     if (!appState.isAuthenticated()) {
-      throw new Exception("Cannot delete task before being signed in.");
+      throw Exception("Cannot delete task before being signed in.");
     }
 
     var queryParameters = {

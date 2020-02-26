@@ -34,13 +34,12 @@ class NotificationScheduler {
     this.taskAdder = taskAdder;
     this.taskUpdater = taskUpdater;
 
-    flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
+    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
     // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
-    var initializationSettingsAndroid =
-    new AndroidInitializationSettings('app_icon');
-    var initializationSettingsIOS = new IOSInitializationSettings(
+    var initializationSettingsAndroid = AndroidInitializationSettings('app_icon');
+    var initializationSettingsIOS = IOSInitializationSettings(
         onDidReceiveLocalNotification: onDidReceiveLocalNotification);
-    var initializationSettings = new InitializationSettings(
+    var initializationSettings = InitializationSettings(
         initializationSettingsAndroid, initializationSettingsIOS);
     flutterLocalNotificationsPlugin.initialize(initializationSettings,
         onSelectNotification: onSelectNotification);
@@ -82,8 +81,8 @@ class NotificationScheduler {
 
     await Navigator.push(
         contextToUse,
-        new MaterialPageRoute(builder: (context) {
-          return new DetailScreen(
+        MaterialPageRoute(builder: (context) {
+          return DetailScreen(
             taskItem: taskItem,
             taskAdder: taskAdder,
             taskUpdater: taskUpdater,

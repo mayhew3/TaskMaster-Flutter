@@ -129,11 +129,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   }
 
   DateTime addToDate(DateTime previousDate, Duration duration) {
-    if (previousDate == null) {
-      return null;
-    } else {
-      return previousDate.add(duration);
-    }
+    return previousDate?.add(duration);
   }
 
   DateTime getAdjustedDate(DateTime dateTime, int recurNumber, String recurUnit) {
@@ -187,7 +183,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       DateTime nextAnchorDate;
 
       String anchorDateFieldName = taskItem.getAnchorDateFieldName();
-      TaskDateHolder dateHolder = new TaskDateHolder(anchorDateFieldName: anchorDateFieldName);
+      TaskDateHolder dateHolder = TaskDateHolder(anchorDateFieldName: anchorDateFieldName);
 
       if (taskItem.recurWait) {
         nextAnchorDate = getAdjustedDate(completionDate, taskItem.recurNumber, taskItem.recurUnit);
