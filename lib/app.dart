@@ -6,6 +6,7 @@ import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/screens/loading.dart';
 import 'package:taskmaster/task_repository.dart';
+import 'package:jiffy/jiffy.dart';
 
 class TaskMasterApp extends StatefulWidget {
   @override
@@ -169,6 +170,54 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     return duration + difference;
   }
 
+  DateTime getAdjustedDate(DateTime dateTime, int recurNumber, String recurUnit) {
+    if (dateTime == null) {
+      return null;
+    }
+    switch (recurUnit) {
+      case 'Days': return Jiffy(dateTime).add(days: recurNumber);
+      case 'Weeks': return Jiffy(dateTime).add(weeks: recurNumber);
+      case 'Months': return Jiffy(dateTime).add(months: recurNumber);
+      case 'Years': return Jiffy(dateTime).add(years: recurNumber);
+      default: return null;
+    }
+  }
+
+  DateTime getDateAdjustedByDuration(DateTime dateTime, Duration duration) {
+    if (dateTime == null) {
+      return null;
+    } else {
+      return dateTime.add(duration);
+    }
+  }
+
+  Duration getDuration(DateTime dateTime, int recurNumber, String recurUnit) {
+    if (dateTime == null) {
+      return null;
+    }
+    var adjustedDate = getAdjustedDate(dateTime, recurNumber, recurUnit);
+    return adjustedDate.difference(dateTime);
+  }
+
+  Duration getDurationInDaysBetweenTasks(TaskItem taskItem, TaskItem nextItem) {
+    var duration = getDuration(taskItem.dueDate, taskItem.recurNumber, taskItem.recurUnit);
+    if (duration == null) {
+      duration = getDuration(taskItem.urgentDate, taskItem.recurNumber, taskItem.recurUnit);
+    }
+    if (duration == null) {
+      duration = getDuration(taskItem.targetDate, taskItem.recurNumber, taskItem.recurUnit);
+    }
+    if (duration == null) {
+      duration = getDuration(taskItem.startDate, taskItem.recurNumber, taskItem.recurUnit);
+    }
+    return duration;
+  }
+
+  void updateRecurrenceTask(TaskItem taskItem, TaskItem nextItem) {
+    var duration = getDurationInDaysBetweenTasks(taskItem, nextItem);
+    nextItem.dueDate = getDateAdjustedByDuration(taskItem.dueDate, duration);
+  }
+
   Future<TaskItem> completeTask(TaskItem taskItem, bool completed) async {
     TaskItem nextScheduledTask;
     DateTime completionDate = completed ? DateTime.now() : null;
@@ -198,16 +247,14 @@ class TaskMasterAppState extends State<TaskMasterApp> {
           priority: taskItem.priority,
           duration: taskItem.duration,
           dateAdded: DateTime.now(),
-          startDate: nextStart,
-          targetDate: nextTarget,
-          dueDate: nextDue,
           completionDate: null,
-          urgentDate: nextUrgent,
           gamePoints: taskItem.gamePoints,
           recurNumber: taskItem.recurNumber,
           recurUnit: taskItem.recurUnit,
           recurWait: taskItem.recurWait
       );
+
+
     }
     var inboundTask = await repository.completeTask(taskItem, completionDate);
     TaskItem updatedTask;
