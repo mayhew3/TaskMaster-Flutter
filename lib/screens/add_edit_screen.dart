@@ -387,7 +387,10 @@ class AddEditScreenState extends State<AddEditScreen> {
                   recurNumber: !_repeatOn || _recurNumber == null || _recurNumber == '' ? null : num.parse(_recurNumber),
                   recurUnit: _repeatOn ? _recurUnit : null,
                   recurWait: !_repeatOn || _anchorDate == '(none)' ? null : (_anchorDate != 'Schedule Dates'),
-                  recurrenceId: _repeatOn ? widget.taskItem.id : null,
+                  recurrenceId: _repeatOn ?
+                    widget.taskItem.recurrenceId != null ?
+                    widget.taskItem.recurrenceId :
+                    widget.taskItem.id : null,
                 );
                 if (widget.taskItemRefresher != null) {
                   widget.taskItemRefresher(updatedItem);
