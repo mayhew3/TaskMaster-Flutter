@@ -29,6 +29,7 @@ typedef Future<TaskItem> TaskUpdater({
   int recurNumber,
   String recurUnit,
   bool recurWait,
+  int recurrenceId,
 });
 
 typedef EndLoadingCallback(BuildContext context);

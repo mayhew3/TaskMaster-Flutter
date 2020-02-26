@@ -83,6 +83,7 @@ class TaskRepository {
         "recur_number": taskItem.recurNumber,
         "recur_unit": taskItem.recurUnit,
         "recur_wait": taskItem.recurWait,
+        "recurrence_id": taskItem.recurrenceId,
       }
     };
     return _addOrUpdateJSON(payload, 'add');
@@ -97,6 +98,7 @@ class TaskRepository {
       "task": {
         "id": taskItem.id,
         "completion_date": wrapDate(completionDate),
+        "recurrence_id": taskItem.recurrenceId,
       }
     };
 
@@ -120,6 +122,7 @@ class TaskRepository {
     int recurNumber,
     String recurUnit,
     bool recurWait,
+    int recurrenceId,
   }) async {
     if (!appState.isAuthenticated()) {
       throw new Exception("Cannot update task before being signed in.");
@@ -143,6 +146,7 @@ class TaskRepository {
         "recur_number": recurNumber,
         "recur_unit": recurUnit,
         "recur_wait": recurWait,
+        "recurrence_id": recurrenceId,
       }
     };
     return _addOrUpdateJSON(payload, 'update');

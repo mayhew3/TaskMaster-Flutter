@@ -34,6 +34,8 @@ class TaskEntity {
   final String recurUnit;
   final bool recurWait;
 
+  final int recurrenceId;
+
   TaskEntity({
     this.id,
     this.personId,
@@ -53,7 +55,8 @@ class TaskEntity {
     this.gamePoints,
     this.recurNumber,
     this.recurUnit,
-    this.recurWait
+    this.recurWait,
+    this.recurrenceId,
   });
 
   @override
@@ -97,6 +100,7 @@ class TaskEntity {
       recurNumber: json['recur_number'],
       recurUnit: json['recur_unit'],
       recurWait: json['recur_wait'],
+      recurrenceId: json['recurrence_id'],
       dateAdded: nullSafeParseJSON(json['date_added']),
     );
   }

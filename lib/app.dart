@@ -222,7 +222,8 @@ class TaskMasterAppState extends State<TaskMasterApp> {
           gamePoints: taskItem.gamePoints,
           recurNumber: taskItem.recurNumber,
           recurUnit: taskItem.recurUnit,
-          recurWait: taskItem.recurWait
+          recurWait: taskItem.recurWait,
+          recurrenceId: taskItem.recurrenceId,
       );
 
     }
@@ -269,6 +270,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     int recurNumber,
     String recurUnit,
     bool recurWait,
+    int recurrenceId,
   }) async {
     var inboundTask = await repository.updateTask(
         taskItem: taskItem,
@@ -286,7 +288,8 @@ class TaskMasterAppState extends State<TaskMasterApp> {
         gamePoints: gamePoints,
         recurNumber: recurNumber,
         recurUnit: recurUnit,
-        recurWait: recurWait
+        recurWait: recurWait,
+        recurrenceId: recurrenceId,
     );
     TaskItem updatedTask;
     setState(() {

@@ -43,6 +43,8 @@ class TaskItem {
   final String recurUnit;
   final bool recurWait;
 
+  final int recurrenceId;
+
   TaskItem({
     this.id,
     this.personId,
@@ -62,7 +64,8 @@ class TaskItem {
     this.gamePoints,
     this.recurNumber,
     this.recurUnit,
-    this.recurWait
+    this.recurWait,
+    this.recurrenceId,
   });
 
   bool isCompleted() {
@@ -108,7 +111,7 @@ class TaskItem {
       return null;
     }
   }
-  
+
   DateTime getDateFromName(String anchorDateFieldName) {
     switch (anchorDateFieldName) {
       case "Due": return dueDate;
@@ -150,7 +153,8 @@ class TaskItem {
         gamePoints: gamePoints,
         recurNumber: recurNumber,
         recurUnit: recurUnit,
-        recurWait: recurWait
+        recurWait: recurWait,
+        recurrenceId: recurrenceId
     );
   }
 
@@ -174,7 +178,8 @@ class TaskItem {
         gamePoints: entity.gamePoints,
         recurNumber: entity.recurNumber,
         recurUnit: entity.recurUnit,
-        recurWait: entity.recurWait
+        recurWait: entity.recurWait,
+        recurrenceId: entity.recurrenceId,
     );
   }
 
@@ -208,6 +213,7 @@ class TaskItem {
       recurNumber: json['recur_number'],
       recurUnit: json['recur_unit'],
       recurWait: json['recur_wait'],
+      recurrenceId: json['recurrence_id'],
       dateAdded: DateTime.parse(json['date_added']),
     );
   }
