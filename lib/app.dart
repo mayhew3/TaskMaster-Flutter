@@ -163,6 +163,8 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     // todo: start date, calculate the new date based on anchor date, then use the diffs
     // todo: between the original anchor date and the other dates, and use those.
 
+    // todo: Also, use same time of day as original anchor date
+
     Duration difference = completionDate.difference(anchorDate);
     return duration + difference;
   }
