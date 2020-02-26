@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:taskmaster/models/app_state.dart';
+import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/screens/loading.dart';
@@ -127,47 +128,12 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     appState.notificationScheduler.updateBadge();
   }
 
-  Duration createDuration(TaskItem taskItem) {
-    // todo: use Jiffy library for month and year durations.
-    switch (taskItem.recurUnit) {
-      case 'Days': return Duration(days: taskItem.recurNumber);
-      case 'Weeks': return Duration(days: taskItem.recurNumber * 7);
-      case 'Months': return Duration(days: taskItem.recurNumber * 31);
-      case 'Years': return Duration(days: taskItem.recurNumber * 365);
-      default: return null;
-    }
-  }
-
   DateTime addToDate(DateTime previousDate, Duration duration) {
     if (previousDate == null) {
       return null;
     } else {
       return previousDate.add(duration);
     }
-  }
-
-  Duration getAdjustedCompletionDuration(TaskItem previousItem, Duration duration, DateTime completionDate) {
-    DateTime anchorDate;
-    if (previousItem.dueDate != null) {
-      anchorDate = previousItem.dueDate;
-    } else if (previousItem.urgentDate != null) {
-      anchorDate = previousItem.urgentDate;
-    } else if (previousItem.targetDate != null) {
-      anchorDate = previousItem.targetDate;
-    } else if (previousItem.startDate != null) {
-      anchorDate = previousItem.startDate;
-    } else {
-      throw new Exception('Cannot repeat task with no dates.');
-    }
-
-    // todo: instead of calculating the start date, etc from the duration and the other
-    // todo: start date, calculate the new date based on anchor date, then use the diffs
-    // todo: between the original anchor date and the other dates, and use those.
-
-    // todo: Also, use same time of day as original anchor date
-
-    Duration difference = completionDate.difference(anchorDate);
-    return duration + difference;
   }
 
   DateTime getAdjustedDate(DateTime dateTime, int recurNumber, String recurUnit) {
@@ -199,23 +165,20 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     return adjustedDate.difference(dateTime);
   }
 
-  Duration getDurationInDaysBetweenTasks(TaskItem taskItem, TaskItem nextItem) {
-    var duration = getDuration(taskItem.dueDate, taskItem.recurNumber, taskItem.recurUnit);
-    if (duration == null) {
-      duration = getDuration(taskItem.urgentDate, taskItem.recurNumber, taskItem.recurUnit);
+  Duration getAdjustedCompletionDuration(TaskItem previousItem, Duration duration, DateTime completionDate, TaskDateHolder dateHolder) {
+    DateTime anchorDate = previousItem.getAnchorDate();
+    if (anchorDate == null) {
+      throw new Exception('Cannot repeat task with no dates.');
     }
-    if (duration == null) {
-      duration = getDuration(taskItem.targetDate, taskItem.recurNumber, taskItem.recurUnit);
-    }
-    if (duration == null) {
-      duration = getDuration(taskItem.startDate, taskItem.recurNumber, taskItem.recurUnit);
-    }
-    return duration;
-  }
 
-  void updateRecurrenceTask(TaskItem taskItem, TaskItem nextItem) {
-    var duration = getDurationInDaysBetweenTasks(taskItem, nextItem);
-    nextItem.dueDate = getDateAdjustedByDuration(taskItem.dueDate, duration);
+    // todo: instead of calculating the start date, etc from the duration and the other
+    // todo: start date, calculate the new date based on anchor date, then use the diffs
+    // todo: between the original anchor date and the other dates, and use those.
+
+    // todo: Also, use same time of day as original anchor date
+
+    Duration difference = completionDate.difference(anchorDate);
+    return duration + difference;
   }
 
   Future<TaskItem> completeTask(TaskItem taskItem, bool completed) async {
@@ -223,19 +186,23 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     DateTime completionDate = completed ? DateTime.now() : null;
 
     if (taskItem.recurNumber != null && completed) {
-      Duration duration = createDuration(taskItem);
-      DateTime nextStart;
-      DateTime nextTarget;
-      DateTime nextUrgent;
-      DateTime nextDue;
+      Duration duration;
+      DateTime anchorDate = taskItem.getAnchorDate();
 
       if (taskItem.recurWait) {
-        duration = getAdjustedCompletionDuration(taskItem, duration, completionDate);
+        
+      } else {
+        DateTime nextAnchorDate = getAdjustedDate(anchorDate, taskItem.recurNumber, taskItem.recurUnit);
+        duration = nextAnchorDate.difference(anchorDate);
       }
-      nextStart = addToDate(taskItem.startDate, duration);
-      nextTarget = addToDate(taskItem.targetDate, duration);
-      nextUrgent = addToDate(taskItem.urgentDate, duration);
-      nextDue = addToDate(taskItem.dueDate, duration);
+
+      String anchorDateFieldName = taskItem.getAnchorDateFieldName();
+
+      TaskDateHolder dateHolder = new TaskDateHolder(anchorDateFieldName: anchorDateFieldName);
+      dateHolder.startDate = addToDate(taskItem.startDate, duration);
+      dateHolder.targetDate = addToDate(taskItem.targetDate, duration);
+      dateHolder.urgentDate = addToDate(taskItem.urgentDate, duration);
+      dateHolder.dueDate = addToDate(taskItem.dueDate, duration);
 
       nextScheduledTask = TaskItem(
           personId: taskItem.personId,
@@ -247,7 +214,11 @@ class TaskMasterAppState extends State<TaskMasterApp> {
           priority: taskItem.priority,
           duration: taskItem.duration,
           dateAdded: DateTime.now(),
+          startDate: dateHolder.startDate,
+          targetDate: dateHolder.targetDate,
+          dueDate: dateHolder.dueDate,
           completionDate: null,
+          urgentDate: dateHolder.urgentDate,
           gamePoints: taskItem.gamePoints,
           recurNumber: taskItem.recurNumber,
           recurUnit: taskItem.recurUnit,

@@ -81,6 +81,44 @@ class TaskItem {
     return hasPassed(urgentDate);
   }
 
+  DateTime getAnchorDate() {
+    if (dueDate != null) {
+      return dueDate;
+    } else if (urgentDate != null) {
+      return urgentDate;
+    } else if (targetDate != null) {
+      return targetDate;
+    } else if (startDate != null) {
+      return startDate;
+    } else {
+      return null;
+    }
+  }
+
+  String getAnchorDateFieldName() {
+    if (dueDate != null) {
+      return "Due";
+    } else if (urgentDate != null) {
+      return "Urgent";
+    } else if (targetDate != null) {
+      return "Target";
+    } else if (startDate != null) {
+      return "Start";
+    } else {
+      return null;
+    }
+  }
+  
+  DateTime getDateFromName(String anchorDateFieldName) {
+    switch (anchorDateFieldName) {
+      case "Due": return dueDate;
+      case "Urgent": return urgentDate;
+      case "Target": return targetDate;
+      case "Start": return startDate;
+      default: return null;
+    }
+  }
+
   @override
   int get hashCode =>
       id.hashCode;
