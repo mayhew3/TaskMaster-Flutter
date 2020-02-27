@@ -9,7 +9,6 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:taskmaster/models/app_state.dart';
-import 'package:taskmaster/models/task_entity.dart';
 import 'package:taskmaster/models/task_item.dart';
 
 class TaskRepository {
@@ -17,7 +16,7 @@ class TaskRepository {
 
   TaskRepository({@required this.appState});
 
-  Future<List<TaskEntity>> loadTasks() async {
+  Future<List<TaskItem>> loadTasks() async {
     if (!appState.isAuthenticated()) {
       throw Exception("Cannot load tasks before being signed in.");
     }
@@ -37,14 +36,14 @@ class TaskRepository {
 
     if (response.statusCode == 200) {
       try {
-        List<TaskEntity> taskList = [];
+        List<TaskItem> taskList = [];
         var jsonObj = json.decode(response.body);
         int personId = jsonObj['person_id'];
         appState.personId = personId;
         List tasks = jsonObj['tasks'];
         tasks.forEach((taskJson) {
-          TaskEntity taskEntity = TaskEntity.fromJson(taskJson);
-          taskList.add(taskEntity);
+          TaskItem taskItem = TaskItem.fromJson(taskJson);
+          taskList.add(taskItem);
         });
         return taskList;
       } catch(exception, stackTrace) {
@@ -57,7 +56,7 @@ class TaskRepository {
     }
   }
 
-  Future<TaskEntity> addTask(TaskItem taskItem) async {
+  Future<TaskItem> addTask(TaskItem taskItem) async {
     if (!appState.isAuthenticated()) {
       throw Exception("Cannot add task before being signed in.");
     }
@@ -89,7 +88,7 @@ class TaskRepository {
     return _addOrUpdateJSON(payload, 'add');
   }
 
-  Future<TaskEntity> completeTask(TaskItem taskItem, DateTime completionDate) {
+  Future<TaskItem> completeTask(TaskItem taskItem, DateTime completionDate) {
     if (!appState.isAuthenticated()) {
       throw Exception("Cannot update task before being signed in.");
     }
@@ -105,7 +104,7 @@ class TaskRepository {
     return _addOrUpdateJSON(payload, 'update');
   }
 
-  Future<TaskEntity> updateTask({
+  Future<TaskItem> updateTask({
     TaskItem taskItem,
     String name,
     String description,
@@ -188,7 +187,7 @@ class TaskRepository {
     }
   }
 
-  Future<TaskEntity> _addOrUpdateJSON(Map<String, Object> payload, String addOrUpdate) async {
+  Future<TaskItem> _addOrUpdateJSON(Map<String, Object> payload, String addOrUpdate) async {
     var body = utf8.encode(json.encode(payload));
 
     var idToken = await appState.getIdToken();
@@ -202,7 +201,7 @@ class TaskRepository {
     if (response.statusCode == 200) {
       try {
         var jsonObj = json.decode(response.body);
-        TaskEntity inboundTask = TaskEntity.fromJson(jsonObj);
+        TaskItem inboundTask = TaskItem.fromJson(jsonObj);
         return inboundTask;
       } catch(exception, stackTrace) {
         print(exception);

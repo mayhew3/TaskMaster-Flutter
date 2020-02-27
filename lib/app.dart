@@ -55,8 +55,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     navHelper.goToLoadingScreen('Loading tasks...');
     repository.loadTasks().then((loadedTasks) {
       setState(() {
-        List<TaskItem> tasks = loadedTasks.map(TaskItem.fromEntity).toList();
-        appState.finishedLoading(tasks);
+        appState.finishedLoading(loadedTasks);
       });
       navHelper.goToHomeScreen();
       appState.notificationScheduler.updateBadge();
@@ -77,8 +76,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     await appState.notificationScheduler.cancelAllNotifications();
     repository.loadTasks().then((loadedTasks) {
       setState(() {
-        List<TaskItem> tasks = loadedTasks.map(TaskItem.fromEntity).toList();
-        appState.finishedLoading(tasks);
+        appState.finishedLoading(loadedTasks);
       });
       appState.notificationScheduler.updateBadge();
       navHelper.goToHomeScreen();

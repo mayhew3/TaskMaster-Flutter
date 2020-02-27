@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:taskmaster/auth.dart';
-import 'package:taskmaster/models/task_entity.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/notification_scheduler.dart';
@@ -77,8 +76,7 @@ class AppState {
     this.taskItems = taskItems;
   }
 
-  TaskItem addNewTaskToList(TaskEntity taskEntity) {
-    var taskItem = TaskItem.fromEntity(taskEntity);
+  TaskItem addNewTaskToList(TaskItem taskItem) {
     taskItems.add(taskItem);
     return taskItem;
   }
@@ -87,8 +85,7 @@ class AppState {
     taskItems.remove(taskItem);
   }
 
-  TaskItem updateTaskListWithUpdatedTask(TaskEntity taskEntity) {
-    var taskItem = TaskItem.fromEntity(taskEntity);
+  TaskItem updateTaskListWithUpdatedTask(TaskItem taskItem) {
     var existingIndex = taskItems.indexWhere((element) => element.id == taskItem.id);
     taskItems[existingIndex] = taskItem;
     return taskItem;

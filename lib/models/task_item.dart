@@ -1,4 +1,3 @@
-import 'package:taskmaster/models/task_entity.dart';
 
 bool hasPassed(DateTime dateTime) {
   var now = DateTime.now();
@@ -6,7 +5,7 @@ bool hasPassed(DateTime dateTime) {
 }
 
 String nullifyEmptyString(String inputString) {
-  return inputString.isEmpty ? null : inputString.trim();
+  return inputString == null || inputString.isEmpty ? null : inputString.trim();
 }
 
 DateTime nullSafeParseJSON(dynamic jsonVal) {
@@ -133,56 +132,6 @@ class TaskItem {
               runtimeType == other.runtimeType &&
               id == other.id;
 
-  TaskEntity toEntity() {
-    return TaskEntity(
-        id: id,
-        personId: personId,
-        name: name,
-        description: description,
-        project: project,
-        context: context,
-        urgency: urgency,
-        priority: priority,
-        duration: duration,
-        dateAdded: dateAdded,
-        startDate: startDate,
-        targetDate: targetDate,
-        dueDate: dueDate,
-        completionDate: completionDate,
-        urgentDate: urgentDate,
-        gamePoints: gamePoints,
-        recurNumber: recurNumber,
-        recurUnit: recurUnit,
-        recurWait: recurWait,
-        recurrenceId: recurrenceId
-    );
-  }
-
-  static TaskItem fromEntity(TaskEntity entity) {
-    return TaskItem(
-        id: entity.id,
-        personId: entity.personId,
-        name: entity.name,
-        description: entity.description,
-        project: entity.project,
-        context: entity.context,
-        urgency: entity.urgency,
-        priority: entity.priority,
-        duration: entity.duration,
-        dateAdded: entity.dateAdded,
-        startDate: entity.startDate,
-        targetDate: entity.targetDate,
-        dueDate: entity.dueDate,
-        completionDate: entity.completionDate,
-        urgentDate: entity.urgentDate,
-        gamePoints: entity.gamePoints,
-        recurNumber: entity.recurNumber,
-        recurUnit: entity.recurUnit,
-        recurWait: entity.recurWait,
-        recurrenceId: entity.recurrenceId,
-    );
-  }
-
   @override
   String toString() {
     return 'TaskItem{'
@@ -214,7 +163,7 @@ class TaskItem {
       recurUnit: json['recur_unit'],
       recurWait: json['recur_wait'],
       recurrenceId: json['recurrence_id'],
-      dateAdded: DateTime.parse(json['date_added']),
+      dateAdded: nullSafeParseJSON(json['date_added']),
     );
   }
 
