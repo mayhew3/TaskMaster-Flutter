@@ -70,26 +70,26 @@ class TaskItem {
     this.recurWait,
     this.recurrenceId,
   }) {
-    fields.add(TaskField("id", this.id));
-    fields.add(TaskField("person_id", this.personId));
-    fields.add(TaskField("name", this.name));
-    fields.add(TaskField("description", this.project));
-    fields.add(TaskField("project", this.project));
-    fields.add(TaskField("context", this.context));
-    fields.add(TaskField("urgency", this.urgency));
-    fields.add(TaskField("priority", this.priority));
-    fields.add(TaskField("duration", this.duration));
-    fields.add(TaskField("date_added", this.dateAdded));
-    fields.add(TaskField("start_date", this.startDate));
-    fields.add(TaskField("target_date", this.targetDate));
-    fields.add(TaskField("due_date", this.dueDate));
-    fields.add(TaskField("completion_date", this.completionDate));
-    fields.add(TaskField("urgent_date", this.urgentDate));
-    fields.add(TaskField("game_points", this.gamePoints));
-    fields.add(TaskField("recur_number", this.recurNumber));
-    fields.add(TaskField("recur_unit", this.recurUnit));
-    fields.add(TaskField("recur_wait", this.recurWait));
-    fields.add(TaskField("recurrence_id", this.recurrenceId));
+    fields.add(TaskFieldInteger.withValues("id", this.id));
+    fields.add(TaskFieldInteger.withValues("person_id", this.personId));
+    fields.add(TaskFieldString.withValues("name", this.name));
+    fields.add(TaskFieldString.withValues("description", this.project));
+    fields.add(TaskFieldString.withValues("project", this.project));
+    fields.add(TaskFieldString.withValues("context", this.context));
+    fields.add(TaskFieldInteger.withValues("urgency", this.urgency));
+    fields.add(TaskFieldInteger.withValues("priority", this.priority));
+    fields.add(TaskFieldInteger.withValues("duration", this.duration));
+    fields.add(TaskFieldDate.withValues("date_added", this.dateAdded));
+    fields.add(TaskFieldDate.withValues("start_date", this.startDate));
+    fields.add(TaskFieldDate.withValues("target_date", this.targetDate));
+    fields.add(TaskFieldDate.withValues("due_date", this.dueDate));
+    fields.add(TaskFieldDate.withValues("completion_date", this.completionDate));
+    fields.add(TaskFieldDate.withValues("urgent_date", this.urgentDate));
+    fields.add(TaskFieldInteger.withValues("game_points", this.gamePoints));
+    fields.add(TaskFieldInteger.withValues("recur_number", this.recurNumber));
+    fields.add(TaskFieldString.withValues("recur_unit", this.recurUnit));
+    fields.add(TaskFieldBoolean.withValues("recur_wait", this.recurWait));
+    fields.add(TaskFieldInteger.withValues("recurrence_id", this.recurrenceId));
   }
 
   bool isCompleted() {
@@ -167,8 +167,90 @@ class TaskItem {
         'completionDate: $completionDate}';
   }
 
+  TaskItem._fromJSONEntities({
+    int id,
+    int personId,
+    String name,
+    String description,
+    String project,
+    String context,
+    int urgency,
+    int priority,
+    int duration,
+    String dateAdded,
+    String startDate,
+    String targetDate,
+    String dueDate,
+    String completionDate,
+    String urgentDate,
+    int gamePoints,
+    int recurNumber,
+    String recurUnit,
+    bool recurWait,
+    int recurrenceId,
+  }) : this.id = id,
+        this.personId = personId,
+        this.name = name,
+        this.description = description,
+        this.project = project,
+        this.context = context,
+        this.urgency = urgency,
+        this.priority = priority,
+        this.duration = duration,
+        this.dateAdded = nullSafeParseJSON(dateAdded),
+        this.startDate = nullSafeParseJSON(startDate),
+        this.targetDate = nullSafeParseJSON(targetDate),
+        this.dueDate = nullSafeParseJSON(dueDate),
+        this.completionDate = nullSafeParseJSON(completionDate),
+        this.urgentDate = nullSafeParseJSON(urgentDate),
+        this.gamePoints = gamePoints,
+        this.recurNumber = recurNumber,
+        this.recurUnit = recurUnit,
+        this.recurWait = recurWait,
+        this.recurrenceId = recurrenceId
+  {
+    addIntegerValue("id", id);
+    addIntegerValue("person_id", personId);
+    addStringValue("name", name);
+    addStringValue("description", description);
+    addStringValue("project", project);
+    addStringValue("context", context);
+    addIntegerValue("urgency", urgency);
+    addIntegerValue("priority", priority);
+    addIntegerValue("duration", duration);
+    addDateValueFromString("date_added", dateAdded);
+    addDateValueFromString("start_date", startDate);
+    addDateValueFromString("target_date", targetDate);
+    addDateValueFromString("due_date", dueDate);
+    addDateValueFromString("completion_date", completionDate);
+    addDateValueFromString("urgent_date", urgentDate);
+    addIntegerValue("game_points", gamePoints);
+    addIntegerValue("recur_number", recurNumber);
+    addStringValue("recur_unit", recurUnit);
+    addBoolValue("recur_wait", recurWait);
+    addIntegerValue("recurrence_id", recurrenceId);
+  }
+
+  void addStringValue(String fieldName, String value) {
+    fields.add(TaskFieldString.withValues(fieldName, nullifyEmptyString(value)));
+  }
+
+  void addIntegerValue(String fieldName, int value) {
+    fields.add(TaskFieldInteger.withValues(fieldName, value));
+  }
+
+  void addBoolValue(String fieldName, bool value) {
+    fields.add(TaskFieldBoolean.withValues(fieldName, value));
+  }
+
+  void addDateValueFromString(String fieldName, String value) {
+    var taskFieldDate = TaskFieldDate(fieldName);
+    taskFieldDate.setValuefromJSON(value);
+    fields.add(taskFieldDate);
+  }
+
   factory TaskItem.fromJson(Map<String, dynamic> json) {
-    return TaskItem(
+    return TaskItem._fromJSONEntities(
       id: json['id'],
       personId: json['person_id'],
       name: nullifyEmptyString(json['name']),
@@ -178,17 +260,17 @@ class TaskItem {
       urgency: json['urgency'],
       priority: json['priority'],
       duration: json['duration'],
-      startDate: nullSafeParseJSON(json['start_date']),
-      targetDate: nullSafeParseJSON(json['target_date']),
-      dueDate: nullSafeParseJSON(json['due_date']),
-      completionDate: nullSafeParseJSON(json['completion_date']),
-      urgentDate: nullSafeParseJSON(json['urgent_date']),
+      startDate: json['start_date'],
+      targetDate: json['target_date'],
+      dueDate: json['due_date'],
+      completionDate: json['completion_date'],
+      urgentDate: json['urgent_date'],
       gamePoints: json['game_points'],
       recurNumber: json['recur_number'],
       recurUnit: json['recur_unit'],
       recurWait: json['recur_wait'],
       recurrenceId: json['recurrence_id'],
-      dateAdded: nullSafeParseJSON(json['date_added']),
+      dateAdded: json['date_added'],
     );
   }
 
