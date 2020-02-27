@@ -207,7 +207,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
           urgency: taskItem.urgency,
           priority: taskItem.priority,
           duration: taskItem.duration,
-          dateAdded: DateTime.now(),
+          dateAdded: completionDate,
           startDate: dateHolder.startDate,
           targetDate: dateHolder.targetDate,
           dueDate: dateHolder.dueDate,
