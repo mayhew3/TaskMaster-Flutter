@@ -1,4 +1,6 @@
 
+import 'package:taskmaster/models/task_field.dart';
+
 bool hasPassed(DateTime dateTime) {
   var now = DateTime.now();
   return dateTime == null ? false : dateTime.isBefore(now);
@@ -44,6 +46,8 @@ class TaskItem {
 
   final int recurrenceId;
 
+  List<TaskField> fields;
+
   TaskItem({
     this.id,
     this.personId,
@@ -65,7 +69,28 @@ class TaskItem {
     this.recurUnit,
     this.recurWait,
     this.recurrenceId,
-  });
+  }) {
+    fields.add(TaskField("id", this.id));
+    fields.add(TaskField("person_id", this.personId));
+    fields.add(TaskField("name", this.name));
+    fields.add(TaskField("description", this.project));
+    fields.add(TaskField("project", this.project));
+    fields.add(TaskField("context", this.context));
+    fields.add(TaskField("urgency", this.urgency));
+    fields.add(TaskField("priority", this.priority));
+    fields.add(TaskField("duration", this.duration));
+    fields.add(TaskField("date_added", this.dateAdded));
+    fields.add(TaskField("start_date", this.startDate));
+    fields.add(TaskField("target_date", this.targetDate));
+    fields.add(TaskField("due_date", this.dueDate));
+    fields.add(TaskField("completion_date", this.completionDate));
+    fields.add(TaskField("urgent_date", this.urgentDate));
+    fields.add(TaskField("game_points", this.gamePoints));
+    fields.add(TaskField("recur_number", this.recurNumber));
+    fields.add(TaskField("recur_unit", this.recurUnit));
+    fields.add(TaskField("recur_wait", this.recurWait));
+    fields.add(TaskField("recurrence_id", this.recurrenceId));
+  }
 
   bool isCompleted() {
     return completionDate != null;
