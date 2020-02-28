@@ -36,6 +36,14 @@ abstract class TaskField<T> {
     initializeValue(parseValue);
   }
 
+  String getInputDisplay() {
+    if (value == null) {
+      return '';
+    } else {
+      return value.toString();
+    }
+  }
+
   setValueFromString(String str) {
     T parseValue = _parseValue(str);
     value = parseValue;
@@ -104,7 +112,7 @@ class TaskFieldInteger extends TaskField<int> {
 
   @override
   int _parseValue(String str) {
-    return int.parse(str);
+    return str == '' ? null : int.parse(str);
   }
 
 }
@@ -116,6 +124,6 @@ class TaskFieldBoolean extends TaskField<bool> {
 
   @override
   bool _parseValue(String str) {
-    return (str == 'true');
+    return str == '' ? null : (str == 'true');
   }
 }

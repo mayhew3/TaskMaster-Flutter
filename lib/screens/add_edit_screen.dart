@@ -12,13 +12,16 @@ class AddEditScreen extends StatefulWidget {
   final TaskAdder taskAdder;
   final TaskUpdater taskUpdater;
   final TaskItemRefresher taskItemRefresher;
+  final bool isEditing;
 
+  // todo: Handle backing out and reverting changes.
   const AddEditScreen({
     Key key,
     this.taskItem,
     this.taskAdder,
     this.taskUpdater,
     this.taskItemRefresher,
+    @required this.isEditing,
   }) : super(key: key);
 
   @override
@@ -27,11 +30,6 @@ class AddEditScreen extends StatefulWidget {
 
 class AddEditScreenState extends State<AddEditScreen> {
   static final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-
-  DateTime _startDate;
-  DateTime _targetDate;
-  DateTime _dueDate;
-  DateTime _urgentDate;
 
   List<String> possibleProjects;
   List<String> possibleContexts;
@@ -43,13 +41,11 @@ class AddEditScreenState extends State<AddEditScreen> {
   bool _repeatOn = false;
   bool _initialRepeatOn = false;
 
-  String _anchorDate;
-
   @override
   void initState() {
     super.initState();
 
-    if (isEditing) {
+    if (widget.isEditing) {
       assert(widget.taskUpdater != null);
     } else {
       assert(widget.taskAdder != null);
@@ -59,10 +55,6 @@ class AddEditScreenState extends State<AddEditScreen> {
 
     _initialRepeatOn = widget.taskItem?.recurNumber?.value != null;
     _repeatOn = _initialRepeatOn;
-
-    var recurWait = widget.taskItem?.recurWait?.value;
-    _anchorDate = (recurWait == null) ?
-    '(none)' : !recurWait ? 'Schedule Dates' : 'Completed Date';
 
     possibleProjects = [
       '(none)',
@@ -116,6 +108,19 @@ class AddEditScreenState extends State<AddEditScreen> {
       widget.taskItem?.dueDate?.value != null;
   }
 
+  bool anchorDateToRecurWait(String anchorDate) {
+    if (anchorDate == '(none)') {
+      return null;
+    } else {
+      return anchorDate == 'Completed Date';
+    }
+  }
+
+  String recurWaitToAnchorDate(bool recurWait) {
+    return (recurWait == null) ?
+    '(none)' : !recurWait ? 'Schedule Dates' : 'Completed Date';
+  }
+
   void clearRepeatOn() {
     _repeatOn = false;
   }
@@ -167,7 +172,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                     children: <Widget>[
                       Expanded(
                         child: EditableTaskField(
-                          initialText: widget.taskItem?.urgency?.value.toString(),
+                          initialText: widget.taskItem?.urgency?.getInputDisplay(),
                           labelText: 'Urgency',
                           fieldSetter: (value) => widget.taskItem?.urgency?.setValueFromString(value),
                           inputType: TextInputType.number,
@@ -175,7 +180,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                       ),
                       Expanded(
                         child: EditableTaskField(
-                          initialText: widget.taskItem?.priority?.value.toString(),
+                          initialText: widget.taskItem?.priority?.getInputDisplay(),
                           labelText: 'Priority',
                           fieldSetter: (value) => widget.taskItem?.priority?.setValueFromString(value),
                           inputType: TextInputType.number,
@@ -183,7 +188,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                       ),
                       Expanded(
                         child: EditableTaskField(
-                          initialText: widget.taskItem?.gamePoints?.value.toString(),
+                          initialText: widget.taskItem?.gamePoints?.getInputDisplay(),
                           labelText: 'Points',
                           fieldSetter: (value) => widget.taskItem?.gamePoints?.setValueFromString(value),
                           inputType: TextInputType.number,
@@ -191,7 +196,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                       ),
                       Expanded(
                         child: EditableTaskField(
-                          initialText: widget.taskItem?.duration?.value.toString(),
+                          initialText: widget.taskItem?.duration?.getInputDisplay(),
                           labelText: 'Length',
                           fieldSetter: (value) => widget.taskItem?.duration?.setValueFromString(value),
                           inputType: TextInputType.number,
@@ -303,7 +308,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                                             SizedBox(
                                               width: 80.0,
                                               child: EditableTaskField(
-                                                initialText: widget.taskItem?.recurNumber?.value.toString(),
+                                                initialText: widget.taskItem?.recurNumber?.getInputDisplay(),
                                                 labelText: 'Num',
                                                 fieldSetter: (value) => widget.taskItem?.recurNumber?.setValueFromString(value),
                                                 inputType: TextInputType.number,
@@ -334,10 +339,10 @@ class AddEditScreenState extends State<AddEditScreen> {
                                       ],
                                     ),
                                     NullableDropdown(
-                                      initialValue: _anchorDate,
+                                      initialValue: recurWaitToAnchorDate(widget.taskItem?.recurWait?.value),
                                       labelText: 'Anchor',
                                       possibleValues: possibleAnchorDates,
-                                      valueSetter: (newValue) => _anchorDate = newValue,
+                                      valueSetter: (value) => widget.taskItem?.recurWait?.value = anchorDateToRecurWait(value),
                                       validator: (value) {
                                         if (_repeatOn && value == '(none)') {
                                           return 'Anchor Date is required for repeat.';
@@ -367,18 +372,28 @@ class AddEditScreenState extends State<AddEditScreen> {
       floatingActionButton: Visibility(
         visible: _hasChanges || (_initialRepeatOn && !_repeatOn),
         child: FloatingActionButton(
-          child: Icon(isEditing ? Icons.check : Icons.add),
+          child: Icon(widget.isEditing ? Icons.check : Icons.add),
           onPressed: () async {
             final form = formKey.currentState;
             if (form.validate()) {
               form.save();
 
-              if (isEditing) {
+              if (widget.isEditing) {
                 var updatedItem = await widget.taskUpdater(widget.taskItem);
                 if (widget.taskItemRefresher != null) {
                   widget.taskItemRefresher(updatedItem);
                 }
               } else {
+                // todo: remove??
+                if (widget.taskItem.urgency.value == null) {
+                  widget.taskItem.urgency.value = 3;
+                }
+                if (widget.taskItem.priority.value == null) {
+                  widget.taskItem.priority.value = 5;
+                }
+                if (widget.taskItem.gamePoints.value == null) {
+                  widget.taskItem.gamePoints.value = 1;
+                }
                 await widget.taskAdder(widget.taskItem);
               }
 
@@ -390,5 +405,4 @@ class AddEditScreenState extends State<AddEditScreen> {
     );
   }
 
-  bool get isEditing => widget.taskItem != null;
 }

@@ -183,6 +183,7 @@ class TaskListScreenState extends State<TaskListScreen> {
               MaterialPageRoute(builder: (_) => AddEditScreen(
                 taskAdder: widget.taskAdder,
                 taskItem: TaskItem(),
+                isEditing: false,
               )),
             );
           },
