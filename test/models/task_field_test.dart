@@ -2,6 +2,10 @@ import 'package:test/test.dart';
 import 'package:taskmaster/models/task_field.dart';
 
 void main() {
+  String addWhitespace(String str) {
+    return '  ' + str + ' \r\n';
+  }
+
   group('TaskFieldDate', () {
 
     final DateTime theDateTime = DateTime(2019, 7, 13, 8, 12, 55);
@@ -66,6 +70,35 @@ void main() {
       expect(taskField.originalValue, theDateTime);
     });
 
+    test('initializeValueFromString extra whitespace', () {
+      var formatted = formatDateTime(theDateTime);
+      final taskField = TaskFieldDate(startDate);
+      taskField.initializeValueFromString(addWhitespace(formatted));
+      expect(taskField.value, theDateTime);
+      expect(taskField.originalValue, theDateTime);
+    });
+
+    test('initializeValueFromString null string should have null date', () {
+      final taskField = TaskFieldDate(startDate);
+      taskField.initializeValueFromString(null);
+      expect(taskField.value, null);
+      expect(taskField.originalValue, null);
+    });
+
+    test('initializeValueFromString empty string should have null date', () {
+      final taskField = TaskFieldDate(startDate);
+      taskField.initializeValueFromString('');
+      expect(taskField.value, null);
+      expect(taskField.originalValue, null);
+    });
+
+    test('initializeValueFromString whitespace string should have null date', () {
+      final taskField = TaskFieldDate(startDate);
+      taskField.initializeValueFromString(addWhitespace(''));
+      expect(taskField.value, null);
+      expect(taskField.originalValue, null);
+    });
+
     test('getInputDisplay for null should be empty string', () {
       final taskField = TaskFieldDate(startDate);
       expect(taskField.getInputDisplay(), '');
@@ -105,10 +138,6 @@ void main() {
   group('TaskFieldString', () {
     final name = 'name';
     final theString = 'Cat Litter';
-
-    String addWhitespace(String str) {
-      return '  ' + str + ' \r\n';
-    }
 
     test('Should be constructed', () {
       final taskField = TaskFieldString(name);
@@ -243,4 +272,5 @@ void main() {
     });
 
   });
+
 }

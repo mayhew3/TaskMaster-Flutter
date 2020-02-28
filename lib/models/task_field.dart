@@ -1,6 +1,19 @@
 
 import 'package:intl/intl.dart';
 
+String _cleanString(String str) {
+  if (str == null) {
+    return null;
+  } else {
+    var trimmed = str.trim();
+    if (trimmed.isEmpty) {
+      return null;
+    } else {
+      return trimmed;
+    }
+  }
+}
+
 abstract class TaskField<T> {
   String fieldName;
   T value;
@@ -63,7 +76,8 @@ class TaskFieldDate extends TaskField<DateTime> {
   TaskFieldDate(String fieldName) : super(fieldName);
 
   DateTime _parseValue(String str) {
-    return DateTime.parse(str).toLocal();
+    var cleanString = _cleanString(str);
+    return cleanString == null ? null : DateTime.parse(cleanString).toLocal();
   }
 
   @override
@@ -93,19 +107,6 @@ class TaskFieldString extends TaskField<String> {
     return _cleanString(value);
   }
 
-  String _cleanString(String str) {
-    if (str == null) {
-      return null;
-    } else {
-      var trimmed = str.trim();
-      if (trimmed.isEmpty) {
-        return null;
-      } else {
-        return trimmed;
-      }
-    }
-  }
-
   @override
   String _parseValue(String str) {
     return str;
@@ -120,7 +121,8 @@ class TaskFieldInteger extends TaskField<int> {
 
   @override
   int _parseValue(String str) {
-    return str == '' ? null : int.parse(str);
+    var cleanString = _cleanString(str);
+    return cleanString == null ? null : int.parse(str);
   }
 
 }
@@ -133,6 +135,7 @@ class TaskFieldBoolean extends TaskField<bool> {
 
   @override
   bool _parseValue(String str) {
-    return str == '' ? null : (str == 'true');
+    var cleanString = _cleanString(str);
+    return cleanString == null ? null : (str == 'true');
   }
 }
