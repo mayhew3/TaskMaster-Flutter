@@ -273,4 +273,249 @@ void main() {
 
   });
 
+  group('TaskFieldInteger', () {
+
+    final int theInt = 6;
+    final priority = 'priority';
+
+    test('Should be constructed', () {
+      final taskField = TaskFieldInteger(priority);
+      expect(taskField.fieldName, priority);
+      expect(taskField.value, null);
+      expect(taskField.originalValue, null);
+    });
+
+    test('Should be initialized with value', () {
+      final taskField = TaskFieldInteger(priority);
+      taskField.initializeValue(theInt);
+      expect(taskField.value, theInt);
+      expect(taskField.originalValue, theInt);
+    });
+
+    test('Set value shouldn\'t update original value', () {
+      final taskField = TaskFieldInteger(priority);
+      taskField.value = theInt;
+      expect(taskField.value, theInt);
+      expect(taskField.originalValue, null);
+    });
+
+    test('afterUpdate', () {
+      final taskField = TaskFieldInteger(priority);
+      taskField.value = theInt;
+      taskField.afterUpdate();
+      expect(taskField.value, theInt);
+      expect(taskField.originalValue, theInt);
+    });
+
+    test('revert', () {
+      final taskField = TaskFieldInteger(priority);
+      taskField.value = theInt;
+      taskField.revert();
+      expect(taskField.value, null);
+      expect(taskField.originalValue, null);
+    });
+
+    test('isChanged', () {
+      final taskField = TaskFieldInteger(priority);
+      expect(taskField.isChanged(), false);
+      taskField.value = theInt;
+      expect(taskField.isChanged(), true);
+      taskField.afterUpdate();
+      expect(taskField.isChanged(), false);
+    });
+
+    test('initializeValueFromString', () {
+      var formatted = theInt.toString();
+      final taskField = TaskFieldInteger(priority);
+      taskField.initializeValueFromString(formatted);
+      expect(taskField.value, theInt);
+      expect(taskField.originalValue, theInt);
+    });
+
+    test('initializeValueFromString extra whitespace', () {
+      var formatted = theInt.toString();
+      final taskField = TaskFieldInteger(priority);
+      taskField.initializeValueFromString(addWhitespace(formatted));
+      expect(taskField.value, theInt);
+      expect(taskField.originalValue, theInt);
+    });
+
+    test('initializeValueFromString null string should have null int', () {
+      final taskField = TaskFieldInteger(priority);
+      taskField.initializeValueFromString(null);
+      expect(taskField.value, null);
+      expect(taskField.originalValue, null);
+    });
+
+    test('initializeValueFromString empty string should have null int', () {
+      final taskField = TaskFieldInteger(priority);
+      taskField.initializeValueFromString('');
+      expect(taskField.value, null);
+      expect(taskField.originalValue, null);
+    });
+
+    test('initializeValueFromString whitespace string should have null int', () {
+      final taskField = TaskFieldInteger(priority);
+      taskField.initializeValueFromString(addWhitespace(''));
+      expect(taskField.value, null);
+      expect(taskField.originalValue, null);
+    });
+
+    test('getInputDisplay for null should be empty string', () {
+      final taskField = TaskFieldInteger(priority);
+      expect(taskField.getInputDisplay(), '');
+    });
+
+    test('getInputDisplay for value should be string', () {
+      var expectedDisplay = theInt.toString();
+      final taskField = TaskFieldInteger(priority);
+      taskField.value = theInt;
+      expect(taskField.getInputDisplay(), expectedDisplay);
+    });
+
+    test('setValueFromString', () {
+      var formatted = theInt.toString();
+      final taskField = TaskFieldInteger(priority);
+      taskField.setValueFromString(formatted);
+      expect(taskField.value, theInt);
+      expect(taskField.originalValue, null);
+    });
+
+    test('formatForJSON', () {
+      final taskField = TaskFieldInteger(priority);
+      taskField.value = theInt;
+      expect(taskField.formatForJSON(), theInt);
+    });
+
+    test('toString', () {
+      var stringOutput = priority + ': ' + theInt.toString();
+      final taskField = TaskFieldInteger(priority);
+      taskField.value = theInt;
+      expect(taskField.toString(), stringOutput);
+    });
+
+  });
+
+  group('TaskFieldBoolean', () {
+
+    final bool theBool = false;
+    final recurWait = 'recur_wait';
+
+    test('Should be constructed', () {
+      final taskField = TaskFieldBoolean(recurWait);
+      expect(taskField.fieldName, recurWait);
+      expect(taskField.value, null);
+      expect(taskField.originalValue, null);
+    });
+
+    test('Should be initialized with value', () {
+      final taskField = TaskFieldBoolean(recurWait);
+      taskField.initializeValue(theBool);
+      expect(taskField.value, theBool);
+      expect(taskField.originalValue, theBool);
+    });
+
+    test('Set value shouldn\'t update original value', () {
+      final taskField = TaskFieldBoolean(recurWait);
+      taskField.value = theBool;
+      expect(taskField.value, theBool);
+      expect(taskField.originalValue, null);
+    });
+
+    test('afterUpdate', () {
+      final taskField = TaskFieldBoolean(recurWait);
+      taskField.value = theBool;
+      taskField.afterUpdate();
+      expect(taskField.value, theBool);
+      expect(taskField.originalValue, theBool);
+    });
+
+    test('revert', () {
+      final taskField = TaskFieldBoolean(recurWait);
+      taskField.value = theBool;
+      taskField.revert();
+      expect(taskField.value, null);
+      expect(taskField.originalValue, null);
+    });
+
+    test('isChanged', () {
+      final taskField = TaskFieldBoolean(recurWait);
+      expect(taskField.isChanged(), false);
+      taskField.value = theBool;
+      expect(taskField.isChanged(), true);
+      taskField.afterUpdate();
+      expect(taskField.isChanged(), false);
+    });
+
+    test('initializeValueFromString', () {
+      var formatted = theBool.toString();
+      final taskField = TaskFieldBoolean(recurWait);
+      taskField.initializeValueFromString(formatted);
+      expect(taskField.value, theBool);
+      expect(taskField.originalValue, theBool);
+    });
+
+    test('initializeValueFromString extra whitespace', () {
+      var formatted = theBool.toString();
+      final taskField = TaskFieldBoolean(recurWait);
+      taskField.initializeValueFromString(addWhitespace(formatted));
+      expect(taskField.value, theBool);
+      expect(taskField.originalValue, theBool);
+    });
+
+    test('initializeValueFromString null string should have null bool', () {
+      final taskField = TaskFieldBoolean(recurWait);
+      taskField.initializeValueFromString(null);
+      expect(taskField.value, null);
+      expect(taskField.originalValue, null);
+    });
+
+    test('initializeValueFromString empty string should have null bool', () {
+      final taskField = TaskFieldBoolean(recurWait);
+      taskField.initializeValueFromString('');
+      expect(taskField.value, null);
+      expect(taskField.originalValue, null);
+    });
+
+    test('initializeValueFromString whitespace string should have null bool', () {
+      final taskField = TaskFieldBoolean(recurWait);
+      taskField.initializeValueFromString(addWhitespace(''));
+      expect(taskField.value, null);
+      expect(taskField.originalValue, null);
+    });
+
+    test('getInputDisplay for null should be empty string', () {
+      final taskField = TaskFieldBoolean(recurWait);
+      expect(taskField.getInputDisplay(), '');
+    });
+
+    test('getInputDisplay for value should be string', () {
+      var expectedDisplay = theBool.toString();
+      final taskField = TaskFieldBoolean(recurWait);
+      taskField.value = theBool;
+      expect(taskField.getInputDisplay(), expectedDisplay);
+    });
+
+    test('setValueFromString', () {
+      var formatted = theBool.toString();
+      final taskField = TaskFieldBoolean(recurWait);
+      taskField.setValueFromString(formatted);
+      expect(taskField.value, theBool);
+      expect(taskField.originalValue, null);
+    });
+
+    test('formatForJSON', () {
+      final taskField = TaskFieldBoolean(recurWait);
+      taskField.value = theBool;
+      expect(taskField.formatForJSON(), theBool);
+    });
+
+    test('toString', () {
+      var stringOutput = recurWait + ': ' + theBool.toString();
+      final taskField = TaskFieldBoolean(recurWait);
+      taskField.value = theBool;
+      expect(taskField.toString(), stringOutput);
+    });
+
+  });
 }
