@@ -79,8 +79,8 @@ class HomeScreenState extends State<HomeScreen> {
     } else {
       return StatsCounter(
         appState: widget.appState,
-        numActive: widget.appState.taskItems.where((task) => task.completionDate == null).length,
-        numCompleted: widget.appState.taskItems.where((task) => task.completionDate != null).length,
+        numActive: widget.appState.taskItems.where((taskItem) => taskItem.completionDate.value == null).length,
+        numCompleted: widget.appState.taskItems.where((taskItem) => taskItem.completionDate.value != null).length,
         bottomNavigationBar: getBottomNavigationBar(),
       );
     }

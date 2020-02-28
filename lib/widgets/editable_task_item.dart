@@ -25,9 +25,9 @@ class EditableTaskItemWidget extends StatelessWidget {
   }
 
   Color getBackgroundColor() {
-    var due = hasPassed(taskItem.dueDate);
-    var urgent = hasPassed(taskItem.urgentDate);
-    var completed = taskItem.completionDate != null;
+    var due = hasPassed(taskItem.dueDate.value);
+    var urgent = hasPassed(taskItem.urgentDate.value);
+    var completed = taskItem.completionDate.value != null;
 
     if (completed) {
       return TaskColors.completedColor;
@@ -41,7 +41,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   }
 
   String getDueDateString() {
-    var dueDate = taskItem.dueDate;
+    var dueDate = taskItem.dueDate.value;
     if (dueDate == null) {
       return '';
     } else if (taskItem.isPastDue()) {
@@ -62,15 +62,15 @@ class EditableTaskItemWidget extends StatelessWidget {
 
   bool dueInThreshold(int thresholdDays) {
     DateTime inXDays = DateTime.now().add(Duration(days: thresholdDays));
-    return taskItem.dueDate != null && taskItem.dueDate.isBefore(inXDays);
+    return taskItem.dueDate.value != null && taskItem.dueDate.value.isBefore(inXDays);
   }
 
   @override
   Widget build(BuildContext context) {
-    var completed = taskItem.completionDate != null;
+    var completed = taskItem.completionDate.value != null;
 
     return Dismissible(
-      key: TaskMasterKeys.taskItem(taskItem.id.toString()),
+      key: TaskMasterKeys.taskItem(taskItem.id.value.toString()),
       confirmDismiss: onDismissed,
       child: GestureDetector(
         onTap: onTap,
@@ -98,13 +98,13 @@ class EditableTaskItemWidget extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                            taskItem.name,
+                            taskItem.name.value,
                             style: const TextStyle(fontSize: 17.0)
                         ),
                         Visibility(
-                          visible: taskItem.project != null,
+                          visible: taskItem.project.value != null,
                           child: Text(
-                            taskItem.project == null ? '' : taskItem.project,
+                            taskItem.project.value == null ? '' : taskItem.project.value,
                             style: const TextStyle(fontSize: 12.0,
                                 color: Colors.white70),
                           ),

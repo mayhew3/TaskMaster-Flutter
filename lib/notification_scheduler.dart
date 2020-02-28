@@ -55,8 +55,8 @@ class NotificationScheduler {
   }
 
   int getNumberOfUrgentTasks() {
-    var urgentTasks = appState.taskItems.where((task) =>
-      (hasPassed(task.urgentDate) || hasPassed(task.dueDate)) && task.completionDate == null);
+    var urgentTasks = appState.taskItems.where((taskItem) =>
+      (hasPassed(taskItem.urgentDate.value) || hasPassed(taskItem.dueDate.value)) && taskItem.completionDate.value == null);
     return urgentTasks.length;
   }
 
@@ -136,7 +136,7 @@ class NotificationScheduler {
   /// Schedules a notification that specifies a different icon, sound and vibration pattern
   Future<void> syncNotificationForTask(TaskItem taskItem) async {
 
-    var taskSearch = 'task:${taskItem.id}';
+    var taskSearch = 'task:${taskItem.id.value}';
     var removedDue = false;
     var removedUrgent = false;
 
@@ -153,23 +153,23 @@ class NotificationScheduler {
       flutterLocalNotificationsPlugin.cancel(notification.id);
     });
 
-    var dueDate = taskItem.dueDate;
-    var urgentDate = taskItem.urgentDate;
-    var completionDate = taskItem.completionDate;
-    var now = DateTime.now();
+    DateTime dueDate = taskItem.dueDate.value;
+    DateTime urgentDate = taskItem.urgentDate.value;
+    DateTime completionDate = taskItem.completionDate.value;
+    DateTime now = DateTime.now();
 
-    var dueName = '${taskItem.name} (due)';
+    var dueName = '${taskItem.name.value} (due)';
     if (dueDate != null && completionDate == null && now.isBefore(dueDate)) {
-      var taskPayload = 'task:${taskItem.id}:due';
+      var taskPayload = 'task:${taskItem.id.value}:due';
       await scheduleNotification(nextId, dueDate, dueName, taskPayload, 'due', removedDue);
       nextId++;
     } else if (removedDue) {
       consoleAndSnack('Notification removed for $dueName');
     }
 
-    var urgentName = '${taskItem.name} (urgent)';
+    var urgentName = '${taskItem.name.value} (urgent)';
     if (urgentDate != null && completionDate == null && now.isBefore(urgentDate)) {
-      var taskPayload = 'task:${taskItem.id}:urgent';
+      var taskPayload = 'task:${taskItem.id.value}:urgent';
       await scheduleNotification(nextId, urgentDate, urgentName, taskPayload, 'urgent', removedUrgent);
       nextId++;
     } else if (removedUrgent) {

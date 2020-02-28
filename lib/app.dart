@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:taskmaster/models/app_state.dart';
-import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/screens/loading.dart';
@@ -176,54 +175,31 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     TaskItem nextScheduledTask;
     DateTime completionDate = completed ? DateTime.now() : null;
 
-    if (taskItem.recurNumber != null && completed) {
+    if (taskItem.recurNumber.value != null && completed) {
       DateTime anchorDate = taskItem.getAnchorDate();
       DateTime nextAnchorDate;
 
-      String anchorDateFieldName = taskItem.getAnchorDateFieldName();
-      TaskDateHolder dateHolder = TaskDateHolder(anchorDateFieldName: anchorDateFieldName);
+      nextScheduledTask = taskItem.createCopy();
 
-      if (taskItem.recurWait) {
-        nextAnchorDate = getAdjustedDate(completionDate, taskItem.recurNumber, taskItem.recurUnit);
+      if (taskItem.recurWait.value) {
+        nextAnchorDate = getAdjustedDate(completionDate, taskItem.recurNumber.value, taskItem.recurUnit.value);
       } else {
-        nextAnchorDate = getAdjustedDate(anchorDate, taskItem.recurNumber, taskItem.recurUnit);
+        nextAnchorDate = getAdjustedDate(anchorDate, taskItem.recurNumber.value, taskItem.recurUnit.value);
       }
 
       DateTime dateWithTime = getClosestDateForTime(anchorDate, nextAnchorDate);
-
       Duration duration = dateWithTime.difference(anchorDate);
 
-      dateHolder.startDate = addToDate(taskItem.startDate, duration);
-      dateHolder.targetDate = addToDate(taskItem.targetDate, duration);
-      dateHolder.urgentDate = addToDate(taskItem.urgentDate, duration);
-      dateHolder.dueDate = addToDate(taskItem.dueDate, duration);
-
-      nextScheduledTask = TaskItem(
-          personId: taskItem.personId,
-          name: taskItem.name,
-          description: taskItem.description,
-          project: taskItem.project,
-          context: taskItem.context,
-          urgency: taskItem.urgency,
-          priority: taskItem.priority,
-          duration: taskItem.duration,
-          dateAdded: completionDate,
-          startDate: dateHolder.startDate,
-          targetDate: dateHolder.targetDate,
-          dueDate: dateHolder.dueDate,
-          completionDate: null,
-          urgentDate: dateHolder.urgentDate,
-          gamePoints: taskItem.gamePoints,
-          recurNumber: taskItem.recurNumber,
-          recurUnit: taskItem.recurUnit,
-          recurWait: taskItem.recurWait,
-          recurrenceId: taskItem.recurrenceId,
-      );
-
+      nextScheduledTask.startDate.initializeValue(addToDate(taskItem.startDate.value, duration));
+      nextScheduledTask.targetDate.initializeValue(addToDate(taskItem.targetDate.value, duration));
+      nextScheduledTask.urgentDate.initializeValue(addToDate(taskItem.urgentDate.value, duration));
+      nextScheduledTask.dueDate.initializeValue(addToDate(taskItem.dueDate.value, duration));
     }
+
     var inboundTask = await repository.completeTask(taskItem, completionDate);
     TaskItem updatedTask;
     setState(() {
+      // todo: update fields on original task instead of deleting and adding result
       updatedTask = appState.updateTaskListWithUpdatedTask(inboundTask);
       appState.notificationScheduler.syncNotificationForTask(updatedTask);
     });
@@ -237,7 +213,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   }
 
   void deleteTask(TaskItem taskItem) async {
-    var taskId = taskItem.id;
+    var taskId = taskItem.id.value;
     await repository.deleteTask(taskItem);
     print('Removal of task successful!');
     await appState.notificationScheduler.cancelNotificationsForTaskId(taskId);
@@ -247,46 +223,11 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     appState.notificationScheduler.updateBadge();
   }
 
-  Future<TaskItem> updateTask({
-    TaskItem taskItem,
-    String name,
-    String description,
-    String project,
-    String context,
-    int urgency,
-    int priority,
-    int duration,
-    DateTime startDate,
-    DateTime targetDate,
-    DateTime dueDate,
-    DateTime urgentDate,
-    int gamePoints,
-    int recurNumber,
-    String recurUnit,
-    bool recurWait,
-    int recurrenceId,
-  }) async {
-    var inboundTask = await repository.updateTask(
-        taskItem: taskItem,
-        name: name,
-        description: description,
-        project: project,
-        context: context,
-        urgency: urgency,
-        priority: priority,
-        duration: duration,
-        startDate: startDate,
-        targetDate: targetDate,
-        dueDate: dueDate,
-        urgentDate: urgentDate,
-        gamePoints: gamePoints,
-        recurNumber: recurNumber,
-        recurUnit: recurUnit,
-        recurWait: recurWait,
-        recurrenceId: recurrenceId,
-    );
+  Future<TaskItem> updateTask(TaskItem taskItem) async {
+    var inboundTask = await repository.updateTask(taskItem);
     TaskItem updatedTask;
     setState(() {
+      // todo: update fields on original task instead of deleting and adding result
       updatedTask = appState.updateTaskListWithUpdatedTask(inboundTask);
       appState.notificationScheduler.syncNotificationForTask(updatedTask);
     });

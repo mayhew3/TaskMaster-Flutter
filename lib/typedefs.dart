@@ -12,25 +12,7 @@ typedef Future<TaskItem> TaskCompleter(TaskItem taskItem, bool completed);
 
 typedef TaskDeleter(TaskItem taskItem);
 
-typedef Future<TaskItem> TaskUpdater({
-  TaskItem taskItem,
-  String name,
-  String description,
-  String project,
-  String context,
-  int urgency,
-  int priority,
-  int duration,
-  DateTime startDate,
-  DateTime targetDate,
-  DateTime dueDate,
-  DateTime urgentDate,
-  int gamePoints,
-  int recurNumber,
-  String recurUnit,
-  bool recurWait,
-  int recurrenceId,
-});
+typedef Future<TaskItem> TaskUpdater(TaskItem taskItem);
 
 typedef EndLoadingCallback(BuildContext context);
 
