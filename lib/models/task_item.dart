@@ -185,39 +185,6 @@ class TaskItem {
         'completionDate: ${completionDate.value}}';
   }
 
-  // With Values
-
-  TaskFieldString addStringValue(String fieldName, String value) {
-    var taskFieldString = TaskFieldString.withValues(fieldName, nullifyEmptyString(value));
-    fields.add(taskFieldString);
-    return taskFieldString;
-  }
-
-  TaskFieldInteger addIntegerValue(String fieldName, int value) {
-    var taskFieldInteger = TaskFieldInteger.withValues(fieldName, value);
-    fields.add(taskFieldInteger);
-    return taskFieldInteger;
-  }
-
-  TaskFieldBoolean addBoolValue(String fieldName, bool value) {
-    var taskFieldBoolean = TaskFieldBoolean.withValues(fieldName, value);
-    fields.add(taskFieldBoolean);
-    return taskFieldBoolean;
-  }
-
-  TaskFieldDate addDateValue(String fieldName, DateTime value) {
-    var taskFieldDate = TaskFieldDate.withValues(fieldName, value);
-    fields.add(taskFieldDate);
-    return taskFieldDate;
-  }
-
-  TaskFieldDate addDateValueFromString(String fieldName, String value) {
-    var taskFieldDate = TaskFieldDate(fieldName);
-    taskFieldDate.initializeValueFromString(value);
-    fields.add(taskFieldDate);
-    return taskFieldDate;
-  }
-
   // Empty
 
   TaskFieldString addStringField(String fieldName) {

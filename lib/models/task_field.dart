@@ -10,10 +10,6 @@ abstract class TaskField<T> {
     this.originalValue = this.value;
   }
 
-  TaskField.withValues(this.fieldName, this.value) {
-    this.originalValue = this.value;
-  }
-
   initializeValue(T value) {
     this.value = value;
     this.originalValue = value;
@@ -66,8 +62,6 @@ abstract class TaskField<T> {
 class TaskFieldDate extends TaskField<DateTime> {
   TaskFieldDate(String fieldName) : super(fieldName);
 
-  TaskFieldDate.withValues(String fieldName, DateTime value) : super.withValues(fieldName, value);
-
   DateTime _parseValue(String str) {
     return DateTime.parse(str).toLocal();
   }
@@ -88,8 +82,6 @@ class TaskFieldDate extends TaskField<DateTime> {
 
 class TaskFieldString extends TaskField<String> {
   TaskFieldString(String fieldName) : super(fieldName);
-
-  TaskFieldString.withValues(String fieldName, String value) : super.withValues(fieldName, value);
 
   @override
   bool isChanged() {
@@ -117,8 +109,6 @@ class TaskFieldString extends TaskField<String> {
 class TaskFieldInteger extends TaskField<int> {
   TaskFieldInteger(String fieldName) : super(fieldName);
 
-  TaskFieldInteger.withValues(String fieldName, int value) : super.withValues(fieldName, value);
-
   @override
   int _parseValue(String str) {
     return str == '' ? null : int.parse(str);
@@ -131,8 +121,6 @@ class TaskFieldInteger extends TaskField<int> {
 
 class TaskFieldBoolean extends TaskField<bool> {
   TaskFieldBoolean(String fieldName) : super(fieldName);
-
-  TaskFieldBoolean.withValues(String fieldName, bool value) : super.withValues(fieldName, value);
 
   @override
   bool _parseValue(String str) {
