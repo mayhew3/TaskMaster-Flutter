@@ -80,6 +80,11 @@ class TaskFieldDate extends TaskField<DateTime> {
     return cleanString == null ? null : DateTime.parse(cleanString).toLocal();
   }
 
+  bool hasPassed() {
+    var now = DateTime.now();
+    return value == null ? false : value.isBefore(now);
+  }
+
   @override
   Object formatForJSON() {
     if (value == null) {

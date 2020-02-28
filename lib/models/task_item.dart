@@ -1,22 +1,5 @@
 import 'package:taskmaster/models/task_field.dart';
 
-bool hasPassed(DateTime dateTime) {
-  var now = DateTime.now();
-  return dateTime == null ? false : dateTime.isBefore(now);
-}
-
-String nullifyEmptyString(String inputString) {
-  return inputString == null || inputString.isEmpty ? null : inputString.trim();
-}
-
-DateTime nullSafeParseJSON(dynamic jsonVal) {
-  if (jsonVal == null) {
-    return null;
-  } else {
-    return DateTime.parse(jsonVal).toLocal();
-  }
-}
-
 class TaskItem {
   TaskFieldInteger id;
   TaskFieldInteger personId;
@@ -115,15 +98,15 @@ class TaskItem {
   }
 
   bool isScheduled() {
-    return startDate.value != null && !hasPassed(startDate.value);
+    return startDate.value != null && !startDate.hasPassed();
   }
 
   bool isPastDue() {
-    return hasPassed(dueDate.value);
+    return dueDate.hasPassed();
   }
 
   bool isUrgent() {
-    return hasPassed(urgentDate.value);
+    return urgentDate.hasPassed();
   }
 
   DateTime getAnchorDate() {

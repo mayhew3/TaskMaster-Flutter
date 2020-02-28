@@ -57,17 +57,17 @@ class DetailScreenState extends State<DetailScreen> {
   }
 
   Color getUrgentBackgroundColor() {
-    var urgent = hasPassed(taskItem.urgentDate.value);
+    var urgent = taskItem.urgentDate.hasPassed();
     return urgent ? TaskColors.urgentColor : TaskColors.cardColor;
   }
 
   Color getDueBackgroundColor() {
-    var due = hasPassed(taskItem.dueDate.value);
+    var due = taskItem.dueDate.hasPassed();
     return due ? TaskColors.dueColor : TaskColors.cardColor;
   }
 
   Color getCompletedBackgroundColor() {
-    var completed = hasPassed(taskItem.completionDate.value);
+    var completed = taskItem.completionDate.hasPassed();
     return completed ? TaskColors.completedColor : TaskColors.cardColor;
   }
 
