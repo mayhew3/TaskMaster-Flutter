@@ -60,6 +60,9 @@ abstract class TaskField<T> {
   T _parseValue(String str);
 }
 
+
+// DATE
+
 class TaskFieldDate extends TaskField<DateTime> {
   TaskFieldDate(String fieldName) : super(fieldName);
 
@@ -80,6 +83,9 @@ class TaskFieldDate extends TaskField<DateTime> {
   }
 }
 
+
+// STRING
+
 class TaskFieldString extends TaskField<String> {
   TaskFieldString(String fieldName) : super(fieldName);
 
@@ -87,15 +93,15 @@ class TaskFieldString extends TaskField<String> {
 
   @override
   bool isChanged() {
-    return super.isChanged() && (cleanString(value) != cleanString(originalValue));
+    return super.isChanged() && (_cleanString(value) != _cleanString(originalValue));
   }
 
   @override
   Object formatForJSON() {
-    return cleanString(value);
+    return _cleanString(value);
   }
 
-  String cleanString(String str) {
+  String _cleanString(String str) {
     return str == null || str.isEmpty ? null : str.trim();
   }
 
@@ -104,6 +110,9 @@ class TaskFieldString extends TaskField<String> {
     return str;
   }
 }
+
+
+// INTEGER
 
 class TaskFieldInteger extends TaskField<int> {
   TaskFieldInteger(String fieldName) : super(fieldName);
@@ -116,6 +125,9 @@ class TaskFieldInteger extends TaskField<int> {
   }
 
 }
+
+
+// BOOL
 
 class TaskFieldBoolean extends TaskField<bool> {
   TaskFieldBoolean(String fieldName) : super(fieldName);
