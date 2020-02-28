@@ -82,6 +82,8 @@ class TaskRepository {
       throw Exception("Cannot update task before being signed in.");
     }
 
+    taskItem.completionDate.value = completionDate;
+
     var payload = {
       "task": {
         "id": taskItem.id.formatForJSON(),
