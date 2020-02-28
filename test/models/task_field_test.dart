@@ -1,4 +1,3 @@
-import 'package:intl/intl.dart';
 import 'package:test/test.dart';
 import 'package:taskmaster/models/task_field.dart';
 
@@ -6,8 +5,6 @@ void main() {
   group('TaskFieldDate', () {
 
     DateTime _theDateTime = DateTime(2019, 7, 13, 8, 12, 55);
-
-    String formattedRight = '2019-09-27T04:34:48.460Z';
 
     String _formatDateTime(DateTime dateTime) {
       var utc = dateTime.toUtc();
@@ -67,6 +64,34 @@ void main() {
       expect(taskField.value, _theDateTime);
       expect(taskField.originalValue, _theDateTime);
     });
+
+    test('getInputDisplay for null should be empty string', () {
+      final taskField = TaskFieldDate('startDate');
+      expect(taskField.getInputDisplay(), '');
+    });
+
+    test('getInputDisplay for value should be string', () {
+      var expectedDisplay = _theDateTime.toString();
+      final taskField = TaskFieldDate('startDate');
+      taskField.value = _theDateTime;
+      expect(taskField.getInputDisplay(), expectedDisplay);
+    });
+
+    test('setValueFromString', () {
+      var formatted = _formatDateTime(_theDateTime);
+      final taskField = TaskFieldDate('startDate');
+      taskField.setValueFromString(formatted);
+      expect(taskField.value, _theDateTime);
+      expect(taskField.originalValue, null);
+    });
+
+    test('formatForJSON', () {
+      var formatted = '2019-07-13 15:12:55';
+      final taskField = TaskFieldDate('startDate');
+      taskField.value = _theDateTime;
+      expect(taskField.formatForJSON(), formatted);
+    });
+
 
   });
 
