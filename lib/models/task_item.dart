@@ -45,13 +45,13 @@ class TaskItem {
 
   TaskFieldInteger recurrenceId;
 
-  List<TaskField> fields;
+  List<TaskField> fields = [];
 
   TaskItem() {
     this.id = addIntegerField("id");
     this.personId = addIntegerField("person_id");
     this.name = addStringField("name");
-    this.project = addStringField("description");
+    this.description = addStringField("description");
     this.project = addStringField("project");
     this.context = addStringField("context");
     this.urgency = addIntegerField("urgency");
@@ -95,7 +95,7 @@ class TaskItem {
     this.id = addIntegerValue("id", id);
     this.personId = addIntegerValue("person_id", personId);
     this.name = addStringValue("name", name);
-    this.project = addStringValue("description", project);
+    this.description = addStringValue("description", project);
     this.project = addStringValue("project", project);
     this.context = addStringValue("context", context);
     this.urgency = addIntegerValue("urgency", urgency);
@@ -114,8 +114,9 @@ class TaskItem {
     this.recurrenceId = addIntegerValue("recurrence_id", recurrenceId);
   }
 
-  TaskItem.fromJson(Map<String, dynamic> json) {
-    for (var field in fields) {
+  factory TaskItem.fromJson(Map<String, dynamic> json) {
+    TaskItem taskItem = TaskItem();
+    for (var field in taskItem.fields) {
       var jsonVal = json[field.fieldName];
       if (jsonVal is String) {
         field.initializeValueFromString(jsonVal);
@@ -123,6 +124,7 @@ class TaskItem {
         field.initializeValue(jsonVal);
       }
     }
+    return taskItem;
   }
 
   TaskItem createCopy() {

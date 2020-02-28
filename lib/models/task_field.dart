@@ -46,7 +46,7 @@ abstract class TaskField<T> {
   }
 
   String toString() {
-    return value.toString();
+    return fieldName + ': ' + ((value == null) ? '(null)' : value.toString());
   }
 
   T _parseValue(String str);
@@ -76,12 +76,6 @@ class TaskFieldString extends TaskField<String> {
   TaskFieldString(String fieldName) : super(fieldName);
 
   TaskFieldString.withValues(String fieldName, String value) : super.withValues(fieldName, value);
-
-  @override
-  initializeValueFromString(String str) {
-    value = str;
-    originalValue = str;
-  }
 
   @override
   Object formatForJSON() {
