@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
 
@@ -64,26 +63,16 @@ class TaskRepository {
       throw Exception("Cannot add task with no personId.");
     }
 
-    var payload = {
-      "task": {
-        "name": taskItem.name,
-        "person_id": appState.personId,
-        "description": nullifyEmptyString(taskItem.description),
-        "project": nullifyEmptyString(taskItem.project),
-        "context": nullifyEmptyString(taskItem.context),
-        "urgency": taskItem.urgency,
-        "priority": taskItem.priority,
-        "duration": taskItem.duration,
-        "start_date": wrapDate(taskItem.startDate),
-        "target_date": wrapDate(taskItem.targetDate),
-        "due_date": wrapDate(taskItem.dueDate),
-        "urgent_date": wrapDate(taskItem.urgentDate),
-        "game_points": taskItem.gamePoints,
-        "recur_number": taskItem.recurNumber,
-        "recur_unit": taskItem.recurUnit,
-        "recur_wait": taskItem.recurWait,
-        "recurrence_id": taskItem.recurrenceId,
+    var taskObj = {};
+    for (var field in taskItem.fields) {
+      if (!['id', 'person_id', 'date_added', 'completion_date'].contains(field.fieldName)) {
+        taskObj[field.fieldName] = field.formatForJSON();
       }
+    }
+    taskObj['person_id'] = appState.personId;
+
+    var payload = {
+      "task": taskObj
     };
     return _addOrUpdateJSON(payload, 'add');
   }
@@ -95,64 +84,31 @@ class TaskRepository {
 
     var payload = {
       "task": {
-        "id": taskItem.id,
-        "completion_date": wrapDate(completionDate),
-        "recurrence_id": taskItem.recurrenceId,
+        "id": taskItem.id.formatForJSON(),
+        "completion_date": taskItem.completionDate.formatForJSON(),
+        "recurrence_id": taskItem.recurrenceId.formatForJSON(),
       }
     };
 
     return _addOrUpdateJSON(payload, 'update');
   }
 
-  Future<TaskItem> updateTask({
-    TaskItem taskItem,
-    String name,
-    String description,
-    String project,
-    String context,
-    int urgency,
-    int priority,
-    int duration,
-    DateTime startDate,
-    DateTime targetDate,
-    DateTime dueDate,
-    DateTime urgentDate,
-    int gamePoints,
-    int recurNumber,
-    String recurUnit,
-    bool recurWait,
-    int recurrenceId,
-  }) async {
+  Future<TaskItem> updateTask(TaskItem taskItem) async {
     if (!appState.isAuthenticated()) {
       throw Exception("Cannot update task before being signed in.");
     }
 
-    var payload = {
-      "task": {
-        "id": taskItem.id,
-        "name": nullifyEmptyString(name),
-        "description": nullifyEmptyString(description),
-        "project": nullifyEmptyString(project),
-        "context": nullifyEmptyString(context),
-        "urgency": urgency,
-        "priority": priority,
-        "duration": duration,
-        "start_date": wrapDate(startDate),
-        "target_date": wrapDate(targetDate),
-        "due_date": wrapDate(dueDate),
-        "urgent_date": wrapDate(urgentDate),
-        "game_points": gamePoints,
-        "recur_number": recurNumber,
-        "recur_unit": recurUnit,
-        "recur_wait": recurWait,
-        "recurrence_id": recurrenceId,
+    var taskObj = {};
+    for (var field in taskItem.fields) {
+      if (!['person_id', 'date_added', 'completion_date'].contains(field.fieldName) && field.isChanged()) {
+        taskObj[field.fieldName] = field.formatForJSON();
       }
+    }
+
+    var payload = {
+      "task": taskObj
     };
     return _addOrUpdateJSON(payload, 'update');
-  }
-
-  String nullifyEmptyString(String inputString) {
-    return inputString == null || inputString.isEmpty ? null : inputString.trim();
   }
 
   Future<void> deleteTask(TaskItem taskItem) async {
@@ -161,7 +117,7 @@ class TaskRepository {
     }
 
     var queryParameters = {
-      'task_id': taskItem.id.toString()
+      'task_id': taskItem.id.value.toString()
     };
 
     var uri = Uri.https('taskmaster-general.herokuapp.com', '/api/tasks', queryParameters);
@@ -175,15 +131,6 @@ class TaskRepository {
 
     if (response.statusCode != 200) {
       throw Exception('Failed to delete task. Talk to Mayhew.');
-    }
-  }
-
-  String wrapDate(DateTime dateTime) {
-    if (dateTime == null) {
-      return null;
-    } else {
-      var utc = dateTime.toUtc();
-      return DateFormat('yyyy-MM-dd HH:mm:ss').format(utc);
     }
   }
 

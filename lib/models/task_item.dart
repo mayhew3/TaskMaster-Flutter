@@ -1,4 +1,3 @@
-
 import 'package:taskmaster/models/task_field.dart';
 
 bool hasPassed(DateTime dateTime) {
@@ -19,117 +18,172 @@ DateTime nullSafeParseJSON(dynamic jsonVal) {
 }
 
 class TaskItem {
-  final int id;
-  final int personId;
+  TaskFieldInteger id;
+  TaskFieldInteger personId;
 
-  final String name;
-  final String description;
-  final String project;
-  final String context;
+  TaskFieldString name;
+  TaskFieldString description;
+  TaskFieldString project;
+  TaskFieldString context;
 
-  final int urgency;
-  final int priority;
-  final int duration;
+  TaskFieldInteger urgency;
+  TaskFieldInteger priority;
+  TaskFieldInteger duration;
 
-  final DateTime dateAdded;
-  final DateTime startDate;
-  final DateTime targetDate;
-  final DateTime dueDate;
-  final DateTime completionDate;
-  final DateTime urgentDate;
+  TaskFieldDate dateAdded;
+  TaskFieldDate startDate;
+  TaskFieldDate targetDate;
+  TaskFieldDate dueDate;
+  TaskFieldDate completionDate;
+  TaskFieldDate urgentDate;
 
-  final int gamePoints;
+  TaskFieldInteger gamePoints;
 
-  final int recurNumber;
-  final String recurUnit;
-  final bool recurWait;
+  TaskFieldInteger recurNumber;
+  TaskFieldString recurUnit;
+  TaskFieldBoolean recurWait;
 
-  final int recurrenceId;
+  TaskFieldInteger recurrenceId;
 
   List<TaskField> fields;
 
-  TaskItem({
-    this.id,
-    this.personId,
-    this.name,
-    this.description,
-    this.project,
-    this.context,
-    this.urgency,
-    this.priority,
-    this.duration,
-    this.dateAdded,
-    this.startDate,
-    this.targetDate,
-    this.dueDate,
-    this.completionDate,
-    this.urgentDate,
-    this.gamePoints,
-    this.recurNumber,
-    this.recurUnit,
-    this.recurWait,
-    this.recurrenceId,
+  TaskItem() {
+    this.id = addIntegerField("id");
+    this.personId = addIntegerField("person_id");
+    this.name = addStringField("name");
+    this.project = addStringField("description");
+    this.project = addStringField("project");
+    this.context = addStringField("context");
+    this.urgency = addIntegerField("urgency");
+    this.priority = addIntegerField("priority");
+    this.duration = addIntegerField("duration");
+    this.dateAdded = addDateField("date_added");
+    this.startDate = addDateField("start_date");
+    this.targetDate = addDateField("target_date");
+    this.dueDate = addDateField("due_date");
+    this.completionDate = addDateField("completion_date");
+    this.urgentDate = addDateField("urgent_date");
+    this.gamePoints = addIntegerField("game_points");
+    this.recurNumber = addIntegerField("recur_number");
+    this.recurUnit = addStringField("recur_unit");
+    this.recurWait = addBoolField("recur_wait");
+    this.recurrenceId = addIntegerField("recurrence_id");
+  }
+
+  TaskItem.withValues({
+    int id,
+    int personId,
+    String name,
+    String description,
+    String project,
+    String context,
+    int urgency,
+    int priority,
+    int duration,
+    DateTime dateAdded,
+    DateTime startDate,
+    DateTime targetDate,
+    DateTime dueDate,
+    DateTime completionDate,
+    DateTime urgentDate,
+    int gamePoints,
+    int recurNumber,
+    String recurUnit,
+    bool recurWait,
+    int recurrenceId,
   }) {
-    fields.add(TaskFieldInteger.withValues("id", this.id));
-    fields.add(TaskFieldInteger.withValues("person_id", this.personId));
-    fields.add(TaskFieldString.withValues("name", this.name));
-    fields.add(TaskFieldString.withValues("description", this.project));
-    fields.add(TaskFieldString.withValues("project", this.project));
-    fields.add(TaskFieldString.withValues("context", this.context));
-    fields.add(TaskFieldInteger.withValues("urgency", this.urgency));
-    fields.add(TaskFieldInteger.withValues("priority", this.priority));
-    fields.add(TaskFieldInteger.withValues("duration", this.duration));
-    fields.add(TaskFieldDate.withValues("date_added", this.dateAdded));
-    fields.add(TaskFieldDate.withValues("start_date", this.startDate));
-    fields.add(TaskFieldDate.withValues("target_date", this.targetDate));
-    fields.add(TaskFieldDate.withValues("due_date", this.dueDate));
-    fields.add(TaskFieldDate.withValues("completion_date", this.completionDate));
-    fields.add(TaskFieldDate.withValues("urgent_date", this.urgentDate));
-    fields.add(TaskFieldInteger.withValues("game_points", this.gamePoints));
-    fields.add(TaskFieldInteger.withValues("recur_number", this.recurNumber));
-    fields.add(TaskFieldString.withValues("recur_unit", this.recurUnit));
-    fields.add(TaskFieldBoolean.withValues("recur_wait", this.recurWait));
-    fields.add(TaskFieldInteger.withValues("recurrence_id", this.recurrenceId));
+    this.id = addIntegerValue("id", id);
+    this.personId = addIntegerValue("person_id", personId);
+    this.name = addStringValue("name", name);
+    this.project = addStringValue("description", project);
+    this.project = addStringValue("project", project);
+    this.context = addStringValue("context", context);
+    this.urgency = addIntegerValue("urgency", urgency);
+    this.priority = addIntegerValue("priority", priority);
+    this.duration = addIntegerValue("duration", duration);
+    this.dateAdded = addDateValue("date_added", dateAdded);
+    this.startDate = addDateValue("start_date", startDate);
+    this.targetDate = addDateValue("target_date", targetDate);
+    this.dueDate = addDateValue("due_date", dueDate);
+    this.completionDate = addDateValue("completion_date", completionDate);
+    this.urgentDate = addDateValue("urgent_date", urgentDate);
+    this.gamePoints = addIntegerValue("game_points", gamePoints);
+    this.recurNumber = addIntegerValue("recur_number", recurNumber);
+    this.recurUnit = addStringValue("recur_unit", recurUnit);
+    this.recurWait = addBoolValue("recur_wait", recurWait);
+    this.recurrenceId = addIntegerValue("recurrence_id", recurrenceId);
+  }
+
+  TaskItem.fromJson(Map<String, dynamic> json) {
+    for (var field in fields) {
+      var jsonVal = json[field.fieldName];
+      if (jsonVal is String) {
+        field.initializeValueFromString(jsonVal);
+      } else {
+        field.initializeValue(jsonVal);
+      }
+    }
+  }
+
+  TaskItem createCopy() {
+    var taskItem = new TaskItem();
+    for (var field in fields) {
+      if (field.fieldName != 'id' && field.fieldName != 'date_added') {
+        var newField = taskItem.getTaskField(field.fieldName);
+        newField.initializeValue(field.value);
+      }
+    }
+
+    return taskItem;
+  }
+
+  TaskField getTaskField(String fieldName) {
+    return fields.singleWhere((field) => field.fieldName == fieldName);
+  }
+
+  void setFieldValue(String fieldName, Object fieldValue) {
+    var taskField = getTaskField(fieldName);
+    taskField.value = fieldValue;
   }
 
   bool isCompleted() {
-    return completionDate != null;
+    return completionDate.value != null;
   }
 
   bool isScheduled() {
-    return startDate != null && !hasPassed(startDate);
+    return startDate.value != null && !hasPassed(startDate.value);
   }
 
   bool isPastDue() {
-    return hasPassed(dueDate);
+    return hasPassed(dueDate.value);
   }
 
   bool isUrgent() {
-    return hasPassed(urgentDate);
+    return hasPassed(urgentDate.value);
   }
 
   DateTime getAnchorDate() {
-    if (dueDate != null) {
-      return dueDate;
-    } else if (urgentDate != null) {
-      return urgentDate;
-    } else if (targetDate != null) {
-      return targetDate;
-    } else if (startDate != null) {
-      return startDate;
+    if (dueDate.value != null) {
+      return dueDate.value;
+    } else if (urgentDate.value != null) {
+      return urgentDate.value;
+    } else if (targetDate.value != null) {
+      return targetDate.value;
+    } else if (startDate.value != null) {
+      return startDate.value;
     } else {
       return null;
     }
   }
 
   String getAnchorDateFieldName() {
-    if (dueDate != null) {
+    if (dueDate.value != null) {
       return "Due";
-    } else if (urgentDate != null) {
+    } else if (urgentDate.value != null) {
       return "Urgent";
-    } else if (targetDate != null) {
+    } else if (targetDate.value != null) {
       return "Target";
-    } else if (startDate != null) {
+    } else if (startDate.value != null) {
       return "Start";
     } else {
       return null;
@@ -138,10 +192,10 @@ class TaskItem {
 
   DateTime getDateFromName(String anchorDateFieldName) {
     switch (anchorDateFieldName) {
-      case "Due": return dueDate;
-      case "Urgent": return urgentDate;
-      case "Target": return targetDate;
-      case "Start": return startDate;
+      case "Due": return dueDate.value;
+      case "Urgent": return urgentDate.value;
+      case "Target": return targetDate.value;
+      case "Start": return startDate.value;
       default: return null;
     }
   }
@@ -155,123 +209,75 @@ class TaskItem {
       identical(this, other) ||
           other is TaskItem &&
               runtimeType == other.runtimeType &&
-              id == other.id;
+              id.value == other.id.value;
 
   @override
   String toString() {
     return 'TaskItem{'
-        'id: $id, '
-        'name: $name, '
-        'personId: $personId, '
-        'dateAdded: $dateAdded, '
-        'completionDate: $completionDate}';
+        'id: ${id.value}, '
+        'name: ${name.value}, '
+        'personId: ${personId.value}, '
+        'dateAdded: ${dateAdded.value}, '
+        'completionDate: ${completionDate.value}}';
   }
 
-  TaskItem._fromJSONEntities({
-    int id,
-    int personId,
-    String name,
-    String description,
-    String project,
-    String context,
-    int urgency,
-    int priority,
-    int duration,
-    String dateAdded,
-    String startDate,
-    String targetDate,
-    String dueDate,
-    String completionDate,
-    String urgentDate,
-    int gamePoints,
-    int recurNumber,
-    String recurUnit,
-    bool recurWait,
-    int recurrenceId,
-  }) : this.id = id,
-        this.personId = personId,
-        this.name = name,
-        this.description = description,
-        this.project = project,
-        this.context = context,
-        this.urgency = urgency,
-        this.priority = priority,
-        this.duration = duration,
-        this.dateAdded = nullSafeParseJSON(dateAdded),
-        this.startDate = nullSafeParseJSON(startDate),
-        this.targetDate = nullSafeParseJSON(targetDate),
-        this.dueDate = nullSafeParseJSON(dueDate),
-        this.completionDate = nullSafeParseJSON(completionDate),
-        this.urgentDate = nullSafeParseJSON(urgentDate),
-        this.gamePoints = gamePoints,
-        this.recurNumber = recurNumber,
-        this.recurUnit = recurUnit,
-        this.recurWait = recurWait,
-        this.recurrenceId = recurrenceId
-  {
-    addIntegerValue("id", id);
-    addIntegerValue("person_id", personId);
-    addStringValue("name", name);
-    addStringValue("description", description);
-    addStringValue("project", project);
-    addStringValue("context", context);
-    addIntegerValue("urgency", urgency);
-    addIntegerValue("priority", priority);
-    addIntegerValue("duration", duration);
-    addDateValueFromString("date_added", dateAdded);
-    addDateValueFromString("start_date", startDate);
-    addDateValueFromString("target_date", targetDate);
-    addDateValueFromString("due_date", dueDate);
-    addDateValueFromString("completion_date", completionDate);
-    addDateValueFromString("urgent_date", urgentDate);
-    addIntegerValue("game_points", gamePoints);
-    addIntegerValue("recur_number", recurNumber);
-    addStringValue("recur_unit", recurUnit);
-    addBoolValue("recur_wait", recurWait);
-    addIntegerValue("recurrence_id", recurrenceId);
+  // With Values
+
+  TaskFieldString addStringValue(String fieldName, String value) {
+    var taskFieldString = TaskFieldString.withValues(fieldName, nullifyEmptyString(value));
+    fields.add(taskFieldString);
+    return taskFieldString;
   }
 
-  void addStringValue(String fieldName, String value) {
-    fields.add(TaskFieldString.withValues(fieldName, nullifyEmptyString(value)));
+  TaskFieldInteger addIntegerValue(String fieldName, int value) {
+    var taskFieldInteger = TaskFieldInteger.withValues(fieldName, value);
+    fields.add(taskFieldInteger);
+    return taskFieldInteger;
   }
 
-  void addIntegerValue(String fieldName, int value) {
-    fields.add(TaskFieldInteger.withValues(fieldName, value));
+  TaskFieldBoolean addBoolValue(String fieldName, bool value) {
+    var taskFieldBoolean = TaskFieldBoolean.withValues(fieldName, value);
+    fields.add(taskFieldBoolean);
+    return taskFieldBoolean;
   }
 
-  void addBoolValue(String fieldName, bool value) {
-    fields.add(TaskFieldBoolean.withValues(fieldName, value));
-  }
-
-  void addDateValueFromString(String fieldName, String value) {
-    var taskFieldDate = TaskFieldDate(fieldName);
-    taskFieldDate.setValuefromJSON(value);
+  TaskFieldDate addDateValue(String fieldName, DateTime value) {
+    var taskFieldDate = TaskFieldDate.withValues(fieldName, value);
     fields.add(taskFieldDate);
+    return taskFieldDate;
   }
 
-  factory TaskItem.fromJson(Map<String, dynamic> json) {
-    return TaskItem._fromJSONEntities(
-      id: json['id'],
-      personId: json['person_id'],
-      name: nullifyEmptyString(json['name']),
-      description: nullifyEmptyString(json['description']),
-      project: nullifyEmptyString(json['project']),
-      context: nullifyEmptyString(json['context']),
-      urgency: json['urgency'],
-      priority: json['priority'],
-      duration: json['duration'],
-      startDate: json['start_date'],
-      targetDate: json['target_date'],
-      dueDate: json['due_date'],
-      completionDate: json['completion_date'],
-      urgentDate: json['urgent_date'],
-      gamePoints: json['game_points'],
-      recurNumber: json['recur_number'],
-      recurUnit: json['recur_unit'],
-      recurWait: json['recur_wait'],
-      recurrenceId: json['recurrence_id'],
-      dateAdded: json['date_added'],
-    );
+  TaskFieldDate addDateValueFromString(String fieldName, String value) {
+    var taskFieldDate = TaskFieldDate(fieldName);
+    taskFieldDate.initializeValueFromString(value);
+    fields.add(taskFieldDate);
+    return taskFieldDate;
+  }
+
+  // Empty
+
+  TaskFieldString addStringField(String fieldName) {
+    var taskFieldString = TaskFieldString(fieldName);
+    fields.add(taskFieldString);
+    return taskFieldString;
+  }
+
+  TaskFieldInteger addIntegerField(String fieldName) {
+    var taskFieldInteger = TaskFieldInteger(fieldName);
+    fields.add(taskFieldInteger);
+    return taskFieldInteger;
+  }
+
+  TaskFieldBoolean addBoolField(String fieldName) {
+    var taskFieldBoolean = TaskFieldBoolean(fieldName);
+    fields.add(taskFieldBoolean);
+    return taskFieldBoolean;
+  }
+
+  TaskFieldDate addDateField(String fieldName) {
+    var taskFieldDate = TaskFieldDate(fieldName);
+    fields.add(taskFieldDate);
+    return taskFieldDate;
   }
 
 }

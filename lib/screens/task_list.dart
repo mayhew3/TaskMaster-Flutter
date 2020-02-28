@@ -106,10 +106,10 @@ class TaskListScreenState extends State<TaskListScreen> {
     widget.appState.notificationScheduler.updateHomeScreenContext(context);
     final List<TaskItem> otherTasks = widget.appState.getFilteredTasks(showScheduled, showCompleted);
 
-    final List<TaskItem> completedTasks = _moveSublist(otherTasks, (task) => task.isCompleted());
-    final List<TaskItem> dueTasks = _moveSublist(otherTasks, (task) => task.isPastDue());
-    final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (task) => task.isUrgent());
-    final List<TaskItem> scheduledTasks = _moveSublist(otherTasks, (task) => task.isScheduled());
+    final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted());
+    final List<TaskItem> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isPastDue());
+    final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgent());
+    final List<TaskItem> scheduledTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isScheduled());
 
     List<StatelessWidget> tiles = [];
 
@@ -180,7 +180,10 @@ class TaskListScreenState extends State<TaskListScreen> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => AddEditScreen(taskAdder: widget.taskAdder)),
+              MaterialPageRoute(builder: (_) => AddEditScreen(
+                taskAdder: widget.taskAdder,
+                taskItem: TaskItem(),
+              )),
             );
           },
           child: Icon(Icons.add),

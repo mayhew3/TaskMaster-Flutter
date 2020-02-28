@@ -45,7 +45,7 @@ class DetailScreenState extends State<DetailScreen> {
   @override
   void initState() {
     super.initState();
-    completed = (taskItem.completionDate != null);
+    completed = (taskItem.completionDate.value != null);
   }
 
   String formatDateTime(DateTime dateTime) {
@@ -57,37 +57,37 @@ class DetailScreenState extends State<DetailScreen> {
   }
 
   Color getUrgentBackgroundColor() {
-    var urgent = hasPassed(taskItem.urgentDate);
+    var urgent = hasPassed(taskItem.urgentDate.value);
     return urgent ? TaskColors.urgentColor : TaskColors.cardColor;
   }
 
   Color getDueBackgroundColor() {
-    var due = hasPassed(taskItem.dueDate);
+    var due = hasPassed(taskItem.dueDate.value);
     return due ? TaskColors.dueColor : TaskColors.cardColor;
   }
 
   Color getCompletedBackgroundColor() {
-    var completed = hasPassed(taskItem.completionDate);
+    var completed = hasPassed(taskItem.completionDate.value);
     return completed ? TaskColors.completedColor : TaskColors.cardColor;
   }
 
   void refreshLocalTaskItem(TaskItem taskItem) {
     setState(() {
       this.taskItem = taskItem;
-      completed = (taskItem.completionDate != null);
+      completed = (taskItem.completionDate.value != null);
     });
   }
 
   String getFormattedRecurrence(TaskItem taskItem) {
-    return 'Every ' + taskItem.recurNumber.toString() + ' ' + getFormattedRecurUnit(taskItem) + (taskItem.recurWait ? ' (after completion)' : '');
+    return 'Every ' + taskItem.recurNumber.value.toString() + ' ' + getFormattedRecurUnit(taskItem) + (taskItem.recurWait.value ? ' (after completion)' : '');
   }
 
   String getFormattedRecurUnit(TaskItem taskItem) {
-    if (taskItem.recurUnit == null) {
+    if (taskItem?.recurUnit?.value == null) {
       return '';
     }
-    var unit = taskItem?.recurUnit;
-    if (taskItem.recurNumber == 1) {
+    var unit = taskItem?.recurUnit?.value;
+    if (taskItem.recurNumber.value == 1) {
       unit = unit.substring(0, unit.length-1);
     }
     return unit.toLowerCase();
@@ -110,7 +110,7 @@ class DetailScreenState extends State<DetailScreen> {
                 Expanded(
                   child: Padding(
                       padding: EdgeInsets.all(16.0),
-                      child: Text(taskItem.name,
+                      child: Text(taskItem.name.value,
                         style: Theme.of(context).textTheme.headline,
                       )
                   ),
@@ -129,64 +129,64 @@ class DetailScreenState extends State<DetailScreen> {
             ),
             ReadOnlyTaskField(
               headerName: 'Project',
-              textToShow: taskItem.project,
+              textToShow: taskItem.project.value,
             ),
             ReadOnlyTaskField(
               headerName: 'Context',
-              textToShow: taskItem.context,
+              textToShow: taskItem.context.value,
             ),
             ReadOnlyTaskField(
               headerName: 'Start',
-              textToShow: formatDateTime(taskItem.startDate),
+              textToShow: formatDateTime(taskItem.startDate.value),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
                 ReadOnlyTaskFieldSmall(
                   headerName: 'Urgency',
-                  textToShow: formatNumber(taskItem.urgency),
+                  textToShow: formatNumber(taskItem.urgency.value),
                 ),
                 ReadOnlyTaskFieldSmall(
                   headerName: 'Priority',
-                  textToShow: formatNumber(taskItem.priority),
+                  textToShow: formatNumber(taskItem.priority.value),
                 ),
                 ReadOnlyTaskFieldSmall(
                   headerName: 'Points',
-                  textToShow: formatNumber(taskItem.gamePoints),
+                  textToShow: formatNumber(taskItem.gamePoints.value),
                 ),
                 ReadOnlyTaskFieldSmall(
                   headerName: 'Length',
-                  textToShow: formatNumber(taskItem.duration),
+                  textToShow: formatNumber(taskItem.duration.value),
                 ),
               ],
             ),
             ReadOnlyTaskField(
               headerName: 'Urgent',
-              textToShow: formatDateTime(taskItem.urgentDate),
+              textToShow: formatDateTime(taskItem.urgentDate.value),
               optionalBackgroundColor: getUrgentBackgroundColor(),
             ),
             ReadOnlyTaskField(
               headerName: 'Target',
-              textToShow: formatDateTime(taskItem.targetDate),
+              textToShow: formatDateTime(taskItem.targetDate.value),
             ),
             ReadOnlyTaskField(
               headerName: 'Due',
-              textToShow: formatDateTime(taskItem.dueDate),
+              textToShow: formatDateTime(taskItem.dueDate.value),
               optionalBackgroundColor: getDueBackgroundColor(),
             ),
             ReadOnlyTaskField(
               headerName: 'Completed',
-              textToShow: formatDateTime(taskItem.completionDate),
+              textToShow: formatDateTime(taskItem.completionDate.value),
               optionalBackgroundColor: getCompletedBackgroundColor(),
             ),
             ReadOnlyTaskField(
               headerName: 'Repeat',
-              textToShow: taskItem.recurNumber == null ? null :
+              textToShow: taskItem.recurNumber.value == null ? null :
                         getFormattedRecurrence(taskItem),
             ),
             ReadOnlyTaskField(
               headerName: 'Notes',
-              textToShow: taskItem.description,
+              textToShow: taskItem.description.value,
             ),
           ],
         ),

@@ -53,7 +53,7 @@ class AppState {
   }
 
   TaskItem findTaskItemWithId(int taskId) {
-    var matching = taskItems.where((task) => task.id == taskId);
+    var matching = taskItems.where((taskItem) => taskItem.id.value == taskId);
     return matching.isEmpty ? null : matching.first;
   }
 
@@ -86,7 +86,7 @@ class AppState {
   }
 
   TaskItem updateTaskListWithUpdatedTask(TaskItem taskItem) {
-    var existingIndex = taskItems.indexWhere((element) => element.id == taskItem.id);
+    var existingIndex = taskItems.indexWhere((element) => element.id.value == taskItem.id.value);
     taskItems[existingIndex] = taskItem;
     return taskItem;
   }
