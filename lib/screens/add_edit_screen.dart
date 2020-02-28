@@ -14,7 +14,6 @@ class AddEditScreen extends StatefulWidget {
   final TaskItemRefresher taskItemRefresher;
   final bool isEditing;
 
-  // todo: Handle backing out and reverting changes.
   const AddEditScreen({
     Key key,
     this.taskItem,
@@ -137,7 +136,10 @@ class AddEditScreenState extends State<AddEditScreen> {
           key: formKey,
           autovalidate: false,
           onWillPop: () {
-            return Future(() => true);
+            return Future(() {
+              widget.taskItem.revertAllChanges();
+              return true;
+            });
           },
           onChanged: () {
             setState(() {

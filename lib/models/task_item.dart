@@ -70,48 +70,10 @@ class TaskItem {
     this.recurrenceId = addIntegerField("recurrence_id");
   }
 
-  TaskItem.withValues({
-    int id,
-    int personId,
-    String name,
-    String description,
-    String project,
-    String context,
-    int urgency,
-    int priority,
-    int duration,
-    DateTime dateAdded,
-    DateTime startDate,
-    DateTime targetDate,
-    DateTime dueDate,
-    DateTime completionDate,
-    DateTime urgentDate,
-    int gamePoints,
-    int recurNumber,
-    String recurUnit,
-    bool recurWait,
-    int recurrenceId,
-  }) {
-    this.id = addIntegerValue("id", id);
-    this.personId = addIntegerValue("person_id", personId);
-    this.name = addStringValue("name", name);
-    this.description = addStringValue("description", project);
-    this.project = addStringValue("project", project);
-    this.context = addStringValue("context", context);
-    this.urgency = addIntegerValue("urgency", urgency);
-    this.priority = addIntegerValue("priority", priority);
-    this.duration = addIntegerValue("duration", duration);
-    this.dateAdded = addDateValue("date_added", dateAdded);
-    this.startDate = addDateValue("start_date", startDate);
-    this.targetDate = addDateValue("target_date", targetDate);
-    this.dueDate = addDateValue("due_date", dueDate);
-    this.completionDate = addDateValue("completion_date", completionDate);
-    this.urgentDate = addDateValue("urgent_date", urgentDate);
-    this.gamePoints = addIntegerValue("game_points", gamePoints);
-    this.recurNumber = addIntegerValue("recur_number", recurNumber);
-    this.recurUnit = addStringValue("recur_unit", recurUnit);
-    this.recurWait = addBoolValue("recur_wait", recurWait);
-    this.recurrenceId = addIntegerValue("recurrence_id", recurrenceId);
+  revertAllChanges() {
+    for (var field in fields) {
+      field.revert();
+    }
   }
 
   factory TaskItem.fromJson(Map<String, dynamic> json) {
