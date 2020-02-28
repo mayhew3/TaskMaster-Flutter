@@ -94,7 +94,16 @@ class TaskFieldString extends TaskField<String> {
   }
 
   String _cleanString(String str) {
-    return str == null || str.isEmpty ? null : str.trim();
+    if (str == null) {
+      return null;
+    } else {
+      var trimmed = str.trim();
+      if (trimmed.isEmpty) {
+        return null;
+      } else {
+        return trimmed;
+      }
+    }
   }
 
   @override
