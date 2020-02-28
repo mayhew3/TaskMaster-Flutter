@@ -377,6 +377,14 @@ class AddEditScreenState extends State<AddEditScreen> {
           child: Icon(widget.isEditing ? Icons.check : Icons.add),
           onPressed: () async {
             final form = formKey.currentState;
+
+            if (!_repeatOn) {
+              widget.taskItem.recurUnit.value = null;
+              widget.taskItem.recurNumber.value = null;
+              widget.taskItem.recurWait.value = null;
+              widget.taskItem.recurrenceId.value = null;
+            }
+
             if (form.validate()) {
               form.save();
 
