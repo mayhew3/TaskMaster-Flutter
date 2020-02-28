@@ -99,8 +99,9 @@ class TaskRepository {
     }
 
     var taskObj = {};
+    taskObj['id'] = taskItem.id.value;
     for (var field in taskItem.fields) {
-      if (!['person_id', 'date_added', 'completion_date'].contains(field.fieldName) && field.isChanged()) {
+      if (!['id', 'person_id', 'date_added', 'completion_date'].contains(field.fieldName) && field.isChanged()) {
         taskObj[field.fieldName] = field.formatForJSON();
       }
     }

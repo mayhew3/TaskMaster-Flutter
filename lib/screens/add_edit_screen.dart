@@ -57,11 +57,12 @@ class AddEditScreenState extends State<AddEditScreen> {
 
     _hasChanges = false;
 
-    _initialRepeatOn = widget.taskItem?.recurNumber != null;
+    _initialRepeatOn = widget.taskItem?.recurNumber?.value != null;
     _repeatOn = _initialRepeatOn;
 
-    _anchorDate = widget.taskItem?.recurWait == null ?
-    '(none)' : !widget.taskItem.recurWait.value ? 'Schedule Dates' : 'Completed Date';
+    var recurWait = widget.taskItem?.recurWait?.value;
+    _anchorDate = (recurWait == null) ?
+    '(none)' : !recurWait ? 'Schedule Dates' : 'Completed Date';
 
     possibleProjects = [
       '(none)',
@@ -109,10 +110,10 @@ class AddEditScreenState extends State<AddEditScreen> {
 
   bool hasDate() {
     return
-        _startDate != null ||
-        _targetDate != null ||
-        _urgentDate != null ||
-        _dueDate != null;
+      widget.taskItem?.startDate?.value != null ||
+      widget.taskItem?.targetDate?.value != null ||
+      widget.taskItem?.urgentDate?.value != null ||
+      widget.taskItem?.dueDate?.value != null;
   }
 
   void clearRepeatOn() {

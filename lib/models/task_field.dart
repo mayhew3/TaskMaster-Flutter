@@ -78,8 +78,17 @@ class TaskFieldString extends TaskField<String> {
   TaskFieldString.withValues(String fieldName, String value) : super.withValues(fieldName, value);
 
   @override
+  bool isChanged() {
+    return super.isChanged() && (cleanString(value) != cleanString(originalValue));
+  }
+
+  @override
   Object formatForJSON() {
-    return value == null || value.isEmpty ? null : value.trim();
+    return cleanString(value);
+  }
+
+  String cleanString(String str) {
+    return str == null || str.isEmpty ? null : str.trim();
   }
 
   @override
