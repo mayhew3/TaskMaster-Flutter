@@ -33,26 +33,26 @@ class TaskItem {
   static List<String> controlledFields = ['id', 'person_id', 'date_added', 'completion_date'];
 
   TaskItem() {
-    this.id = addIntegerField("id");
-    this.personId = addIntegerField("person_id");
-    this.name = addStringField("name");
-    this.description = addStringField("description");
-    this.project = addStringField("project");
-    this.context = addStringField("context");
-    this.urgency = addIntegerField("urgency");
-    this.priority = addIntegerField("priority");
-    this.duration = addIntegerField("duration");
-    this.dateAdded = addDateField("date_added");
-    this.startDate = addDateField("start_date");
-    this.targetDate = addDateField("target_date");
-    this.dueDate = addDateField("due_date");
-    this.completionDate = addDateField("completion_date");
-    this.urgentDate = addDateField("urgent_date");
-    this.gamePoints = addIntegerField("game_points");
-    this.recurNumber = addIntegerField("recur_number");
-    this.recurUnit = addStringField("recur_unit");
-    this.recurWait = addBoolField("recur_wait");
-    this.recurrenceId = addIntegerField("recurrence_id");
+    this.id = _addIntegerField("id");
+    this.personId = _addIntegerField("person_id");
+    this.name = _addStringField("name");
+    this.description = _addStringField("description");
+    this.project = _addStringField("project");
+    this.context = _addStringField("context");
+    this.urgency = _addIntegerField("urgency");
+    this.priority = _addIntegerField("priority");
+    this.duration = _addIntegerField("duration");
+    this.dateAdded = _addDateField("date_added");
+    this.startDate = _addDateField("start_date");
+    this.targetDate = _addDateField("target_date");
+    this.dueDate = _addDateField("due_date");
+    this.completionDate = _addDateField("completion_date");
+    this.urgentDate = _addDateField("urgent_date");
+    this.gamePoints = _addIntegerField("game_points");
+    this.recurNumber = _addIntegerField("recur_number");
+    this.recurUnit = _addStringField("recur_unit");
+    this.recurWait = _addBoolField("recur_wait");
+    this.recurrenceId = _addIntegerField("recurrence_id");
   }
 
   revertAllChanges() {
@@ -128,30 +128,6 @@ class TaskItem {
     }
   }
 
-  String getAnchorDateFieldName() {
-    if (dueDate.value != null) {
-      return "Due";
-    } else if (urgentDate.value != null) {
-      return "Urgent";
-    } else if (targetDate.value != null) {
-      return "Target";
-    } else if (startDate.value != null) {
-      return "Start";
-    } else {
-      return null;
-    }
-  }
-
-  DateTime getDateFromName(String anchorDateFieldName) {
-    switch (anchorDateFieldName) {
-      case "Due": return dueDate.value;
-      case "Urgent": return urgentDate.value;
-      case "Target": return targetDate.value;
-      case "Start": return startDate.value;
-      default: return null;
-    }
-  }
-
   @override
   int get hashCode =>
       id.hashCode;
@@ -173,27 +149,27 @@ class TaskItem {
         'completionDate: ${completionDate.value}}';
   }
 
-  // Empty
+  // Private
 
-  TaskFieldString addStringField(String fieldName) {
+  TaskFieldString _addStringField(String fieldName) {
     var taskFieldString = TaskFieldString(fieldName);
     fields.add(taskFieldString);
     return taskFieldString;
   }
 
-  TaskFieldInteger addIntegerField(String fieldName) {
+  TaskFieldInteger _addIntegerField(String fieldName) {
     var taskFieldInteger = TaskFieldInteger(fieldName);
     fields.add(taskFieldInteger);
     return taskFieldInteger;
   }
 
-  TaskFieldBoolean addBoolField(String fieldName) {
+  TaskFieldBoolean _addBoolField(String fieldName) {
     var taskFieldBoolean = TaskFieldBoolean(fieldName);
     fields.add(taskFieldBoolean);
     return taskFieldBoolean;
   }
 
-  TaskFieldDate addDateField(String fieldName) {
+  TaskFieldDate _addDateField(String fieldName) {
     var taskFieldDate = TaskFieldDate(fieldName);
     fields.add(taskFieldDate);
     return taskFieldDate;
