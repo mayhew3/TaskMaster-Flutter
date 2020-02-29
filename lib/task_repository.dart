@@ -15,8 +15,6 @@ class TaskRepository {
 
   TaskRepository({@required this.appState});
 
-  static List<String> controlledFields = ['id', 'person_id', 'date_added', 'completion_date'];
-
   Future<List<TaskItem>> loadTasks() async {
     if (!appState.isAuthenticated()) {
       throw Exception("Cannot load tasks before being signed in.");
@@ -67,7 +65,7 @@ class TaskRepository {
 
     var taskObj = {};
     for (var field in taskItem.fields) {
-      if (!controlledFields.contains(field.fieldName)) {
+      if (!TaskItem.controlledFields.contains(field.fieldName)) {
         taskObj[field.fieldName] = field.formatForJSON();
       }
     }
@@ -105,7 +103,7 @@ class TaskRepository {
     var taskObj = {};
     taskObj['id'] = taskItem.id.value;
     for (var field in taskItem.fields) {
-      if (!controlledFields.contains(field.fieldName) && field.isChanged()) {
+      if (!TaskItem.controlledFields.contains(field.fieldName) && field.isChanged()) {
         taskObj[field.fieldName] = field.formatForJSON();
       }
     }

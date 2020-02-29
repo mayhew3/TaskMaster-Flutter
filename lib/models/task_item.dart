@@ -30,6 +30,8 @@ class TaskItem {
 
   List<TaskField> fields = [];
 
+  static List<String> controlledFields = ['id', 'person_id', 'date_added', 'completion_date'];
+
   TaskItem() {
     this.id = addIntegerField("id");
     this.personId = addIntegerField("person_id");
@@ -75,22 +77,25 @@ class TaskItem {
   TaskItem createCopy() {
     var taskItem = new TaskItem();
     for (var field in fields) {
-      if (field.fieldName != 'id' && field.fieldName != 'date_added') {
+      if (!controlledFields.contains(field.fieldName)) {
         var newField = taskItem.getTaskField(field.fieldName);
         newField.initializeValue(field.value);
       }
     }
+    taskItem.personId.initializeValue(personId.value);
 
     return taskItem;
   }
 
   TaskField getTaskField(String fieldName) {
-    return fields.singleWhere((field) => field.fieldName == fieldName);
-  }
-
-  void setFieldValue(String fieldName, Object fieldValue) {
-    var taskField = getTaskField(fieldName);
-    taskField.value = fieldValue;
+    var matching = fields.where((field) => field.fieldName == fieldName);
+    if (matching.isEmpty) {
+      return null;
+    } else if (matching.length > 1) {
+      throw Exception("Bad state: multiple matches for fieldName $fieldName");
+    } else {
+      return matching.first;
+    }
   }
 
   bool isCompleted() {
