@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -12,8 +13,12 @@ import 'package:taskmaster/models/task_item.dart';
 
 class TaskRepository {
   AppState appState;
+  http.Client client;
 
-  TaskRepository({@required this.appState});
+  TaskRepository({
+    @required this.appState,
+    @required this.client,
+  });
 
   Future<List<TaskItem>> loadTasks() async {
     if (!appState.isAuthenticated()) {
@@ -26,9 +31,9 @@ class TaskRepository {
 
     var uri = Uri.https('taskmaster-general.herokuapp.com', '/api/tasks', queryParameters);
 
-    var idToken = await appState.getIdToken();
+    IdTokenResult idToken = await appState.getIdToken();
 
-    final response = await http.get(uri,
+    final response = await this.client.get(uri,
       headers: {HttpHeaders.authorizationHeader: idToken.token,
                 HttpHeaders.contentTypeHeader: 'application/json'},
     );
@@ -127,7 +132,7 @@ class TaskRepository {
 
     var idToken = await appState.getIdToken();
 
-    final response = await http.delete(uri,
+    final response = await client.delete(uri,
       headers: {HttpHeaders.authorizationHeader: idToken.token,
         HttpHeaders.contentTypeHeader: 'application/json'},
     );
@@ -142,7 +147,7 @@ class TaskRepository {
 
     var idToken = await appState.getIdToken();
 
-    final response = await http.post("https://taskmaster-general.herokuapp.com/api/tasks",
+    final response = await client.post("https://taskmaster-general.herokuapp.com/api/tasks",
         headers: {HttpHeaders.authorizationHeader: idToken.token,
           "Content-Type": "application/json"},
         body: body

@@ -4,6 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/nav_helper.dart';
+import 'package:http/http.dart' as http;
 import 'package:taskmaster/screens/loading.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:jiffy/jiffy.dart';
@@ -26,7 +27,10 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       idTokenUpdater: updateIdToken,
       navHelper: navHelper,
     );
-    repository = TaskRepository(appState: appState);
+    repository = TaskRepository(
+      appState: appState,
+      client: http.Client(),
+    );
     navHelper = NavHelper(
       appState: appState,
       taskRepository: repository,
