@@ -16,18 +16,9 @@ void main() {
       var mockClient = new MockClient();
       TaskRepository taskRepository = TaskRepository(appState: mockAppState, client: mockClient);
 
-      String url = 'test';
-
-      String json = '{"person_id": 1, "tasks": []}';
-/*
-
-      when(mockClient.get(url))
-          .thenAnswer((_) async {
-        return http.Response(json, 200);
-      });
-*/
-
-      expect(await taskRepository.loadTasks(), const TypeMatcher<List<TaskItem>>());
+      List<TaskItem> taskList = await taskRepository.loadTasks();
+      expect(taskList, const TypeMatcher<List<TaskItem>>());
+      expect(taskList.length, 0);
     });
 
   });
