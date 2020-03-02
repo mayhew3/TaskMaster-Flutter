@@ -8,17 +8,28 @@ import 'package:http/http.dart' as http;
 import 'MockAppState.dart';
 import 'MockClient.dart';
 
+import 'mock_data.dart';
+
 void main() {
   group('TaskRepository', () {
 
-    test('Should be constructed', () async {
+    test('Should be constructed with empty list', () async {
+      List<TaskItem> testItems = [];
+      var taskItem = new TaskItem();
+      taskItem.id.initializeValue(1);
+      taskItem.personId.initializeValue(1);
+      taskItem.name.initializeValue('Bat Litter');
+      taskItem.startDate.initializeValue(catStart);
+      taskItem.targetDate.initializeValue(catTarget);
+      testItems.add(taskItem);
+
       AppState mockAppState = new MockAppState();
-      var mockClient = new MockClient();
+      var mockClient = new MockClient(testItems);
       TaskRepository taskRepository = TaskRepository(appState: mockAppState, client: mockClient);
 
       List<TaskItem> taskList = await taskRepository.loadTasks();
       expect(taskList, const TypeMatcher<List<TaskItem>>());
-      expect(taskList.length, 0);
+      expect(taskList.length, 1);
     });
 
   });

@@ -1,4 +1,5 @@
 
+final DateTime catStart = DateTime.utc(2019, 11, 5, 3, 0, 0);
 final DateTime catTarget = DateTime.utc(2019, 11, 7, 3, 0, 0);
 final DateTime catEnd = DateTime.utc(2019, 11, 9, 2, 49, 43);
 final DateTime catAdded = DateTime.utc(2019, 9, 27, 4, 34, 48, 460);
