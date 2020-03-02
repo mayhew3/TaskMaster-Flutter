@@ -13,15 +13,10 @@ import 'mock_data.dart';
 void main() {
   group('TaskRepository', () {
 
-    test('Should be constructed with empty list', () async {
+    test('Should be constructed with single task', () async {
       List<TaskItem> testItems = [];
-      var taskItem = new TaskItem();
-      taskItem.id.initializeValue(1);
-      taskItem.personId.initializeValue(1);
-      taskItem.name.initializeValue('Bat Litter');
-      taskItem.startDate.initializeValue(catStart);
-      taskItem.targetDate.initializeValue(catTarget);
-      testItems.add(taskItem);
+      testItems.add(TaskItem.fromJson(catLitterJSON));
+      testItems.add(TaskItem.fromJson(birthdayJSON));
 
       AppState mockAppState = new MockAppState();
       var mockClient = new MockClient(testItems);
@@ -29,7 +24,7 @@ void main() {
 
       List<TaskItem> taskList = await taskRepository.loadTasks();
       expect(taskList, const TypeMatcher<List<TaskItem>>());
-      expect(taskList.length, 1);
+      expect(taskList.length, 2);
     });
 
   });
