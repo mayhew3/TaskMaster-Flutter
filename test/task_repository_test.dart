@@ -13,7 +13,17 @@ import 'mock_data.dart';
 void main() {
   group('TaskRepository', () {
 
-    test('Should be constructed with single task', () async {
+    test('loadTasks with no tasks', () async {
+      AppState mockAppState = new MockAppState();
+      var mockClient = new MockClient([]);
+      TaskRepository taskRepository = TaskRepository(appState: mockAppState, client: mockClient);
+
+      List<TaskItem> taskList = await taskRepository.loadTasks();
+      expect(taskList, const TypeMatcher<List<TaskItem>>());
+      expect(taskList.length, 0);
+    });
+
+    test('loadTasks with tasks', () async {
       List<TaskItem> testItems = [];
       testItems.add(TaskItem.fromJson(catLitterJSON));
       testItems.add(TaskItem.fromJson(birthdayJSON));
