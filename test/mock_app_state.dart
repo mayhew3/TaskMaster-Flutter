@@ -5,8 +5,8 @@ import 'package:mockito/mockito.dart';
 import 'package:taskmaster/models/app_state.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import 'MockGoogleSignInAccount.dart';
-import 'MockIdTokenResult.dart';
+import 'mock_google_sign_in_account.dart';
+import 'mock_id_token_result.dart';
 
 class MockAppState extends Mock implements AppState {
   GoogleSignInAccount currentUser = MockGoogleSignInAccount();

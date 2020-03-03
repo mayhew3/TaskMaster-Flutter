@@ -3,8 +3,8 @@ import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
-import 'MockAppState.dart';
-import 'MockClient.dart';
+import 'mock_app_state.dart';
+import 'mock_client.dart';
 
 import 'mock_data.dart';
 
