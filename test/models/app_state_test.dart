@@ -70,4 +70,28 @@ void main() {
     expect(filteredTasks, contains(future));
   });
 
+  test('getFilteredTasks empty list', () {
+    var appState = createAppState([]);
+    var filteredTasks = appState.getFilteredTasks(true, true);
+    expect(filteredTasks.length, 0);
+  });
+
+
+  test('findTaskItemWithId', () {
+    var appState = createAppState(all);
+    var taskItemWithId = appState.findTaskItemWithId(26);
+    expect(taskItemWithId, birthday);
+  });
+
+  test('findTaskItemWithId no result', () {
+    var appState = createAppState(all);
+    var taskItemWithId = appState.findTaskItemWithId(23);
+    expect(taskItemWithId, null);
+  });
+
+  test('updateTaskListWithUpdatedTask', () {
+    var appState = createAppState(all);
+
+  });
+
 }
