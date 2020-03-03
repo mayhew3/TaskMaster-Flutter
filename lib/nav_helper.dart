@@ -25,7 +25,9 @@ class NavHelper {
     @required this.taskDeleter,
     @required this.taskUpdater,
     @required this.taskListReloader,
-  });
+  }) {
+    this.appState.updateNavHelper(this);
+  }
 
   void updateContext(BuildContext context) {
     this.context = context;

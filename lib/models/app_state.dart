@@ -11,26 +11,24 @@ import 'package:taskmaster/typedefs.dart';
 class AppState {
   bool isLoading;
   List<TaskItem> taskItems;
-  TaskMasterAuth auth;
+  final TaskMasterAuth auth;
   GoogleSignInAccount currentUser;
   bool tokenRetrieved = false;
   int personId;
   NotificationScheduler notificationScheduler;
   String title;
-  final NavHelper navHelper;
+  NavHelper navHelper;
 
   AppState({
     this.isLoading = true,
     this.taskItems = const [],
-    @required userUpdater: UserUpdater,
-    @required idTokenUpdater: IdTokenUpdater,
-    @required this.navHelper,
+    @required this.auth,
   }) {
-    auth = TaskMasterAuth(
-      updateCurrentUser: userUpdater,
-      updateIdToken: idTokenUpdater,
-    );
     title = 'TaskMaster 3000';
+  }
+
+  void updateNavHelper(NavHelper navHelper) {
+    this.navHelper = navHelper;
   }
 
   Future<IdTokenResult> getIdToken() async {

@@ -10,7 +10,8 @@ class MockNavHelper extends Mock implements NavHelper {
   @override
   BuildContext context;
 
-  final AppState appState;
+  @override
+  AppState appState;
   final TaskRepository taskRepository;
 
   @override
@@ -29,7 +30,6 @@ class MockNavHelper extends Mock implements NavHelper {
   TaskListReloader get taskListReloader => () => {};
 
   MockNavHelper({
-    @required this.appState,
     @required this.taskRepository,
   });
 
