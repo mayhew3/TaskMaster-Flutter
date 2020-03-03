@@ -1,7 +1,7 @@
 import 'package:taskmaster/models/app_state.dart';
 import 'package:test/test.dart';
 
-import '../mock_nav_helper.dart';
+import '../mocks/mock_nav_helper.dart';
 
 void main() {
 

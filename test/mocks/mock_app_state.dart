@@ -12,7 +12,6 @@ class MockAppState extends Mock implements AppState {
   GoogleSignInAccount currentUser = MockGoogleSignInAccount();
   int get personId => 1;
 
-
   @override
   bool isAuthenticated() {
     return true;

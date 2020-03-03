@@ -3,10 +3,10 @@ import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
-import 'mock_app_state.dart';
-import 'mock_client.dart';
+import 'mocks/mock_app_state.dart';
+import 'mocks/mock_client.dart';
 
-import 'mock_data.dart';
+import 'mocks/mock_data.dart';
 
 void main() {
   group('TaskRepository', () {

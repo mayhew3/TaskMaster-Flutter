@@ -2,7 +2,7 @@ import 'package:taskmaster/models/task_field.dart';
 import 'package:test/test.dart';
 import 'package:taskmaster/models/task_item.dart';
 
-import '../mock_data.dart';
+import '../mocks/mock_data.dart';
 
 void main() {
   group('TaskItem', () {
