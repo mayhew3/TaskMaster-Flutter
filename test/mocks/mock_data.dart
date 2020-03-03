@@ -56,3 +56,59 @@ final Map<String, dynamic> birthdayJSON = {
   "retired": 0,
   "retired_date": null,
 };
+
+final DateTime futureStart = DateTime.now().add(Duration(days: 90));
+final DateTime futureAdded = DateTime.utc(2019, 6, 24, 8, 11, 56, 123);
+
+final Map<String, dynamic> futureJSON = {
+  "id": 27,
+  "person_id": 1,
+  "name": "Become President",
+  "description": "It could happen",
+  "project": "Projects",
+  "context": "Outside",
+  "urgency": 3,
+  "priority": 9,
+  "duration": 1200,
+  "start_date": futureStart.toIso8601String(),
+  "target_date": null,
+  "due_date": null,
+  "completion_date": null,
+  "urgent_date": null,
+  "game_points": 15,
+  "recur_number": null,
+  "recur_unit": null,
+  "recur_wait": null,
+  "recurrence_id": null,
+  "date_added": futureAdded.toIso8601String(),
+  "retired": 0,
+  "retired_date": null,
+};
+
+final DateTime pastStart = DateTime.now().subtract(Duration(days: 90));
+final DateTime pastAdded = DateTime.utc(2019, 6, 24, 8, 11, 56, 123);
+
+final Map<String, dynamic> pastJSON = {
+  "id": 28,
+  "person_id": 1,
+  "name": "Cut out Gluten",
+  "description": "Because my tummy",
+  "project": "Health",
+  "context": "Home",
+  "urgency": 4,
+  "priority": 5,
+  "duration": 60,
+  "start_date": pastStart.toIso8601String(),
+  "target_date": null,
+  "due_date": null,
+  "completion_date": null,
+  "urgent_date": null,
+  "game_points": 15,
+  "recur_number": null,
+  "recur_unit": null,
+  "recur_wait": null,
+  "recurrence_id": null,
+  "date_added": pastAdded.toIso8601String(),
+  "retired": 0,
+  "retired_date": null,
+};
