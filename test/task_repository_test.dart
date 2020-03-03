@@ -2,8 +2,6 @@ import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
-import 'package:mockito/mockito.dart';
-import 'package:http/http.dart' as http;
 
 import 'MockAppState.dart';
 import 'MockClient.dart';

@@ -27,6 +27,7 @@ class MockClient extends Mock implements http.Client {
     return json.encode(taskObj);
   }
 
+  @override
   Future<http.Response> get(url, {Map<String, String> headers}) {
     return Future<http.Response>.value(http.Response(_mockTheJSON(), 200));
   }
