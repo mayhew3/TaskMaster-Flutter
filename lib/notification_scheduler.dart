@@ -89,10 +89,9 @@ class NotificationScheduler {
     DateTime dueDate = taskItem.dueDate.value;
     DateTime urgentDate = taskItem.urgentDate.value;
     DateTime completionDate = taskItem.completionDate.value;
-    DateTime now = DateTime.now();
 
     var dueName = '${taskItem.name.value} (due)';
-    if (dueDate != null && completionDate == null && now.isBefore(dueDate)) {
+    if (dueDate != null && completionDate == null && !taskItem.dueDate.hasPassed()) {
       var taskPayload = 'task:${taskItem.id.value}:due';
       await _scheduleNotification(nextId, dueDate, dueName, taskPayload, 'due', removedDue);
       nextId++;
@@ -101,7 +100,7 @@ class NotificationScheduler {
     }
 
     var urgentName = '${taskItem.name.value} (urgent)';
-    if (urgentDate != null && completionDate == null && now.isBefore(urgentDate)) {
+    if (urgentDate != null && completionDate == null && !taskItem.urgentDate.hasPassed()) {
       var taskPayload = 'task:${taskItem.id.value}:urgent';
       await _scheduleNotification(nextId, urgentDate, urgentName, taskPayload, 'urgent', removedUrgent);
       nextId++;

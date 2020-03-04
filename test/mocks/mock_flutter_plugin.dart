@@ -5,6 +5,16 @@ import 'mock_pending_notification_request.dart';
 
 class MockFlutterLocalNotificationsPlugin extends Mock implements FlutterLocalNotificationsPlugin {
   List<MockPendingNotificationRequest> pendings = [];
+  SelectNotificationCallback onSelect;
+  DidReceiveLocalNotificationCallback onNotification;
+
+  @override
+  Future<bool> initialize(InitializationSettings initializationSettings,
+      {SelectNotificationCallback onSelectNotification}) async {
+    onSelect = onSelectNotification;
+    onNotification = initializationSettings.ios.onDidReceiveLocalNotification;
+    return Future.value(true);
+  }
 
   @override
   Future<void> schedule(int id, String title, String body,

@@ -13,22 +13,36 @@ import 'mocks/mock_data.dart';
 import 'mocks/mock_flutter_plugin.dart';
 import 'mocks/mock_pending_notification_request.dart';
 
-class MockAppBadger extends Mock implements FlutterBadgerWrapper {}
+class MockAppBadger extends Mock implements FlutterBadgerWrapper {
+  int badgeValue = 0;
+
+  @override
+  void updateBadgeCount(int count) {
+    badgeValue = count;
+  }
+}
 
 void main() {
 
   MockFlutterLocalNotificationsPlugin plugin;
-  FlutterBadgerWrapper flutterBadgerWrapper;
+  MockAppBadger flutterBadgerWrapper;
   AppState appState;
 
-  TaskItem urgentDue;
+  TaskItem futureUrgentDue;
+  TaskItem pastUrgentDue;
 
   setUp(() {
-    urgentDue = TaskItem();
-    urgentDue.id.initializeValue(30);
-    urgentDue.name.initializeValue('Give a Penny');
-    urgentDue.dueDate.initializeValue(DateTime.now().add(Duration(days: 4)));
-    urgentDue.urgentDate.initializeValue(DateTime.now().add(Duration(days: 2)));
+    futureUrgentDue = TaskItem();
+    futureUrgentDue.id.initializeValue(30);
+    futureUrgentDue.name.initializeValue('Give a Penny');
+    futureUrgentDue.dueDate.initializeValue(DateTime.now().add(Duration(days: 4)));
+    futureUrgentDue.urgentDate.initializeValue(DateTime.now().add(Duration(days: 2)));
+
+    pastUrgentDue = TaskItem();
+    pastUrgentDue.id.initializeValue(30);
+    pastUrgentDue.name.initializeValue('Take a Penny');
+    pastUrgentDue.dueDate.initializeValue(DateTime.now().subtract(Duration(days: 2)));
+    pastUrgentDue.urgentDate.initializeValue(DateTime.now().subtract(Duration(days: 4)));
   });
 
   Future<NotificationScheduler> _createScheduler(List<TaskItem> taskItems) async {
@@ -64,7 +78,7 @@ void main() {
     await scheduler.syncNotificationForTask(birthdayTask);
     expect(plugin.pendings.length, 1);
     MockPendingNotificationRequest request = plugin.pendings[0];
-    expect(request.id, 0);
+    expect(request.id, isNot(null));
     expect(request.payload, 'task:${birthdayTask.id.value}:due');
   });
 
@@ -74,11 +88,27 @@ void main() {
     expect(plugin.pendings.length, 0);
   });
 
+  test('syncNotificationForTask adds nothing if urgent and due date are past', () async {
+    var scheduler = await _createScheduler([]);
+    await scheduler.syncNotificationForTask(pastUrgentDue);
+    expect(plugin.pendings.length, 0);
+  });
+
   test('syncNotificationForTask adds two notifications for urgent and due date', () async {
     var scheduler = await _createScheduler([]);
 
-    await scheduler.syncNotificationForTask(urgentDue);
+    await scheduler.syncNotificationForTask(futureUrgentDue);
     expect(plugin.pendings.length, 2);
+
+    var duePayload = 'task:${futureUrgentDue.id.value}:due';
+    var urgentPayload = 'task:${futureUrgentDue.id.value}:urgent';
+
+    var dueNotification = plugin.pendings.singleWhere((notification) => notification.payload == duePayload);
+    var urgentNotification = plugin.pendings.singleWhere((notification) => notification.payload == urgentPayload);
+
+    expect(dueNotification, isNot(null));
+    expect(urgentNotification, isNot(null));
+    expect(dueNotification.id, isNot(urgentNotification.id));
   });
 
   test('cancelNotificationsForTaskId', () async {
@@ -90,12 +120,25 @@ void main() {
   });
 
   test('cancelAllNotifications', () async {
-    var scheduler = await _createScheduler([urgentDue, birthdayTask]);
+    var scheduler = await _createScheduler([futureUrgentDue, birthdayTask]);
     expect(plugin.pendings.length, 3);
     await scheduler.cancelAllNotifications();
     expect(plugin.pendings.length, 0);
   });
 
+  test('updateBadge', () async {
+    var scheduler = await _createScheduler([pastUrgentDue]);
+    expect(plugin.pendings.length, 0);
+    scheduler.updateBadge();
+    expect(flutterBadgerWrapper.badgeValue, 1);
+  });
 
+  test('updateBadge excludes completed', () async {
+    pastUrgentDue.completionDate.initializeValue(DateTime.now());
+    var scheduler = await _createScheduler([pastUrgentDue]);
+    expect(plugin.pendings.length, 0);
+    scheduler.updateBadge();
+    expect(flutterBadgerWrapper.badgeValue, 0);
+  });
 
 }
