@@ -32,10 +32,17 @@ void main() {
     _createScheduler();
   });
 
+  test('cancelAllNotifications', () {
+    var scheduler = _createScheduler();
+    scheduler.cancelAllNotifications();
+    verify(plugin.cancelAll()).called(1);
+  });
+
   test('cancelNotificationsForTaskId', () {
     var scheduler = _createScheduler();
     scheduler.cancelAllNotifications();
     verify(plugin.cancelAll()).called(1);
   });
+
 
 }
