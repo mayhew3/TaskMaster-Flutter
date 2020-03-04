@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:taskmaster/auth.dart';
 import 'package:taskmaster/models/task_item.dart';
@@ -60,13 +61,16 @@ class AppState {
       TaskAdder taskAdder,
       TaskUpdater taskUpdater,
       TaskCompleter taskCompleter) {
+
     notificationScheduler = NotificationScheduler(
       context: context,
       appState: appState,
       taskAdder: taskAdder,
       taskUpdater: taskUpdater,
       taskCompleter: taskCompleter,
+      flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
     );
+
   }
 
   void finishedLoading(List<TaskItem> taskItems) {
