@@ -30,6 +30,7 @@ void main() {
 
   TaskItem futureUrgentDue;
   TaskItem pastUrgentDue;
+  TaskItem straddledUrgentDue;
 
   setUp(() {
     futureUrgentDue = TaskItem();
@@ -43,6 +44,12 @@ void main() {
     pastUrgentDue.name.initializeValue('Take a Penny');
     pastUrgentDue.dueDate.initializeValue(DateTime.now().subtract(Duration(days: 2)));
     pastUrgentDue.urgentDate.initializeValue(DateTime.now().subtract(Duration(days: 4)));
+
+    straddledUrgentDue = TaskItem();
+    straddledUrgentDue.id.initializeValue(30);
+    straddledUrgentDue.name.initializeValue('Take a Penny');
+    straddledUrgentDue.dueDate.initializeValue(DateTime.now().add(Duration(days: 7)));
+    straddledUrgentDue.urgentDate.initializeValue(DateTime.now().subtract(Duration(days: 5)));
   });
 
   Future<NotificationScheduler> _createScheduler(List<TaskItem> taskItems) async {
@@ -80,6 +87,7 @@ void main() {
     MockPendingNotificationRequest request = plugin.pendings[0];
     expect(request.id, isNot(null));
     expect(request.payload, 'task:${birthdayTask.id.value}:due');
+    expect(request.notificationDate, birthdayTask.dueDate.value);
   });
 
   test('syncNotificationForTask adds nothing if no urgent or due date', () async {
@@ -111,6 +119,18 @@ void main() {
     expect(dueNotification.id, isNot(urgentNotification.id));
   });
 
+  test('syncNotificationForTask adds one notifications for past urgent and future due date', () async {
+    var taskItem = straddledUrgentDue;
+
+    var scheduler = await _createScheduler([]);
+    await scheduler.syncNotificationForTask(taskItem);
+    expect(plugin.pendings.length, 1);
+    MockPendingNotificationRequest request = plugin.pendings[0];
+    expect(request.id, isNot(null));
+    expect(request.payload, 'task:${taskItem.id.value}:due');
+    expect(request.notificationDate, taskItem.dueDate.value);
+  });
+
   test('cancelNotificationsForTaskId', () async {
     var scheduler = await _createScheduler([]);
     await scheduler.syncNotificationForTask(birthdayTask);
@@ -127,6 +147,20 @@ void main() {
   });
 
   test('updateBadge', () async {
+    var scheduler = await _createScheduler([pastUrgentDue]);
+    expect(plugin.pendings.length, 0);
+    scheduler.updateBadge();
+    expect(flutterBadgerWrapper.badgeValue, 1);
+  });
+
+  test('updateBadge includes task with past urgent and future due', () async {
+    var scheduler = await _createScheduler([straddledUrgentDue]);
+    expect(plugin.pendings.length, 1);
+    scheduler.updateBadge();
+    expect(flutterBadgerWrapper.badgeValue, 1);
+  });
+
+  test('updateBadge includes only one task with past urgent and past due', () async {
     var scheduler = await _createScheduler([pastUrgentDue]);
     expect(plugin.pendings.length, 0);
     scheduler.updateBadge();

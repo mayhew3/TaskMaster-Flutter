@@ -20,7 +20,7 @@ class MockFlutterLocalNotificationsPlugin extends Mock implements FlutterLocalNo
   Future<void> schedule(int id, String title, String body,
       DateTime scheduledDate, NotificationDetails notificationDetails,
       {String payload, bool androidAllowWhileIdle = false}) async {
-    MockPendingNotificationRequest request = new MockPendingNotificationRequest(id, payload);
+    MockPendingNotificationRequest request = new MockPendingNotificationRequest(id, payload, scheduledDate);
     pendings.add(request);
   }
 
