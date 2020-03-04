@@ -1,4 +1,6 @@
 
+import 'package:taskmaster/models/task_item.dart';
+
 final DateTime catStart = DateTime.utc(2019, 11, 5, 3, 0, 0);
 final DateTime catTarget = DateTime.utc(2019, 11, 7, 3, 0, 0);
 final DateTime catEnd = DateTime.utc(2019, 11, 9, 2, 49, 43);
@@ -112,3 +114,11 @@ final Map<String, dynamic> pastJSON = {
   "retired": 0,
   "retired_date": null,
 };
+
+TaskItem catLitterTask = TaskItem.fromJson(catLitterJSON);
+TaskItem birthdayTask = TaskItem.fromJson(birthdayJSON);
+TaskItem futureTask = TaskItem.fromJson(futureJSON);
+TaskItem pastTask = TaskItem.fromJson(pastJSON);
+
+List<TaskItem> allTasks = [catLitterTask, birthdayTask, futureTask, pastTask];
+

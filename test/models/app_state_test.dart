@@ -9,13 +9,6 @@ import '../mocks/mock_task_repository.dart';
 
 void main() {
 
-  TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-  TaskItem birthday = TaskItem.fromJson(birthdayJSON);
-  TaskItem future = TaskItem.fromJson(futureJSON);
-  TaskItem past = TaskItem.fromJson(pastJSON);
-
-  List<TaskItem> all = [catLitter, birthday, future, past];
-
   AppState createAppState(List<TaskItem> taskItems) {
     var appState = AppState(
       auth: MockTaskMasterAuth(),
@@ -29,45 +22,45 @@ void main() {
   }
 
   test('Should be constructed', () {
-    var appState = createAppState(all);
+    var appState = createAppState(allTasks);
     expect(appState.title, 'TaskMaster 3000');
     expect(appState.taskItems.length, 4);
   });
 
   test('getFilteredTasks no scheduled no completed', () {
-    var appState = createAppState(all);
+    var appState = createAppState(allTasks);
     var filteredTasks = appState.getFilteredTasks(false, false);
     expect(filteredTasks.length, 2);
-    expect(filteredTasks, contains(birthday));
-    expect(filteredTasks, contains(past));
+    expect(filteredTasks, contains(birthdayTask));
+    expect(filteredTasks, contains(pastTask));
   });
 
   test('getFilteredTasks yes scheduled no completed', () {
-    var appState = createAppState(all);
+    var appState = createAppState(allTasks);
     var filteredTasks = appState.getFilteredTasks(true, false);
     expect(filteredTasks.length, 3);
-    expect(filteredTasks, contains(birthday));
-    expect(filteredTasks, contains(past));
-    expect(filteredTasks, contains(future));
+    expect(filteredTasks, contains(birthdayTask));
+    expect(filteredTasks, contains(pastTask));
+    expect(filteredTasks, contains(futureTask));
   });
 
   test('getFilteredTasks no scheduled yes completed', () {
-    var appState = createAppState(all);
+    var appState = createAppState(allTasks);
     var filteredTasks = appState.getFilteredTasks(false, true);
     expect(filteredTasks.length, 3);
-    expect(filteredTasks, contains(birthday));
-    expect(filteredTasks, contains(past));
-    expect(filteredTasks, contains(catLitter));
+    expect(filteredTasks, contains(birthdayTask));
+    expect(filteredTasks, contains(pastTask));
+    expect(filteredTasks, contains(catLitterTask));
   });
 
   test('getFilteredTasks yes scheduled yes completed', () {
-    var appState = createAppState(all);
+    var appState = createAppState(allTasks);
     var filteredTasks = appState.getFilteredTasks(true, true);
     expect(filteredTasks.length, 4);
-    expect(filteredTasks, contains(birthday));
-    expect(filteredTasks, contains(past));
-    expect(filteredTasks, contains(catLitter));
-    expect(filteredTasks, contains(future));
+    expect(filteredTasks, contains(birthdayTask));
+    expect(filteredTasks, contains(pastTask));
+    expect(filteredTasks, contains(catLitterTask));
+    expect(filteredTasks, contains(futureTask));
   });
 
   test('getFilteredTasks empty list', () {
@@ -78,22 +71,22 @@ void main() {
 
 
   test('findTaskItemWithId', () {
-    var appState = createAppState(all);
+    var appState = createAppState(allTasks);
     var taskItemWithId = appState.findTaskItemWithId(26);
-    expect(taskItemWithId, birthday);
+    expect(taskItemWithId, birthdayTask);
   });
 
   test('findTaskItemWithId no result', () {
-    var appState = createAppState(all);
+    var appState = createAppState(allTasks);
     var taskItemWithId = appState.findTaskItemWithId(23);
     expect(taskItemWithId, null);
   });
 
   test('updateTaskListWithUpdatedTask', () {
-    var idToReplace = past.id.value;
+    var idToReplace = pastTask.id.value;
     var newName = 'Barter';
 
-    var appState = createAppState(all);
+    var appState = createAppState(allTasks);
 
     var taskItem = new TaskItem();
     taskItem.id.initializeValue(idToReplace);
@@ -101,7 +94,7 @@ void main() {
 
     var updated = appState.updateTaskListWithUpdatedTask(taskItem);
     expect(updated, taskItem);
-    expect(appState.taskItems.length, all.length);
+    expect(appState.taskItems.length, allTasks.length);
 
     var pulled = appState.findTaskItemWithId(idToReplace);
     expect(pulled, updated);

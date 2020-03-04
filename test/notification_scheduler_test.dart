@@ -1,4 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:taskmaster/flutter_badger_wrapper.dart';
 import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/notification_scheduler.dart';
@@ -12,19 +13,27 @@ import 'package:mockito/mockito.dart';
 import 'mocks/mock_data.dart';
 import 'mocks/mock_flutter_plugin.dart';
 
+class MockAppBadger extends Mock implements FlutterBadgerWrapper {}
+
 void main() {
 
   FlutterLocalNotificationsPlugin plugin;
+  FlutterBadgerWrapper flutterBadgerWrapper;
+  AppState appState;
 
   NotificationScheduler _createScheduler() {
     plugin = MockFlutterLocalNotificationsPlugin();
+    flutterBadgerWrapper = MockAppBadger();
+    appState = MockAppState();
+
     return new NotificationScheduler(
       context: null,
-      appState: MockAppState(),
+      appState: appState,
       taskAdder: (taskItem) => {},
       taskUpdater: (taskItem) => Future.value(taskItem),
       taskCompleter: (taskItem, completed) => Future.value(taskItem),
       flutterLocalNotificationsPlugin: plugin,
+      flutterBadgerWrapper: flutterBadgerWrapper,
     );
   }
 

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:taskmaster/auth.dart';
+import 'package:taskmaster/flutter_badger_wrapper.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/notification_scheduler.dart';
@@ -69,6 +70,7 @@ class AppState {
       taskUpdater: taskUpdater,
       taskCompleter: taskCompleter,
       flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
+      flutterBadgerWrapper: FlutterBadgerWrapper(),
     );
 
   }

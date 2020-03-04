@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
+import 'package:taskmaster/flutter_badger_wrapper.dart';
 import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
@@ -11,31 +11,27 @@ import 'package:taskmaster/typedefs.dart';
 
 class NotificationScheduler {
 
-  AppState appState;
-  TaskAdder taskAdder;
-  TaskUpdater taskUpdater;
-  TaskCompleter taskCompleter;
+  final AppState appState;
+  final TaskAdder taskAdder;
+  final TaskUpdater taskUpdater;
+  final TaskCompleter taskCompleter;
 
-  BuildContext context;
+  final BuildContext context;
   BuildContext homeScreenContext;
   int nextId = 0;
 
-  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+  final FlutterBadgerWrapper flutterBadgerWrapper;
 
   NotificationScheduler({
-    @required BuildContext context,
-    @required AppState appState,
-    @required TaskAdder taskAdder,
-    @required TaskUpdater taskUpdater,
-    @required TaskCompleter taskCompleter,
-    @required FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin,
+    @required this.context,
+    @required this.appState,
+    @required this.taskAdder,
+    @required this.taskUpdater,
+    @required this.taskCompleter,
+    @required this.flutterLocalNotificationsPlugin,
+    @required this.flutterBadgerWrapper,
   }) {
-    this.context = context;
-    this.appState = appState;
-    this.taskAdder = taskAdder;
-    this.taskUpdater = taskUpdater;
-    this.flutterLocalNotificationsPlugin = flutterLocalNotificationsPlugin;
-
     // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
     var initializationSettingsAndroid = AndroidInitializationSettings('app_icon');
     var initializationSettingsIOS = IOSInitializationSettings(
@@ -53,7 +49,7 @@ class NotificationScheduler {
   void updateBadge() {
     var numberOfUrgentTasks = _getNumberOfUrgentTasks();
     print('Updating badge with ${numberOfUrgentTasks.toString()} urgent tasks.');
-    FlutterAppBadger.updateBadgeCount(numberOfUrgentTasks);
+    flutterBadgerWrapper.updateBadgeCount(numberOfUrgentTasks);
   }
 
   Future<void> cancelAllNotifications() async {
