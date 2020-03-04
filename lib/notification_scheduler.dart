@@ -9,8 +9,6 @@ import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
 import 'package:taskmaster/typedefs.dart';
 
-FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
-
 class NotificationScheduler {
 
   AppState appState;
@@ -21,6 +19,8 @@ class NotificationScheduler {
   BuildContext context;
   BuildContext homeScreenContext;
   int nextId = 0;
+
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
   NotificationScheduler({
     @required BuildContext context,
