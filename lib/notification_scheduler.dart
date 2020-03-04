@@ -49,14 +49,9 @@ class NotificationScheduler {
     homeScreenContext = context;
   }
 
-  bool hasPassed(DateTime dateTime) {
-    var now = DateTime.now();
-    return dateTime == null ? false : dateTime.isBefore(now);
-  }
-
   int getNumberOfUrgentTasks() {
     var urgentTasks = appState.taskItems.where((taskItem) =>
-      (hasPassed(taskItem.urgentDate.value) || hasPassed(taskItem.dueDate.value)) && taskItem.completionDate.value == null);
+      (taskItem.urgentDate.hasPassed() || taskItem.dueDate.hasPassed()) && taskItem.completionDate.value == null);
     return urgentTasks.length;
   }
 
