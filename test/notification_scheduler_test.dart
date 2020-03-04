@@ -7,26 +7,36 @@ import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
 import 'mocks/mock_app_state.dart';
-import 'mocks/mock_client.dart';
 
 import 'package:mockito/mockito.dart';
 import 'mocks/mock_data.dart';
 import 'mocks/mock_flutter_plugin.dart';
+import 'mocks/mock_pending_notification_request.dart';
 
 class MockAppBadger extends Mock implements FlutterBadgerWrapper {}
 
 void main() {
 
-  FlutterLocalNotificationsPlugin plugin;
+  MockFlutterLocalNotificationsPlugin plugin;
   FlutterBadgerWrapper flutterBadgerWrapper;
   AppState appState;
 
-  NotificationScheduler _createScheduler() {
+  TaskItem urgentDue;
+
+  setUp(() {
+    urgentDue = TaskItem();
+    urgentDue.id.initializeValue(30);
+    urgentDue.name.initializeValue('Give a Penny');
+    urgentDue.dueDate.initializeValue(DateTime.now().add(Duration(days: 4)));
+    urgentDue.urgentDate.initializeValue(DateTime.now().add(Duration(days: 2)));
+  });
+
+  Future<NotificationScheduler> _createScheduler(List<TaskItem> taskItems) async {
     plugin = MockFlutterLocalNotificationsPlugin();
     flutterBadgerWrapper = MockAppBadger();
-    appState = MockAppState();
+    appState = MockAppState(taskItems: taskItems);
 
-    return new NotificationScheduler(
+    var notificationScheduler = new NotificationScheduler(
       context: null,
       appState: appState,
       taskAdder: (taskItem) => {},
@@ -35,23 +45,57 @@ void main() {
       flutterLocalNotificationsPlugin: plugin,
       flutterBadgerWrapper: flutterBadgerWrapper,
     );
+    List<Future<void>> futures = [];
+    appState.taskItems.forEach((taskItem) =>
+      futures.add(notificationScheduler.syncNotificationForTask(taskItem))
+    );
+    await Future.wait(futures);
+
+    return notificationScheduler;
   }
 
-  test('construct', () {
-    _createScheduler();
+  test('construct with empty list', () {
+    _createScheduler([]);
+    expect(plugin.pendings.length, 0);
   });
 
-  test('cancelAllNotifications', () {
-    var scheduler = _createScheduler();
-    scheduler.cancelAllNotifications();
-    verify(plugin.cancelAll()).called(1);
+  test('syncNotificationForTask first add', () async {
+    var scheduler = await _createScheduler([]);
+    await scheduler.syncNotificationForTask(birthdayTask);
+    expect(plugin.pendings.length, 1);
+    MockPendingNotificationRequest request = plugin.pendings[0];
+    expect(request.id, 0);
+    expect(request.payload, 'task:${birthdayTask.id.value}:due');
   });
 
-  test('cancelNotificationsForTaskId', () {
-    var scheduler = _createScheduler();
-    scheduler.cancelAllNotifications();
-    verify(plugin.cancelAll()).called(1);
+  test('syncNotificationForTask adds nothing if no urgent or due date', () async {
+    var scheduler = await _createScheduler([]);
+    await scheduler.syncNotificationForTask(pastTask);
+    expect(plugin.pendings.length, 0);
   });
+
+  test('syncNotificationForTask adds two notifications for urgent and due date', () async {
+    var scheduler = await _createScheduler([]);
+
+    await scheduler.syncNotificationForTask(urgentDue);
+    expect(plugin.pendings.length, 2);
+  });
+
+  test('cancelNotificationsForTaskId', () async {
+    var scheduler = await _createScheduler([]);
+    await scheduler.syncNotificationForTask(birthdayTask);
+    expect(plugin.pendings.length, 1);
+    await scheduler.cancelNotificationsForTaskId(birthdayTask.id.value);
+    expect(plugin.pendings.length, 0);
+  });
+
+  test('cancelAllNotifications', () async {
+    var scheduler = await _createScheduler([urgentDue, birthdayTask]);
+    expect(plugin.pendings.length, 3);
+    await scheduler.cancelAllNotifications();
+    expect(plugin.pendings.length, 0);
+  });
+
 
 
 }
