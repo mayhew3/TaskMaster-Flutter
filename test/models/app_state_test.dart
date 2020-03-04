@@ -90,8 +90,22 @@ void main() {
   });
 
   test('updateTaskListWithUpdatedTask', () {
+    var idToReplace = past.id.value;
+    var newName = 'Barter';
+
     var appState = createAppState(all);
 
+    var taskItem = new TaskItem();
+    taskItem.id.initializeValue(idToReplace);
+    taskItem.name.initializeValue(newName);
+
+    var updated = appState.updateTaskListWithUpdatedTask(taskItem);
+    expect(updated, taskItem);
+    expect(appState.taskItems.length, all.length);
+
+    var pulled = appState.findTaskItemWithId(idToReplace);
+    expect(pulled, updated);
+    expect(pulled.name.value, newName);
   });
 
 }
