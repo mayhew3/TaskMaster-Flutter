@@ -189,11 +189,19 @@ void main() {
     expect(urgentRequest.notificationDate, taskItem.urgentDate.value);
   });
 
-  test('cancelNotificationsForTaskId', () async {
-    var scheduler = await _createScheduler([]);
-    await scheduler.syncNotificationForTask(birthdayTask);
+  test('cancelNotificationsForTaskId cancels due notification', () async {
+    var taskItem = futureDue;
+    var scheduler = await _createScheduler([taskItem]);
     expect(plugin.pendings.length, 1);
-    await scheduler.cancelNotificationsForTaskId(birthdayTask.id.value);
+    await scheduler.cancelNotificationsForTaskId(taskItem.id.value);
+    expect(plugin.pendings.length, 0);
+  });
+
+  test('cancelNotificationsForTaskId cancels both urgent and due', () async {
+    var taskItem = futureUrgentDue;
+    var scheduler = await _createScheduler([taskItem]);
+    expect(plugin.pendings.length, 2);
+    await scheduler.cancelNotificationsForTaskId(taskItem.id.value);
     expect(plugin.pendings.length, 0);
   });
 
