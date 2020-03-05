@@ -1,9 +1,7 @@
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:taskmaster/flutter_badger_wrapper.dart';
 import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/notification_scheduler.dart';
-import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
 import 'mocks/mock_app_state.dart';
@@ -28,11 +26,17 @@ void main() {
   MockAppBadger flutterBadgerWrapper;
   AppState appState;
 
+  TaskItem futureDue;
   TaskItem futureUrgentDue;
   TaskItem pastUrgentDue;
   TaskItem straddledUrgentDue;
 
   setUp(() {
+    futureDue = TaskItem();
+    futureDue.id.initializeValue(30);
+    futureDue.name.initializeValue('Barf a Penny');
+    futureDue.dueDate.initializeValue(DateTime.now().add(Duration(days: 4)));
+
     futureUrgentDue = TaskItem();
     futureUrgentDue.id.initializeValue(30);
     futureUrgentDue.name.initializeValue('Give a Penny');
@@ -47,7 +51,7 @@ void main() {
 
     straddledUrgentDue = TaskItem();
     straddledUrgentDue.id.initializeValue(30);
-    straddledUrgentDue.name.initializeValue('Take a Penny');
+    straddledUrgentDue.name.initializeValue('Eat a Penny');
     straddledUrgentDue.dueDate.initializeValue(DateTime.now().add(Duration(days: 7)));
     straddledUrgentDue.urgentDate.initializeValue(DateTime.now().subtract(Duration(days: 5)));
   });
@@ -129,6 +133,60 @@ void main() {
     expect(request.id, isNot(null));
     expect(request.payload, 'task:${taskItem.id.value}:due');
     expect(request.notificationDate, taskItem.dueDate.value);
+  });
+
+  test('syncNotificationForTask replaces old due notification', () async {
+    var taskItem = futureDue;
+
+    var scheduler = await _createScheduler([taskItem]);
+    expect(plugin.pendings.length, 1);
+    var requestId = plugin.pendings[0].id;
+
+    var newDueDate = DateTime.now().add(Duration(days: 8));
+    taskItem.dueDate.value = newDueDate;
+
+    await scheduler.syncNotificationForTask(taskItem);
+    expect(plugin.pendings.length, 1);
+    var request = plugin.pendings[0];
+    expect(request.id, isNot(requestId));
+    expect(request.notificationDate, newDueDate);
+  });
+
+  test('syncNotificationForTask removes old due notification if due date moved back', () async {
+    var taskItem = futureDue;
+
+    var scheduler = await _createScheduler([taskItem]);
+    expect(plugin.pendings.length, 1);
+
+    var newDueDate = DateTime.now().subtract(Duration(days: 8));
+    taskItem.dueDate.value = newDueDate;
+
+    await scheduler.syncNotificationForTask(taskItem);
+    expect(plugin.pendings.length, 0);
+  });
+
+  test('syncNotificationForTask replaces old urgent and due notifications', () async {
+    var taskItem = futureUrgentDue;
+
+    var scheduler = await _createScheduler([taskItem]);
+    expect(plugin.pendings.length, 2);
+
+    var dueId = plugin.findRequestFor(taskItem, due: true).id;
+    var urgentId = plugin.findRequestFor(taskItem, due: false).id;
+
+    taskItem.dueDate.value = DateTime.now().add(Duration(days: 12));
+    taskItem.urgentDate.value = DateTime.now().add(Duration(days: 4));
+
+    await scheduler.syncNotificationForTask(taskItem);
+    expect(plugin.pendings.length, 2);
+
+    var dueRequest = plugin.findRequestFor(taskItem, due: true);
+    expect(dueRequest.id, isNot(dueId));
+    expect(dueRequest.notificationDate, taskItem.dueDate.value);
+
+    var urgentRequest = plugin.findRequestFor(taskItem, due: false);
+    expect(urgentRequest.id, isNot(urgentId));
+    expect(urgentRequest.notificationDate, taskItem.urgentDate.value);
   });
 
   test('cancelNotificationsForTaskId', () async {

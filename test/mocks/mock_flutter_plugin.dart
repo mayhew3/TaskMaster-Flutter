@@ -1,5 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:mockito/mockito.dart';
+import 'package:taskmaster/models/task_item.dart';
 
 import 'mock_pending_notification_request.dart';
 
@@ -22,6 +23,21 @@ class MockFlutterLocalNotificationsPlugin extends Mock implements FlutterLocalNo
       {String payload, bool androidAllowWhileIdle = false}) async {
     MockPendingNotificationRequest request = new MockPendingNotificationRequest(id, payload, scheduledDate);
     pendings.add(request);
+  }
+
+  MockPendingNotificationRequest findRequestFor(TaskItem taskItem, {bool due}) {
+    String dueStr = due == null || due ? 'due' : 'urgent';
+    String payload = 'task:${taskItem.id.value}:$dueStr';
+    var matching = pendings.where((notification) => notification.payload == payload).iterator;
+    if (matching.moveNext()) {
+      var goodOne = matching.current;
+      if (matching.moveNext()) {
+        throw Exception("Multiple matches found for task item ${taskItem.id.value} and date $dueStr");
+      }
+      return goodOne;
+    } else {
+      return null;
+    }
   }
 
   @override
