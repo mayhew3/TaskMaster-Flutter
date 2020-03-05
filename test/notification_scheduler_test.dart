@@ -85,13 +85,14 @@ void main() {
   });
 
   test('syncNotificationForTask first add', () async {
+    var taskItem = birthdayTask;
     var scheduler = await _createScheduler([]);
-    await scheduler.syncNotificationForTask(birthdayTask);
+    await scheduler.syncNotificationForTask(taskItem);
     expect(plugin.pendings.length, 1);
     MockPendingNotificationRequest request = plugin.pendings[0];
-    expect(request.id, isNot(null));
-    expect(request.payload, 'task:${birthdayTask.id.value}:due');
-    expect(request.notificationDate, birthdayTask.dueDate.value);
+    expect(request.payload, 'task:${taskItem.id.value}:due');
+    expect(request.notificationDate, taskItem.dueDate.value);
+    expect(request.title, 'Hunter Birthday (due)');
   });
 
   test('syncNotificationForTask adds nothing if no urgent or due date', () async {
@@ -120,19 +121,19 @@ void main() {
 
     expect(dueNotification, isNot(null));
     expect(urgentNotification, isNot(null));
-    expect(dueNotification.id, isNot(urgentNotification.id));
+    expect(urgentNotification.title, 'Give a Penny (urgent)');
   });
 
-  test('syncNotificationForTask adds one notifications for past urgent and future due date', () async {
+  test('syncNotificationForTask adds one notification for past urgent and future due date', () async {
     var taskItem = straddledUrgentDue;
 
     var scheduler = await _createScheduler([]);
     await scheduler.syncNotificationForTask(taskItem);
     expect(plugin.pendings.length, 1);
     MockPendingNotificationRequest request = plugin.pendings[0];
-    expect(request.id, isNot(null));
     expect(request.payload, 'task:${taskItem.id.value}:due');
     expect(request.notificationDate, taskItem.dueDate.value);
+    expect(request.title, 'Eat a Penny (due)');
   });
 
   test('syncNotificationForTask replaces old due notification', () async {
@@ -140,7 +141,6 @@ void main() {
 
     var scheduler = await _createScheduler([taskItem]);
     expect(plugin.pendings.length, 1);
-    var requestId = plugin.pendings[0].id;
 
     var newDueDate = DateTime.now().add(Duration(days: 8));
     taskItem.dueDate.value = newDueDate;
@@ -148,7 +148,6 @@ void main() {
     await scheduler.syncNotificationForTask(taskItem);
     expect(plugin.pendings.length, 1);
     var request = plugin.pendings[0];
-    expect(request.id, isNot(requestId));
     expect(request.notificationDate, newDueDate);
   });
 
@@ -171,9 +170,6 @@ void main() {
     var scheduler = await _createScheduler([taskItem]);
     expect(plugin.pendings.length, 2);
 
-    var dueId = plugin.findRequestFor(taskItem, due: true).id;
-    var urgentId = plugin.findRequestFor(taskItem, due: false).id;
-
     taskItem.dueDate.value = DateTime.now().add(Duration(days: 12));
     taskItem.urgentDate.value = DateTime.now().add(Duration(days: 4));
 
@@ -181,11 +177,9 @@ void main() {
     expect(plugin.pendings.length, 2);
 
     var dueRequest = plugin.findRequestFor(taskItem, due: true);
-    expect(dueRequest.id, isNot(dueId));
     expect(dueRequest.notificationDate, taskItem.dueDate.value);
 
     var urgentRequest = plugin.findRequestFor(taskItem, due: false);
-    expect(urgentRequest.id, isNot(urgentId));
     expect(urgentRequest.notificationDate, taskItem.urgentDate.value);
   });
 
