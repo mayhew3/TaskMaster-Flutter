@@ -8,6 +8,7 @@ import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/readonly_task_field.dart';
 import 'package:taskmaster/widgets/readonly_task_field_small.dart';
+import 'package:taskmaster/widgets/task_checkbox.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 final longDateFormat = DateFormat.yMMMMd().add_jm();
@@ -117,7 +118,7 @@ class DetailScreenState extends State<DetailScreen> {
                 ),
                 Padding(
                   padding: EdgeInsets.all(4.0),
-                  child: Checkbox(
+                  child: TaskCheckbox(
                     value: completed,
                     onChanged: (complete) async {
                       var updatedTask = await widget.taskCompleter(taskItem, complete);

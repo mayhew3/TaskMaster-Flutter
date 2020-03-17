@@ -102,6 +102,11 @@ class TaskItem {
     return completionDate.value != null;
   }
 
+  bool wasCompletedMoreThanASecondAgo() {
+    var now = DateTime.now();
+    return completionDate.value != null && completionDate.value.add(Duration(seconds: 1)).isBefore(now);
+  }
+
   bool isScheduled() {
     return startDate.value != null && !startDate.hasPassed();
   }

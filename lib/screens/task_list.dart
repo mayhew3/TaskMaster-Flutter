@@ -1,15 +1,15 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/widgets/filter_button.dart';
 import 'package:taskmaster/widgets/header_list_item.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:taskmaster/screens/add_edit_screen.dart';
 
 class TaskListScreen extends StatefulWidget {
   final AppState appState;
@@ -106,7 +106,7 @@ class TaskListScreenState extends State<TaskListScreen> {
     widget.appState.notificationScheduler.updateHomeScreenContext(context);
     final List<TaskItem> otherTasks = widget.appState.getFilteredTasks(showScheduled, showCompleted);
 
-    final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted());
+    final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.wasCompletedMoreThanASecondAgo());
     final List<TaskItem> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isPastDue());
     final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgent());
     final List<TaskItem> scheduledTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isScheduled());

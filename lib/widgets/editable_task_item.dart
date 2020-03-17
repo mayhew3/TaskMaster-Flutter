@@ -1,9 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
-import 'package:taskmaster/models/task_item.dart';
-import 'package:timeago/timeago.dart' as timeago;
 import 'package:taskmaster/models/task_colors.dart';
+import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/widgets/task_checkbox.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class EditableTaskItemWidget extends StatelessWidget {
   final TaskItem taskItem;
@@ -86,14 +87,14 @@ class EditableTaskItemWidget extends StatelessWidget {
             ),
             child: Row(
               children: <Widget>[
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 7.0),
-                  child: Checkbox(
-                    value: completed,
-                    onChanged: onCheckboxChanged,
-                  ),
-                ),
                 Expanded(
+                  child: Container(
+                    padding: EdgeInsets.only(
+                      top: 0,
+                      bottom: 0,
+                      right: 0,
+                      left: 10.0,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
@@ -110,10 +111,11 @@ class EditableTaskItemWidget extends StatelessWidget {
                           ),
                         ),
                       ],
-                    )
+                    ),
+                  ),
                 ),
                 Visibility(
-                  visible: !taskItem.isCompleted() && dueInThreshold(10),
+                  visible: !taskItem.wasCompletedMoreThanASecondAgo() && dueInThreshold(10),
                   child: Container(
                     padding: EdgeInsets.only(
                       top: 5.0,
@@ -126,6 +128,13 @@ class EditableTaskItemWidget extends StatelessWidget {
                       style: const TextStyle(fontSize: 14.0,
                           color: Color.fromRGBO(235, 167, 167, 1.0)),
                     ),
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+                  child: TaskCheckbox(
+                      value: completed,
+                      onChanged: onCheckboxChanged
                   ),
                 ),
               ],

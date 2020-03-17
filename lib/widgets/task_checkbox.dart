@@ -145,7 +145,7 @@ class TaskCheckbox extends StatefulWidget {
   final bool autofocus;
 
   /// The width of a checkbox widget.
-  static const double width = 18.0;
+  static const double width = 30.0;
 
   @override
   _TaskCheckboxState createState() => _TaskCheckboxState();
@@ -316,8 +316,9 @@ class _CheckboxRenderObjectWidget extends LeafRenderObjectWidget {
 }
 
 const double _kEdgeSize = TaskCheckbox.width;
-const Radius _kEdgeRadius = Radius.circular(1);
+const Radius _kEdgeRadius = Radius.circular(8);
 const double _kStrokeWidth = 2.0;
+const double _checkStrokeWidth = 4.0;
 
 class _RenderCheckbox extends RenderToggleable {
   _RenderCheckbox({
@@ -390,7 +391,7 @@ class _RenderCheckbox extends RenderToggleable {
     return Paint()
       ..color = checkColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = _kStrokeWidth;
+      ..strokeWidth = _checkStrokeWidth;
   }
 
   void _drawBorder(Canvas canvas, RRect outer, double t, Paint paint) {

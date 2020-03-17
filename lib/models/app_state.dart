@@ -46,7 +46,7 @@ class AppState {
   List<TaskItem> getFilteredTasks(bool showScheduled, bool showCompleted) {
     List<TaskItem> filtered = taskItems.where((taskItem) {
       bool passesScheduleFilter = showScheduled || !taskItem.isScheduled();
-      bool passesCompletedFilter = showCompleted || !taskItem.isCompleted();
+      bool passesCompletedFilter = showCompleted || !taskItem.wasCompletedMoreThanASecondAgo();
       return passesScheduleFilter && passesCompletedFilter;
     }).toList();
     return filtered;
