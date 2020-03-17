@@ -1,9 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:taskmaster/auth.dart';
 import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/nav_helper.dart';
+import 'package:http/http.dart' as http;
 import 'package:taskmaster/screens/loading.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:jiffy/jiffy.dart';
@@ -19,14 +21,20 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   AppState appState;
   TaskRepository repository;
   NavHelper navHelper;
+  TaskMasterAuth auth;
 
   TaskMasterAppState() {
-    appState = AppState(
-      userUpdater: updateCurrentUser,
-      idTokenUpdater: updateIdToken,
-      navHelper: navHelper,
+    auth = TaskMasterAuth(
+      updateCurrentUser: updateCurrentUser,
+      updateIdToken: updateIdToken,
     );
-    repository = TaskRepository(appState: appState);
+    appState = AppState(
+      auth: auth,
+    );
+    repository = TaskRepository(
+      appState: appState,
+      client: http.Client(),
+    );
     navHelper = NavHelper(
       appState: appState,
       taskRepository: repository,

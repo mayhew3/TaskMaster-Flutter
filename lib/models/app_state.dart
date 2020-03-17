@@ -1,8 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:taskmaster/auth.dart';
+import 'package:taskmaster/flutter_badger_wrapper.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/notification_scheduler.dart';
@@ -11,26 +13,24 @@ import 'package:taskmaster/typedefs.dart';
 class AppState {
   bool isLoading;
   List<TaskItem> taskItems;
-  TaskMasterAuth auth;
+  final TaskMasterAuth auth;
   GoogleSignInAccount currentUser;
   bool tokenRetrieved = false;
   int personId;
   NotificationScheduler notificationScheduler;
   String title;
-  final NavHelper navHelper;
+  NavHelper navHelper;
 
   AppState({
     this.isLoading = true,
     this.taskItems = const [],
-    @required userUpdater: UserUpdater,
-    @required idTokenUpdater: IdTokenUpdater,
-    @required this.navHelper,
+    @required this.auth,
   }) {
-    auth = TaskMasterAuth(
-      updateCurrentUser: userUpdater,
-      updateIdToken: idTokenUpdater,
-    );
     title = 'TaskMaster 3000';
+  }
+
+  void updateNavHelper(NavHelper navHelper) {
+    this.navHelper = navHelper;
   }
 
   Future<IdTokenResult> getIdToken() async {
@@ -62,13 +62,17 @@ class AppState {
       TaskAdder taskAdder,
       TaskUpdater taskUpdater,
       TaskCompleter taskCompleter) {
+
     notificationScheduler = NotificationScheduler(
       context: context,
       appState: appState,
       taskAdder: taskAdder,
       taskUpdater: taskUpdater,
       taskCompleter: taskCompleter,
+      flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
+      flutterBadgerWrapper: FlutterBadgerWrapper(),
     );
+
   }
 
   void finishedLoading(List<TaskItem> taskItems) {
