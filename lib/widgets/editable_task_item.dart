@@ -135,6 +135,12 @@ class EditableTaskItemWidget extends StatelessWidget {
                   ),
                 ),
                 Container(
+                  padding: EdgeInsets.only(
+                    top: 4.0,
+                    bottom: 4.0,
+                    right: 4.0,
+                    left: 4.0,
+                  ),
                   child: Visibility(
                     visible: !taskItem.pendingCompletion,
                     child: TaskCheckbox(

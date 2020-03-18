@@ -145,7 +145,7 @@ class TaskCheckbox extends StatefulWidget {
   final bool autofocus;
 
   /// The width of a checkbox widget.
-  static const double width = 30.0;
+  static const double width = 40.0;
 
   @override
   _TaskCheckboxState createState() => _TaskCheckboxState();

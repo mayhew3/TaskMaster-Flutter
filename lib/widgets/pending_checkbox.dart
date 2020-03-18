@@ -8,14 +8,14 @@ class PendingCheckbox extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.only(
-        top: 4.0,
-        bottom: 4.0,
-        right: 4.0,
-        left: 4.0,
+        top: 3.0,
+        bottom: 3.0,
+        right: 3.0,
+        left: 3.0,
       ),
       child: SizedBox(
-        width: 40,
-        height: 40,
+        width: 50,
+        height: 50,
         child: Card(
           margin: EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
           shape: RoundedRectangleBorder(
