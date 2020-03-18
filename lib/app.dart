@@ -182,6 +182,8 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   Future<TaskItem> completeTask(TaskItem taskItem, bool completed) async {
     TaskItem nextScheduledTask;
     DateTime completionDate = completed ? DateTime.now() : null;
+    taskItem.pendingCompletion = true;
+    print("PENDING");
 
     if (taskItem.recurNumber.value != null && completed) {
       DateTime anchorDate = taskItem.getAnchorDate();
@@ -205,6 +207,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     }
 
     var inboundTask = await repository.completeTask(taskItem, completionDate);
+    print("Finished completion.");
     TaskItem updatedTask;
     setState(() {
       // todo: update fields on original task instead of deleting and adding result

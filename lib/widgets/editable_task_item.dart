@@ -26,11 +26,14 @@ class EditableTaskItemWidget extends StatelessWidget {
   }
 
   Color getBackgroundColor() {
+    var pending = taskItem.pendingCompletion;
     var due = hasPassed(taskItem.dueDate.value);
     var urgent = hasPassed(taskItem.urgentDate.value);
     var completed = taskItem.completionDate.value != null;
 
-    if (completed) {
+    if (pending) {
+      return TaskColors.pendingBackground;
+    } else if (completed) {
       return TaskColors.completedColor;
     } else if (due) {
       return TaskColors.dueColor;
@@ -131,10 +134,38 @@ class EditableTaskItemWidget extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 0, horizontal: 0),
-                  child: TaskCheckbox(
-                      value: completed,
-                      onChanged: onCheckboxChanged
+                  child: Visibility(
+                    visible: !taskItem.pendingCompletion,
+                    child: TaskCheckbox(
+                        value: completed,
+                        onChanged: onCheckboxChanged,
+                    ),
+                  ),
+                ),
+                Visibility(
+                  visible: taskItem.pendingCompletion,
+                  child: Container(
+                    padding: EdgeInsets.only(
+                      top: 4.0,
+                      bottom: 4.0,
+                      right: 4.0,
+                      left: 4.0,
+                    ),
+                    child: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: Card(
+                        margin: EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          /*side: BorderSide(
+                            color: checkOutline,
+                            width: 2.0,
+                          ),*/
+                        ),
+                        color: TaskColors.pendingCheckbox,
+                      ),
+                    ),
                   ),
                 ),
               ],

@@ -64,6 +64,13 @@ class TaskListScreenState extends State<TaskListScreen> {
     });
   }
 
+  Future<TaskItem> toggleAndUpdateCompleted(TaskItem taskItem, bool complete) {
+    var future = widget.taskCompleter(taskItem, complete);
+    print("Updating State");
+    setState(() {});
+    return future;
+  }
+
   List<TaskItem> _moveSublist(List<TaskItem> superList, bool Function(TaskItem) condition) {
     List<TaskItem> subList = superList.where(condition).toList(growable: false);
     subList.forEach((task) => superList.remove(task));
@@ -85,7 +92,7 @@ class TaskListScreenState extends State<TaskListScreen> {
         );
       },
       onCheckboxChanged: (complete) {
-        widget.taskCompleter(taskItem, complete);
+        toggleAndUpdateCompleted(taskItem, complete);
       },
       onDismissed: (direction) async {
         if (direction == DismissDirection.endToStart) {

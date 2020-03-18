@@ -30,6 +30,8 @@ class TaskItem {
 
   List<TaskField> fields = [];
 
+  bool pendingCompletion = false;
+
   static List<String> controlledFields = ['id', 'person_id', 'date_added', 'completion_date'];
 
   TaskItem() {
@@ -104,7 +106,7 @@ class TaskItem {
 
   bool wasCompletedMoreThanASecondAgo() {
     var now = DateTime.now();
-    return completionDate.value != null && completionDate.value.add(Duration(seconds: 1)).isBefore(now);
+    return completionDate.value != null && completionDate.value.add(Duration(seconds: 2)).isBefore(now);
   }
 
   bool isScheduled() {
