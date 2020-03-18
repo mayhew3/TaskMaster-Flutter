@@ -97,7 +97,7 @@ class EditableTaskItemWidget extends StatelessWidget {
                       top: 0,
                       bottom: 0,
                       right: 0,
-                      left: 10.0,
+                      left: 15.0,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,7 +138,7 @@ class EditableTaskItemWidget extends StatelessWidget {
                   padding: EdgeInsets.only(
                     top: 4.0,
                     bottom: 4.0,
-                    right: 4.0,
+                    right: 6.0,
                     left: 4.0,
                   ),
                   child: Visibility(
