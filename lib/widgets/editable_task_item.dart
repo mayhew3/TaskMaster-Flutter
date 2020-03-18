@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/widgets/pending_checkbox.dart';
 import 'package:taskmaster/widgets/task_checkbox.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -144,29 +145,7 @@ class EditableTaskItemWidget extends StatelessWidget {
                 ),
                 Visibility(
                   visible: taskItem.pendingCompletion,
-                  child: Container(
-                    padding: EdgeInsets.only(
-                      top: 4.0,
-                      bottom: 4.0,
-                      right: 4.0,
-                      left: 4.0,
-                    ),
-                    child: SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: Card(
-                        margin: EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          /*side: BorderSide(
-                            color: checkOutline,
-                            width: 2.0,
-                          ),*/
-                        ),
-                        color: TaskColors.pendingCheckbox,
-                      ),
-                    ),
-                  ),
+                  child: PendingCheckbox(),
                 ),
               ],
             ),

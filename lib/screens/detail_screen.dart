@@ -6,6 +6,7 @@ import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/typedefs.dart';
+import 'package:taskmaster/widgets/pending_checkbox.dart';
 import 'package:taskmaster/widgets/readonly_task_field.dart';
 import 'package:taskmaster/widgets/readonly_task_field_small.dart';
 import 'package:taskmaster/widgets/task_checkbox.dart';
@@ -94,6 +95,12 @@ class DetailScreenState extends State<DetailScreen> {
     return unit.toLowerCase();
   }
 
+  Future<TaskItem> toggleAndUpdateCompleted(TaskItem taskItem, bool complete) {
+    var future = widget.taskCompleter(taskItem, complete);
+    setState(() {});
+    return future;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -116,14 +123,24 @@ class DetailScreenState extends State<DetailScreen> {
                       )
                   ),
                 ),
-                Padding(
-                  padding: EdgeInsets.all(4.0),
-                  child: TaskCheckbox(
-                    value: completed,
-                    onChanged: (complete) async {
-                      var updatedTask = await widget.taskCompleter(taskItem, complete);
-                      refreshLocalTaskItem(updatedTask);
-                    },
+                Visibility(
+                  visible: !taskItem.pendingCompletion,
+                  child: Padding(
+                    padding: EdgeInsets.all(4.0),
+                    child: TaskCheckbox(
+                      value: completed,
+                      onChanged: (complete) async {
+                        var updatedTask = await toggleAndUpdateCompleted(taskItem, complete);
+                        refreshLocalTaskItem(updatedTask);
+                      },
+                    ),
+                  ),
+                ),
+                Visibility(
+                  visible: taskItem.pendingCompletion,
+                  child: Padding(
+                    padding: EdgeInsets.all(4.0),
+                    child: PendingCheckbox(),
                   ),
                 ),
               ],
@@ -177,7 +194,7 @@ class DetailScreenState extends State<DetailScreen> {
             ),
             ReadOnlyTaskField(
               headerName: 'Completed',
-              textToShow: formatDateTime(taskItem.completionDate.value),
+              textToShow: formatDateTime(taskItem.getFinishedCompletionDate()),
               optionalBackgroundColor: getCompletedBackgroundColor(),
             ),
             ReadOnlyTaskField(

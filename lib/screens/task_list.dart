@@ -66,7 +66,6 @@ class TaskListScreenState extends State<TaskListScreen> {
 
   Future<TaskItem> toggleAndUpdateCompleted(TaskItem taskItem, bool complete) {
     var future = widget.taskCompleter(taskItem, complete);
-    print("Updating State");
     setState(() {});
     return future;
   }

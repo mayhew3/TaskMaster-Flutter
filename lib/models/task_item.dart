@@ -109,6 +109,10 @@ class TaskItem {
     return completionDate.value != null && completionDate.value.add(Duration(seconds: 2)).isBefore(now);
   }
 
+  DateTime getFinishedCompletionDate() {
+    return pendingCompletion ? null : completionDate.value;
+  }
+
   bool isScheduled() {
     return startDate.value != null && !startDate.hasPassed();
   }
