@@ -29,7 +29,7 @@ void main() {
 
   test('getFilteredTasks no scheduled no completed', () {
     var appState = createAppState(allTasks);
-    var filteredTasks = appState.getFilteredTasks(false, false);
+    var filteredTasks = appState.getFilteredTasks(false, false, []);
     expect(filteredTasks.length, 2);
     expect(filteredTasks, contains(birthdayTask));
     expect(filteredTasks, contains(pastTask));
@@ -37,7 +37,7 @@ void main() {
 
   test('getFilteredTasks yes scheduled no completed', () {
     var appState = createAppState(allTasks);
-    var filteredTasks = appState.getFilteredTasks(true, false);
+    var filteredTasks = appState.getFilteredTasks(true, false, []);
     expect(filteredTasks.length, 3);
     expect(filteredTasks, contains(birthdayTask));
     expect(filteredTasks, contains(pastTask));
@@ -46,7 +46,7 @@ void main() {
 
   test('getFilteredTasks no scheduled yes completed', () {
     var appState = createAppState(allTasks);
-    var filteredTasks = appState.getFilteredTasks(false, true);
+    var filteredTasks = appState.getFilteredTasks(false, true, []);
     expect(filteredTasks.length, 3);
     expect(filteredTasks, contains(birthdayTask));
     expect(filteredTasks, contains(pastTask));
@@ -55,7 +55,7 @@ void main() {
 
   test('getFilteredTasks yes scheduled yes completed', () {
     var appState = createAppState(allTasks);
-    var filteredTasks = appState.getFilteredTasks(true, true);
+    var filteredTasks = appState.getFilteredTasks(true, true, []);
     expect(filteredTasks.length, 4);
     expect(filteredTasks, contains(birthdayTask));
     expect(filteredTasks, contains(pastTask));
@@ -65,7 +65,7 @@ void main() {
 
   test('getFilteredTasks empty list', () {
     var appState = createAppState([]);
-    var filteredTasks = appState.getFilteredTasks(true, true);
+    var filteredTasks = appState.getFilteredTasks(true, true, []);
     expect(filteredTasks.length, 0);
   });
 
