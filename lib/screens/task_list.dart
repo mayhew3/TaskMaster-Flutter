@@ -39,6 +39,8 @@ class TaskListScreenState extends State<TaskListScreen> {
   bool showScheduled;
   bool showCompleted;
 
+  List<TaskItem> recentlyCompleted = [];
+
   @override
   void initState() {
     super.initState();
@@ -65,6 +67,7 @@ class TaskListScreenState extends State<TaskListScreen> {
   }
 
   Future<TaskItem> toggleAndUpdateCompleted(TaskItem taskItem, bool complete) {
+    recentlyCompleted.add(taskItem);
     var future = widget.taskCompleter(taskItem, complete);
     setState(() {});
     return future;
@@ -110,9 +113,9 @@ class TaskListScreenState extends State<TaskListScreen> {
 
   ListView _buildListView(BuildContext context) {
     widget.appState.notificationScheduler.updateHomeScreenContext(context);
-    final List<TaskItem> otherTasks = widget.appState.getFilteredTasks(showScheduled, showCompleted);
+    final List<TaskItem> otherTasks = widget.appState.getFilteredTasks(showScheduled, showCompleted, recentlyCompleted);
 
-    final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.wasCompletedMoreThanASecondAgo());
+    final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted() && !recentlyCompleted.contains(taskItem));
     final List<TaskItem> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isPastDue());
     final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgent());
     final List<TaskItem> scheduledTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isScheduled());

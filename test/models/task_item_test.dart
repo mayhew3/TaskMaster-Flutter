@@ -78,22 +78,6 @@ void main() {
       expect(taskItem.isCompleted(), false);
     });
 
-    test('wasCompletedMoreThanASecondAgo true for old date', () {
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      expect(catLitter.wasCompletedMoreThanASecondAgo(), true);
-    });
-
-    test('wasCompletedMoreThanASecondAgo false for now', () {
-      TaskItem taskItem = new TaskItem();
-      taskItem.completionDate.value = DateTime.now();
-      expect(taskItem.wasCompletedMoreThanASecondAgo(), false);
-    });
-
-    test('wasCompletedMoreThanASecondAgo false not completed', () {
-      TaskItem taskItem = new TaskItem();
-      expect(taskItem.wasCompletedMoreThanASecondAgo(), false);
-    });
-
     test('isScheduled is false for past date', () {
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
       catLitter.startDate.value = catTarget;

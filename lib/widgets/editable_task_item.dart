@@ -119,7 +119,7 @@ class EditableTaskItemWidget extends StatelessWidget {
                   ),
                 ),
                 Visibility(
-                  visible: !taskItem.wasCompletedMoreThanASecondAgo() && dueInThreshold(10),
+                  visible: !taskItem.isCompleted() && dueInThreshold(10),
                   child: Container(
                     padding: EdgeInsets.only(
                       top: 5.0,

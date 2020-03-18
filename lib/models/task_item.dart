@@ -104,11 +104,6 @@ class TaskItem {
     return completionDate.value != null;
   }
 
-  bool wasCompletedMoreThanASecondAgo() {
-    var now = DateTime.now();
-    return completionDate.value != null && completionDate.value.add(Duration(seconds: 2)).isBefore(now);
-  }
-
   DateTime getFinishedCompletionDate() {
     return pendingCompletion ? null : completionDate.value;
   }

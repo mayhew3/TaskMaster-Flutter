@@ -43,10 +43,10 @@ class AppState {
     }
   }
 
-  List<TaskItem> getFilteredTasks(bool showScheduled, bool showCompleted) {
+  List<TaskItem> getFilteredTasks(bool showScheduled, bool showCompleted, List<TaskItem> recentlyCompleted) {
     List<TaskItem> filtered = taskItems.where((taskItem) {
       bool passesScheduleFilter = showScheduled || !taskItem.isScheduled();
-      bool passesCompletedFilter = showCompleted || !taskItem.wasCompletedMoreThanASecondAgo();
+      bool passesCompletedFilter = showCompleted || !(taskItem.isCompleted() && !recentlyCompleted.contains(taskItem));
       return passesScheduleFilter && passesCompletedFilter;
     }).toList();
     return filtered;
