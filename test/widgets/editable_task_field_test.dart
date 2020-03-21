@@ -8,7 +8,8 @@ void main() {
   String fieldValue;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  Future<MaterialApp> _createApp(WidgetTester tester) async {
+  Future<MaterialApp> _createApp(WidgetTester tester, {bool isRequired, FormFieldValidator<String> validator}) async {
+
     Form form = Form(
           key: _formKey,
           autovalidate: false,
@@ -17,7 +18,8 @@ void main() {
             labelText: 'Type',
             fieldSetter: (value) => fieldValue = value,
             inputType: TextInputType.text,
-            isRequired: true,
+            isRequired: isRequired ?? false,
+            validator: validator,
             wordCaps: true,
           ),
         );
@@ -28,6 +30,14 @@ void main() {
     );
     await tester.pumpWidget(app);
     return app;
+  }
+
+  Finder _findTextField() {
+    return find.byType(TextFormField);
+  }
+
+  FormState _getForm() {
+    return _formKey.currentState;
   }
 
   testWidgets('has label', (WidgetTester tester) async {
@@ -42,7 +52,7 @@ void main() {
   testWidgets('change text', (WidgetTester tester) async {
     await _createApp(tester);
 
-    var formField = find.byType(TextFormField);
+    var formField = _findTextField();
 
     var valueFinder = find.text('Fart');
 
@@ -57,10 +67,51 @@ void main() {
 
     expect(newValueFinder, findsOneWidget);
 
-    final form = _formKey.currentState;
-
+    final form = _getForm();
     form.save();
 
     expect(fieldValue, 'Lesser Gunk');
   });
+
+  testWidgets('validation passes null ok', (WidgetTester tester) async {
+    await _createApp(tester, isRequired: false);
+
+    var textField = _findTextField();
+    await tester.enterText(textField, '');
+
+    var form = _getForm();
+    expect(form.validate(), true);
+  });
+
+  testWidgets('validation fails null not ok', (WidgetTester tester) async {
+    await _createApp(tester, isRequired: true);
+
+    var textField = _findTextField();
+    await tester.enterText(textField, '');
+
+    var form = _getForm();
+    expect(form.validate(), false);
+  });
+
+  testWidgets('validation passes null not ok', (WidgetTester tester) async {
+    await _createApp(tester, isRequired: true);
+
+    var textField = _findTextField();
+    await tester.enterText(textField, 'Real Text');
+
+    var form = _getForm();
+    expect(form.validate(), true);
+  });
+
+  testWidgets('validation fails if validator fails', (WidgetTester tester) async {
+    var validator = (value) => 'Required';
+    await _createApp(tester, validator: validator);
+
+    var textField = _findTextField();
+    await tester.enterText(textField, '39');
+
+    var form = _getForm();
+    expect(form.validate(), false);
+  });
+
 }
