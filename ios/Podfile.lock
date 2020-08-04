@@ -21,6 +21,8 @@ PODS:
   - firebase_core (0.0.1):
     - Firebase/Core
     - Flutter
+  - firebase_core_web (0.1.0):
+    - Flutter
   - FirebaseAnalytics (6.2.2):
     - FirebaseCore (~> 6.6)
     - FirebaseInstanceID (~> 4.3)
@@ -119,6 +121,7 @@ DEPENDENCIES:
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
   - firebase_auth_web (from `.symlinks/plugins/firebase_auth_web/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
+  - firebase_core_web (from `.symlinks/plugins/firebase_core_web/ios`)
   - Flutter (from `.symlinks/flutter/ios`)
   - flutter_app_badger (from `.symlinks/plugins/flutter_app_badger/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
@@ -154,6 +157,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/firebase_auth_web/ios"
   firebase_core:
     :path: ".symlinks/plugins/firebase_core/ios"
+  firebase_core_web:
+    :path: ".symlinks/plugins/firebase_core_web/ios"
   Flutter:
     :path: ".symlinks/flutter/ios"
   flutter_app_badger:
@@ -168,9 +173,10 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   AppAuth: 73574f3013a1e65b9601a3ddc8b3158cce68c09d
   Firebase: 2672e5636b42f977177716317e68346ae5e9de25
-  firebase_auth: 1f46484071219159ad6c64d304af425ad7373052
+  firebase_auth: 4ee3a54d3f09434c508c284a62f895a741a30637
   firebase_auth_web: 0955c07bcc06e84af76b9d4e32e6f31518f2d7de
-  firebase_core: ae55ea92448ec8675d325da4db22cf3b4d58a54d
+  firebase_core: 335c02abd48672b7c83c683df833d0488a72e73e
+  firebase_core_web: d501d8b946b60c8af265428ce483b0fff5ad52d1
   FirebaseAnalytics: cf95d3aab897612783020fbd98401d5366f135ee
   FirebaseAuth: 5ce2b03a3d7fe56b7a6e4c5ec7ff1522890b1d6f
   FirebaseAuthInterop: 0ffa57668be100582bb7643d4fcb7615496c41fc
@@ -182,7 +188,7 @@ SPEC CHECKSUMS:
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
   flutter_app_badger: 65de4d6f0c34a891df49e6cfb8a1c0496426fa68
   flutter_local_notifications: 9e4738ce2471c5af910d961a6b7eadcf57c50186
-  google_sign_in: decaf71f56e22fb1dc179de062177ae6df415716
+  google_sign_in: 6bd214b9c154f881422f5fe27b66aaa7bbd580cc
   google_sign_in_web: 52deb24929ac0992baff65c57956031c44ed44c3
   GoogleAppMeasurement: d0560d915abf15e692e8538ba1d58442217b6aff
   GoogleDataTransport: 47fe3b8e1673e5187dfd615656a3c5034f150d69
@@ -196,4 +202,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: b6a0a141693093b304368d08511b46cf3d1d0ac5
 
-COCOAPODS: 1.8.4
+COCOAPODS: 1.9.3
