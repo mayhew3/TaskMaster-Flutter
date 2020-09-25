@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.8
+
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -153,18 +155,17 @@ class TaskCheckbox extends StatefulWidget {
 
 class _TaskCheckboxState extends State<TaskCheckbox> with TickerProviderStateMixin {
   bool get enabled => widget.onChanged != null;
-  Map<LocalKey, ActionFactory> _actionMap;
+  Map<Type, Action<Intent>> _actionMap;
 
   @override
   void initState() {
     super.initState();
-    _actionMap = <LocalKey, ActionFactory>{
-      SelectAction.key: _createAction,
-      if (!kIsWeb) ActivateAction.key: _createAction,
+    _actionMap = <Type, Action<Intent>>{
+      ActivateIntent: CallbackAction<ActivateIntent>(onInvoke: _actionHandler),
     };
   }
 
-  void _actionHandler(FocusNode node, Intent intent){
+  void _actionHandler(ActivateIntent intent){
     if (widget.onChanged != null) {
       switch (widget.value) {
         case false:
@@ -178,15 +179,8 @@ class _TaskCheckboxState extends State<TaskCheckbox> with TickerProviderStateMix
           break;
       }
     }
-    final RenderObject renderObject = node.context.findRenderObject();
+    final RenderObject renderObject = context.findRenderObject();
     renderObject.sendSemanticsEvent(const TapSemanticEvent());
-  }
-
-  Action _createAction() {
-    return CallbackAction(
-      SelectAction.key,
-      onInvoke: _actionHandler,
-    );
   }
 
   bool _focused = false;
@@ -300,8 +294,10 @@ class _CheckboxRenderObjectWidget extends LeafRenderObjectWidget {
   @override
   void updateRenderObject(BuildContext context, _RenderCheckbox renderObject) {
     renderObject
-      ..value = value
+    // The `tristate` must be changed before `value` due to the assertion at
+    // the beginning of `set value`.
       ..tristate = tristate
+      ..value = value
       ..activeColor = activeColor
       ..checkColor = checkColor
       ..inactiveColor = inactiveColor
