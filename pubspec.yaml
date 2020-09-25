@@ -24,7 +24,7 @@ dependencies:
   intl: 0.16.1
   jiffy: 2.2.0
   google_sign_in: 4.1.4
-  firebase_auth: 0.15.4
+  firebase_auth: 0.15.5+3
   flutter_local_notifications: 1.1.6
   flutter_app_badger: 1.1.2
   timeago: 2.0.26
