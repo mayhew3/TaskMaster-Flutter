@@ -90,6 +90,8 @@ class TaskListScreenState extends State<TaskListScreen> {
     ];
 
     var snoozeDialog = (TaskItem taskItem) {
+      final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
       int numUnits = 3;
       String unitName = 'Days';
       String taskDateType = 'Urgent';
@@ -102,54 +104,58 @@ class TaskListScreenState extends State<TaskListScreen> {
 
       showDialog<void>(context: context, builder: (context) => AlertDialog(
         title: Text('Snooze Task'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: <Widget>[
-                    SizedBox(
-                      width: 80.0,
-                      child: EditableTaskField(
-                        initialText: numUnits.toString(),
-                        labelText: 'Num',
-                        fieldSetter: (value) => numUnits = _parseValue(value),
-                        inputType: TextInputType.number,
-                        validator: (value) {
-                          if (value.isEmpty) {
-                            return 'Required';
-                          }
-                          return null;
-                        },
+        content: Form(
+          key: formKey,
+          autovalidateMode: AutovalidateMode.disabled,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: <Widget>[
+                      SizedBox(
+                        width: 80.0,
+                        child: EditableTaskField(
+                          initialText: numUnits.toString(),
+                          labelText: 'Num',
+                          fieldSetter: (value) => numUnits = _parseValue(value),
+                          inputType: TextInputType.number,
+                          validator: (value) {
+                            if (value.isEmpty) {
+                              return 'Required';
+                            }
+                            return null;
+                          },
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                Expanded(
-                  child: NullableDropdown(
-                    initialValue: unitName,
-                    labelText: 'Unit',
-                    possibleValues: possibleRecurUnits,
-                    valueSetter: (value) => unitName = value,
-                    validator: (value) {
-                      return null;
-                    },
+                    ],
                   ),
-                ),
-              ],
-            ),
-            NullableDropdown(
-              initialValue: taskDateType,
-              labelText: 'For Date',
-              possibleValues: possibleDateTypes,
-              valueSetter: (value) => taskDateType = value,
-              validator: (value) {
-                return null;
-              },
-            ),
-          ],
+                  Expanded(
+                    child: NullableDropdown(
+                      initialValue: unitName,
+                      labelText: 'Unit',
+                      possibleValues: possibleRecurUnits,
+                      valueSetter: (value) => unitName = value,
+                      validator: (value) {
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              NullableDropdown(
+                initialValue: taskDateType,
+                labelText: 'For Date',
+                possibleValues: possibleDateTypes,
+                valueSetter: (value) => taskDateType = value,
+                validator: (value) {
+                  return null;
+                },
+              ),
+            ],
+          ),
         ),
         actions: [
           FlatButton(
@@ -158,6 +164,12 @@ class TaskListScreenState extends State<TaskListScreen> {
           ),
           FlatButton(
             onPressed: () async {
+              final form = formKey.currentState;
+
+              if (form.validate()) {
+                form.save();
+              }
+
               await widget.taskHelper.snoozeTask(taskItem, numUnits, unitName, typeMap[taskDateType]);
               Navigator.pop(context);
             },

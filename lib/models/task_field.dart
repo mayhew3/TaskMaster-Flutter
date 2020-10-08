@@ -63,7 +63,11 @@ abstract class TaskField<T> {
   }
 
   String toString() {
-    return fieldName + ': ' + ((value == null) ? '(null)' : value.toString());
+    String displayString =  fieldName + ': ' + ((originalValue == null) ? '(null)' : originalValue.toString());
+    if (isChanged()) {
+      displayString += ' -> ' + value.toString();
+    }
+    return displayString;
   }
 
   T _parseValue(String str);
