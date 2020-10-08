@@ -6,7 +6,6 @@ import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/task_helper.dart';
-import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/pending_checkbox.dart';
 import 'package:taskmaster/widgets/readonly_task_field.dart';
 import 'package:taskmaster/widgets/readonly_task_field_small.dart';
@@ -17,17 +16,11 @@ final longDateFormat = DateFormat.yMMMMd().add_jm();
 
 class DetailScreen extends StatefulWidget {
   final TaskItem taskItem;
-  final TaskAdder taskAdder;
-  final TaskCompleter taskCompleter;
-  final TaskUpdater taskUpdater;
   final TaskHelper taskHelper;
 
   const DetailScreen({
     Key key,
     this.taskItem,
-    this.taskAdder,
-    this.taskUpdater,
-    this.taskCompleter,
     @required this.taskHelper,
   }) : super(key: key);
 
@@ -99,7 +92,7 @@ class DetailScreenState extends State<DetailScreen> {
   }
 
   Future<TaskItem> toggleAndUpdateCompleted(TaskItem taskItem, bool complete) {
-    var future = widget.taskCompleter(taskItem, complete);
+    var future = widget.taskHelper.completeTask(taskItem, complete);
     setState(() {});
     return future;
   }
@@ -220,8 +213,6 @@ class DetailScreenState extends State<DetailScreen> {
             MaterialPageRoute(
               builder: (context) {
                 return AddEditScreen(
-                  taskUpdater: widget.taskUpdater,
-                  taskAdder: widget.taskAdder,
                   taskItem: taskItem,
                   taskItemRefresher: refreshLocalTaskItem,
                   taskHelper: widget.taskHelper,

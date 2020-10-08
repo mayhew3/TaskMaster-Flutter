@@ -7,29 +7,18 @@ import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
 import 'package:taskmaster/task_helper.dart';
-import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/widgets/filter_button.dart';
 import 'package:taskmaster/widgets/header_list_item.dart';
 
 class TaskListScreen extends StatefulWidget {
   final AppState appState;
-  final TaskAdder taskAdder;
-  final TaskCompleter taskCompleter;
-  final TaskUpdater taskUpdater;
-  final TaskDeleter taskDeleter;
-  final TaskListReloader taskListReloader;
   final BottomNavigationBar bottomNavigationBar;
   final TaskHelper taskHelper;
 
   TaskListScreen({
     @required this.appState,
-    @required this.taskCompleter,
-    @required this.taskUpdater,
-    @required this.taskDeleter,
     @required this.bottomNavigationBar,
-    @required this.taskAdder,
-    @required this.taskListReloader,
     @required this.taskHelper,
   }) : super(key: TaskMasterKeys.taskList);
 
@@ -71,7 +60,7 @@ class TaskListScreenState extends State<TaskListScreen> {
 
   Future<TaskItem> toggleAndUpdateCompleted(TaskItem taskItem, bool complete) {
     recentlyCompleted.add(taskItem);
-    var future = widget.taskCompleter(taskItem, complete);
+    var future = widget.taskHelper.completeTask(taskItem, complete);
     setState(() {});
     return future;
   }
@@ -97,8 +86,7 @@ class TaskListScreenState extends State<TaskListScreen> {
           MaterialPageRoute(builder: (_) {
             return DetailScreen(
               taskItem: taskItem,
-              taskUpdater: widget.taskUpdater,
-              taskCompleter: widget.taskCompleter,
+              taskHelper: widget.taskHelper,
             );
           }),
         );
@@ -111,7 +99,7 @@ class TaskListScreenState extends State<TaskListScreen> {
       onDismissed: (direction) async {
         if (direction == DismissDirection.endToStart) {
           try {
-            await widget.taskDeleter(taskItem);
+            await widget.taskHelper.deleteTask(taskItem);
             _displaySnackBar("Task Deleted!", context);
             return true;
           } catch(err) {
@@ -202,7 +190,6 @@ class TaskListScreenState extends State<TaskListScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => AddEditScreen(
-                taskAdder: widget.taskAdder,
                 taskItem: TaskItem(),
                 taskHelper: widget.taskHelper,
                 isEditing: false,

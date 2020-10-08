@@ -10,8 +10,6 @@ import 'package:taskmaster/widgets/nullable_dropdown.dart';
 
 class AddEditScreen extends StatefulWidget {
   final TaskItem taskItem;
-  final TaskAdder taskAdder;
-  final TaskUpdater taskUpdater;
   final TaskItemRefresher taskItemRefresher;
   final TaskHelper taskHelper;
   final bool isEditing;
@@ -19,8 +17,6 @@ class AddEditScreen extends StatefulWidget {
   const AddEditScreen({
     Key key,
     this.taskItem,
-    this.taskAdder,
-    this.taskUpdater,
     this.taskItemRefresher,
     @required this.taskHelper,
     @required this.isEditing,
@@ -386,7 +382,7 @@ class AddEditScreenState extends State<AddEditScreen> {
               form.save();
 
               if (widget.isEditing) {
-                var updatedItem = await widget.taskUpdater(widget.taskItem);
+                var updatedItem = await widget.taskHelper.updateTask(widget.taskItem);
                 if (widget.taskItemRefresher != null) {
                   widget.taskItemRefresher(updatedItem);
                 }

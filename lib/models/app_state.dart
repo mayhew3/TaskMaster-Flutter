@@ -8,7 +8,7 @@ import 'package:taskmaster/flutter_badger_wrapper.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/notification_scheduler.dart';
-import 'package:taskmaster/typedefs.dart';
+import 'package:taskmaster/task_helper.dart';
 
 class AppState {
   bool isLoading;
@@ -59,16 +59,12 @@ class AppState {
 
   void updateNotificationScheduler(BuildContext context,
       AppState appState,
-      TaskAdder taskAdder,
-      TaskUpdater taskUpdater,
-      TaskCompleter taskCompleter) {
+      TaskHelper taskHelper) {
 
     notificationScheduler = NotificationScheduler(
       context: context,
       appState: appState,
-      taskAdder: taskAdder,
-      taskUpdater: taskUpdater,
-      taskCompleter: taskCompleter,
+      taskHelper: taskHelper,
       flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
       flutterBadgerWrapper: FlutterBadgerWrapper(),
     );

@@ -6,28 +6,17 @@ import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/app_tab.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/task_helper.dart';
-import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/stats_counter.dart';
 import 'package:taskmaster/screens/task_list.dart';
 
 class HomeScreen extends StatefulWidget {
   final AppState appState;
   final NavHelper navHelper;
-  final TaskAdder taskAdder;
-  final TaskCompleter taskCompleter;
-  final TaskUpdater taskUpdater;
-  final TaskListReloader taskListReloader;
-  final TaskDeleter taskDeleter;
   final TaskHelper taskHelper;
 
   HomeScreen({
     @required this.appState,
     @required this.navHelper,
-    @required this.taskAdder,
-    @required this.taskCompleter,
-    @required this.taskUpdater,
-    @required this.taskListReloader,
-    @required this.taskDeleter,
     @required this.taskHelper,
     Key key,
   }) : super(key: TaskMasterKeys.homeScreen);
@@ -70,11 +59,6 @@ class HomeScreenState extends State<HomeScreen> {
     if (activeTab == AppTab.tasks) {
       return TaskListScreen(
         appState: widget.appState,
-        taskAdder: widget.taskAdder,
-        taskCompleter: widget.taskCompleter,
-        taskUpdater: widget.taskUpdater,
-        taskDeleter: widget.taskDeleter,
-        taskListReloader: widget.taskListReloader,
         bottomNavigationBar: getBottomNavigationBar(),
         taskHelper: widget.taskHelper,
       );

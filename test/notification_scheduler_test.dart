@@ -2,6 +2,7 @@ import 'package:taskmaster/flutter_badger_wrapper.dart';
 import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/notification_scheduler.dart';
+import 'package:taskmaster/task_helper.dart';
 import 'package:test/test.dart';
 
 import 'mocks/mock_app_state.dart';
@@ -10,6 +11,8 @@ import 'package:mockito/mockito.dart';
 import 'mocks/mock_data.dart';
 import 'mocks/mock_flutter_plugin.dart';
 import 'mocks/mock_pending_notification_request.dart';
+import 'mocks/mock_task_helper.dart';
+import 'mocks/mock_task_repository.dart';
 
 class MockAppBadger extends Mock implements FlutterBadgerWrapper {
   int badgeValue = 0;
@@ -25,6 +28,7 @@ void main() {
   MockFlutterLocalNotificationsPlugin plugin;
   MockAppBadger flutterBadgerWrapper;
   AppState appState;
+  TaskHelper taskHelper;
 
   TaskItem futureDue;
   TaskItem futureUrgentDue;
@@ -60,13 +64,12 @@ void main() {
     plugin = MockFlutterLocalNotificationsPlugin();
     flutterBadgerWrapper = MockAppBadger();
     appState = MockAppState(taskItems: taskItems);
+    taskHelper = MockTaskHelper(taskRepository: new MockTaskRepository());
 
     var notificationScheduler = new NotificationScheduler(
       context: null,
       appState: appState,
-      taskAdder: (taskItem) => {},
-      taskUpdater: (taskItem) => Future.value(taskItem),
-      taskCompleter: (taskItem, completed) => Future.value(taskItem),
+      taskHelper: taskHelper,
       flutterLocalNotificationsPlugin: plugin,
       flutterBadgerWrapper: flutterBadgerWrapper,
     );

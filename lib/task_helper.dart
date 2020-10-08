@@ -91,7 +91,7 @@ class TaskHelper {
     return updatedTask;
   }
 
-  void deleteTask(TaskItem taskItem) async {
+  Future<void> deleteTask(TaskItem taskItem) async {
     var taskId = taskItem.id.value;
     await repository.deleteTask(taskItem);
     print('Removal of task successful!');

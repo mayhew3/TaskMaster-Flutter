@@ -5,16 +5,10 @@ import 'package:taskmaster/screens/loading.dart';
 import 'package:taskmaster/screens/sign_in.dart';
 import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/task_repository.dart';
-import 'package:taskmaster/typedefs.dart';
 
 class NavHelper {
   final AppState appState;
   final TaskRepository taskRepository;
-  final TaskAdder taskAdder;
-  final TaskCompleter taskCompleter;
-  final TaskDeleter taskDeleter;
-  final TaskUpdater taskUpdater;
-  final TaskListReloader taskListReloader;
   final TaskHelper taskHelper;
 
   BuildContext context;
@@ -22,11 +16,6 @@ class NavHelper {
   NavHelper({
     @required this.appState,
     @required this.taskRepository,
-    @required this.taskAdder,
-    @required this.taskCompleter,
-    @required this.taskDeleter,
-    @required this.taskUpdater,
-    @required this.taskListReloader,
     @required this.taskHelper,
   }) {
     this.appState.updateNavHelper(this);
@@ -65,11 +54,6 @@ class NavHelper {
         return HomeScreen(
           appState: appState,
           navHelper: this,
-          taskAdder: taskAdder,
-          taskCompleter: taskCompleter,
-          taskDeleter: taskDeleter,
-          taskUpdater: taskUpdater,
-          taskListReloader: taskListReloader,
           taskHelper: taskHelper,
         );
       }),
