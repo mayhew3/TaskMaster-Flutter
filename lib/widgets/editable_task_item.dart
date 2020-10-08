@@ -13,6 +13,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   final ValueChanged<bool> onCheckboxChanged;
   final DismissDirectionCallback onDismissed;
   final GestureLongPressCallback onLongPress;
+  final GestureForcePressStartCallback onForcePress;
 
   EditableTaskItemWidget({
     Key key,
@@ -21,6 +22,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     @required this.onCheckboxChanged,
     @required this.onDismissed,
     this.onLongPress,
+    this.onForcePress,
   }) : super(key: key);
 
   bool hasPassed(DateTime dateTime) {

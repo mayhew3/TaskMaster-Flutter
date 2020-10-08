@@ -80,6 +80,13 @@ class TaskListScreenState extends State<TaskListScreen> {
   }
 
   EditableTaskItemWidget _createWidget(TaskItem taskItem, BuildContext context) {
+    var snoozeDialog = () {
+        showDialog<void>(context: context, builder: (context) => AlertDialog(
+          title: Text('Snooze Task?'),
+          content: Text('Delay all dates by X days.'),
+        ));
+      };
+
     return EditableTaskItemWidget(
       taskItem: taskItem,
       onTap: () {
@@ -93,12 +100,8 @@ class TaskListScreenState extends State<TaskListScreen> {
           }),
         );
       },
-      onLongPress: () {
-        showDialog<void>(context: context, builder: (context) => AlertDialog(
-          title: Text('Snooze Task?'),
-          content: Text('Delay all dates by X days.'),
-        ));
-      },
+      onLongPress: snoozeDialog,
+      onForcePress: (ForcePressDetails forcePressDetails) => snoozeDialog(),
       onCheckboxChanged: (complete) {
         toggleAndUpdateCompleted(taskItem, complete);
       },
