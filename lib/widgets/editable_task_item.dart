@@ -12,6 +12,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   final GestureTapCallback onTap;
   final ValueChanged<bool> onCheckboxChanged;
   final DismissDirectionCallback onDismissed;
+  final GestureLongPressCallback onLongPress;
 
   EditableTaskItemWidget({
     Key key,
@@ -19,6 +20,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     @required this.onTap,
     @required this.onCheckboxChanged,
     @required this.onDismissed,
+    this.onLongPress,
   }) : super(key: key);
 
   bool hasPassed(DateTime dateTime) {
@@ -79,6 +81,7 @@ class EditableTaskItemWidget extends StatelessWidget {
       confirmDismiss: onDismissed,
       child: GestureDetector(
         onTap: onTap,
+        onLongPress: onLongPress,
         child: Card(
           color: getBackgroundColor(),
           elevation: 3.0,

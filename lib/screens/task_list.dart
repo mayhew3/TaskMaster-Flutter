@@ -93,6 +93,12 @@ class TaskListScreenState extends State<TaskListScreen> {
           }),
         );
       },
+      onLongPress: () {
+        showDialog<void>(context: context, builder: (context) => AlertDialog(
+          title: Text('Snooze Task?'),
+          content: Text('Delay all dates by X days.'),
+        ));
+      },
       onCheckboxChanged: (complete) {
         toggleAndUpdateCompleted(taskItem, complete);
       },
