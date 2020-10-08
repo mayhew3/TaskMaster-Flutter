@@ -3,13 +3,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/app_state.dart';
+import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
 import 'package:taskmaster/task_helper.dart';
+import 'package:taskmaster/widgets/editable_task_field.dart';
 import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/widgets/filter_button.dart';
 import 'package:taskmaster/widgets/header_list_item.dart';
+import 'package:taskmaster/widgets/nullable_dropdown.dart';
 
 class TaskListScreen extends StatefulWidget {
   final AppState appState;
@@ -72,12 +75,66 @@ class TaskListScreenState extends State<TaskListScreen> {
   }
 
   EditableTaskItemWidget _createWidget(TaskItem taskItem, BuildContext context) {
-    var snoozeDialog = () {
-        showDialog<void>(context: context, builder: (context) => AlertDialog(
-          title: Text('Snooze Task?'),
-          content: Text('Delay all dates by X days.'),
-        ));
-      };
+    List<String> possibleRecurUnits = [
+      '(none)',
+      'Days',
+      'Weeks',
+      'Months',
+      'Years',
+    ];
+
+    var snoozeDialog = (TaskItem taskItem) {
+      int numUnits = 3;
+      String unitName = 'Days';
+      TaskDateType taskDateType = TaskDateType.URGENT;
+
+      showDialog<void>(context: context, builder: (context) => AlertDialog(
+        title: Text('Snooze Task'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: <Widget>[
+                    SizedBox(
+                      width: 80.0,
+                      child: EditableTaskField(
+                        initialText: numUnits.toString(),
+                        labelText: 'Num',
+                        fieldSetter: (value) => numUnits = _parseValue(value),
+                        inputType: TextInputType.number,
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return 'Required';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                Expanded(
+                  child: NullableDropdown(
+                    initialValue: unitName,
+                    labelText: 'Unit',
+                    possibleValues: possibleRecurUnits,
+                    valueSetter: (value) => unitName = value,
+                    validator: (value) {
+                      if (value == '(none)') {
+                        return 'Unit is required for repeat.';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ));
+    };
 
     return EditableTaskItemWidget(
       taskItem: taskItem,
@@ -91,8 +148,8 @@ class TaskListScreenState extends State<TaskListScreen> {
           }),
         );
       },
-      onLongPress: snoozeDialog,
-      onForcePress: (ForcePressDetails forcePressDetails) => snoozeDialog(),
+      onLongPress: () => snoozeDialog(taskItem),
+      onForcePress: (ForcePressDetails forcePressDetails) => snoozeDialog(taskItem),
       onCheckboxChanged: (complete) {
         toggleAndUpdateCompleted(taskItem, complete);
       },
@@ -201,6 +258,24 @@ class TaskListScreenState extends State<TaskListScreen> {
         bottomNavigationBar: widget.bottomNavigationBar,
       );
 
+  }
+
+  int _parseValue(String str) {
+    var cleanString = _cleanString(str);
+    return cleanString == null ? null : int.parse(str);
+  }
+
+  String _cleanString(String str) {
+    if (str == null) {
+      return null;
+    } else {
+      var trimmed = str.trim();
+      if (trimmed.isEmpty) {
+        return null;
+      } else {
+        return trimmed;
+      }
+    }
   }
 
 }
