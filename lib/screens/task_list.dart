@@ -167,6 +167,7 @@ class TaskListScreenState extends State<TaskListScreen> {
               final form = formKey.currentState;
 
               if (form.validate()) {
+                // need this to trigger valueSetters for any fields still in focus
                 form.save();
               }
 
