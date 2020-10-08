@@ -83,7 +83,6 @@ class EditableTaskItemWidget extends StatelessWidget {
       confirmDismiss: onDismissed,
       child: GestureDetector(
         onTap: onTap,
-        onLongPress: onLongPress,
         onForcePressStart: onForcePress,
         child: Card(
           color: getBackgroundColor(),
