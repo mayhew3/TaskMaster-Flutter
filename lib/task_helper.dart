@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/task_repository.dart';
 
 import 'auth.dart';
@@ -113,6 +114,19 @@ class TaskHelper {
     appState.notificationScheduler.updateBadge();
     return updatedTask;
   }
+
+  Future<TaskItem> snoozeTask(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) async {
+    DateTime snoozeDate = DateTime.now();
+    DateTime adjustedDate = _getAdjustedDate(snoozeDate, numUnits, unitSize);
+    DateTime relevantDate = taskItem.getDateFieldOfType(dateType).value;
+
+    Duration difference = adjustedDate.difference(relevantDate);
+
+    TaskDateType.values.forEach((taskDateType) => taskItem.incrementDateIfExists(taskDateType, difference));
+
+    return await updateTask(taskItem);
+  }
+
 
   // private helpers
 

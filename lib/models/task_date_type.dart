@@ -1,0 +1,1 @@
+enum TaskDateType { START, TARGET, URGENT, DUE }

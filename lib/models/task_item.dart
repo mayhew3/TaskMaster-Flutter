@@ -1,3 +1,4 @@
+import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_field.dart';
 
 class TaskItem {
@@ -121,17 +122,40 @@ class TaskItem {
   }
 
   DateTime getAnchorDate() {
-    if (dueDate.value != null) {
-      return dueDate.value;
-    } else if (urgentDate.value != null) {
-      return urgentDate.value;
-    } else if (targetDate.value != null) {
-      return targetDate.value;
-    } else if (startDate.value != null) {
-      return startDate.value;
+    return getDateFieldOfType(getAnchorDateType()).value;
+  }
+
+  TaskFieldDate getDateFieldOfType(TaskDateType taskDateType) {
+    if (TaskDateType.START == taskDateType) {
+      return startDate;
+    } else if (TaskDateType.TARGET == taskDateType) {
+      return targetDate;
+    } else if (TaskDateType.URGENT == taskDateType) {
+      return urgentDate;
+    } else if (TaskDateType.DUE == taskDateType) {
+      return dueDate;
     } else {
       return null;
     }
+  }
+
+  TaskDateType getAnchorDateType() {
+    if (dueDate.value != null) {
+      return TaskDateType.DUE;
+    } else if (urgentDate.value != null) {
+      return TaskDateType.URGENT;
+    } else if (targetDate.value != null) {
+      return TaskDateType.TARGET;
+    } else if (startDate.value != null) {
+      return TaskDateType.START;
+    } else {
+      return null;
+    }
+  }
+
+  void incrementDateIfExists(TaskDateType taskDateType, Duration duration) {
+    var field = getDateFieldOfType(taskDateType);
+    field.value = field.value?.add(duration);
   }
 
   @override
