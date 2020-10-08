@@ -84,6 +84,7 @@ class EditableTaskItemWidget extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         onLongPress: onLongPress,
+        onForcePressStart: onForcePress,
         child: Card(
           color: getBackgroundColor(),
           elevation: 3.0,
