@@ -76,17 +76,23 @@ class TaskListScreenState extends State<TaskListScreen> {
 
   EditableTaskItemWidget _createWidget(TaskItem taskItem, BuildContext context) {
     List<String> possibleRecurUnits = [
-      '(none)',
       'Days',
       'Weeks',
       'Months',
       'Years',
     ];
 
+    List<String> possibleDateTypes = [
+      'Start',
+      'Target',
+      'Urgent',
+      'Due'
+    ];
+
     var snoozeDialog = (TaskItem taskItem) {
       int numUnits = 3;
       String unitName = 'Days';
-      TaskDateType taskDateType = TaskDateType.URGENT;
+      String taskDateType = 'Urgent';
 
       showDialog<void>(context: context, builder: (context) => AlertDialog(
         title: Text('Snooze Task'),
@@ -122,14 +128,20 @@ class TaskListScreenState extends State<TaskListScreen> {
                     possibleValues: possibleRecurUnits,
                     valueSetter: (value) => unitName = value,
                     validator: (value) {
-                      if (value == '(none)') {
-                        return 'Unit is required for repeat.';
-                      }
                       return null;
                     },
                   ),
                 ),
               ],
+            ),
+            NullableDropdown(
+              initialValue: taskDateType,
+              labelText: 'For Date',
+              possibleValues: possibleDateTypes,
+              valueSetter: (value) => taskDateType = value,
+              validator: (value) {
+                return null;
+              },
             ),
           ],
         ),
