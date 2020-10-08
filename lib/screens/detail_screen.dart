@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
+import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/pending_checkbox.dart';
 import 'package:taskmaster/widgets/readonly_task_field.dart';
@@ -19,6 +20,7 @@ class DetailScreen extends StatefulWidget {
   final TaskAdder taskAdder;
   final TaskCompleter taskCompleter;
   final TaskUpdater taskUpdater;
+  final TaskHelper taskHelper;
 
   const DetailScreen({
     Key key,
@@ -26,6 +28,7 @@ class DetailScreen extends StatefulWidget {
     this.taskAdder,
     this.taskUpdater,
     this.taskCompleter,
+    @required this.taskHelper,
   }) : super(key: key);
 
   @override
@@ -221,6 +224,7 @@ class DetailScreenState extends State<DetailScreen> {
                   taskAdder: widget.taskAdder,
                   taskItem: taskItem,
                   taskItemRefresher: refreshLocalTaskItem,
+                  taskHelper: widget.taskHelper,
                   isEditing: true,
                 );
               },

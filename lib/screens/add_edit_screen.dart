@@ -2,6 +2,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/clearable_date_time_field.dart';
 import 'package:taskmaster/widgets/editable_task_field.dart';
@@ -12,6 +13,7 @@ class AddEditScreen extends StatefulWidget {
   final TaskAdder taskAdder;
   final TaskUpdater taskUpdater;
   final TaskItemRefresher taskItemRefresher;
+  final TaskHelper taskHelper;
   final bool isEditing;
 
   const AddEditScreen({
@@ -20,6 +22,7 @@ class AddEditScreen extends StatefulWidget {
     this.taskAdder,
     this.taskUpdater,
     this.taskItemRefresher,
+    @required this.taskHelper,
     @required this.isEditing,
   }) : super(key: key);
 
@@ -43,12 +46,6 @@ class AddEditScreenState extends State<AddEditScreen> {
   @override
   void initState() {
     super.initState();
-
-    if (widget.isEditing) {
-      assert(widget.taskUpdater != null);
-    } else {
-      assert(widget.taskAdder != null);
-    }
 
     _hasChanges = false;
 
@@ -404,7 +401,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                 if (widget.taskItem.gamePoints.value == null) {
                   widget.taskItem.gamePoints.value = 1;
                 }
-                await widget.taskAdder(widget.taskItem);
+                await widget.taskHelper.addTask(widget.taskItem);
               }
 
               Navigator.pop(context);

@@ -58,11 +58,9 @@ class HomeScreenState extends State<HomeScreen> {
           icon: Icon(
             tab == AppTab.tasks ? Icons.list : Icons.show_chart,
           ),
-          title: Text(
-            tab == AppTab.stats
-                ? 'Stats'
-                : 'Tasks',
-          ),
+          label: tab == AppTab.stats
+              ? 'Stats'
+              : 'Tasks',
         );
       }).toList(),
     );
