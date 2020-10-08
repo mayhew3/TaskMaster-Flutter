@@ -94,6 +94,12 @@ class TaskListScreenState extends State<TaskListScreen> {
       String unitName = 'Days';
       String taskDateType = 'Urgent';
 
+      Map<String, TaskDateType> typeMap = Map();
+      typeMap['Start'] = TaskDateType.START;
+      typeMap['Target'] = TaskDateType.TARGET;
+      typeMap['Urgent'] = TaskDateType.URGENT;
+      typeMap['Due'] = TaskDateType.DUE;
+
       showDialog<void>(context: context, builder: (context) => AlertDialog(
         title: Text('Snooze Task'),
         content: Column(
@@ -145,6 +151,19 @@ class TaskListScreenState extends State<TaskListScreen> {
             ),
           ],
         ),
+        actions: [
+          FlatButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          FlatButton(
+            onPressed: () async {
+              await widget.taskHelper.snoozeTask(taskItem, numUnits, unitName, typeMap[taskDateType]);
+              Navigator.pop(context);
+            },
+            child: Text('Submit'),
+          ),
+        ],
       ));
     };
 
