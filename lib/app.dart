@@ -7,6 +7,7 @@ import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:http/http.dart' as http;
 import 'package:taskmaster/screens/loading.dart';
+import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:jiffy/jiffy.dart';
 
@@ -22,6 +23,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   TaskRepository repository;
   NavHelper navHelper;
   TaskMasterAuth auth;
+  TaskHelper taskHelper;
 
   TaskMasterAppState() {
     auth = TaskMasterAuth(
@@ -35,6 +37,13 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       appState: appState,
       client: http.Client(),
     );
+    taskHelper = TaskHelper(
+        appState: appState,
+        repository: repository,
+        auth: auth,
+        stateSetter: (callback) => {
+          setState(callback)
+        });
     navHelper = NavHelper(
       appState: appState,
       taskRepository: repository,
@@ -43,7 +52,9 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       taskDeleter: deleteTask,
       taskUpdater: updateTask,
       taskListReloader: reloadTasks,
+      taskHelper: taskHelper,
     );
+    taskHelper.navHelper = navHelper;
   }
 
   @override

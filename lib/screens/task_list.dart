@@ -6,6 +6,7 @@ import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
+import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/widgets/filter_button.dart';
@@ -19,6 +20,7 @@ class TaskListScreen extends StatefulWidget {
   final TaskDeleter taskDeleter;
   final TaskListReloader taskListReloader;
   final BottomNavigationBar bottomNavigationBar;
+  final TaskHelper taskHelper;
 
   TaskListScreen({
     @required this.appState,
@@ -28,6 +30,7 @@ class TaskListScreen extends StatefulWidget {
     @required this.bottomNavigationBar,
     @required this.taskAdder,
     @required this.taskListReloader,
+    @required this.taskHelper,
   }) : super(key: TaskMasterKeys.taskList);
 
   @override
@@ -179,7 +182,7 @@ class TaskListScreenState extends State<TaskListScreen> {
             IconButton(
               icon: Icon(Icons.refresh),
               onPressed: () {
-                widget.taskListReloader();
+                widget.taskHelper.reloadTasks();
               },
             ),
           ],

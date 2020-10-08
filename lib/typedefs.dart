@@ -18,3 +18,6 @@ typedef EndLoadingCallback(BuildContext context);
 
 typedef void TaskListReloader();
 typedef TaskItemRefresher(TaskItem taskItem);
+
+typedef void StateCallback();
+typedef void StateSetter(StateCallback stateCallback);

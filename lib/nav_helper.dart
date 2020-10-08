@@ -3,6 +3,7 @@ import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/screens/home_screen.dart';
 import 'package:taskmaster/screens/loading.dart';
 import 'package:taskmaster/screens/sign_in.dart';
+import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:taskmaster/typedefs.dart';
 
@@ -14,6 +15,7 @@ class NavHelper {
   final TaskDeleter taskDeleter;
   final TaskUpdater taskUpdater;
   final TaskListReloader taskListReloader;
+  final TaskHelper taskHelper;
 
   BuildContext context;
 
@@ -25,6 +27,7 @@ class NavHelper {
     @required this.taskDeleter,
     @required this.taskUpdater,
     @required this.taskListReloader,
+    @required this.taskHelper,
   }) {
     this.appState.updateNavHelper(this);
   }
@@ -67,6 +70,7 @@ class NavHelper {
           taskDeleter: taskDeleter,
           taskUpdater: taskUpdater,
           taskListReloader: taskListReloader,
+          taskHelper: taskHelper,
         );
       }),
     );

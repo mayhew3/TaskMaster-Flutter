@@ -5,6 +5,7 @@ import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/app_tab.dart';
 import 'package:taskmaster/nav_helper.dart';
+import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/stats_counter.dart';
 import 'package:taskmaster/screens/task_list.dart';
@@ -17,6 +18,7 @@ class HomeScreen extends StatefulWidget {
   final TaskUpdater taskUpdater;
   final TaskListReloader taskListReloader;
   final TaskDeleter taskDeleter;
+  final TaskHelper taskHelper;
 
   HomeScreen({
     @required this.appState,
@@ -26,6 +28,7 @@ class HomeScreen extends StatefulWidget {
     @required this.taskUpdater,
     @required this.taskListReloader,
     @required this.taskDeleter,
+    @required this.taskHelper,
     Key key,
   }) : super(key: TaskMasterKeys.homeScreen);
 
@@ -75,6 +78,7 @@ class HomeScreenState extends State<HomeScreen> {
         taskDeleter: widget.taskDeleter,
         taskListReloader: widget.taskListReloader,
         bottomNavigationBar: getBottomNavigationBar(),
+        taskHelper: widget.taskHelper,
       );
     } else {
       return StatsCounter(
