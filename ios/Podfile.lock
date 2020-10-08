@@ -171,7 +171,7 @@ SPEC CHECKSUMS:
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
   flutter_app_badger: 65de4d6f0c34a891df49e6cfb8a1c0496426fa68
   flutter_local_notifications: 9e4738ce2471c5af910d961a6b7eadcf57c50186
-  google_sign_in: 6bd214b9c154f881422f5fe27b66aaa7bbd580cc
+  google_sign_in: decaf71f56e22fb1dc179de062177ae6df415716
   GoogleAppMeasurement: d0560d915abf15e692e8538ba1d58442217b6aff
   GoogleDataTransport: 47fe3b8e1673e5187dfd615656a3c5034f150d69
   GoogleDataTransportCCTSupport: 36f69887fd212db6d7ef4dd45ba44523717a434e
