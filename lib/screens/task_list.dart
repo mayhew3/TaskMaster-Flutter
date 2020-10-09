@@ -152,6 +152,7 @@ class TaskListScreenState extends State<TaskListScreen> {
     }
 
     return ListView.builder(
+        padding: const EdgeInsets.only(bottom: kFloatingActionButtonMargin + 54),
         itemCount: tiles.length,
         itemBuilder: (context, index) {
           return tiles[index];
