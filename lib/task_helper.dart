@@ -156,7 +156,7 @@ class TaskHelper {
     snooze.snoozeNumber.value = numUnits;
     snooze.snoozeUnits.value = unitSize;
     snooze.snoozeAnchor.value = dateTypeStr;
-    snooze.previousAnchor.value = relevantDate;
+    snooze.previousAnchor.value = relevantDateField.originalValue;
     snooze.newAnchor.value = relevantDateField.value;
 
     await repository.addSnooze(snooze);
