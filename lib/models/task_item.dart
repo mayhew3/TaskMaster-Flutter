@@ -1,8 +1,8 @@
+import 'package:taskmaster/models/data_object.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_field.dart';
 
-class TaskItem {
-  TaskFieldInteger id;
+class TaskItem extends DataObject {
   TaskFieldInteger personId;
 
   TaskFieldString name;
@@ -35,33 +35,27 @@ class TaskItem {
 
   static List<String> controlledFields = ['id', 'person_id', 'date_added', 'completion_date'];
 
-  TaskItem() {
-    this.id = _addIntegerField("id");
-    this.personId = _addIntegerField("person_id");
-    this.name = _addStringField("name");
-    this.description = _addStringField("description");
-    this.project = _addStringField("project");
-    this.context = _addStringField("context");
-    this.urgency = _addIntegerField("urgency");
-    this.priority = _addIntegerField("priority");
-    this.duration = _addIntegerField("duration");
-    this.dateAdded = _addDateField("date_added");
-    this.startDate = _addDateField("start_date");
-    this.targetDate = _addDateField("target_date");
-    this.dueDate = _addDateField("due_date");
-    this.completionDate = _addDateField("completion_date");
-    this.urgentDate = _addDateField("urgent_date");
-    this.gamePoints = _addIntegerField("game_points");
-    this.recurNumber = _addIntegerField("recur_number");
-    this.recurUnit = _addStringField("recur_unit");
-    this.recurWait = _addBoolField("recur_wait");
-    this.recurrenceId = _addIntegerField("recurrence_id");
-  }
-
-  revertAllChanges() {
-    for (var field in fields) {
-      field.revert();
-    }
+  @override
+  TaskItem(): super() {
+    this.personId = addIntegerField("person_id");
+    this.name = addStringField("name");
+    this.description = addStringField("description");
+    this.project = addStringField("project");
+    this.context = addStringField("context");
+    this.urgency = addIntegerField("urgency");
+    this.priority = addIntegerField("priority");
+    this.duration = addIntegerField("duration");
+    this.dateAdded = addDateField("date_added");
+    this.startDate = addDateField("start_date");
+    this.targetDate = addDateField("target_date");
+    this.dueDate = addDateField("due_date");
+    this.completionDate = addDateField("completion_date");
+    this.urgentDate = addDateField("urgent_date");
+    this.gamePoints = addIntegerField("game_points");
+    this.recurNumber = addIntegerField("recur_number");
+    this.recurUnit = addStringField("recur_unit");
+    this.recurWait = addBoolField("recur_wait");
+    this.recurrenceId = addIntegerField("recurrence_id");
   }
 
   factory TaskItem.fromJson(Map<String, dynamic> json) {
@@ -159,17 +153,6 @@ class TaskItem {
   }
 
   @override
-  int get hashCode =>
-      id.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-          other is TaskItem &&
-              runtimeType == other.runtimeType &&
-              id.value == other.id.value;
-
-  @override
   String toString() {
     return 'TaskItem{'
         'id: ${id.value}, '
@@ -177,32 +160,6 @@ class TaskItem {
         'personId: ${personId.value}, '
         'dateAdded: ${dateAdded.value}, '
         'completionDate: ${completionDate.value}}';
-  }
-
-  // Private
-
-  TaskFieldString _addStringField(String fieldName) {
-    var taskFieldString = TaskFieldString(fieldName);
-    fields.add(taskFieldString);
-    return taskFieldString;
-  }
-
-  TaskFieldInteger _addIntegerField(String fieldName) {
-    var taskFieldInteger = TaskFieldInteger(fieldName);
-    fields.add(taskFieldInteger);
-    return taskFieldInteger;
-  }
-
-  TaskFieldBoolean _addBoolField(String fieldName) {
-    var taskFieldBoolean = TaskFieldBoolean(fieldName);
-    fields.add(taskFieldBoolean);
-    return taskFieldBoolean;
-  }
-
-  TaskFieldDate _addDateField(String fieldName) {
-    var taskFieldDate = TaskFieldDate(fieldName);
-    fields.add(taskFieldDate);
-    return taskFieldDate;
   }
 
 }
