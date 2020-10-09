@@ -122,11 +122,15 @@ class TaskHelper {
 
     TaskDateType dateType = TaskItem.typeMap[dateTypeStr];
 
-    DateTime relevantDate = taskItem.getDateFieldOfType(dateType).value;
+    var relevantDateField = taskItem.getDateFieldOfType(dateType);
+    DateTime relevantDate = relevantDateField.value;
 
-    Duration difference = adjustedDate.difference(relevantDate);
-
-    TaskDateType.values.forEach((taskDateType) => taskItem.incrementDateIfExists(taskDateType, difference));
+    if (relevantDate == null) {
+      relevantDateField.value = adjustedDate;
+    } else {
+      Duration difference = adjustedDate.difference(relevantDate);
+      TaskDateType.values.forEach((taskDateType) => taskItem.incrementDateIfExists(taskDateType, difference));
+    }
 
     TaskItem updatedTask = await updateTask(taskItem);
 
@@ -136,7 +140,7 @@ class TaskHelper {
     snooze.snoozeUnits.value = unitSize;
     snooze.snoozeAnchor.value = dateTypeStr;
     snooze.previousAnchor.value = relevantDate;
-    snooze.newAnchor.value = taskItem.getDateFieldOfType(dateType).value;
+    snooze.newAnchor.value = relevantDateField.value;
 
     await repository.addSnooze(snooze);
     return updatedTask;

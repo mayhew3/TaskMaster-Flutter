@@ -1,6 +1,7 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/task_helper.dart';
 
@@ -27,7 +28,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
 
   int numUnits = 3;
   String unitName = 'Days';
-  String taskDateType = 'Urgent';
+  String taskDateType;
 
   List<String> possibleRecurUnits = [
     'Days',
@@ -36,15 +37,31 @@ class SnoozeDialogState extends State<SnoozeDialog> {
     'Years',
   ];
 
-  List<String> possibleDateTypes = [
-    'Start',
-    'Target',
-    'Urgent',
-    'Due'
-  ];
+  List<String> possibleDateTypes = [];
+
+  @override
+  void initState() {
+    super.initState();
+    TaskDateType.values.forEach((dateType) {
+      var dateFieldOfType = widget.taskItem.getDateFieldOfType(dateType);
+      if (dateFieldOfType.value != null) {
+        possibleDateTypes.add(TaskItem.getDateTypeString(dateType));
+      }
+    });
+    if (possibleDateTypes.isEmpty) {
+      possibleDateTypes = [
+        'Start',
+        'Target',
+        'Urgent',
+        'Due'
+      ];
+    }
+    taskDateType = possibleDateTypes[0];
+  }
 
   @override
   Widget build(BuildContext context) {
+
     return AlertDialog(
       title: Text('Snooze Task'),
       content: Form(

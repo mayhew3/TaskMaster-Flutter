@@ -12,12 +12,10 @@ class TaskItem extends DataObject {
   };
 
   static String getDateTypeString(TaskDateType dateType) {
-    typeMap.forEach((key, value) {
-      if (value == dateType) {
-        return key;
-      }
+    return typeMap.keys.firstWhere((key) {
+      var value = typeMap[key];
+      return (value == dateType);
     });
-    return null;
   }
 
   TaskFieldInteger personId;
