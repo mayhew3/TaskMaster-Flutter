@@ -28,7 +28,8 @@ class SnoozeDialog extends StatefulWidget {
 class SnoozeDialogState extends State<SnoozeDialog> {
   static final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  var dateFormat = new DateFormat('EEE MMM d');
+  var dateFormatThisYear = new DateFormat('EEE MMM d');
+  var dateFormatOtherYear = new DateFormat('EEE MMM d yyyy');
 
   int numUnits = 3;
   String unitName = 'Days';
@@ -61,6 +62,21 @@ class SnoozeDialogState extends State<SnoozeDialog> {
       ];
     }
     taskDateType = possibleDateTypes[0];
+
+    onNumUnitsChanged('3');
+  }
+
+  void onNumUnitsChanged(String value) {
+    numUnits = _parseValue(value);
+    updateTaskItemWithPreview();
+  }
+
+  void updateTaskItemWithPreview() {
+    if (numUnits != null) {
+      setState(() {
+        widget.taskHelper.previewSnooze(widget.taskItem, numUnits, unitName, taskDateType);
+      });
+    }
   }
 
   List<Widget> getWidgets() {
@@ -75,8 +91,8 @@ class SnoozeDialogState extends State<SnoozeDialog> {
                 child: EditableTaskField(
                   initialText: numUnits.toString(),
                   labelText: 'Num',
-                  onChanged: (value) => numUnits = _parseValue(value),
-                  fieldSetter: (value) => numUnits = _parseValue(value),
+                  onChanged: onNumUnitsChanged,
+                  fieldSetter: onNumUnitsChanged,
                   inputType: TextInputType.number,
                   validator: (value) {
                     if (value.isEmpty) {
@@ -93,6 +109,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
               initialValue: unitName,
               labelText: 'Unit',
               possibleValues: possibleRecurUnits,
+              onChanged: (value) => updateTaskItemWithPreview(),
               valueSetter: (value) => unitName = value,
               validator: (value) {
                 return null;
@@ -105,6 +122,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
         initialValue: taskDateType,
         labelText: 'For Date',
         possibleValues: possibleDateTypes,
+        onChanged: (value) => updateTaskItemWithPreview(),
         valueSetter: (value) => taskDateType = value,
         validator: (value) {
           return null;
@@ -115,9 +133,12 @@ class SnoozeDialogState extends State<SnoozeDialog> {
     TaskDateType.values.forEach((dateType) {
       TaskField dateFieldOfType = widget.taskItem.getDateFieldOfType(dateType);
       var dateTypeString = TaskItem.getDateTypeString(dateType);
-      if (dateFieldOfType.value != null) {
-        // TODO: Calculate dates based on inputs, maybe in new TaskHelper method?
-        Text text = Text(dateTypeString + ': ' + dateFormat.format(dateFieldOfType.value));
+      var actualDate = dateFieldOfType.value;
+      if (actualDate != null) {
+        String dateFormatted = (DateTime.now().year == actualDate.year) ?
+                              dateFormatThisYear.format(actualDate) :
+                              dateFormatOtherYear.format(actualDate);
+        Text text = Text(dateTypeString + ': ' + dateFormatted);
         widgets.add(text);
       }
     });
@@ -128,37 +149,47 @@ class SnoozeDialogState extends State<SnoozeDialog> {
   @override
   Widget build(BuildContext context) {
 
-    return AlertDialog(
-      title: Text('Snooze Task'),
-      content: Form(
-        key: formKey,
-        autovalidateMode: AutovalidateMode.disabled,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: getWidgets(),
+    return WillPopScope(
+      onWillPop: () async {
+        widget.taskItem.revertAllChanges();
+        return true;
+      },
+      child: AlertDialog(
+        title: Text('Snooze Task'),
+        content: Form(
+          key: formKey,
+          autovalidateMode: AutovalidateMode.disabled,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: getWidgets(),
+          ),
         ),
+        actions: [
+          FlatButton(
+            onPressed: () {
+              widget.taskItem.revertAllChanges();
+              Navigator.pop(context);
+            },
+            child: Text('Cancel'),
+          ),
+          FlatButton(
+            onPressed: () async {
+              final form = formKey.currentState;
+
+              if (form.validate()) {
+                // need this to trigger valueSetters for any fields still in focus
+                form.save();
+              }
+
+              await widget.taskHelper.snoozeTask(widget.taskItem, numUnits, unitName, taskDateType);
+              Navigator.pop(context);
+            },
+            child: Text('Submit'),
+          ),
+        ],
       ),
-      actions: [
-        FlatButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text('Cancel'),
-        ),
-        FlatButton(
-          onPressed: () async {
-            final form = formKey.currentState;
+    ) ;
 
-            if (form.validate()) {
-              // need this to trigger valueSetters for any fields still in focus
-              form.save();
-            }
-
-            await widget.taskHelper.snoozeTask(widget.taskItem, numUnits, unitName, taskDateType);
-            Navigator.pop(context);
-          },
-          child: Text('Submit'),
-        ),
-      ],
-    );
   }
 
   int _parseValue(String str) {

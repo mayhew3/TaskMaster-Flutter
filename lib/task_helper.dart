@@ -116,6 +116,23 @@ class TaskHelper {
     return updatedTask;
   }
 
+  void previewSnooze(TaskItem taskItem, int numUnits, String unitSize, String dateTypeStr) {
+    DateTime snoozeDate = DateTime.now();
+    DateTime adjustedDate = _getAdjustedDate(snoozeDate, numUnits, unitSize);
+
+    TaskDateType dateType = TaskItem.typeMap[dateTypeStr];
+
+    var relevantDateField = taskItem.getDateFieldOfType(dateType);
+    DateTime relevantDate = relevantDateField.value;
+
+    if (relevantDate == null) {
+      relevantDateField.value = adjustedDate;
+    } else {
+      Duration difference = adjustedDate.difference(relevantDate);
+      TaskDateType.values.forEach((taskDateType) => taskItem.incrementDateIfExists(taskDateType, difference));
+    }
+  }
+
   Future<TaskItem> snoozeTask(TaskItem taskItem, int numUnits, String unitSize, String dateTypeStr) async {
     DateTime snoozeDate = DateTime.now();
     DateTime adjustedDate = _getAdjustedDate(snoozeDate, numUnits, unitSize);

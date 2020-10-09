@@ -56,6 +56,7 @@ class EditableTaskFieldState extends State<EditableTaskField> {
           border: OutlineInputBorder(),
         ),
         initialValue: this.initialText,
+        onChanged: widget.onChanged,
         onSaved: widget.fieldSetter,
         validator: (value) {
           if (widget.validator != null) {
