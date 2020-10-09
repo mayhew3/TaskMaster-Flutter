@@ -7,8 +7,8 @@ final longDateFormat = DateFormat.yMMMMd().add_jm();
 
 DateTime daysFromNow(int days) {
   DateTime now = DateTime.now();
-  DateTime atSeven = DateTime(now.year, now.month, now.day, 19);
-  return atSeven.add(Duration(days: days));
+  DateTime atTwo = DateTime(now.year, now.month, now.day, 14);
+  return atTwo.add(Duration(days: days));
 }
 
 class ClearableDateTimeField extends StatelessWidget {
