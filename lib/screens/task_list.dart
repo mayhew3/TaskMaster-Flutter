@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/app_state.dart';
-import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
@@ -96,12 +95,6 @@ class TaskListScreenState extends State<TaskListScreen> {
       String unitName = 'Days';
       String taskDateType = 'Urgent';
 
-      Map<String, TaskDateType> typeMap = Map();
-      typeMap['Start'] = TaskDateType.START;
-      typeMap['Target'] = TaskDateType.TARGET;
-      typeMap['Urgent'] = TaskDateType.URGENT;
-      typeMap['Due'] = TaskDateType.DUE;
-
       showDialog<void>(context: context, builder: (context) => AlertDialog(
         title: Text('Snooze Task'),
         content: Form(
@@ -171,7 +164,7 @@ class TaskListScreenState extends State<TaskListScreen> {
                 form.save();
               }
 
-              await widget.taskHelper.snoozeTask(taskItem, numUnits, unitName, typeMap[taskDateType]);
+              await widget.taskHelper.snoozeTask(taskItem, numUnits, unitName, taskDateType);
               Navigator.pop(context);
             },
             child: Text('Submit'),

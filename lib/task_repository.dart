@@ -9,6 +9,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:taskmaster/models/app_state.dart';
+import 'package:taskmaster/models/snooze.dart';
 import 'package:taskmaster/models/task_item.dart';
 
 class TaskRepository {
@@ -81,6 +82,21 @@ class TaskRepository {
     };
     return _addOrUpdateJSON(payload, 'add');
   }
+
+  Future<Snooze> addSnooze(Snooze snooze) async {
+    var snoozeObj = {};
+    snooze.fields.forEach((field) {
+      if (!Snooze.controlledFields.contains(field.fieldName)) {
+        snoozeObj[field.fieldName] = field.formatForJSON();
+      }
+    });
+
+    var payload = {
+      'snooze': snoozeObj
+    };
+    return _addOrUpdateSnoozeJSON(payload, 'add');
+  }
+
 
   Future<TaskItem> completeTask(TaskItem taskItem, DateTime completionDate) {
     if (!appState.isAuthenticated()) {
@@ -165,6 +181,32 @@ class TaskRepository {
       }
     } else {
       throw Exception('Failed to $addOrUpdate task. Talk to Mayhew.');
+    }
+  }
+
+  Future<Snooze> _addOrUpdateSnoozeJSON(Map<String, Object> payload, String addOrUpdate) async {
+    var body = utf8.encode(json.encode(payload));
+
+    var idToken = await appState.getIdToken();
+
+    final response = await client.post("https://taskmaster-general.herokuapp.com/api/snoozes",
+        headers: {HttpHeaders.authorizationHeader: idToken.token,
+          "Content-Type": "application/json"},
+        body: body
+    );
+
+    if (response.statusCode == 200) {
+      try {
+        var jsonObj = json.decode(response.body);
+        Snooze inboundSnooze = Snooze.fromJson(jsonObj);
+        return inboundSnooze;
+      } catch(exception, stackTrace) {
+        print(exception);
+        print(stackTrace);
+        throw Exception('Error parsing $addOrUpdate snooze from the server. Talk to Mayhew.');
+      }
+    } else {
+      throw Exception('Failed to $addOrUpdate snooze. Talk to Mayhew.');
     }
   }
 }

@@ -3,6 +3,23 @@ import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_field.dart';
 
 class TaskItem extends DataObject {
+
+  static Map<String, TaskDateType> typeMap = {
+    'Start': TaskDateType.START,
+    'Target': TaskDateType.TARGET,
+    'Urgent': TaskDateType.URGENT,
+    'Due': TaskDateType.DUE,
+  };
+
+  static String getDateTypeString(TaskDateType dateType) {
+    typeMap.forEach((key, value) {
+      if (value == dateType) {
+        return key;
+      }
+    });
+    return null;
+  }
+
   TaskFieldInteger personId;
 
   TaskFieldString name;

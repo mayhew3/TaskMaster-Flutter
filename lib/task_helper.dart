@@ -5,6 +5,7 @@ import 'package:taskmaster/task_repository.dart';
 
 import 'auth.dart';
 import 'models/app_state.dart';
+import 'models/snooze.dart';
 import 'models/task_item.dart';
 import 'nav_helper.dart';
 import 'package:jiffy/jiffy.dart';
@@ -115,16 +116,30 @@ class TaskHelper {
     return updatedTask;
   }
 
-  Future<TaskItem> snoozeTask(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) async {
+  Future<TaskItem> snoozeTask(TaskItem taskItem, int numUnits, String unitSize, String dateTypeStr) async {
     DateTime snoozeDate = DateTime.now();
     DateTime adjustedDate = _getAdjustedDate(snoozeDate, numUnits, unitSize);
+
+    TaskDateType dateType = TaskItem.typeMap[dateTypeStr];
+
     DateTime relevantDate = taskItem.getDateFieldOfType(dateType).value;
 
     Duration difference = adjustedDate.difference(relevantDate);
 
     TaskDateType.values.forEach((taskDateType) => taskItem.incrementDateIfExists(taskDateType, difference));
 
-    return await updateTask(taskItem);
+    TaskItem updatedTask = await updateTask(taskItem);
+
+    Snooze snooze = new Snooze();
+    snooze.taskID.value = updatedTask.id.value;
+    snooze.snoozeNumber.value = numUnits;
+    snooze.snoozeUnits.value = unitSize;
+    snooze.snoozeAnchor.value = dateTypeStr;
+    snooze.previousAnchor.value = relevantDate;
+    snooze.newAnchor.value = taskItem.getDateFieldOfType(dateType).value;
+
+    await repository.addSnooze(snooze);
+    return updatedTask;
   }
 
 
