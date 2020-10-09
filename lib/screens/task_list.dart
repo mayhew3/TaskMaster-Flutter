@@ -7,11 +7,9 @@ import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
 import 'package:taskmaster/task_helper.dart';
-import 'package:taskmaster/widgets/editable_task_field.dart';
 import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/widgets/filter_button.dart';
 import 'package:taskmaster/widgets/header_list_item.dart';
-import 'package:taskmaster/widgets/nullable_dropdown.dart';
 import 'package:taskmaster/widgets/snooze_dialog.dart';
 
 class TaskListScreen extends StatefulWidget {
@@ -206,24 +204,6 @@ class TaskListScreenState extends State<TaskListScreen> {
         bottomNavigationBar: widget.bottomNavigationBar,
       );
 
-  }
-
-  int _parseValue(String str) {
-    var cleanString = _cleanString(str);
-    return cleanString == null ? null : int.parse(str);
-  }
-
-  String _cleanString(String str) {
-    if (str == null) {
-      return null;
-    } else {
-      var trimmed = str.trim();
-      if (trimmed.isEmpty) {
-        return null;
-      } else {
-        return trimmed;
-      }
-    }
   }
 
 }
