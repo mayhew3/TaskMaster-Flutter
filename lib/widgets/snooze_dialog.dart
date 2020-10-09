@@ -1,7 +1,9 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:taskmaster/models/task_date_type.dart';
+import 'package:taskmaster/models/task_field.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/task_helper.dart';
 
@@ -25,6 +27,8 @@ class SnoozeDialog extends StatefulWidget {
 
 class SnoozeDialogState extends State<SnoozeDialog> {
   static final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+  var dateFormat = new DateFormat('EEE MMM d');
 
   int numUnits = 3;
   String unitName = 'Days';
@@ -59,6 +63,68 @@ class SnoozeDialogState extends State<SnoozeDialog> {
     taskDateType = possibleDateTypes[0];
   }
 
+  List<Widget> getWidgets() {
+    var widgets = [
+      Row(
+        children: <Widget>[
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: <Widget>[
+              SizedBox(
+                width: 80.0,
+                child: EditableTaskField(
+                  initialText: numUnits.toString(),
+                  labelText: 'Num',
+                  onChanged: (value) => numUnits = _parseValue(value),
+                  fieldSetter: (value) => numUnits = _parseValue(value),
+                  inputType: TextInputType.number,
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return 'Required';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+            ],
+          ),
+          Expanded(
+            child: NullableDropdown(
+              initialValue: unitName,
+              labelText: 'Unit',
+              possibleValues: possibleRecurUnits,
+              valueSetter: (value) => unitName = value,
+              validator: (value) {
+                return null;
+              },
+            ),
+          ),
+        ],
+      ),
+      NullableDropdown(
+        initialValue: taskDateType,
+        labelText: 'For Date',
+        possibleValues: possibleDateTypes,
+        valueSetter: (value) => taskDateType = value,
+        validator: (value) {
+          return null;
+        },
+      ),
+    ];
+
+    TaskDateType.values.forEach((dateType) {
+      TaskField dateFieldOfType = widget.taskItem.getDateFieldOfType(dateType);
+      var dateTypeString = TaskItem.getDateTypeString(dateType);
+      if (dateFieldOfType.value != null) {
+        // TODO: Calculate dates based on inputs, maybe in new TaskHelper method?
+        Text text = Text(dateTypeString + ': ' + dateFormat.format(dateFieldOfType.value));
+        widgets.add(text);
+      }
+    });
+
+    return widgets;
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -69,52 +135,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
         autovalidateMode: AutovalidateMode.disabled,
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: <Widget>[
-                    SizedBox(
-                      width: 80.0,
-                      child: EditableTaskField(
-                        initialText: numUnits.toString(),
-                        labelText: 'Num',
-                        fieldSetter: (value) => numUnits = _parseValue(value),
-                        inputType: TextInputType.number,
-                        validator: (value) {
-                          if (value.isEmpty) {
-                            return 'Required';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                Expanded(
-                  child: NullableDropdown(
-                    initialValue: unitName,
-                    labelText: 'Unit',
-                    possibleValues: possibleRecurUnits,
-                    valueSetter: (value) => unitName = value,
-                    validator: (value) {
-                      return null;
-                    },
-                  ),
-                ),
-              ],
-            ),
-            NullableDropdown(
-              initialValue: taskDateType,
-              labelText: 'For Date',
-              possibleValues: possibleDateTypes,
-              valueSetter: (value) => taskDateType = value,
-              validator: (value) {
-                return null;
-              },
-            ),
-          ],
+          children: getWidgets(),
         ),
       ),
       actions: [

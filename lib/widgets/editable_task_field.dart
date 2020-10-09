@@ -6,6 +6,7 @@ class EditableTaskField extends StatefulWidget {
   final String initialText;
   final String labelText;
   final ValueSetter<String> fieldSetter;
+  final ValueSetter<String> onChanged;
   final bool isRequired;
   final bool wordCaps;
   final TextInputType inputType;
@@ -17,6 +18,7 @@ class EditableTaskField extends StatefulWidget {
     @required this.labelText,
     @required this.fieldSetter,
     @required this.inputType,
+    this.onChanged,
     this.isRequired = false,
     this.wordCaps = false,
     this.validator,
