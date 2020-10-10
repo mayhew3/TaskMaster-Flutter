@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/snooze.dart';
+import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 
 class TaskRepository {
@@ -58,6 +59,43 @@ class TaskRepository {
       }
     } else {
       throw Exception('Failed to load task list. Talk to Mayhew.');
+    }
+  }
+
+  Future<List<Sprint>> loadSprints() async {
+    if (!appState.isAuthenticated()) {
+      throw Exception("Cannot load tasks before being signed in.");
+    }
+
+    var queryParameters = {
+      'person_id': appState.personId.toString()
+    };
+
+    var uri = Uri.https('taskmaster-general.herokuapp.com', '/api/sprints', queryParameters);
+
+    IdTokenResult idToken = await appState.getIdToken();
+
+    final response = await this.client.get(uri,
+      headers: {HttpHeaders.authorizationHeader: idToken.token,
+        HttpHeaders.contentTypeHeader: 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      try {
+        List<Sprint> sprintList = [];
+        var jsonObj = json.decode(response.body);
+        jsonObj.forEach((sprintJson) {
+          Sprint sprint = Sprint.fromJson(sprintJson);
+          sprintList.add(sprint);
+        });
+        return sprintList;
+      } catch(exception, stackTrace) {
+        print(exception);
+        print(stackTrace);
+        throw Exception('Error retrieving sprint data from the server. Talk to Mayhew.');
+      }
+    } else {
+      throw Exception('Failed to load sprint list. Talk to Mayhew.');
     }
   }
 

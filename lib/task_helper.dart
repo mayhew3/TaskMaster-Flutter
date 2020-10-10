@@ -32,11 +32,15 @@ class TaskHelper {
 
     await appState.notificationScheduler.cancelAllNotifications();
     repository.loadTasks().then((loadedTasks) {
-      stateSetter(() => appState.finishedLoading(loadedTasks));
-      appState.notificationScheduler.updateBadge();
-      navHelper.goToHomeScreen();
-      appState.taskItems.forEach((taskItem) =>
-          appState.notificationScheduler.syncNotificationForTask(taskItem));
+      repository.loadSprints().then((loadedSprints) {
+        stateSetter(() => {
+          appState.finishedLoading(loadedTasks, loadedSprints)
+        });
+        appState.notificationScheduler.updateBadge();
+        navHelper.goToHomeScreen();
+        appState.taskItems.forEach((taskItem) =>
+            appState.notificationScheduler.syncNotificationForTask(taskItem));
+      });
     }).catchError((err) {
       stateSetter(() => appState.isLoading = false);
     });

@@ -5,6 +5,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:taskmaster/auth.dart';
 import 'package:taskmaster/flutter_badger_wrapper.dart';
+import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/notification_scheduler.dart';
@@ -13,6 +14,7 @@ import 'package:taskmaster/task_helper.dart';
 class AppState {
   bool isLoading;
   List<TaskItem> taskItems;
+  List<Sprint> sprints;
   final TaskMasterAuth auth;
   GoogleSignInAccount currentUser;
   bool tokenRetrieved = false;
@@ -71,9 +73,10 @@ class AppState {
 
   }
 
-  void finishedLoading(List<TaskItem> taskItems) {
+  void finishedLoading(List<TaskItem> taskItems, List<Sprint> sprintList) {
     isLoading = false;
     this.taskItems = taskItems;
+    this.sprints = sprintList;
   }
 
   TaskItem addNewTaskToList(TaskItem taskItem) {
