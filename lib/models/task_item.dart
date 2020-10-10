@@ -134,6 +134,10 @@ class TaskItem extends DataObject {
     return getDateFieldOfType(getAnchorDateType()).value;
   }
 
+  bool isScheduledRecurrence() {
+    return recurWait.value != null && !recurWait.value;
+  }
+
   TaskFieldDate getDateFieldOfType(TaskDateType taskDateType) {
     if (TaskDateType.START == taskDateType) {
       return startDate;

@@ -80,70 +80,79 @@ class SnoozeDialogState extends State<SnoozeDialog> {
   }
 
   List<Widget> getWidgets() {
-    var widgets = [
-      Row(
-        children: <Widget>[
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: <Widget>[
-              SizedBox(
-                width: 80.0,
-                child: EditableTaskField(
-                  initialText: numUnits.toString(),
-                  labelText: 'Num',
-                  onChanged: onNumUnitsChanged,
-                  fieldSetter: onNumUnitsChanged,
-                  inputType: TextInputType.number,
-                  validator: (value) {
-                    if (value.isEmpty) {
-                      return 'Required';
-                    }
-                    return null;
-                  },
+    if (widget.taskItem.isScheduledRecurrence()) {
+      return [
+        Text('Snooze doesn''t yet support Scheduled Dates recurrences.')
+      ];
+    } else {
+      var widgets = [
+        Row(
+          children: <Widget>[
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: <Widget>[
+                SizedBox(
+                  width: 80.0,
+                  child: EditableTaskField(
+                    initialText: numUnits.toString(),
+                    labelText: 'Num',
+                    onChanged: onNumUnitsChanged,
+                    fieldSetter: onNumUnitsChanged,
+                    inputType: TextInputType.number,
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return 'Required';
+                      }
+                      return null;
+                    },
+                  ),
                 ),
-              ),
-            ],
-          ),
-          Expanded(
-            child: NullableDropdown(
-              initialValue: unitName,
-              labelText: 'Unit',
-              possibleValues: possibleRecurUnits,
-              onChanged: (value) => updateTaskItemWithPreview(),
-              valueSetter: (value) => unitName = value,
-              validator: (value) {
-                return null;
-              },
+              ],
             ),
-          ),
-        ],
-      ),
-      NullableDropdown(
-        initialValue: taskDateType,
-        labelText: 'For Date',
-        possibleValues: possibleDateTypes,
-        onChanged: (value) => updateTaskItemWithPreview(),
-        valueSetter: (value) => taskDateType = value,
-        validator: (value) {
-          return null;
-        },
-      ),
-    ];
+            Expanded(
+              child: NullableDropdown(
+                initialValue: unitName,
+                labelText: 'Unit',
+                possibleValues: possibleRecurUnits,
+                onChanged: (value) => updateTaskItemWithPreview(),
+                valueSetter: (value) => unitName = value,
+                validator: (value) {
+                  return null;
+                },
+              ),
+            ),
+          ],
+        ),
+        NullableDropdown(
+          initialValue: taskDateType,
+          labelText: 'For Date',
+          possibleValues: possibleDateTypes,
+          onChanged: (value) => updateTaskItemWithPreview(),
+          valueSetter: (value) => taskDateType = value,
+          validator: (value) {
+            return null;
+          },
+        ),
+      ];
 
-    TaskDateType.values.forEach((dateType) {
-      TaskField dateFieldOfType = widget.taskItem.getDateFieldOfType(dateType);
-      var dateTypeString = TaskItem.getDateTypeString(dateType);
-      var actualDate = dateFieldOfType.value;
-      if (actualDate != null) {
-        String dateFormatted = (DateTime.now().year == actualDate.year) ?
-                              dateFormatThisYear.format(actualDate) :
-                              dateFormatOtherYear.format(actualDate);
-        Text text = Text(dateTypeString + ': ' + dateFormatted);
-        widgets.add(text);
-      }
-    });
+      TaskDateType.values.forEach((dateType) {
+        TaskField dateFieldOfType = widget.taskItem.getDateFieldOfType(
+            dateType);
+        var dateTypeString = TaskItem.getDateTypeString(dateType);
+        var actualDate = dateFieldOfType.value;
+        if (actualDate != null) {
+          String dateFormatted = (DateTime
+              .now()
+              .year == actualDate.year) ?
+          dateFormatThisYear.format(actualDate) :
+          dateFormatOtherYear.format(actualDate);
+          Text text = Text(dateTypeString + ': ' + dateFormatted);
+          widgets.add(text);
+        }
+      });
 
-    return widgets;
+      return widgets;
+    }
   }
 
   @override
@@ -172,7 +181,9 @@ class SnoozeDialogState extends State<SnoozeDialog> {
             },
             child: Text('Cancel'),
           ),
-          FlatButton(
+          Visibility(
+            visible: !widget.taskItem.isScheduledRecurrence(),
+            child: FlatButton(
             onPressed: () async {
               final form = formKey.currentState;
 
@@ -186,6 +197,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
             },
             child: Text('Submit'),
           ),
+          )
         ],
       ),
     ) ;
