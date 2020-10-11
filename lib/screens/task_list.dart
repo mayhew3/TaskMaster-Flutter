@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/app_state.dart';
+import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
@@ -19,12 +20,14 @@ class TaskListScreen extends StatefulWidget {
   final BottomNavigationBarGetter bottomNavigationBarGetter;
   final TaskHelper taskHelper;
   final TaskListGetter taskListGetter;
+  final Sprint sprint;
 
   TaskListScreen({
     @required this.appState,
     @required this.bottomNavigationBarGetter,
     @required this.taskHelper,
     @required this.taskListGetter,
+    this.sprint,
   }) : super(key: TaskMasterKeys.taskList);
 
   @override
@@ -100,7 +103,7 @@ class TaskListScreenState extends State<TaskListScreen> {
       },
       onLongPress: () => snoozeDialog(taskItem),
       onForcePress: (ForcePressDetails forcePressDetails) => snoozeDialog(taskItem),
-      onCheckboxChanged: (checkState) async {
+      onTaskCompleteToggle: (checkState) async {
         var updatedItem = await toggleAndUpdateCompleted(taskItem, CheckState.inactive == checkState);
         return updatedItem.isCompleted() ? CheckState.checked : CheckState.inactive;
       },

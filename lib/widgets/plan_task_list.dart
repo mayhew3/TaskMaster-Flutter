@@ -7,6 +7,7 @@ import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/typedefs.dart';
+import 'package:taskmaster/widgets/delayed_checkbox.dart';
 import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/widgets/header_list_item.dart';
 
@@ -28,6 +29,8 @@ class PlanTaskList extends StatefulWidget {
 
 class PlanTaskListState extends State<PlanTaskList> {
 
+  List<TaskItem> sprintQueued = [];
+
   List<TaskItem> _moveSublist(List<TaskItem> superList, bool Function(TaskItem) condition) {
     List<TaskItem> subList = superList.where(condition).toList(growable: false);
     subList.forEach((task) => superList.remove(task));
@@ -38,6 +41,16 @@ class PlanTaskListState extends State<PlanTaskList> {
     return EditableTaskItemWidget(
       taskItem: taskItem,
       addMode: true,
+      onTaskAssignmentToggle: (checkState) {
+        var alreadyQueued = sprintQueued.contains(taskItem);
+        if (alreadyQueued) {
+          sprintQueued.remove(taskItem);
+          return Future.value(CheckState.inactive);
+        } else {
+          sprintQueued.add(taskItem);
+          return Future.value(CheckState.checked);
+        }
+      },
     );
   }
 

@@ -10,7 +10,8 @@ import 'package:timeago/timeago.dart' as timeago;
 class EditableTaskItemWidget extends StatelessWidget {
   final TaskItem taskItem;
   final GestureTapCallback onTap;
-  final CheckCycleWaiter onCheckboxChanged;
+  final CheckCycleWaiter onTaskCompleteToggle;
+  final CheckCycleWaiter onTaskAssignmentToggle;
   final DismissDirectionCallback onDismissed;
   final GestureLongPressCallback onLongPress;
   final GestureForcePressStartCallback onForcePress;
@@ -20,7 +21,8 @@ class EditableTaskItemWidget extends StatelessWidget {
     Key key,
     @required this.taskItem,
     this.onTap,
-    this.onCheckboxChanged,
+    this.onTaskCompleteToggle,
+    this.onTaskAssignmentToggle,
     this.onDismissed,
     this.onLongPress,
     this.onForcePress,
@@ -76,30 +78,24 @@ class EditableTaskItemWidget extends StatelessWidget {
     return taskItem.dueDate.value != null && taskItem.dueDate.value.isBefore(inXDays);
   }
 
-  Widget _getBoxWidget() {
+  DelayedCheckbox _getCheckbox() {
     if (addMode) {
-      return null;
+      return DelayedCheckbox(
+        initialState: CheckState.inactive,
+        checkCycleWaiter: onTaskAssignmentToggle,
+      );
     } else {
       var completed = taskItem.completionDate.value != null;
 
-      return Container(
-        padding: EdgeInsets.only(
-          top: 4.0,
-          bottom: 4.0,
-          right: 6.0,
-          left: 4.0,
-        ),
-        child: DelayedCheckbox(
-          initialState: completed ? CheckState.checked : CheckState.inactive,
-          checkCycleWaiter: onCheckboxChanged,
-        ),
+      return DelayedCheckbox(
+        initialState: completed ? CheckState.checked : CheckState.inactive,
+        checkCycleWaiter: onTaskCompleteToggle,
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    var completed = taskItem.completionDate.value != null;
 
     return Dismissible(
       key: TaskMasterKeys.taskItem(taskItem.id.value.toString()),
@@ -173,11 +169,8 @@ class EditableTaskItemWidget extends StatelessWidget {
                     right: 6.0,
                     left: 4.0,
                   ),
-                  child: DelayedCheckbox(
-                    initialState: completed ? CheckState.checked : CheckState.inactive,
-                    checkCycleWaiter: onCheckboxChanged,
-                  ),
-                ),
+                  child: _getCheckbox(),
+                )
               ],
             ),
           ),
