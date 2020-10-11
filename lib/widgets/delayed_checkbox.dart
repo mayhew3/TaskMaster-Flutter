@@ -10,11 +10,15 @@ class DelayedCheckbox extends StatefulWidget {
 
   final CheckCycleWaiter checkCycleWaiter;
   final CheckState initialState;
+  final Color checkedColor;
+  final IconData inactiveIcon;
 
   const DelayedCheckbox({
     Key key,
     this.checkCycleWaiter,
     this.initialState,
+    this.checkedColor,
+    this.inactiveIcon,
   }) : super(key: key);
 
   @override
@@ -49,14 +53,14 @@ class DelayedCheckboxState extends State<DelayedCheckbox> {
     Map<CheckState, Color> colorMap = {
       CheckState.inactive: TaskColors.cardColor,
       CheckState.pending: TaskColors.pendingCheckbox,
-      CheckState.checked: themeData.toggleableActiveColor,
+      CheckState.checked: widget.checkedColor ?? themeData.toggleableActiveColor,
     };
     return colorMap[currentState];
   }
 
   IconData getInnerIcon() {
     Map<CheckState, IconData> iconMap = {
-      CheckState.inactive: null,
+      CheckState.inactive: widget.inactiveIcon,
       CheckState.pending: Icons.more_horiz,
       CheckState.checked: Icons.done_outline,
     };

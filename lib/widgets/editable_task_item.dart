@@ -83,6 +83,8 @@ class EditableTaskItemWidget extends StatelessWidget {
       return DelayedCheckbox(
         initialState: CheckState.inactive,
         checkCycleWaiter: onTaskAssignmentToggle,
+        checkedColor: Colors.green,
+        inactiveIcon: Icons.add,
       );
     } else {
       var completed = taskItem.completionDate.value != null;
