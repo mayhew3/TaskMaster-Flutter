@@ -47,7 +47,7 @@ class DelayedCheckboxState extends State<DelayedCheckbox> {
   Color getColor(BuildContext context) {
     final ThemeData themeData = Theme.of(context);
     Map<CheckState, Color> colorMap = {
-      CheckState.inactive: themeData.unselectedWidgetColor,
+      CheckState.inactive: TaskColors.cardColor,
       CheckState.pending: TaskColors.pendingCheckbox,
       CheckState.checked: themeData.toggleableActiveColor,
     };
@@ -71,10 +71,10 @@ class DelayedCheckboxState extends State<DelayedCheckbox> {
       onTap: handleClick,
       child: Container(
           padding: EdgeInsets.only(
-            top: 3.0,
-            bottom: 3.0,
-            right: 3.0,
-            left: 3.0,
+            top: 0.0,
+            bottom: 0.0,
+            right: 0.0,
+            left: 0.0,
           ),
           child: SizedBox(
             width: 50,
@@ -83,10 +83,10 @@ class DelayedCheckboxState extends State<DelayedCheckbox> {
               margin: EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
-                /*side: BorderSide(
-                            color: checkOutline,
-                            width: 2.0,
-                          ),*/
+                side: BorderSide(
+                  color: Colors.white70,
+                  width: 2.0,
+                ),
               ),
               color: getColor(context),
               child: Icon(getInnerIcon(), size: 24.0),
