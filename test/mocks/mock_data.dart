@@ -1,5 +1,8 @@
 
+import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
+
+import 'mock_app_state.dart';
 
 final DateTime catStart = DateTime.utc(2019, 11, 5, 3, 0, 0);
 final DateTime catTarget = DateTime.utc(2019, 11, 7, 3, 0, 0);
@@ -29,6 +32,7 @@ final Map<String, dynamic> catLitterJSON = {
   "date_added": catAdded.toIso8601String(),
   "retired": 0,
   "retired_date": null,
+  "sprint_assignments": []
 };
 
 final DateTime bdayDue = DateTime.now().add(Duration(days: 200)).toUtc();
@@ -57,6 +61,7 @@ final Map<String, dynamic> birthdayJSON = {
   "date_added": bdayAdded.toIso8601String(),
   "retired": 0,
   "retired_date": null,
+  "sprint_assignments": []
 };
 
 final DateTime futureStart = DateTime.now().add(Duration(days: 90));
@@ -85,6 +90,7 @@ final Map<String, dynamic> futureJSON = {
   "date_added": futureAdded.toIso8601String(),
   "retired": 0,
   "retired_date": null,
+  "sprint_assignments": []
 };
 
 final DateTime pastStart = DateTime.now().subtract(Duration(days: 90));
@@ -113,12 +119,15 @@ final Map<String, dynamic> pastJSON = {
   "date_added": pastAdded.toIso8601String(),
   "retired": 0,
   "retired_date": null,
+  "sprint_assignments": []
 };
 
-TaskItem catLitterTask = TaskItem.fromJson(catLitterJSON);
-TaskItem birthdayTask = TaskItem.fromJson(birthdayJSON);
-TaskItem futureTask = TaskItem.fromJson(futureJSON);
-TaskItem pastTask = TaskItem.fromJson(pastJSON);
+AppState mockAppState = MockAppState();
+
+TaskItem catLitterTask = TaskItem.fromJson(catLitterJSON, mockAppState);
+TaskItem birthdayTask = TaskItem.fromJson(birthdayJSON, mockAppState);
+TaskItem futureTask = TaskItem.fromJson(futureJSON, mockAppState);
+TaskItem pastTask = TaskItem.fromJson(pastJSON, mockAppState);
 
 List<TaskItem> allTasks = [catLitterTask, birthdayTask, futureTask, pastTask];
 

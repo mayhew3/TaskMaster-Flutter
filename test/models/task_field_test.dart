@@ -127,7 +127,7 @@ void main() {
     });
 
     test('toString', () {
-      var stringOutput = startDate + ': 2019-07-13 08:12:55.000';
+      var stringOutput = startDate + ': (null) -> 2019-07-13 08:12:55.000';
       final taskField = TaskFieldDate(startDate);
       taskField.value = theDateTime;
       expect(taskField.toString(), stringOutput);
@@ -265,7 +265,7 @@ void main() {
     });
 
     test('toString', () {
-      var stringOutput = name + ': ' + theString;
+      var stringOutput = name + ': (null) -> ' + theString;
       final taskField = TaskFieldString(name);
       taskField.value = theString;
       expect(taskField.toString(), stringOutput);
@@ -388,7 +388,7 @@ void main() {
     });
 
     test('toString', () {
-      var stringOutput = priority + ': ' + theInt.toString();
+      var stringOutput = priority + ': (null) -> ' + theInt.toString();
       final taskField = TaskFieldInteger(priority);
       taskField.value = theInt;
       expect(taskField.toString(), stringOutput);
@@ -511,7 +511,7 @@ void main() {
     });
 
     test('toString', () {
-      var stringOutput = recurWait + ': ' + theBool.toString();
+      var stringOutput = recurWait + ': (null) -> ' + theBool.toString();
       final taskField = TaskFieldBoolean(recurWait);
       taskField.value = theBool;
       expect(taskField.toString(), stringOutput);
