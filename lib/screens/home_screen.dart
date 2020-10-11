@@ -36,15 +36,15 @@ class HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-    navItems.add(new TopNavItem(
+    var planItem = new TopNavItem(
         label: 'Plan',
         icon: Icons.assignment,
         widget: PlanningHome(
           appState: widget.appState,
           taskHelper: widget.taskHelper,
           bottomNavigationBarGetter: getBottomNavigationBar,
-        )));
-    navItems.add(new TopNavItem(
+        ));
+    var taskNav = new TopNavItem(
         label: 'Tasks',
         icon: Icons.list,
         widget: TaskListScreen(
@@ -52,8 +52,8 @@ class HomeScreenState extends State<HomeScreen> {
           bottomNavigationBarGetter: getBottomNavigationBar,
           taskListGetter: widget.appState.getAllTasks,
           taskHelper: widget.taskHelper,
-        )));
-    navItems.add(new TopNavItem(
+        ));
+    var statsNav = new TopNavItem(
         label: 'Stats',
         icon: Icons.show_chart,
         widget: StatsCounter(
@@ -61,8 +61,13 @@ class HomeScreenState extends State<HomeScreen> {
           numActive: widget.appState.taskItems.where((taskItem) => taskItem.completionDate.value == null).length,
           numCompleted: widget.appState.taskItems.where((taskItem) => taskItem.completionDate.value != null).length,
           bottomNavigationBarGetter: getBottomNavigationBar,
-        )));
-    activeTab = navItems[1];
+        ));
+
+    navItems.add(planItem);
+    navItems.add(taskNav);
+    navItems.add(statsNav);
+
+    activeTab = taskNav;
 
     widget.navHelper.updateContext(context);
   }
