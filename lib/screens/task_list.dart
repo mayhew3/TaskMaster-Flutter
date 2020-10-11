@@ -65,7 +65,7 @@ class TaskListScreenState extends State<TaskListScreen> {
 
   Future<TaskItem> toggleAndUpdateCompleted(TaskItem taskItem, bool complete) async {
     recentlyCompleted.add(taskItem);
-    var future = await widget.taskHelper.completeTask(taskItem, complete);
+    var future = await widget.taskHelper.completeTask(taskItem, complete, (callback) => setState(() => callback()));
     setState(() {});
     return future;
   }

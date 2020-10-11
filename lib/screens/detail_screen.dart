@@ -6,6 +6,7 @@ import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/task_helper.dart';
+import 'package:taskmaster/widgets/my_checkbox.dart';
 import 'package:taskmaster/widgets/pending_checkbox.dart';
 import 'package:taskmaster/widgets/readonly_task_field.dart';
 import 'package:taskmaster/widgets/readonly_task_field_small.dart';
@@ -91,8 +92,8 @@ class DetailScreenState extends State<DetailScreen> {
     return unit.toLowerCase();
   }
 
-  Future<TaskItem> toggleAndUpdateCompleted(TaskItem taskItem, bool complete) {
-    var future = widget.taskHelper.completeTask(taskItem, complete);
+  Future<TaskItem> toggleAndUpdateCompleted(TaskItem taskItem, bool complete) async {
+    var future = await widget.taskHelper.completeTask(taskItem, complete, (callback) => setState(() => callback()));
     setState(() {});
     return future;
   }
@@ -123,11 +124,12 @@ class DetailScreenState extends State<DetailScreen> {
                   visible: !taskItem.pendingCompletion,
                   child: Padding(
                     padding: EdgeInsets.all(4.0),
-                    child: TaskCheckbox(
-                      value: completed,
-                      onChanged: (complete) async {
-                        var updatedTask = await toggleAndUpdateCompleted(taskItem, complete);
+                    child: MyCheckbox(
+                      initialState: completed ? CheckState.checked : CheckState.inactive,
+                      checkCycleWaiter: (checkState) async {
+                        var updatedTask = await toggleAndUpdateCompleted(taskItem, CheckState.inactive == checkState);
                         refreshLocalTaskItem(updatedTask);
+                        return updatedTask.isCompleted() ? CheckState.checked : CheckState.inactive;
                       },
                     ),
                   ),

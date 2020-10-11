@@ -51,10 +51,13 @@ class TaskHelper {
     appState.notificationScheduler.updateBadge();
   }
 
-  Future<TaskItem> completeTask(TaskItem taskItem, bool completed) async {
+  Future<TaskItem> completeTask(TaskItem taskItem, bool completed, StateSetter stateSetter) async {
     TaskItem nextScheduledTask;
     DateTime completionDate = completed ? DateTime.now() : null;
-    taskItem.pendingCompletion = true;
+
+    stateSetter(() {
+      taskItem.pendingCompletion = true;
+    });
 
     if (taskItem.recurNumber.value != null && completed) {
       DateTime anchorDate = taskItem.getAnchorDate();
