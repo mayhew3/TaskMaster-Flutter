@@ -6,10 +6,9 @@ import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/task_helper.dart';
-import 'package:taskmaster/widgets/pending_checkbox.dart';
+import 'package:taskmaster/widgets/delayed_checkbox.dart';
 import 'package:taskmaster/widgets/readonly_task_field.dart';
 import 'package:taskmaster/widgets/readonly_task_field_small.dart';
-import 'package:taskmaster/widgets/task_checkbox.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 final longDateFormat = DateFormat.yMMMMd().add_jm();
@@ -91,8 +90,8 @@ class DetailScreenState extends State<DetailScreen> {
     return unit.toLowerCase();
   }
 
-  Future<TaskItem> toggleAndUpdateCompleted(TaskItem taskItem, bool complete) {
-    var future = widget.taskHelper.completeTask(taskItem, complete);
+  Future<TaskItem> toggleAndUpdateCompleted(TaskItem taskItem, bool complete) async {
+    var future = await widget.taskHelper.completeTask(taskItem, complete, (callback) => setState(() => callback()));
     setState(() {});
     return future;
   }
@@ -119,24 +118,15 @@ class DetailScreenState extends State<DetailScreen> {
                       )
                   ),
                 ),
-                Visibility(
-                  visible: !taskItem.pendingCompletion,
-                  child: Padding(
-                    padding: EdgeInsets.all(4.0),
-                    child: TaskCheckbox(
-                      value: completed,
-                      onChanged: (complete) async {
-                        var updatedTask = await toggleAndUpdateCompleted(taskItem, complete);
-                        refreshLocalTaskItem(updatedTask);
-                      },
-                    ),
-                  ),
-                ),
-                Visibility(
-                  visible: taskItem.pendingCompletion,
-                  child: Padding(
-                    padding: EdgeInsets.all(4.0),
-                    child: PendingCheckbox(),
+                Padding(
+                  padding: EdgeInsets.all(4.0),
+                  child: DelayedCheckbox(
+                    initialState: completed ? CheckState.checked : CheckState.inactive,
+                    checkCycleWaiter: (checkState) async {
+                      var updatedTask = await toggleAndUpdateCompleted(taskItem, CheckState.inactive == checkState);
+                      refreshLocalTaskItem(updatedTask);
+                      return updatedTask.isCompleted() ? CheckState.checked : CheckState.inactive;
+                    },
                   ),
                 ),
               ],

@@ -1,2 +1,2 @@
 
-enum AppTab { tasks, stats }
+enum AppTab { plan, tasks, stats }

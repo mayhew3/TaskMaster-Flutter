@@ -10,7 +10,9 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/snooze.dart';
+import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/parse_helper.dart';
 
 class TaskRepository {
   AppState appState;
@@ -21,7 +23,7 @@ class TaskRepository {
     @required this.client,
   });
 
-  Future<List<TaskItem>> loadTasks() async {
+  Future<void> loadTasks(StateSetter stateSetter) async {
     if (!appState.isAuthenticated()) {
       throw Exception("Cannot load tasks before being signed in.");
     }
@@ -42,15 +44,33 @@ class TaskRepository {
     if (response.statusCode == 200) {
       try {
         List<TaskItem> taskList = [];
+        List<Sprint> sprintList = [];
+
         var jsonObj = json.decode(response.body);
+
         int personId = jsonObj['person_id'];
         appState.personId = personId;
-        List tasks = jsonObj['tasks'];
-        tasks.forEach((taskJson) {
-          TaskItem taskItem = TaskItem.fromJson(taskJson);
-          taskList.add(taskItem);
+
+        List sprints = jsonObj['sprints'];
+        for (var sprintJson in sprints) {
+          Sprint sprint = Sprint.fromJson(sprintJson);
+          sprintList.add(sprint);
+        }
+
+        stateSetter(() {
+          appState.sprints = sprintList;
         });
-        return taskList;
+
+        List tasks = jsonObj['tasks'];
+        for (var taskJson in tasks) {
+          TaskItem taskItem = TaskItem.fromJson(taskJson, this.appState);
+          taskList.add(taskItem);
+        }
+
+        stateSetter(() {
+          appState.taskItems = taskList;
+        });
+
       } catch(exception, stackTrace) {
         print(exception);
         print(stackTrace);
@@ -94,7 +114,35 @@ class TaskRepository {
     var payload = {
       'snooze': snoozeObj
     };
-    return _addOrUpdateSnoozeJSON(payload, 'add');
+    return _addOrUpdateSnoozeJSON(payload);
+  }
+
+  Future<Sprint> addSprint(Sprint sprint) async {
+    var sprintObj = {};
+    sprint.fields.forEach((field) {
+      if (!Sprint.controlledFields.contains(field.fieldName)) {
+        sprintObj[field.fieldName] = field.formatForJSON();
+      }
+    });
+
+    var payload = {
+      'sprint': sprintObj
+    };
+    return _addSprintJSON(payload);
+  }
+
+  Future<void> addTasksToSprint(List<TaskItem> taskItems, Sprint sprint) async {
+    List<int> taskIds = [];
+    for (TaskItem taskItem in taskItems) {
+      taskIds.add(taskItem.id.value);
+    }
+
+    var payload = {
+      'sprint_id': sprint.id.value,
+      'task_ids': taskIds,
+    };
+
+    return _addTaskListJSON(payload);
   }
 
 
@@ -172,7 +220,7 @@ class TaskRepository {
     if (response.statusCode == 200) {
       try {
         var jsonObj = json.decode(response.body);
-        TaskItem inboundTask = TaskItem.fromJson(jsonObj);
+        TaskItem inboundTask = TaskItem.fromJson(jsonObj, this.appState);
         return inboundTask;
       } catch(exception, stackTrace) {
         print(exception);
@@ -184,7 +232,7 @@ class TaskRepository {
     }
   }
 
-  Future<Snooze> _addOrUpdateSnoozeJSON(Map<String, Object> payload, String addOrUpdate) async {
+  Future<Snooze> _addOrUpdateSnoozeJSON(Map<String, Object> payload) async {
     var body = utf8.encode(json.encode(payload));
 
     var idToken = await appState.getIdToken();
@@ -203,10 +251,68 @@ class TaskRepository {
       } catch(exception, stackTrace) {
         print(exception);
         print(stackTrace);
-        throw Exception('Error parsing $addOrUpdate snooze from the server. Talk to Mayhew.');
+        throw Exception('Error parsing snooze from the server. Talk to Mayhew.');
       }
     } else {
-      throw Exception('Failed to $addOrUpdate snooze. Talk to Mayhew.');
+      throw Exception('Failed to add snooze. Talk to Mayhew.');
+    }
+  }
+
+  Future<Sprint> _addSprintJSON(Map<String, Object> payload) async {
+    var body = utf8.encode(json.encode(payload));
+
+    var idToken = await appState.getIdToken();
+
+    final response = await client.post("https://taskmaster-general.herokuapp.com/api/sprints",
+        headers: {HttpHeaders.authorizationHeader: idToken.token,
+          "Content-Type": "application/json"},
+        body: body
+    );
+
+    if (response.statusCode == 200) {
+      try {
+        var jsonObj = json.decode(response.body);
+        Sprint inboundSprint = Sprint.fromJson(jsonObj);
+        return inboundSprint;
+      } catch(exception, stackTrace) {
+        print(exception);
+        print(stackTrace);
+        throw Exception('Error parsing snooze from the server. Talk to Mayhew.');
+      }
+    } else {
+      throw Exception('Failed to add snooze. Talk to Mayhew.');
+    }
+  }
+
+  Future<void> _addTaskListJSON(Map<String, Object> payload) async {
+    var body = utf8.encode(json.encode(payload));
+
+    var idToken = await appState.getIdToken();
+
+    final response = await client.post("https://taskmaster-general.herokuapp.com/api/assignments",
+        headers: {HttpHeaders.authorizationHeader: idToken.token,
+          "Content-Type": "application/json"},
+        body: body
+    );
+
+    if (response.statusCode == 200) {
+      try {
+        var jsonArray = json.decode(response.body);
+        for (var assignment in jsonArray) {
+          var sprintId = assignment['sprint_id'];
+          var taskId = assignment['task_id'];
+          TaskItem taskItem = appState.findTaskItemWithId(taskId);
+          Sprint sprint = appState.findSprintWithId(sprintId);
+          taskItem.addToSprints(sprint);
+          sprint.addToTasks(taskItem);
+        }
+      } catch(exception, stackTrace) {
+        print(exception);
+        print(stackTrace);
+        throw Exception('Error parsing assignments from the server. Talk to Mayhew.');
+      }
+    } else {
+      throw Exception('Failed to add assignments. Talk to Mayhew.');
     }
   }
 }

@@ -3,10 +3,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/app_state.dart';
-import 'package:taskmaster/models/app_tab.dart';
+import 'package:taskmaster/models/top_nav_item.dart';
 import 'package:taskmaster/nav_helper.dart';
+import 'package:taskmaster/screens/planning_home.dart';
+import 'package:taskmaster/screens/stats_counter.dart';
 import 'package:taskmaster/task_helper.dart';
-import 'package:taskmaster/widgets/stats_counter.dart';
 import 'package:taskmaster/screens/task_list.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -28,51 +29,72 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
-  AppTab activeTab = AppTab.tasks;
+  TopNavItem activeTab;
+  List<TopNavItem> navItems = [];
 
   @override
   void initState() {
     super.initState();
+
+    var planItem = new TopNavItem(
+        label: 'Plan',
+        icon: Icons.assignment,
+        widget: PlanningHome(
+          appState: widget.appState,
+          taskHelper: widget.taskHelper,
+          bottomNavigationBarGetter: getBottomNavigationBar,
+        ));
+    var taskNav = new TopNavItem(
+        label: 'Tasks',
+        icon: Icons.list,
+        widget: TaskListScreen(
+          title: 'All Tasks',
+          appState: widget.appState,
+          bottomNavigationBarGetter: getBottomNavigationBar,
+          taskListGetter: widget.appState.getAllTasks,
+          taskHelper: widget.taskHelper,
+        ));
+    var statsNav = new TopNavItem(
+        label: 'Stats',
+        icon: Icons.show_chart,
+        widget: StatsCounter(
+          appState: widget.appState,
+          numActive: widget.appState.taskItems.where((taskItem) => taskItem.completionDate.value == null).length,
+          numCompleted: widget.appState.taskItems.where((taskItem) => taskItem.completionDate.value != null).length,
+          bottomNavigationBarGetter: getBottomNavigationBar,
+        ));
+
+    navItems.add(planItem);
+    navItems.add(taskNav);
+    navItems.add(statsNav);
+
+    activeTab = taskNav;
+
     widget.navHelper.updateContext(context);
   }
 
   BottomNavigationBar getBottomNavigationBar() {
     return BottomNavigationBar(
-      currentIndex: AppTab.values.indexOf(activeTab),
+      currentIndex: navItems.indexOf(activeTab),
       onTap: (index) {
-        _updateTab(AppTab.values[index]);
+        _updateTab(navItems[index]);
       },
-      items: AppTab.values.map((tab) {
+      items: navItems.map((tab) {
         return BottomNavigationBarItem(
           icon: Icon(
-            tab == AppTab.tasks ? Icons.list : Icons.show_chart,
+            tab.icon,
           ),
-          label: tab == AppTab.stats
-              ? 'Stats'
-              : 'Tasks',
+          label: tab.label
         );
       }).toList(),
     );
   }
 
   Widget getSelectedTab() {
-    if (activeTab == AppTab.tasks) {
-      return TaskListScreen(
-        appState: widget.appState,
-        bottomNavigationBar: getBottomNavigationBar(),
-        taskHelper: widget.taskHelper,
-      );
-    } else {
-      return StatsCounter(
-        appState: widget.appState,
-        numActive: widget.appState.taskItems.where((taskItem) => taskItem.completionDate.value == null).length,
-        numCompleted: widget.appState.taskItems.where((taskItem) => taskItem.completionDate.value != null).length,
-        bottomNavigationBar: getBottomNavigationBar(),
-      );
-    }
+    return activeTab.widget;
   }
 
-  _updateTab(AppTab tab) {
+  _updateTab(TopNavItem tab) {
     setState(() {
       activeTab = tab;
     });

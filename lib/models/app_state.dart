@@ -5,6 +5,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:taskmaster/auth.dart';
 import 'package:taskmaster/flutter_badger_wrapper.dart';
+import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/notification_scheduler.dart';
@@ -13,6 +14,7 @@ import 'package:taskmaster/task_helper.dart';
 class AppState {
   bool isLoading;
   List<TaskItem> taskItems;
+  List<Sprint> sprints;
   final TaskMasterAuth auth;
   GoogleSignInAccount currentUser;
   bool tokenRetrieved = false;
@@ -24,6 +26,7 @@ class AppState {
   AppState({
     this.isLoading = true,
     this.taskItems = const [],
+    this.sprints = const [],
     @required this.auth,
   }) {
     title = 'TaskMaster 3000';
@@ -43,6 +46,14 @@ class AppState {
     }
   }
 
+  List<TaskItem> getAllTasks() {
+    return taskItems;
+  }
+
+  List<TaskItem> getTasksForActiveSprint() {
+    return getActiveSprint().taskItems;
+  }
+
   List<TaskItem> getFilteredTasks(bool showScheduled, bool showCompleted, List<TaskItem> recentlyCompleted) {
     List<TaskItem> filtered = taskItems.where((taskItem) {
       bool passesScheduleFilter = showScheduled || !taskItem.isScheduled();
@@ -54,6 +65,11 @@ class AppState {
 
   TaskItem findTaskItemWithId(int taskId) {
     var matching = taskItems.where((taskItem) => taskItem.id.value == taskId);
+    return matching.isEmpty ? null : matching.first;
+  }
+
+  Sprint findSprintWithId(int sprintId) {
+    var matching = sprints.where((sprint) => sprint.id.value == sprintId);
     return matching.isEmpty ? null : matching.first;
   }
 
@@ -71,9 +87,20 @@ class AppState {
 
   }
 
-  void finishedLoading(List<TaskItem> taskItems) {
+  Sprint getActiveSprint() {
+    var now = DateTime.now();
+    if (this.sprints.isEmpty) {
+      return null;
+    } else {
+      return this.sprints.firstWhere((sprint) =>
+      sprint.startDate.value.isBefore(now) &&
+          sprint.endDate.value.isAfter(now) &&
+          sprint.closeDate.value == null);
+    }
+  }
+
+  void finishedLoading() {
     isLoading = false;
-    this.taskItems = taskItems;
   }
 
   TaskItem addNewTaskToList(TaskItem taskItem) {

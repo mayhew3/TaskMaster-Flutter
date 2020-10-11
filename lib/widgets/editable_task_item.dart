@@ -3,26 +3,30 @@ import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/widgets/pending_checkbox.dart';
-import 'package:taskmaster/widgets/task_checkbox.dart';
+import 'package:taskmaster/typedefs.dart';
+import 'package:taskmaster/widgets/delayed_checkbox.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class EditableTaskItemWidget extends StatelessWidget {
   final TaskItem taskItem;
   final GestureTapCallback onTap;
-  final ValueChanged<bool> onCheckboxChanged;
+  final CheckCycleWaiter onTaskCompleteToggle;
+  final CheckCycleWaiter onTaskAssignmentToggle;
   final DismissDirectionCallback onDismissed;
   final GestureLongPressCallback onLongPress;
   final GestureForcePressStartCallback onForcePress;
+  final bool addMode;
 
   EditableTaskItemWidget({
     Key key,
     @required this.taskItem,
-    @required this.onTap,
-    @required this.onCheckboxChanged,
-    @required this.onDismissed,
+    this.onTap,
+    this.onTaskCompleteToggle,
+    this.onTaskAssignmentToggle,
+    this.onDismissed,
     this.onLongPress,
     this.onForcePress,
+    @required this.addMode,
   }) : super(key: key);
 
   bool hasPassed(DateTime dateTime) {
@@ -74,9 +78,26 @@ class EditableTaskItemWidget extends StatelessWidget {
     return taskItem.dueDate.value != null && taskItem.dueDate.value.isBefore(inXDays);
   }
 
+  DelayedCheckbox _getCheckbox() {
+    if (addMode) {
+      return DelayedCheckbox(
+        initialState: CheckState.inactive,
+        checkCycleWaiter: onTaskAssignmentToggle,
+        checkedColor: Colors.green,
+        inactiveIcon: Icons.add,
+      );
+    } else {
+      var completed = taskItem.completionDate.value != null;
+
+      return DelayedCheckbox(
+        initialState: completed ? CheckState.checked : CheckState.inactive,
+        checkCycleWaiter: onTaskCompleteToggle,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    var completed = taskItem.completionDate.value != null;
 
     return Dismissible(
       key: TaskMasterKeys.taskItem(taskItem.id.value.toString()),
@@ -150,18 +171,8 @@ class EditableTaskItemWidget extends StatelessWidget {
                     right: 6.0,
                     left: 4.0,
                   ),
-                  child: Visibility(
-                    visible: !taskItem.pendingCompletion,
-                    child: TaskCheckbox(
-                        value: completed,
-                        onChanged: onCheckboxChanged,
-                    ),
-                  ),
-                ),
-                Visibility(
-                  visible: taskItem.pendingCompletion,
-                  child: PendingCheckbox(),
-                ),
+                  child: _getCheckbox(),
+                )
               ],
             ),
           ),

@@ -3,24 +3,33 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/app_state.dart';
+import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
 import 'package:taskmaster/task_helper.dart';
+import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/widgets/filter_button.dart';
 import 'package:taskmaster/widgets/header_list_item.dart';
+import 'package:taskmaster/widgets/delayed_checkbox.dart';
 import 'package:taskmaster/widgets/snooze_dialog.dart';
 
 class TaskListScreen extends StatefulWidget {
   final AppState appState;
-  final BottomNavigationBar bottomNavigationBar;
+  final BottomNavigationBarGetter bottomNavigationBarGetter;
   final TaskHelper taskHelper;
+  final TaskListGetter taskListGetter;
+  final Sprint sprint;
+  final String title;
 
   TaskListScreen({
     @required this.appState,
-    @required this.bottomNavigationBar,
+    @required this.bottomNavigationBarGetter,
     @required this.taskHelper,
+    @required this.taskListGetter,
+    @required this.title,
+    this.sprint,
   }) : super(key: TaskMasterKeys.taskList);
 
   @override
@@ -59,9 +68,9 @@ class TaskListScreenState extends State<TaskListScreen> {
     });
   }
 
-  Future<TaskItem> toggleAndUpdateCompleted(TaskItem taskItem, bool complete) {
+  Future<TaskItem> toggleAndUpdateCompleted(TaskItem taskItem, bool complete) async {
     recentlyCompleted.add(taskItem);
-    var future = widget.taskHelper.completeTask(taskItem, complete);
+    var future = await widget.taskHelper.completeTask(taskItem, complete, (callback) => setState(() => callback()));
     setState(() {});
     return future;
   }
@@ -83,6 +92,7 @@ class TaskListScreenState extends State<TaskListScreen> {
 
     return EditableTaskItemWidget(
       taskItem: taskItem,
+      addMode: false,
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(builder: (_) {
@@ -95,8 +105,9 @@ class TaskListScreenState extends State<TaskListScreen> {
       },
       onLongPress: () => snoozeDialog(taskItem),
       onForcePress: (ForcePressDetails forcePressDetails) => snoozeDialog(taskItem),
-      onCheckboxChanged: (complete) {
-        toggleAndUpdateCompleted(taskItem, complete);
+      onTaskCompleteToggle: (checkState) async {
+        var updatedItem = await toggleAndUpdateCompleted(taskItem, CheckState.inactive == checkState);
+        return updatedItem.isCompleted() ? CheckState.checked : CheckState.inactive;
       },
       onDismissed: (direction) async {
         if (direction == DismissDirection.endToStart) {
@@ -113,9 +124,19 @@ class TaskListScreenState extends State<TaskListScreen> {
     );
   }
 
+  List<TaskItem> getFilteredTasks(List<TaskItem> taskItems) {
+    List<TaskItem> filtered = taskItems.where((taskItem) {
+      bool passesScheduleFilter = showScheduled || !taskItem.isScheduled();
+      bool passesCompletedFilter = showCompleted || !(taskItem.isCompleted() && !recentlyCompleted.contains(taskItem));
+      return passesScheduleFilter && passesCompletedFilter;
+    }).toList();
+    return filtered;
+  }
+
   ListView _buildListView(BuildContext context) {
     widget.appState.notificationScheduler.updateHomeScreenContext(context);
-    final List<TaskItem> otherTasks = widget.appState.getFilteredTasks(showScheduled, showCompleted, recentlyCompleted);
+    final List<TaskItem> allTasks = widget.taskListGetter();
+    final List<TaskItem> otherTasks = getFilteredTasks(allTasks);
 
     final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted() && !recentlyCompleted.contains(taskItem));
     final List<TaskItem> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isPastDue());
@@ -162,7 +183,7 @@ class TaskListScreenState extends State<TaskListScreen> {
     return
       Scaffold(
         appBar: AppBar(
-          title: Text(widget.appState.title),
+          title: Text(widget.title),
           actions: <Widget>[
             FilterButton(
               scheduledGetter: () => showScheduled,
@@ -201,7 +222,7 @@ class TaskListScreenState extends State<TaskListScreen> {
           },
           child: Icon(Icons.add),
         ),
-        bottomNavigationBar: widget.bottomNavigationBar,
+        bottomNavigationBar: widget.bottomNavigationBarGetter(),
       );
 
   }

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_field.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/parse_helper.dart';
 import 'package:taskmaster/task_helper.dart';
 
 import 'editable_task_field.dart';
@@ -67,7 +68,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
   }
 
   void onNumUnitsChanged(String value) {
-    numUnits = _parseValue(value);
+    numUnits = ParseHelper.parseInt(value);
     updateTaskItemWithPreview();
   }
 
@@ -184,42 +185,24 @@ class SnoozeDialogState extends State<SnoozeDialog> {
           Visibility(
             visible: !widget.taskItem.isScheduledRecurrence(),
             child: FlatButton(
-            onPressed: () async {
-              final form = formKey.currentState;
+              onPressed: () async {
+                final form = formKey.currentState;
 
-              if (form.validate()) {
-                // need this to trigger valueSetters for any fields still in focus
-                form.save();
-              }
+                if (form.validate()) {
+                  // need this to trigger valueSetters for any fields still in focus
+                  form.save();
+                }
 
-              await widget.taskHelper.snoozeTask(widget.taskItem, numUnits, unitName, taskDateType);
-              Navigator.pop(context);
-            },
-            child: Text('Submit'),
-          ),
+                await widget.taskHelper.snoozeTask(widget.taskItem, numUnits, unitName, taskDateType);
+                Navigator.pop(context);
+              },
+              child: Text('Submit'),
+            ),
           )
         ],
       ),
     ) ;
 
-  }
-
-  int _parseValue(String str) {
-    var cleanString = _cleanString(str);
-    return cleanString == null ? null : int.parse(str);
-  }
-
-  String _cleanString(String str) {
-    if (str == null) {
-      return null;
-    } else {
-      var trimmed = str.trim();
-      if (trimmed.isEmpty) {
-        return null;
-      } else {
-        return trimmed;
-      }
-    }
   }
 
 }

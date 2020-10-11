@@ -13,24 +13,25 @@ void main() {
 
     test('loadTasks with no tasks', () async {
       AppState mockAppState = new MockAppState();
-      var mockClient = new MockClient([]);
+      var mockClient = new MockClient([], []);
       TaskRepository taskRepository = TaskRepository(appState: mockAppState, client: mockClient);
 
-      List<TaskItem> taskList = await taskRepository.loadTasks();
+      await taskRepository.loadTasks((callback) => callback());
+      List<TaskItem> taskList = mockAppState.taskItems;
       expect(taskList, const TypeMatcher<List<TaskItem>>());
       expect(taskList.length, 0);
     });
 
     test('loadTasks with tasks', () async {
       List<TaskItem> testItems = [];
-      testItems.add(TaskItem.fromJson(catLitterJSON));
-      testItems.add(TaskItem.fromJson(birthdayJSON));
+      testItems.add(TaskItem.fromJson(catLitterJSON, mockAppState));
+      testItems.add(TaskItem.fromJson(birthdayJSON, mockAppState));
 
-      AppState mockAppState = new MockAppState();
-      var mockClient = new MockClient(testItems);
+      var mockClient = new MockClient(testItems, []);
       TaskRepository taskRepository = TaskRepository(appState: mockAppState, client: mockClient);
 
-      List<TaskItem> taskList = await taskRepository.loadTasks();
+      await taskRepository.loadTasks((callback) => callback());
+      List<TaskItem> taskList = mockAppState.taskItems;
       expect(taskList, const TypeMatcher<List<TaskItem>>());
       expect(taskList.length, 2);
     });
