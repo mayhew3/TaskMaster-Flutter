@@ -2,6 +2,8 @@ import 'package:taskmaster/models/data_object.dart';
 import 'package:taskmaster/models/task_field.dart';
 import 'package:taskmaster/models/task_item.dart';
 
+import 'app_state.dart';
+
 class Sprint extends DataObject {
 
   TaskFieldDate startDate;

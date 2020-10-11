@@ -62,20 +62,13 @@ class TaskMasterAppState extends State<TaskMasterApp> {
 
   void loadMainTaskUI() {
     navHelper.goToLoadingScreen('Loading tasks...');
-    repository.loadTasks().then((loadedTasks) {
-      repository.loadSprints().then((loadedSprints) {
-        setState(() {
-          appState.finishedLoading(loadedTasks, loadedSprints);
-        });
-        navHelper.goToHomeScreen();
-        appState.notificationScheduler.updateBadge();
-        appState.taskItems.forEach((taskItem) =>
-            appState.notificationScheduler.syncNotificationForTask(taskItem));
-      });
-    }).catchError((err) {
-      setState(() {
-        appState.isLoading = false;
-      });
+    repository.loadTasks((callback) => setState(callback))
+        .then((_) {
+      appState.finishedLoading();
+      navHelper.goToHomeScreen();
+      appState.notificationScheduler.updateBadge();
+      appState.taskItems.forEach((taskItem) =>
+          appState.notificationScheduler.syncNotificationForTask(taskItem));
     });
   }
 

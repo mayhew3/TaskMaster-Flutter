@@ -7,6 +7,7 @@ import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
 import 'package:taskmaster/task_helper.dart';
+import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/widgets/filter_button.dart';
 import 'package:taskmaster/widgets/header_list_item.dart';
@@ -14,12 +15,12 @@ import 'package:taskmaster/widgets/snooze_dialog.dart';
 
 class TaskListScreen extends StatefulWidget {
   final AppState appState;
-  final BottomNavigationBar bottomNavigationBar;
+  final BottomNavigationBarGetter bottomNavigationBarGetter;
   final TaskHelper taskHelper;
 
   TaskListScreen({
     @required this.appState,
-    @required this.bottomNavigationBar,
+    @required this.bottomNavigationBarGetter,
     @required this.taskHelper,
   }) : super(key: TaskMasterKeys.taskList);
 
@@ -201,7 +202,7 @@ class TaskListScreenState extends State<TaskListScreen> {
           },
           child: Icon(Icons.add),
         ),
-        bottomNavigationBar: widget.bottomNavigationBar,
+        bottomNavigationBar: widget.bottomNavigationBarGetter(),
       );
 
   }

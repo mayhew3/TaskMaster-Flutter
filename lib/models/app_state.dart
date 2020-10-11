@@ -26,6 +26,7 @@ class AppState {
   AppState({
     this.isLoading = true,
     this.taskItems = const [],
+    this.sprints = const [],
     @required this.auth,
   }) {
     title = 'TaskMaster 3000';
@@ -78,10 +79,8 @@ class AppState {
 
   }
 
-  void finishedLoading(List<TaskItem> taskItems, List<Sprint> sprintList) {
+  void finishedLoading() {
     isLoading = false;
-    this.taskItems = taskItems;
-    this.sprints = sprintList;
   }
 
   TaskItem addNewTaskToList(TaskItem taskItem) {

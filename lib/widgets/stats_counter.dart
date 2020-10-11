@@ -3,19 +3,20 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/models/app_state.dart';
+import 'package:taskmaster/typedefs.dart';
 
 class StatsCounter extends StatelessWidget {
   final AppState appState;
   final int numActive;
   final int numCompleted;
-  final BottomNavigationBar bottomNavigationBar;
+  final BottomNavigationBarGetter bottomNavigationBarGetter;
 
   StatsCounter({
     Key key,
     @required this.appState,
     @required this.numActive,
     @required this.numCompleted,
-    @required this.bottomNavigationBar, })
+    @required this.bottomNavigationBarGetter, })
       : super(key: key);
 
   @override
@@ -60,7 +61,7 @@ class StatsCounter extends StatelessWidget {
             ],
           ),
         ),
-        bottomNavigationBar: bottomNavigationBar,
+        bottomNavigationBar: bottomNavigationBarGetter(),
       );
 
   }

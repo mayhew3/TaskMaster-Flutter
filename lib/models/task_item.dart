@@ -90,6 +90,9 @@ class TaskItem extends DataObject {
     for (var assignment in assignments) {
       int sprintId = assignment['sprint_id'];
       Sprint sprint = appState.findSprintWithId(sprintId);
+      if (sprint == null) {
+        throw new Exception('No sprint found with ID ' + sprintId.toString());
+      }
       taskItem.sprints.add(sprint);
       sprint.taskItems.add(taskItem);
     }

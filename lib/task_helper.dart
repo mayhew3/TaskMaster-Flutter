@@ -31,19 +31,15 @@ class TaskHelper {
     appState.taskItems = [];
 
     await appState.notificationScheduler.cancelAllNotifications();
-    repository.loadTasks().then((loadedTasks) {
-      repository.loadSprints().then((loadedSprints) {
-        stateSetter(() => {
-          appState.finishedLoading(loadedTasks, loadedSprints)
-        });
-        appState.notificationScheduler.updateBadge();
-        navHelper.goToHomeScreen();
-        appState.taskItems.forEach((taskItem) =>
-            appState.notificationScheduler.syncNotificationForTask(taskItem));
-      });
-    }).catchError((err) {
-      stateSetter(() => appState.isLoading = false);
-    });
+    try {
+      await repository.loadTasks(stateSetter);
+    } finally {
+      appState.finishedLoading();
+    }
+    appState.notificationScheduler.updateBadge();
+    navHelper.goToHomeScreen();
+    appState.taskItems.forEach((taskItem) =>
+        appState.notificationScheduler.syncNotificationForTask(taskItem));
   }
 
   Future<void> addTask(TaskItem taskItem) async {

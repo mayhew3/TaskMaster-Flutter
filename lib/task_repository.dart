@@ -22,7 +22,7 @@ class TaskRepository {
     @required this.client,
   });
 
-  Future<List<TaskItem>> loadTasks() async {
+  Future<void> loadTasks(StateSetter stateSetter) async {
     if (!appState.isAuthenticated()) {
       throw Exception("Cannot load tasks before being signed in.");
     }
@@ -43,15 +43,33 @@ class TaskRepository {
     if (response.statusCode == 200) {
       try {
         List<TaskItem> taskList = [];
+        List<Sprint> sprintList = [];
+
         var jsonObj = json.decode(response.body);
+
         int personId = jsonObj['person_id'];
         appState.personId = personId;
+
+        List sprints = jsonObj['sprints'];
+        for (var sprintJson in sprints) {
+          Sprint sprint = Sprint.fromJson(sprintJson);
+          sprintList.add(sprint);
+        }
+
+        stateSetter(() {
+          appState.sprints = sprintList;
+        });
+
         List tasks = jsonObj['tasks'];
-        tasks.forEach((taskJson) {
+        for (var taskJson in tasks) {
           TaskItem taskItem = TaskItem.fromJson(taskJson, this.appState);
           taskList.add(taskItem);
+        }
+
+        stateSetter(() {
+          appState.taskItems = taskList;
         });
-        return taskList;
+
       } catch(exception, stackTrace) {
         print(exception);
         print(stackTrace);
@@ -59,43 +77,6 @@ class TaskRepository {
       }
     } else {
       throw Exception('Failed to load task list. Talk to Mayhew.');
-    }
-  }
-
-  Future<List<Sprint>> loadSprints() async {
-    if (!appState.isAuthenticated()) {
-      throw Exception("Cannot load tasks before being signed in.");
-    }
-
-    var queryParameters = {
-      'person_id': appState.personId.toString()
-    };
-
-    var uri = Uri.https('taskmaster-general.herokuapp.com', '/api/sprints', queryParameters);
-
-    IdTokenResult idToken = await appState.getIdToken();
-
-    final response = await this.client.get(uri,
-      headers: {HttpHeaders.authorizationHeader: idToken.token,
-        HttpHeaders.contentTypeHeader: 'application/json'},
-    );
-
-    if (response.statusCode == 200) {
-      try {
-        List<Sprint> sprintList = [];
-        var jsonObj = json.decode(response.body);
-        jsonObj.forEach((sprintJson) {
-          Sprint sprint = Sprint.fromJson(sprintJson);
-          sprintList.add(sprint);
-        });
-        return sprintList;
-      } catch(exception, stackTrace) {
-        print(exception);
-        print(stackTrace);
-        throw Exception('Error retrieving sprint data from the server. Talk to Mayhew.');
-      }
-    } else {
-      throw Exception('Failed to load sprint list. Talk to Mayhew.');
     }
   }
 
