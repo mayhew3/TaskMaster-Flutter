@@ -22,6 +22,7 @@ class PlanningHome extends StatelessWidget {
       body: Center(
         child: Text('Planning!'),
       ),
+      bottomNavigationBar: bottomNavigationBarGetter(),
     );
   }
 
