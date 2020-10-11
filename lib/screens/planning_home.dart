@@ -52,8 +52,8 @@ class PlanningHomeState extends State<PlanningHome> {
     activeSprint = widget.appState.getActiveSprint();
   }
 
-  void openPlanning(BuildContext context) {
-    Navigator.of(context).push(
+  void openPlanning(BuildContext context) async {
+    await Navigator.of(context).push(
         MaterialPageRoute(builder: (context) {
           return PlanTaskList(
             appState: widget.appState,
@@ -66,6 +66,9 @@ class PlanningHomeState extends State<PlanningHome> {
         },
         )
     );
+    setState(() {
+      activeSprint = widget.appState.getActiveSprint();
+    });
   }
 
   @override
