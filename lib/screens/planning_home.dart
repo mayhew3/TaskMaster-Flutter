@@ -6,6 +6,7 @@ import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/screens/task_list.dart';
 import 'package:taskmaster/task_helper.dart';
+import 'package:taskmaster/widgets/plan_task_list.dart';
 
 import '../typedefs.dart';
 
@@ -40,12 +41,11 @@ class PlanningHomeState extends State<PlanningHome> {
   void openPlanning(BuildContext context) {
     Navigator.of(context).push(
         MaterialPageRoute(builder: (context) {
-          return TaskListScreen(
-              appState: widget.appState,
-              bottomNavigationBarGetter: widget.bottomNavigationBarGetter,
-              taskHelper: widget.taskHelper,
-              taskListGetter: widget.appState.getAllTasks,
-              isPlanning: true);
+          return PlanTaskList(
+            appState: widget.appState,
+            taskHelper: widget.taskHelper,
+            taskListGetter: widget.appState.getAllTasks,
+          );
         },
         )
     );
@@ -72,7 +72,6 @@ class PlanningHomeState extends State<PlanningHome> {
         bottomNavigationBarGetter: widget.bottomNavigationBarGetter,
         taskHelper: widget.taskHelper,
         taskListGetter: widget.appState.getTasksForActiveSprint,
-        isPlanning: false,
       );
     }
   }

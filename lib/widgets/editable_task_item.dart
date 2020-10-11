@@ -18,9 +18,9 @@ class EditableTaskItemWidget extends StatelessWidget {
   EditableTaskItemWidget({
     Key key,
     @required this.taskItem,
-    @required this.onTap,
-    @required this.onCheckboxChanged,
-    @required this.onDismissed,
+    this.onTap,
+    this.onCheckboxChanged,
+    this.onDismissed,
     this.onLongPress,
     this.onForcePress,
   }) : super(key: key);

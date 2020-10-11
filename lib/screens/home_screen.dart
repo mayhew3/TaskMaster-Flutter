@@ -52,7 +52,6 @@ class HomeScreenState extends State<HomeScreen> {
           bottomNavigationBarGetter: getBottomNavigationBar,
           taskListGetter: widget.appState.getAllTasks,
           taskHelper: widget.taskHelper,
-          isPlanning: false,
         )));
     navItems.add(new TopNavItem(
         label: 'Stats',

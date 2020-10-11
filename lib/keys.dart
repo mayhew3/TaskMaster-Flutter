@@ -6,6 +6,7 @@ class TaskMasterKeys {
 
   // Tasks
   static final taskList = const Key('__todoList__');
+  static final planTaskList = const Key('__planTaskList__');
   static final tasksLoading = const Key('__todosLoading__');
   static final taskItem = (String id) => Key('TodoItem__$id');
 }

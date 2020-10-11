@@ -18,14 +18,12 @@ class TaskListScreen extends StatefulWidget {
   final BottomNavigationBarGetter bottomNavigationBarGetter;
   final TaskHelper taskHelper;
   final TaskListGetter taskListGetter;
-  final bool isPlanning;
 
   TaskListScreen({
     @required this.appState,
     @required this.bottomNavigationBarGetter,
     @required this.taskHelper,
     @required this.taskListGetter,
-    @required this.isPlanning,
   }) : super(key: TaskMasterKeys.taskList);
 
   @override
