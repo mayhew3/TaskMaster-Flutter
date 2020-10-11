@@ -21,12 +21,14 @@ class TaskListScreen extends StatefulWidget {
   final TaskHelper taskHelper;
   final TaskListGetter taskListGetter;
   final Sprint sprint;
+  final String title;
 
   TaskListScreen({
     @required this.appState,
     @required this.bottomNavigationBarGetter,
     @required this.taskHelper,
     @required this.taskListGetter,
+    @required this.title,
     this.sprint,
   }) : super(key: TaskMasterKeys.taskList);
 
@@ -181,7 +183,7 @@ class TaskListScreenState extends State<TaskListScreen> {
     return
       Scaffold(
         appBar: AppBar(
-          title: Text(widget.appState.title),
+          title: Text(widget.title),
           actions: <Widget>[
             FilterButton(
               scheduledGetter: () => showScheduled,

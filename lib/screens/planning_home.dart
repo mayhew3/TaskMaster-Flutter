@@ -78,7 +78,7 @@ class PlanningHomeState extends State<PlanningHome> {
     if (this.activeSprint == null) {
       return Scaffold(
         appBar: AppBar(
-          title: Text('TaskMaster 3000'),
+          title: Text('New Sprint'),
         ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -134,6 +134,7 @@ class PlanningHomeState extends State<PlanningHome> {
       );
     } else {
       return TaskListScreen(
+        title: 'Sprint Tasks',
         appState: widget.appState,
         bottomNavigationBarGetter: widget.bottomNavigationBarGetter,
         taskHelper: widget.taskHelper,

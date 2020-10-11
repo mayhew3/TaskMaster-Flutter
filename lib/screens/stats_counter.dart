@@ -24,7 +24,7 @@ class StatsCounter extends StatelessWidget {
     return
       Scaffold(
         appBar: AppBar(
-          title: Text(appState.title),
+          title: Text('Stats'),
         ),
         body:  Center(
           child: Column(

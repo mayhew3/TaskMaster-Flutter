@@ -48,6 +48,7 @@ class HomeScreenState extends State<HomeScreen> {
         label: 'Tasks',
         icon: Icons.list,
         widget: TaskListScreen(
+          title: 'All Tasks',
           appState: widget.appState,
           bottomNavigationBarGetter: getBottomNavigationBar,
           taskListGetter: widget.appState.getAllTasks,
