@@ -40,6 +40,7 @@ class HomeScreenState extends State<HomeScreen> {
         label: 'Plan',
         icon: Icons.assignment,
         widget: PlanningHome(
+          appState: widget.appState,
           bottomNavigationBarGetter: getBottomNavigationBar,
         )));
     navItems.add(new TopNavItem(
