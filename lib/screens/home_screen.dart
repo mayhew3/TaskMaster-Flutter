@@ -41,6 +41,7 @@ class HomeScreenState extends State<HomeScreen> {
         icon: Icons.assignment,
         widget: PlanningHome(
           appState: widget.appState,
+          taskHelper: widget.taskHelper,
           bottomNavigationBarGetter: getBottomNavigationBar,
         )));
     navItems.add(new TopNavItem(
@@ -49,6 +50,7 @@ class HomeScreenState extends State<HomeScreen> {
         widget: TaskListScreen(
           appState: widget.appState,
           bottomNavigationBarGetter: getBottomNavigationBar,
+          taskListGetter: widget.appState.getAllTasks,
           taskHelper: widget.taskHelper,
         )));
     navItems.add(new TopNavItem(

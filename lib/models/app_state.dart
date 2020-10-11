@@ -46,6 +46,14 @@ class AppState {
     }
   }
 
+  List<TaskItem> getAllTasks() {
+    return taskItems;
+  }
+
+  List<TaskItem> getTasksForActiveSprint() {
+    return getActiveSprint().taskItems;
+  }
+
   List<TaskItem> getFilteredTasks(bool showScheduled, bool showCompleted, List<TaskItem> recentlyCompleted) {
     List<TaskItem> filtered = taskItems.where((taskItem) {
       bool passesScheduleFilter = showScheduled || !taskItem.isScheduled();
@@ -77,6 +85,14 @@ class AppState {
       flutterBadgerWrapper: FlutterBadgerWrapper(),
     );
 
+  }
+
+  Sprint getActiveSprint() {
+    var now = DateTime.now();
+    return this.sprints.firstWhere((sprint) =>
+        sprint.startDate.value.isBefore(now) &&
+        sprint.endDate.value.isAfter(now) &&
+        sprint.closeDate.value == null);
   }
 
   void finishedLoading() {

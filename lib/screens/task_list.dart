@@ -17,11 +17,13 @@ class TaskListScreen extends StatefulWidget {
   final AppState appState;
   final BottomNavigationBarGetter bottomNavigationBarGetter;
   final TaskHelper taskHelper;
+  final TaskListGetter taskListGetter;
 
   TaskListScreen({
     @required this.appState,
     @required this.bottomNavigationBarGetter,
     @required this.taskHelper,
+    @required this.taskListGetter,
   }) : super(key: TaskMasterKeys.taskList);
 
   @override
@@ -114,9 +116,19 @@ class TaskListScreenState extends State<TaskListScreen> {
     );
   }
 
+  List<TaskItem> getFilteredTasks(List<TaskItem> taskItems) {
+    List<TaskItem> filtered = taskItems.where((taskItem) {
+      bool passesScheduleFilter = showScheduled || !taskItem.isScheduled();
+      bool passesCompletedFilter = showCompleted || !(taskItem.isCompleted() && !recentlyCompleted.contains(taskItem));
+      return passesScheduleFilter && passesCompletedFilter;
+    }).toList();
+    return filtered;
+  }
+
   ListView _buildListView(BuildContext context) {
     widget.appState.notificationScheduler.updateHomeScreenContext(context);
-    final List<TaskItem> otherTasks = widget.appState.getFilteredTasks(showScheduled, showCompleted, recentlyCompleted);
+    final List<TaskItem> allTasks = widget.taskListGetter();
+    final List<TaskItem> otherTasks = getFilteredTasks(allTasks);
 
     final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted() && !recentlyCompleted.contains(taskItem));
     final List<TaskItem> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isPastDue());

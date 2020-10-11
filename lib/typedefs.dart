@@ -14,3 +14,5 @@ typedef void StateCallback();
 typedef void StateSetter(StateCallback stateCallback);
 
 typedef BottomNavigationBar BottomNavigationBarGetter();
+
+typedef List<TaskItem> TaskListGetter();
