@@ -1,6 +1,8 @@
 
+import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_colors.dart';
@@ -103,10 +105,24 @@ class PlanningHomeState extends State<PlanningHome> {
                 ),
               ],
             ),
-            ClearableDateTimeField(
-              dateGetter: () => sprintStart,
-              dateSetter: (value) => sprintStart = value,
-              labelText: 'Starts On',
+            Container(
+              margin: EdgeInsets.all(7.0),
+              child: DateTimeField(
+                decoration: InputDecoration(
+                  labelText: 'Starts On',
+                  filled: false,
+                  border: OutlineInputBorder(),
+                ),
+                initialValue: sprintStart,
+                onShowPicker: (context, currentValue) async {
+                  return await showDatePicker(
+                      context: context,
+                      initialDate: currentValue ?? sprintStart,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2100));
+                },
+                format: DateFormat('MM-dd-yyyy'),
+              ),
             ),
             FlatButton(
                 color: TaskColors.cardColor,
