@@ -4,7 +4,7 @@ import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/typedefs.dart';
-import 'package:taskmaster/widgets/my_checkbox.dart';
+import 'package:taskmaster/widgets/delayed_checkbox.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class EditableTaskItemWidget extends StatelessWidget {
@@ -89,7 +89,7 @@ class EditableTaskItemWidget extends StatelessWidget {
           right: 6.0,
           left: 4.0,
         ),
-        child: MyCheckbox(
+        child: DelayedCheckbox(
           initialState: completed ? CheckState.checked : CheckState.inactive,
           checkCycleWaiter: onCheckboxChanged,
         ),
@@ -173,7 +173,7 @@ class EditableTaskItemWidget extends StatelessWidget {
                     right: 6.0,
                     left: 4.0,
                   ),
-                  child: MyCheckbox(
+                  child: DelayedCheckbox(
                     initialState: completed ? CheckState.checked : CheckState.inactive,
                     checkCycleWaiter: onCheckboxChanged,
                   ),

@@ -6,7 +6,7 @@ import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/task_helper.dart';
-import 'package:taskmaster/widgets/my_checkbox.dart';
+import 'package:taskmaster/widgets/delayed_checkbox.dart';
 import 'package:taskmaster/widgets/pending_checkbox.dart';
 import 'package:taskmaster/widgets/readonly_task_field.dart';
 import 'package:taskmaster/widgets/readonly_task_field_small.dart';
@@ -123,7 +123,7 @@ class DetailScreenState extends State<DetailScreen> {
                   visible: !taskItem.pendingCompletion,
                   child: Padding(
                     padding: EdgeInsets.all(4.0),
-                    child: MyCheckbox(
+                    child: DelayedCheckbox(
                       initialState: completed ? CheckState.checked : CheckState.inactive,
                       checkCycleWaiter: (checkState) async {
                         var updatedTask = await toggleAndUpdateCompleted(taskItem, CheckState.inactive == checkState);

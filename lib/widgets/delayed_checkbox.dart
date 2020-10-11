@@ -6,22 +6,22 @@ import 'package:taskmaster/typedefs.dart';
 
 enum CheckState { inactive, pending, checked }
 
-class MyCheckbox extends StatefulWidget {
+class DelayedCheckbox extends StatefulWidget {
 
   final CheckCycleWaiter checkCycleWaiter;
   final CheckState initialState;
 
-  const MyCheckbox({
+  const DelayedCheckbox({
     Key key,
     this.checkCycleWaiter,
     this.initialState,
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => MyCheckboxState();
+  State<StatefulWidget> createState() => DelayedCheckboxState();
 }
 
-class MyCheckboxState extends State<MyCheckbox> {
+class DelayedCheckboxState extends State<DelayedCheckbox> {
 
   CheckState currentState;
 

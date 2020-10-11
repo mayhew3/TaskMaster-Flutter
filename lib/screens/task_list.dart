@@ -11,7 +11,7 @@ import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/widgets/filter_button.dart';
 import 'package:taskmaster/widgets/header_list_item.dart';
-import 'package:taskmaster/widgets/my_checkbox.dart';
+import 'package:taskmaster/widgets/delayed_checkbox.dart';
 import 'package:taskmaster/widgets/snooze_dialog.dart';
 
 class TaskListScreen extends StatefulWidget {
