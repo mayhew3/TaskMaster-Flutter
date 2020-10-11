@@ -59,6 +59,11 @@ class AppState {
     return matching.isEmpty ? null : matching.first;
   }
 
+  Sprint findSprintWithId(int sprintId) {
+    var matching = sprints.where((sprint) => sprint.id.value == sprintId);
+    return matching.isEmpty ? null : matching.first;
+  }
+
   void updateNotificationScheduler(BuildContext context,
       AppState appState,
       TaskHelper taskHelper) {

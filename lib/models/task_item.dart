@@ -1,4 +1,6 @@
+import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/data_object.dart';
+import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_field.dart';
 
@@ -44,7 +46,7 @@ class TaskItem extends DataObject {
 
   TaskFieldInteger recurrenceId;
 
-  List<TaskField> fields = [];
+  List<Sprint> sprints = [];
 
   bool pendingCompletion = false;
 
@@ -73,7 +75,7 @@ class TaskItem extends DataObject {
     this.recurrenceId = addIntegerField("recurrence_id");
   }
 
-  factory TaskItem.fromJson(Map<String, dynamic> json) {
+  factory TaskItem.fromJson(Map<String, dynamic> json, AppState appState) {
     TaskItem taskItem = TaskItem();
     for (var field in taskItem.fields) {
       var jsonVal = json[field.fieldName];
@@ -83,6 +85,15 @@ class TaskItem extends DataObject {
         field.initializeValue(jsonVal);
       }
     }
+
+    List<dynamic> assignments = json['sprint_assignments'];
+    for (var assignment in assignments) {
+      int sprintId = assignment['sprint_id'];
+      Sprint sprint = appState.findSprintWithId(sprintId);
+      taskItem.sprints.add(sprint);
+      sprint.taskItems.add(taskItem);
+    }
+
     return taskItem;
   }
 
