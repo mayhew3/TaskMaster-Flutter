@@ -37,6 +37,7 @@ class PlanTaskListState extends State<PlanTaskList> {
   EditableTaskItemWidget _createWidget(TaskItem taskItem, BuildContext context) {
     return EditableTaskItemWidget(
       taskItem: taskItem,
+      addMode: true,
     );
   }
 

@@ -11,6 +11,7 @@ import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/widgets/filter_button.dart';
 import 'package:taskmaster/widgets/header_list_item.dart';
+import 'package:taskmaster/widgets/my_checkbox.dart';
 import 'package:taskmaster/widgets/snooze_dialog.dart';
 
 class TaskListScreen extends StatefulWidget {
@@ -62,9 +63,9 @@ class TaskListScreenState extends State<TaskListScreen> {
     });
   }
 
-  Future<TaskItem> toggleAndUpdateCompleted(TaskItem taskItem, bool complete) {
+  Future<TaskItem> toggleAndUpdateCompleted(TaskItem taskItem, bool complete) async {
     recentlyCompleted.add(taskItem);
-    var future = widget.taskHelper.completeTask(taskItem, complete);
+    var future = await widget.taskHelper.completeTask(taskItem, complete);
     setState(() {});
     return future;
   }
@@ -86,6 +87,7 @@ class TaskListScreenState extends State<TaskListScreen> {
 
     return EditableTaskItemWidget(
       taskItem: taskItem,
+      addMode: false,
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(builder: (_) {
@@ -98,8 +100,9 @@ class TaskListScreenState extends State<TaskListScreen> {
       },
       onLongPress: () => snoozeDialog(taskItem),
       onForcePress: (ForcePressDetails forcePressDetails) => snoozeDialog(taskItem),
-      onCheckboxChanged: (complete) {
-        toggleAndUpdateCompleted(taskItem, complete);
+      onCheckboxChanged: (checkState) async {
+        var updatedItem = await toggleAndUpdateCompleted(taskItem, CheckState.inactive == checkState);
+        return updatedItem.isCompleted() ? CheckState.checked : CheckState.inactive;
       },
       onDismissed: (direction) async {
         if (direction == DismissDirection.endToStart) {

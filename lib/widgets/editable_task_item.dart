@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/typedefs.dart';
+import 'package:taskmaster/widgets/my_checkbox.dart';
 import 'package:taskmaster/widgets/pending_checkbox.dart';
 import 'package:taskmaster/widgets/task_checkbox.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -10,10 +12,11 @@ import 'package:timeago/timeago.dart' as timeago;
 class EditableTaskItemWidget extends StatelessWidget {
   final TaskItem taskItem;
   final GestureTapCallback onTap;
-  final ValueChanged<bool> onCheckboxChanged;
+  final CheckCycleWaiter onCheckboxChanged;
   final DismissDirectionCallback onDismissed;
   final GestureLongPressCallback onLongPress;
   final GestureForcePressStartCallback onForcePress;
+  final bool addMode;
 
   EditableTaskItemWidget({
     Key key,
@@ -23,6 +26,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     this.onDismissed,
     this.onLongPress,
     this.onForcePress,
+    @required this.addMode,
   }) : super(key: key);
 
   bool hasPassed(DateTime dateTime) {
@@ -72,6 +76,27 @@ class EditableTaskItemWidget extends StatelessWidget {
   bool dueInThreshold(int thresholdDays) {
     DateTime inXDays = DateTime.now().add(Duration(days: thresholdDays));
     return taskItem.dueDate.value != null && taskItem.dueDate.value.isBefore(inXDays);
+  }
+
+  Widget _getBoxWidget() {
+    if (addMode) {
+      return null;
+    } else {
+      var completed = taskItem.completionDate.value != null;
+
+      return Container(
+        padding: EdgeInsets.only(
+          top: 4.0,
+          bottom: 4.0,
+          right: 6.0,
+          left: 4.0,
+        ),
+        child: MyCheckbox(
+          initialState: completed ? CheckState.checked : CheckState.inactive,
+          checkCycleWaiter: onCheckboxChanged,
+        ),
+      );
+    }
   }
 
   @override
@@ -150,17 +175,10 @@ class EditableTaskItemWidget extends StatelessWidget {
                     right: 6.0,
                     left: 4.0,
                   ),
-                  child: Visibility(
-                    visible: !taskItem.pendingCompletion,
-                    child: TaskCheckbox(
-                        value: completed,
-                        onChanged: onCheckboxChanged,
-                    ),
+                  child: MyCheckbox(
+                    initialState: completed ? CheckState.checked : CheckState.inactive,
+                    checkCycleWaiter: onCheckboxChanged,
                   ),
-                ),
-                Visibility(
-                  visible: taskItem.pendingCompletion,
-                  child: PendingCheckbox(),
                 ),
               ],
             ),
