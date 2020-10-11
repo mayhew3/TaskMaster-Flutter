@@ -184,19 +184,19 @@ class SnoozeDialogState extends State<SnoozeDialog> {
           Visibility(
             visible: !widget.taskItem.isScheduledRecurrence(),
             child: FlatButton(
-            onPressed: () async {
-              final form = formKey.currentState;
+              onPressed: () async {
+                final form = formKey.currentState;
 
-              if (form.validate()) {
-                // need this to trigger valueSetters for any fields still in focus
-                form.save();
-              }
+                if (form.validate()) {
+                  // need this to trigger valueSetters for any fields still in focus
+                  form.save();
+                }
 
-              await widget.taskHelper.snoozeTask(widget.taskItem, numUnits, unitName, taskDateType);
-              Navigator.pop(context);
-            },
-            child: Text('Submit'),
-          ),
+                await widget.taskHelper.snoozeTask(widget.taskItem, numUnits, unitName, taskDateType);
+                Navigator.pop(context);
+              },
+              child: Text('Submit'),
+            ),
           )
         ],
       ),

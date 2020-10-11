@@ -89,10 +89,14 @@ class AppState {
 
   Sprint getActiveSprint() {
     var now = DateTime.now();
-    return this.sprints.firstWhere((sprint) =>
-        sprint.startDate.value.isBefore(now) &&
-        sprint.endDate.value.isAfter(now) &&
-        sprint.closeDate.value == null);
+    if (this.sprints.isEmpty) {
+      return null;
+    } else {
+      return this.sprints.firstWhere((sprint) =>
+      sprint.startDate.value.isBefore(now) &&
+          sprint.endDate.value.isAfter(now) &&
+          sprint.closeDate.value == null);
+    }
   }
 
   void finishedLoading() {

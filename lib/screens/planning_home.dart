@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/sprint.dart';
+import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/screens/task_list.dart';
 import 'package:taskmaster/task_helper.dart';
 
@@ -36,6 +37,20 @@ class PlanningHomeState extends State<PlanningHome> {
     activeSprint = widget.appState.getActiveSprint();
   }
 
+  void openPlanning(BuildContext context) {
+    Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) {
+          return TaskListScreen(
+              appState: widget.appState,
+              bottomNavigationBarGetter: widget.bottomNavigationBarGetter,
+              taskHelper: widget.taskHelper,
+              taskListGetter: widget.appState.getAllTasks,
+              isPlanning: true);
+        },
+        )
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (this.activeSprint == null) {
@@ -44,16 +59,21 @@ class PlanningHomeState extends State<PlanningHome> {
           title: Text('TaskMaster 3000'),
         ),
         body: Center(
-          child: FlatButton(onPressed: null, child: Text('Create Sprint')),
+          child: FlatButton(
+              color: TaskColors.cardColor,
+              onPressed: () => openPlanning(context),
+              child: Text('Create Sprint')),
         ),
         bottomNavigationBar: widget.bottomNavigationBarGetter(),
       );
     } else {
       return TaskListScreen(
-          appState: widget.appState,
-          bottomNavigationBarGetter: widget.bottomNavigationBarGetter,
-          taskHelper: widget.taskHelper,
-          taskListGetter: widget.appState.getTasksForActiveSprint);
+        appState: widget.appState,
+        bottomNavigationBarGetter: widget.bottomNavigationBarGetter,
+        taskHelper: widget.taskHelper,
+        taskListGetter: widget.appState.getTasksForActiveSprint,
+        isPlanning: false,
+      );
     }
   }
 

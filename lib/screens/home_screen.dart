@@ -5,9 +5,9 @@ import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
 import 'package:taskmaster/nav_helper.dart';
+import 'package:taskmaster/screens/planning_home.dart';
+import 'package:taskmaster/screens/stats_counter.dart';
 import 'package:taskmaster/task_helper.dart';
-import 'file:///M:/Code/TaskMaster/TaskMaster-Flutter/lib/screens/planning_home.dart';
-import 'file:///M:/Code/TaskMaster/TaskMaster-Flutter/lib/screens/stats_counter.dart';
 import 'package:taskmaster/screens/task_list.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -52,6 +52,7 @@ class HomeScreenState extends State<HomeScreen> {
           bottomNavigationBarGetter: getBottomNavigationBar,
           taskListGetter: widget.appState.getAllTasks,
           taskHelper: widget.taskHelper,
+          isPlanning: false,
         )));
     navItems.add(new TopNavItem(
         label: 'Stats',
