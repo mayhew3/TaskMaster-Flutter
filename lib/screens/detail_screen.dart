@@ -10,7 +10,6 @@ import 'package:taskmaster/widgets/my_checkbox.dart';
 import 'package:taskmaster/widgets/pending_checkbox.dart';
 import 'package:taskmaster/widgets/readonly_task_field.dart';
 import 'package:taskmaster/widgets/readonly_task_field_small.dart';
-import 'package:taskmaster/widgets/task_checkbox.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 final longDateFormat = DateFormat.yMMMMd().add_jm();

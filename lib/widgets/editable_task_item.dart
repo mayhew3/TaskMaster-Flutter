@@ -5,8 +5,6 @@ import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/my_checkbox.dart';
-import 'package:taskmaster/widgets/pending_checkbox.dart';
-import 'package:taskmaster/widgets/task_checkbox.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class EditableTaskItemWidget extends StatelessWidget {
