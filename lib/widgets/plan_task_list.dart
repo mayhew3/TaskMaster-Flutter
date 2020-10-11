@@ -1,7 +1,9 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:taskmaster/date_util.dart';
 import 'package:taskmaster/models/app_state.dart';
+import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 
 import 'package:taskmaster/keys.dart';
@@ -16,11 +18,17 @@ class PlanTaskList extends StatefulWidget {
   final AppState appState;
   final TaskHelper taskHelper;
   final TaskListGetter taskListGetter;
+  final int numUnits;
+  final String unitName;
+  final DateTime startDate;
 
   PlanTaskList({
     @required this.appState,
     @required this.taskHelper,
     @required this.taskListGetter,
+    this.numUnits,
+    this.unitName,
+    this.startDate,
   }) : super(key: TaskMasterKeys.planTaskList);
 
   @override
@@ -44,10 +52,14 @@ class PlanTaskListState extends State<PlanTaskList> {
       onTaskAssignmentToggle: (checkState) {
         var alreadyQueued = sprintQueued.contains(taskItem);
         if (alreadyQueued) {
-          sprintQueued.remove(taskItem);
+          setState(() {
+            sprintQueued.remove(taskItem);
+          });
           return Future.value(CheckState.inactive);
         } else {
-          sprintQueued.add(taskItem);
+          setState(() {
+            sprintQueued.add(taskItem);
+          });
           return Future.value(CheckState.checked);
         }
       },
@@ -106,6 +118,19 @@ class PlanTaskListState extends State<PlanTaskList> {
         });
   }
 
+  void submit() async {
+    DateTime endDate = DateUtil.adjustToDate(widget.startDate, widget.numUnits, widget.unitName);
+    Sprint sprint = Sprint();
+    sprint.startDate.value = widget.startDate;
+    sprint.endDate.value = endDate;
+    sprint.personId.value = widget.appState.personId;
+    for (TaskItem taskItem in sprintQueued) {
+      sprint.addToTasks(taskItem);
+    }
+    await widget.taskHelper.addSprintAndTasks(sprint, sprintQueued);
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return
@@ -114,6 +139,13 @@ class PlanTaskListState extends State<PlanTaskList> {
           title: Text('Select Tasks'),
         ),
         body: _buildListView(context),
+        floatingActionButton: Visibility(
+          visible: sprintQueued.isNotEmpty,
+          child: FloatingActionButton.extended(
+            onPressed: submit,
+            label: Text('Submit')
+          ),
+        ),
       );
 
   }

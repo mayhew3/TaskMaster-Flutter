@@ -75,6 +75,12 @@ class TaskItem extends DataObject {
     this.recurrenceId = addIntegerField("recurrence_id");
   }
 
+  void addToSprints(Sprint sprint) {
+    if (!sprints.contains(sprint)) {
+      sprints.add(sprint);
+    }
+  }
+
   factory TaskItem.fromJson(Map<String, dynamic> json, AppState appState) {
     TaskItem taskItem = TaskItem();
     for (var field in taskItem.fields) {
@@ -93,8 +99,8 @@ class TaskItem extends DataObject {
       if (sprint == null) {
         throw new Exception('No sprint found with ID ' + sprintId.toString());
       }
-      taskItem.sprints.add(sprint);
-      sprint.taskItems.add(taskItem);
+      taskItem.addToSprints(sprint);
+      sprint.addToTasks(taskItem);
     }
 
     return taskItem;

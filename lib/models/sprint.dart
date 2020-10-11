@@ -10,6 +10,8 @@ class Sprint extends DataObject {
   TaskFieldDate endDate;
   TaskFieldDate closeDate;
 
+  TaskFieldInteger personId;
+
   List<TaskItem> taskItems = [];
 
   static List<String> controlledFields = ['id'];
@@ -18,6 +20,13 @@ class Sprint extends DataObject {
     startDate = addDateField('start_date');
     endDate = addDateField('end_date');
     closeDate = addDateField('close_date');
+    personId = addIntegerField('person_id');
+  }
+
+  void addToTasks(TaskItem taskItem) {
+    if (!taskItems.contains(taskItem)) {
+      taskItems.add(taskItem);
+    }
   }
 
   factory Sprint.fromJson(Map<String, dynamic> json) {

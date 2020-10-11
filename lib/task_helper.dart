@@ -1,5 +1,7 @@
 
 import 'package:flutter/material.dart';
+import 'package:taskmaster/date_util.dart';
+import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/task_repository.dart';
 
@@ -166,6 +168,15 @@ class TaskHelper {
     return updatedTask;
   }
 
+  // sprint methods
+
+  Future<Sprint> addSprintAndTasks(Sprint sprint, List<TaskItem> taskItems) async {
+    Sprint updatedSprint = await repository.addSprint(sprint);
+    stateSetter(() => appState.sprints.add(updatedSprint));
+    await repository.addTasksToSprint(taskItems, updatedSprint);
+    stateSetter(() => {});
+    return updatedSprint;
+  }
 
   // private helpers
 
@@ -175,16 +186,7 @@ class TaskHelper {
   }
 
   DateTime _getAdjustedDate(DateTime dateTime, int recurNumber, String recurUnit) {
-    if (dateTime == null) {
-      return null;
-    }
-    switch (recurUnit) {
-      case 'Days': return Jiffy(dateTime).add(days: recurNumber);
-      case 'Weeks': return Jiffy(dateTime).add(weeks: recurNumber);
-      case 'Months': return Jiffy(dateTime).add(months: recurNumber);
-      case 'Years': return Jiffy(dateTime).add(years: recurNumber);
-      default: return null;
-    }
+    return DateUtil.adjustToDate(dateTime, recurNumber, recurUnit);
   }
 
   DateTime _applyTimeToDate(DateTime dateWithTime, DateTime targetDate) {
