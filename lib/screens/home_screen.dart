@@ -6,8 +6,8 @@ import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/task_helper.dart';
-import 'package:taskmaster/widgets/planning_home.dart';
-import 'package:taskmaster/widgets/stats_counter.dart';
+import 'file:///M:/Code/TaskMaster/TaskMaster-Flutter/lib/screens/planning_home.dart';
+import 'file:///M:/Code/TaskMaster/TaskMaster-Flutter/lib/screens/stats_counter.dart';
 import 'package:taskmaster/screens/task_list.dart';
 
 class HomeScreen extends StatefulWidget {
