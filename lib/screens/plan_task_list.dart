@@ -130,6 +130,8 @@ class PlanTaskListState extends State<PlanTaskList> {
     Sprint sprint = Sprint();
     sprint.startDate.value = widget.startDate;
     sprint.endDate.value = endDate;
+    sprint.numUnits.value = widget.numUnits;
+    sprint.unitName.value = widget.unitName;
     sprint.personId.value = widget.appState.personId;
     for (TaskItem taskItem in sprintQueued) {
       sprint.addToTasks(taskItem);

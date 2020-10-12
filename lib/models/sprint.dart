@@ -10,6 +10,9 @@ class Sprint extends DataObject {
   TaskFieldDate endDate;
   TaskFieldDate closeDate;
 
+  TaskFieldInteger numUnits;
+  TaskFieldString unitName;
+
   TaskFieldInteger personId;
 
   List<TaskItem> taskItems = [];
@@ -21,6 +24,8 @@ class Sprint extends DataObject {
     endDate = addDateField('end_date');
     closeDate = addDateField('close_date');
     personId = addIntegerField('person_id');
+    numUnits = addIntegerField('num_units');
+    unitName = addStringField('unit_name');
   }
 
   void addToTasks(TaskItem taskItem) {
@@ -30,16 +35,9 @@ class Sprint extends DataObject {
   }
 
   factory Sprint.fromJson(Map<String, dynamic> json) {
-    Sprint taskItem = Sprint();
-    for (var field in taskItem.fields) {
-      var jsonVal = json[field.fieldName];
-      if (jsonVal is String) {
-        field.initializeValueFromString(jsonVal);
-      } else {
-        field.initializeValue(jsonVal);
-      }
-    }
-    return taskItem;
+    Sprint sprint = Sprint();
+    sprint.initFromFields(json);
+    return sprint;
   }
 
 }
