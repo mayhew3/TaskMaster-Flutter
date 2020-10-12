@@ -146,6 +146,18 @@ class TaskItem extends DataObject {
     return dueDate.hasPassed();
   }
 
+  bool isDueBefore(DateTime dateTime) {
+    return dueDate.value != null && dueDate.value.isBefore(dateTime);
+  }
+
+  bool isUrgentBefore(DateTime dateTime) {
+    return urgentDate.value != null && urgentDate.value.isBefore(dateTime);
+  }
+
+  bool isScheduledAfter(DateTime dateTime) {
+    return startDate.value != null && startDate.value.isAfter(dateTime);
+  }
+
   bool isUrgent() {
     return urgentDate.hasPassed();
   }

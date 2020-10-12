@@ -67,8 +67,9 @@ class PlanTaskListState extends State<PlanTaskList> {
   }
 
   List<TaskItem> getFilteredTasks(List<TaskItem> taskItems) {
+    DateTime endDate = getEndDate();
     List<TaskItem> filtered = taskItems.where((taskItem) {
-      return !taskItem.isScheduled() && !taskItem.isCompleted();
+      return !taskItem.isScheduledAfter(endDate) && !taskItem.isCompleted();
     }).toList();
     return filtered;
   }
@@ -78,20 +79,22 @@ class PlanTaskListState extends State<PlanTaskList> {
     final List<TaskItem> allTasks = widget.taskListGetter();
     final List<TaskItem> otherTasks = getFilteredTasks(allTasks);
 
+    DateTime endDate = getEndDate();
+
     final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted());
-    final List<TaskItem> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isPastDue());
-    final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgent());
-    final List<TaskItem> scheduledTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isScheduled());
+    final List<TaskItem> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isDueBefore(endDate));
+    final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgentBefore(endDate));
+    final List<TaskItem> scheduledTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isScheduledAfter(endDate));
 
     List<StatelessWidget> tiles = [];
 
     if (dueTasks.isNotEmpty) {
-      tiles.add(HeadingItem('Past Due'));
+      tiles.add(HeadingItem('Due Soon'));
       dueTasks.forEach((task) => tiles.add(_createWidget(task, context)));
     }
 
     if (urgentTasks.isNotEmpty) {
-      tiles.add(HeadingItem('Urgent'));
+      tiles.add(HeadingItem('Urgent Soon'));
       urgentTasks.forEach((task) => tiles.add(_createWidget(task, context)));
     }
 
@@ -101,7 +104,7 @@ class PlanTaskListState extends State<PlanTaskList> {
     }
 
     if (scheduledTasks.isNotEmpty) {
-      tiles.add(HeadingItem('Scheduled'));
+      tiles.add(HeadingItem('Starting Later'));
       scheduledTasks.forEach((task) => tiles.add(_createWidget(task, context)));
     }
 
@@ -118,8 +121,12 @@ class PlanTaskListState extends State<PlanTaskList> {
         });
   }
 
+  DateTime getEndDate() {
+    return DateUtil.adjustToDate(widget.startDate, widget.numUnits, widget.unitName);
+  }
+
   void submit() async {
-    DateTime endDate = DateUtil.adjustToDate(widget.startDate, widget.numUnits, widget.unitName);
+    DateTime endDate = getEndDate();
     Sprint sprint = Sprint();
     sprint.startDate.value = widget.startDate;
     sprint.endDate.value = endDate;
