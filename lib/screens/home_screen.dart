@@ -36,7 +36,7 @@ class HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-    var planItem = new TopNavItem(
+    var planNav = new TopNavItem(
         label: 'Plan',
         icon: Icons.assignment,
         widget: PlanningHome(
@@ -64,11 +64,11 @@ class HomeScreenState extends State<HomeScreen> {
           bottomNavigationBarGetter: getBottomNavigationBar,
         ));
 
-    navItems.add(planItem);
+    navItems.add(planNav);
     navItems.add(taskNav);
     navItems.add(statsNav);
 
-    activeTab = taskNav;
+    activeTab = planNav;
 
     widget.navHelper.updateContext(context);
   }
