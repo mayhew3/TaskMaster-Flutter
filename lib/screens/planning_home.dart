@@ -12,7 +12,7 @@ import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/widgets/clearable_date_time_field.dart';
 import 'package:taskmaster/widgets/editable_task_field.dart';
 import 'package:taskmaster/widgets/nullable_dropdown.dart';
-import 'package:taskmaster/widgets/plan_task_list.dart';
+import 'file:///C:/Code/taskmaster/TaskMaster-Flutter/lib/screens/plan_task_list.dart';
 
 import '../typedefs.dart';
 
