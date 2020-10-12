@@ -22,6 +22,8 @@ class TaskListScreen extends StatefulWidget {
   final TaskListGetter taskListGetter;
   final Sprint sprint;
   final String title;
+  final String subHeader;
+  final String subSubHeader;
 
   TaskListScreen({
     @required this.appState,
@@ -30,6 +32,8 @@ class TaskListScreen extends StatefulWidget {
     @required this.taskListGetter,
     @required this.title,
     this.sprint,
+    this.subHeader,
+    this.subSubHeader,
   }) : super(key: TaskMasterKeys.taskList);
 
   @override
@@ -178,6 +182,53 @@ class TaskListScreenState extends State<TaskListScreen> {
         });
   }
 
+  Widget getLoadingBody() {
+    return Center(
+        child: CircularProgressIndicator(
+          key: TaskMasterKeys.tasksLoading,
+        )
+    );
+  }
+
+  Widget getTaskListBody() {
+    List<Widget> elements = [];
+    if (widget.subHeader != null) {
+      elements.add(
+        Container(
+          padding: EdgeInsets.only(left: 12.0, top: 12.0),
+          child: Text(
+            widget.subHeader,
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+        )
+      );
+    }
+    if (widget.subSubHeader != null) {
+      elements.add(
+        Container(
+          padding: EdgeInsets.only(left: 12.0, bottom: 12.0),
+          child: Text(
+            widget.subSubHeader,
+            style: TextStyle(fontSize: 18),
+          ),
+        )
+      );
+    }
+    ListView listView = _buildListView(context);
+    Widget expanded = Expanded(child: listView);
+    elements.add(expanded);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: elements,
+    );
+  }
+
+  Widget getBody() {
+    return Container(
+        child: widget.appState.isLoading ? getLoadingBody() : getTaskListBody()
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return
@@ -199,16 +250,7 @@ class TaskListScreenState extends State<TaskListScreen> {
             ),
           ],
         ),
-        body:  Container(
-          child: widget.appState.isLoading
-              ?
-          Center(
-              child: CircularProgressIndicator(
-                key: TaskMasterKeys.tasksLoading,
-              )
-          )
-              : _buildListView(context),
-        ),
+        body: getBody(),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             Navigator.push(

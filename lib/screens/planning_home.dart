@@ -7,12 +7,12 @@ import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/parse_helper.dart';
+import 'package:taskmaster/screens/plan_task_list.dart';
 import 'package:taskmaster/screens/task_list.dart';
 import 'package:taskmaster/task_helper.dart';
-import 'package:taskmaster/widgets/clearable_date_time_field.dart';
 import 'package:taskmaster/widgets/editable_task_field.dart';
 import 'package:taskmaster/widgets/nullable_dropdown.dart';
-import 'file:///C:/Code/taskmaster/TaskMaster-Flutter/lib/screens/plan_task_list.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 import '../typedefs.dart';
 
@@ -71,6 +71,19 @@ class PlanningHomeState extends State<PlanningHome> {
     setState(() {
       activeSprint = widget.appState.getActiveSprint();
     });
+  }
+
+  String getSubHeader() {
+    String startDateFormatted = DateFormat('M/d').format(activeSprint.startDate.value);
+    String endDateFormatted = DateFormat('M/d').format(activeSprint.endDate.value);
+    return 'Tasks for ' + startDateFormatted + ' - ' + endDateFormatted;
+  }
+
+  String getSubSubHeader() {
+    DateTime endDate = activeSprint.endDate.value;
+    String goodFormat = timeago.format(endDate, allowFromNow: true);
+    String better = goodFormat.replaceAll('from now', 'left');
+    return '(' + better + ')';
   }
 
   @override
@@ -139,6 +152,8 @@ class PlanningHomeState extends State<PlanningHome> {
         bottomNavigationBarGetter: widget.bottomNavigationBarGetter,
         taskHelper: widget.taskHelper,
         taskListGetter: widget.appState.getTasksForActiveSprint,
+        subHeader: getSubHeader(),
+        subSubHeader: getSubSubHeader(),
       );
     }
   }
