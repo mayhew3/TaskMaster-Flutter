@@ -88,15 +88,12 @@ class AppState {
   }
 
   Sprint getActiveSprint() {
-    var now = DateTime.now();
-    if (this.sprints.isEmpty) {
-      return null;
-    } else {
-      return this.sprints.firstWhere((sprint) =>
-      sprint.startDate.value.isBefore(now) &&
-          sprint.endDate.value.isAfter(now) &&
-          sprint.closeDate.value == null);
-    }
+    DateTime now = DateTime.now();
+    Iterable<Sprint> matching = this.sprints.where((sprint) =>
+        sprint.startDate.value.isBefore(now) &&
+        sprint.endDate.value.isAfter(now) &&
+        sprint.closeDate.value == null);
+    return matching.isEmpty ? null : matching.first;
   }
 
   void finishedLoading() {
