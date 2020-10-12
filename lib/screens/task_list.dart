@@ -251,18 +251,21 @@ class TaskListScreenState extends State<TaskListScreen> {
           ],
         ),
         body: getBody(),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => AddEditScreen(
-                taskItem: TaskItem(),
-                taskHelper: widget.taskHelper,
-                isEditing: false,
-              )),
-            );
-          },
-          child: Icon(Icons.add),
+        floatingActionButton: Visibility(
+          visible: widget.sprint == null,
+          child: FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => AddEditScreen(
+                  taskItem: TaskItem(),
+                  taskHelper: widget.taskHelper,
+                  isEditing: false,
+                )),
+              );
+            },
+            child: Icon(Icons.add),
+          ),
         ),
         bottomNavigationBar: widget.bottomNavigationBarGetter(),
       );

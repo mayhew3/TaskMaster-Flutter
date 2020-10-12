@@ -10,6 +10,7 @@ import 'package:taskmaster/parse_helper.dart';
 import 'package:taskmaster/screens/plan_task_list.dart';
 import 'package:taskmaster/screens/task_list.dart';
 import 'package:taskmaster/task_helper.dart';
+import 'package:taskmaster/date_util.dart';
 import 'package:taskmaster/widgets/editable_task_field.dart';
 import 'package:taskmaster/widgets/nullable_dropdown.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -37,9 +38,12 @@ class PlanningHome extends StatefulWidget {
 class PlanningHomeState extends State<PlanningHome> {
 
   DateTime sprintStart = DateTime.now();
+  TextEditingController sprintStartController = TextEditingController();
+
   int numUnits = 7;
   String unitName = 'Days';
   Sprint activeSprint;
+  Sprint lastCompleted;
 
   List<String> possibleRecurUnits = [
     'Days',
@@ -51,10 +55,63 @@ class PlanningHomeState extends State<PlanningHome> {
   @override
   void initState() {
     super.initState();
-    activeSprint = widget.appState.getActiveSprint();
+    _updateSprints();
+    _updateDatesOnInit();
   }
 
-  void openPlanning(BuildContext context) async {
+
+  @override
+  void dispose() {
+    sprintStartController.dispose();
+    super.dispose();
+  }
+
+  void _updateSprints() {
+    activeSprint = widget.appState.getActiveSprint();
+    lastCompleted = widget.appState.getLastCompletedSprint();
+  }
+
+  void _updateDatesOnInit() {
+    if (lastCompleted != null) {
+      numUnits = lastCompleted.numUnits.value;
+      unitName = lastCompleted.unitName.value;
+      sprintStart = getNextScheduledStart();
+    }
+    sprintStartController.text = DateFormat('MM-dd-yyyy').format(sprintStart);
+  }
+
+  void _updateNewSprintStartAfterCreate() {
+    if (lastCompleted != null) {
+      numUnits = lastCompleted.numUnits.value;
+      unitName = lastCompleted.unitName.value;
+      sprintStart = lastCompleted.endDate.value;
+    }
+    sprintStartController.text = DateFormat('MM-dd-yyyy').format(sprintStart);
+  }
+
+  DateTime getNextScheduledStart() {
+    DateTime nextStart;
+    DateTime nextEnd = lastCompleted.endDate.value;
+    DateTime now = DateTime.now();
+
+    do {
+      nextStart = nextEnd;
+      nextEnd = DateUtil.adjustToDate(
+          nextStart,
+          lastCompleted.numUnits.value,
+          lastCompleted.unitName.value
+      );
+    } while (nextEnd.isBefore(now));
+
+    return nextStart;
+  }
+
+  void updateDateForDateField(DateTime dateTime) {
+    sprintStart = dateTime;
+    sprintStartController.text = DateFormat('MM-dd-yyyy').format(dateTime);
+  }
+
+  void _openPlanning(BuildContext context) async {
     await Navigator.of(context).push(
         MaterialPageRoute(builder: (context) {
           return PlanTaskList(
@@ -69,21 +126,38 @@ class PlanningHomeState extends State<PlanningHome> {
         )
     );
     setState(() {
-      activeSprint = widget.appState.getActiveSprint();
+      _updateSprints();
+      _updateNewSprintStartAfterCreate();
     });
   }
 
-  String getSubHeader() {
+  String _getSubHeader() {
     String startDateFormatted = DateFormat('M/d').format(activeSprint.startDate.value);
     String endDateFormatted = DateFormat('M/d').format(activeSprint.endDate.value);
     return 'Tasks for ' + startDateFormatted + ' - ' + endDateFormatted;
   }
 
-  String getSubSubHeader() {
+  String _getSubSubHeader() {
     DateTime endDate = activeSprint.endDate.value;
     String goodFormat = timeago.format(endDate, allowFromNow: true);
     String better = goodFormat.replaceAll('from now', 'left');
     return '(' + better + ')';
+  }
+
+  Widget _lastSprintSummary() {
+    if (lastCompleted == null) {
+      return Text('This is your first sprint! Choose the cadence below:');
+    } else {
+      DateTime oneYearAgo = DateTime.now().subtract(Duration(days: 365));
+      String dateString = oneYearAgo.isAfter(lastCompleted.endDate.value) ?
+                        ' over a year ago.' :
+                        DateUtil.formatMediumMaybeHidingYear(lastCompleted.endDate.value);
+      return Text('Last Sprint Ended: ' + dateString);
+    }
+  }
+
+  DateTime _getLowerLimit() {
+    return lastCompleted?.endDate?.value ?? DateTime(DateTime.now().year - 1);
   }
 
   @override
@@ -96,6 +170,10 @@ class PlanningHomeState extends State<PlanningHome> {
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            Container(
+              padding: EdgeInsets.all(12.0),
+              child: _lastSprintSummary(),
+            ),
             Row(
               children: [
                 SizedBox(
@@ -122,18 +200,18 @@ class PlanningHomeState extends State<PlanningHome> {
             Container(
               margin: EdgeInsets.all(7.0),
               child: DateTimeField(
+                controller: sprintStartController,
                 decoration: InputDecoration(
-                  labelText: 'Starts On',
+                  labelText: 'Starting On',
                   filled: false,
                   border: OutlineInputBorder(),
                 ),
-                initialValue: sprintStart,
-                onChanged: (value) => sprintStart = value,
+                onChanged: (value) => updateDateForDateField(value),
                 onShowPicker: (context, currentValue) async {
                   return await showDatePicker(
                       context: context,
                       initialDate: currentValue ?? sprintStart,
-                      firstDate: DateTime(2020),
+                      firstDate: _getLowerLimit(),
                       lastDate: DateTime(2100));
                 },
                 format: DateFormat('MM-dd-yyyy'),
@@ -141,7 +219,7 @@ class PlanningHomeState extends State<PlanningHome> {
             ),
             FlatButton(
                 color: TaskColors.cardColor,
-                onPressed: () => openPlanning(context),
+                onPressed: () => _openPlanning(context),
                 child: Text('Create Sprint')),
           ],
         ),
@@ -154,8 +232,9 @@ class PlanningHomeState extends State<PlanningHome> {
         bottomNavigationBarGetter: widget.bottomNavigationBarGetter,
         taskHelper: widget.taskHelper,
         taskListGetter: widget.appState.getTasksForActiveSprint,
-        subHeader: getSubHeader(),
-        subSubHeader: getSubSubHeader(),
+        sprint: activeSprint,
+        subHeader: _getSubHeader(),
+        subSubHeader: _getSubSubHeader(),
       );
     }
   }
