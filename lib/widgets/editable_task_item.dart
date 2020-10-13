@@ -130,7 +130,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     
     for (TaskDateType taskDateType in TaskDateTypes.allTypes) {
       if (!taskItem.isCompleted() &&
-          dateInFutureThreshold(taskDateType, 10) &&
+          taskDateType.inListDisplayThreshold(taskItem) &&
           dateWarnings.length < 1) {
         dateWarnings.add(_getDateFromNow(taskDateType));
       }

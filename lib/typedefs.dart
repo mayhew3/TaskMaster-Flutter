@@ -21,4 +21,4 @@ typedef List<TaskItem> TaskListGetter();
 
 typedef Future<CheckState> CheckCycleWaiter(CheckState startingState);
 
-typedef TaskField DateFieldGetter(TaskItem taskItem);
+typedef TaskFieldDate DateFieldGetter(TaskItem taskItem);
