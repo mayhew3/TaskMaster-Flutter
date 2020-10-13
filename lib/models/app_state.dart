@@ -97,14 +97,11 @@ class AppState {
   }
 
   Sprint getLastCompletedSprint() {
-    if (sprints.isEmpty) {
-      return null;
-    }
     List<Sprint> matching = this.sprints.where((sprint) {
       return DateTime.now().isAfter(sprint.endDate.value);
     }).toList();
     matching.sort((a, b) => a.endDate.value.compareTo(b.endDate.value));
-    return matching.last;
+    return matching.isEmpty ? null : matching.last;
   }
 
   void finishedLoading() {

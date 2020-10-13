@@ -132,16 +132,37 @@ class EditableTaskItemWidget extends StatelessWidget {
 
   Widget _getDateWarnings() {
     List<Widget> dateWarnings = [];
-    
-    if (taskItem.isCompleted() && !taskItem.pendingCompletion) {
-      dateWarnings.add(_getDateFromNow(TaskDateTypes.completed));
-    }
-    
-    for (TaskDateType taskDateType in TaskDateTypes.allTypes) {
-      if (!taskItem.isCompleted() &&
-          taskDateType.inListDisplayThreshold(taskItem) &&
-          dateWarnings.length < 1) {
-        dateWarnings.add(_getDateFromNow(taskDateType));
+
+    if (addMode) {
+      var reversed = [
+        TaskDateTypes.due,
+        TaskDateTypes.urgent,
+        TaskDateTypes.target,
+        TaskDateTypes.start,
+      ];
+
+      for (TaskDateType taskDateType in reversed) {
+        var dateValue = taskDateType.dateFieldGetter(taskItem).value;
+        if (!taskItem.isCompleted() &&
+            hasPassed(dateValue) &&
+            dateValue != null &&
+            dateValue.isAfter(DateTime.now()) &&
+            dateWarnings.length < 1) {
+          dateWarnings.add(_getDateFromNow(taskDateType));
+        }
+      }
+
+    } else {
+      if (taskItem.isCompleted() && !taskItem.pendingCompletion) {
+        dateWarnings.add(_getDateFromNow(TaskDateTypes.completed));
+      }
+
+      for (TaskDateType taskDateType in TaskDateTypes.allTypes) {
+        if (!taskItem.isCompleted() &&
+            taskDateType.inListDisplayThreshold(taskItem) &&
+            dateWarnings.length < 1) {
+          dateWarnings.add(_getDateFromNow(taskDateType));
+        }
       }
     }
 
