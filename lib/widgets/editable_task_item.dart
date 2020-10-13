@@ -62,9 +62,9 @@ class EditableTaskItemWidget extends StatelessWidget {
     if (dateValue == null) {
       return '';
     } else if (isPast) {
-      return taskDateType.toString() + ' ' + formatDateTime(dateValue) + ' ago';
+      return taskDateType.label + ' ' + formatDateTime(dateValue) + ' ago';
     } else {
-      return 'Due in ' + formatDateTime(dateValue);
+      return taskDateType.label + ' in ' + formatDateTime(dateValue);
     }
   }
 
@@ -93,6 +93,14 @@ class EditableTaskItemWidget extends StatelessWidget {
     return taskItem.dueDate.value != null && taskItem.dueDate.value.isBefore(inXDays);
   }
 
+  bool dateInFutureThreshold(TaskDateType taskDateType, int thresholdDays) {
+    DateTime inXDays = DateTime.now().add(Duration(days: thresholdDays));
+    var dateField = taskItem.getDateFieldOfType(taskDateType);
+    return dateField.value != null &&
+        dateField.value.isAfter(DateTime.now()) &&
+        dateField.value.isBefore(inXDays);
+  }
+
   DelayedCheckbox _getCheckbox() {
     if (addMode) {
       return DelayedCheckbox(
@@ -113,6 +121,21 @@ class EditableTaskItemWidget extends StatelessWidget {
     }
   }
 
+  Widget _getDateWarnings() {
+    List<Widget> dateWarnings = [];
+    for (TaskDateType taskDateType in TaskDateTypes.allTypes) {
+      if (!taskItem.isCompleted() &&
+          dateInFutureThreshold(taskDateType, 10) &&
+          dateWarnings.length < 1) {
+        dateWarnings.add(_getDateFromNow(taskDateType));
+      }
+    }
+
+    return Column(
+      children: dateWarnings
+    );
+  }
+
   Widget _getDateFromNow(TaskDateType taskDateType) {
     return Container(
       padding: EdgeInsets.only(
@@ -122,9 +145,8 @@ class EditableTaskItemWidget extends StatelessWidget {
         left: 5.0,
       ),
       child: Text(
-        getDueDateString(),
-        style: const TextStyle(fontSize: 14.0,
-            color: Color.fromRGBO(235, 167, 167, 1.0)),
+        getStringForDateType(taskDateType),
+        style: TextStyle(fontSize: 14.0, color: taskDateType.textColor),
       ),
     );
   }
@@ -181,22 +203,7 @@ class EditableTaskItemWidget extends StatelessWidget {
                     ),
                   ),
                 ),
-                Visibility(
-                  visible: !taskItem.isCompleted() && dueInThreshold(10),
-                  child: Container(
-                    padding: EdgeInsets.only(
-                      top: 5.0,
-                      bottom: 5.0,
-                      right: 15.0,
-                      left: 5.0,
-                    ),
-                    child: Text(
-                      getDueDateString(),
-                      style: const TextStyle(fontSize: 14.0,
-                          color: Color.fromRGBO(235, 167, 167, 1.0)),
-                    ),
-                  ),
-                ),
+                _getDateWarnings(),
                 Container(
                   padding: EdgeInsets.only(
                     top: 4.0,
