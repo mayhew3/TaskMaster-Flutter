@@ -40,8 +40,8 @@ class PlanningHomeState extends State<PlanningHome> {
   DateTime sprintStart = DateTime.now();
   TextEditingController sprintStartController = TextEditingController();
 
-  int numUnits = 7;
-  String unitName = 'Days';
+  int numUnits = 1;
+  String unitName = 'Weeks';
   Sprint activeSprint;
   Sprint lastCompleted;
 
