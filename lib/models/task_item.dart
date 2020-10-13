@@ -6,20 +6,6 @@ import 'package:taskmaster/models/task_field.dart';
 
 class TaskItem extends DataObject {
 
-  static Map<String, TaskDateType> typeMap = {
-    'Start': TaskDateType.START,
-    'Target': TaskDateType.TARGET,
-    'Urgent': TaskDateType.URGENT,
-    'Due': TaskDateType.DUE,
-  };
-
-  static String getDateTypeString(TaskDateType dateType) {
-    return typeMap.keys.firstWhere((key) {
-      var value = typeMap[key];
-      return (value == dateType);
-    });
-  }
-
   TaskFieldInteger personId;
 
   TaskFieldString name;
@@ -171,13 +157,13 @@ class TaskItem extends DataObject {
   }
 
   TaskFieldDate getDateFieldOfType(TaskDateType taskDateType) {
-    if (TaskDateType.START == taskDateType) {
+    if (TaskDateTypes.start == taskDateType) {
       return startDate;
-    } else if (TaskDateType.TARGET == taskDateType) {
+    } else if (TaskDateTypes.target == taskDateType) {
       return targetDate;
-    } else if (TaskDateType.URGENT == taskDateType) {
+    } else if (TaskDateTypes.urgent == taskDateType) {
       return urgentDate;
-    } else if (TaskDateType.DUE == taskDateType) {
+    } else if (TaskDateTypes.due == taskDateType) {
       return dueDate;
     } else {
       return null;
@@ -186,13 +172,13 @@ class TaskItem extends DataObject {
 
   TaskDateType getAnchorDateType() {
     if (dueDate.value != null) {
-      return TaskDateType.DUE;
+      return TaskDateTypes.due;
     } else if (urgentDate.value != null) {
-      return TaskDateType.URGENT;
+      return TaskDateTypes.urgent;
     } else if (targetDate.value != null) {
-      return TaskDateType.TARGET;
+      return TaskDateTypes.target;
     } else if (startDate.value != null) {
-      return TaskDateType.START;
+      return TaskDateTypes.start;
     } else {
       return null;
     }

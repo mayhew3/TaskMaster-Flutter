@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/task_colors.dart';
+import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/delayed_checkbox.dart';
@@ -55,6 +56,18 @@ class EditableTaskItemWidget extends StatelessWidget {
     }
   }
 
+  String getStringForDateType(TaskDateType taskDateType) {
+    var dateValue = taskItem.getDateFieldOfType(taskDateType).value;
+    var isPast = dateValue == null ? false : dateValue.isBefore(DateTime.now());
+    if (dateValue == null) {
+      return '';
+    } else if (isPast) {
+      return taskDateType.toString() + ' ' + formatDateTime(dateValue) + ' ago';
+    } else {
+      return 'Due in ' + formatDateTime(dateValue);
+    }
+  }
+
   String getDueDateString() {
     var dueDate = taskItem.dueDate.value;
     if (dueDate == null) {
@@ -98,6 +111,22 @@ class EditableTaskItemWidget extends StatelessWidget {
         checkCycleWaiter: onTaskCompleteToggle,
       );
     }
+  }
+
+  Widget _getDateFromNow(TaskDateType taskDateType) {
+    return Container(
+      padding: EdgeInsets.only(
+        top: 5.0,
+        bottom: 5.0,
+        right: 15.0,
+        left: 5.0,
+      ),
+      child: Text(
+        getDueDateString(),
+        style: const TextStyle(fontSize: 14.0,
+            color: Color.fromRGBO(235, 167, 167, 1.0)),
+      ),
+    );
   }
 
   @override

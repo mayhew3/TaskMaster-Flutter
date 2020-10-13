@@ -129,7 +129,7 @@ class TaskHelper {
     DateTime snoozeDate = DateTime.now();
     DateTime adjustedDate = _getAdjustedDate(snoozeDate, numUnits, unitSize);
 
-    TaskDateType dateType = TaskItem.typeMap[dateTypeStr];
+    TaskDateType dateType = TaskDateTypes.getTypeWithLabel(dateTypeStr);
 
     var relevantDateField = taskItem.getDateFieldOfType(dateType);
     DateTime relevantDate = relevantDateField.value;
@@ -138,7 +138,7 @@ class TaskHelper {
       relevantDateField.value = adjustedDate;
     } else {
       Duration difference = adjustedDate.difference(relevantDate);
-      TaskDateType.values.forEach((taskDateType) => taskItem.incrementDateIfExists(taskDateType, difference));
+      TaskDateTypes.allTypes.forEach((taskDateType) => taskItem.incrementDateIfExists(taskDateType, difference));
     }
   }
 
@@ -146,7 +146,7 @@ class TaskHelper {
     DateTime snoozeDate = DateTime.now();
     DateTime adjustedDate = _getAdjustedDate(snoozeDate, numUnits, unitSize);
 
-    TaskDateType dateType = TaskItem.typeMap[dateTypeStr];
+    TaskDateType dateType = TaskDateTypes.getTypeWithLabel(dateTypeStr);
 
     var relevantDateField = taskItem.getDateFieldOfType(dateType);
     DateTime relevantDate = relevantDateField.value;
@@ -155,7 +155,7 @@ class TaskHelper {
       relevantDateField.value = adjustedDate;
     } else {
       Duration difference = adjustedDate.difference(relevantDate);
-      TaskDateType.values.forEach((taskDateType) => taskItem.incrementDateIfExists(taskDateType, difference));
+      TaskDateTypes.allTypes.forEach((taskDateType) => taskItem.incrementDateIfExists(taskDateType, difference));
     }
 
     TaskItem updatedTask = await updateTask(taskItem);
