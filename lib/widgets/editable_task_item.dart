@@ -19,6 +19,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   final bool addMode;
   final MyStateSetter stateSetter;
   final DateTime endDate;
+  final CheckState initialCheckState;
 
   EditableTaskItemWidget({
     Key key,
@@ -32,6 +33,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     @required this.addMode,
     @required this.stateSetter,
     this.endDate,
+    this.initialCheckState,
   }) : super(key: key);
 
   bool hasPassed(DateTime dateTime) {
@@ -111,7 +113,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   DelayedCheckbox _getCheckbox() {
     if (addMode) {
       return DelayedCheckbox(
-        initialState: CheckState.inactive,
+        initialState: initialCheckState,
         stateSetter: stateSetter,
         checkCycleWaiter: onTaskAssignmentToggle,
         checkedColor: Colors.green,

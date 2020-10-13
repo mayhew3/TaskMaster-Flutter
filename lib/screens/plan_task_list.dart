@@ -39,6 +39,17 @@ class PlanTaskListState extends State<PlanTaskList> {
 
   List<TaskItem> sprintQueued = [];
 
+  @override
+  void initState() {
+    super.initState();
+
+    DateTime endDate = getEndDate();
+    var baseList = getBaseList();
+    final Iterable<TaskItem> dueOrUrgentTasks = baseList.where((taskItem) =>
+        taskItem.isDueBefore(endDate) || taskItem.isUrgentBefore(endDate));
+    sprintQueued.addAll(dueOrUrgentTasks);
+  }
+
   List<TaskItem> _moveSublist(List<TaskItem> superList, bool Function(TaskItem) condition) {
     List<TaskItem> subList = superList.where(condition).toList(growable: false);
     subList.forEach((task) => superList.remove(task));
@@ -51,6 +62,7 @@ class PlanTaskListState extends State<PlanTaskList> {
       endDate: getEndDate(),
       stateSetter: (callback) => setState(() => callback()),
       addMode: true,
+      initialCheckState: sprintQueued.contains(taskItem) ? CheckState.checked : CheckState.inactive,
       onTaskAssignmentToggle: (checkState) {
         var alreadyQueued = sprintQueued.contains(taskItem);
         if (alreadyQueued) {
@@ -76,10 +88,14 @@ class PlanTaskListState extends State<PlanTaskList> {
     return filtered;
   }
 
+  List<TaskItem> getBaseList() {
+    final List<TaskItem> allTasks = widget.taskListGetter();
+    return getFilteredTasks(allTasks);
+  }
+
   ListView _buildListView(BuildContext context) {
     widget.appState.notificationScheduler.updateHomeScreenContext(context);
-    final List<TaskItem> allTasks = widget.taskListGetter();
-    final List<TaskItem> otherTasks = getFilteredTasks(allTasks);
+    final List<TaskItem> otherTasks = getBaseList();
 
     DateTime endDate = getEndDate();
 
