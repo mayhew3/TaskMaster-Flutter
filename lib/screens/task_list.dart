@@ -98,6 +98,7 @@ class TaskListScreenState extends State<TaskListScreen> {
       taskItem: taskItem,
       stateSetter: (callback) => setState(() => callback()),
       addMode: false,
+      sprint: widget.sprint,
       onTap: () async {
         await Navigator.of(context).push(
           MaterialPageRoute(builder: (_) {

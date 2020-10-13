@@ -60,6 +60,7 @@ class PlanTaskListState extends State<PlanTaskList> {
     return EditableTaskItemWidget(
       taskItem: taskItem,
       endDate: getEndDate(),
+      sprint: null,
       stateSetter: (callback) => setState(() => callback()),
       addMode: true,
       initialCheckState: sprintQueued.contains(taskItem) ? CheckState.checked : CheckState.inactive,

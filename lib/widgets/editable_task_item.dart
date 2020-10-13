@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
+import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
@@ -20,6 +21,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   final MyStateSetter stateSetter;
   final DateTime endDate;
   final CheckState initialCheckState;
+  final Sprint sprint;
 
   EditableTaskItemWidget({
     Key key,
@@ -34,6 +36,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     @required this.stateSetter,
     this.endDate,
     this.initialCheckState,
+    @required this.sprint,
   }) : super(key: key);
 
   bool hasPassed(DateTime dateTime) {
@@ -130,6 +133,10 @@ class EditableTaskItemWidget extends StatelessWidget {
     }
   }
 
+  bool showTarget(TaskDateType taskDateType) {
+    return sprint == null || !(TaskDateTypes.target == taskDateType);
+  }
+
   Widget _getDateWarnings() {
     List<Widget> dateWarnings = [];
 
@@ -160,6 +167,7 @@ class EditableTaskItemWidget extends StatelessWidget {
       for (TaskDateType taskDateType in TaskDateTypes.allTypes) {
         if (!taskItem.isCompleted() &&
             taskDateType.inListDisplayThreshold(taskItem) &&
+            showTarget(taskDateType) &&
             dateWarnings.length < 1) {
           dateWarnings.add(_getDateFromNow(taskDateType));
         }
