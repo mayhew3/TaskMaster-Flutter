@@ -48,6 +48,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     var pending = taskItem.pendingCompletion;
     var due = hasPassed(taskItem.dueDate.value);
     var urgent = hasPassed(taskItem.urgentDate.value);
+    var target = hasPassed(taskItem.targetDate.value);
     var completed = taskItem.completionDate.value != null;
 
     if (pending) {
@@ -58,6 +59,8 @@ class EditableTaskItemWidget extends StatelessWidget {
       return TaskColors.dueColor;
     } else if (urgent) {
       return TaskColors.urgentColor;
+    } else if (target && sprint == null) {
+      return TaskColors.targetColor;
     } else {
       return TaskColors.cardColor;
     }

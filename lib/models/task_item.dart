@@ -155,6 +155,10 @@ class TaskItem extends DataObject {
     return urgentDate.hasPassed();
   }
 
+  bool isTarget() {
+    return targetDate.hasPassed();
+  }
+
   DateTime getAnchorDate() {
     return getAnchorDateType().dateFieldGetter(this).value;
   }
