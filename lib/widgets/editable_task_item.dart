@@ -59,12 +59,17 @@ class EditableTaskItemWidget extends StatelessWidget {
   String getStringForDateType(TaskDateType taskDateType) {
     var dateValue = taskDateType.dateFieldGetter(taskItem).value;
     var isPast = dateValue == null ? false : dateValue.isBefore(DateTime.now());
+    var formatted = formatDateTime(dateValue);
+    var label = taskDateType.label;
+
     if (dateValue == null) {
       return '';
+    } else if ('now' == formatted) {
+      return label + ' just now';
     } else if (isPast) {
-      return taskDateType.label + ' ' + formatDateTime(dateValue) + ' ago';
+      return label + ' ' + formatted + ' ago';
     } else {
-      return taskDateType.label + ' in ' + formatDateTime(dateValue);
+      return label + ' in ' + formatted;
     }
   }
 
@@ -124,7 +129,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   Widget _getDateWarnings() {
     List<Widget> dateWarnings = [];
     
-    if (taskItem.isCompleted()) {
+    if (taskItem.isCompleted() && !taskItem.pendingCompletion) {
       dateWarnings.add(_getDateFromNow(TaskDateTypes.completed));
     }
     

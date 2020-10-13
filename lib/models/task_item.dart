@@ -36,10 +36,15 @@ class TaskItem extends DataObject {
 
   bool pendingCompletion = false;
 
-  static List<String> controlledFields = ['id', 'person_id', 'date_added', 'completion_date'];
+  static List<String> controlledFields = [
+    'id',
+    'person_id',
+    'date_added',
+    'completion_date'
+  ];
 
   @override
-  TaskItem(): super() {
+  TaskItem() : super() {
     this.personId = addIntegerField("person_id");
     this.name = addStringField("name");
     this.description = addStringField("description");
@@ -78,15 +83,17 @@ class TaskItem extends DataObject {
       }
     }
 
-    List<dynamic> assignments = json['sprint_assignments'];
-    for (var assignment in assignments) {
-      int sprintId = assignment['sprint_id'];
-      Sprint sprint = appState.findSprintWithId(sprintId);
-      if (sprint == null) {
-        throw new Exception('No sprint found with ID ' + sprintId.toString());
+    if (json.containsKey('sprint_assignments')) {
+      List<dynamic> assignments = json['sprint_assignments'];
+      for (var assignment in assignments) {
+        int sprintId = assignment['sprint_id'];
+        Sprint sprint = appState.findSprintWithId(sprintId);
+        if (sprint == null) {
+          throw new Exception('No sprint found with ID ' + sprintId.toString());
+        }
+        taskItem.addToSprints(sprint);
+        sprint.addToTasks(taskItem);
       }
-      taskItem.addToSprints(sprint);
-      sprint.addToTasks(taskItem);
     }
 
     return taskItem;

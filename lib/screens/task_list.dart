@@ -98,8 +98,8 @@ class TaskListScreenState extends State<TaskListScreen> {
       taskItem: taskItem,
       stateSetter: (callback) => setState(() => callback()),
       addMode: false,
-      onTap: () {
-        Navigator.of(context).push(
+      onTap: () async {
+        await Navigator.of(context).push(
           MaterialPageRoute(builder: (_) {
             return DetailScreen(
               taskItem: taskItem,
@@ -107,6 +107,7 @@ class TaskListScreenState extends State<TaskListScreen> {
             );
           }),
         );
+        setState(() {});
       },
       onLongPress: () => snoozeDialog(taskItem),
       onForcePress: (ForcePressDetails forcePressDetails) => snoozeDialog(taskItem),
