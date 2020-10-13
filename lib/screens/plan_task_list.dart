@@ -48,6 +48,7 @@ class PlanTaskListState extends State<PlanTaskList> {
   EditableTaskItemWidget _createWidget(TaskItem taskItem, BuildContext context) {
     return EditableTaskItemWidget(
       taskItem: taskItem,
+      endDate: getEndDate(),
       stateSetter: (callback) => setState(() => callback()),
       addMode: true,
       onTaskAssignmentToggle: (checkState) {

@@ -18,6 +18,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   final GestureForcePressStartCallback onForcePress;
   final bool addMode;
   final MyStateSetter stateSetter;
+  final DateTime endDate;
 
   EditableTaskItemWidget({
     Key key,
@@ -30,10 +31,11 @@ class EditableTaskItemWidget extends StatelessWidget {
     this.onForcePress,
     @required this.addMode,
     @required this.stateSetter,
+    this.endDate,
   }) : super(key: key);
 
   bool hasPassed(DateTime dateTime) {
-    var now = DateTime.now();
+    var now = addMode ? this.endDate : DateTime.now();
     return dateTime == null ? false : dateTime.isBefore(now);
   }
 
