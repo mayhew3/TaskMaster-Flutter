@@ -49,7 +49,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
   void initState() {
     super.initState();
     TaskDateTypes.allTypes.forEach((dateType) {
-      var dateFieldOfType = widget.taskItem.getDateFieldOfType(dateType);
+      var dateFieldOfType = dateType.dateFieldGetter(widget.taskItem);
       if (dateFieldOfType.value != null) {
         possibleDateTypes.add(dateType.label);
       }
@@ -137,7 +137,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
       ];
 
       TaskDateTypes.allTypes.forEach((dateType) {
-        TaskField dateFieldOfType = widget.taskItem.getDateFieldOfType(dateType);
+        TaskField dateFieldOfType = dateType.dateFieldGetter(widget.taskItem);
         var dateTypeString = dateType.label;
         var actualDate = dateFieldOfType.value;
         if (actualDate != null) {

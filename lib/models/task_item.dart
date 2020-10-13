@@ -149,25 +149,11 @@ class TaskItem extends DataObject {
   }
 
   DateTime getAnchorDate() {
-    return getDateFieldOfType(getAnchorDateType()).value;
+    return getAnchorDateType().dateFieldGetter(this).value;
   }
 
   bool isScheduledRecurrence() {
     return recurWait.value != null && !recurWait.value;
-  }
-
-  TaskFieldDate getDateFieldOfType(TaskDateType taskDateType) {
-    if (TaskDateTypes.start == taskDateType) {
-      return startDate;
-    } else if (TaskDateTypes.target == taskDateType) {
-      return targetDate;
-    } else if (TaskDateTypes.urgent == taskDateType) {
-      return urgentDate;
-    } else if (TaskDateTypes.due == taskDateType) {
-      return dueDate;
-    } else {
-      return null;
-    }
   }
 
   TaskDateType getAnchorDateType() {
@@ -185,7 +171,7 @@ class TaskItem extends DataObject {
   }
 
   void incrementDateIfExists(TaskDateType taskDateType, Duration duration) {
-    var field = getDateFieldOfType(taskDateType);
+    var field = taskDateType.dateFieldGetter(this);
     field.value = field.value?.add(duration);
   }
 

@@ -131,7 +131,7 @@ class TaskHelper {
 
     TaskDateType dateType = TaskDateTypes.getTypeWithLabel(dateTypeStr);
 
-    var relevantDateField = taskItem.getDateFieldOfType(dateType);
+    var relevantDateField = dateType.dateFieldGetter(taskItem);
     DateTime relevantDate = relevantDateField.value;
 
     if (relevantDate == null) {
@@ -148,7 +148,7 @@ class TaskHelper {
 
     TaskDateType dateType = TaskDateTypes.getTypeWithLabel(dateTypeStr);
 
-    var relevantDateField = taskItem.getDateFieldOfType(dateType);
+    var relevantDateField = dateType.dateFieldGetter(taskItem);
     DateTime relevantDate = relevantDateField.value;
 
     if (relevantDate == null) {

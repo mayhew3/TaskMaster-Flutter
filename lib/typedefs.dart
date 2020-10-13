@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:taskmaster/models/task_field.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/widgets/delayed_checkbox.dart';
 
@@ -19,3 +20,5 @@ typedef BottomNavigationBar BottomNavigationBarGetter();
 typedef List<TaskItem> TaskListGetter();
 
 typedef Future<CheckState> CheckCycleWaiter(CheckState startingState);
+
+typedef TaskField DateFieldGetter(TaskItem taskItem);

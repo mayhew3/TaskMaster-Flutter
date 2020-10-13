@@ -57,7 +57,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   }
 
   String getStringForDateType(TaskDateType taskDateType) {
-    var dateValue = taskItem.getDateFieldOfType(taskDateType).value;
+    var dateValue = taskDateType.dateFieldGetter(taskItem).value;
     var isPast = dateValue == null ? false : dateValue.isBefore(DateTime.now());
     if (dateValue == null) {
       return '';
@@ -95,7 +95,7 @@ class EditableTaskItemWidget extends StatelessWidget {
 
   bool dateInFutureThreshold(TaskDateType taskDateType, int thresholdDays) {
     DateTime inXDays = DateTime.now().add(Duration(days: thresholdDays));
-    var dateField = taskItem.getDateFieldOfType(taskDateType);
+    var dateField = taskDateType.dateFieldGetter(taskItem);
     return dateField.value != null &&
         dateField.value.isAfter(DateTime.now()) &&
         dateField.value.isBefore(inXDays);
@@ -123,6 +123,11 @@ class EditableTaskItemWidget extends StatelessWidget {
 
   Widget _getDateWarnings() {
     List<Widget> dateWarnings = [];
+    
+    if (taskItem.isCompleted()) {
+      dateWarnings.add(_getDateFromNow(TaskDateTypes.completed));
+    }
+    
     for (TaskDateType taskDateType in TaskDateTypes.allTypes) {
       if (!taskItem.isCompleted() &&
           dateInFutureThreshold(taskDateType, 10) &&
