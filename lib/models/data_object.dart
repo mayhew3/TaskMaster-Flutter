@@ -17,6 +17,12 @@ abstract class DataObject {
     }
   }
 
+  treatAsCommitted() {
+    for (var field in fields) {
+      field.afterUpdate();
+    }
+  }
+
   void initFromFields(Map<String, dynamic> json) {
     for (var field in fields) {
       var jsonVal = json[field.fieldName];

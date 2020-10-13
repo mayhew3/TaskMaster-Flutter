@@ -50,8 +50,8 @@ class TaskListScreenState extends State<TaskListScreen> {
   @override
   void initState() {
     super.initState();
-    this.showScheduled = false;
-    this.showCompleted = false;
+    this.showScheduled = (widget.sprint != null);
+    this.showCompleted = (widget.sprint != null);
   }
 
   void _displaySnackBar(String msg, BuildContext context) {
@@ -96,6 +96,7 @@ class TaskListScreenState extends State<TaskListScreen> {
 
     return EditableTaskItemWidget(
       taskItem: taskItem,
+      stateSetter: (callback) => setState(() => callback()),
       addMode: false,
       onTap: () {
         Navigator.of(context).push(

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:taskmaster/date_util.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_date_type.dart';
+import 'package:taskmaster/models/task_field.dart';
 import 'package:taskmaster/task_repository.dart';
 
 import 'auth.dart';
@@ -82,12 +83,17 @@ class TaskHelper {
       nextScheduledTask.dueDate.initializeValue(_addToDate(taskItem.dueDate.value, duration));
     }
 
-    var inboundTask = await repository.completeTask(taskItem, completionDate);
-    TaskItem updatedTask;
     stateSetter(() {
-      // todo: update fields on original task instead of deleting and adding result
-      updatedTask = appState.updateTaskListWithUpdatedTask(inboundTask);
-      appState.notificationScheduler.syncNotificationForTask(updatedTask);
+      taskItem.completionDate.value = completionDate;
+      taskItem.treatAsCommitted();
+    });
+
+    var inboundTask = await repository.completeTask(taskItem);
+
+    stateSetter(() {
+      _copyChanges(inboundTask, taskItem);
+      taskItem.pendingCompletion = false;
+      appState.notificationScheduler.syncNotificationForTask(taskItem);
     });
     appState.notificationScheduler.updateBadge();
 
@@ -95,7 +101,7 @@ class TaskHelper {
       addTask(nextScheduledTask);
     }
 
-    return updatedTask;
+    return taskItem;
   }
 
   Future<void> deleteTask(TaskItem taskItem) async {
@@ -111,14 +117,12 @@ class TaskHelper {
 
   Future<TaskItem> updateTask(TaskItem taskItem) async {
     var inboundTask = await repository.updateTask(taskItem);
-    TaskItem updatedTask;
     stateSetter(() {
-      // todo: update fields on original task instead of deleting and adding result
-      updatedTask = appState.updateTaskListWithUpdatedTask(inboundTask);
-      appState.notificationScheduler.syncNotificationForTask(updatedTask);
+      _copyChanges(inboundTask, taskItem);
+      appState.notificationScheduler.syncNotificationForTask(taskItem);
     });
     appState.notificationScheduler.updateBadge();
-    return updatedTask;
+    return taskItem;
   }
 
   void previewSnooze(TaskItem taskItem, int numUnits, String unitSize, String dateTypeStr) {
@@ -216,6 +220,14 @@ class TaskHelper {
     } else {
       return next;
     }
+  }
+
+  void _copyChanges(TaskItem inboundTask, TaskItem outboundTask) {
+    for (TaskField field in outboundTask.fields) {
+      var inboundField = inboundTask.getTaskField(field.fieldName);
+      field.value = inboundField.value;
+    }
+    outboundTask.treatAsCommitted();
   }
 
 }

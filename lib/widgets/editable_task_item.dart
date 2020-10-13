@@ -16,6 +16,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   final GestureLongPressCallback onLongPress;
   final GestureForcePressStartCallback onForcePress;
   final bool addMode;
+  final MyStateSetter stateSetter;
 
   EditableTaskItemWidget({
     Key key,
@@ -27,6 +28,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     this.onLongPress,
     this.onForcePress,
     @required this.addMode,
+    @required this.stateSetter,
   }) : super(key: key);
 
   bool hasPassed(DateTime dateTime) {
@@ -82,6 +84,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     if (addMode) {
       return DelayedCheckbox(
         initialState: CheckState.inactive,
+        stateSetter: stateSetter,
         checkCycleWaiter: onTaskAssignmentToggle,
         checkedColor: Colors.green,
         inactiveIcon: Icons.add,
@@ -91,6 +94,7 @@ class EditableTaskItemWidget extends StatelessWidget {
 
       return DelayedCheckbox(
         initialState: completed ? CheckState.checked : CheckState.inactive,
+        stateSetter: stateSetter,
         checkCycleWaiter: onTaskCompleteToggle,
       );
     }

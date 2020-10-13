@@ -12,7 +12,7 @@ typedef EndLoadingCallback(BuildContext context);
 typedef TaskItemRefresher(TaskItem taskItem);
 
 typedef void StateCallback();
-typedef void StateSetter(StateCallback stateCallback);
+typedef void MyStateSetter(StateCallback stateCallback);
 
 typedef BottomNavigationBar BottomNavigationBarGetter();
 

@@ -12,7 +12,6 @@ import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/models/snooze.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/parse_helper.dart';
 
 class TaskRepository {
   AppState appState;
@@ -146,12 +145,10 @@ class TaskRepository {
   }
 
 
-  Future<TaskItem> completeTask(TaskItem taskItem, DateTime completionDate) {
+  Future<TaskItem> completeTask(TaskItem taskItem) {
     if (!appState.isAuthenticated()) {
       throw Exception("Cannot update task before being signed in.");
     }
-
-    taskItem.completionDate.value = completionDate;
 
     var payload = {
       "task": {

@@ -122,6 +122,7 @@ class DetailScreenState extends State<DetailScreen> {
                   padding: EdgeInsets.all(4.0),
                   child: DelayedCheckbox(
                     initialState: completed ? CheckState.checked : CheckState.inactive,
+                    stateSetter: (callback) => setState(() => callback()),
                     checkCycleWaiter: (checkState) async {
                       var updatedTask = await toggleAndUpdateCompleted(taskItem, CheckState.inactive == checkState);
                       refreshLocalTaskItem(updatedTask);
