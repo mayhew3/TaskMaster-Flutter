@@ -103,6 +103,7 @@ class PlanTaskListState extends State<PlanTaskList> {
     final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted());
     final List<TaskItem> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isDueBefore(endDate));
     final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgentBefore(endDate));
+    final List<TaskItem> targetTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isTargetBefore(endDate));
     final List<TaskItem> scheduledTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isScheduledAfter(endDate));
 
     List<StatelessWidget> tiles = [];
@@ -115,6 +116,11 @@ class PlanTaskListState extends State<PlanTaskList> {
     if (urgentTasks.isNotEmpty) {
       tiles.add(HeadingItem('Urgent Soon'));
       urgentTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+    }
+
+    if (targetTasks.isNotEmpty) {
+      tiles.add(HeadingItem('Target Soon'));
+      targetTasks.forEach((task) => tiles.add(_createWidget(task, context)));
     }
 
     if (otherTasks.isNotEmpty) {
