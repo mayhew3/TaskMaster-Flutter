@@ -51,7 +51,8 @@ class AppState {
   }
 
   List<TaskItem> getTasksForActiveSprint() {
-    return getActiveSprint().taskItems;
+    var activeSprint = getActiveSprint();
+    return activeSprint == null ? [] : activeSprint.taskItems;
   }
 
   TaskItem findTaskItemWithId(int taskId) {
@@ -106,12 +107,6 @@ class AppState {
 
   void deleteTaskFromList(TaskItem taskItem) {
     taskItems.remove(taskItem);
-  }
-
-  TaskItem updateTaskListWithUpdatedTask(TaskItem taskItem) {
-    var existingIndex = taskItems.indexWhere((element) => element.id.value == taskItem.id.value);
-    taskItems[existingIndex] = taskItem;
-    return taskItem;
   }
 
   bool isAuthenticated() {

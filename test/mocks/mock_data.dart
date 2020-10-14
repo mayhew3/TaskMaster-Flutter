@@ -33,7 +33,7 @@ final Map<String, dynamic> currentSprintJSON = {
 Sprint pastSprint = Sprint.fromJson(pastSprintJSON);
 Sprint currentSprint = Sprint.fromJson(currentSprintJSON);
 
-List<Sprint> sprints = [pastSprint, currentSprint];
+List<Sprint> allSprints = [pastSprint, currentSprint];
 
 final DateTime catStart = DateTime.utc(2019, 11, 5, 3, 0, 0);
 final DateTime catTarget = DateTime.utc(2019, 11, 7, 3, 0, 0);
@@ -174,10 +174,10 @@ final Map<String, dynamic> pastJSON = {
 
 AppState mockAppState = MockAppState();
 
-TaskItem catLitterTask = TaskItem.fromJson(catLitterJSON, sprints);
-TaskItem birthdayTask = TaskItem.fromJson(birthdayJSON, sprints);
-TaskItem futureTask = TaskItem.fromJson(futureJSON, sprints);
-TaskItem pastTask = TaskItem.fromJson(pastJSON, sprints);
+TaskItem catLitterTask = TaskItem.fromJson(catLitterJSON, allSprints);
+TaskItem birthdayTask = TaskItem.fromJson(birthdayJSON, allSprints);
+TaskItem futureTask = TaskItem.fromJson(futureJSON, allSprints);
+TaskItem pastTask = TaskItem.fromJson(pastJSON, allSprints);
 
 List<TaskItem> allTasks = [catLitterTask, birthdayTask, futureTask, pastTask];
 
