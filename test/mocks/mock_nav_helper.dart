@@ -17,24 +17,5 @@ class MockNavHelper extends Mock implements NavHelper {
     @required this.taskRepository,
   });
 
-  @override
-  void goToHomeScreen() {
-    // TODO: implement goToHomeScreen
-  }
-
-  @override
-  void goToLoadingScreen(String msg) {
-    // TODO: implement goToLoadingScreen
-  }
-
-  @override
-  void goToSignInScreen() {
-    // TODO: implement goToSignInScreen
-  }
-
-  @override
-  void updateContext(BuildContext context) {
-    // TODO: implement updateContext
-  }
 
 }

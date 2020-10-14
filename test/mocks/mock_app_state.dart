@@ -6,11 +6,15 @@ import 'package:taskmaster/app_state.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/notification_scheduler.dart';
 
 import 'mock_id_token_result.dart';
+import 'mock_notification_scheduler.dart';
 
 class MockAppState extends Mock implements AppState {
   GoogleSignInAccount currentUser = MockGoogleSignInAccount();
+  NotificationScheduler notificationScheduler = MockNotificationScheduler();
+
   int get personId => 1;
   List<TaskItem> taskItems;
   List<Sprint> sprints;

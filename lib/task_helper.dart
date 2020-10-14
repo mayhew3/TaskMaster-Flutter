@@ -28,7 +28,7 @@ class TaskHelper {
     this.navHelper,
   });
 
-  void reloadTasks() async {
+  Future<void> reloadTasks() async {
     navHelper.goToLoadingScreen('Reloading tasks...');
     appState.isLoading = true;
     appState.taskItems = [];
