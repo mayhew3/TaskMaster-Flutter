@@ -72,7 +72,7 @@ class TaskItem extends DataObject {
     }
   }
 
-  factory TaskItem.fromJson(Map<String, dynamic> json, AppState appState) {
+  factory TaskItem.fromJson(Map<String, dynamic> json, List<Sprint> sprints) {
     TaskItem taskItem = TaskItem();
     for (var field in taskItem.fields) {
       var jsonVal = json[field.fieldName];
@@ -87,7 +87,8 @@ class TaskItem extends DataObject {
       List<dynamic> assignments = json['sprint_assignments'];
       for (var assignment in assignments) {
         int sprintId = assignment['sprint_id'];
-        Sprint sprint = appState.findSprintWithId(sprintId);
+        Iterable<Sprint> matching = sprints.where((sprint) => sprint.id.value == sprintId);
+        Sprint sprint =  matching.isEmpty ? null : matching.first;
         if (sprint == null) {
           throw new Exception('No sprint found with ID ' + sprintId.toString());
         }

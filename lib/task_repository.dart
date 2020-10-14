@@ -62,7 +62,7 @@ class TaskRepository {
 
         List tasks = jsonObj['tasks'];
         for (var taskJson in tasks) {
-          TaskItem taskItem = TaskItem.fromJson(taskJson, this.appState);
+          TaskItem taskItem = TaskItem.fromJson(taskJson, sprintList);
           taskList.add(taskItem);
         }
 
@@ -217,7 +217,7 @@ class TaskRepository {
     if (response.statusCode == 200) {
       try {
         var jsonObj = json.decode(response.body);
-        TaskItem inboundTask = TaskItem.fromJson(jsonObj, this.appState);
+        TaskItem inboundTask = TaskItem.fromJson(jsonObj, this.appState.sprints);
         return inboundTask;
       } catch(exception, stackTrace) {
         print(exception);

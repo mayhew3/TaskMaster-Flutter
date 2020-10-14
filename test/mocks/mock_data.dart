@@ -1,8 +1,39 @@
 
 import 'package:taskmaster/models/app_state.dart';
+import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 
 import 'mock_app_state.dart';
+
+
+final DateTime pastSprintStart = DateTime.now().subtract(Duration(days: 10));
+final DateTime pastSprintAdded = DateTime.utc(2019, 6, 24, 8, 11, 56, 123);
+
+final Map<String, dynamic> pastSprintJSON = {
+  "id": 10,
+  "start_date": pastSprintStart.toIso8601String(),
+  "end_date": pastSprintStart.add(Duration(days: 7)).toIso8601String(),
+  "num_units": 1,
+  "unit_name": "Weeks",
+  "person_id": 1
+};
+
+final DateTime currentSprintStart = DateTime.now().subtract(Duration(days: 3));
+final DateTime currentSprintAdded = DateTime.utc(2019, 7, 22, 1, 16, 8, 153);
+
+final Map<String, dynamic> currentSprintJSON = {
+  "id": 11,
+  "start_date": currentSprintStart.toIso8601String(),
+  "end_date": currentSprintStart.add(Duration(days: 7)).toIso8601String(),
+  "num_units": 1,
+  "unit_name": "Weeks",
+  "person_id": 1
+};
+
+Sprint pastSprint = Sprint.fromJson(pastSprintJSON);
+Sprint currentSprint = Sprint.fromJson(currentSprintJSON);
+
+List<Sprint> sprints = [pastSprint, currentSprint];
 
 final DateTime catStart = DateTime.utc(2019, 11, 5, 3, 0, 0);
 final DateTime catTarget = DateTime.utc(2019, 11, 7, 3, 0, 0);
@@ -32,7 +63,12 @@ final Map<String, dynamic> catLitterJSON = {
   "date_added": catAdded.toIso8601String(),
   "retired": 0,
   "retired_date": null,
-  "sprint_assignments": []
+  "sprint_assignments": [
+    {
+      "id": 2346,
+      "sprint_id": currentSprint.id.value
+    }
+  ]
 };
 
 final DateTime bdayDue = DateTime.now().add(Duration(days: 200)).toUtc();
@@ -61,7 +97,16 @@ final Map<String, dynamic> birthdayJSON = {
   "date_added": bdayAdded.toIso8601String(),
   "retired": 0,
   "retired_date": null,
-  "sprint_assignments": []
+  "sprint_assignments": [
+    {
+      "id": 1234,
+      "sprint_id": pastSprint.id.value
+    },
+    {
+      "id": 2345,
+      "sprint_id": currentSprint.id.value
+    }
+  ]
 };
 
 final DateTime futureStart = DateTime.now().add(Duration(days: 90));
@@ -119,15 +164,20 @@ final Map<String, dynamic> pastJSON = {
   "date_added": pastAdded.toIso8601String(),
   "retired": 0,
   "retired_date": null,
-  "sprint_assignments": []
+  "sprint_assignments": [
+    {
+      "id": 1233,
+      "sprint_id": pastSprint.id.value
+    }
+  ]
 };
 
 AppState mockAppState = MockAppState();
 
-TaskItem catLitterTask = TaskItem.fromJson(catLitterJSON, mockAppState);
-TaskItem birthdayTask = TaskItem.fromJson(birthdayJSON, mockAppState);
-TaskItem futureTask = TaskItem.fromJson(futureJSON, mockAppState);
-TaskItem pastTask = TaskItem.fromJson(pastJSON, mockAppState);
+TaskItem catLitterTask = TaskItem.fromJson(catLitterJSON, sprints);
+TaskItem birthdayTask = TaskItem.fromJson(birthdayJSON, sprints);
+TaskItem futureTask = TaskItem.fromJson(futureJSON, sprints);
+TaskItem pastTask = TaskItem.fromJson(pastJSON, sprints);
 
 List<TaskItem> allTasks = [catLitterTask, birthdayTask, futureTask, pastTask];
 

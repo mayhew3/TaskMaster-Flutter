@@ -24,10 +24,10 @@ void main() {
 
     test('loadTasks with tasks', () async {
       List<TaskItem> testItems = [];
-      testItems.add(TaskItem.fromJson(catLitterJSON, mockAppState));
-      testItems.add(TaskItem.fromJson(birthdayJSON, mockAppState));
+      testItems.add(TaskItem.fromJson(catLitterJSON, sprints));
+      testItems.add(TaskItem.fromJson(birthdayJSON, sprints));
 
-      var mockClient = new MockClient(testItems, []);
+      var mockClient = new MockClient(testItems, sprints);
       TaskRepository taskRepository = TaskRepository(appState: mockAppState, client: mockClient);
 
       await taskRepository.loadTasks((callback) => callback());

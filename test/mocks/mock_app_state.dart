@@ -4,6 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 import 'package:taskmaster/models/app_state.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 
 import 'mock_id_token_result.dart';
@@ -12,9 +13,11 @@ class MockAppState extends Mock implements AppState {
   GoogleSignInAccount currentUser = MockGoogleSignInAccount();
   int get personId => 1;
   List<TaskItem> taskItems;
+  List<Sprint> sprints;
 
   MockAppState({
-    this.taskItems
+    this.taskItems,
+    this.sprints,
   });
 
   @override
