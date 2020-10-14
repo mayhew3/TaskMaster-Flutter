@@ -16,10 +16,6 @@ class MockTaskHelper extends Mock implements TaskHelper {
   });
 
   @override
-  void reloadTasks() {
-  }
-
-  @override
   Future<void> addTask(TaskItem taskItem) async {
   }
 
