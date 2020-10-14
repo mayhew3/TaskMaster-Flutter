@@ -1,4 +1,4 @@
-import 'package:taskmaster/models/app_state.dart';
+import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/data_object.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_date_type.dart';

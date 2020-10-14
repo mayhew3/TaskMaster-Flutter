@@ -1,5 +1,5 @@
 import 'package:taskmaster/flutter_badger_wrapper.dart';
-import 'package:taskmaster/models/app_state.dart';
+import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/notification_scheduler.dart';
 import 'package:taskmaster/task_helper.dart';

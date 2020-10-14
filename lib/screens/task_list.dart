@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
-import 'package:taskmaster/models/app_state.dart';
+import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';

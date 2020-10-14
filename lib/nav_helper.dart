@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:taskmaster/models/app_state.dart';
+import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/screens/home_screen.dart';
 import 'package:taskmaster/screens/loading.dart';
 import 'package:taskmaster/screens/sign_in.dart';

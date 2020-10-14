@@ -8,7 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:taskmaster/models/app_state.dart';
+import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/snooze.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';

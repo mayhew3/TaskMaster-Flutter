@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/auth.dart';
-import 'package:taskmaster/models/app_state.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:http/http.dart' as http;
 import 'package:taskmaster/screens/loading.dart';
