@@ -54,15 +54,6 @@ class AppState {
     return getActiveSprint().taskItems;
   }
 
-  List<TaskItem> getFilteredTasks(bool showScheduled, bool showCompleted, List<TaskItem> recentlyCompleted) {
-    List<TaskItem> filtered = taskItems.where((taskItem) {
-      bool passesScheduleFilter = showScheduled || !taskItem.isScheduled();
-      bool passesCompletedFilter = showCompleted || !(taskItem.isCompleted() && !recentlyCompleted.contains(taskItem));
-      return passesScheduleFilter && passesCompletedFilter;
-    }).toList();
-    return filtered;
-  }
-
   TaskItem findTaskItemWithId(int taskId) {
     var matching = taskItems.where((taskItem) => taskItem.id.value == taskId);
     return matching.isEmpty ? null : matching.first;

@@ -13,6 +13,7 @@ void main() {
     var appState = AppState(
       auth: MockTaskMasterAuth(),
       taskItems: taskItems,
+      sprints: sprints
     );
     var navHelper = MockNavHelper(
       taskRepository: MockTaskRepository(),
@@ -25,50 +26,8 @@ void main() {
     var appState = createAppState(allTasks);
     expect(appState.title, 'TaskMaster 3000');
     expect(appState.taskItems.length, 4);
+    expect(appState.sprints.length, 2);
   });
-
-  test('getFilteredTasks no scheduled no completed', () {
-    var appState = createAppState(allTasks);
-    var filteredTasks = appState.getFilteredTasks(false, false, []);
-    expect(filteredTasks.length, 2);
-    expect(filteredTasks, contains(birthdayTask));
-    expect(filteredTasks, contains(pastTask));
-  });
-
-  test('getFilteredTasks yes scheduled no completed', () {
-    var appState = createAppState(allTasks);
-    var filteredTasks = appState.getFilteredTasks(true, false, []);
-    expect(filteredTasks.length, 3);
-    expect(filteredTasks, contains(birthdayTask));
-    expect(filteredTasks, contains(pastTask));
-    expect(filteredTasks, contains(futureTask));
-  });
-
-  test('getFilteredTasks no scheduled yes completed', () {
-    var appState = createAppState(allTasks);
-    var filteredTasks = appState.getFilteredTasks(false, true, []);
-    expect(filteredTasks.length, 3);
-    expect(filteredTasks, contains(birthdayTask));
-    expect(filteredTasks, contains(pastTask));
-    expect(filteredTasks, contains(catLitterTask));
-  });
-
-  test('getFilteredTasks yes scheduled yes completed', () {
-    var appState = createAppState(allTasks);
-    var filteredTasks = appState.getFilteredTasks(true, true, []);
-    expect(filteredTasks.length, 4);
-    expect(filteredTasks, contains(birthdayTask));
-    expect(filteredTasks, contains(pastTask));
-    expect(filteredTasks, contains(catLitterTask));
-    expect(filteredTasks, contains(futureTask));
-  });
-
-  test('getFilteredTasks empty list', () {
-    var appState = createAppState([]);
-    var filteredTasks = appState.getFilteredTasks(true, true, []);
-    expect(filteredTasks.length, 0);
-  });
-
 
   test('findTaskItemWithId', () {
     var appState = createAppState(allTasks);
