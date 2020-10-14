@@ -55,7 +55,6 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     super.initState();
     appState.updateNotificationScheduler(
         context,
-        appState,
         taskHelper);
     maybeKickOffSignIn();
   }

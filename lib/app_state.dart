@@ -66,12 +66,11 @@ class AppState {
   }
 
   void updateNotificationScheduler(BuildContext context,
-      AppState appState,
       TaskHelper taskHelper) {
 
     notificationScheduler = NotificationScheduler(
       context: context,
-      appState: appState,
+      appState: this,
       taskHelper: taskHelper,
       flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
       flutterBadgerWrapper: FlutterBadgerWrapper(),

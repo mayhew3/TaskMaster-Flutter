@@ -28,6 +28,7 @@ void main() {
       testItems.add(TaskItem.fromJson(birthdayJSON, allSprints));
 
       var mockClient = new MockClient(testItems, allSprints);
+      var mockAppState = new MockAppState();
       TaskRepository taskRepository = TaskRepository(appState: mockAppState, client: mockClient);
 
       await taskRepository.loadTasks((callback) => callback());

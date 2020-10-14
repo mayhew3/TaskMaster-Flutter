@@ -172,8 +172,6 @@ final Map<String, dynamic> pastJSON = {
   ]
 };
 
-AppState mockAppState = MockAppState();
-
 TaskItem catLitterTask = TaskItem.fromJson(catLitterJSON, allSprints);
 TaskItem birthdayTask = TaskItem.fromJson(birthdayJSON, allSprints);
 TaskItem futureTask = TaskItem.fromJson(futureJSON, allSprints);
