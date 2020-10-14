@@ -3,10 +3,10 @@ import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:test/test.dart';
 
-import '../mocks/mock_data.dart';
-import '../mocks/mock_nav_helper.dart';
-import '../mocks/mock_task_master_auth.dart';
-import '../mocks/mock_task_repository.dart';
+import 'mocks/mock_data.dart';
+import 'mocks/mock_nav_helper.dart';
+import 'mocks/mock_task_master_auth.dart';
+import 'mocks/mock_task_repository.dart';
 
 void main() {
 
