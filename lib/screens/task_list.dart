@@ -268,8 +268,8 @@ class TaskListScreenState extends State<TaskListScreen> {
         floatingActionButton: Visibility(
           visible: widget.sprint == null,
           child: FloatingActionButton(
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => AddEditScreen(
                   taskItem: TaskItem(),
@@ -277,6 +277,7 @@ class TaskListScreenState extends State<TaskListScreen> {
                   isEditing: false,
                 )),
               );
+              setState(() {});
             },
             child: Icon(Icons.add),
           ),
