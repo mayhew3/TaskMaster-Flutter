@@ -29,8 +29,8 @@ void main() {
   test('Should be constructed', () {
     var appState = createAppState();
     expect(appState.title, 'TaskMaster 3000');
-    expect(appState.taskItems.length, 4);
-    expect(appState.sprints.length, 2);
+    expect(appState.taskItems.length, allTasks.length);
+    expect(appState.sprints.length, allSprints.length);
   });
 
   test('findTaskItemWithId', () {
@@ -84,7 +84,7 @@ void main() {
   test('getTasksForActiveSprint with result', () {
     var appState = createAppState();
     var taskItems = appState.getTasksForActiveSprint();
-    expect(taskItems, [catLitterTask, birthdayTask]);
+    expect(taskItems, [catLitterTask, birthdayTask, burnTask]);
   });
 
   test('getTasksForActiveSprint no active sprint', () {

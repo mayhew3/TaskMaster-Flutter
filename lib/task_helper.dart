@@ -55,6 +55,12 @@ class TaskHelper {
   }
 
   Future<TaskItem> completeTask(TaskItem taskItem, bool completed, StateSetter stateSetter) async {
+    if (completed && taskItem.completionDate.value != null) {
+      throw new ArgumentError("CompleteTask() called with non-null completion date and completed true.");
+    } else if (!completed && taskItem.completionDate.value == null) {
+      throw new ArgumentError("CompleteTask() called with null completion date and completed false.");
+    }
+
     TaskItem nextScheduledTask;
     DateTime completionDate = completed ? DateTime.now() : null;
 
