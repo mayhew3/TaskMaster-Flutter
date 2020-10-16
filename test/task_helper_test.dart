@@ -170,5 +170,52 @@ void main() {
     expect(originalTask.completionDate.value, null);
   });
 
+  test('deleteTask', () async {
+    var originalTask = catLitterTask;
+
+    var taskHelper = createTaskHelper(taskItems: [originalTask]);
+    var mockAppState = taskHelper.appState;
+
+    await taskHelper.deleteTask(originalTask);
+    verify(mockAppState.notificationScheduler.cancelNotificationsForTaskId(originalTask.id.value));
+    verify(mockAppState.deleteTaskFromList(originalTask));
+    verify(mockAppState.notificationScheduler.updateBadge());
+    verify(taskRepository.deleteTask(originalTask));
+
+  });
+
+
+  test('updateTask', () async {
+    var originalTask = birthdayTask;
+    var originalJSON = birthdayJSON;
+
+    var taskHelper = createTaskHelper(taskItems: [originalTask]);
+    var mockAppState = taskHelper.appState;
+
+    var changedDescription = "Just kidding";
+    var changedTarget = DateTime.utc(2019, 8, 30, 17, 32, 14, 674);
+    originalTask.description.value = changedDescription;
+    originalJSON['description'] = changedDescription;
+
+    originalTask.targetDate.value = changedTarget.toLocal();
+    originalJSON['target_date'] = changedTarget.toIso8601String();
+
+    when(taskRepository.updateTask(originalTask)).thenAnswer((realInvocation) => Future.value(TaskItem.fromJson(originalJSON, mockAppState.sprints)));
+
+    var returnedItem = await taskHelper.updateTask(originalTask);
+
+    verify(taskRepository.updateTask(originalTask));
+    verify(mockAppState.notificationScheduler.syncNotificationForTask(originalTask));
+    verify(mockAppState.notificationScheduler.updateBadge());
+
+    expect(returnedItem, originalTask);
+    expect(originalTask.description.originalValue, changedDescription);
+    expect(originalTask.description.value, changedDescription);
+    expect(originalTask.targetDate.originalValue, changedTarget.toLocal());
+    expect(originalTask.targetDate.value, changedTarget.toLocal());
+  });
+
+
+
 
 }
