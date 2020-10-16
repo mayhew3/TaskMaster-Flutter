@@ -98,7 +98,7 @@ class TaskHelper {
     appState.notificationScheduler.updateBadge();
 
     if (nextScheduledTask != null) {
-      addTask(nextScheduledTask);
+      await addTask(nextScheduledTask);
     }
 
     return taskItem;
@@ -117,9 +117,9 @@ class TaskHelper {
 
   Future<TaskItem> updateTask(TaskItem taskItem) async {
     var inboundTask = await repository.updateTask(taskItem);
-    stateSetter(() {
+    stateSetter(() async {
       _copyChanges(inboundTask, taskItem);
-      appState.notificationScheduler.syncNotificationForTask(taskItem);
+      await appState.notificationScheduler.syncNotificationForTask(taskItem);
     });
     appState.notificationScheduler.updateBadge();
     return taskItem;
