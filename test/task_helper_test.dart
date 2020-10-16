@@ -59,23 +59,23 @@ void main() {
   });
 
   test('completeTask no recur', () async {
-    var taskHelper = createTaskHelper(taskItems: [catLitterTask]);
+    var taskHelper = createTaskHelper(taskItems: [birthdayTask]);
     var mockAppState = taskHelper.appState;
 
-    var inboundTask = TaskItem.fromJson(catLitterJSON, mockAppState.sprints);
+    var inboundTask = TaskItem.fromJson(birthdayJSON, mockAppState.sprints);
     var now = DateTime.now();
     inboundTask.completionDate.initializeValue(now);
 
-    when(taskRepository.completeTask(catLitterTask)).thenAnswer((_) => Future.value(inboundTask));
+    when(taskRepository.completeTask(birthdayTask)).thenAnswer((_) => Future.value(inboundTask));
 
-    var returnedTask = await taskHelper.completeTask(catLitterTask, true, stateSetter);
-    verify(mockAppState.notificationScheduler.syncNotificationForTask(catLitterTask));
+    var returnedTask = await taskHelper.completeTask(birthdayTask, true, stateSetter);
+    verify(mockAppState.notificationScheduler.syncNotificationForTask(birthdayTask));
     verify(mockAppState.notificationScheduler.updateBadge());
 
-    expect(returnedTask, catLitterTask);
-    expect(catLitterTask.pendingCompletion, false);
-    expect(catLitterTask.completionDate.originalValue, now);
-    expect(catLitterTask.completionDate.value, now);
+    expect(returnedTask, birthdayTask);
+    expect(birthdayTask.pendingCompletion, false);
+    expect(birthdayTask.completionDate.originalValue, now);
+    expect(birthdayTask.completionDate.value, now);
 
   });
 
