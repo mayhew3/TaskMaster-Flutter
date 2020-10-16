@@ -1,5 +1,6 @@
 
 import 'package:flutter/cupertino.dart';
+import 'package:jiffy/jiffy.dart';
 import 'package:mockito/mockito.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
@@ -106,30 +107,44 @@ void main() {
   });
 
   test('completeTask recur', () async {
-    var taskHelper = createTaskHelper(taskItems: [catLitterTask]);
+    var taskHelper = createTaskHelper(taskItems: [pastTask]);
     var mockAppState = taskHelper.appState;
 
-    var inboundTask = TaskItem.fromJson(catLitterJSON, mockAppState.sprints);
+    var inboundTask = TaskItem.fromJson(pastJSON, mockAppState.sprints);
     var now = DateTime.now();
     inboundTask.completionDate.initializeValue(now);
 
-    when(taskRepository.completeTask(catLitterTask)).thenAnswer((_) => Future.value(inboundTask));
-    when(taskRepository.addTask(argThat(isA<TaskItem>()))).thenAnswer((invocation) => Future.value(invocation.positionalArguments[0]));
+    TaskItem addedTask;
+
+    when(taskRepository.completeTask(pastTask)).thenAnswer((_) => Future.value(inboundTask));
+    when(taskRepository.addTask(argThat(isA<TaskItem>()))).thenAnswer((invocation) {
+      addedTask = invocation.positionalArguments[0];
+      return Future.value(addedTask);
+    });
     when(mockAppState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) => invocation.positionalArguments[0]);
 
-    var returnedTask = await taskHelper.completeTask(catLitterTask, true, stateSetter);
-    verify(mockAppState.notificationScheduler.syncNotificationForTask(catLitterTask));
+    var returnedTask = await taskHelper.completeTask(pastTask, true, stateSetter);
+    verify(mockAppState.notificationScheduler.syncNotificationForTask(pastTask));
     verify(mockAppState.notificationScheduler.updateBadge());
     verify(taskRepository.addTask(any));
     verify(mockAppState.addNewTaskToList(any));
     verify(mockAppState.notificationScheduler.syncNotificationForTask(any));
-    // verify(mockAppState.notificationScheduler.updateBadge());
 
-    expect(returnedTask, catLitterTask);
-    expect(catLitterTask.pendingCompletion, false);
-    expect(catLitterTask.completionDate.originalValue, now);
-    expect(catLitterTask.completionDate.value, now);
+    expect(returnedTask, pastTask);
+    expect(pastTask.pendingCompletion, false);
+    expect(pastTask.completionDate.originalValue, now);
+    expect(pastTask.completionDate.value, now);
 
+    expect(addedTask, isNot(null), reason: 'Expect new task to be created based on recur.');
+    expect(addedTask, isNot(returnedTask));
+    expect(addedTask.pendingCompletion, false);
+    expect(addedTask.completionDate.value, null, reason: 'New recurrence should not have completion date.');
+    expect(addedTask.completionDate.originalValue, null, reason: 'New recurrence should not have completion date.');
+
+    var originalStart = Jiffy(pastTask.startDate.value).startOf(Units.SECOND);
+    var newStart = Jiffy(addedTask.startDate.value).startOf(Units.SECOND);
+    var diff = newStart.difference(originalStart).inDays;
+    expect(diff, 42, reason: 'Recurrence of 6 weeks should make new task 42 days after original.');
   });
 
 

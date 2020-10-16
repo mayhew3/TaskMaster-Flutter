@@ -1,9 +1,6 @@
 
-import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
-
-import 'mock_app_state.dart';
 
 
 final DateTime pastSprintStart = DateTime.now().subtract(Duration(days: 10));
@@ -157,9 +154,9 @@ final Map<String, dynamic> pastJSON = {
   "completion_date": null,
   "urgent_date": null,
   "game_points": 15,
-  "recur_number": null,
-  "recur_unit": null,
-  "recur_wait": null,
+  "recur_number": 6,
+  "recur_unit": 'Weeks',
+  "recur_wait": false,
   "recurrence_id": null,
   "date_added": pastAdded.toIso8601String(),
   "retired": 0,
