@@ -75,7 +75,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
   void updateTaskItemWithPreview() {
     if (numUnits != null) {
       setState(() {
-        widget.taskHelper.previewSnooze(widget.taskItem, numUnits, unitName, taskDateType);
+        widget.taskHelper.previewSnooze(widget.taskItem, numUnits, unitName, TaskDateTypes.getTypeWithLabel(taskDateType));
       });
     }
   }

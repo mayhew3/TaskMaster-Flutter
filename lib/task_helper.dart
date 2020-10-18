@@ -131,11 +131,9 @@ class TaskHelper {
     return taskItem;
   }
 
-  void previewSnooze(TaskItem taskItem, int numUnits, String unitSize, String dateTypeStr) {
+  void previewSnooze(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) {
     DateTime snoozeDate = DateTime.now();
     DateTime adjustedDate = _getAdjustedDate(snoozeDate, numUnits, unitSize);
-
-    TaskDateType dateType = TaskDateTypes.getTypeWithLabel(dateTypeStr);
 
     var relevantDateField = dateType.dateFieldGetter(taskItem);
     DateTime relevantDate = relevantDateField.value;

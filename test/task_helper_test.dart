@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:mockito/mockito.dart';
 import 'package:taskmaster/models/sprint.dart';
+import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/task_helper.dart';
 import 'package:test/test.dart';
@@ -215,7 +216,29 @@ void main() {
     expect(originalTask.targetDate.value, changedTarget.toLocal());
   });
 
+  test('previewSnooze', () {
+    var taskItem = birthdayTask;
+    taskItem.targetDate.initializeValue(taskItem.dueDate.value.subtract(Duration(days: 6)));
 
+    var taskHelper = createTaskHelper();
+
+    var originalDue = taskItem.dueDate.value;
+    var originalTarget = taskItem.targetDate.value;
+
+    taskHelper.previewSnooze(taskItem, 4, 'Days', TaskDateTypes.due);
+
+    var newDue = Jiffy(taskItem.dueDate.value).startOf(Units.MINUTE);
+    var diffDue = newDue.difference(Jiffy(DateTime.now()).startOf(Units.MINUTE)).inDays;
+
+    expect(diffDue, 4, reason: 'Expect Due date to be 4 days from now.');
+    expect(taskItem.dueDate.originalValue, originalDue);
+
+    var newTarget = Jiffy(taskItem.targetDate.value).startOf(Units.MINUTE);
+    var diffTarget = newTarget.difference(Jiffy(DateTime.now()).startOf(Units.MINUTE)).inDays;
+
+    expect(diffTarget, -2, reason: 'Expect Target date to be 2 days ago.');
+    expect(taskItem.targetDate.originalValue, originalTarget);
+  });
 
 
 }
