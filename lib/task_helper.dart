@@ -132,35 +132,13 @@ class TaskHelper {
   }
 
   void previewSnooze(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) {
-    DateTime snoozeDate = DateTime.now();
-    DateTime adjustedDate = _getAdjustedDate(snoozeDate, numUnits, unitSize);
-
-    var relevantDateField = dateType.dateFieldGetter(taskItem);
-    DateTime relevantDate = relevantDateField.value;
-
-    if (relevantDate == null) {
-      relevantDateField.value = adjustedDate;
-    } else {
-      Duration difference = adjustedDate.difference(relevantDate);
-      TaskDateTypes.allTypes.forEach((taskDateType) => taskItem.incrementDateIfExists(taskDateType, difference));
-    }
+    _generatePreview(taskItem, numUnits, unitSize, dateType);
   }
 
-  Future<TaskItem> snoozeTask(TaskItem taskItem, int numUnits, String unitSize, String dateTypeStr) async {
-    DateTime snoozeDate = DateTime.now();
-    DateTime adjustedDate = _getAdjustedDate(snoozeDate, numUnits, unitSize);
-
-    TaskDateType dateType = TaskDateTypes.getTypeWithLabel(dateTypeStr);
+  Future<TaskItem> snoozeTask(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) async {
+    _generatePreview(taskItem, numUnits, unitSize, dateType);
 
     var relevantDateField = dateType.dateFieldGetter(taskItem);
-    DateTime relevantDate = relevantDateField.value;
-
-    if (relevantDate == null) {
-      relevantDateField.value = adjustedDate;
-    } else {
-      Duration difference = adjustedDate.difference(relevantDate);
-      TaskDateTypes.allTypes.forEach((taskDateType) => taskItem.incrementDateIfExists(taskDateType, difference));
-    }
 
     TaskItem updatedTask = await updateTask(taskItem);
 
@@ -168,7 +146,7 @@ class TaskHelper {
     snooze.taskID.value = updatedTask.id.value;
     snooze.snoozeNumber.value = numUnits;
     snooze.snoozeUnits.value = unitSize;
-    snooze.snoozeAnchor.value = dateTypeStr;
+    snooze.snoozeAnchor.value = dateType.label;
     snooze.previousAnchor.value = relevantDateField.originalValue;
     snooze.newAnchor.value = relevantDateField.value;
 
@@ -187,6 +165,21 @@ class TaskHelper {
   }
 
   // private helpers
+
+  void _generatePreview(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) {
+    DateTime snoozeDate = DateTime.now();
+    DateTime adjustedDate = _getAdjustedDate(snoozeDate, numUnits, unitSize);
+
+    var relevantDateField = dateType.dateFieldGetter(taskItem);
+    DateTime relevantDate = relevantDateField.value;
+
+    if (relevantDate == null) {
+      relevantDateField.value = adjustedDate;
+    } else {
+      Duration difference = adjustedDate.difference(relevantDate);
+      TaskDateTypes.allTypes.forEach((taskDateType) => taskItem.incrementDateIfExists(taskDateType, difference));
+    }
+  }
 
 
   DateTime _addToDate(DateTime previousDate, Duration duration) {

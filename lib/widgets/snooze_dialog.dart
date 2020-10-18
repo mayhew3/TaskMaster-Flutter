@@ -192,7 +192,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
                   form.save();
                 }
 
-                await widget.taskHelper.snoozeTask(widget.taskItem, numUnits, unitName, taskDateType);
+                await widget.taskHelper.snoozeTask(widget.taskItem, numUnits, unitName, TaskDateTypes.getTypeWithLabel(taskDateType));
                 Navigator.pop(context);
               },
               child: Text('Submit'),
