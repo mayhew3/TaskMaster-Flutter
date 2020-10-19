@@ -85,6 +85,64 @@ class TaskListScreenState extends State<TaskListScreen> {
     return subList;
   }
 
+  Card _createSummaryWidget(Sprint sprint, BuildContext context) {
+    var currentDay = DateTime.now().difference(sprint.startDate.value).inDays;
+    var totalDays = sprint.endDate.value.difference(sprint.startDate.value).inDays;
+    var sprintStr = "Active Sprint - Day " + currentDay.toString() + " of " + totalDays.toString();
+
+    var completed = sprint.taskItems.where((taskItem) => taskItem.completionDate.value != null);
+    var taskStr = completed.length.toString() + "/" + sprint.taskItems.length.toString() + " Tasks Complete";
+
+    return Card(
+      color: Color.fromARGB(100, 100, 20, 20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(3.0),
+        side: BorderSide(
+          color: Colors.yellow,
+          width: 1.0,
+        ),
+      ),
+      elevation: 3.0,
+      margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
+      child: ClipPath(
+        clipper: ShapeBorderClipper(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(3.0),
+            )
+        ),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: Container(
+                padding: EdgeInsets.only(
+                  top: 15.0,
+                  bottom: 15.0,
+                  right: 0,
+                  left: 15.0,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                        sprintStr,
+                        style: const TextStyle(fontSize: 17.0)
+                    ),
+                    Text(
+                        taskStr,
+                        style: TextStyle(fontSize: 14.0,
+                            color: Colors.white70)
+                    )
+                  ],
+                ),
+              ),
+            ),
+            
+          ],
+        ),
+      ),
+    );
+  }
+
   EditableTaskItemWidget _createWidget(TaskItem taskItem, BuildContext context) {
 
     var snoozeDialog = (TaskItem taskItem) {
@@ -157,6 +215,13 @@ class TaskListScreenState extends State<TaskListScreen> {
     final List<TaskItem> scheduledTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isScheduled());
 
     List<StatelessWidget> tiles = [];
+
+    if (widget.sprint == null) {
+      var activeSprint = widget.appState.getActiveSprint();
+      if (activeSprint != null) {
+        tiles.add(_createSummaryWidget(activeSprint, context));
+      }
+    }
 
     if (dueTasks.isNotEmpty) {
       tiles.add(HeadingItem('Past Due'));
@@ -239,6 +304,7 @@ class TaskListScreenState extends State<TaskListScreen> {
 
   Widget getBody() {
     return Container(
+        padding: EdgeInsets.only(top: 7.0),
         child: widget.appState.isLoading ? getLoadingBody() : getTaskListBody()
     );
   }
