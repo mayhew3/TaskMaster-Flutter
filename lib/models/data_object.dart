@@ -34,6 +34,16 @@ abstract class DataObject {
     }
   }
 
+  List<String> getControlledFields();
+
+  Map<String, dynamic> toJSON() {
+    Map<String, dynamic> taskObj = {};
+    for (TaskField field in fields) {
+      taskObj[field.fieldName] = field.formatForJSON();
+    }
+    return taskObj;
+  }
+
   // Private
 
   @protected

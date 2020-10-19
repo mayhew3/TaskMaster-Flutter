@@ -140,6 +140,8 @@ class TaskHelper {
 
     var relevantDateField = dateType.dateFieldGetter(taskItem);
 
+    DateTime originalValue = relevantDateField.originalValue;
+
     TaskItem updatedTask = await updateTask(taskItem);
 
     Snooze snooze = new Snooze();
@@ -147,7 +149,7 @@ class TaskHelper {
     snooze.snoozeNumber.value = numUnits;
     snooze.snoozeUnits.value = unitSize;
     snooze.snoozeAnchor.value = dateType.label;
-    snooze.previousAnchor.value = relevantDateField.originalValue;
+    snooze.previousAnchor.value = originalValue;
     snooze.newAnchor.value = relevantDateField.value;
 
     await repository.addSnooze(snooze);

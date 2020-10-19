@@ -28,6 +28,11 @@ class Sprint extends DataObject {
     unitName = addStringField('unit_name');
   }
 
+  @override
+  List<String> getControlledFields() {
+    return controlledFields;
+  }
+
   void addToTasks(TaskItem taskItem) {
     if (!taskItems.contains(taskItem)) {
       taskItems.add(taskItem);

@@ -1,7 +1,8 @@
 
 import 'package:flutter/cupertino.dart';
-import 'package:jiffy/jiffy.dart';
 import 'package:mockito/mockito.dart';
+import 'package:taskmaster/date_util.dart';
+import 'package:taskmaster/models/snooze.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
@@ -10,6 +11,7 @@ import 'package:test/test.dart';
 
 import 'mocks/mock_app_state.dart';
 import 'mocks/mock_data.dart';
+import 'mocks/mock_data_builder.dart';
 import 'mocks/mock_nav_helper.dart';
 import 'mocks/mock_task_master_auth.dart';
 import 'mocks/mock_task_repository.dart';
@@ -142,8 +144,8 @@ void main() {
     expect(addedTask.completionDate.value, null, reason: 'New recurrence should not have completion date.');
     expect(addedTask.completionDate.originalValue, null, reason: 'New recurrence should not have completion date.');
 
-    var originalStart = Jiffy(originalTask.startDate.value).startOf(Units.SECOND);
-    var newStart = Jiffy(addedTask.startDate.value).startOf(Units.SECOND);
+    var originalStart = DateUtil.withoutMillis(originalTask.startDate.value);
+    var newStart = DateUtil.withoutMillis(addedTask.startDate.value);
     var diff = newStart.difference(originalStart).inDays;
     expect(diff, 42, reason: 'Recurrence of 6 weeks should make new task 42 days after original.');
   });
@@ -188,7 +190,6 @@ void main() {
 
   test('updateTask', () async {
     var originalTask = birthdayTask;
-    var originalJSON = birthdayJSON;
 
     var taskHelper = createTaskHelper(taskItems: [originalTask]);
     var mockAppState = taskHelper.appState;
@@ -196,12 +197,10 @@ void main() {
     var changedDescription = "Just kidding";
     var changedTarget = DateTime.utc(2019, 8, 30, 17, 32, 14, 674);
     originalTask.description.value = changedDescription;
-    originalJSON['description'] = changedDescription;
 
     originalTask.targetDate.value = changedTarget.toLocal();
-    originalJSON['target_date'] = changedTarget.toIso8601String();
 
-    when(taskRepository.updateTask(originalTask)).thenAnswer((realInvocation) => Future.value(TaskItem.fromJson(originalJSON, mockAppState.sprints)));
+    when(taskRepository.updateTask(originalTask)).thenAnswer((realInvocation) => Future.value(TaskItem.fromJson(originalTask.toJSON(), mockAppState.sprints)));
 
     var returnedItem = await taskHelper.updateTask(originalTask);
 
@@ -212,50 +211,121 @@ void main() {
     expect(returnedItem, originalTask);
     expect(originalTask.description.originalValue, changedDescription);
     expect(originalTask.description.value, changedDescription);
-    expect(originalTask.targetDate.originalValue, changedTarget.toLocal());
-    expect(originalTask.targetDate.value, changedTarget.toLocal());
+    expect(originalTask.targetDate.originalValue, DateUtil.withoutMillis(changedTarget));
+    expect(originalTask.targetDate.value, DateUtil.withoutMillis(changedTarget));
   });
 
   test('previewSnooze move multiple', () {
-    var taskItem = birthdayTask;
-    taskItem.targetDate.initializeValue(taskItem.dueDate.value.subtract(Duration(days: 6)));
+    var taskItem = TaskItemBuilder
+        .withDates()
+        .create();
 
     var taskHelper = createTaskHelper();
 
     var originalDue = taskItem.dueDate.value;
     var originalTarget = taskItem.targetDate.value;
 
-    taskHelper.previewSnooze(taskItem, 4, 'Days', TaskDateTypes.due);
+    taskHelper.previewSnooze(taskItem, 6, 'Days', TaskDateTypes.target);
 
-    var newDue = Jiffy(taskItem.dueDate.value).startOf(Units.MINUTE);
-    var diffDue = newDue.difference(Jiffy(DateTime.now()).startOf(Units.MINUTE)).inDays;
+    var newTarget = DateUtil.withoutMillis(taskItem.targetDate.value);
+    var diffTarget = newTarget.difference(DateUtil.withoutMillis(DateTime.now())).inDays;
 
-    expect(diffDue, 4, reason: 'Expect Due date to be 4 days from now.');
+    expect(diffTarget, 6, reason: 'Expect Target date to be in 6 days.');
+    expect(taskItem.targetDate.originalValue, originalTarget);
+
+    var newDue = DateUtil.withoutMillis(taskItem.dueDate.value);
+    var diffDue = newDue.difference(DateUtil.withoutMillis(DateTime.now())).inDays;
+
+    expect(diffDue, 13, reason: 'Expect Due date to be in 13 days.');
     expect(taskItem.dueDate.originalValue, originalDue);
 
-    var newTarget = Jiffy(taskItem.targetDate.value).startOf(Units.MINUTE);
-    var diffTarget = newTarget.difference(Jiffy(DateTime.now()).startOf(Units.MINUTE)).inDays;
-
-    expect(diffTarget, -2, reason: 'Expect Target date to be 2 days ago.');
-    expect(taskItem.targetDate.originalValue, originalTarget);
   });
 
 
   test('previewSnooze add start', () {
-    var taskItem = birthdayTask;
-    taskItem.dueDate.initializeValue(null);
+    var taskItem = TaskItemBuilder
+        .asDefault()
+        .create();
 
     var taskHelper = createTaskHelper();
 
     taskHelper.previewSnooze(taskItem, 4, 'Days', TaskDateTypes.start);
 
-    var newStart = Jiffy(taskItem.startDate.value).startOf(Units.MINUTE);
-    var diffDue = newStart.difference(Jiffy(DateTime.now()).startOf(Units.MINUTE)).inDays;
+    var newStart = DateUtil.withoutMillis(taskItem.startDate.value);
+    var diffDue = newStart.difference(DateUtil.withoutMillis(DateTime.now())).inDays;
 
     expect(diffDue, 4, reason: 'Expect Start date to be 4 days from now.');
     expect(taskItem.startDate.originalValue, null);
 
   });
 
+  test('snoozeTask move multiple', () async {
+    var taskItem = TaskItemBuilder
+        .withDates()
+        .create();
+
+    var taskHelper = createTaskHelper();
+    var mockAppState = taskHelper.appState;
+
+    var originalTarget = taskItem.targetDate.value;
+
+    when(taskRepository.updateTask(taskItem)).thenAnswer((_) => Future.value(TaskItem.fromJson(taskItem.toJSON(), mockAppState.sprints)));
+
+    var returnedItem = await taskHelper.snoozeTask(taskItem, 6, 'Days', TaskDateTypes.target);
+
+    Snooze snooze = verify(taskRepository.addSnooze(captureThat(isA<Snooze>()))).captured.single;
+
+    expect(snooze.taskID.value, returnedItem.id.value);
+    expect(snooze.snoozeNumber.value, 6);
+    expect(snooze.snoozeUnits.value, 'Days');
+    expect(snooze.snoozeAnchor.value, 'Target');
+    expect(snooze.previousAnchor.value, originalTarget);
+    expect(snooze.newAnchor.value, returnedItem.targetDate.value);
+
+    var newTarget = DateUtil.withoutMillis(returnedItem.targetDate.value);
+    var diffTarget = newTarget.difference(DateUtil.withoutMillis(DateTime.now())).inDays;
+
+    expect(diffTarget, 6, reason: 'Expect Target date to be in 6 days.');
+    expect(returnedItem.targetDate.originalValue, newTarget);
+
+    var newDue = DateUtil.withoutMillis(returnedItem.dueDate.value);
+    var diffDue = newDue.difference(DateUtil.withoutMillis(DateTime.now())).inDays;
+
+    expect(diffDue, 13, reason: 'Expect Due date to be 13 days from now.');
+    expect(returnedItem.dueDate.originalValue, newDue);
+
+  });
+
+
+  test('snooze task add start', () async {
+    var taskItem = TaskItemBuilder
+        .asDefault()
+        .create();
+
+    var taskHelper = createTaskHelper();
+    var mockAppState = taskHelper.appState;
+
+    var originalStart = taskItem.startDate.value;
+
+    when(taskRepository.updateTask(taskItem)).thenAnswer((_) => Future.value(TaskItem.fromJson(taskItem.toJSON(), mockAppState.sprints)));
+
+    var returnedItem = await taskHelper.snoozeTask(taskItem, 4, 'Days', TaskDateTypes.start);
+
+    Snooze snooze = verify(taskRepository.addSnooze(captureThat(isA<Snooze>()))).captured.single;
+
+    expect(snooze.taskID.value, returnedItem.id.value);
+    expect(snooze.snoozeNumber.value, 4);
+    expect(snooze.snoozeUnits.value, 'Days');
+    expect(snooze.snoozeAnchor.value, 'Start');
+    expect(snooze.previousAnchor.value, originalStart);
+    expect(snooze.newAnchor.value, returnedItem.startDate.value);
+
+    var newStart = DateUtil.withoutMillis(returnedItem.startDate.value);
+    var diffDue = newStart.difference(DateUtil.withoutMillis(DateTime.now())).inDays;
+
+    expect(diffDue, 4, reason: 'Expect Start date to be 4 days from now.');
+    expect(returnedItem.startDate.originalValue, newStart);
+
+  });
 
 }

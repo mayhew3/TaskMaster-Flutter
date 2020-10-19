@@ -21,6 +21,11 @@ class Snooze extends DataObject {
     this.newAnchor = addDateField('new_anchor');
   }
 
+  @override
+  List<String> getControlledFields() {
+    return controlledFields;
+  }
+
   factory Snooze.fromJson(Map<String, dynamic> json) {
     Snooze taskItem = Snooze();
     for (var field in taskItem.fields) {

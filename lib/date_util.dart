@@ -41,4 +41,12 @@ class DateUtil {
     }
   }
 
+  static DateTime withoutMillis(DateTime originalDate) {
+    return Jiffy(originalDate).startOf(Units.SECOND);
+  }
+
+  static DateTime withoutSeconds(DateTime originalDate) {
+    return Jiffy(originalDate).startOf(Units.MINUTE);
+  }
+
 }

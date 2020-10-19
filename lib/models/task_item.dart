@@ -66,6 +66,11 @@ class TaskItem extends DataObject {
     this.recurrenceId = addIntegerField("recurrence_id");
   }
 
+  @override
+  List<String> getControlledFields() {
+    return controlledFields;
+  }
+
   void addToSprints(Sprint sprint) {
     if (!sprints.contains(sprint)) {
       sprints.add(sprint);
