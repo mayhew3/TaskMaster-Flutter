@@ -216,7 +216,7 @@ void main() {
     expect(originalTask.targetDate.value, changedTarget.toLocal());
   });
 
-  test('previewSnooze', () {
+  test('previewSnooze move multiple', () {
     var taskItem = birthdayTask;
     taskItem.targetDate.initializeValue(taskItem.dueDate.value.subtract(Duration(days: 6)));
 
@@ -238,6 +238,23 @@ void main() {
 
     expect(diffTarget, -2, reason: 'Expect Target date to be 2 days ago.');
     expect(taskItem.targetDate.originalValue, originalTarget);
+  });
+
+
+  test('previewSnooze add start', () {
+    var taskItem = birthdayTask;
+    taskItem.dueDate.initializeValue(null);
+
+    var taskHelper = createTaskHelper();
+
+    taskHelper.previewSnooze(taskItem, 4, 'Days', TaskDateTypes.start);
+
+    var newStart = Jiffy(taskItem.startDate.value).startOf(Units.MINUTE);
+    var diffDue = newStart.difference(Jiffy(DateTime.now()).startOf(Units.MINUTE)).inDays;
+
+    expect(diffDue, 4, reason: 'Expect Start date to be 4 days from now.');
+    expect(taskItem.startDate.originalValue, null);
+
   });
 
 
