@@ -298,7 +298,7 @@ void main() {
 
 
   test('snooze task add start', () async {
-    var taskItem = TaskItemBuilder
+    TaskItem taskItem = TaskItemBuilder
         .asDefault()
         .create();
 
@@ -325,6 +325,29 @@ void main() {
 
     expect(diffDue, 4, reason: 'Expect Start date to be 4 days from now.');
     expect(returnedItem.startDate.originalValue, newStart);
+
+  });
+
+  test('addSprintAndTasks', () async {
+    List<TaskItem> taskItems = [
+      ((TaskItemBuilder.asDefault()..id=1).create()),
+      ((TaskItemBuilder.asDefault()..id=2).create()),
+      ((TaskItemBuilder.asDefault()..id=3).create()),
+    ];
+    Sprint sprint = currentSprint;
+
+    TaskHelper taskHelper = createTaskHelper(taskItems: taskItems, sprints: [pastSprint]);
+    MockAppState appState = taskHelper.appState;
+
+    when(taskRepository.addSprint(sprint)).thenAnswer((_) => Future.value(Sprint.fromJson(sprint.toJSON())));
+
+    Sprint returnedSprint = await taskHelper.addSprintAndTasks(sprint, taskItems);
+
+    verify(taskRepository.addSprint(sprint));
+    verify(taskRepository.addTasksToSprint(taskItems, returnedSprint));
+
+    expect(appState.sprints, hasLength(2));
+    expect(appState.sprints, contains(returnedSprint));
 
   });
 
