@@ -44,6 +44,7 @@ class TaskListScreen extends StatefulWidget {
 class TaskListScreenState extends State<TaskListScreen> {
   bool showScheduled;
   bool showCompleted;
+  bool showActive;
 
   List<TaskItem> recentlyCompleted = [];
 
@@ -52,6 +53,7 @@ class TaskListScreenState extends State<TaskListScreen> {
     super.initState();
     this.showScheduled = (widget.sprint != null);
     this.showCompleted = (widget.sprint != null);
+    this.showActive = (widget.sprint != null);
   }
 
   void _displaySnackBar(String msg, BuildContext context) {
@@ -86,7 +88,7 @@ class TaskListScreenState extends State<TaskListScreen> {
   }
 
   Card _createSummaryWidget(Sprint sprint, BuildContext context) {
-    var currentDay = DateTime.now().difference(sprint.startDate.value).inDays;
+    var currentDay = DateTime.now().difference(sprint.startDate.value).inDays + 1;
     var totalDays = sprint.endDate.value.difference(sprint.startDate.value).inDays;
     var sprintStr = "Active Sprint - Day " + currentDay.toString() + " of " + totalDays.toString();
 
@@ -125,18 +127,35 @@ class TaskListScreenState extends State<TaskListScreen> {
                   children: <Widget>[
                     Text(
                         sprintStr,
-                        style: const TextStyle(fontSize: 17.0)
+                        style: const TextStyle(
+                            fontSize: 17.0,
+                            fontWeight: FontWeight.bold
+                        )
                     ),
                     Text(
                         taskStr,
-                        style: TextStyle(fontSize: 14.0,
-                            color: Colors.white70)
+                        style: TextStyle(
+                            fontSize: 14.0,
+                            color: Colors.yellow
+                        )
                     )
                   ],
                 ),
               ),
             ),
-            
+            Container(
+              padding: EdgeInsets.only(right: 15.0),
+              child: GestureDetector(
+                onTap: () => setState(() => showActive = !showActive),
+                child: Text(
+                  showActive ? "Hide Tasks" : "Show Tasks",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white70,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -190,10 +209,12 @@ class TaskListScreenState extends State<TaskListScreen> {
   }
 
   List<TaskItem> getFilteredTasks(List<TaskItem> taskItems) {
+    var activeSprint = widget.appState.getActiveSprint();
     List<TaskItem> filtered = taskItems.where((taskItem) {
       bool passesScheduleFilter = showScheduled || !taskItem.isScheduled();
       bool passesCompletedFilter = showCompleted || !(taskItem.isCompleted() && !recentlyCompleted.contains(taskItem));
-      return passesScheduleFilter && passesCompletedFilter;
+      bool passesActiveFilter = showActive || !(taskItem.sprints.contains(activeSprint));
+      return passesScheduleFilter && passesCompletedFilter && passesActiveFilter;
     }).toList();
     return filtered;
   }
