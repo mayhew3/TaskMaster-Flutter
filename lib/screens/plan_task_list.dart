@@ -63,6 +63,7 @@ class PlanTaskListState extends State<PlanTaskList> {
       sprint: null,
       stateSetter: (callback) => setState(() => callback()),
       addMode: true,
+      allTasksMode: false,
       initialCheckState: sprintQueued.contains(taskItem) ? CheckState.checked : CheckState.inactive,
       onTaskAssignmentToggle: (checkState) {
         var alreadyQueued = sprintQueued.contains(taskItem);

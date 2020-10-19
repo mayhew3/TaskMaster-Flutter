@@ -28,6 +28,12 @@ class Sprint extends DataObject {
     unitName = addStringField('unit_name');
   }
 
+  bool isActive() {
+    var now = DateTime.now();
+    return this.startDate.value.isBefore(now) &&
+        this.endDate.value.isAfter(now);
+  }
+
   @override
   List<String> getControlledFields() {
     return controlledFields;

@@ -1,4 +1,3 @@
-import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/data_object.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_date_type.dart';
@@ -75,6 +74,11 @@ class TaskItem extends DataObject {
     if (!sprints.contains(sprint)) {
       sprints.add(sprint);
     }
+  }
+
+  bool isInActiveSprint() {
+    var matching = sprints.where((sprint) => sprint.isActive());
+    return matching.isNotEmpty;
   }
 
   factory TaskItem.fromJson(Map<String, dynamic> json, List<Sprint> sprints) {

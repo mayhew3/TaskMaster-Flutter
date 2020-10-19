@@ -1,18 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/app_state.dart';
+import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/sprint.dart';
+import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
 import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/typedefs.dart';
+import 'package:taskmaster/widgets/delayed_checkbox.dart';
 import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/widgets/filter_button.dart';
 import 'package:taskmaster/widgets/header_list_item.dart';
-import 'package:taskmaster/widgets/delayed_checkbox.dart';
 import 'package:taskmaster/widgets/snooze_dialog.dart';
 
 class TaskListScreen extends StatefulWidget {
@@ -100,7 +101,7 @@ class TaskListScreenState extends State<TaskListScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(3.0),
         side: BorderSide(
-          color: Colors.yellow,
+          color: TaskColors.sprintColor,
           width: 1.0,
         ),
       ),
@@ -112,51 +113,51 @@ class TaskListScreenState extends State<TaskListScreen> {
               borderRadius: BorderRadius.circular(3.0),
             )
         ),
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              child: Container(
-                padding: EdgeInsets.only(
-                  top: 15.0,
-                  bottom: 15.0,
-                  right: 0,
-                  left: 15.0,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                        sprintStr,
-                        style: const TextStyle(
-                            fontSize: 17.0,
-                            fontWeight: FontWeight.bold
-                        )
-                    ),
-                    Text(
-                        taskStr,
-                        style: TextStyle(
-                            fontSize: 14.0,
-                            color: Colors.yellow
-                        )
-                    )
-                  ],
-                ),
+        child: Container(
+          padding: EdgeInsets.all(13.5),
+          child: Row(
+            children: <Widget>[
+              Container(
+                child: Icon(Icons.assignment, color: TaskColors.sprintColor),
               ),
-            ),
-            Container(
-              padding: EdgeInsets.only(right: 15.0),
-              child: GestureDetector(
-                onTap: () => setState(() => showActive = !showActive),
-                child: Text(
-                  showActive ? "Hide Tasks" : "Show Tasks",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white70,
+              SizedBox(width: 10.0),
+              Expanded(
+                child: Container(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                          sprintStr,
+                          style: const TextStyle(
+                              fontSize: 17.0,
+                              fontWeight: FontWeight.bold
+                          )
+                      ),
+                      Text(
+                          taskStr,
+                          style: TextStyle(
+                              fontSize: 14.0,
+                              color: TaskColors.sprintColor
+                          )
+                      )
+                    ],
                   ),
                 ),
               ),
-            ),
-          ],
+              Container(
+                child: GestureDetector(
+                  onTap: () => setState(() => showActive = !showActive),
+                  child: Text(
+                    showActive ? "Hide Tasks" : "Show Tasks",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -175,6 +176,7 @@ class TaskListScreenState extends State<TaskListScreen> {
       taskItem: taskItem,
       stateSetter: (callback) => setState(() => callback()),
       addMode: false,
+      allTasksMode: (widget.sprint == null),
       sprint: widget.sprint,
       onTap: () async {
         await Navigator.of(context).push(

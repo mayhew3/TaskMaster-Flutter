@@ -22,6 +22,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   final DateTime endDate;
   final CheckState initialCheckState;
   final Sprint sprint;
+  final bool allTasksMode;
 
   EditableTaskItemWidget({
     Key key,
@@ -37,6 +38,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     this.endDate,
     this.initialCheckState,
     @required this.sprint,
+    @required this.allTasksMode,
   }) : super(key: key);
 
   bool hasPassed(DateTime dateTime) {
@@ -187,13 +189,28 @@ class EditableTaskItemWidget extends StatelessWidget {
       padding: EdgeInsets.only(
         top: 5.0,
         bottom: 5.0,
-        right: 15.0,
+        right: 5.0,
         left: 5.0,
       ),
       child: Text(
         getStringForDateType(taskDateType),
         style: TextStyle(fontSize: 14.0, color: taskDateType.textColor),
       ),
+    );
+  }
+
+  ShapeBorder _getBorder() {
+    return sprint == null && taskItem.isInActiveSprint() ?
+    RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(3.0),
+      side: BorderSide(
+        color: TaskColors.sprintColor,
+        width: 1.0,
+      ),
+    )
+        :
+    RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(3.0),
     );
   }
 
@@ -212,6 +229,7 @@ class EditableTaskItemWidget extends StatelessWidget {
         },
         child: Card(
           color: getBackgroundColor(),
+          shape: _getBorder(),
           elevation: 3.0,
           margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
           child: ClipPath(
@@ -250,6 +268,10 @@ class EditableTaskItemWidget extends StatelessWidget {
                   ),
                 ),
                 _getDateWarnings(),
+                Visibility(
+                    visible: allTasksMode && taskItem.isInActiveSprint(),
+                    child: Icon(Icons.assignment, color: TaskColors.sprintColor),
+                ),
                 Container(
                   padding: EdgeInsets.only(
                     top: 4.0,
