@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
+import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_colors.dart';
+import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/delayed_checkbox.dart';
@@ -16,6 +18,10 @@ class EditableTaskItemWidget extends StatelessWidget {
   final GestureLongPressCallback onLongPress;
   final GestureForcePressStartCallback onForcePress;
   final bool addMode;
+  final MyStateSetter stateSetter;
+  final DateTime endDate;
+  final CheckState initialCheckState;
+  final Sprint sprint;
 
   EditableTaskItemWidget({
     Key key,
@@ -27,10 +33,14 @@ class EditableTaskItemWidget extends StatelessWidget {
     this.onLongPress,
     this.onForcePress,
     @required this.addMode,
+    @required this.stateSetter,
+    this.endDate,
+    this.initialCheckState,
+    @required this.sprint,
   }) : super(key: key);
 
   bool hasPassed(DateTime dateTime) {
-    var now = DateTime.now();
+    var now = addMode ? this.endDate : DateTime.now();
     return dateTime == null ? false : dateTime.isBefore(now);
   }
 
@@ -38,6 +48,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     var pending = taskItem.pendingCompletion;
     var due = hasPassed(taskItem.dueDate.value);
     var urgent = hasPassed(taskItem.urgentDate.value);
+    var target = hasPassed(taskItem.targetDate.value);
     var completed = taskItem.completionDate.value != null;
 
     if (pending) {
@@ -48,8 +59,27 @@ class EditableTaskItemWidget extends StatelessWidget {
       return TaskColors.dueColor;
     } else if (urgent) {
       return TaskColors.urgentColor;
+    } else if (target && sprint == null) {
+      return TaskColors.targetColor;
     } else {
       return TaskColors.cardColor;
+    }
+  }
+
+  String getStringForDateType(TaskDateType taskDateType) {
+    var dateValue = taskDateType.dateFieldGetter(taskItem).value;
+    var isPast = dateValue == null ? false : dateValue.isBefore(DateTime.now());
+    var formatted = formatDateTime(dateValue);
+    var label = taskDateType.label;
+
+    if (dateValue == null) {
+      return '';
+    } else if ('now' == formatted) {
+      return label + ' just now';
+    } else if (isPast) {
+      return label + ' ' + formatted + ' ago';
+    } else {
+      return label + ' in ' + formatted;
     }
   }
 
@@ -78,10 +108,19 @@ class EditableTaskItemWidget extends StatelessWidget {
     return taskItem.dueDate.value != null && taskItem.dueDate.value.isBefore(inXDays);
   }
 
+  bool dateInFutureThreshold(TaskDateType taskDateType, int thresholdDays) {
+    DateTime inXDays = DateTime.now().add(Duration(days: thresholdDays));
+    var dateField = taskDateType.dateFieldGetter(taskItem);
+    return dateField.value != null &&
+        dateField.value.isAfter(DateTime.now()) &&
+        dateField.value.isBefore(inXDays);
+  }
+
   DelayedCheckbox _getCheckbox() {
     if (addMode) {
       return DelayedCheckbox(
-        initialState: CheckState.inactive,
+        initialState: initialCheckState,
+        stateSetter: stateSetter,
         checkCycleWaiter: onTaskAssignmentToggle,
         checkedColor: Colors.green,
         inactiveIcon: Icons.add,
@@ -91,9 +130,71 @@ class EditableTaskItemWidget extends StatelessWidget {
 
       return DelayedCheckbox(
         initialState: completed ? CheckState.checked : CheckState.inactive,
+        stateSetter: stateSetter,
         checkCycleWaiter: onTaskCompleteToggle,
       );
     }
+  }
+
+  bool showTarget(TaskDateType taskDateType) {
+    return sprint == null || !(TaskDateTypes.target == taskDateType);
+  }
+
+  Widget _getDateWarnings() {
+    List<Widget> dateWarnings = [];
+
+    if (addMode) {
+      var reversed = [
+        TaskDateTypes.due,
+        TaskDateTypes.urgent,
+        TaskDateTypes.target,
+        TaskDateTypes.start,
+      ];
+
+      for (TaskDateType taskDateType in reversed) {
+        var dateValue = taskDateType.dateFieldGetter(taskItem).value;
+        if (!taskItem.isCompleted() &&
+            hasPassed(dateValue) &&
+            dateValue != null &&
+            dateValue.isAfter(DateTime.now()) &&
+            dateWarnings.length < 1) {
+          dateWarnings.add(_getDateFromNow(taskDateType));
+        }
+      }
+
+    } else {
+      if (taskItem.isCompleted() && !taskItem.pendingCompletion) {
+        dateWarnings.add(_getDateFromNow(TaskDateTypes.completed));
+      }
+
+      for (TaskDateType taskDateType in TaskDateTypes.allTypes) {
+        if (!taskItem.isCompleted() &&
+            taskDateType.inListDisplayThreshold(taskItem) &&
+            showTarget(taskDateType) &&
+            dateWarnings.length < 1) {
+          dateWarnings.add(_getDateFromNow(taskDateType));
+        }
+      }
+    }
+
+    return Column(
+      children: dateWarnings
+    );
+  }
+
+  Widget _getDateFromNow(TaskDateType taskDateType) {
+    return Container(
+      padding: EdgeInsets.only(
+        top: 5.0,
+        bottom: 5.0,
+        right: 15.0,
+        left: 5.0,
+      ),
+      child: Text(
+        getStringForDateType(taskDateType),
+        style: TextStyle(fontSize: 14.0, color: taskDateType.textColor),
+      ),
+    );
   }
 
   @override
@@ -148,22 +249,7 @@ class EditableTaskItemWidget extends StatelessWidget {
                     ),
                   ),
                 ),
-                Visibility(
-                  visible: !taskItem.isCompleted() && dueInThreshold(10),
-                  child: Container(
-                    padding: EdgeInsets.only(
-                      top: 5.0,
-                      bottom: 5.0,
-                      right: 15.0,
-                      left: 5.0,
-                    ),
-                    child: Text(
-                      getDueDateString(),
-                      style: const TextStyle(fontSize: 14.0,
-                          color: Color.fromRGBO(235, 167, 167, 1.0)),
-                    ),
-                  ),
-                ),
+                _getDateWarnings(),
                 Container(
                   padding: EdgeInsets.only(
                     top: 4.0,

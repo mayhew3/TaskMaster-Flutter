@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:taskmaster/date_util.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_date_type.dart';
+import 'package:taskmaster/models/task_field.dart';
 import 'package:taskmaster/task_repository.dart';
 
 import 'auth.dart';
-import 'models/app_state.dart';
+import 'app_state.dart';
 import 'models/snooze.dart';
 import 'models/task_item.dart';
 import 'nav_helper.dart';
@@ -27,7 +28,7 @@ class TaskHelper {
     this.navHelper,
   });
 
-  void reloadTasks() async {
+  Future<void> reloadTasks() async {
     navHelper.goToLoadingScreen('Reloading tasks...');
     appState.isLoading = true;
     appState.taskItems = [];
@@ -54,6 +55,12 @@ class TaskHelper {
   }
 
   Future<TaskItem> completeTask(TaskItem taskItem, bool completed, StateSetter stateSetter) async {
+    if (completed && taskItem.completionDate.value != null) {
+      throw new ArgumentError("CompleteTask() called with non-null completion date and completed true.");
+    } else if (!completed && taskItem.completionDate.value == null) {
+      throw new ArgumentError("CompleteTask() called with null completion date and completed false.");
+    }
+
     TaskItem nextScheduledTask;
     DateTime completionDate = completed ? DateTime.now() : null;
 
@@ -82,20 +89,25 @@ class TaskHelper {
       nextScheduledTask.dueDate.initializeValue(_addToDate(taskItem.dueDate.value, duration));
     }
 
-    var inboundTask = await repository.completeTask(taskItem, completionDate);
-    TaskItem updatedTask;
     stateSetter(() {
-      // todo: update fields on original task instead of deleting and adding result
-      updatedTask = appState.updateTaskListWithUpdatedTask(inboundTask);
-      appState.notificationScheduler.syncNotificationForTask(updatedTask);
+      taskItem.completionDate.value = completionDate;
+      taskItem.treatAsCommitted();
+    });
+
+    var inboundTask = await repository.completeTask(taskItem);
+
+    stateSetter(() {
+      _copyChanges(inboundTask, taskItem);
+      taskItem.pendingCompletion = false;
+      appState.notificationScheduler.syncNotificationForTask(taskItem);
     });
     appState.notificationScheduler.updateBadge();
 
     if (nextScheduledTask != null) {
-      addTask(nextScheduledTask);
+      await addTask(nextScheduledTask);
     }
 
-    return updatedTask;
+    return taskItem;
   }
 
   Future<void> deleteTask(TaskItem taskItem) async {
@@ -111,48 +123,24 @@ class TaskHelper {
 
   Future<TaskItem> updateTask(TaskItem taskItem) async {
     var inboundTask = await repository.updateTask(taskItem);
-    TaskItem updatedTask;
-    stateSetter(() {
-      // todo: update fields on original task instead of deleting and adding result
-      updatedTask = appState.updateTaskListWithUpdatedTask(inboundTask);
-      appState.notificationScheduler.syncNotificationForTask(updatedTask);
+    stateSetter(() async {
+      _copyChanges(inboundTask, taskItem);
+      await appState.notificationScheduler.syncNotificationForTask(taskItem);
     });
     appState.notificationScheduler.updateBadge();
-    return updatedTask;
+    return taskItem;
   }
 
-  void previewSnooze(TaskItem taskItem, int numUnits, String unitSize, String dateTypeStr) {
-    DateTime snoozeDate = DateTime.now();
-    DateTime adjustedDate = _getAdjustedDate(snoozeDate, numUnits, unitSize);
-
-    TaskDateType dateType = TaskItem.typeMap[dateTypeStr];
-
-    var relevantDateField = taskItem.getDateFieldOfType(dateType);
-    DateTime relevantDate = relevantDateField.value;
-
-    if (relevantDate == null) {
-      relevantDateField.value = adjustedDate;
-    } else {
-      Duration difference = adjustedDate.difference(relevantDate);
-      TaskDateType.values.forEach((taskDateType) => taskItem.incrementDateIfExists(taskDateType, difference));
-    }
+  void previewSnooze(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) {
+    _generatePreview(taskItem, numUnits, unitSize, dateType);
   }
 
-  Future<TaskItem> snoozeTask(TaskItem taskItem, int numUnits, String unitSize, String dateTypeStr) async {
-    DateTime snoozeDate = DateTime.now();
-    DateTime adjustedDate = _getAdjustedDate(snoozeDate, numUnits, unitSize);
+  Future<TaskItem> snoozeTask(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) async {
+    _generatePreview(taskItem, numUnits, unitSize, dateType);
 
-    TaskDateType dateType = TaskItem.typeMap[dateTypeStr];
+    var relevantDateField = dateType.dateFieldGetter(taskItem);
 
-    var relevantDateField = taskItem.getDateFieldOfType(dateType);
-    DateTime relevantDate = relevantDateField.value;
-
-    if (relevantDate == null) {
-      relevantDateField.value = adjustedDate;
-    } else {
-      Duration difference = adjustedDate.difference(relevantDate);
-      TaskDateType.values.forEach((taskDateType) => taskItem.incrementDateIfExists(taskDateType, difference));
-    }
+    DateTime originalValue = relevantDateField.originalValue;
 
     TaskItem updatedTask = await updateTask(taskItem);
 
@@ -160,8 +148,8 @@ class TaskHelper {
     snooze.taskID.value = updatedTask.id.value;
     snooze.snoozeNumber.value = numUnits;
     snooze.snoozeUnits.value = unitSize;
-    snooze.snoozeAnchor.value = dateTypeStr;
-    snooze.previousAnchor.value = relevantDateField.originalValue;
+    snooze.snoozeAnchor.value = dateType.label;
+    snooze.previousAnchor.value = originalValue;
     snooze.newAnchor.value = relevantDateField.value;
 
     await repository.addSnooze(snooze);
@@ -179,6 +167,21 @@ class TaskHelper {
   }
 
   // private helpers
+
+  void _generatePreview(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) {
+    DateTime snoozeDate = DateTime.now();
+    DateTime adjustedDate = _getAdjustedDate(snoozeDate, numUnits, unitSize);
+
+    var relevantDateField = dateType.dateFieldGetter(taskItem);
+    DateTime relevantDate = relevantDateField.value;
+
+    if (relevantDate == null) {
+      relevantDateField.value = adjustedDate;
+    } else {
+      Duration difference = adjustedDate.difference(relevantDate);
+      TaskDateTypes.allTypes.forEach((taskDateType) => taskItem.incrementDateIfExists(taskDateType, difference));
+    }
+  }
 
 
   DateTime _addToDate(DateTime previousDate, Duration duration) {
@@ -216,6 +219,14 @@ class TaskHelper {
     } else {
       return next;
     }
+  }
+
+  void _copyChanges(TaskItem inboundTask, TaskItem outboundTask) {
+    for (TaskField field in outboundTask.fields) {
+      var inboundField = inboundTask.getTaskField(field.fieldName);
+      field.value = inboundField.value;
+    }
+    outboundTask.treatAsCommitted();
   }
 
 }

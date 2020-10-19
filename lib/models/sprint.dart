@@ -2,13 +2,16 @@ import 'package:taskmaster/models/data_object.dart';
 import 'package:taskmaster/models/task_field.dart';
 import 'package:taskmaster/models/task_item.dart';
 
-import 'app_state.dart';
+import '../app_state.dart';
 
 class Sprint extends DataObject {
 
   TaskFieldDate startDate;
   TaskFieldDate endDate;
   TaskFieldDate closeDate;
+
+  TaskFieldInteger numUnits;
+  TaskFieldString unitName;
 
   TaskFieldInteger personId;
 
@@ -21,6 +24,13 @@ class Sprint extends DataObject {
     endDate = addDateField('end_date');
     closeDate = addDateField('close_date');
     personId = addIntegerField('person_id');
+    numUnits = addIntegerField('num_units');
+    unitName = addStringField('unit_name');
+  }
+
+  @override
+  List<String> getControlledFields() {
+    return controlledFields;
   }
 
   void addToTasks(TaskItem taskItem) {
@@ -30,16 +40,9 @@ class Sprint extends DataObject {
   }
 
   factory Sprint.fromJson(Map<String, dynamic> json) {
-    Sprint taskItem = Sprint();
-    for (var field in taskItem.fields) {
-      var jsonVal = json[field.fieldName];
-      if (jsonVal is String) {
-        field.initializeValueFromString(jsonVal);
-      } else {
-        field.initializeValue(jsonVal);
-      }
-    }
-    return taskItem;
+    Sprint sprint = Sprint();
+    sprint.initFromFields(json);
+    return sprint;
   }
 
 }

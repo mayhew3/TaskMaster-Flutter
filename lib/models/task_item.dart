@@ -1,24 +1,10 @@
-import 'package:taskmaster/models/app_state.dart';
+import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/data_object.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_field.dart';
 
 class TaskItem extends DataObject {
-
-  static Map<String, TaskDateType> typeMap = {
-    'Start': TaskDateType.START,
-    'Target': TaskDateType.TARGET,
-    'Urgent': TaskDateType.URGENT,
-    'Due': TaskDateType.DUE,
-  };
-
-  static String getDateTypeString(TaskDateType dateType) {
-    return typeMap.keys.firstWhere((key) {
-      var value = typeMap[key];
-      return (value == dateType);
-    });
-  }
 
   TaskFieldInteger personId;
 
@@ -50,10 +36,15 @@ class TaskItem extends DataObject {
 
   bool pendingCompletion = false;
 
-  static List<String> controlledFields = ['id', 'person_id', 'date_added', 'completion_date'];
+  static List<String> controlledFields = [
+    'id',
+    'person_id',
+    'date_added',
+    'completion_date'
+  ];
 
   @override
-  TaskItem(): super() {
+  TaskItem() : super() {
     this.personId = addIntegerField("person_id");
     this.name = addStringField("name");
     this.description = addStringField("description");
@@ -75,13 +66,18 @@ class TaskItem extends DataObject {
     this.recurrenceId = addIntegerField("recurrence_id");
   }
 
+  @override
+  List<String> getControlledFields() {
+    return controlledFields;
+  }
+
   void addToSprints(Sprint sprint) {
     if (!sprints.contains(sprint)) {
       sprints.add(sprint);
     }
   }
 
-  factory TaskItem.fromJson(Map<String, dynamic> json, AppState appState) {
+  factory TaskItem.fromJson(Map<String, dynamic> json, List<Sprint> sprints) {
     TaskItem taskItem = TaskItem();
     for (var field in taskItem.fields) {
       var jsonVal = json[field.fieldName];
@@ -92,15 +88,18 @@ class TaskItem extends DataObject {
       }
     }
 
-    List<dynamic> assignments = json['sprint_assignments'];
-    for (var assignment in assignments) {
-      int sprintId = assignment['sprint_id'];
-      Sprint sprint = appState.findSprintWithId(sprintId);
-      if (sprint == null) {
-        throw new Exception('No sprint found with ID ' + sprintId.toString());
+    if (json.containsKey('sprint_assignments')) {
+      List<dynamic> assignments = json['sprint_assignments'];
+      for (var assignment in assignments) {
+        int sprintId = assignment['sprint_id'];
+        Iterable<Sprint> matching = sprints.where((sprint) => sprint.id.value == sprintId);
+        Sprint sprint =  matching.isEmpty ? null : matching.first;
+        if (sprint == null) {
+          throw new Exception('No sprint found with ID ' + sprintId.toString());
+        }
+        taskItem.addToSprints(sprint);
+        sprint.addToTasks(taskItem);
       }
-      taskItem.addToSprints(sprint);
-      sprint.addToTasks(taskItem);
     }
 
     return taskItem;
@@ -146,48 +145,54 @@ class TaskItem extends DataObject {
     return dueDate.hasPassed();
   }
 
+  bool isDueBefore(DateTime dateTime) {
+    return dueDate.value != null && dueDate.value.isBefore(dateTime);
+  }
+
+  bool isUrgentBefore(DateTime dateTime) {
+    return urgentDate.value != null && urgentDate.value.isBefore(dateTime);
+  }
+
+  bool isTargetBefore(DateTime dateTime) {
+    return targetDate.value != null && targetDate.value.isBefore(dateTime);
+  }
+
+  bool isScheduledAfter(DateTime dateTime) {
+    return startDate.value != null && startDate.value.isAfter(dateTime);
+  }
+
   bool isUrgent() {
     return urgentDate.hasPassed();
   }
 
+  bool isTarget() {
+    return targetDate.hasPassed();
+  }
+
   DateTime getAnchorDate() {
-    return getDateFieldOfType(getAnchorDateType()).value;
+    return getAnchorDateType().dateFieldGetter(this).value;
   }
 
   bool isScheduledRecurrence() {
     return recurWait.value != null && !recurWait.value;
   }
 
-  TaskFieldDate getDateFieldOfType(TaskDateType taskDateType) {
-    if (TaskDateType.START == taskDateType) {
-      return startDate;
-    } else if (TaskDateType.TARGET == taskDateType) {
-      return targetDate;
-    } else if (TaskDateType.URGENT == taskDateType) {
-      return urgentDate;
-    } else if (TaskDateType.DUE == taskDateType) {
-      return dueDate;
-    } else {
-      return null;
-    }
-  }
-
   TaskDateType getAnchorDateType() {
     if (dueDate.value != null) {
-      return TaskDateType.DUE;
+      return TaskDateTypes.due;
     } else if (urgentDate.value != null) {
-      return TaskDateType.URGENT;
+      return TaskDateTypes.urgent;
     } else if (targetDate.value != null) {
-      return TaskDateType.TARGET;
+      return TaskDateTypes.target;
     } else if (startDate.value != null) {
-      return TaskDateType.START;
+      return TaskDateTypes.start;
     } else {
       return null;
     }
   }
 
   void incrementDateIfExists(TaskDateType taskDateType, Duration duration) {
-    var field = getDateFieldOfType(taskDateType);
+    var field = taskDateType.dateFieldGetter(this);
     field.value = field.value?.add(duration);
   }
 

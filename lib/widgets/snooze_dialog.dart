@@ -48,10 +48,10 @@ class SnoozeDialogState extends State<SnoozeDialog> {
   @override
   void initState() {
     super.initState();
-    TaskDateType.values.forEach((dateType) {
-      var dateFieldOfType = widget.taskItem.getDateFieldOfType(dateType);
+    TaskDateTypes.allTypes.forEach((dateType) {
+      var dateFieldOfType = dateType.dateFieldGetter(widget.taskItem);
       if (dateFieldOfType.value != null) {
-        possibleDateTypes.add(TaskItem.getDateTypeString(dateType));
+        possibleDateTypes.add(dateType.label);
       }
     });
     if (possibleDateTypes.isEmpty) {
@@ -75,7 +75,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
   void updateTaskItemWithPreview() {
     if (numUnits != null) {
       setState(() {
-        widget.taskHelper.previewSnooze(widget.taskItem, numUnits, unitName, taskDateType);
+        widget.taskHelper.previewSnooze(widget.taskItem, numUnits, unitName, TaskDateTypes.getTypeWithLabel(taskDateType));
       });
     }
   }
@@ -136,10 +136,9 @@ class SnoozeDialogState extends State<SnoozeDialog> {
         ),
       ];
 
-      TaskDateType.values.forEach((dateType) {
-        TaskField dateFieldOfType = widget.taskItem.getDateFieldOfType(
-            dateType);
-        var dateTypeString = TaskItem.getDateTypeString(dateType);
+      TaskDateTypes.allTypes.forEach((dateType) {
+        TaskField dateFieldOfType = dateType.dateFieldGetter(widget.taskItem);
+        var dateTypeString = dateType.label;
         var actualDate = dateFieldOfType.value;
         if (actualDate != null) {
           String dateFormatted = (DateTime
@@ -193,7 +192,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
                   form.save();
                 }
 
-                await widget.taskHelper.snoozeTask(widget.taskItem, numUnits, unitName, taskDateType);
+                await widget.taskHelper.snoozeTask(widget.taskItem, numUnits, unitName, TaskDateTypes.getTypeWithLabel(taskDateType));
                 Navigator.pop(context);
               },
               child: Text('Submit'),

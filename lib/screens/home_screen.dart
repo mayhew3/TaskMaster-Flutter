@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
-import 'package:taskmaster/models/app_state.dart';
+import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/screens/planning_home.dart';
@@ -36,7 +36,7 @@ class HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-    var planItem = new TopNavItem(
+    var planNav = new TopNavItem(
         label: 'Plan',
         icon: Icons.assignment,
         widget: PlanningHome(
@@ -64,11 +64,11 @@ class HomeScreenState extends State<HomeScreen> {
           bottomNavigationBarGetter: getBottomNavigationBar,
         ));
 
-    navItems.add(planItem);
+    navItems.add(planNav);
     navItems.add(taskNav);
     navItems.add(statsNav);
 
-    activeTab = taskNav;
+    activeTab = planNav;
 
     widget.navHelper.updateContext(context);
   }

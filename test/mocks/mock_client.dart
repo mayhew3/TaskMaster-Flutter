@@ -16,32 +16,36 @@ class MockClient extends Mock implements http.Client {
   String _mockTheJSON() {
     var taskObj = {};
     taskObj['person_id'] = 1;
-    var mockList = [];
+    var mockPlayerList = [];
+    var mockSprintList = [];
+
     for (var taskItem in taskList) {
       var mockObj = {};
       for (var field in taskItem.fields) {
         mockObj[field.fieldName] = field.formatForJSON();
       }
-      var sprint_assignments = [];
+      var sprintAssignments = [];
       for (var sprint in taskItem.sprints) {
         var obj = {
           'id': 1234,
-          'sprint_id': sprint.id
+          'sprint_id': sprint.id.value
         };
-        sprint_assignments.add(obj);
+        sprintAssignments.add(obj);
       }
-      mockObj['sprint_assignments'] = sprint_assignments;
-      mockList.add(mockObj);
+      mockObj['sprint_assignments'] = sprintAssignments;
+      mockPlayerList.add(mockObj);
     }
+
     for (var sprintItem in sprintList) {
       var mockObj = {};
       for (var field in sprintItem.fields) {
         mockObj[field.fieldName] = field.formatForJSON();
       }
-      mockList.add(mockObj);
+      mockSprintList.add(mockObj);
     }
-    taskObj['tasks'] = mockList;
-    taskObj['sprints'] = sprintList;
+
+    taskObj['tasks'] = mockPlayerList;
+    taskObj['sprints'] = mockSprintList;
     return json.encode(taskObj);
   }
 

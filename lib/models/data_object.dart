@@ -2,7 +2,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:taskmaster/models/task_field.dart';
 
-class DataObject {
+abstract class DataObject {
 
   TaskFieldInteger id;
   List<TaskField> fields = [];
@@ -15,6 +15,33 @@ class DataObject {
     for (var field in fields) {
       field.revert();
     }
+  }
+
+  treatAsCommitted() {
+    for (var field in fields) {
+      field.afterUpdate();
+    }
+  }
+
+  void initFromFields(Map<String, dynamic> json) {
+    for (var field in fields) {
+      var jsonVal = json[field.fieldName];
+      if (jsonVal is String) {
+        field.initializeValueFromString(jsonVal);
+      } else {
+        field.initializeValue(jsonVal);
+      }
+    }
+  }
+
+  List<String> getControlledFields();
+
+  Map<String, dynamic> toJSON() {
+    Map<String, dynamic> taskObj = {};
+    for (TaskField field in fields) {
+      taskObj[field.fieldName] = field.formatForJSON();
+    }
+    return taskObj;
   }
 
   // Private

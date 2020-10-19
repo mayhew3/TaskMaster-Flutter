@@ -8,11 +8,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:taskmaster/models/app_state.dart';
+import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/snooze.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/parse_helper.dart';
 
 class TaskRepository {
   AppState appState;
@@ -63,7 +62,7 @@ class TaskRepository {
 
         List tasks = jsonObj['tasks'];
         for (var taskJson in tasks) {
-          TaskItem taskItem = TaskItem.fromJson(taskJson, this.appState);
+          TaskItem taskItem = TaskItem.fromJson(taskJson, sprintList);
           taskList.add(taskItem);
         }
 
@@ -146,12 +145,10 @@ class TaskRepository {
   }
 
 
-  Future<TaskItem> completeTask(TaskItem taskItem, DateTime completionDate) {
+  Future<TaskItem> completeTask(TaskItem taskItem) {
     if (!appState.isAuthenticated()) {
       throw Exception("Cannot update task before being signed in.");
     }
-
-    taskItem.completionDate.value = completionDate;
 
     var payload = {
       "task": {
@@ -220,7 +217,7 @@ class TaskRepository {
     if (response.statusCode == 200) {
       try {
         var jsonObj = json.decode(response.body);
-        TaskItem inboundTask = TaskItem.fromJson(jsonObj, this.appState);
+        TaskItem inboundTask = TaskItem.fromJson(jsonObj, this.appState.sprints);
         return inboundTask;
       } catch(exception, stackTrace) {
         print(exception);

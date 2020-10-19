@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
-import 'package:taskmaster/models/app_state.dart';
+import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
@@ -22,6 +22,8 @@ class TaskListScreen extends StatefulWidget {
   final TaskListGetter taskListGetter;
   final Sprint sprint;
   final String title;
+  final String subHeader;
+  final String subSubHeader;
 
   TaskListScreen({
     @required this.appState,
@@ -30,6 +32,8 @@ class TaskListScreen extends StatefulWidget {
     @required this.taskListGetter,
     @required this.title,
     this.sprint,
+    this.subHeader,
+    this.subSubHeader,
   }) : super(key: TaskMasterKeys.taskList);
 
   @override
@@ -46,8 +50,8 @@ class TaskListScreenState extends State<TaskListScreen> {
   @override
   void initState() {
     super.initState();
-    this.showScheduled = false;
-    this.showCompleted = false;
+    this.showScheduled = (widget.sprint != null);
+    this.showCompleted = (widget.sprint != null);
   }
 
   void _displaySnackBar(String msg, BuildContext context) {
@@ -92,9 +96,11 @@ class TaskListScreenState extends State<TaskListScreen> {
 
     return EditableTaskItemWidget(
       taskItem: taskItem,
+      stateSetter: (callback) => setState(() => callback()),
       addMode: false,
-      onTap: () {
-        Navigator.of(context).push(
+      sprint: widget.sprint,
+      onTap: () async {
+        await Navigator.of(context).push(
           MaterialPageRoute(builder: (_) {
             return DetailScreen(
               taskItem: taskItem,
@@ -102,6 +108,7 @@ class TaskListScreenState extends State<TaskListScreen> {
             );
           }),
         );
+        setState(() {});
       },
       onLongPress: () => snoozeDialog(taskItem),
       onForcePress: (ForcePressDetails forcePressDetails) => snoozeDialog(taskItem),
@@ -141,6 +148,12 @@ class TaskListScreenState extends State<TaskListScreen> {
     final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted() && !recentlyCompleted.contains(taskItem));
     final List<TaskItem> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isPastDue());
     final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgent());
+
+    List<TaskItem> targetTasks = [];
+    if (widget.sprint == null) {
+      targetTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isTarget());
+    }
+
     final List<TaskItem> scheduledTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isScheduled());
 
     List<StatelessWidget> tiles = [];
@@ -153,6 +166,11 @@ class TaskListScreenState extends State<TaskListScreen> {
     if (urgentTasks.isNotEmpty) {
       tiles.add(HeadingItem('Urgent'));
       urgentTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+    }
+
+    if (targetTasks.isNotEmpty) {
+      tiles.add(HeadingItem('Target'));
+      targetTasks.forEach((task) => tiles.add(_createWidget(task, context)));
     }
 
     if (otherTasks.isNotEmpty) {
@@ -178,6 +196,53 @@ class TaskListScreenState extends State<TaskListScreen> {
         });
   }
 
+  Widget getLoadingBody() {
+    return Center(
+        child: CircularProgressIndicator(
+          key: TaskMasterKeys.tasksLoading,
+        )
+    );
+  }
+
+  Widget getTaskListBody() {
+    List<Widget> elements = [];
+    if (widget.subHeader != null) {
+      elements.add(
+        Container(
+          padding: EdgeInsets.only(left: 12.0, top: 12.0),
+          child: Text(
+            widget.subHeader,
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+        )
+      );
+    }
+    if (widget.subSubHeader != null) {
+      elements.add(
+        Container(
+          padding: EdgeInsets.only(left: 12.0, bottom: 12.0),
+          child: Text(
+            widget.subSubHeader,
+            style: TextStyle(fontSize: 18),
+          ),
+        )
+      );
+    }
+    ListView listView = _buildListView(context);
+    Widget expanded = Expanded(child: listView);
+    elements.add(expanded);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: elements,
+    );
+  }
+
+  Widget getBody() {
+    return Container(
+        child: widget.appState.isLoading ? getLoadingBody() : getTaskListBody()
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return
@@ -199,28 +264,23 @@ class TaskListScreenState extends State<TaskListScreen> {
             ),
           ],
         ),
-        body:  Container(
-          child: widget.appState.isLoading
-              ?
-          Center(
-              child: CircularProgressIndicator(
-                key: TaskMasterKeys.tasksLoading,
-              )
-          )
-              : _buildListView(context),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => AddEditScreen(
-                taskItem: TaskItem(),
-                taskHelper: widget.taskHelper,
-                isEditing: false,
-              )),
-            );
-          },
-          child: Icon(Icons.add),
+        body: getBody(),
+        floatingActionButton: Visibility(
+          visible: widget.sprint == null,
+          child: FloatingActionButton(
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => AddEditScreen(
+                  taskItem: TaskItem(),
+                  taskHelper: widget.taskHelper,
+                  isEditing: false,
+                )),
+              );
+              setState(() {});
+            },
+            child: Icon(Icons.add),
+          ),
         ),
         bottomNavigationBar: widget.bottomNavigationBarGetter(),
       );

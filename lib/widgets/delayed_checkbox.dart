@@ -12,6 +12,7 @@ class DelayedCheckbox extends StatefulWidget {
   final CheckState initialState;
   final Color checkedColor;
   final IconData inactiveIcon;
+  final MyStateSetter stateSetter;
 
   const DelayedCheckbox({
     Key key,
@@ -19,6 +20,7 @@ class DelayedCheckbox extends StatefulWidget {
     this.initialState,
     this.checkedColor,
     this.inactiveIcon,
+    @required this.stateSetter,
   }) : super(key: key);
 
   @override
@@ -37,12 +39,12 @@ class DelayedCheckboxState extends State<DelayedCheckbox> {
 
   void handleClick() {
     CheckState originalState = currentState;
-    setState(() {
+    widget.stateSetter(() {
       currentState = CheckState.pending;
     });
 
     widget.checkCycleWaiter(originalState).then((resultingState) {
-      setState(() {
+      widget.stateSetter(() {
         currentState = resultingState;
       });
     });
@@ -51,7 +53,7 @@ class DelayedCheckboxState extends State<DelayedCheckbox> {
   Color getColor(BuildContext context) {
     final ThemeData themeData = Theme.of(context);
     Map<CheckState, Color> colorMap = {
-      CheckState.inactive: TaskColors.cardColor,
+      CheckState.inactive: Color.fromARGB(0, 0, 0, 0),
       CheckState.pending: TaskColors.pendingCheckbox,
       CheckState.checked: widget.checkedColor ?? themeData.toggleableActiveColor,
     };

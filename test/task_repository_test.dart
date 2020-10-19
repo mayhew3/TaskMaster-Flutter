@@ -1,4 +1,4 @@
-import 'package:taskmaster/models/app_state.dart';
+import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
@@ -24,10 +24,11 @@ void main() {
 
     test('loadTasks with tasks', () async {
       List<TaskItem> testItems = [];
-      testItems.add(TaskItem.fromJson(catLitterJSON, mockAppState));
-      testItems.add(TaskItem.fromJson(birthdayJSON, mockAppState));
+      testItems.add(TaskItem.fromJson(catLitterJSON, allSprints));
+      testItems.add(TaskItem.fromJson(birthdayJSON, allSprints));
 
-      var mockClient = new MockClient(testItems, []);
+      var mockClient = new MockClient(testItems, allSprints);
+      var mockAppState = new MockAppState();
       TaskRepository taskRepository = TaskRepository(appState: mockAppState, client: mockClient);
 
       await taskRepository.loadTasks((callback) => callback());
@@ -36,5 +37,6 @@ void main() {
       expect(taskList.length, 2);
     });
 
+    // todo: addTask, updateTask, addSnooze, addSprint
   });
 }

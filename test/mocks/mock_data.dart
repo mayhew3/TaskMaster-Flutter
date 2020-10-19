@@ -1,8 +1,36 @@
 
-import 'package:taskmaster/models/app_state.dart';
+import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 
-import 'mock_app_state.dart';
+
+final DateTime pastSprintStart = DateTime.now().subtract(Duration(days: 10));
+final DateTime pastSprintAdded = DateTime.utc(2019, 6, 24, 8, 11, 56, 123);
+
+final Map<String, dynamic> pastSprintJSON = {
+  "id": 10,
+  "start_date": pastSprintStart.toIso8601String(),
+  "end_date": pastSprintStart.add(Duration(days: 7)).toIso8601String(),
+  "num_units": 1,
+  "unit_name": "Weeks",
+  "person_id": 1
+};
+
+final DateTime currentSprintStart = DateTime.now().subtract(Duration(days: 3));
+final DateTime currentSprintAdded = DateTime.utc(2019, 7, 22, 1, 16, 8, 153);
+
+final Map<String, dynamic> currentSprintJSON = {
+  "id": 11,
+  "start_date": currentSprintStart.toIso8601String(),
+  "end_date": currentSprintStart.add(Duration(days: 7)).toIso8601String(),
+  "num_units": 1,
+  "unit_name": "Weeks",
+  "person_id": 1
+};
+
+Sprint pastSprint = Sprint.fromJson(pastSprintJSON);
+Sprint currentSprint = Sprint.fromJson(currentSprintJSON);
+
+List<Sprint> allSprints = [pastSprint, currentSprint];
 
 final DateTime catStart = DateTime.utc(2019, 11, 5, 3, 0, 0);
 final DateTime catTarget = DateTime.utc(2019, 11, 7, 3, 0, 0);
@@ -32,7 +60,12 @@ final Map<String, dynamic> catLitterJSON = {
   "date_added": catAdded.toIso8601String(),
   "retired": 0,
   "retired_date": null,
-  "sprint_assignments": []
+  "sprint_assignments": [
+    {
+      "id": 2346,
+      "sprint_id": currentSprint.id.value
+    }
+  ]
 };
 
 final DateTime bdayDue = DateTime.now().add(Duration(days: 200)).toUtc();
@@ -61,7 +94,16 @@ final Map<String, dynamic> birthdayJSON = {
   "date_added": bdayAdded.toIso8601String(),
   "retired": 0,
   "retired_date": null,
-  "sprint_assignments": []
+  "sprint_assignments": [
+    {
+      "id": 1234,
+      "sprint_id": pastSprint.id.value
+    },
+    {
+      "id": 2345,
+      "sprint_id": currentSprint.id.value
+    }
+  ]
 };
 
 final DateTime futureStart = DateTime.now().add(Duration(days: 90));
@@ -112,22 +154,61 @@ final Map<String, dynamic> pastJSON = {
   "completion_date": null,
   "urgent_date": null,
   "game_points": 15,
-  "recur_number": null,
-  "recur_unit": null,
-  "recur_wait": null,
+  "recur_number": 6,
+  "recur_unit": 'Weeks',
+  "recur_wait": false,
   "recurrence_id": null,
   "date_added": pastAdded.toIso8601String(),
   "retired": 0,
   "retired_date": null,
-  "sprint_assignments": []
+  "sprint_assignments": [
+    {
+      "id": 1233,
+      "sprint_id": pastSprint.id.value
+    }
+  ]
 };
 
-AppState mockAppState = MockAppState();
+final DateTime burnTarget = DateTime.now().subtract(Duration(days: 10));
+final DateTime burnComplete = DateTime.now().subtract(Duration(hours: 7));
+final DateTime burnAdded = DateTime.utc(2019, 6, 24, 8, 11, 56, 123);
 
-TaskItem catLitterTask = TaskItem.fromJson(catLitterJSON, mockAppState);
-TaskItem birthdayTask = TaskItem.fromJson(birthdayJSON, mockAppState);
-TaskItem futureTask = TaskItem.fromJson(futureJSON, mockAppState);
-TaskItem pastTask = TaskItem.fromJson(pastJSON, mockAppState);
+final Map<String, dynamic> burnJSON = {
+  "id": 28,
+  "person_id": 1,
+  "name": "Burn Down the House",
+  "description": "Because you're talking to my talking head",
+  "project": "Organization",
+  "context": "Home",
+  "urgency": 8,
+  "priority": 4,
+  "duration": 70,
+  "start_date": null,
+  "target_date": burnTarget.toIso8601String(),
+  "due_date": null,
+  "completion_date": burnComplete.toIso8601String(),
+  "urgent_date": null,
+  "game_points": 4,
+  "recur_number": null,
+  "recur_unit": null,
+  "recur_wait": null,
+  "recurrence_id": null,
+  "date_added": burnAdded.toIso8601String(),
+  "retired": 0,
+  "retired_date": null,
+  "sprint_assignments": [
+    {
+      "id": 1233,
+      "sprint_id": currentSprint.id.value
+    }
+  ]
+};
 
-List<TaskItem> allTasks = [catLitterTask, birthdayTask, futureTask, pastTask];
+TaskItem catLitterTask = TaskItem.fromJson(catLitterJSON, allSprints);
+TaskItem birthdayTask = TaskItem.fromJson(birthdayJSON, allSprints);
+TaskItem futureTask = TaskItem.fromJson(futureJSON, allSprints);
+TaskItem pastTask = TaskItem.fromJson(pastJSON, allSprints);
+TaskItem burnTask = TaskItem.fromJson(burnJSON, allSprints);
+
+List<TaskItem> allTasks = [catLitterTask, birthdayTask, futureTask, pastTask, burnTask];
 

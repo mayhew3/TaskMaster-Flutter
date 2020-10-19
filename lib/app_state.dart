@@ -51,16 +51,8 @@ class AppState {
   }
 
   List<TaskItem> getTasksForActiveSprint() {
-    return getActiveSprint().taskItems;
-  }
-
-  List<TaskItem> getFilteredTasks(bool showScheduled, bool showCompleted, List<TaskItem> recentlyCompleted) {
-    List<TaskItem> filtered = taskItems.where((taskItem) {
-      bool passesScheduleFilter = showScheduled || !taskItem.isScheduled();
-      bool passesCompletedFilter = showCompleted || !(taskItem.isCompleted() && !recentlyCompleted.contains(taskItem));
-      return passesScheduleFilter && passesCompletedFilter;
-    }).toList();
-    return filtered;
+    var activeSprint = getActiveSprint();
+    return activeSprint == null ? [] : activeSprint.taskItems;
   }
 
   TaskItem findTaskItemWithId(int taskId) {
@@ -74,12 +66,11 @@ class AppState {
   }
 
   void updateNotificationScheduler(BuildContext context,
-      AppState appState,
       TaskHelper taskHelper) {
 
     notificationScheduler = NotificationScheduler(
       context: context,
-      appState: appState,
+      appState: this,
       taskHelper: taskHelper,
       flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
       flutterBadgerWrapper: FlutterBadgerWrapper(),
@@ -88,15 +79,20 @@ class AppState {
   }
 
   Sprint getActiveSprint() {
-    var now = DateTime.now();
-    if (this.sprints.isEmpty) {
-      return null;
-    } else {
-      return this.sprints.firstWhere((sprint) =>
-      sprint.startDate.value.isBefore(now) &&
-          sprint.endDate.value.isAfter(now) &&
-          sprint.closeDate.value == null);
-    }
+    DateTime now = DateTime.now();
+    Iterable<Sprint> matching = this.sprints.where((sprint) =>
+        sprint.startDate.value.isBefore(now) &&
+        sprint.endDate.value.isAfter(now) &&
+        sprint.closeDate.value == null);
+    return matching.isEmpty ? null : matching.first;
+  }
+
+  Sprint getLastCompletedSprint() {
+    List<Sprint> matching = this.sprints.where((sprint) {
+      return DateTime.now().isAfter(sprint.endDate.value);
+    }).toList();
+    matching.sort((a, b) => a.endDate.value.compareTo(b.endDate.value));
+    return matching.isEmpty ? null : matching.last;
   }
 
   void finishedLoading() {
@@ -110,12 +106,6 @@ class AppState {
 
   void deleteTaskFromList(TaskItem taskItem) {
     taskItems.remove(taskItem);
-  }
-
-  TaskItem updateTaskListWithUpdatedTask(TaskItem taskItem) {
-    var existingIndex = taskItems.indexWhere((element) => element.id.value == taskItem.id.value);
-    taskItems[existingIndex] = taskItem;
-    return taskItem;
   }
 
   bool isAuthenticated() {
