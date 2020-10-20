@@ -22,7 +22,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   final DateTime endDate;
   final CheckState initialCheckState;
   final Sprint sprint;
-  final bool allTasksMode;
+  final bool highlightSprint;
 
   EditableTaskItemWidget({
     Key key,
@@ -38,7 +38,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     this.endDate,
     this.initialCheckState,
     @required this.sprint,
-    @required this.allTasksMode,
+    this.highlightSprint,
   }) : super(key: key);
 
   bool hasPassed(DateTime dateTime) {
@@ -200,7 +200,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   }
 
   ShapeBorder _getBorder() {
-    return sprint == null && taskItem.isInActiveSprint() ?
+    return highlightSprint ?
     RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(3.0),
       side: BorderSide(
@@ -269,7 +269,7 @@ class EditableTaskItemWidget extends StatelessWidget {
                 ),
                 _getDateWarnings(),
                 Visibility(
-                    visible: allTasksMode && taskItem.isInActiveSprint(),
+                    visible: highlightSprint,
                     child: Icon(Icons.assignment, color: TaskColors.sprintColor),
                 ),
                 Container(

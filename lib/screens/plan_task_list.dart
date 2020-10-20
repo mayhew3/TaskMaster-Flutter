@@ -38,6 +38,7 @@ class PlanTaskList extends StatefulWidget {
 class PlanTaskListState extends State<PlanTaskList> {
 
   List<TaskItem> sprintQueued = [];
+  Sprint lastSprint;
 
   @override
   void initState() {
@@ -45,8 +46,12 @@ class PlanTaskListState extends State<PlanTaskList> {
 
     DateTime endDate = getEndDate();
     var baseList = getBaseList();
+    lastSprint = widget.appState.getLastCompletedSprint();
     final Iterable<TaskItem> dueOrUrgentTasks = baseList.where((taskItem) =>
-        taskItem.isDueBefore(endDate) || taskItem.isUrgentBefore(endDate));
+        taskItem.isDueBefore(endDate) ||
+        taskItem.isUrgentBefore(endDate) ||
+        taskItem.sprints.contains(lastSprint)
+    );
     sprintQueued.addAll(dueOrUrgentTasks);
   }
 
@@ -56,14 +61,14 @@ class PlanTaskListState extends State<PlanTaskList> {
     return subList;
   }
 
-  EditableTaskItemWidget _createWidget(TaskItem taskItem, BuildContext context) {
+  EditableTaskItemWidget _createWidget({TaskItem taskItem}) {
     return EditableTaskItemWidget(
       taskItem: taskItem,
       endDate: getEndDate(),
       sprint: null,
       stateSetter: (callback) => setState(() => callback()),
       addMode: true,
-      allTasksMode: false,
+      highlightSprint: taskItem.sprints.contains(lastSprint),
       initialCheckState: sprintQueued.contains(taskItem) ? CheckState.checked : CheckState.inactive,
       onTaskAssignmentToggle: (checkState) {
         var alreadyQueued = sprintQueued.contains(taskItem);
@@ -101,7 +106,10 @@ class PlanTaskListState extends State<PlanTaskList> {
 
     DateTime endDate = getEndDate();
 
+    Sprint lastCompletedSprint = widget.appState.getLastCompletedSprint();
+
     final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted());
+    final List<TaskItem> lastSprintTasks = _moveSublist(otherTasks, (taskItem) => taskItem.sprints.contains(lastCompletedSprint));
     final List<TaskItem> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isDueBefore(endDate));
     final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgentBefore(endDate));
     final List<TaskItem> targetTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isTargetBefore(endDate));
@@ -109,34 +117,39 @@ class PlanTaskListState extends State<PlanTaskList> {
 
     List<StatelessWidget> tiles = [];
 
+    if (lastSprintTasks.isNotEmpty) {
+      tiles.add(HeadingItem('Last Sprint'));
+      lastSprintTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
+    }
+
     if (dueTasks.isNotEmpty) {
       tiles.add(HeadingItem('Due Soon'));
-      dueTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      dueTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
     }
 
     if (urgentTasks.isNotEmpty) {
       tiles.add(HeadingItem('Urgent Soon'));
-      urgentTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      urgentTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
     }
 
     if (targetTasks.isNotEmpty) {
       tiles.add(HeadingItem('Target Soon'));
-      targetTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      targetTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
     }
 
     if (otherTasks.isNotEmpty) {
       tiles.add(HeadingItem('Tasks'));
-      otherTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      otherTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
     }
 
     if (scheduledTasks.isNotEmpty) {
       tiles.add(HeadingItem('Starting Later'));
-      scheduledTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      scheduledTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
     }
 
     if (completedTasks.isNotEmpty) {
       tiles.add(HeadingItem('Completed'));
-      completedTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      completedTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
     }
 
     return ListView.builder(

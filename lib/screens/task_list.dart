@@ -47,6 +47,8 @@ class TaskListScreenState extends State<TaskListScreen> {
   bool showCompleted;
   bool showActive;
 
+  Sprint activeSprint;
+
   List<TaskItem> recentlyCompleted = [];
 
   @override
@@ -55,6 +57,7 @@ class TaskListScreenState extends State<TaskListScreen> {
     this.showScheduled = (widget.sprint != null);
     this.showCompleted = (widget.sprint != null);
     this.showActive = (widget.sprint != null);
+    this.activeSprint = widget.appState.getActiveSprint();
   }
 
   void _displaySnackBar(String msg, BuildContext context) {
@@ -163,7 +166,7 @@ class TaskListScreenState extends State<TaskListScreen> {
     );
   }
 
-  EditableTaskItemWidget _createWidget(TaskItem taskItem, BuildContext context) {
+  EditableTaskItemWidget _createWidget({TaskItem taskItem, BuildContext context}) {
 
     var snoozeDialog = (TaskItem taskItem) {
       showDialog<void>(context: context, builder: (context) => SnoozeDialog(
@@ -176,8 +179,8 @@ class TaskListScreenState extends State<TaskListScreen> {
       taskItem: taskItem,
       stateSetter: (callback) => setState(() => callback()),
       addMode: false,
-      allTasksMode: (widget.sprint == null),
       sprint: widget.sprint,
+      highlightSprint: (widget.sprint == null && activeSprint != null && taskItem.sprints.contains(activeSprint)),
       onTap: () async {
         await Navigator.of(context).push(
           MaterialPageRoute(builder: (_) {
@@ -248,32 +251,32 @@ class TaskListScreenState extends State<TaskListScreen> {
 
     if (dueTasks.isNotEmpty) {
       tiles.add(HeadingItem('Past Due'));
-      dueTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      dueTasks.forEach((task) => tiles.add(_createWidget(taskItem: task, context: context)));
     }
 
     if (urgentTasks.isNotEmpty) {
       tiles.add(HeadingItem('Urgent'));
-      urgentTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      urgentTasks.forEach((task) => tiles.add(_createWidget(taskItem: task, context: context)));
     }
 
     if (targetTasks.isNotEmpty) {
       tiles.add(HeadingItem('Target'));
-      targetTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      targetTasks.forEach((task) => tiles.add(_createWidget(taskItem: task, context: context)));
     }
 
     if (otherTasks.isNotEmpty) {
       tiles.add(HeadingItem('Tasks'));
-      otherTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      otherTasks.forEach((task) => tiles.add(_createWidget(taskItem: task, context: context)));
     }
 
     if (scheduledTasks.isNotEmpty) {
       tiles.add(HeadingItem('Scheduled'));
-      scheduledTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      scheduledTasks.forEach((task) => tiles.add(_createWidget(taskItem: task, context: context)));
     }
 
     if (completedTasks.isNotEmpty) {
       tiles.add(HeadingItem('Completed'));
-      completedTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      completedTasks.forEach((task) => tiles.add(_createWidget(taskItem: task, context: context)));
     }
 
     return ListView.builder(
