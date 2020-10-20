@@ -341,7 +341,7 @@ class TaskListScreenState extends State<TaskListScreen> {
     );
   }
 
-  Widget getTaskListBody() {
+  Widget getTaskListBody(BuildContext context) {
     List<Widget> elements = [];
     if (widget.subHeader != null) {
       elements.add(
@@ -375,9 +375,11 @@ class TaskListScreenState extends State<TaskListScreen> {
   }
 
   Widget getBody() {
-    return Container(
-        padding: EdgeInsets.only(top: 7.0),
-        child: widget.appState.isLoading ? getLoadingBody() : getTaskListBody()
+    return Builder(
+      builder: (context) => Container(
+          padding: EdgeInsets.only(top: 7.0),
+          child: widget.appState.isLoading ? getLoadingBody() : getTaskListBody(context)
+      ),
     );
   }
 
