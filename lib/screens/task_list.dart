@@ -279,6 +279,31 @@ class TaskListScreenState extends State<TaskListScreen> {
       completedTasks.forEach((task) => tiles.add(_createWidget(taskItem: task, context: context)));
     }
 
+    if (widget.sprint != null) {
+      tiles.add(
+        Container(
+            padding: EdgeInsets.all(25.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(child:
+                Center(
+                    child:
+                    GestureDetector(
+                      onTap: () => print('CLICK'),
+                      child: Text(
+                          "Add More...",
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0)
+                      ),
+                    )
+                ),
+                ),
+              ],
+            )
+        ),
+      );
+    }
+
     return ListView.builder(
         padding: const EdgeInsets.only(bottom: kFloatingActionButtonMargin + 54),
         itemCount: tiles.length,
