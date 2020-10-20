@@ -8,6 +8,7 @@ import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
+import 'package:taskmaster/screens/plan_task_list.dart';
 import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/delayed_checkbox.dart';
@@ -166,7 +167,9 @@ class TaskListScreenState extends State<TaskListScreen> {
     );
   }
 
-  EditableTaskItemWidget _createWidget({TaskItem taskItem, BuildContext context}) {
+
+
+  EditableTaskItemWidget _createTaskCard({TaskItem taskItem, BuildContext context}) {
 
     var snoozeDialog = (TaskItem taskItem) {
       showDialog<void>(context: context, builder: (context) => SnoozeDialog(
@@ -251,57 +254,36 @@ class TaskListScreenState extends State<TaskListScreen> {
 
     if (dueTasks.isNotEmpty) {
       tiles.add(HeadingItem('Past Due'));
-      dueTasks.forEach((task) => tiles.add(_createWidget(taskItem: task, context: context)));
+      dueTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
     }
 
     if (urgentTasks.isNotEmpty) {
       tiles.add(HeadingItem('Urgent'));
-      urgentTasks.forEach((task) => tiles.add(_createWidget(taskItem: task, context: context)));
+      urgentTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
     }
 
     if (targetTasks.isNotEmpty) {
       tiles.add(HeadingItem('Target'));
-      targetTasks.forEach((task) => tiles.add(_createWidget(taskItem: task, context: context)));
+      targetTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
     }
 
     if (otherTasks.isNotEmpty) {
       tiles.add(HeadingItem('Tasks'));
-      otherTasks.forEach((task) => tiles.add(_createWidget(taskItem: task, context: context)));
+      otherTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
     }
 
     if (scheduledTasks.isNotEmpty) {
       tiles.add(HeadingItem('Scheduled'));
-      scheduledTasks.forEach((task) => tiles.add(_createWidget(taskItem: task, context: context)));
+      scheduledTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
     }
 
     if (completedTasks.isNotEmpty) {
       tiles.add(HeadingItem('Completed'));
-      completedTasks.forEach((task) => tiles.add(_createWidget(taskItem: task, context: context)));
+      completedTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
     }
 
     if (widget.sprint != null) {
-      tiles.add(
-        Container(
-            padding: EdgeInsets.all(25.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(child:
-                Center(
-                    child:
-                    GestureDetector(
-                      onTap: () => print('CLICK'),
-                      child: Text(
-                          "Add More...",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0)
-                      ),
-                    )
-                ),
-                ),
-              ],
-            )
-        ),
-      );
+      tiles.add(_createAddMoreButton());
     }
 
     return ListView.builder(
@@ -310,6 +292,45 @@ class TaskListScreenState extends State<TaskListScreen> {
         itemBuilder: (context, index) {
           return tiles[index];
         });
+  }
+
+  void _openPlanning(BuildContext context) async {
+    await Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) {
+          return PlanTaskList(
+            appState: widget.appState,
+            taskHelper: widget.taskHelper,
+            taskListGetter: widget.appState.getAllTasks,
+            sprint: widget.sprint,
+          );
+        },
+        )
+    );
+    setState(() {
+    });
+  }
+
+  Widget _createAddMoreButton() {
+    return Container(
+        padding: EdgeInsets.all(25.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(child:
+            Center(
+                child:
+                GestureDetector(
+                  onTap: () => _openPlanning(context),
+                  child: Text(
+                      "Add More...",
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0)
+                  ),
+                )
+            ),
+            ),
+          ],
+        )
+    );
   }
 
   Widget getLoadingBody() {

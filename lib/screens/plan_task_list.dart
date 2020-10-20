@@ -21,6 +21,7 @@ class PlanTaskList extends StatefulWidget {
   final int numUnits;
   final String unitName;
   final DateTime startDate;
+  final Sprint sprint;
 
   PlanTaskList({
     @required this.appState,
@@ -29,6 +30,7 @@ class PlanTaskList extends StatefulWidget {
     this.numUnits,
     this.unitName,
     this.startDate,
+    this.sprint,
   }) : super(key: TaskMasterKeys.planTaskList);
 
   @override
@@ -47,12 +49,15 @@ class PlanTaskListState extends State<PlanTaskList> {
     DateTime endDate = getEndDate();
     var baseList = getBaseList();
     lastSprint = widget.appState.getLastCompletedSprint();
-    final Iterable<TaskItem> dueOrUrgentTasks = baseList.where((taskItem) =>
-        taskItem.isDueBefore(endDate) ||
-        taskItem.isUrgentBefore(endDate) ||
-        taskItem.sprints.contains(lastSprint)
-    );
-    sprintQueued.addAll(dueOrUrgentTasks);
+
+    if (widget.sprint == null) {
+      final Iterable<TaskItem> dueOrUrgentTasks = baseList.where((taskItem) =>
+          taskItem.isDueBefore(endDate) ||
+          taskItem.isUrgentBefore(endDate) ||
+          taskItem.sprints.contains(lastSprint)
+      );
+      sprintQueued.addAll(dueOrUrgentTasks);
+    }
   }
 
   List<TaskItem> _moveSublist(List<TaskItem> superList, bool Function(TaskItem) condition) {
@@ -90,7 +95,8 @@ class PlanTaskListState extends State<PlanTaskList> {
   List<TaskItem> getFilteredTasks(List<TaskItem> taskItems) {
     DateTime endDate = getEndDate();
     List<TaskItem> filtered = taskItems.where((taskItem) {
-      return !taskItem.isScheduledAfter(endDate) && !taskItem.isCompleted();
+      return !taskItem.isScheduledAfter(endDate) && !taskItem.isCompleted() &&
+          (widget.sprint == null || !taskItem.sprints.contains(widget.sprint));
     }).toList();
     return filtered;
   }
@@ -172,22 +178,26 @@ class PlanTaskListState extends State<PlanTaskList> {
   }
 
   DateTime getEndDate() {
-    return DateUtil.adjustToDate(widget.startDate, widget.numUnits, widget.unitName);
+    return widget.sprint == null ?
+        DateUtil.adjustToDate(widget.startDate, widget.numUnits, widget.unitName) :
+        widget.sprint.endDate.value;
   }
 
   void submit() async {
-    DateTime endDate = getEndDate();
-    Sprint sprint = Sprint();
-    sprint.startDate.value = widget.startDate;
-    sprint.endDate.value = endDate;
-    sprint.numUnits.value = widget.numUnits;
-    sprint.unitName.value = widget.unitName;
-    sprint.personId.value = widget.appState.personId;
-    for (TaskItem taskItem in sprintQueued) {
-      sprint.addToTasks(taskItem);
+    if (widget.sprint == null) {
+      DateTime endDate = getEndDate();
+      Sprint sprint = Sprint();
+      sprint.startDate.value = widget.startDate;
+      sprint.endDate.value = endDate;
+      sprint.numUnits.value = widget.numUnits;
+      sprint.unitName.value = widget.unitName;
+      sprint.personId.value = widget.appState.personId;
+      for (TaskItem taskItem in sprintQueued) {
+        sprint.addToTasks(taskItem);
+      }
+      await widget.taskHelper.addSprintAndTasks(sprint, sprintQueued);
+      Navigator.pop(context);
     }
-    await widget.taskHelper.addSprintAndTasks(sprint, sprintQueued);
-    Navigator.pop(context);
   }
 
   @override
