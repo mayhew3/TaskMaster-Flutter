@@ -161,9 +161,13 @@ class TaskHelper {
   Future<Sprint> addSprintAndTasks(Sprint sprint, List<TaskItem> taskItems) async {
     Sprint updatedSprint = await repository.addSprint(sprint);
     stateSetter(() => appState.sprints.add(updatedSprint));
-    await repository.addTasksToSprint(taskItems, updatedSprint);
+    return await addTasksToSprint(updatedSprint, taskItems);
+  }
+
+  Future<Sprint> addTasksToSprint(Sprint sprint, List<TaskItem> taskItems) async {
+    await repository.addTasksToSprint(taskItems, sprint);
     stateSetter(() => {});
-    return updatedSprint;
+    return sprint;
   }
 
   // private helpers

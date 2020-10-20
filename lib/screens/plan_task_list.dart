@@ -41,6 +41,7 @@ class PlanTaskListState extends State<PlanTaskList> {
 
   List<TaskItem> sprintQueued = [];
   Sprint lastSprint;
+  Sprint activeSprint;
 
   @override
   void initState() {
@@ -49,6 +50,7 @@ class PlanTaskListState extends State<PlanTaskList> {
     DateTime endDate = getEndDate();
     var baseList = getBaseList();
     lastSprint = widget.appState.getLastCompletedSprint();
+    activeSprint = widget.appState.getActiveSprint();
 
     if (widget.sprint == null) {
       final Iterable<TaskItem> dueOrUrgentTasks = baseList.where((taskItem) =>
@@ -196,8 +198,14 @@ class PlanTaskListState extends State<PlanTaskList> {
         sprint.addToTasks(taskItem);
       }
       await widget.taskHelper.addSprintAndTasks(sprint, sprintQueued);
-      Navigator.pop(context);
+    } else {
+      for (TaskItem taskItem in sprintQueued) {
+        activeSprint.addToTasks(taskItem);
+      }
+      await widget.taskHelper.addTasksToSprint(activeSprint, sprintQueued);
     }
+
+    Navigator.pop(context);
   }
 
   @override
