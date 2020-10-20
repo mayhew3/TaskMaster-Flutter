@@ -123,10 +123,10 @@ class TaskHelper {
 
   Future<TaskItem> updateTask(TaskItem taskItem) async {
     var inboundTask = await repository.updateTask(taskItem);
-    stateSetter(() async {
+    stateSetter(() {
       _copyChanges(inboundTask, taskItem);
-      await appState.notificationScheduler.syncNotificationForTask(taskItem);
     });
+    await appState.notificationScheduler.syncNotificationForTask(taskItem);
     appState.notificationScheduler.updateBadge();
     return taskItem;
   }

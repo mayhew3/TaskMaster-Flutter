@@ -67,7 +67,9 @@ class NullableDropdownState extends State<NullableDropdown> {
             var unwrapped = unwrapNullValue(newValue);
             widget.valueSetter(unwrapped);
           });
-          widget.onChanged(newValue);
+          if (widget.onChanged != null) {
+            widget.onChanged(newValue);
+          }
         },
         validator: widget.validator,
         items: widget.possibleValues.map<DropdownMenuItem<String>>((String itemValue) {
