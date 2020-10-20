@@ -100,6 +100,11 @@ class PlanTaskListState extends State<PlanTaskList> {
     return getFilteredTasks(allTasks);
   }
 
+  bool wasInEarlierSprint(TaskItem taskItem) {
+    var sprints = taskItem.sprints.where((sprint) => sprint != lastSprint);
+    return sprints.isNotEmpty;
+  }
+
   ListView _buildListView(BuildContext context) {
     widget.appState.notificationScheduler.updateHomeScreenContext(context);
     final List<TaskItem> otherTasks = getBaseList();
@@ -110,6 +115,7 @@ class PlanTaskListState extends State<PlanTaskList> {
 
     final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted());
     final List<TaskItem> lastSprintTasks = _moveSublist(otherTasks, (taskItem) => taskItem.sprints.contains(lastCompletedSprint));
+    final List<TaskItem> otherSprintTasks = _moveSublist(otherTasks, (taskItem) => wasInEarlierSprint(taskItem));
     final List<TaskItem> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isDueBefore(endDate));
     final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgentBefore(endDate));
     final List<TaskItem> targetTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isTargetBefore(endDate));
@@ -120,6 +126,11 @@ class PlanTaskListState extends State<PlanTaskList> {
     if (lastSprintTasks.isNotEmpty) {
       tiles.add(HeadingItem('Last Sprint'));
       lastSprintTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
+    }
+
+    if (otherSprintTasks.isNotEmpty) {
+      tiles.add(HeadingItem('Older Sprints'));
+      otherSprintTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
     }
 
     if (dueTasks.isNotEmpty) {
