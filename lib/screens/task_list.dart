@@ -204,7 +204,7 @@ class TaskListScreenState extends State<TaskListScreen> {
       onDismissed: (direction) async {
         if (direction == DismissDirection.endToStart) {
           try {
-            await widget.taskHelper.deleteTask(taskItem);
+            await widget.taskHelper.deleteTask(taskItem, (callback) => setState(() => callback()));
             _displaySnackBar("Task Deleted!", context);
             return true;
           } catch(err) {

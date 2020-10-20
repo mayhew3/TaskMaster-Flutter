@@ -45,6 +45,10 @@ class Sprint extends DataObject {
     }
   }
 
+  void removeFromTasks(TaskItem taskItem) {
+    taskItems.remove(taskItem);
+  }
+
   factory Sprint.fromJson(Map<String, dynamic> json) {
     Sprint sprint = Sprint();
     sprint.initFromFields(json);

@@ -110,12 +110,13 @@ class TaskHelper {
     return taskItem;
   }
 
-  Future<void> deleteTask(TaskItem taskItem) async {
+  Future<void> deleteTask(TaskItem taskItem, StateSetter stateSetter) async {
     var taskId = taskItem.id.value;
     await repository.deleteTask(taskItem);
     print('Removal of task successful!');
     await appState.notificationScheduler.cancelNotificationsForTaskId(taskId);
     stateSetter(() {
+      appState.sprints.forEach((sprint) => sprint.removeFromTasks(taskItem));
       appState.deleteTaskFromList(taskItem);
     });
     appState.notificationScheduler.updateBadge();
