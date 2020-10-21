@@ -88,12 +88,7 @@ class TaskRepository {
       throw Exception("Cannot add task with no personId.");
     }
 
-    var taskObj = {};
-    for (var field in taskItem.fields) {
-      if (!TaskItem.controlledFields.contains(field.fieldName)) {
-        taskObj[field.fieldName] = field.formatForJSON();
-      }
-    }
+    var taskObj = taskItem.toJSONWithout(TaskItem.controlledFields);
     taskObj['person_id'] = appState.personId;
 
     var payload = {

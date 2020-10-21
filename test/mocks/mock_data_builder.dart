@@ -52,9 +52,8 @@ class TaskItemBuilder {
     return taskItem;
   }
 
-  factory TaskItemBuilder.asDefault() {
+  factory TaskItemBuilder.asPreCommit() {
     return TaskItemBuilder()
-      ..id = 1
       ..name = 'Test Task'
       ..project = 'Maintenance'
       ..description = 'A thing for me to do.'
@@ -64,6 +63,11 @@ class TaskItemBuilder {
       ..duration = 15
       ..dateAdded = DateTime.now()
       ..gamePoints = 1;
+  }
+
+  factory TaskItemBuilder.asDefault() {
+    return TaskItemBuilder.asPreCommit()
+      ..id = 1;
   }
 
   factory TaskItemBuilder.withDates() {

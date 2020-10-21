@@ -20,20 +20,7 @@ class MockClient extends Mock implements http.Client {
     var mockSprintList = [];
 
     for (var taskItem in taskList) {
-      var mockObj = {};
-      for (var field in taskItem.fields) {
-        mockObj[field.fieldName] = field.formatForJSON();
-      }
-      var sprintAssignments = [];
-      for (var sprint in taskItem.sprints) {
-        var obj = {
-          'id': 1234,
-          'sprint_id': sprint.id.value
-        };
-        sprintAssignments.add(obj);
-      }
-      mockObj['sprint_assignments'] = sprintAssignments;
-      mockPlayerList.add(mockObj);
+      mockPlayerList.add(_getMockTask(taskItem));
     }
 
     for (var sprintItem in sprintList) {
@@ -49,8 +36,26 @@ class MockClient extends Mock implements http.Client {
     return json.encode(taskObj);
   }
 
+  dynamic _getMockTask(TaskItem taskItem) {
+    var mockObj = {};
+    for (var field in taskItem.fields) {
+      mockObj[field.fieldName] = field.formatForJSON();
+    }
+    var sprintAssignments = [];
+    for (var sprint in taskItem.sprints) {
+      var obj = {
+        'id': 1234,
+        'sprint_id': sprint.id.value
+      };
+      sprintAssignments.add(obj);
+    }
+    mockObj['sprint_assignments'] = sprintAssignments;
+    return mockObj;
+  }
+
   @override
   Future<http.Response> get(url, {Map<String, String> headers}) {
     return Future<http.Response>.value(http.Response(_mockTheJSON(), 200));
   }
+
 }

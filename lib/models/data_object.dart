@@ -44,6 +44,16 @@ abstract class DataObject {
     return taskObj;
   }
 
+  Map<String, dynamic> toJSONWithout(List<String> excludedFields) {
+    Map<String, dynamic> taskObj = {};
+    for (TaskField field in fields) {
+      if (!excludedFields.contains(field.fieldName)) {
+        taskObj[field.fieldName] = field.formatForJSON();
+      }
+    }
+    return taskObj;
+  }
+
   // Private
 
   @protected

@@ -351,4 +351,24 @@ void main() {
 
   });
 
+  test('addTaskToSprint', () async {
+    List<TaskItem> taskItems = [
+      ((TaskItemBuilder.asDefault()..id=1).create()),
+      ((TaskItemBuilder.asDefault()..id=2).create()),
+      ((TaskItemBuilder.asDefault()..id=3).create()),
+    ];
+    Sprint sprint = currentSprint;
+
+    TaskHelper taskHelper = createTaskHelper(taskItems: taskItems, sprints: [pastSprint]);
+    MockAppState appState = taskHelper.appState;
+
+    Sprint returnedSprint = await taskHelper.addTasksToSprint(sprint, taskItems);
+
+    verifyNever(taskRepository.addSprint(sprint));
+    verify(taskRepository.addTasksToSprint(taskItems, returnedSprint));
+
+    expect(appState.sprints, hasLength(1));
+
+  });
+
 }
