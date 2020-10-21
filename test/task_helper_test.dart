@@ -179,7 +179,7 @@ void main() {
     var taskHelper = createTaskHelper(taskItems: [originalTask]);
     var mockAppState = taskHelper.appState;
 
-    await taskHelper.deleteTask(originalTask);
+    await taskHelper.deleteTask(originalTask, stateSetter);
     verify(mockAppState.notificationScheduler.cancelNotificationsForTaskId(originalTask.id.value));
     verify(mockAppState.deleteTaskFromList(originalTask));
     verify(mockAppState.notificationScheduler.updateBadge());
