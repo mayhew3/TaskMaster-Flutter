@@ -161,13 +161,8 @@ class TaskRepository {
       throw Exception("Cannot update task before being signed in.");
     }
 
-    var taskObj = {};
+    var taskObj = taskItem.toJSONWithout(TaskItem.controlledFields);
     taskObj['id'] = taskItem.id.value;
-    for (var field in taskItem.fields) {
-      if (!TaskItem.controlledFields.contains(field.fieldName) && field.isChanged()) {
-        taskObj[field.fieldName] = field.formatForJSON();
-      }
-    }
 
     var payload = {
       "task": taskObj

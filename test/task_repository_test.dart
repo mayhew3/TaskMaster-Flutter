@@ -22,6 +22,7 @@ void main() {
 
     http.Client client;
     AppState appState;
+    final String tasksAPI = "https://taskmaster-general.herokuapp.com/api/tasks";
 
     TaskRepository createTaskRepository({List<TaskItem> taskItems, List<Sprint> sprints}) {
       appState = new MockAppState();
@@ -35,8 +36,13 @@ void main() {
       var utfDecoded = utf8.decode(body);
       var jsonObj = json.decode(utfDecoded);
       var jsonTask = jsonObj["task"];
-      jsonTask["id"] = id;
-      jsonTask["date_added"] = DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime.toUtc());
+      if (id != null) {
+        jsonTask["id"] = id;
+      }
+      if (dateTime != null) {
+        jsonTask["date_added"] =
+            DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime.toUtc());
+      }
       return json.encode(jsonTask);
     }
 
@@ -75,7 +81,7 @@ void main() {
 
       var addedItem = (TaskItemBuilder.asPreCommit()).create();
 
-      when(client.post("https://taskmaster-general.herokuapp.com/api/tasks", headers: anyNamed("headers"), body: anyNamed("body")))
+      when(client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")))
           .thenAnswer((invocation) async {
         _validateToken(invocation);
 
@@ -86,6 +92,8 @@ void main() {
 
       var returnedItem = await taskRepository.addTask(addedItem);
 
+      verify(client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")));
+
       expect(returnedItem.id.value, id);
       expect(returnedItem.name.value, addedItem.name.value);
       expect(returnedItem.personId.value, 1);
@@ -93,6 +101,36 @@ void main() {
     });
 
     test('updateTask', () async {
+      TaskItem taskItem = TaskItemBuilder.asDefault().create();
+      var taskItems = [
+        taskItem
+      ];
+
+      TaskRepository taskRepository = createTaskRepository(taskItems: taskItems);
+
+      when(client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")))
+          .thenAnswer((invocation) async {
+        _validateToken(invocation);
+
+        var body = invocation.namedArguments[Symbol("body")];
+        var payload = _encodeBody(body);
+        return Future<http.Response>.value(http.Response(payload, 200));
+      });
+
+      var newProject = "Groovy Time";
+      var newTargetDate = DateTime.now().add(Duration(days: 3));
+
+      taskItem.project.value = newProject;
+      taskItem.targetDate.value = newTargetDate;
+
+      var returnedItem = await taskRepository.updateTask(taskItem);
+
+      verify(client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")));
+
+      expect(returnedItem.project.value, newProject);
+      expect(returnedItem.project.originalValue, newProject);
+      expect(returnedItem.targetDate.value, newTargetDate);
+      expect(returnedItem.targetDate.originalValue, newTargetDate);
 
     });
 

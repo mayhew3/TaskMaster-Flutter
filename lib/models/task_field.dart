@@ -95,7 +95,7 @@ class TaskFieldDate extends TaskField<DateTime> {
       return null;
     } else {
       var utc = value.toUtc();
-      return DateFormat('yyyy-MM-dd HH:mm:ss').format(utc);
+      return utc.toIso8601String();
     }
   }
 }
