@@ -25,7 +25,7 @@ void main() {
 
     TaskRepository createTaskRepository({List<TaskItem> taskItems, List<Sprint> sprints}) {
       appState = new MockAppState();
-      client = new MockClient(taskItems ?? [], sprints ?? allSprints);
+      client = new MockClient(taskItems ?? allTasks, sprints ?? allSprints);
       return TaskRepository(appState: appState, client: client);
     }
 
@@ -51,7 +51,7 @@ void main() {
     // tests
 
     test('loadTasks with no tasks', () async {
-      TaskRepository taskRepository = createTaskRepository();
+      TaskRepository taskRepository = createTaskRepository(taskItems: []);
 
       await taskRepository.loadTasks((callback) => callback());
       List<TaskItem> taskList = appState.taskItems;
@@ -60,29 +60,18 @@ void main() {
     });
 
     test('loadTasks with tasks', () async {
-      List<TaskItem> taskItems = [
-        ((TaskItemBuilder.asDefault()..id=1).create()),
-        ((TaskItemBuilder.asDefault()..id=2).create()),
-      ];
-
-      TaskRepository taskRepository = createTaskRepository(taskItems: taskItems);
+      TaskRepository taskRepository = createTaskRepository();
 
       await taskRepository.loadTasks((callback) => callback());
       List<TaskItem> taskList = appState.taskItems;
       expect(taskList, const TypeMatcher<List<TaskItem>>());
-      expect(taskList.length, 2);
+      expect(taskList, hasLength(allTasks.length));
     });
 
     test('addTask', () async {
-      List<TaskItem> taskItems = [
-        ((TaskItemBuilder.asDefault()..id=1).create()),
-        ((TaskItemBuilder.asDefault()..id=2).create()),
-        ((TaskItemBuilder.asDefault()..id=3).create()),
-      ];
-
       int id = 2345;
 
-      TaskRepository taskRepository = createTaskRepository(taskItems: taskItems);
+      TaskRepository taskRepository = createTaskRepository();
 
       var addedItem = (TaskItemBuilder.asPreCommit()).create();
 
@@ -103,7 +92,10 @@ void main() {
       expect(returnedItem.dateAdded.value, isNot(null));
     });
 
-    
+    test('updateTask', () async {
+
+    });
+
     // todo: updateTask, addSnooze, addSprint
   });
 
