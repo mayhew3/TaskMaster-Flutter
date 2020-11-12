@@ -33,7 +33,9 @@ class NotificationScheduler {
     var initializationSettingsIOS = IOSInitializationSettings(
         onDidReceiveLocalNotification: _onDidReceiveLocalNotification);
     var initializationSettings = InitializationSettings(
-        initializationSettingsAndroid, initializationSettingsIOS);
+        android: initializationSettingsAndroid,
+        iOS: initializationSettingsIOS
+    );
     this.flutterLocalNotificationsPlugin.initialize(initializationSettings,
         onSelectNotification: _onSelectNotification);
   }
@@ -188,8 +190,8 @@ class NotificationScheduler {
       'taskmaster',
       'TaskMaster',
       'Notifications for the TaskMaster app',
-      importance: Importance.Max,
-      priority: Priority.High,
+      importance: Importance.max,
+      priority: Priority.high,
       ticker: 'ticker',
     );
     var iOSPlatformChannelSpecifics = IOSNotificationDetails(
@@ -198,8 +200,8 @@ class NotificationScheduler {
       presentSound: true,
     );
     var platformChannelSpecifics = NotificationDetails(
-        androidPlatformChannelSpecifics,
-        iOSPlatformChannelSpecifics
+        android: androidPlatformChannelSpecifics,
+        iOS: iOSPlatformChannelSpecifics,
     );
     await flutterLocalNotificationsPlugin.schedule(
         id,
