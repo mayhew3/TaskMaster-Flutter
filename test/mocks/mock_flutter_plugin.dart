@@ -13,7 +13,7 @@ class MockFlutterLocalNotificationsPlugin extends Mock implements FlutterLocalNo
   Future<bool> initialize(InitializationSettings initializationSettings,
       {SelectNotificationCallback onSelectNotification}) async {
     onSelect = onSelectNotification;
-    onNotification = initializationSettings.ios.onDidReceiveLocalNotification;
+    onNotification = initializationSettings.iOS.onDidReceiveLocalNotification;
     return Future.value(true);
   }
 
