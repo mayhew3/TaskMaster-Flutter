@@ -28,6 +28,12 @@ class Sprint extends DataObject {
     unitName = addStringField('unit_name');
   }
 
+  bool isActive() {
+    var now = DateTime.now();
+    return this.startDate.value.isBefore(now) &&
+        this.endDate.value.isAfter(now);
+  }
+
   @override
   List<String> getControlledFields() {
     return controlledFields;
@@ -37,6 +43,10 @@ class Sprint extends DataObject {
     if (!taskItems.contains(taskItem)) {
       taskItems.add(taskItem);
     }
+  }
+
+  void removeFromTasks(TaskItem taskItem) {
+    taskItems.remove(taskItem);
   }
 
   factory Sprint.fromJson(Map<String, dynamic> json) {

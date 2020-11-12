@@ -15,21 +15,4 @@ class MockTaskHelper extends Mock implements TaskHelper {
     @required this.taskRepository,
   });
 
-  @override
-  Future<void> addTask(TaskItem taskItem) async {
-  }
-
-  @override
-  Future<TaskItem> completeTask(TaskItem taskItem, bool completed, stateSetter) async {
-    return Future.value(taskItem);
-  }
-
-  @override
-  Future<void> deleteTask(TaskItem taskItem) async {
-  }
-
-  @override
-  Future<TaskItem> updateTask(TaskItem taskItem) async {
-    return Future.value(taskItem);
-  }
 }

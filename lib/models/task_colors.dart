@@ -9,4 +9,5 @@ class TaskColors {
   static final Color cardColor = Color.fromRGBO(76, 77, 105, 1.0);
   static final Color pendingBackground = Color.fromRGBO(178, 158, 67, 0.3);
   static final Color pendingCheckbox = Color.fromRGBO(178, 158, 67, 0.8);
+  static final Color sprintColor = Color.fromRGBO(240, 240, 60, 1.0);
 }

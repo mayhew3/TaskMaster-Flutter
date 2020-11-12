@@ -21,6 +21,7 @@ class PlanTaskList extends StatefulWidget {
   final int numUnits;
   final String unitName;
   final DateTime startDate;
+  final Sprint sprint;
 
   PlanTaskList({
     @required this.appState,
@@ -29,6 +30,7 @@ class PlanTaskList extends StatefulWidget {
     this.numUnits,
     this.unitName,
     this.startDate,
+    this.sprint,
   }) : super(key: TaskMasterKeys.planTaskList);
 
   @override
@@ -38,6 +40,8 @@ class PlanTaskList extends StatefulWidget {
 class PlanTaskListState extends State<PlanTaskList> {
 
   List<TaskItem> sprintQueued = [];
+  Sprint lastSprint;
+  Sprint activeSprint;
 
   @override
   void initState() {
@@ -45,9 +49,17 @@ class PlanTaskListState extends State<PlanTaskList> {
 
     DateTime endDate = getEndDate();
     var baseList = getBaseList();
-    final Iterable<TaskItem> dueOrUrgentTasks = baseList.where((taskItem) =>
-        taskItem.isDueBefore(endDate) || taskItem.isUrgentBefore(endDate));
-    sprintQueued.addAll(dueOrUrgentTasks);
+    lastSprint = widget.appState.getLastCompletedSprint();
+    activeSprint = widget.appState.getActiveSprint();
+
+    if (widget.sprint == null) {
+      final Iterable<TaskItem> dueOrUrgentTasks = baseList.where((taskItem) =>
+          taskItem.isDueBefore(endDate) ||
+          taskItem.isUrgentBefore(endDate) ||
+          taskItem.sprints.contains(lastSprint)
+      );
+      sprintQueued.addAll(dueOrUrgentTasks);
+    }
   }
 
   List<TaskItem> _moveSublist(List<TaskItem> superList, bool Function(TaskItem) condition) {
@@ -56,13 +68,14 @@ class PlanTaskListState extends State<PlanTaskList> {
     return subList;
   }
 
-  EditableTaskItemWidget _createWidget(TaskItem taskItem, BuildContext context) {
+  EditableTaskItemWidget _createWidget({TaskItem taskItem}) {
     return EditableTaskItemWidget(
       taskItem: taskItem,
       endDate: getEndDate(),
       sprint: null,
       stateSetter: (callback) => setState(() => callback()),
       addMode: true,
+      highlightSprint: taskItem.sprints.contains(lastSprint),
       initialCheckState: sprintQueued.contains(taskItem) ? CheckState.checked : CheckState.inactive,
       onTaskAssignmentToggle: (checkState) {
         var alreadyQueued = sprintQueued.contains(taskItem);
@@ -84,7 +97,8 @@ class PlanTaskListState extends State<PlanTaskList> {
   List<TaskItem> getFilteredTasks(List<TaskItem> taskItems) {
     DateTime endDate = getEndDate();
     List<TaskItem> filtered = taskItems.where((taskItem) {
-      return !taskItem.isScheduledAfter(endDate) && !taskItem.isCompleted();
+      return !taskItem.isScheduledAfter(endDate) && !taskItem.isCompleted() &&
+          (widget.sprint == null || !taskItem.sprints.contains(widget.sprint));
     }).toList();
     return filtered;
   }
@@ -94,13 +108,22 @@ class PlanTaskListState extends State<PlanTaskList> {
     return getFilteredTasks(allTasks);
   }
 
+  bool wasInEarlierSprint(TaskItem taskItem) {
+    var sprints = taskItem.sprints.where((sprint) => sprint != lastSprint);
+    return sprints.isNotEmpty;
+  }
+
   ListView _buildListView(BuildContext context) {
     widget.appState.notificationScheduler.updateHomeScreenContext(context);
     final List<TaskItem> otherTasks = getBaseList();
 
     DateTime endDate = getEndDate();
 
+    Sprint lastCompletedSprint = widget.appState.getLastCompletedSprint();
+
     final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted());
+    final List<TaskItem> lastSprintTasks = _moveSublist(otherTasks, (taskItem) => taskItem.sprints.contains(lastCompletedSprint));
+    final List<TaskItem> otherSprintTasks = _moveSublist(otherTasks, (taskItem) => wasInEarlierSprint(taskItem));
     final List<TaskItem> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isDueBefore(endDate));
     final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgentBefore(endDate));
     final List<TaskItem> targetTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isTargetBefore(endDate));
@@ -108,34 +131,44 @@ class PlanTaskListState extends State<PlanTaskList> {
 
     List<StatelessWidget> tiles = [];
 
+    if (lastSprintTasks.isNotEmpty) {
+      tiles.add(HeadingItem('Last Sprint'));
+      lastSprintTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
+    }
+
+    if (otherSprintTasks.isNotEmpty) {
+      tiles.add(HeadingItem('Older Sprints'));
+      otherSprintTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
+    }
+
     if (dueTasks.isNotEmpty) {
       tiles.add(HeadingItem('Due Soon'));
-      dueTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      dueTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
     }
 
     if (urgentTasks.isNotEmpty) {
       tiles.add(HeadingItem('Urgent Soon'));
-      urgentTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      urgentTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
     }
 
     if (targetTasks.isNotEmpty) {
       tiles.add(HeadingItem('Target Soon'));
-      targetTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      targetTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
     }
 
     if (otherTasks.isNotEmpty) {
       tiles.add(HeadingItem('Tasks'));
-      otherTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      otherTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
     }
 
     if (scheduledTasks.isNotEmpty) {
       tiles.add(HeadingItem('Starting Later'));
-      scheduledTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      scheduledTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
     }
 
     if (completedTasks.isNotEmpty) {
       tiles.add(HeadingItem('Completed'));
-      completedTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      completedTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
     }
 
     return ListView.builder(
@@ -147,21 +180,31 @@ class PlanTaskListState extends State<PlanTaskList> {
   }
 
   DateTime getEndDate() {
-    return DateUtil.adjustToDate(widget.startDate, widget.numUnits, widget.unitName);
+    return widget.sprint == null ?
+        DateUtil.adjustToDate(widget.startDate, widget.numUnits, widget.unitName) :
+        widget.sprint.endDate.value;
   }
 
   void submit() async {
-    DateTime endDate = getEndDate();
-    Sprint sprint = Sprint();
-    sprint.startDate.value = widget.startDate;
-    sprint.endDate.value = endDate;
-    sprint.numUnits.value = widget.numUnits;
-    sprint.unitName.value = widget.unitName;
-    sprint.personId.value = widget.appState.personId;
-    for (TaskItem taskItem in sprintQueued) {
-      sprint.addToTasks(taskItem);
+    if (widget.sprint == null) {
+      DateTime endDate = getEndDate();
+      Sprint sprint = Sprint();
+      sprint.startDate.value = widget.startDate;
+      sprint.endDate.value = endDate;
+      sprint.numUnits.value = widget.numUnits;
+      sprint.unitName.value = widget.unitName;
+      sprint.personId.value = widget.appState.personId;
+      for (TaskItem taskItem in sprintQueued) {
+        sprint.addToTasks(taskItem);
+      }
+      await widget.taskHelper.addSprintAndTasks(sprint, sprintQueued);
+    } else {
+      for (TaskItem taskItem in sprintQueued) {
+        activeSprint.addToTasks(taskItem);
+      }
+      await widget.taskHelper.addTasksToSprint(activeSprint, sprintQueued);
     }
-    await widget.taskHelper.addSprintAndTasks(sprint, sprintQueued);
+
     Navigator.pop(context);
   }
 

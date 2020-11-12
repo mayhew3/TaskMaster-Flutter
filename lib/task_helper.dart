@@ -110,12 +110,13 @@ class TaskHelper {
     return taskItem;
   }
 
-  Future<void> deleteTask(TaskItem taskItem) async {
+  Future<void> deleteTask(TaskItem taskItem, StateSetter stateSetter) async {
     var taskId = taskItem.id.value;
     await repository.deleteTask(taskItem);
     print('Removal of task successful!');
     await appState.notificationScheduler.cancelNotificationsForTaskId(taskId);
     stateSetter(() {
+      appState.sprints.forEach((sprint) => sprint.removeFromTasks(taskItem));
       appState.deleteTaskFromList(taskItem);
     });
     appState.notificationScheduler.updateBadge();
@@ -123,10 +124,10 @@ class TaskHelper {
 
   Future<TaskItem> updateTask(TaskItem taskItem) async {
     var inboundTask = await repository.updateTask(taskItem);
-    stateSetter(() async {
+    stateSetter(() {
       _copyChanges(inboundTask, taskItem);
-      await appState.notificationScheduler.syncNotificationForTask(taskItem);
     });
+    await appState.notificationScheduler.syncNotificationForTask(taskItem);
     appState.notificationScheduler.updateBadge();
     return taskItem;
   }
@@ -161,9 +162,13 @@ class TaskHelper {
   Future<Sprint> addSprintAndTasks(Sprint sprint, List<TaskItem> taskItems) async {
     Sprint updatedSprint = await repository.addSprint(sprint);
     stateSetter(() => appState.sprints.add(updatedSprint));
-    await repository.addTasksToSprint(taskItems, updatedSprint);
+    return await addTasksToSprint(updatedSprint, taskItems);
+  }
+
+  Future<Sprint> addTasksToSprint(Sprint sprint, List<TaskItem> taskItems) async {
+    await repository.addTasksToSprint(taskItems, sprint);
     stateSetter(() => {});
-    return updatedSprint;
+    return sprint;
   }
 
   // private helpers

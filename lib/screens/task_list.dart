@@ -1,18 +1,20 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/app_state.dart';
+import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/sprint.dart';
+import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
+import 'package:taskmaster/screens/plan_task_list.dart';
 import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/typedefs.dart';
+import 'package:taskmaster/widgets/delayed_checkbox.dart';
 import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/widgets/filter_button.dart';
 import 'package:taskmaster/widgets/header_list_item.dart';
-import 'package:taskmaster/widgets/delayed_checkbox.dart';
 import 'package:taskmaster/widgets/snooze_dialog.dart';
 
 class TaskListScreen extends StatefulWidget {
@@ -44,6 +46,9 @@ class TaskListScreen extends StatefulWidget {
 class TaskListScreenState extends State<TaskListScreen> {
   bool showScheduled;
   bool showCompleted;
+  bool showActive;
+
+  Sprint activeSprint;
 
   List<TaskItem> recentlyCompleted = [];
 
@@ -52,6 +57,8 @@ class TaskListScreenState extends State<TaskListScreen> {
     super.initState();
     this.showScheduled = (widget.sprint != null);
     this.showCompleted = (widget.sprint != null);
+    this.showActive = (widget.sprint != null);
+    this.activeSprint = widget.appState.getActiveSprint();
   }
 
   void _displaySnackBar(String msg, BuildContext context) {
@@ -85,7 +92,84 @@ class TaskListScreenState extends State<TaskListScreen> {
     return subList;
   }
 
-  EditableTaskItemWidget _createWidget(TaskItem taskItem, BuildContext context) {
+  Card _createSummaryWidget(Sprint sprint, BuildContext context) {
+    var currentDay = DateTime.now().difference(sprint.startDate.value).inDays + 1;
+    var totalDays = sprint.endDate.value.difference(sprint.startDate.value).inDays;
+    var sprintStr = "Active Sprint - Day " + currentDay.toString() + " of " + totalDays.toString();
+
+    var completed = sprint.taskItems.where((taskItem) => taskItem.completionDate.value != null);
+    var taskStr = completed.length.toString() + "/" + sprint.taskItems.length.toString() + " Tasks Complete";
+
+    return Card(
+      color: Color.fromARGB(100, 100, 20, 20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(3.0),
+        side: BorderSide(
+          color: TaskColors.sprintColor,
+          width: 1.0,
+        ),
+      ),
+      elevation: 3.0,
+      margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
+      child: ClipPath(
+        clipper: ShapeBorderClipper(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(3.0),
+            )
+        ),
+        child: Container(
+          padding: EdgeInsets.all(13.5),
+          child: Row(
+            children: <Widget>[
+              Container(
+                child: Icon(Icons.assignment, color: TaskColors.sprintColor),
+              ),
+              SizedBox(width: 10.0),
+              Expanded(
+                child: Container(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                          sprintStr,
+                          style: const TextStyle(
+                              fontSize: 17.0,
+                              fontWeight: FontWeight.bold
+                          )
+                      ),
+                      Text(
+                          taskStr,
+                          style: TextStyle(
+                              fontSize: 14.0,
+                              color: TaskColors.sprintColor
+                          )
+                      )
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                child: GestureDetector(
+                  onTap: () => setState(() => showActive = !showActive),
+                  child: Text(
+                    showActive ? "Hide Tasks" : "Show Tasks",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
+
+  EditableTaskItemWidget _createTaskCard({TaskItem taskItem, BuildContext context}) {
 
     var snoozeDialog = (TaskItem taskItem) {
       showDialog<void>(context: context, builder: (context) => SnoozeDialog(
@@ -99,6 +183,7 @@ class TaskListScreenState extends State<TaskListScreen> {
       stateSetter: (callback) => setState(() => callback()),
       addMode: false,
       sprint: widget.sprint,
+      highlightSprint: (widget.sprint == null && activeSprint != null && taskItem.sprints.contains(activeSprint)),
       onTap: () async {
         await Navigator.of(context).push(
           MaterialPageRoute(builder: (_) {
@@ -119,7 +204,7 @@ class TaskListScreenState extends State<TaskListScreen> {
       onDismissed: (direction) async {
         if (direction == DismissDirection.endToStart) {
           try {
-            await widget.taskHelper.deleteTask(taskItem);
+            await widget.taskHelper.deleteTask(taskItem, (callback) => setState(() => callback()));
             _displaySnackBar("Task Deleted!", context);
             return true;
           } catch(err) {
@@ -132,10 +217,12 @@ class TaskListScreenState extends State<TaskListScreen> {
   }
 
   List<TaskItem> getFilteredTasks(List<TaskItem> taskItems) {
+    var activeSprint = widget.appState.getActiveSprint();
     List<TaskItem> filtered = taskItems.where((taskItem) {
       bool passesScheduleFilter = showScheduled || !taskItem.isScheduled();
       bool passesCompletedFilter = showCompleted || !(taskItem.isCompleted() && !recentlyCompleted.contains(taskItem));
-      return passesScheduleFilter && passesCompletedFilter;
+      bool passesActiveFilter = showActive || !(taskItem.sprints.contains(activeSprint));
+      return passesScheduleFilter && passesCompletedFilter && passesActiveFilter;
     }).toList();
     return filtered;
   }
@@ -158,34 +245,45 @@ class TaskListScreenState extends State<TaskListScreen> {
 
     List<StatelessWidget> tiles = [];
 
+    if (widget.sprint == null) {
+      var activeSprint = widget.appState.getActiveSprint();
+      if (activeSprint != null) {
+        tiles.add(_createSummaryWidget(activeSprint, context));
+      }
+    }
+
     if (dueTasks.isNotEmpty) {
       tiles.add(HeadingItem('Past Due'));
-      dueTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      dueTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
     }
 
     if (urgentTasks.isNotEmpty) {
       tiles.add(HeadingItem('Urgent'));
-      urgentTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      urgentTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
     }
 
     if (targetTasks.isNotEmpty) {
       tiles.add(HeadingItem('Target'));
-      targetTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      targetTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
     }
 
     if (otherTasks.isNotEmpty) {
       tiles.add(HeadingItem('Tasks'));
-      otherTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      otherTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
     }
 
     if (scheduledTasks.isNotEmpty) {
       tiles.add(HeadingItem('Scheduled'));
-      scheduledTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      scheduledTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
     }
 
     if (completedTasks.isNotEmpty) {
       tiles.add(HeadingItem('Completed'));
-      completedTasks.forEach((task) => tiles.add(_createWidget(task, context)));
+      completedTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
+    }
+
+    if (widget.sprint != null) {
+      tiles.add(_createAddMoreButton());
     }
 
     return ListView.builder(
@@ -196,6 +294,45 @@ class TaskListScreenState extends State<TaskListScreen> {
         });
   }
 
+  void _openPlanning(BuildContext context) async {
+    await Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) {
+          return PlanTaskList(
+            appState: widget.appState,
+            taskHelper: widget.taskHelper,
+            taskListGetter: widget.appState.getAllTasks,
+            sprint: widget.sprint,
+          );
+        },
+        )
+    );
+    setState(() {
+    });
+  }
+
+  Widget _createAddMoreButton() {
+    return Container(
+        padding: EdgeInsets.all(25.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(child:
+            Center(
+                child:
+                GestureDetector(
+                  onTap: () => _openPlanning(context),
+                  child: Text(
+                      "Add More...",
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0)
+                  ),
+                )
+            ),
+            ),
+          ],
+        )
+    );
+  }
+
   Widget getLoadingBody() {
     return Center(
         child: CircularProgressIndicator(
@@ -204,7 +341,7 @@ class TaskListScreenState extends State<TaskListScreen> {
     );
   }
 
-  Widget getTaskListBody() {
+  Widget getTaskListBody(BuildContext context) {
     List<Widget> elements = [];
     if (widget.subHeader != null) {
       elements.add(
@@ -238,8 +375,11 @@ class TaskListScreenState extends State<TaskListScreen> {
   }
 
   Widget getBody() {
-    return Container(
-        child: widget.appState.isLoading ? getLoadingBody() : getTaskListBody()
+    return Builder(
+      builder: (context) => Container(
+          padding: EdgeInsets.only(top: 7.0),
+          child: widget.appState.isLoading ? getLoadingBody() : getTaskListBody(context)
+      ),
     );
   }
 

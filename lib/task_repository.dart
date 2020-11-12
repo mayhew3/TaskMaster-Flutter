@@ -88,12 +88,7 @@ class TaskRepository {
       throw Exception("Cannot add task with no personId.");
     }
 
-    var taskObj = {};
-    for (var field in taskItem.fields) {
-      if (!TaskItem.controlledFields.contains(field.fieldName)) {
-        taskObj[field.fieldName] = field.formatForJSON();
-      }
-    }
+    var taskObj = taskItem.toJSONWithout(TaskItem.controlledFields);
     taskObj['person_id'] = appState.personId;
 
     var payload = {
@@ -166,13 +161,8 @@ class TaskRepository {
       throw Exception("Cannot update task before being signed in.");
     }
 
-    var taskObj = {};
+    var taskObj = taskItem.toJSONWithout(TaskItem.controlledFields);
     taskObj['id'] = taskItem.id.value;
-    for (var field in taskItem.fields) {
-      if (!TaskItem.controlledFields.contains(field.fieldName) && field.isChanged()) {
-        taskObj[field.fieldName] = field.formatForJSON();
-      }
-    }
 
     var payload = {
       "task": taskObj
