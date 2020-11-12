@@ -547,7 +547,7 @@ packages:
     source: hosted
     version: "2.0.26"
   timezone:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: timezone
       url: "https://pub.dartlang.org"

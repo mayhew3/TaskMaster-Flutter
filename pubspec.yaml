@@ -28,6 +28,7 @@ dependencies:
   flutter_local_notifications: 3.0.1+2
   flutter_app_badger: 1.1.2
   timeago: 2.0.26
+  timezone: 0.5.9
   characters: 1.1.0-nullsafety.3
   flutter_platform_widgets: 0.51.0
 

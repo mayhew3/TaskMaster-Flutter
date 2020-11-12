@@ -8,6 +8,8 @@ import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
 import 'package:taskmaster/task_helper.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 class NotificationScheduler {
 
@@ -38,6 +40,12 @@ class NotificationScheduler {
     );
     this.flutterLocalNotificationsPlugin.initialize(initializationSettings,
         onSelectNotification: _onSelectNotification);
+  }
+
+  Future<void> _configureLocalTimeZone() async {
+    tz.initializeTimeZones();
+    final String timeZoneName = await platform.invokeMethod('getTimeZoneName');
+    tz.setLocalLocation(tz.getLocation(timeZoneName));
   }
 
   void updateHomeScreenContext(BuildContext context) {
