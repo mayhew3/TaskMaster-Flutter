@@ -2,9 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:intl/intl.dart';
-import 'package:taskmaster/flutter_badger_wrapper.dart';
 import 'package:taskmaster/app_state.dart';
+import 'package:taskmaster/flutter_badger_wrapper.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
 import 'package:taskmaster/task_helper.dart';
@@ -30,6 +31,8 @@ class NotificationScheduler {
     @required this.flutterBadgerWrapper,
     @required this.taskHelper,
   }) {
+    _configureLocalTimeZone();
+
     // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
     var initializationSettingsAndroid = AndroidInitializationSettings('app_icon');
     var initializationSettingsIOS = IOSInitializationSettings(
@@ -44,8 +47,8 @@ class NotificationScheduler {
 
   Future<void> _configureLocalTimeZone() async {
     tz.initializeTimeZones();
-    final String timeZoneName = await platform.invokeMethod('getTimeZoneName');
-    tz.setLocalLocation(tz.getLocation(timeZoneName));
+    String timezone = await FlutterNativeTimezone.getLocalTimezone();
+    tz.setLocalLocation(tz.getLocation(timezone));
   }
 
   void updateHomeScreenContext(BuildContext context) {
@@ -211,12 +214,14 @@ class NotificationScheduler {
         android: androidPlatformChannelSpecifics,
         iOS: iOSPlatformChannelSpecifics,
     );
-    await flutterLocalNotificationsPlugin.schedule(
+    await flutterLocalNotificationsPlugin.zonedSchedule(
         id,
         name,
         'Task has reached $dateType date',
-        scheduledTime,
+        tz.TZDateTime.from(scheduledTime, tz.local),
         platformChannelSpecifics,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
         payload: payload,
         androidAllowWhileIdle: true);
     _consoleAndSnack(verificationMessage);
