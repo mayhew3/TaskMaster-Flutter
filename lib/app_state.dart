@@ -78,6 +78,22 @@ class AppState {
 
   }
 
+  Future<void> syncAllNotifications() async {
+    await updateTaskItemNotifications();
+    await updateSprintNotification();
+  }
+
+  Future<void> updateTaskItemNotifications() async {
+    taskItems.forEach((taskItem) async => await notificationScheduler.syncNotificationForTask(taskItem));
+  }
+
+  Future<void> updateSprintNotification() async {
+    Sprint sprint = getActiveSprint();
+    if (sprint != null) {
+      await notificationScheduler.syncNotificationForSprint(sprint);
+    }
+  }
+
   Sprint getActiveSprint() {
     DateTime now = DateTime.now();
     Iterable<Sprint> matching = this.sprints.where((sprint) =>

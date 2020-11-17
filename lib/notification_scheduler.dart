@@ -12,6 +12,8 @@ import 'package:taskmaster/task_helper.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+import 'models/sprint.dart';
+
 class NotificationScheduler {
 
   final AppState appState;
@@ -75,7 +77,38 @@ class NotificationScheduler {
     });
   }
 
-  /// Schedules a notification that specifies a different icon, sound and vibration pattern
+  Future<void> syncNotificationForSprint(Sprint sprint) async {
+    var sprintSearch = 'sprint:${sprint.id.value}';
+    var removed = false;
+
+    print('Attempting to sync notifications for sprint.');
+
+    var pendingNotificationRequests = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
+
+    print('Fetched existing notifications.');
+
+    var existing = pendingNotificationRequests.where((notification) => notification.payload.startsWith(sprintSearch));
+    existing.forEach((notification) {
+      removed = true;
+      print('Removing sprint: ${notification.payload}');
+      flutterLocalNotificationsPlugin.cancel(notification.id);
+    });
+
+    DateTime scheduledDate = sprint.endDate.value?.subtract(Duration(days: 0));
+    String sprintName = 'Sprint ' + sprint.id.value.toString();
+
+    if (scheduledDate != null && scheduledDate.isAfter(DateTime.now())) {
+      await _scheduleNotification(
+          nextId, scheduledDate, sprintName, sprintSearch,
+          '$sprintName ends in 1 day!', removed);
+      nextId++;
+    } else if (removed) {
+      _consoleAndSnack('Notification removed for $sprintName');
+    } else {
+      _consoleAndSnack('No existing to remove, and next schedule is before today. Skipping.');
+    }
+  }
+
   Future<void> syncNotificationForTask(TaskItem taskItem) async {
 
     var taskSearch = 'task:${taskItem.id.value}';
@@ -102,7 +135,7 @@ class NotificationScheduler {
     var dueName = '${taskItem.name.value} (due)';
     if (dueDate != null && completionDate == null && !taskItem.dueDate.hasPassed()) {
       var taskPayload = 'task:${taskItem.id.value}:due';
-      await _scheduleNotification(nextId, dueDate, dueName, taskPayload, 'due', removedDue);
+      await _scheduleNotification(nextId, dueDate, dueName, taskPayload, 'Task has reached due date', removedDue);
       nextId++;
     } else if (removedDue) {
       _consoleAndSnack('Notification removed for $dueName');
@@ -111,7 +144,7 @@ class NotificationScheduler {
     var urgentName = '${taskItem.name.value} (urgent)';
     if (urgentDate != null && completionDate == null && !taskItem.urgentDate.hasPassed()) {
       var taskPayload = 'task:${taskItem.id.value}:urgent';
-      await _scheduleNotification(nextId, urgentDate, urgentName, taskPayload, 'urgent', removedUrgent);
+      await _scheduleNotification(nextId, urgentDate, urgentName, taskPayload, 'Task has reached urgent date', removedUrgent);
       nextId++;
     } else if (removedUrgent) {
       _consoleAndSnack('Notification removed for $urgentName');
@@ -186,15 +219,15 @@ class NotificationScheduler {
     return isSame;
   }
 
-  Future<void> _scheduleNotification(int id, DateTime scheduledTime, String name, String payload, String dateType, bool replacingOriginal) async {
+  Future<void> _scheduleNotification(int id, DateTime scheduledTime, String name, String payload, String message, bool replacingOriginal) async {
     String verificationMessage;
     var opener = replacingOriginal ? 'Replaced' : 'Scheduled';
     if (_isSameDay(DateTime.now(), scheduledTime)) {
       var formattedTime = DateFormat.jm().format(scheduledTime);
-      verificationMessage = '$opener notification for task $name today at $formattedTime';
+      verificationMessage = '$opener notification for $name today at $formattedTime';
     } else {
       var formattedDay = DateFormat.MMMd().format(scheduledTime);
-      verificationMessage = '$opener notification for task $name on $formattedDay';
+      verificationMessage = '$opener notification for $name on $formattedDay';
     }
 
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
@@ -217,7 +250,7 @@ class NotificationScheduler {
     await flutterLocalNotificationsPlugin.zonedSchedule(
         id,
         name,
-        'Task has reached $dateType date',
+        message,
         tz.TZDateTime.from(scheduledTime, tz.local),
         platformChannelSpecifics,
         uiLocalNotificationDateInterpretation:

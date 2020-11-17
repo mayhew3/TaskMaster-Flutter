@@ -41,8 +41,7 @@ class TaskHelper {
     }
     appState.notificationScheduler.updateBadge();
     navHelper.goToHomeScreen();
-    appState.taskItems.forEach((taskItem) =>
-        appState.notificationScheduler.syncNotificationForTask(taskItem));
+    await appState.syncAllNotifications();
   }
 
   Future<void> addTask(TaskItem taskItem) async {
