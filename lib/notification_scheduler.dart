@@ -79,7 +79,9 @@ class NotificationScheduler {
 
   Future<void> syncNotificationForSprint(Sprint sprint) async {
     var sprintSearch = 'sprint:${sprint.id.value}';
-    var removed = false;
+    var removedDay = false;
+    var removedHour = false;
+    var removedNow = false;
 
     print('Attempting to sync notifications for sprint.');
 
@@ -89,23 +91,39 @@ class NotificationScheduler {
 
     var existing = pendingNotificationRequests.where((notification) => notification.payload.startsWith(sprintSearch));
     existing.forEach((notification) {
-      removed = true;
+      if (notification.payload.endsWith(':day')) {
+        removedDay = true;
+      }
+      if (notification.payload.endsWith(':hour')) {
+        removedHour = true;
+      }
+      if (notification.payload.endsWith(':now')) {
+        removedNow = true;
+      }
       print('Removing sprint: ${notification.payload}');
       flutterLocalNotificationsPlugin.cancel(notification.id);
     });
 
-    DateTime scheduledDate = sprint.endDate.value?.subtract(Duration(days: 0));
+    DateTime exactTime = sprint.endDate.value;
+    DateTime hourBefore = sprint.endDate.value.subtract(Duration(minutes: 60));
+    DateTime dayBefore = sprint.endDate.value?.subtract(Duration(days: 1));
     String sprintName = 'Sprint ' + sprint.id.value.toString();
 
-    if (scheduledDate != null && scheduledDate.isAfter(DateTime.now())) {
+    await scheduleSprintNotification(dayBefore, '$sprintName (day)', 'Current sprint ends in 1 day!', removedDay, '$sprintSearch:day');
+    await scheduleSprintNotification(hourBefore, '$sprintName (hour)', 'Current sprint ends in 1 hour!', removedHour, '$sprintSearch:hour');
+    await scheduleSprintNotification(exactTime, '$sprintName (now)', 'Current sprint has ended!', removedNow, '$sprintSearch:now');
+  }
+
+  Future<void> scheduleSprintNotification(DateTime scheduleTime, String name, String message, bool removed, String sprintPayload) async {
+    if (scheduleTime != null && scheduleTime.isAfter(DateTime.now())) {
       await _scheduleNotification(
-          nextId, scheduledDate, sprintName, sprintSearch,
-          '$sprintName ends in 1 day!', removed);
+          nextId, scheduleTime, name, sprintPayload,
+          '$name ends in 1 day!', removed);
       nextId++;
     } else if (removed) {
-      _consoleAndSnack('Notification removed for $sprintName');
+      _consoleAndSnack('Notification removed for $name');
     } else {
-      _consoleAndSnack('No existing to remove, and next schedule is before today. Skipping.');
+      _consoleAndSnack('No existing for $name to remove, and next schedule is before today. Skipping.');
     }
   }
 
