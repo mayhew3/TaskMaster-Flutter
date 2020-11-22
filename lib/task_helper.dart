@@ -48,7 +48,7 @@ class TaskHelper {
     var inboundTask = await repository.addTask(taskItem);
     stateSetter(() {
       var addedTask = appState.addNewTaskToList(inboundTask);
-      appState.notificationScheduler.syncNotificationForTask(addedTask);
+      appState.notificationScheduler.updateNotificationForTask(addedTask);
     });
     appState.notificationScheduler.updateBadge();
   }
@@ -98,7 +98,7 @@ class TaskHelper {
     stateSetter(() {
       _copyChanges(inboundTask, taskItem);
       taskItem.pendingCompletion = false;
-      appState.notificationScheduler.syncNotificationForTask(taskItem);
+      appState.notificationScheduler.updateNotificationForTask(taskItem);
     });
     appState.notificationScheduler.updateBadge();
 
@@ -126,7 +126,7 @@ class TaskHelper {
     stateSetter(() {
       _copyChanges(inboundTask, taskItem);
     });
-    await appState.notificationScheduler.syncNotificationForTask(taskItem);
+    await appState.notificationScheduler.updateNotificationForTask(taskItem);
     appState.notificationScheduler.updateBadge();
     return taskItem;
   }
