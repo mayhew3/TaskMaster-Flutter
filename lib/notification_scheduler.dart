@@ -149,7 +149,13 @@ class NotificationScheduler {
       await flutterLocalNotificationsPlugin.cancel(notification.id);
     }
 
-    if (scheduleDate != null && scheduleDate.isAfter(DateTime.now())) {
+    // To keep the later dates from cluttering up the notifications, only schedule
+    // for the next month. iOS can only have 64 notifications prepared.
+    DateTime oneMonthFromNow = DateTime.now().add(Duration(days: 30));
+
+    if (scheduleDate != null &&
+        scheduleDate.isAfter(DateTime.now()) &&
+        scheduleDate.isBefore(oneMonthFromNow)) {
       await _scheduleNotification(
           nextId, scheduleDate, logName, identifier,
           notificationMessage, removed);
