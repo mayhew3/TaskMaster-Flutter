@@ -58,7 +58,7 @@ void main() {
     await taskHelper.addTask(taskItem);
     verify(taskRepository.addTask(taskItem));
     verify(mockAppState.addNewTaskToList(taskItem));
-    verify(mockAppState.notificationScheduler.syncNotificationForTask(birthdayTask));
+    verify(mockAppState.notificationScheduler.updateNotificationForTask(birthdayTask));
     verify(mockAppState.notificationScheduler.updateBadge());
   });
 
@@ -73,7 +73,7 @@ void main() {
     when(taskRepository.completeTask(birthdayTask)).thenAnswer((_) => Future.value(inboundTask));
 
     var returnedTask = await taskHelper.completeTask(birthdayTask, true, stateSetter);
-    verify(mockAppState.notificationScheduler.syncNotificationForTask(birthdayTask));
+    verify(mockAppState.notificationScheduler.updateNotificationForTask(birthdayTask));
     verify(mockAppState.notificationScheduler.updateBadge());
     verifyNever(taskRepository.addTask(any));
 
@@ -97,7 +97,7 @@ void main() {
     when(taskRepository.completeTask(originalTask)).thenAnswer((_) => Future.value(inboundTask));
 
     var returnedTask = await taskHelper.completeTask(originalTask, false, stateSetter);
-    verify(mockAppState.notificationScheduler.syncNotificationForTask(originalTask));
+    verify(mockAppState.notificationScheduler.updateNotificationForTask(originalTask));
     verify(mockAppState.notificationScheduler.updateBadge());
     verifyNever(taskRepository.addTask(any));
 
@@ -127,11 +127,11 @@ void main() {
     when(mockAppState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) => invocation.positionalArguments[0]);
 
     var returnedTask = await taskHelper.completeTask(originalTask, true, stateSetter);
-    verify(mockAppState.notificationScheduler.syncNotificationForTask(originalTask));
+    verify(mockAppState.notificationScheduler.updateNotificationForTask(originalTask));
     verify(mockAppState.notificationScheduler.updateBadge());
     verify(taskRepository.addTask(any));
     verify(mockAppState.addNewTaskToList(any));
-    verify(mockAppState.notificationScheduler.syncNotificationForTask(any));
+    verify(mockAppState.notificationScheduler.updateNotificationForTask(any));
 
     expect(returnedTask, originalTask);
     expect(originalTask.pendingCompletion, false);
@@ -163,7 +163,7 @@ void main() {
     when(taskRepository.completeTask(originalTask)).thenAnswer((_) => Future.value(inboundTask));
 
     var returnedTask = await taskHelper.completeTask(originalTask, false, stateSetter);
-    verify(mockAppState.notificationScheduler.syncNotificationForTask(originalTask));
+    verify(mockAppState.notificationScheduler.updateNotificationForTask(originalTask));
     verify(mockAppState.notificationScheduler.updateBadge());
     verifyNever(taskRepository.addTask(any));
 
@@ -205,7 +205,7 @@ void main() {
     var returnedItem = await taskHelper.updateTask(originalTask);
 
     verify(taskRepository.updateTask(originalTask));
-    verify(mockAppState.notificationScheduler.syncNotificationForTask(originalTask));
+    verify(mockAppState.notificationScheduler.updateNotificationForTask(originalTask));
     verify(mockAppState.notificationScheduler.updateBadge());
 
     expect(returnedItem, originalTask);

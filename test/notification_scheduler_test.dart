@@ -75,7 +75,7 @@ void main() {
     );
     List<Future<void>> futures = [];
     appState.taskItems.forEach((taskItem) =>
-      futures.add(notificationScheduler.syncNotificationForTask(taskItem))
+      futures.add(notificationScheduler.updateNotificationForTask(taskItem))
     );
     await Future.wait(futures);
 
@@ -87,10 +87,10 @@ void main() {
     expect(plugin.pendings.length, 0);
   });
 
-  test('syncNotificationForTask first add', () async {
+  test('updateNotificationForTask first add', () async {
     var taskItem = birthdayTask;
     var scheduler = await _createScheduler([]);
-    await scheduler.syncNotificationForTask(taskItem);
+    await scheduler.updateNotificationForTask(taskItem);
     expect(plugin.pendings.length, 1);
     MockPendingNotificationRequest request = plugin.pendings[0];
     expect(request.payload, 'task:${taskItem.id.value}:due');
@@ -98,22 +98,22 @@ void main() {
     expect(request.title, 'Hunter Birthday (due)');
   });
 
-  test('syncNotificationForTask adds nothing if no urgent or due date', () async {
+  test('updateNotificationForTask adds nothing if no urgent or due date', () async {
     var scheduler = await _createScheduler([]);
-    await scheduler.syncNotificationForTask(pastTask);
+    await scheduler.updateNotificationForTask(pastTask);
     expect(plugin.pendings.length, 0);
   });
 
-  test('syncNotificationForTask adds nothing if urgent and due date are past', () async {
+  test('updateNotificationForTask adds nothing if urgent and due date are past', () async {
     var scheduler = await _createScheduler([]);
-    await scheduler.syncNotificationForTask(pastUrgentDue);
+    await scheduler.updateNotificationForTask(pastUrgentDue);
     expect(plugin.pendings.length, 0);
   });
 
-  test('syncNotificationForTask adds two notifications for urgent and due date', () async {
+  test('updateNotificationForTask adds two notifications for urgent and due date', () async {
     var scheduler = await _createScheduler([]);
 
-    await scheduler.syncNotificationForTask(futureUrgentDue);
+    await scheduler.updateNotificationForTask(futureUrgentDue);
     expect(plugin.pendings.length, 2);
 
     var duePayload = 'task:${futureUrgentDue.id.value}:due';
@@ -127,11 +127,11 @@ void main() {
     expect(urgentNotification.title, 'Give a Penny (urgent)');
   });
 
-  test('syncNotificationForTask adds one notification for past urgent and future due date', () async {
+  test('updateNotificationForTask adds one notification for past urgent and future due date', () async {
     var taskItem = straddledUrgentDue;
 
     var scheduler = await _createScheduler([]);
-    await scheduler.syncNotificationForTask(taskItem);
+    await scheduler.updateNotificationForTask(taskItem);
     expect(plugin.pendings.length, 1);
     MockPendingNotificationRequest request = plugin.pendings[0];
     expect(request.payload, 'task:${taskItem.id.value}:due');
@@ -139,7 +139,7 @@ void main() {
     expect(request.title, 'Eat a Penny (due)');
   });
 
-  test('syncNotificationForTask replaces old due notification', () async {
+  test('updateNotificationForTask replaces old due notification', () async {
     var taskItem = futureDue;
 
     var scheduler = await _createScheduler([taskItem]);
@@ -148,13 +148,13 @@ void main() {
     var newDueDate = DateTime.now().add(Duration(days: 8));
     taskItem.dueDate.value = newDueDate;
 
-    await scheduler.syncNotificationForTask(taskItem);
+    await scheduler.updateNotificationForTask(taskItem);
     expect(plugin.pendings.length, 1);
     var request = plugin.pendings[0];
     expect(request.notificationDate, newDueDate);
   });
 
-  test('syncNotificationForTask removes old due notification if due date moved back', () async {
+  test('updateNotificationForTask removes old due notification if due date moved back', () async {
     var taskItem = futureDue;
 
     var scheduler = await _createScheduler([taskItem]);
@@ -163,11 +163,11 @@ void main() {
     var newDueDate = DateTime.now().subtract(Duration(days: 8));
     taskItem.dueDate.value = newDueDate;
 
-    await scheduler.syncNotificationForTask(taskItem);
+    await scheduler.updateNotificationForTask(taskItem);
     expect(plugin.pendings.length, 0);
   });
 
-  test('syncNotificationForTask replaces old urgent and due notifications', () async {
+  test('updateNotificationForTask replaces old urgent and due notifications', () async {
     var taskItem = futureUrgentDue;
 
     var scheduler = await _createScheduler([taskItem]);
@@ -176,7 +176,7 @@ void main() {
     taskItem.dueDate.value = DateTime.now().add(Duration(days: 12));
     taskItem.urgentDate.value = DateTime.now().add(Duration(days: 4));
 
-    await scheduler.syncNotificationForTask(taskItem);
+    await scheduler.updateNotificationForTask(taskItem);
     expect(plugin.pendings.length, 2);
 
     var dueRequest = plugin.findRequestFor(taskItem, due: true);

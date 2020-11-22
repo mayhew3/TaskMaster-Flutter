@@ -72,10 +72,10 @@ class NotificationScheduler {
     var taskSearch = 'task:$taskId';
     var pendingNotificationRequests = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
     var existing = pendingNotificationRequests.where((notification) => notification.payload.startsWith(taskSearch));
-    existing.forEach((notification) {
+    for (PendingNotificationRequest notification in existing) {
       print('Removing task: ${notification.payload}');
-      flutterLocalNotificationsPlugin.cancel(notification.id);
-    });
+      await flutterLocalNotificationsPlugin.cancel(notification.id);
+    }
   }
 
   Future<void> syncNotificationForTasksAndSprint(List<TaskItem> taskItems, Sprint sprint) async {
@@ -84,7 +84,9 @@ class NotificationScheduler {
     if (sprint != null) {
       await _syncNotificationForSprint(sprint, requests);
     }
-    taskItems.forEach((taskItem) async => await _syncNotificationForTask(taskItem, requests));
+    for (TaskItem taskItem in taskItems) {
+      await _syncNotificationForTask(taskItem, requests);
+    }
   }
 
   Future<void> updateNotificationForTask(TaskItem taskItem) async {
@@ -110,25 +112,42 @@ class NotificationScheduler {
   }
 
   Future<void> _syncNotificationForTask(TaskItem taskItem, List<PendingNotificationRequest> requests) async {
-    DateTime dueDate = taskItem.dueDate.value;
-    DateTime urgentDate = taskItem.urgentDate.value;
-    DateTime completionDate = taskItem.completionDate.value;
+    await _syncDueNotificationsForTask(taskItem, requests);
+    await _syncUrgentNotificationsForTask(taskItem, requests);
+  }
 
-    if (completionDate == null) {
-      await _maybeReplaceNotification('task:${taskItem.id.value}:due', requests, dueDate, '${taskItem.name.value} (due)', 'Task has reached due date');
+  Future<void> _syncUrgentNotificationsForTask(TaskItem taskItem, List<PendingNotificationRequest> requests) async {
+    DateTime urgentDate = taskItem.urgentDate.value;
+    DateTime twoHoursBefore = urgentDate?.subtract(Duration(minutes: 120));
+
+    if (taskItem.completionDate.value == null) {
+      await _maybeReplaceNotification('task:${taskItem.id.value}:urgentTwoHours', requests, twoHoursBefore, '${taskItem.name.value} (urgent 2 hours)', 'Two hours until urgent!');
       await _maybeReplaceNotification('task:${taskItem.id.value}:urgent', requests, urgentDate, '${taskItem.name.value} (urgent)', 'Task has reached urgent date');
     }
   }
+
+  Future<void> _syncDueNotificationsForTask(TaskItem taskItem, List<PendingNotificationRequest> requests) async {
+    DateTime dueDate = taskItem.dueDate.value;
+    DateTime twoHoursBefore = dueDate?.subtract(Duration(minutes: 120));
+    DateTime oneDayBefore = dueDate?.subtract(Duration(days: 1));
+
+    if (taskItem.completionDate.value == null) {
+      await _maybeReplaceNotification('task:${taskItem.id.value}:dueOneDay', requests, oneDayBefore, '${taskItem.name.value} (due 1 day)', 'One day until due!');
+      await _maybeReplaceNotification('task:${taskItem.id.value}:dueTwoHours', requests, twoHoursBefore, '${taskItem.name.value} (due 2 hours)', 'Two hours until due!');
+      await _maybeReplaceNotification('task:${taskItem.id.value}:due', requests, dueDate, '${taskItem.name.value} (due)', 'Task has reached due date!');
+    }
+  }
+
 
 
   Future<bool> _maybeReplaceNotification(String identifier, List<PendingNotificationRequest> requests, DateTime scheduleDate, String logName, String notificationMessage) async {
     var removed = false;
 
     var existing = requests.where((notification) => notification.payload == identifier);
-    existing.forEach((notification) {
+    for (PendingNotificationRequest notification in existing) {
       removed = true;
-      flutterLocalNotificationsPlugin.cancel(notification.id);
-    });
+      await flutterLocalNotificationsPlugin.cancel(notification.id);
+    }
 
     if (scheduleDate != null && scheduleDate.isAfter(DateTime.now())) {
       await _scheduleNotification(
@@ -136,7 +155,7 @@ class NotificationScheduler {
           notificationMessage, removed);
       nextId++;
     } else if (removed) {
-      _consoleAndSnack('Notification removed for $logName');
+      print('Notification removed for $logName');
     }
 
     return removed;
@@ -201,9 +220,7 @@ class NotificationScheduler {
   }
 
   bool _isSameDay(DateTime dateTime1, DateTime dateTime2) {
-    int diffDays = dateTime1.difference(dateTime2).inDays;
-    bool isSame = (diffDays == 0);
-    return isSame;
+    return DateFormat.MMMd().format(dateTime1) == DateFormat.MMMd().format(dateTime2);
   }
 
   Future<void> _scheduleNotification(int id, DateTime scheduledTime, String name, String payload, String message, bool replacingOriginal) async {
@@ -244,20 +261,7 @@ class NotificationScheduler {
             UILocalNotificationDateInterpretation.absoluteTime,
         payload: payload,
         androidAllowWhileIdle: true);
-    _consoleAndSnack(verificationMessage);
-  }
-
-  void _consoleAndSnack(msg) {
-    print(msg);
-    /*
-    if (homeScreenContext != null) {
-      Scaffold.of(homeScreenContext).showSnackBar(SnackBar(
-        content: Text(msg),
-      ));
-    } else {
-      print("Weird error: no home screen context for snack bar.");
-    }
-    */
+    print(verificationMessage);
   }
 
 }
