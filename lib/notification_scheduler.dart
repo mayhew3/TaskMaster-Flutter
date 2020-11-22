@@ -78,100 +78,69 @@ class NotificationScheduler {
     });
   }
 
-  Future<void> syncNotificationForSprint(Sprint sprint) async {
+  Future<void> syncNotificationForTasksAndSprint(List<TaskItem> taskItems, Sprint sprint) async {
+    List<PendingNotificationRequest> requests = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
+
+    if (sprint != null) {
+      await _syncNotificationForSprint(sprint, requests);
+    }
+    taskItems.forEach((taskItem) async => await _syncNotificationForTask(taskItem, requests));
+  }
+
+  Future<void> updateNotificationForTask(TaskItem taskItem) async {
+    List<PendingNotificationRequest> requests = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
+
+    await _syncNotificationForTask(taskItem, requests);
+  }
+
+
+  // Private Methods
+
+  Future<void> _syncNotificationForSprint(Sprint sprint, List<PendingNotificationRequest> requests) async {
     String sprintSearch = 'sprint:${sprint.id.value}';
-    String sprintName = 'Sprint ' + sprint.id.value.toString();
-
-    var removedDay = false;
-    var removedHour = false;
-    var removedNow = false;
-
-    print('Attempting to sync notifications for $sprintName.');
-
-    var pendingNotificationRequests = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
-
-    var existing = pendingNotificationRequests.where((notification) => notification.payload.startsWith(sprintSearch));
-    existing.forEach((notification) {
-      if (notification.payload.endsWith(':day')) {
-        removedDay = true;
-      }
-      if (notification.payload.endsWith(':hour')) {
-        removedHour = true;
-      }
-      if (notification.payload.endsWith(':now')) {
-        removedNow = true;
-      }
-      print('Removing sprint: ${notification.payload}');
-      flutterLocalNotificationsPlugin.cancel(notification.id);
-    });
+    String sprintName = 'Sprint ${sprint.id.value}';
 
     DateTime exactTime = sprint.endDate.value;
-    DateTime hourBefore = sprint.endDate.value.subtract(Duration(minutes: 60));
+    DateTime hourBefore = sprint.endDate.value?.subtract(Duration(minutes: 60));
     DateTime dayBefore = sprint.endDate.value?.subtract(Duration(days: 1));
 
-    await scheduleSprintNotification(dayBefore, '$sprintName (day)', 'Current sprint ends in 1 day!', removedDay, '$sprintSearch:day');
-    await scheduleSprintNotification(hourBefore, '$sprintName (hour)', 'Current sprint ends in 1 hour!', removedHour, '$sprintSearch:hour');
-    await scheduleSprintNotification(exactTime, '$sprintName (now)', 'Current sprint has ended!', removedNow, '$sprintSearch:now');
+    await _maybeReplaceNotification('$sprintSearch:day', requests, dayBefore, '$sprintName (day)', 'Current sprint ends in 1 day!');
+    await _maybeReplaceNotification('$sprintSearch:hour', requests, hourBefore, '$sprintName (hour)', 'Current sprint ends in 1 hour!');
+    await _maybeReplaceNotification('$sprintSearch:now', requests, exactTime, '$sprintName (now)', 'Current sprint has ended!');
   }
 
-  Future<void> scheduleSprintNotification(DateTime scheduleTime, String name, String message, bool removed, String sprintPayload) async {
-    if (scheduleTime != null && scheduleTime.isAfter(DateTime.now())) {
-      await _scheduleNotification(
-          nextId, scheduleTime, name, sprintPayload,
-          '$name ends in 1 day!', removed);
-      nextId++;
-    } else if (removed) {
-      _consoleAndSnack('Notification removed for $name');
-    } else {
-      _consoleAndSnack('No existing for $name to remove, and next schedule is before today. Skipping.');
-    }
-  }
-
-  Future<void> syncNotificationForTask(TaskItem taskItem) async {
-
-    var taskSearch = 'task:${taskItem.id.value}';
-    var removedDue = false;
-    var removedUrgent = false;
-
-    var pendingNotificationRequests = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
-    var existing = pendingNotificationRequests.where((notification) => notification.payload.startsWith(taskSearch));
-    existing.forEach((notification) {
-      if (notification.payload.endsWith('due')) {
-        removedDue = true;
-      }
-      if (notification.payload.endsWith('urgent')) {
-        removedUrgent = true;
-      }
-      print('Removing task: ${notification.payload}');
-      flutterLocalNotificationsPlugin.cancel(notification.id);
-    });
-
+  Future<void> _syncNotificationForTask(TaskItem taskItem, List<PendingNotificationRequest> requests) async {
     DateTime dueDate = taskItem.dueDate.value;
     DateTime urgentDate = taskItem.urgentDate.value;
     DateTime completionDate = taskItem.completionDate.value;
 
-    var dueName = '${taskItem.name.value} (due)';
-    if (dueDate != null && completionDate == null && !taskItem.dueDate.hasPassed()) {
-      var taskPayload = 'task:${taskItem.id.value}:due';
-      await _scheduleNotification(nextId, dueDate, dueName, taskPayload, 'Task has reached due date', removedDue);
-      nextId++;
-    } else if (removedDue) {
-      _consoleAndSnack('Notification removed for $dueName');
-    }
-
-    var urgentName = '${taskItem.name.value} (urgent)';
-    if (urgentDate != null && completionDate == null && !taskItem.urgentDate.hasPassed()) {
-      var taskPayload = 'task:${taskItem.id.value}:urgent';
-      await _scheduleNotification(nextId, urgentDate, urgentName, taskPayload, 'Task has reached urgent date', removedUrgent);
-      nextId++;
-    } else if (removedUrgent) {
-      _consoleAndSnack('Notification removed for $urgentName');
+    if (completionDate == null) {
+      await _maybeReplaceNotification('task:${taskItem.id.value}:due', requests, dueDate, '${taskItem.name.value} (due)', 'Task has reached due date');
+      await _maybeReplaceNotification('task:${taskItem.id.value}:urgent', requests, urgentDate, '${taskItem.name.value} (urgent)', 'Task has reached urgent date');
     }
   }
 
 
+  Future<bool> _maybeReplaceNotification(String identifier, List<PendingNotificationRequest> requests, DateTime scheduleDate, String logName, String notificationMessage) async {
+    var removed = false;
 
-  // Private Methods
+    var existing = requests.where((notification) => notification.payload == identifier);
+    existing.forEach((notification) {
+      removed = true;
+      flutterLocalNotificationsPlugin.cancel(notification.id);
+    });
+
+    if (scheduleDate != null && scheduleDate.isAfter(DateTime.now())) {
+      await _scheduleNotification(
+          nextId, scheduleDate, logName, identifier,
+          notificationMessage, removed);
+      nextId++;
+    } else if (removed) {
+      _consoleAndSnack('Notification removed for $logName');
+    }
+
+    return removed;
+  }
 
   int _getNumberOfUrgentTasks() {
     var urgentTasks = appState.taskItems.where((taskItem) =>
@@ -240,12 +209,12 @@ class NotificationScheduler {
   Future<void> _scheduleNotification(int id, DateTime scheduledTime, String name, String payload, String message, bool replacingOriginal) async {
     String verificationMessage;
     var opener = replacingOriginal ? 'Replaced' : 'Scheduled';
+    var formattedTime = DateFormat.jm().format(scheduledTime);
     if (_isSameDay(DateTime.now(), scheduledTime)) {
-      var formattedTime = DateFormat.jm().format(scheduledTime);
       verificationMessage = '$opener notification for $name today at $formattedTime';
     } else {
       var formattedDay = DateFormat.MMMd().format(scheduledTime);
-      verificationMessage = '$opener notification for $name on $formattedDay';
+      verificationMessage = '$opener notification for $name on $formattedDay at $formattedTime';
     }
 
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
