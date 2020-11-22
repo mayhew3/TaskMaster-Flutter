@@ -64,6 +64,7 @@ class NotificationScheduler {
   }
 
   Future<void> cancelAllNotifications() async {
+    print('Canceling all existing notifications and rebuilding...');
     return flutterLocalNotificationsPlugin.cancelAll();
   }
 
@@ -78,16 +79,16 @@ class NotificationScheduler {
   }
 
   Future<void> syncNotificationForSprint(Sprint sprint) async {
-    var sprintSearch = 'sprint:${sprint.id.value}';
+    String sprintSearch = 'sprint:${sprint.id.value}';
+    String sprintName = 'Sprint ' + sprint.id.value.toString();
+
     var removedDay = false;
     var removedHour = false;
     var removedNow = false;
 
-    print('Attempting to sync notifications for sprint.');
+    print('Attempting to sync notifications for $sprintName.');
 
     var pendingNotificationRequests = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
-
-    print('Fetched existing notifications.');
 
     var existing = pendingNotificationRequests.where((notification) => notification.payload.startsWith(sprintSearch));
     existing.forEach((notification) {
@@ -107,7 +108,6 @@ class NotificationScheduler {
     DateTime exactTime = sprint.endDate.value;
     DateTime hourBefore = sprint.endDate.value.subtract(Duration(minutes: 60));
     DateTime dayBefore = sprint.endDate.value?.subtract(Duration(days: 1));
-    String sprintName = 'Sprint ' + sprint.id.value.toString();
 
     await scheduleSprintNotification(dayBefore, '$sprintName (day)', 'Current sprint ends in 1 day!', removedDay, '$sprintSearch:day');
     await scheduleSprintNotification(hourBefore, '$sprintName (hour)', 'Current sprint ends in 1 hour!', removedHour, '$sprintSearch:hour');
