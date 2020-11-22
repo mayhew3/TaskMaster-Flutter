@@ -9,6 +9,8 @@ import 'package:taskmaster/screens/loading.dart';
 import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/task_repository.dart';
 
+import 'models/sprint.dart';
+
 class TaskMasterApp extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
@@ -62,12 +64,11 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   void loadMainTaskUI() {
     navHelper.goToLoadingScreen('Loading tasks...');
     repository.loadTasks((callback) => setState(callback))
-        .then((_) {
+        .then((_) async {
       appState.finishedLoading();
       navHelper.goToHomeScreen();
       appState.notificationScheduler.updateBadge();
-      appState.taskItems.forEach((taskItem) =>
-          appState.notificationScheduler.syncNotificationForTask(taskItem));
+      appState.syncAllNotifications();
     });
   }
 
