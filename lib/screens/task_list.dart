@@ -276,6 +276,7 @@ class TaskListScreenState extends State<TaskListScreen> {
 
     if (scheduledTasks.isNotEmpty) {
       tiles.add(HeadingItem('Scheduled'));
+      scheduledTasks.sort((t1, t2) => t1.startDate.value?.compareTo(t2.startDate.value));
       scheduledTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
     }
 
