@@ -148,10 +148,6 @@ class DetailScreenState extends State<DetailScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
                 ReadOnlyTaskFieldSmall(
-                  headerName: 'Urgency',
-                  textToShow: formatNumber(taskItem.urgency.value),
-                ),
-                ReadOnlyTaskFieldSmall(
                   headerName: 'Priority',
                   textToShow: formatNumber(taskItem.priority.value),
                 ),
