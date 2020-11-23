@@ -173,7 +173,7 @@ class TaskListScreenState extends State<TaskListScreen> {
   EditableTaskItemWidget _createTaskCard({TaskItem taskItem, BuildContext context}) {
 
     var snoozeDialog = (TaskItem taskItem) {
-      HapticFeedback.vibrate();
+      HapticFeedback.lightImpact();
       showDialog<void>(context: context, builder: (context) => SnoozeDialog(
         taskItem: taskItem,
         taskHelper: widget.taskHelper,
