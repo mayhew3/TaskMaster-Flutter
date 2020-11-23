@@ -12,7 +12,7 @@ void main() {
 
     Form form = Form(
           key: _formKey,
-          autovalidate: false,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           child: EditableTaskField(
             initialText: 'Fart',
             labelText: 'Type',

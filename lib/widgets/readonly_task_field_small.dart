@@ -28,7 +28,7 @@ class ReadOnlyTaskFieldSmall extends StatelessWidget {
                 Text(headerName,
                   style: Theme.of(context).textTheme.caption,),
                 Text(textToShow,
-                  style: Theme.of(context).textTheme.subhead,),
+                  style: Theme.of(context).textTheme.subtitle1,),
               ],
             ),
           ),

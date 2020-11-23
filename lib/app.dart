@@ -9,8 +9,6 @@ import 'package:taskmaster/screens/loading.dart';
 import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/task_repository.dart';
 
-import 'models/sprint.dart';
-
 class TaskMasterApp extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
