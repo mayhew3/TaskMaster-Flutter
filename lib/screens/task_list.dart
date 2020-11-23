@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/sprint.dart';
@@ -172,6 +173,7 @@ class TaskListScreenState extends State<TaskListScreen> {
   EditableTaskItemWidget _createTaskCard({TaskItem taskItem, BuildContext context}) {
 
     var snoozeDialog = (TaskItem taskItem) {
+      HapticFeedback.vibrate();
       showDialog<void>(context: context, builder: (context) => SnoozeDialog(
         taskItem: taskItem,
         taskHelper: widget.taskHelper,
