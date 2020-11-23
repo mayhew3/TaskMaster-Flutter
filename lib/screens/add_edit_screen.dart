@@ -127,7 +127,7 @@ class AddEditScreenState extends State<AddEditScreen> {
         padding: EdgeInsets.all(8.0),
         child: Form(
           key: formKey,
-          autovalidate: false,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           onWillPop: () {
             return Future(() {
               widget.taskItem.revertAllChanges();
@@ -165,14 +165,6 @@ class AddEditScreenState extends State<AddEditScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: <Widget>[
-                      Expanded(
-                        child: EditableTaskField(
-                          initialText: widget.taskItem?.urgency?.getInputDisplay(),
-                          labelText: 'Urgency',
-                          fieldSetter: (value) => widget.taskItem?.urgency?.setValueFromString(value),
-                          inputType: TextInputType.number,
-                        ),
-                      ),
                       Expanded(
                         child: EditableTaskField(
                           initialText: widget.taskItem?.priority?.getInputDisplay(),
@@ -270,7 +262,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                                     child: Padding(
                                       padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
                                       child: Text('Repeat',
-                                        style: Theme.of(context).textTheme.subhead,),
+                                        style: Theme.of(context).textTheme.subtitle1,),
                                     ),
                                   ),
                                   Column(
@@ -387,16 +379,6 @@ class AddEditScreenState extends State<AddEditScreen> {
                   widget.taskItemRefresher(updatedItem);
                 }
               } else {
-                // todo: remove??
-                if (widget.taskItem.urgency.value == null) {
-                  widget.taskItem.urgency.value = 3;
-                }
-                if (widget.taskItem.priority.value == null) {
-                  widget.taskItem.priority.value = 5;
-                }
-                if (widget.taskItem.gamePoints.value == null) {
-                  widget.taskItem.gamePoints.value = 1;
-                }
                 await widget.taskHelper.addTask(widget.taskItem);
               }
 
