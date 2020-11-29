@@ -37,13 +37,17 @@ class TaskMasterAuth {
     return await _firebaseUser.user.getIdToken();
   }
 
+  void clearFields() {
+    _firebaseUser = null;
+    updateCurrentUser(null);
+    updateIdToken(null);
+  }
+
   Future<GoogleSignInAccount> addGoogleListener() {
     _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) async {
 
       if (account == null) {
-        _firebaseUser = null;
-        updateCurrentUser(null);
-        updateIdToken(null);
+        clearFields();
         print('Signed out!');
         return;
       }
@@ -52,9 +56,7 @@ class TaskMasterAuth {
           .authentication;
 
       if (authentication.idToken == null) {
-        _firebaseUser = null;
-        updateCurrentUser(null);
-        updateIdToken(null);
+        clearFields();
         print("Login failed! No IdToken returned.");
         return;
       }
