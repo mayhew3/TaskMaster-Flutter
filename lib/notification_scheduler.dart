@@ -92,7 +92,11 @@ class NotificationScheduler {
   Future<void> updateNotificationForTask(TaskItem taskItem) async {
     List<PendingNotificationRequest> requests = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
 
-    await _syncNotificationForTask(taskItem, requests);
+    if (taskItem.isCompleted()) {
+      await cancelNotificationsForTaskId(taskItem.id.value);
+    } else {
+      await _syncNotificationForTask(taskItem, requests);
+    }
   }
 
 
