@@ -12,6 +12,7 @@ import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/delayed_checkbox.dart';
 import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/widgets/header_list_item.dart';
+import 'package:taskmaster/widgets/task_main_menu.dart';
 
 
 class PlanTaskList extends StatefulWidget {
@@ -216,6 +217,9 @@ class PlanTaskListState extends State<PlanTaskList> {
           title: Text('Select Tasks'),
         ),
         body: _buildListView(context),
+        drawer: TaskMainMenu(
+          appState: widget.appState,
+        ),
         floatingActionButton: Visibility(
           visible: sprintQueued.isNotEmpty,
           child: FloatingActionButton.extended(

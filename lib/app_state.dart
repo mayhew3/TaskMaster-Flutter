@@ -116,6 +116,11 @@ class AppState {
     return currentUser != null && tokenRetrieved;
   }
 
+  void signOut() {
+    currentUser = null;
+    tokenRetrieved = false;
+  }
+
   @override
   int get hashCode => taskItems.hashCode ^ isLoading.hashCode;
 

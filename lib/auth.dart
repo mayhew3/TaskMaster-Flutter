@@ -30,7 +30,7 @@ class TaskMasterAuth {
   }
 
   Future<void> handleSignOut() async {
-    _googleSignIn.disconnect();
+    await _googleSignIn.disconnect();
   }
 
   Future<IdTokenResult> getIdToken() async {
@@ -39,22 +39,36 @@ class TaskMasterAuth {
 
   Future<GoogleSignInAccount> addGoogleListener() {
     _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) async {
-      GoogleSignInAuthentication authentication = await account.authentication;
+
+      if (account == null) {
+        _firebaseUser = null;
+        updateCurrentUser(null);
+        updateIdToken(null);
+        print('Signed out!');
+        return;
+      }
+
+      GoogleSignInAuthentication authentication = await account
+          .authentication;
+
+      if (authentication.idToken == null) {
+        _firebaseUser = null;
+        updateCurrentUser(null);
+        updateIdToken(null);
+        print("Login failed! No IdToken returned.");
+        return;
+      }
+
       final AuthCredential credential = GoogleAuthProvider.getCredential(
-          idToken: authentication.idToken,
-          accessToken: authentication.accessToken,
+        idToken: authentication.idToken,
+        accessToken: authentication.accessToken,
       );
       _firebaseUser = await _firebaseAuth.signInWithCredential(credential);
       IdTokenResult idToken = await _firebaseUser.user.getIdToken();
       updateIdToken(idToken);
       updateCurrentUser(account);
-      if (account == null) {
-        print("Login failed! No SignInAccount returned.");
-      } else if (authentication.idToken == null) {
-        print("Login failed! No IdToken returned.");
-      } else {
-        print("Login success!");
-      }
+      print("Login success!");
+
     });
     return _googleSignIn.signInSilently();
   }

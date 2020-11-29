@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/typedefs.dart';
+import 'package:taskmaster/widgets/task_main_menu.dart';
 
 class StatsCounter extends StatelessWidget {
   final AppState appState;
@@ -61,6 +62,7 @@ class StatsCounter extends StatelessWidget {
             ],
           ),
         ),
+        drawer: TaskMainMenu(appState: appState,),
         bottomNavigationBar: bottomNavigationBarGetter(),
       );
 
