@@ -171,12 +171,22 @@ class EditableTaskItemWidget extends StatelessWidget {
 
       for (TaskDateType taskDateType in TaskDateTypes.allTypes) {
         if (!taskItem.isCompleted() &&
-            taskDateType.inListDisplayThreshold(taskItem) &&
+            taskDateType.inListBeforeDisplayThreshold(taskItem) &&
             showTarget(taskDateType) &&
             dateWarnings.length < 1) {
           dateWarnings.add(_getDateFromNow(taskDateType));
         }
       }
+
+      for (TaskDateType taskDateType in TaskDateTypes.allTypes.reversed) {
+        if (!taskItem.isCompleted() &&
+            taskDateType.inListAfterDisplayThreshold(taskItem) &&
+            TaskDateTypes.start != taskDateType &&
+            dateWarnings.length < 1) {
+          dateWarnings.add(_getDateFromNow(taskDateType));
+        }
+      }
+
     }
 
     return Column(

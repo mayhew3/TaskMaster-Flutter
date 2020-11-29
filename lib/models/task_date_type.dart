@@ -62,7 +62,7 @@ class TaskDateType {
     @required this.listThresholdInDays,
   });
 
-  bool inListDisplayThreshold(TaskItem taskItem) {
+  bool inListBeforeDisplayThreshold(TaskItem taskItem) {
     TaskFieldDate dateField = this.dateFieldGetter(taskItem);
     if (dateField.value == null ||
         dateField.value.isBefore(DateTime.now())) {
@@ -75,5 +75,15 @@ class TaskDateType {
       DateTime inXDays = DateTime.now().add(Duration(days: this.listThresholdInDays));
       return dateField.value.isBefore(inXDays);
     }
+  }
+
+  bool inListAfterDisplayThreshold(TaskItem taskItem) {
+    TaskFieldDate dateField = this.dateFieldGetter(taskItem);
+    if (dateField.value == null ||
+        dateField.value.isAfter(DateTime.now())) {
+      return false;
+    }
+
+    return true;
   }
 }
