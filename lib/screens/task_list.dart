@@ -17,6 +17,7 @@ import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/widgets/filter_button.dart';
 import 'package:taskmaster/widgets/header_list_item.dart';
 import 'package:taskmaster/widgets/snooze_dialog.dart';
+import 'package:taskmaster/widgets/task_main_menu.dart';
 
 class TaskListScreen extends StatefulWidget {
   final AppState appState;
@@ -408,6 +409,7 @@ class TaskListScreenState extends State<TaskListScreen> {
           ],
         ),
         body: getBody(),
+        drawer: TaskMainMenu(appState: widget.appState,),
         floatingActionButton: Visibility(
           visible: widget.sprint == null,
           child: FloatingActionButton(

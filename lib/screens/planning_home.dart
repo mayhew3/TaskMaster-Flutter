@@ -13,6 +13,7 @@ import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/date_util.dart';
 import 'package:taskmaster/widgets/editable_task_field.dart';
 import 'package:taskmaster/widgets/nullable_dropdown.dart';
+import 'package:taskmaster/widgets/task_main_menu.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../typedefs.dart';
@@ -222,6 +223,9 @@ class PlanningHomeState extends State<PlanningHome> {
                 onPressed: () => _openPlanning(context),
                 child: Text('Create Sprint')),
           ],
+        ),
+        drawer: TaskMainMenu(
+          appState: widget.appState,
         ),
         bottomNavigationBar: widget.bottomNavigationBarGetter(),
       );

@@ -26,6 +26,7 @@ class NavHelper {
   }
 
   void goToLoadingScreen(String msg) {
+    Navigator.of(context).popUntil((route) => route.isFirst);
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) {
         return LoadingScreen(
@@ -38,6 +39,7 @@ class NavHelper {
   }
 
   void goToSignInScreen() {
+    Navigator.of(context).popUntil((route) => route.isFirst);
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) {
         return SignInScreen(
@@ -49,6 +51,7 @@ class NavHelper {
   }
 
   void goToHomeScreen() {
+    Navigator.of(context).popUntil((route) => route.isFirst);
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) {
         return HomeScreen(
