@@ -41,6 +41,10 @@ class DateUtil {
     }
   }
 
+  static DateTime combineDateAndTime(DateTime dateToUse, DateTime timeToUse) {
+    return new DateTime(dateToUse.year, dateToUse.month, dateToUse.day, timeToUse.hour, timeToUse.minute);
+  }
+
   static DateTime withoutMillis(DateTime originalDate) {
     return Jiffy(originalDate).startOf(Units.SECOND);
   }

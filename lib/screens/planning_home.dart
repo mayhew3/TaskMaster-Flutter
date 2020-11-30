@@ -39,7 +39,8 @@ class PlanningHome extends StatefulWidget {
 class PlanningHomeState extends State<PlanningHome> {
 
   DateTime sprintStart = DateTime.now();
-  TextEditingController sprintStartController = TextEditingController();
+  TextEditingController sprintStartDateController = TextEditingController();
+  TextEditingController sprintStartTimeController = TextEditingController();
 
   int numUnits = 1;
   String unitName = 'Weeks';
@@ -63,7 +64,8 @@ class PlanningHomeState extends State<PlanningHome> {
 
   @override
   void dispose() {
-    sprintStartController.dispose();
+    sprintStartDateController.dispose();
+    sprintStartTimeController.dispose();
     super.dispose();
   }
 
@@ -78,7 +80,8 @@ class PlanningHomeState extends State<PlanningHome> {
       unitName = lastCompleted.unitName.value;
       sprintStart = getNextScheduledStart();
     }
-    sprintStartController.text = DateFormat('MM-dd-yyyy').format(sprintStart);
+    sprintStartDateController.text = DateFormat('MM-dd-yyyy').format(sprintStart);
+    sprintStartTimeController.text = DateFormat('hh:mm a').format(sprintStart);
   }
 
   void _updateNewSprintStartAfterCreate() {
@@ -87,7 +90,8 @@ class PlanningHomeState extends State<PlanningHome> {
       unitName = lastCompleted.unitName.value;
       sprintStart = lastCompleted.endDate.value;
     }
-    sprintStartController.text = DateFormat('MM-dd-yyyy').format(sprintStart);
+    sprintStartDateController.text = DateFormat('MM-dd-yyyy').format(sprintStart);
+    sprintStartTimeController.text = DateFormat('hh:mm a').format(sprintStart);
   }
 
   DateTime getNextScheduledStart() {
@@ -108,8 +112,13 @@ class PlanningHomeState extends State<PlanningHome> {
   }
 
   void updateDateForDateField(DateTime dateTime) {
-    sprintStart = dateTime;
-    sprintStartController.text = DateFormat('MM-dd-yyyy').format(dateTime);
+    sprintStart = DateUtil.combineDateAndTime(dateTime, sprintStart);
+    sprintStartDateController.text = DateFormat('MM-dd-yyyy').format(dateTime);
+  }
+
+  void updateTimeForDateField(DateTime dateTime) {
+    sprintStart = DateUtil.combineDateAndTime(sprintStart, dateTime);
+    sprintStartTimeController.text = DateFormat('hh:mm a').format(dateTime);
   }
 
   void _openPlanning(BuildContext context) async {
@@ -198,25 +207,48 @@ class PlanningHomeState extends State<PlanningHome> {
                 ),
               ],
             ),
-            Container(
-              margin: EdgeInsets.all(7.0),
-              child: DateTimeField(
-                controller: sprintStartController,
-                decoration: InputDecoration(
-                  labelText: 'Starting On',
-                  filled: false,
-                  border: OutlineInputBorder(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Expanded(
+                  child: DateTimeField(
+                    controller: sprintStartDateController,
+                    decoration: InputDecoration(
+                      labelText: 'Start Date',
+                      filled: false,
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) => updateDateForDateField(value),
+                    onShowPicker: (context, currentValue) async {
+                      return await showDatePicker(
+                          context: context,
+                          initialDate: currentValue ?? sprintStart,
+                          firstDate: _getLowerLimit(),
+                          lastDate: DateTime(2100));
+                    },
+                    format: DateFormat('MM-dd-yyyy'),
+                  ),
                 ),
-                onChanged: (value) => updateDateForDateField(value),
-                onShowPicker: (context, currentValue) async {
-                  return await showDatePicker(
-                      context: context,
-                      initialDate: currentValue ?? sprintStart,
-                      firstDate: _getLowerLimit(),
-                      lastDate: DateTime(2100));
-                },
-                format: DateFormat('MM-dd-yyyy'),
-              ),
+                Expanded(
+                  child: DateTimeField(
+                    controller: sprintStartTimeController,
+                    decoration: InputDecoration(
+                      labelText: 'Start Time',
+                      filled: false,
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) => updateTimeForDateField(value),
+                    onShowPicker: (context, currentValue) async {
+                      final time = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.fromDateTime(currentValue) ?? TimeOfDay.fromDateTime(sprintStart),
+                      );
+                      return DateTimeField.convert(time);
+                    },
+                    format: DateFormat('hh:mm a'),
+                  ),
+                ),
+              ],
             ),
             FlatButton(
                 color: TaskColors.cardColor,
