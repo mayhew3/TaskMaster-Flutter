@@ -59,6 +59,9 @@ class NullableDropdownState extends State<NullableDropdown> {
           labelText: widget.labelText,
           filled: false,
           border: OutlineInputBorder(),
+          // workaround for flutter issue #60624 (https://github.com/flutter/flutter/issues/60624).
+          // when this is closed, you should be able to remove this.
+          contentPadding: EdgeInsets.fromLTRB(12, 21, 12, 14),
         ),
         value: value,
         onChanged: (String newValue) {

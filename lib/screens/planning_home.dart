@@ -177,84 +177,92 @@ class PlanningHomeState extends State<PlanningHome> {
         appBar: AppBar(
           title: Text('New Sprint'),
         ),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              padding: EdgeInsets.all(12.0),
-              child: _lastSprintSummary(),
-            ),
-            Row(
-              children: [
-                SizedBox(
-                  width: 80.0,
-                  child: EditableTaskField(
-                    initialText: numUnits.toString(),
-                    labelText: 'Num',
-                    inputType: TextInputType.number,
-                    onChanged: (value) => numUnits = ParseHelper.parseInt(value),
-                    fieldSetter: (value) => numUnits = ParseHelper.parseInt(value),
-                  ),
-                ),
-                Expanded(
-                  child: NullableDropdown(
-                    initialValue: unitName,
-                    labelText: 'Unit',
-                    possibleValues: possibleRecurUnits,
-                    onChanged: (value) => unitName = value,
-                    valueSetter: (value) => unitName = value,
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Expanded(
-                  child: DateTimeField(
-                    controller: sprintStartDateController,
-                    decoration: InputDecoration(
-                      labelText: 'Start Date',
-                      filled: false,
-                      border: OutlineInputBorder(),
+        body: Padding(
+          padding: EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                child: _lastSprintSummary(),
+              ),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 80.0,
+                    child: EditableTaskField(
+                      initialText: numUnits.toString(),
+                      labelText: 'Num',
+                      inputType: TextInputType.number,
+                      onChanged: (value) => numUnits = ParseHelper.parseInt(value),
+                      fieldSetter: (value) => numUnits = ParseHelper.parseInt(value),
                     ),
-                    onChanged: (value) => updateDateForDateField(value),
-                    onShowPicker: (context, currentValue) async {
-                      return await showDatePicker(
-                          context: context,
-                          initialDate: currentValue ?? sprintStart,
-                          firstDate: _getLowerLimit(),
-                          lastDate: DateTime(2100));
-                    },
-                    format: DateFormat('MM-dd-yyyy'),
                   ),
-                ),
-                Expanded(
-                  child: DateTimeField(
-                    controller: sprintStartTimeController,
-                    decoration: InputDecoration(
-                      labelText: 'Start Time',
-                      filled: false,
-                      border: OutlineInputBorder(),
+                  Expanded(
+                    child: NullableDropdown(
+                      initialValue: unitName,
+                      labelText: 'Unit',
+                      possibleValues: possibleRecurUnits,
+                      onChanged: (value) => unitName = value,
+                      valueSetter: (value) => unitName = value,
                     ),
-                    onChanged: (value) => updateTimeForDateField(value),
-                    onShowPicker: (context, currentValue) async {
-                      final time = await showTimePicker(
-                          context: context,
-                          initialTime: TimeOfDay.fromDateTime(currentValue) ?? TimeOfDay.fromDateTime(sprintStart),
-                      );
-                      return DateTimeField.convert(time);
-                    },
-                    format: DateFormat('hh:mm a'),
                   ),
-                ),
-              ],
-            ),
-            FlatButton(
-                color: TaskColors.cardColor,
-                onPressed: () => _openPlanning(context),
-                child: Text('Create Sprint')),
-          ],
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                      child: Container(
+                        margin: EdgeInsets.all(7.0),
+                        child: DateTimeField(
+                          controller: sprintStartDateController,
+                          decoration: InputDecoration(
+                            labelText: 'Start Date',
+                            filled: false,
+                            border: OutlineInputBorder(),
+                          ),
+                          onChanged: (value) => updateDateForDateField(value),
+                          onShowPicker: (context, currentValue) async {
+                            return await showDatePicker(
+                                context: context,
+                                initialDate: currentValue ?? sprintStart,
+                                firstDate: _getLowerLimit(),
+                                lastDate: DateTime(2100));
+                          },
+                          format: DateFormat('MM-dd-yyyy'),
+                        ),
+                      )
+                  ),
+                  Expanded(
+                    child: Container(
+                      margin: EdgeInsets.all(7.0),
+                      child: DateTimeField(
+                        controller: sprintStartTimeController,
+                        decoration: InputDecoration(
+                          labelText: 'Start Time',
+                          filled: false,
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (value) => updateTimeForDateField(value),
+                        onShowPicker: (context, currentValue) async {
+                          final time = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.fromDateTime(currentValue) ?? TimeOfDay.fromDateTime(sprintStart),
+                          );
+                          return DateTimeField.convert(time);
+                        },
+                        format: DateFormat('hh:mm a'),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              FlatButton(
+                  color: TaskColors.cardColor,
+                  onPressed: () => _openPlanning(context),
+                  child: Text('Create Sprint')),
+            ],
+          ),
         ),
         drawer: TaskMainMenu(
           appState: widget.appState,
