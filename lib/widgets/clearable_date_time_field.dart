@@ -45,7 +45,12 @@ class ClearableDateTimeField extends StatelessWidget {
         onShowPicker: (context, currentValue) async {
           final date = await showDatePicker(
               context: context,
-              firstDate: DateTime(1900),
+              firstDate: firstDateGetter == null || firstDateGetter() == null ?
+                            DateTime(1900) :
+                            firstDateGetter(),
+              currentDate: currentDateGetter == null || currentDateGetter() == null ?
+                            DateTime.now() :
+                            currentDateGetter(),
               initialDate: currentValue ?? initialPickerGetter(),
               lastDate: DateTime(2100));
           if (date != null) {

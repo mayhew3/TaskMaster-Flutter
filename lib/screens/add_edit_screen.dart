@@ -120,6 +120,17 @@ class AddEditScreenState extends State<AddEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    DateTime _getPreviousDateOrNow(TaskDateType taskDateType) {
+      var lastDate = widget.taskItem?.getLastDateBefore(taskDateType);
+      return lastDate == null ? DateTime.now() : lastDate;
+    }
+
+    DateTime _getOnePastPreviousDateOrNow(TaskDateType taskDateType) {
+      var lastDate = widget.taskItem?.getLastDateBefore(taskDateType);
+      return lastDate == null ? DateTime.now() : lastDate.add(Duration(days: 1));
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Task Details"),
@@ -215,8 +226,13 @@ class AddEditScreenState extends State<AddEditScreen> {
                       return widget.taskItem?.targetDate?.value;
                     },
                     initialPickerGetter: () {
-                      var lastDate = widget.taskItem?.getLastDateBefore(TaskDateTypes.target);
-                      return lastDate == null ? DateTime.now() : lastDate;
+                      return _getOnePastPreviousDateOrNow(TaskDateTypes.target);
+                    },
+                    firstDateGetter: () {
+                      return widget.taskItem?.startDate?.value;
+                    },
+                    currentDateGetter: () {
+                      return _getPreviousDateOrNow(TaskDateTypes.target);
                     },
                     dateSetter: (DateTime pickedDate) {
                       setState(() {
@@ -233,8 +249,13 @@ class AddEditScreenState extends State<AddEditScreen> {
                       return widget.taskItem?.urgentDate?.value;
                     },
                     initialPickerGetter: () {
-                      var lastDate = widget.taskItem?.getLastDateBefore(TaskDateTypes.urgent);
-                      return lastDate == null ? DateTime.now() : lastDate;
+                      return _getOnePastPreviousDateOrNow(TaskDateTypes.urgent);
+                    },
+                    firstDateGetter: () {
+                      return widget.taskItem?.startDate?.value;
+                    },
+                    currentDateGetter: () {
+                      return _getPreviousDateOrNow(TaskDateTypes.urgent);
                     },
                     dateSetter: (DateTime pickedDate) {
                       setState(() {
@@ -251,8 +272,13 @@ class AddEditScreenState extends State<AddEditScreen> {
                       return widget.taskItem?.dueDate?.value;
                     },
                     initialPickerGetter: () {
-                      var lastDate = widget.taskItem?.getLastDateBefore(TaskDateTypes.due);
-                      return lastDate == null ? DateTime.now() : lastDate;
+                      return _getOnePastPreviousDateOrNow(TaskDateTypes.due);
+                    },
+                    firstDateGetter: () {
+                      return widget.taskItem?.startDate?.value;
+                    },
+                    currentDateGetter: () {
+                      return _getPreviousDateOrNow(TaskDateTypes.due);
                     },
                     dateSetter: (DateTime pickedDate) {
                       setState(() {
