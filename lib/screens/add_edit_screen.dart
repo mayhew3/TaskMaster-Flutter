@@ -220,20 +220,6 @@ class AddEditScreenState extends State<AddEditScreen> {
                     },
                   ),
                   ClearableDateTimeField(
-                    labelText: 'Due Date',
-                    dateGetter: () {
-                      return widget.taskItem?.dueDate?.value;
-                    },
-                    dateSetter: (DateTime pickedDate) {
-                      setState(() {
-                        widget.taskItem?.dueDate?.value = pickedDate;
-                        if (!hasDate()) {
-                          clearRepeatOn();
-                        }
-                      });
-                    },
-                  ),
-                  ClearableDateTimeField(
                     labelText: 'Urgent Date',
                     dateGetter: () {
                       return widget.taskItem?.urgentDate?.value;
@@ -241,6 +227,20 @@ class AddEditScreenState extends State<AddEditScreen> {
                     dateSetter: (DateTime pickedDate) {
                       setState(() {
                         widget.taskItem?.urgentDate?.value = pickedDate;
+                        if (!hasDate()) {
+                          clearRepeatOn();
+                        }
+                      });
+                    },
+                  ),
+                  ClearableDateTimeField(
+                    labelText: 'Due Date',
+                    dateGetter: () {
+                      return widget.taskItem?.dueDate?.value;
+                    },
+                    dateSetter: (DateTime pickedDate) {
+                      setState(() {
+                        widget.taskItem?.dueDate?.value = pickedDate;
                         if (!hasDate()) {
                           clearRepeatOn();
                         }

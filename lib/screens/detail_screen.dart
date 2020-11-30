@@ -140,10 +140,6 @@ class DetailScreenState extends State<DetailScreen> {
               headerName: 'Context',
               textToShow: taskItem.context.value,
             ),
-            ReadOnlyTaskField(
-              headerName: 'Start',
-              textToShow: formatDateTime(taskItem.startDate.value),
-            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
@@ -162,13 +158,17 @@ class DetailScreenState extends State<DetailScreen> {
               ],
             ),
             ReadOnlyTaskField(
-              headerName: 'Urgent',
-              textToShow: formatDateTime(taskItem.urgentDate.value),
-              optionalBackgroundColor: getUrgentBackgroundColor(),
+              headerName: 'Start',
+              textToShow: formatDateTime(taskItem.startDate.value),
             ),
             ReadOnlyTaskField(
               headerName: 'Target',
               textToShow: formatDateTime(taskItem.targetDate.value),
+            ),
+            ReadOnlyTaskField(
+              headerName: 'Urgent',
+              textToShow: formatDateTime(taskItem.urgentDate.value),
+              optionalBackgroundColor: getUrgentBackgroundColor(),
             ),
             ReadOnlyTaskField(
               headerName: 'Due',
