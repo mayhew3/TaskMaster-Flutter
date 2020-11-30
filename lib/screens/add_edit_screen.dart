@@ -1,6 +1,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/typedefs.dart';
@@ -196,6 +197,9 @@ class AddEditScreenState extends State<AddEditScreen> {
                     dateGetter: () {
                       return widget.taskItem?.startDate?.value;
                     },
+                    initialPickerGetter: () {
+                      return DateTime.now();
+                    },
                     dateSetter: (DateTime pickedDate) {
                       setState(() {
                         widget.taskItem?.startDate?.value = pickedDate;
@@ -209,6 +213,10 @@ class AddEditScreenState extends State<AddEditScreen> {
                     labelText: 'Target Date',
                     dateGetter: () {
                       return widget.taskItem?.targetDate?.value;
+                    },
+                    initialPickerGetter: () {
+                      var lastDate = widget.taskItem?.getLastDateBefore(TaskDateTypes.target);
+                      return lastDate == null ? DateTime.now() : lastDate;
                     },
                     dateSetter: (DateTime pickedDate) {
                       setState(() {
@@ -224,6 +232,10 @@ class AddEditScreenState extends State<AddEditScreen> {
                     dateGetter: () {
                       return widget.taskItem?.urgentDate?.value;
                     },
+                    initialPickerGetter: () {
+                      var lastDate = widget.taskItem?.getLastDateBefore(TaskDateTypes.urgent);
+                      return lastDate == null ? DateTime.now() : lastDate;
+                    },
                     dateSetter: (DateTime pickedDate) {
                       setState(() {
                         widget.taskItem?.urgentDate?.value = pickedDate;
@@ -237,6 +249,10 @@ class AddEditScreenState extends State<AddEditScreen> {
                     labelText: 'Due Date',
                     dateGetter: () {
                       return widget.taskItem?.dueDate?.value;
+                    },
+                    initialPickerGetter: () {
+                      var lastDate = widget.taskItem?.getLastDateBefore(TaskDateTypes.due);
+                      return lastDate == null ? DateTime.now() : lastDate;
                     },
                     dateSetter: (DateTime pickedDate) {
                       setState(() {

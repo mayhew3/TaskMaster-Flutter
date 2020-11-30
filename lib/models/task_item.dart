@@ -173,6 +173,27 @@ class TaskItem extends DataObject {
     return targetDate.hasPassed();
   }
 
+
+  DateTime getLastDateBefore(TaskDateType taskDateType) {
+    var typePreceding = TaskDateTypes.getTypePreceding(taskDateType);
+    var lastValue = typePreceding.dateFieldGetter(this).value;
+
+    if (lastValue != null) {
+      return lastValue;
+    }
+
+    while (typePreceding != null) {
+      typePreceding = TaskDateTypes.getTypePreceding(typePreceding);
+      lastValue = typePreceding.dateFieldGetter(this).value;
+
+      if (lastValue != null) {
+        return lastValue;
+      }
+    }
+
+    return null;
+  }
+
   DateTime getAnchorDate() {
     return getAnchorDateType().dateFieldGetter(this).value;
   }

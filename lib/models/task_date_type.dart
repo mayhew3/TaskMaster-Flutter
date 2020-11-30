@@ -44,6 +44,15 @@ class TaskDateTypes {
     start, target, urgent, due
   ];
 
+  static TaskDateType getTypePreceding(TaskDateType taskDateType) {
+    int index = allTypes.indexOf(taskDateType);
+    if (index < 1) {
+      return null;
+    } else {
+      return allTypes[index - 1];
+    }
+  }
+
   static TaskDateType getTypeWithLabel(String label) {
     return allTypes.singleWhere((dateType) => dateType.label == label, orElse: null);
   }

@@ -14,13 +14,19 @@ DateTime daysFromNow(int days) {
 class ClearableDateTimeField extends StatelessWidget {
   const ClearableDateTimeField({
     Key key,
-    this.labelText,
-    this.dateGetter,
-    this.dateSetter,
+    @required this.labelText,
+    @required this.dateGetter,
+    @required this.dateSetter,
+    @required this.initialPickerGetter,
+    this.firstDateGetter,
+    this.currentDateGetter,
   }) : super(key: key);
 
   final String labelText;
   final ValueGetter<DateTime> dateGetter;
+  final ValueGetter<DateTime> initialPickerGetter;
+  final ValueGetter<DateTime> firstDateGetter;
+  final ValueGetter<DateTime> currentDateGetter;
   final ValueChanged<DateTime> dateSetter;
 
   @override
@@ -40,7 +46,7 @@ class ClearableDateTimeField extends StatelessWidget {
           final date = await showDatePicker(
               context: context,
               firstDate: DateTime(1900),
-              initialDate: currentValue ?? daysFromNow(7),
+              initialDate: currentValue ?? initialPickerGetter(),
               lastDate: DateTime(2100));
           if (date != null) {
             final time = await showTimePicker(
