@@ -217,9 +217,6 @@ class PlanTaskListState extends State<PlanTaskList> {
           title: Text('Select Tasks'),
         ),
         body: _buildListView(context),
-        drawer: TaskMainMenu(
-          appState: widget.appState,
-        ),
         floatingActionButton: Visibility(
           visible: sprintQueued.isNotEmpty,
           child: FloatingActionButton.extended(
