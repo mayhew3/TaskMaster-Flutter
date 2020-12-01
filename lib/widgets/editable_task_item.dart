@@ -51,6 +51,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     var due = hasPassed(taskItem.dueDate.value);
     var urgent = hasPassed(taskItem.urgentDate.value);
     var target = hasPassed(taskItem.targetDate.value);
+    var scheduled = taskItem.isScheduled();
     var completed = taskItem.completionDate.value != null;
 
     if (pending) {
@@ -63,6 +64,8 @@ class EditableTaskItemWidget extends StatelessWidget {
       return TaskColors.urgentColor;
     } else if (target && sprint == null) {
       return TaskColors.targetColor;
+    } else if (scheduled) {
+      return TaskColors.scheduledColor;
     } else {
       return TaskColors.cardColor;
     }
@@ -210,18 +213,47 @@ class EditableTaskItemWidget extends StatelessWidget {
   }
 
   ShapeBorder _getBorder() {
-    return highlightSprint ?
-    RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(3.0),
-      side: BorderSide(
-        color: TaskColors.sprintColor,
-        width: 1.0,
-      ),
-    )
-        :
-    RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(3.0),
-    );
+    if  (highlightSprint) {
+      return RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(3.0),
+        side: BorderSide(
+          color: TaskColors.sprintColor,
+          width: 1.0,
+        ),
+      );
+    } else if (taskItem.isScheduled()) {
+      return RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(3.0),
+        side: BorderSide(
+          color: TaskColors.scheduledOutline,
+          width: 1.0,
+        ),
+      );
+    } else {
+      return RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(3.0),
+      );
+    }
+  }
+
+  TextStyle _getHeaderStyle() {
+    if (taskItem.isScheduled()) {
+      return TextStyle(
+        fontSize: 17.0,
+        color: TaskColors.scheduledText,
+      );
+    } else {
+      return const TextStyle(fontSize: 17.0);
+    }
+  }
+
+  Color _getShadowColor() {
+    if (taskItem.isScheduled()) {
+      // no shadow for scheduled task, by using 0 alpha
+      return Color.fromRGBO(0, 0, 0, 0.0);
+    } else {
+      return Colors.black;
+    }
   }
 
   @override
@@ -238,6 +270,7 @@ class EditableTaskItemWidget extends StatelessWidget {
           onForcePress(forcePressDetails);
         },
         child: Card(
+          shadowColor: _getShadowColor(),
           color: getBackgroundColor(),
           shape: _getBorder(),
           elevation: 3.0,
@@ -263,7 +296,7 @@ class EditableTaskItemWidget extends StatelessWidget {
                       children: <Widget>[
                         Text(
                             taskItem.name.value,
-                            style: const TextStyle(fontSize: 17.0)
+                            style: _getHeaderStyle(),
                         ),
                         Visibility(
                           visible: taskItem.project.value != null,

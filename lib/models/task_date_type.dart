@@ -7,7 +7,7 @@ import 'package:taskmaster/typedefs.dart';
 class TaskDateTypes {
   static final TaskDateType start = TaskDateType(
     label: 'Start',
-    textColor: Color.fromRGBO(235, 235, 235, 1.0),
+    textColor: Color.fromRGBO(235, 235, 235, 0.8),
     dateFieldGetter: (taskItem) => taskItem.startDate,
     listThresholdInDays: -1,
   );
