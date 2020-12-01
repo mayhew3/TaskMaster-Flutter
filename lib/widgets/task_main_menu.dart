@@ -29,6 +29,7 @@ class TaskMainMenu extends Drawer {
             ListTile(
               title: Text('Sign Out'),
               onTap: () async {
+                await appState.notificationScheduler.cancelAllNotifications();
                 await appState.auth.handleSignOut();
                 appState.navHelper.goToSignInScreen();
               },
