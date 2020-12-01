@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:taskmaster/models/task_colors.dart';
+import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/task_helper.dart';
@@ -51,6 +52,26 @@ class DetailScreenState extends State<DetailScreen> {
 
   String formatNumber(num number) {
     return number == null ? '' : number.toString();
+  }
+
+  Color getStartTextColor() {
+    var start = taskItem.startDate.hasPassed();
+    return start ? Colors.white : TaskColors.scheduledText;
+  }
+
+  Color getStartOutlineColor() {
+    var start = taskItem.startDate.hasPassed();
+    return start ? null : TaskColors.scheduledOutline;
+  }
+
+  Color getStartBackgroundColor() {
+    var start = taskItem.startDate.hasPassed();
+    return start ? TaskColors.cardColor : TaskColors.scheduledColor;
+  }
+
+  Color getTargetBackgroundColor() {
+    var target = taskItem.targetDate.hasPassed();
+    return target ? TaskColors.targetColor : TaskColors.cardColor;
   }
 
   Color getUrgentBackgroundColor() {
@@ -160,19 +181,27 @@ class DetailScreenState extends State<DetailScreen> {
             ReadOnlyTaskField(
               headerName: 'Start',
               textToShow: formatDateTime(taskItem.startDate.value),
+              optionalTextColor: getStartTextColor(),
+              optionalOutlineColor: getStartOutlineColor(),
+              optionalBackgroundColor: getStartBackgroundColor(),
+              hasShadow: false,
             ),
             ReadOnlyTaskField(
               headerName: 'Target',
               textToShow: formatDateTime(taskItem.targetDate.value),
+              optionalTextColor: TaskDateTypes.target.textColor,
+              optionalBackgroundColor: getTargetBackgroundColor(),
             ),
             ReadOnlyTaskField(
               headerName: 'Urgent',
               textToShow: formatDateTime(taskItem.urgentDate.value),
+              optionalTextColor: TaskDateTypes.urgent.textColor,
               optionalBackgroundColor: getUrgentBackgroundColor(),
             ),
             ReadOnlyTaskField(
               headerName: 'Due',
               textToShow: formatDateTime(taskItem.dueDate.value),
+              optionalTextColor: TaskDateTypes.due.textColor,
               optionalBackgroundColor: getDueBackgroundColor(),
             ),
             ReadOnlyTaskField(
