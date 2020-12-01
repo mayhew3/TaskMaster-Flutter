@@ -62,7 +62,7 @@ class EditableTaskItemWidget extends StatelessWidget {
       return TaskColors.dueColor;
     } else if (urgent) {
       return TaskColors.urgentColor;
-    } else if (target && sprint == null) {
+    } else if (target) {
       return TaskColors.targetColor;
     } else if (scheduled) {
       return TaskColors.scheduledColor;

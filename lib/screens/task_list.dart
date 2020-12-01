@@ -239,10 +239,7 @@ class TaskListScreenState extends State<TaskListScreen> {
     final List<TaskItem> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isPastDue());
     final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgent());
 
-    List<TaskItem> targetTasks = [];
-    if (widget.sprint == null) {
-      targetTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isTarget());
-    }
+    List<TaskItem> targetTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isTarget());
 
     final List<TaskItem> scheduledTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isScheduled());
 
