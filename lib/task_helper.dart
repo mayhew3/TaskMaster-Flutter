@@ -33,7 +33,6 @@ class TaskHelper {
     appState.isLoading = true;
     appState.taskItems = [];
 
-    await appState.notificationScheduler.cancelAllNotifications();
     try {
       await repository.loadTasks(stateSetter);
     } finally {

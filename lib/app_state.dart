@@ -79,6 +79,7 @@ class AppState {
   }
 
   Future<void> syncAllNotifications() async {
+    await notificationScheduler.cancelAllNotifications();
     await notificationScheduler.syncNotificationForTasksAndSprint(taskItems, getActiveSprint());
   }
 
