@@ -2,6 +2,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:jiffy/jiffy.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
@@ -47,7 +48,25 @@ class DetailScreenState extends State<DetailScreen> {
   }
 
   String formatDateTime(DateTime dateTime) {
-    return dateTime == null ? '' : timeago.format(dateTime, allowFromNow: true);
+    if (dateTime == null) {
+      return '';
+    }
+    var jiffy = Jiffy(dateTime);
+    var isToday = jiffy.yMMMd == Jiffy().yMMMd;
+    var isThisYear = jiffy.year == Jiffy().year;
+    var jiffyTime = jiffy.format("h:mm a");
+    var jiffyDate = isThisYear ? jiffy.format("MMMM do") : jiffy.format("MMMM do, yyyy");
+    var formattedDate = isToday ?
+        jiffyTime + ' today' :
+        jiffyDate;
+    return formattedDate;
+  }
+
+  String _getFormattedAgo(DateTime dateTime) {
+    if (dateTime == null) {
+      return null;
+    }
+    return "(" + timeago.format(dateTime, allowFromNow: true) + ")";
   }
 
   String formatNumber(num number) {
@@ -181,6 +200,7 @@ class DetailScreenState extends State<DetailScreen> {
             ReadOnlyTaskField(
               headerName: 'Start',
               textToShow: formatDateTime(taskItem.startDate.value),
+              optionalSubText: _getFormattedAgo(taskItem.startDate.value),
               optionalTextColor: getStartTextColor(),
               optionalOutlineColor: getStartOutlineColor(),
               optionalBackgroundColor: getStartBackgroundColor(),
@@ -189,24 +209,28 @@ class DetailScreenState extends State<DetailScreen> {
             ReadOnlyTaskField(
               headerName: 'Target',
               textToShow: formatDateTime(taskItem.targetDate.value),
+              optionalSubText: _getFormattedAgo(taskItem.targetDate.value),
               optionalTextColor: TaskDateTypes.target.textColor,
               optionalBackgroundColor: getTargetBackgroundColor(),
             ),
             ReadOnlyTaskField(
               headerName: 'Urgent',
               textToShow: formatDateTime(taskItem.urgentDate.value),
+              optionalSubText: _getFormattedAgo(taskItem.urgentDate.value),
               optionalTextColor: TaskDateTypes.urgent.textColor,
               optionalBackgroundColor: getUrgentBackgroundColor(),
             ),
             ReadOnlyTaskField(
               headerName: 'Due',
               textToShow: formatDateTime(taskItem.dueDate.value),
+              optionalSubText: _getFormattedAgo(taskItem.dueDate.value),
               optionalTextColor: TaskDateTypes.due.textColor,
               optionalBackgroundColor: getDueBackgroundColor(),
             ),
             ReadOnlyTaskField(
               headerName: 'Completed',
               textToShow: formatDateTime(taskItem.getFinishedCompletionDate()),
+              optionalSubText: _getFormattedAgo(taskItem.getFinishedCompletionDate()),
               optionalBackgroundColor: getCompletedBackgroundColor(),
             ),
             ReadOnlyTaskField(

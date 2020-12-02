@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 class ReadOnlyTaskField extends StatelessWidget {
   final String headerName;
   final String textToShow;
+  final String optionalSubText;
   final Color optionalTextColor;
   final Color optionalBackgroundColor;
   final Color optionalOutlineColor;
@@ -15,6 +16,7 @@ class ReadOnlyTaskField extends StatelessWidget {
     Key key,
     @required this.textToShow,
     @required this.headerName,
+    this.optionalSubText,
     this.optionalTextColor,
     this.optionalBackgroundColor,
     this.optionalOutlineColor,
@@ -41,6 +43,25 @@ class ReadOnlyTaskField extends StatelessWidget {
     }
   }
 
+  List<Widget> _getDateTexts() {
+    List<Widget> texts = [];
+    texts.add(Text(textToShow ?? '',
+        style: TextStyle(
+            color: optionalTextColor ?? Colors.white,
+            fontSize: 16.0
+        )));
+
+    if (optionalSubText != null) {
+      texts.add(Text(optionalSubText ?? '',
+          style: TextStyle(
+              color: optionalTextColor ?? Colors.white,
+              fontSize: 12.0
+          )));
+    }
+
+    return texts;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Visibility(
@@ -54,22 +75,16 @@ class ReadOnlyTaskField extends StatelessWidget {
           padding: EdgeInsets.all(16.0),
           child: Row(
             children: <Widget>[
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: <Widget>[
-                  SizedBox(
-                    width: 80.0,
-                    child: Text(headerName,
-                      style: Theme.of(context).textTheme.caption,),
-                  ),
-                ],
+              SizedBox(
+                width: 70.0,
+                child: Text(headerName,
+                  style: Theme.of(context).textTheme.caption,),
               ),
               Expanded(
-                child: Text(textToShow ?? '',
-                    style: TextStyle(
-                        color: optionalTextColor ?? Colors.white,
-                        fontSize: 15.0
-                    )),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: _getDateTexts(),
+                ),
               ),
             ],
           ),
