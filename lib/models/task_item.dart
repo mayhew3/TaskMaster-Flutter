@@ -182,9 +182,8 @@ class TaskItem extends DataObject {
       return lastValue;
     }
 
-    while (typePreceding != null) {
-      typePreceding = TaskDateTypes.getTypePreceding(typePreceding);
-      lastValue = typePreceding.dateFieldGetter(this).value;
+    while ((typePreceding = TaskDateTypes.getTypePreceding(typePreceding)) != null) {
+      lastValue = typePreceding?.dateFieldGetter(this).value;
 
       if (lastValue != null) {
         return lastValue;
