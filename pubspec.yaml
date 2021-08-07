@@ -11,7 +11,7 @@ description: Tasks evolved.
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.0+1
+version: 0.1.1
 
 environment:
   sdk: ">=2.2.0 <3.0.0"
@@ -19,29 +19,31 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  datetime_picker_formfield: 1.0.0
-  http: 0.12.0+4
-  intl: 0.16.1
-  jiffy: 3.0.1
-  google_sign_in: 4.1.4
-  firebase_auth: 0.15.5+3
-  flutter_local_notifications: 3.0.1+2
-  flutter_native_timezone: 1.0.4
-  flutter_app_badger: 1.1.2
-  timeago: 2.0.26
-  characters: 1.1.0-nullsafety.3
-  flutter_platform_widgets: 0.51.0
+  datetime_picker_formfield: ^1.0.0
+  http: ^0.13.3
+  intl: ^0.17.0
+  jiffy: ^4.1.0
+  google_sign_in: ^4.5.1
+  firebase_auth: ^3.0.1
+  firebase_core: ^1.4.0
+  flutter_local_notifications: ^8.1.1
+  flutter_native_timezone: ^2.0.0
+  flutter_app_badger: ^1.2.0
+  timeago: ^3.1.0
+  characters: ^1.1.0
+  flutter_platform_widgets: ^1.9.5
+  yaml: ^3.1.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: 0.1.3
+  cupertino_icons: 1.0.3
 
 dev_dependencies:
-  test: ^1.9.4
+  test: ^1.16.8
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: 0.7.4
-  mockito: 4.1.1
+  flutter_launcher_icons: ^0.9.1
+  mockito: ^5.0.14
 
 flutter_icons:
   ios: true

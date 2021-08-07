@@ -33,10 +33,10 @@ class DateUtil {
       return null;
     }
     switch (recurUnit) {
-      case 'Days': return Jiffy(dateTime).add(days: recurNumber);
-      case 'Weeks': return Jiffy(dateTime).add(weeks: recurNumber);
-      case 'Months': return Jiffy(dateTime).add(months: recurNumber);
-      case 'Years': return Jiffy(dateTime).add(years: recurNumber);
+      case 'Days': return Jiffy(dateTime).add(days: recurNumber).dateTime;
+      case 'Weeks': return Jiffy(dateTime).add(weeks: recurNumber).dateTime;
+      case 'Months': return Jiffy(dateTime).add(months: recurNumber).dateTime;
+      case 'Years': return Jiffy(dateTime).add(years: recurNumber).dateTime;
       default: return null;
     }
   }
@@ -46,11 +46,11 @@ class DateUtil {
   }
 
   static DateTime withoutMillis(DateTime originalDate) {
-    return Jiffy(originalDate).startOf(Units.SECOND);
+    return Jiffy(originalDate).startOf(Units.SECOND).dateTime;
   }
 
   static DateTime withoutSeconds(DateTime originalDate) {
-    return Jiffy(originalDate).startOf(Units.MINUTE);
+    return Jiffy(originalDate).startOf(Units.MINUTE).dateTime;
   }
 
 }

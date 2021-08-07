@@ -89,7 +89,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     }
   }
 
-  void updateIdToken(IdTokenResult idToken) {
+  void updateIdToken(String idToken) {
     setState(() {
       appState.tokenRetrieved = (idToken != null);
     });

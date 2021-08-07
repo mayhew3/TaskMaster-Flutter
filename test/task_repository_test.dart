@@ -22,7 +22,7 @@ void main() {
 
     http.Client client;
     AppState appState;
-    final String tasksAPI = "https://taskmaster-general.herokuapp.com/api/tasks";
+    final Uri tasksAPI = Uri.parse("https://taskmaster-general.herokuapp.com/api/tasks");
 
     TaskRepository createTaskRepository({List<TaskItem> taskItems, List<Sprint> sprints}) {
       appState = new MockAppState();
@@ -50,7 +50,7 @@ void main() {
       var headers = invocation.namedArguments[Symbol("headers")];
       var tokenInfo = headers[HttpHeaders.authorizationHeader];
       var expectedToken = await appState.getIdToken();
-      expect(tokenInfo, expectedToken.token);
+      expect(tokenInfo, expectedToken);
     }
 
 

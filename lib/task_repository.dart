@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -33,10 +32,10 @@ class TaskRepository {
 
     var uri = Uri.https('taskmaster-general.herokuapp.com', '/api/tasks', queryParameters);
 
-    IdTokenResult idToken = await appState.getIdToken();
+    String idToken = await appState.getIdToken();
 
     final response = await this.client.get(uri,
-      headers: {HttpHeaders.authorizationHeader: idToken.token,
+      headers: {HttpHeaders.authorizationHeader: idToken,
                 HttpHeaders.contentTypeHeader: 'application/json'},
     );
 
@@ -184,7 +183,7 @@ class TaskRepository {
     var idToken = await appState.getIdToken();
 
     final response = await client.delete(uri,
-      headers: {HttpHeaders.authorizationHeader: idToken.token,
+      headers: {HttpHeaders.authorizationHeader: idToken,
         HttpHeaders.contentTypeHeader: 'application/json'},
     );
 
@@ -198,8 +197,9 @@ class TaskRepository {
 
     var idToken = await appState.getIdToken();
 
-    final response = await client.post("https://taskmaster-general.herokuapp.com/api/tasks",
-        headers: {HttpHeaders.authorizationHeader: idToken.token,
+    var uri = Uri.parse('https://taskmaster-general.herokuapp.com/api/tasks');
+    final response = await client.post(uri,
+        headers: {HttpHeaders.authorizationHeader: idToken,
           "Content-Type": "application/json"},
         body: body
     );
@@ -224,8 +224,9 @@ class TaskRepository {
 
     var idToken = await appState.getIdToken();
 
-    final response = await client.post("https://taskmaster-general.herokuapp.com/api/snoozes",
-        headers: {HttpHeaders.authorizationHeader: idToken.token,
+    var uri = Uri.parse("https://taskmaster-general.herokuapp.com/api/snoozes");
+    final response = await client.post(uri,
+        headers: {HttpHeaders.authorizationHeader: idToken,
           "Content-Type": "application/json"},
         body: body
     );
@@ -250,8 +251,9 @@ class TaskRepository {
 
     var idToken = await appState.getIdToken();
 
-    final response = await client.post("https://taskmaster-general.herokuapp.com/api/sprints",
-        headers: {HttpHeaders.authorizationHeader: idToken.token,
+    var uri = Uri.parse("https://taskmaster-general.herokuapp.com/api/sprints");
+    final response = await client.post(uri,
+        headers: {HttpHeaders.authorizationHeader: idToken,
           "Content-Type": "application/json"},
         body: body
     );
@@ -276,8 +278,9 @@ class TaskRepository {
 
     var idToken = await appState.getIdToken();
 
-    final response = await client.post("https://taskmaster-general.herokuapp.com/api/assignments",
-        headers: {HttpHeaders.authorizationHeader: idToken.token,
+    var uri = Uri.parse("https://taskmaster-general.herokuapp.com/api/assignments");
+    final response = await client.post(uri,
+        headers: {HttpHeaders.authorizationHeader: idToken,
           "Content-Type": "application/json"},
         body: body
     );
