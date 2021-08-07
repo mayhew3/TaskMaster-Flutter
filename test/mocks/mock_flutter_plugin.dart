@@ -47,7 +47,7 @@ class MockFlutterLocalNotificationsPlugin extends Mock implements FlutterLocalNo
   }
 
   @override
-  Future<void> cancel(int id) async {
+  Future<void> cancel(int id, {String tag}) async {
     pendings.removeWhere((request) => request.id == id);
   }
 

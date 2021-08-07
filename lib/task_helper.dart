@@ -207,9 +207,9 @@ class TaskHelper {
   }
 
   DateTime _getClosestDateForTime(DateTime dateWithTime, DateTime targetDate) {
-    DateTime prev = _applyTimeToDate(dateWithTime, Jiffy(targetDate).subtract(days:1));
+    DateTime prev = _applyTimeToDate(dateWithTime, Jiffy(targetDate).subtract(days:1).dateTime);
     DateTime current = _applyTimeToDate(dateWithTime, targetDate);
-    DateTime next = _applyTimeToDate(dateWithTime, Jiffy(targetDate).add(days:1));
+    DateTime next = _applyTimeToDate(dateWithTime, Jiffy(targetDate).add(days:1).dateTime);
 
     var prevDiff = prev.difference(targetDate).abs();
     var currDiff = current.difference(targetDate).abs();

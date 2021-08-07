@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -36,7 +35,7 @@ class AppState {
     this.navHelper = navHelper;
   }
 
-  Future<IdTokenResult> getIdToken() async {
+  Future<String> getIdToken() async {
     try {
       return await auth.getIdToken();
     } catch (err) {

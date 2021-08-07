@@ -3,12 +3,10 @@ import 'dart:async';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 import 'package:taskmaster/app_state.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/notification_scheduler.dart';
 
-import 'mock_id_token_result.dart';
 import 'mock_notification_scheduler.dart';
 
 class MockAppState extends Mock implements AppState {
@@ -30,9 +28,8 @@ class MockAppState extends Mock implements AppState {
   }
 
   @override
-  Future<IdTokenResult> getIdToken() async {
-    IdTokenResult idTokenResult = MockIdTokenResult();
-    return Future<IdTokenResult>.value(idTokenResult);
+  Future<String> getIdToken() async {
+    return Future<String>.value('asdbhjsfd');
   }
 }
 
