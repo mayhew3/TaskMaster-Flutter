@@ -213,7 +213,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                     },
                     dateSetter: (DateTime pickedDate) {
                       setState(() {
-                        widget.taskItem.startDate?.value = pickedDate;
+                        widget.taskItem.startDate.value = pickedDate;
                         if (!hasDate()) {
                           clearRepeatOn();
                         }
@@ -223,13 +223,13 @@ class AddEditScreenState extends State<AddEditScreen> {
                   ClearableDateTimeField(
                     labelText: 'Target Date',
                     dateGetter: () {
-                      return widget.taskItem.targetDate?.value;
+                      return widget.taskItem.targetDate.value;
                     },
                     initialPickerGetter: () {
                       return _getOnePastPreviousDateOrNow(TaskDateTypes.target);
                     },
                     firstDateGetter: () {
-                      return widget.taskItem.startDate?.value;
+                      return widget.taskItem.startDate.value;
                     },
                     currentDateGetter: () {
                       return _getPreviousDateOrNow(TaskDateTypes.target);

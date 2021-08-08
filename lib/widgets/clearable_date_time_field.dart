@@ -23,7 +23,7 @@ class ClearableDateTimeField extends StatelessWidget {
   }) : super(key: key);
 
   final String labelText;
-  final ValueGetter<DateTime> dateGetter;
+  final ValueGetter<DateTime?> dateGetter;
   final ValueGetter<DateTime> initialPickerGetter;
   final ValueGetter<DateTime> firstDateGetter;
   final ValueGetter<DateTime> currentDateGetter;
