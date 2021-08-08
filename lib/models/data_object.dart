@@ -4,7 +4,7 @@ import 'package:taskmaster/models/task_field.dart';
 
 abstract class DataObject {
 
-  TaskFieldInteger id;
+  TaskFieldInteger/*!*/ id;
   List<TaskField> fields = [];
 
   DataObject() {

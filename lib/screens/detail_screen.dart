@@ -16,8 +16,8 @@ import 'package:timeago/timeago.dart' as timeago;
 final longDateFormat = DateFormat.yMMMMd().add_jm();
 
 class DetailScreen extends StatefulWidget {
-  final TaskItem taskItem;
-  final TaskHelper taskHelper;
+  final TaskItem/*!*/ taskItem;
+  final TaskHelper/*!*/ taskHelper;
 
   const DetailScreen({
     Key key,
@@ -35,9 +35,9 @@ class DetailScreen extends StatefulWidget {
 class DetailScreenState extends State<DetailScreen> {
 
   bool completed;
-  TaskItem taskItem;
+  TaskItem/*!*/ taskItem;
 
-  DetailScreenState(TaskItem taskItem) {
+  DetailScreenState(TaskItem/*!*/ taskItem) {
     this.taskItem = taskItem;
   }
 
