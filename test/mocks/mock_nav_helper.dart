@@ -14,7 +14,7 @@ class MockNavHelper extends Mock implements NavHelper {
   final TaskRepository taskRepository;
 
   MockNavHelper({
-    @required this.taskRepository,
+    required this.taskRepository,
   });
 
 

@@ -25,9 +25,9 @@ class PlanTaskList extends StatefulWidget {
   final Sprint sprint;
 
   PlanTaskList({
-    @required this.appState,
-    @required this.taskHelper,
-    @required this.taskListGetter,
+    required this.appState,
+    required this.taskHelper,
+    required this.taskListGetter,
     this.numUnits,
     this.unitName,
     this.startDate,

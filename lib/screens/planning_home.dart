@@ -26,9 +26,9 @@ class PlanningHome extends StatefulWidget {
 
   PlanningHome({
     Key key,
-    @required this.appState,
-    @required this.bottomNavigationBarGetter,
-    @required this.taskHelper,
+    required this.appState,
+    required this.bottomNavigationBarGetter,
+    required this.taskHelper,
   }) : super(key: key);
 
   @override

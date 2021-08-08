@@ -14,10 +14,10 @@ DateTime daysFromNow(int days) {
 class ClearableDateTimeField extends StatelessWidget {
   const ClearableDateTimeField({
     Key key,
-    @required this.labelText,
-    @required this.dateGetter,
-    @required this.dateSetter,
-    @required this.initialPickerGetter,
+    required this.labelText,
+    required this.dateGetter,
+    required this.dateSetter,
+    required this.initialPickerGetter,
     this.firstDateGetter,
     this.currentDateGetter,
   }) : super(key: key);

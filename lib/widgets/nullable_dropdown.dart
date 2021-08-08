@@ -13,9 +13,9 @@ class NullableDropdown extends StatefulWidget {
   const NullableDropdown({
     Key key,
     this.initialValue,
-    @required this.labelText,
-    @required this.possibleValues,
-    @required this.valueSetter,
+    required this.labelText,
+    required this.possibleValues,
+    required this.valueSetter,
     this.onChanged,
     this.validator,
   }) : super(key: key);

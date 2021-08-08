@@ -65,10 +65,10 @@ class TaskDateType {
   final int listThresholdInDays;
 
   TaskDateType({
-    @required this.label,
-    @required this.textColor,
-    @required this.dateFieldGetter,
-    @required this.listThresholdInDays,
+    required this.label,
+    required this.textColor,
+    required this.dateFieldGetter,
+    required this.listThresholdInDays,
   });
 
   bool inListBeforeDisplayThreshold(TaskItem taskItem) {

@@ -14,8 +14,8 @@ class ReadOnlyTaskField extends StatelessWidget {
 
   const ReadOnlyTaskField({
     Key key,
-    @required this.textToShow,
-    @required this.headerName,
+    required this.textToShow,
+    required this.headerName,
     this.optionalSubText,
     this.optionalTextColor,
     this.optionalBackgroundColor,

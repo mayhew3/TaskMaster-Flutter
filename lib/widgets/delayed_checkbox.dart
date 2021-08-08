@@ -20,7 +20,7 @@ class DelayedCheckbox extends StatefulWidget {
     this.initialState,
     this.checkedColor,
     this.inactiveIcon,
-    @required this.stateSetter,
+    required this.stateSetter,
   }) : super(key: key);
 
   @override

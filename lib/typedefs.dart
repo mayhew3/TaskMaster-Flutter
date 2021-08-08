@@ -4,8 +4,8 @@ import 'package:taskmaster/models/task_field.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/widgets/delayed_checkbox.dart';
 
-typedef UserUpdater(GoogleSignInAccount account);
-typedef IdTokenUpdater(String idToken);
+typedef UserUpdater(GoogleSignInAccount? account);
+typedef IdTokenUpdater(String? idToken);
 
 typedef EndLoadingCallback(BuildContext context);
 

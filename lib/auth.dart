@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:taskmaster/typedefs.dart';
 
@@ -10,13 +9,13 @@ class TaskMasterAuth {
       'email',
     ]
   );
-  UserCredential _firebaseUser;
+  UserCredential? _firebaseUser;
   final UserUpdater updateCurrentUser;
   final IdTokenUpdater updateIdToken;
 
   TaskMasterAuth({
-    @required this.updateCurrentUser,
-    @required this.updateIdToken,
+    required this.updateCurrentUser,
+    required this.updateIdToken,
   });
 
   Future<void> handleSignIn() async {
@@ -34,7 +33,7 @@ class TaskMasterAuth {
   }
 
   Future<String> getIdToken() async {
-    return await _firebaseUser.user.getIdToken();
+    return await _firebaseUser!.user!.getIdToken();
   }
 
   void clearFields() {
@@ -43,9 +42,9 @@ class TaskMasterAuth {
     updateIdToken(null);
   }
 
-  Future<GoogleSignInAccount> addGoogleListener() async {
+  Future<GoogleSignInAccount?> addGoogleListener() async {
     await Firebase.initializeApp();
-    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) async {
+    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) async {
 
       if (account == null) {
         clearFields();
@@ -67,7 +66,7 @@ class TaskMasterAuth {
         accessToken: authentication.accessToken,
       );
       _firebaseUser = await FirebaseAuth.instance.signInWithCredential(credential);
-      String idToken = await _firebaseUser.user.getIdToken();
+      String idToken = await _firebaseUser!.user!.getIdToken();
       updateIdToken(idToken);
       updateCurrentUser(account);
       print("Login success!");

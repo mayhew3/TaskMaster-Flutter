@@ -4,7 +4,7 @@ import 'package:jiffy/jiffy.dart';
 
 class DateUtil {
 
-  static String formatShortMaybeHidingYear(DateTime dateTime) {
+  static String formatShortMaybeHidingYear(DateTime? dateTime) {
     if (dateTime == null) {
       return 'N/A';
     }
@@ -16,7 +16,7 @@ class DateUtil {
     return dateFormat.format(dateTime);
   }
 
-  static String formatMediumMaybeHidingYear(DateTime dateTime) {
+  static String formatMediumMaybeHidingYear(DateTime? dateTime) {
     if (dateTime == null) {
       return 'N/A';
     }
@@ -28,7 +28,7 @@ class DateUtil {
     return dateFormat.format(dateTime);
   }
 
-  static DateTime adjustToDate(DateTime dateTime, int recurNumber, String recurUnit) {
+  static DateTime? adjustToDate(DateTime? dateTime, int recurNumber, String recurUnit) {
     if (dateTime == null) {
       return null;
     }

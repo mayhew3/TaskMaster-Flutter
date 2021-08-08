@@ -16,9 +16,9 @@ class HomeScreen extends StatefulWidget {
   final TaskHelper taskHelper;
 
   HomeScreen({
-    @required this.appState,
-    @required this.navHelper,
-    @required this.taskHelper,
+    required this.appState,
+    required this.navHelper,
+    required this.taskHelper,
     Key key,
   }) : super(key: TaskMasterKeys.homeScreen);
 

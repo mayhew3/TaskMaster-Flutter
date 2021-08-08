@@ -14,10 +14,10 @@ class EditableTaskField extends StatefulWidget {
 
   const EditableTaskField({
     Key key,
-    @required this.initialText,
-    @required this.labelText,
-    @required this.fieldSetter,
-    @required this.inputType,
+    required this.initialText,
+    required this.labelText,
+    required this.fieldSetter,
+    required this.inputType,
     this.onChanged,
     this.isRequired = false,
     this.wordCaps = false,
@@ -35,7 +35,7 @@ class EditableTaskFieldState extends State<EditableTaskField> {
   String initialText;
 
   EditableTaskFieldState({
-    @required this.initialText
+    required this.initialText
   });
 
   int getMaxLines() {

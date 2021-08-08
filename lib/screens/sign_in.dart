@@ -9,8 +9,8 @@ class SignInScreen extends StatefulWidget {
   final NavHelper navHelper;
 
   SignInScreen({
-    @required this.appState,
-    @required this.navHelper,
+    required this.appState,
+    required this.navHelper,
     Key key,
   }) : super(key: key);
 

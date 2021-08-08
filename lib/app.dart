@@ -1,10 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
 import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/auth.dart';
 import 'package:taskmaster/nav_helper.dart';
-import 'package:http/http.dart' as http;
 import 'package:taskmaster/screens/loading.dart';
 import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/task_repository.dart';
@@ -17,11 +16,11 @@ class TaskMasterApp extends StatefulWidget {
 }
 
 class TaskMasterAppState extends State<TaskMasterApp> {
-  AppState appState;
-  TaskRepository repository;
-  NavHelper navHelper;
-  TaskMasterAuth auth;
-  TaskHelper taskHelper;
+  late final AppState appState;
+  late final TaskRepository repository;
+  late final NavHelper navHelper;
+  late final TaskMasterAuth auth;
+  late final TaskHelper taskHelper;
 
   TaskMasterAppState() {
     auth = TaskMasterAuth(
@@ -80,7 +79,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     }
   }
 
-  void updateCurrentUser(GoogleSignInAccount currentUser) {
+  void updateCurrentUser(GoogleSignInAccount? currentUser) {
     setState(() {
       appState.currentUser = currentUser;
     });
@@ -89,7 +88,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     }
   }
 
-  void updateIdToken(String idToken) {
+  void updateIdToken(String? idToken) {
     setState(() {
       appState.tokenRetrieved = (idToken != null);
     });

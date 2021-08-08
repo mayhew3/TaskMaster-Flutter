@@ -19,8 +19,8 @@ class AddEditScreen extends StatefulWidget {
     Key key,
     this.taskItem,
     this.taskItemRefresher,
-    @required this.taskHelper,
-    @required this.isEditing,
+    required this.taskHelper,
+    required this.isEditing,
   }) : super(key: key);
 
   @override

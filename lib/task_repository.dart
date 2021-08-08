@@ -17,8 +17,8 @@ class TaskRepository {
   http.Client client;
 
   TaskRepository({
-    @required this.appState,
-    @required this.client,
+    required this.appState,
+    required this.client,
   });
 
   Future<void> loadTasks(StateSetter stateSetter) async {

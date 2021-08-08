@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -15,18 +14,18 @@ class AppState {
   List<TaskItem> taskItems;
   List<Sprint> sprints;
   final TaskMasterAuth auth;
-  GoogleSignInAccount currentUser;
+  GoogleSignInAccount? currentUser;
   bool tokenRetrieved = false;
-  int personId;
-  NotificationScheduler notificationScheduler;
-  String title;
-  NavHelper navHelper;
+  late int personId;
+  late NotificationScheduler notificationScheduler;
+  late String title;
+  late NavHelper navHelper;
 
   AppState({
     this.isLoading = true,
     this.taskItems = const [],
     this.sprints = const [],
-    @required this.auth,
+    required this.auth,
   }) {
     title = 'TaskMaster 3000';
   }
@@ -54,12 +53,12 @@ class AppState {
     return activeSprint == null ? [] : activeSprint.taskItems;
   }
 
-  TaskItem findTaskItemWithId(int taskId) {
+  TaskItem? findTaskItemWithId(int taskId) {
     var matching = taskItems.where((taskItem) => taskItem.id.value == taskId);
     return matching.isEmpty ? null : matching.first;
   }
 
-  Sprint findSprintWithId(int sprintId) {
+  Sprint? findSprintWithId(int sprintId) {
     var matching = sprints.where((sprint) => sprint.id.value == sprintId);
     return matching.isEmpty ? null : matching.first;
   }
@@ -82,20 +81,20 @@ class AppState {
     await notificationScheduler.syncNotificationForTasksAndSprint(taskItems, getActiveSprint());
   }
 
-  Sprint getActiveSprint() {
+  Sprint? getActiveSprint() {
     DateTime now = DateTime.now();
     Iterable<Sprint> matching = this.sprints.where((sprint) =>
-        sprint.startDate.value.isBefore(now) &&
-        sprint.endDate.value.isAfter(now) &&
+        sprint.startDate.value!.isBefore(now) &&
+        sprint.endDate.value!.isAfter(now) &&
         sprint.closeDate.value == null);
     return matching.isEmpty ? null : matching.first;
   }
 
-  Sprint getLastCompletedSprint() {
+  Sprint? getLastCompletedSprint() {
     List<Sprint> matching = this.sprints.where((sprint) {
-      return DateTime.now().isAfter(sprint.endDate.value);
+      return DateTime.now().isAfter(sprint.endDate.value!);
     }).toList();
-    matching.sort((a, b) => a.endDate.value.compareTo(b.endDate.value));
+    matching.sort((a, b) => a.endDate.value!.compareTo(b.endDate.value!));
     return matching.isEmpty ? null : matching.last;
   }
 

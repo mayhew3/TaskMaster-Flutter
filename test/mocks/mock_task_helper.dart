@@ -12,7 +12,7 @@ class MockTaskHelper extends Mock implements TaskHelper {
   final TaskRepository taskRepository;
 
   MockTaskHelper({
-    @required this.taskRepository,
+    required this.taskRepository,
   });
 
 }

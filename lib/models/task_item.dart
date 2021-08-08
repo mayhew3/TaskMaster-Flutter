@@ -7,10 +7,10 @@ class TaskItem extends DataObject {
 
   TaskFieldInteger personId;
 
-  TaskFieldString name;
-  TaskFieldString description;
-  TaskFieldString project;
-  TaskFieldString context;
+  TaskFieldString/*!*/ name;
+  TaskFieldString/*!*/ description;
+  TaskFieldString/*!*/ project;
+  TaskFieldString/*!*/ context;
 
   TaskFieldInteger urgency;
   TaskFieldInteger priority;

@@ -21,10 +21,10 @@ class TaskHelper {
   NavHelper navHelper;
 
   TaskHelper({
-    @required this.appState,
-    @required this.repository,
-    @required this.auth,
-    @required this.stateSetter,
+    required this.appState,
+    required this.repository,
+    required this.auth,
+    required this.stateSetter,
     this.navHelper,
   });
 

@@ -11,9 +11,9 @@ class LoadingScreen extends StatefulWidget {
 
   LoadingScreen({
     Key key,
-    @required this.appState,
-    @required this.navHelper,
-    @required this.msg,
+    required this.appState,
+    required this.navHelper,
+    required this.msg,
   }) : super(key: key);
 
   @override

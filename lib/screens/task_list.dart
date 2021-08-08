@@ -30,11 +30,11 @@ class TaskListScreen extends StatefulWidget {
   final String subSubHeader;
 
   TaskListScreen({
-    @required this.appState,
-    @required this.bottomNavigationBarGetter,
-    @required this.taskHelper,
-    @required this.taskListGetter,
-    @required this.title,
+    required this.appState,
+    required this.bottomNavigationBarGetter,
+    required this.taskHelper,
+    required this.taskListGetter,
+    required this.title,
     this.sprint,
     this.subHeader,
     this.subSubHeader,

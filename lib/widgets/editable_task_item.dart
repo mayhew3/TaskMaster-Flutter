@@ -26,18 +26,18 @@ class EditableTaskItemWidget extends StatelessWidget {
 
   EditableTaskItemWidget({
     Key key,
-    @required this.taskItem,
+    required this.taskItem,
     this.onTap,
     this.onTaskCompleteToggle,
     this.onTaskAssignmentToggle,
     this.onDismissed,
     this.onLongPress,
     this.onForcePress,
-    @required this.addMode,
-    @required this.stateSetter,
+    required this.addMode,
+    required this.stateSetter,
     this.endDate,
     this.initialCheckState,
-    @required this.sprint,
+    required this.sprint,
     this.highlightSprint,
   }) : super(key: key);
 

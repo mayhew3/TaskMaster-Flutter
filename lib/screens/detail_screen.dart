@@ -22,7 +22,7 @@ class DetailScreen extends StatefulWidget {
   const DetailScreen({
     Key key,
     this.taskItem,
-    @required this.taskHelper,
+    required this.taskHelper,
   }) : super(key: key);
 
   @override

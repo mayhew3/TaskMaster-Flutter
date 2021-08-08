@@ -17,8 +17,8 @@ class SnoozeDialog extends StatefulWidget {
   final TaskHelper taskHelper;
 
   SnoozeDialog({
-    @required this.taskItem,
-    @required this.taskHelper,
+    required this.taskItem,
+    required this.taskHelper,
   });
 
   @override
