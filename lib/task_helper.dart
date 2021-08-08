@@ -18,7 +18,7 @@ class TaskHelper {
   final TaskRepository repository;
   final TaskMasterAuth auth;
   final StateSetter stateSetter;
-  NavHelper navHelper;
+  late NavHelper navHelper;
 
   TaskHelper({
     required this.appState,
