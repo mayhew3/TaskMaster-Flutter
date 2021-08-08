@@ -5,7 +5,6 @@ import 'dart:core';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/snooze.dart';
@@ -27,7 +26,7 @@ class TaskRepository {
     }
 
     var queryParameters = {
-      'email': appState.currentUser.email
+      'email': appState.currentUser!.email
     };
 
     var uri = Uri.https('taskmaster-general.herokuapp.com', '/api/tasks', queryParameters);
@@ -127,11 +126,11 @@ class TaskRepository {
   Future<void> addTasksToSprint(List<TaskItem> taskItems, Sprint sprint) async {
     List<int> taskIds = [];
     for (TaskItem taskItem in taskItems) {
-      taskIds.add(taskItem.id.value);
+      taskIds.add(taskItem.id.value!);
     }
 
-    var payload = {
-      'sprint_id': sprint.id.value,
+    Map<String, Object> payload = {
+      'sprint_id': sprint.id.value!,
       'task_ids': taskIds,
     };
 
@@ -291,8 +290,8 @@ class TaskRepository {
         for (var assignment in jsonArray) {
           var sprintId = assignment['sprint_id'];
           var taskId = assignment['task_id'];
-          TaskItem taskItem = appState.findTaskItemWithId(taskId);
-          Sprint sprint = appState.findSprintWithId(sprintId);
+          TaskItem taskItem = appState.findTaskItemWithId(taskId)!;
+          Sprint sprint = appState.findSprintWithId(sprintId)!;
           taskItem.addToSprints(sprint);
           sprint.addToTasks(taskItem);
         }

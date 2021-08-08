@@ -34,10 +34,10 @@ class DetailScreen extends StatefulWidget {
 
 class DetailScreenState extends State<DetailScreen> {
 
-  bool completed;
-  TaskItem/*!*/ taskItem;
+  late bool completed;
+  late TaskItem taskItem;
 
-  DetailScreenState(TaskItem/*!*/ taskItem) {
+  DetailScreenState(TaskItem taskItem) {
     this.taskItem = taskItem;
   }
 

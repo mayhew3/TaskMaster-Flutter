@@ -52,7 +52,7 @@ abstract class TaskField<T> {
     }
   }
 
-  setValueFromString(String str) {
+  setValueFromString(String? str) {
     T? parseValue = _parseValue(str);
     value = parseValue;
   }
@@ -69,7 +69,7 @@ abstract class TaskField<T> {
     return displayString;
   }
 
-  T? _parseValue(String str);
+  T? _parseValue(String? str);
 }
 
 
@@ -78,7 +78,10 @@ abstract class TaskField<T> {
 class TaskFieldDate extends TaskField<DateTime> {
   TaskFieldDate(String fieldName) : super(fieldName);
 
-  DateTime? _parseValue(String str) {
+  DateTime? _parseValue(String? str) {
+    if (str == null) {
+      return null;
+    }
     var cleanString = _cleanString(str);
     return cleanString == null ? null : DateTime.parse(cleanString).toLocal();
   }
@@ -116,7 +119,7 @@ class TaskFieldString extends TaskField<String> {
   }
 
   @override
-  String _parseValue(String str) {
+  String? _parseValue(String? str) {
     return str;
   }
 }
@@ -128,7 +131,10 @@ class TaskFieldInteger extends TaskField<int> {
   TaskFieldInteger(String fieldName) : super(fieldName);
 
   @override
-  int? _parseValue(String str) {
+  int? _parseValue(String? str) {
+    if (str == null) {
+      return null;
+    }
     var cleanString = _cleanString(str);
     return cleanString == null ? null : int.parse(str);
   }
@@ -142,7 +148,10 @@ class TaskFieldBoolean extends TaskField<bool> {
   TaskFieldBoolean(String fieldName) : super(fieldName);
 
   @override
-  bool? _parseValue(String str) {
+  bool? _parseValue(String? str) {
+    if (str == null) {
+      return null;
+    }
     var cleanString = _cleanString(str);
     return cleanString == null ? null : (str == 'true');
   }

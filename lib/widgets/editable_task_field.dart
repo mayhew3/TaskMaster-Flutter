@@ -3,17 +3,17 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class EditableTaskField extends StatefulWidget {
-  final String initialText;
+  final String? initialText;
   final String labelText;
-  final ValueSetter<String> fieldSetter;
-  final ValueSetter<String> onChanged;
+  final ValueSetter<String?> fieldSetter;
+  final ValueSetter<String?>? onChanged;
   final bool isRequired;
   final bool wordCaps;
   final TextInputType inputType;
-  final FormFieldValidator<String> validator;
+  final FormFieldValidator<String>? validator;
 
   const EditableTaskField({
-    Key key,
+    Key? key,
     required this.initialText,
     required this.labelText,
     required this.fieldSetter,
@@ -32,13 +32,13 @@ class EditableTaskField extends StatefulWidget {
 
 class EditableTaskFieldState extends State<EditableTaskField> {
 
-  String initialText;
+  String? initialText;
 
   EditableTaskFieldState({
     required this.initialText
   });
 
-  int getMaxLines() {
+  int? getMaxLines() {
     return TextInputType.multiline == widget.inputType ? null : 1;
   }
 
@@ -59,12 +59,13 @@ class EditableTaskFieldState extends State<EditableTaskField> {
         onChanged: widget.onChanged,
         onSaved: widget.fieldSetter,
         validator: (value) {
-          if (widget.validator != null) {
-            var validatorResult = widget.validator(value);
+          var validator = widget.validator;
+          if (validator != null) {
+            var validatorResult = validator(value);
             if (validatorResult != null) {
               return validatorResult;
             }
-          } else if (value.isEmpty && widget.isRequired) {
+          } else if (value != null && value.isEmpty && widget.isRequired) {
             return '${widget.labelText} is required';
           }
           return null;

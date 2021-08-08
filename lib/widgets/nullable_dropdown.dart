@@ -3,15 +3,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class NullableDropdown extends StatefulWidget {
-  final String initialValue;
+  final String? initialValue;
   final String labelText;
   final List<String> possibleValues;
-  final ValueSetter<String> valueSetter;
-  final ValueSetter<String> onChanged;
-  final FormFieldValidator validator;
+  final ValueSetter<String?> valueSetter;
+  final ValueSetter<String?>? onChanged;
+  final FormFieldValidator? validator;
 
   const NullableDropdown({
-    Key key,
+    Key? key,
     this.initialValue,
     required this.labelText,
     required this.possibleValues,
@@ -25,7 +25,7 @@ class NullableDropdown extends StatefulWidget {
 }
 
 class NullableDropdownState extends State<NullableDropdown> {
-  String value;
+  late String value;
 
   @override
   void initState() {
@@ -33,15 +33,15 @@ class NullableDropdownState extends State<NullableDropdown> {
     value = wrapNullValue(widget.initialValue);
   }
 
-  String wrapNullValue(String value) {
+  String wrapNullValue(String? value) {
     return value ?? '(none)';
   }
 
-  String unwrapNullValue(String value) {
+  String? unwrapNullValue(String value) {
     return value == '(none)' ? null : value;
   }
 
-  TextStyle getMenuItemStyle(String menuItem) {
+  TextStyle? getMenuItemStyle(String menuItem) {
     if (menuItem != value) {
       return TextStyle(color: Colors.lightBlueAccent);
     } else {
@@ -64,14 +64,15 @@ class NullableDropdownState extends State<NullableDropdown> {
           contentPadding: EdgeInsets.fromLTRB(12, 21, 12, 14),
         ),
         value: value,
-        onChanged: (String newValue) {
+        onChanged: (String? newValue) {
           setState(() {
-            value = newValue;
+            value = newValue!;
             var unwrapped = unwrapNullValue(newValue);
             widget.valueSetter(unwrapped);
           });
-          if (widget.onChanged != null) {
-            widget.onChanged(newValue);
+          var onChanged = widget.onChanged;
+          if (onChanged != null) {
+            onChanged(newValue);
           }
         },
         validator: widget.validator,

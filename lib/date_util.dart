@@ -28,16 +28,13 @@ class DateUtil {
     return dateFormat.format(dateTime);
   }
 
-  static DateTime? adjustToDate(DateTime? dateTime, int recurNumber, String recurUnit) {
-    if (dateTime == null) {
-      return null;
-    }
+  static DateTime adjustToDate(DateTime dateTime, int recurNumber, String recurUnit) {
     switch (recurUnit) {
       case 'Days': return Jiffy(dateTime).add(days: recurNumber).dateTime;
       case 'Weeks': return Jiffy(dateTime).add(weeks: recurNumber).dateTime;
       case 'Months': return Jiffy(dateTime).add(months: recurNumber).dateTime;
       case 'Years': return Jiffy(dateTime).add(years: recurNumber).dateTime;
-      default: return null;
+      default: throw new Exception('Unknown recur_unit');
     }
   }
 

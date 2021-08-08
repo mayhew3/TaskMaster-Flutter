@@ -3,12 +3,12 @@ import 'package:taskmaster/models/task_field.dart';
 
 class Snooze extends DataObject {
 
-  TaskFieldInteger taskID;
-  TaskFieldInteger snoozeNumber;
-  TaskFieldString snoozeUnits;
-  TaskFieldString snoozeAnchor;
-  TaskFieldDate previousAnchor;
-  TaskFieldDate newAnchor;
+  late TaskFieldInteger taskID;
+  late TaskFieldInteger snoozeNumber;
+  late TaskFieldString snoozeUnits;
+  late TaskFieldString snoozeAnchor;
+  late TaskFieldDate previousAnchor;
+  late TaskFieldDate newAnchor;
 
   static List<String> controlledFields = ['id', 'date_added'];
 

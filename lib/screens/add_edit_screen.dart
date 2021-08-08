@@ -16,9 +16,9 @@ class AddEditScreen extends StatefulWidget {
   final bool isEditing;
 
   const AddEditScreen({
-    Key key,
-    this.taskItem,
-    this.taskItemRefresher,
+    Key? key,
+    required this.taskItem,
+    required this.taskItemRefresher,
     required this.taskHelper,
     required this.isEditing,
   }) : super(key: key);
@@ -30,12 +30,12 @@ class AddEditScreen extends StatefulWidget {
 class AddEditScreenState extends State<AddEditScreen> {
   static final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  List<String> possibleProjects;
-  List<String> possibleContexts;
-  List<String> possibleAnchorDates;
-  List<String> possibleRecurUnits;
+  late List<String> possibleProjects;
+  late List<String> possibleContexts;
+  late List<String> possibleAnchorDates;
+  late List<String> possibleRecurUnits;
 
-  bool _hasChanges;
+  late bool _hasChanges;
 
   bool _repeatOn = false;
   bool _initialRepeatOn = false;
@@ -46,7 +46,7 @@ class AddEditScreenState extends State<AddEditScreen> {
 
     _hasChanges = false;
 
-    _initialRepeatOn = widget.taskItem?.recurNumber?.value != null;
+    _initialRepeatOn = widget.taskItem.recurNumber.value != null;
     _repeatOn = _initialRepeatOn;
 
     possibleProjects = [
@@ -95,13 +95,13 @@ class AddEditScreenState extends State<AddEditScreen> {
 
   bool hasDate() {
     return
-      widget.taskItem?.startDate?.value != null ||
-      widget.taskItem?.targetDate?.value != null ||
-      widget.taskItem?.urgentDate?.value != null ||
-      widget.taskItem?.dueDate?.value != null;
+      widget.taskItem.startDate.value != null ||
+      widget.taskItem.targetDate.value != null ||
+      widget.taskItem.urgentDate.value != null ||
+      widget.taskItem.dueDate.value != null;
   }
 
-  bool anchorDateToRecurWait(String anchorDate) {
+  bool? anchorDateToRecurWait(String anchorDate) {
     if (anchorDate == '(none)') {
       return null;
     } else {
@@ -109,7 +109,7 @@ class AddEditScreenState extends State<AddEditScreen> {
     }
   }
 
-  String recurWaitToAnchorDate(bool recurWait) {
+  String recurWaitToAnchorDate(bool? recurWait) {
     return (recurWait == null) ?
     '(none)' : !recurWait ? 'Schedule Dates' : 'Completed Date';
   }
@@ -122,12 +122,12 @@ class AddEditScreenState extends State<AddEditScreen> {
   Widget build(BuildContext context) {
 
     DateTime _getPreviousDateOrNow(TaskDateType taskDateType) {
-      var lastDate = widget.taskItem?.getLastDateBefore(taskDateType);
+      var lastDate = widget.taskItem.getLastDateBefore(taskDateType);
       return lastDate == null ? DateTime.now() : lastDate;
     }
 
     DateTime _getOnePastPreviousDateOrNow(TaskDateType taskDateType) {
-      var lastDate = widget.taskItem?.getLastDateBefore(taskDateType);
+      var lastDate = widget.taskItem.getLastDateBefore(taskDateType);
       return lastDate == null ? DateTime.now() : lastDate.add(Duration(days: 1));
     }
 
@@ -155,49 +155,49 @@ class AddEditScreenState extends State<AddEditScreen> {
               child: Column(
                 children: <Widget>[
                   EditableTaskField(
-                    initialText: widget.taskItem?.name?.value,
+                    initialText: widget.taskItem.name.value,
                     labelText: 'Name',
-                    fieldSetter: (value) => widget.taskItem?.name?.setValueFromString(value),
+                    fieldSetter: (value) => widget.taskItem.name.setValueFromString(value),
                     inputType: TextInputType.multiline,
                     isRequired: true,
                     wordCaps: true,
                   ),
                   NullableDropdown(
-                    initialValue: widget.taskItem?.project?.value,
+                    initialValue: widget.taskItem.project.value,
                     labelText: 'Project',
                     possibleValues: possibleProjects,
-                    valueSetter: (value) => widget.taskItem?.project?.setValueFromString(value),
+                    valueSetter: (value) => widget.taskItem.project.setValueFromString(value),
                   ),
                   NullableDropdown(
-                    initialValue: widget.taskItem?.context?.value,
+                    initialValue: widget.taskItem.context.value,
                     labelText: 'Context',
                     possibleValues: possibleContexts,
-                    valueSetter: (value) => widget.taskItem?.context?.setValueFromString(value),
+                    valueSetter: (value) => widget.taskItem.context.setValueFromString(value),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: <Widget>[
                       Expanded(
                         child: EditableTaskField(
-                          initialText: widget.taskItem?.priority?.getInputDisplay(),
+                          initialText: widget.taskItem.priority.getInputDisplay(),
                           labelText: 'Priority',
-                          fieldSetter: (value) => widget.taskItem?.priority?.setValueFromString(value),
+                          fieldSetter: (value) => widget.taskItem.priority.setValueFromString(value),
                           inputType: TextInputType.number,
                         ),
                       ),
                       Expanded(
                         child: EditableTaskField(
-                          initialText: widget.taskItem?.gamePoints?.getInputDisplay(),
+                          initialText: widget.taskItem.gamePoints.getInputDisplay(),
                           labelText: 'Points',
-                          fieldSetter: (value) => widget.taskItem?.gamePoints?.setValueFromString(value),
+                          fieldSetter: (value) => widget.taskItem.gamePoints.setValueFromString(value),
                           inputType: TextInputType.number,
                         ),
                       ),
                       Expanded(
                         child: EditableTaskField(
-                          initialText: widget.taskItem?.duration?.getInputDisplay(),
+                          initialText: widget.taskItem.duration.getInputDisplay(),
                           labelText: 'Length',
-                          fieldSetter: (value) => widget.taskItem?.duration?.setValueFromString(value),
+                          fieldSetter: (value) => widget.taskItem.duration.setValueFromString(value),
                           inputType: TextInputType.number,
                         ),
                       ),
@@ -206,14 +206,14 @@ class AddEditScreenState extends State<AddEditScreen> {
                   ClearableDateTimeField(
                     labelText: 'Start Date',
                     dateGetter: () {
-                      return widget.taskItem?.startDate?.value;
+                      return widget.taskItem.startDate.value;
                     },
                     initialPickerGetter: () {
                       return DateTime.now();
                     },
                     dateSetter: (DateTime pickedDate) {
                       setState(() {
-                        widget.taskItem?.startDate?.value = pickedDate;
+                        widget.taskItem.startDate?.value = pickedDate;
                         if (!hasDate()) {
                           clearRepeatOn();
                         }
@@ -223,20 +223,20 @@ class AddEditScreenState extends State<AddEditScreen> {
                   ClearableDateTimeField(
                     labelText: 'Target Date',
                     dateGetter: () {
-                      return widget.taskItem?.targetDate?.value;
+                      return widget.taskItem.targetDate?.value;
                     },
                     initialPickerGetter: () {
                       return _getOnePastPreviousDateOrNow(TaskDateTypes.target);
                     },
                     firstDateGetter: () {
-                      return widget.taskItem?.startDate?.value;
+                      return widget.taskItem.startDate?.value;
                     },
                     currentDateGetter: () {
                       return _getPreviousDateOrNow(TaskDateTypes.target);
                     },
                     dateSetter: (DateTime pickedDate) {
                       setState(() {
-                        widget.taskItem?.targetDate?.value = pickedDate;
+                        widget.taskItem.targetDate?.value = pickedDate;
                         if (!hasDate()) {
                           clearRepeatOn();
                         }
@@ -246,20 +246,20 @@ class AddEditScreenState extends State<AddEditScreen> {
                   ClearableDateTimeField(
                     labelText: 'Urgent Date',
                     dateGetter: () {
-                      return widget.taskItem?.urgentDate?.value;
+                      return widget.taskItem.urgentDate?.value;
                     },
                     initialPickerGetter: () {
                       return _getOnePastPreviousDateOrNow(TaskDateTypes.urgent);
                     },
                     firstDateGetter: () {
-                      return widget.taskItem?.startDate?.value;
+                      return widget.taskItem.startDate?.value;
                     },
                     currentDateGetter: () {
                       return _getPreviousDateOrNow(TaskDateTypes.urgent);
                     },
                     dateSetter: (DateTime pickedDate) {
                       setState(() {
-                        widget.taskItem?.urgentDate?.value = pickedDate;
+                        widget.taskItem.urgentDate?.value = pickedDate;
                         if (!hasDate()) {
                           clearRepeatOn();
                         }
@@ -269,20 +269,20 @@ class AddEditScreenState extends State<AddEditScreen> {
                   ClearableDateTimeField(
                     labelText: 'Due Date',
                     dateGetter: () {
-                      return widget.taskItem?.dueDate?.value;
+                      return widget.taskItem.dueDate?.value;
                     },
                     initialPickerGetter: () {
                       return _getOnePastPreviousDateOrNow(TaskDateTypes.due);
                     },
                     firstDateGetter: () {
-                      return widget.taskItem?.startDate?.value;
+                      return widget.taskItem.startDate?.value;
                     },
                     currentDateGetter: () {
                       return _getPreviousDateOrNow(TaskDateTypes.due);
                     },
                     dateSetter: (DateTime pickedDate) {
                       setState(() {
-                        widget.taskItem?.dueDate?.value = pickedDate;
+                        widget.taskItem.dueDate?.value = pickedDate;
                         if (!hasDate()) {
                           clearRepeatOn();
                         }
@@ -337,9 +337,9 @@ class AddEditScreenState extends State<AddEditScreen> {
                                             SizedBox(
                                               width: 80.0,
                                               child: EditableTaskField(
-                                                initialText: widget.taskItem?.recurNumber?.getInputDisplay(),
+                                                initialText: widget.taskItem.recurNumber?.getInputDisplay(),
                                                 labelText: 'Num',
-                                                fieldSetter: (value) => widget.taskItem?.recurNumber?.setValueFromString(value),
+                                                fieldSetter: (value) => widget.taskItem.recurNumber?.setValueFromString(value),
                                                 inputType: TextInputType.number,
                                                 validator: (value) {
                                                   if (_repeatOn && value.isEmpty) {
@@ -353,10 +353,10 @@ class AddEditScreenState extends State<AddEditScreen> {
                                         ),
                                         Expanded(
                                           child: NullableDropdown(
-                                            initialValue: widget.taskItem?.recurUnit?.value,
+                                            initialValue: widget.taskItem.recurUnit?.value,
                                             labelText: 'Unit',
                                             possibleValues: possibleRecurUnits,
-                                            valueSetter: (value) => widget.taskItem?.recurUnit?.setValueFromString(value),
+                                            valueSetter: (value) => widget.taskItem.recurUnit?.setValueFromString(value),
                                             validator: (value) {
                                               if (_repeatOn && value == '(none)') {
                                                 return 'Unit is required for repeat.';
@@ -368,10 +368,10 @@ class AddEditScreenState extends State<AddEditScreen> {
                                       ],
                                     ),
                                     NullableDropdown(
-                                      initialValue: recurWaitToAnchorDate(widget.taskItem?.recurWait?.value),
+                                      initialValue: recurWaitToAnchorDate(widget.taskItem.recurWait?.value),
                                       labelText: 'Anchor',
                                       possibleValues: possibleAnchorDates,
-                                      valueSetter: (value) => widget.taskItem?.recurWait?.value = anchorDateToRecurWait(value),
+                                      valueSetter: (value) => widget.taskItem.recurWait?.value = anchorDateToRecurWait(value),
                                       validator: (value) {
                                         if (_repeatOn && value == '(none)') {
                                           return 'Anchor Date is required for repeat.';
@@ -388,9 +388,9 @@ class AddEditScreenState extends State<AddEditScreen> {
                     ),
                   ),
                   EditableTaskField(
-                    initialText: widget.taskItem?.description?.value,
+                    initialText: widget.taskItem.description?.value,
                     labelText: 'Notes',
-                    fieldSetter: (value) => widget.taskItem?.description?.value = value,
+                    fieldSetter: (value) => widget.taskItem.description?.value = value,
                     inputType: TextInputType.multiline,
                   ),
                 ],
