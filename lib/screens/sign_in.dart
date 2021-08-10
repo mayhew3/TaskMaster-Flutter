@@ -11,7 +11,7 @@ class SignInScreen extends StatefulWidget {
   SignInScreen({
     required this.appState,
     required this.navHelper,
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
