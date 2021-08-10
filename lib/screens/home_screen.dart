@@ -19,7 +19,7 @@ class HomeScreen extends StatefulWidget {
     required this.appState,
     required this.navHelper,
     required this.taskHelper,
-    Key key,
+    Key? key,
   }) : super(key: TaskMasterKeys.homeScreen);
 
   @override
@@ -29,7 +29,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
-  TopNavItem activeTab;
+  late TopNavItem activeTab;
   List<TopNavItem> navItems = [];
 
   @override

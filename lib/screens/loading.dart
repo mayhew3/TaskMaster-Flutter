@@ -10,7 +10,7 @@ class LoadingScreen extends StatefulWidget {
   final String msg;
 
   LoadingScreen({
-    Key key,
+    Key? key,
     required this.appState,
     required this.navHelper,
     required this.msg,

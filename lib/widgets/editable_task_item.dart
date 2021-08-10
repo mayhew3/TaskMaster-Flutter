@@ -11,21 +11,21 @@ import 'package:timeago/timeago.dart' as timeago;
 
 class EditableTaskItemWidget extends StatelessWidget {
   final TaskItem taskItem;
-  final GestureTapCallback onTap;
-  final CheckCycleWaiter onTaskCompleteToggle;
-  final CheckCycleWaiter onTaskAssignmentToggle;
-  final DismissDirectionCallback onDismissed;
-  final GestureLongPressCallback onLongPress;
-  final GestureForcePressStartCallback onForcePress;
+  final GestureTapCallback? onTap;
+  final CheckCycleWaiter? onTaskCompleteToggle;
+  final CheckCycleWaiter? onTaskAssignmentToggle;
+  final DismissDirectionCallback? onDismissed;
+  final GestureLongPressCallback? onLongPress;
+  final GestureForcePressStartCallback? onForcePress;
   final bool addMode;
   final MyStateSetter stateSetter;
-  final DateTime endDate;
-  final CheckState initialCheckState;
-  final Sprint sprint;
-  final bool highlightSprint;
+  final DateTime? endDate;
+  final CheckState? initialCheckState;
+  final Sprint? sprint;
+  final bool? highlightSprint;
 
   EditableTaskItemWidget({
-    Key key,
+    Key? key,
     required this.taskItem,
     this.onTap,
     this.onTaskCompleteToggle,
