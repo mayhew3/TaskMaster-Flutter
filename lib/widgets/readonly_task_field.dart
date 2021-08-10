@@ -5,15 +5,15 @@ import 'package:flutter/material.dart';
 
 class ReadOnlyTaskField extends StatelessWidget {
   final String headerName;
-  final String textToShow;
-  final String optionalSubText;
-  final Color optionalTextColor;
-  final Color optionalBackgroundColor;
-  final Color optionalOutlineColor;
+  final String? textToShow;
+  final String? optionalSubText;
+  final Color? optionalTextColor;
+  final Color? optionalBackgroundColor;
+  final Color? optionalOutlineColor;
   final bool hasShadow;
 
   const ReadOnlyTaskField({
-    Key key,
+    Key? key,
     required this.textToShow,
     required this.headerName,
     this.optionalSubText,
@@ -32,7 +32,7 @@ class ReadOnlyTaskField extends StatelessWidget {
       return RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(3.0),
         side: BorderSide(
-          color: optionalOutlineColor,
+          color: optionalOutlineColor!,
           width: 1.0,
         ),
       );
@@ -65,7 +65,7 @@ class ReadOnlyTaskField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Visibility(
-      visible: textToShow != null && textToShow.isNotEmpty,
+      visible: textToShow != null && textToShow!.isNotEmpty,
       child: Card(
         shadowColor: hasShadow ? Colors.black : Color.fromRGBO(0, 0, 0, 0.0),
         elevation: 3.0,

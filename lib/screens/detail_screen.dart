@@ -16,12 +16,12 @@ import 'package:timeago/timeago.dart' as timeago;
 final longDateFormat = DateFormat.yMMMMd().add_jm();
 
 class DetailScreen extends StatefulWidget {
-  final TaskItem/*!*/ taskItem;
-  final TaskHelper/*!*/ taskHelper;
+  late final TaskItem taskItem;
+  late final TaskHelper taskHelper;
 
-  const DetailScreen({
-    Key key,
-    this.taskItem,
+  DetailScreen({
+    Key? key,
+    required this.taskItem,
     required this.taskHelper,
   }) : super(key: key);
 
@@ -47,7 +47,7 @@ class DetailScreenState extends State<DetailScreen> {
     completed = (taskItem.completionDate.value != null);
   }
 
-  String formatDateTime(DateTime dateTime) {
+  String formatDateTime(DateTime? dateTime) {
     if (dateTime == null) {
       return '';
     }
@@ -62,14 +62,14 @@ class DetailScreenState extends State<DetailScreen> {
     return formattedDate;
   }
 
-  String _getFormattedAgo(DateTime dateTime) {
+  String? _getFormattedAgo(DateTime? dateTime) {
     if (dateTime == null) {
       return null;
     }
     return "(" + timeago.format(dateTime, allowFromNow: true) + ")";
   }
 
-  String formatNumber(num number) {
+  String formatNumber(num? number) {
     return number == null ? '' : number.toString();
   }
 
@@ -78,7 +78,7 @@ class DetailScreenState extends State<DetailScreen> {
     return start ? Colors.white : TaskColors.scheduledText;
   }
 
-  Color getStartOutlineColor() {
+  Color? getStartOutlineColor() {
     var start = taskItem.startDate.hasPassed();
     return start ? null : TaskColors.scheduledOutline;
   }
@@ -116,14 +116,19 @@ class DetailScreenState extends State<DetailScreen> {
   }
 
   String getFormattedRecurrence(TaskItem taskItem) {
-    return 'Every ' + taskItem.recurNumber.value.toString() + ' ' + getFormattedRecurUnit(taskItem) + (taskItem.recurWait.value ? ' (after completion)' : '');
+    var recurNumber = taskItem.recurNumber.value;
+    var recurWait = taskItem.recurWait.value;
+    if (recurNumber == null || recurWait == null) {
+      return 'No recurrence.';
+    }
+    return 'Every ' + recurNumber.toString() + ' ' + getFormattedRecurUnit(taskItem) + (recurWait ? ' (after completion)' : '');
   }
 
   String getFormattedRecurUnit(TaskItem taskItem) {
-    if (taskItem?.recurUnit?.value == null) {
+    String? unit = taskItem.recurUnit.value;
+    if (unit == null) {
       return '';
     }
-    var unit = taskItem?.recurUnit?.value;
     if (taskItem.recurNumber.value == 1) {
       unit = unit.substring(0, unit.length-1);
     }
@@ -153,7 +158,7 @@ class DetailScreenState extends State<DetailScreen> {
                 Expanded(
                   child: Padding(
                       padding: EdgeInsets.all(16.0),
-                      child: Text(taskItem.name.value,
+                      child: Text(taskItem.name.value!,
                         style: Theme.of(context).textTheme.headline5,
                       )
                   ),
