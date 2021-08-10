@@ -22,7 +22,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   final DateTime? endDate;
   final CheckState? initialCheckState;
   final Sprint? sprint;
-  final bool? highlightSprint;
+  final bool highlightSprint;
 
   EditableTaskItemWidget({
     Key? key,
@@ -38,11 +38,11 @@ class EditableTaskItemWidget extends StatelessWidget {
     this.endDate,
     this.initialCheckState,
     required this.sprint,
-    this.highlightSprint,
+    this.highlightSprint = false,
   }) : super(key: key);
 
-  bool hasPassed(DateTime dateTime) {
-    var now = addMode ? this.endDate : DateTime.now();
+  bool hasPassed(DateTime? dateTime) {
+    var now = addMode ? this.endDate! : DateTime.now();
     return dateTime == null ? false : dateTime.isBefore(now);
   }
 
@@ -72,10 +72,10 @@ class EditableTaskItemWidget extends StatelessWidget {
   }
 
   String getStringForDateType(TaskDateType taskDateType) {
-    var dateValue = taskDateType.dateFieldGetter(taskItem).value;
-    var isPast = dateValue == null ? false : dateValue.isBefore(DateTime.now());
-    var formatted = formatDateTime(dateValue);
-    var label = taskDateType.label;
+    DateTime? dateValue = taskDateType.dateFieldGetter(taskItem).value;
+    bool isPast = dateValue == null ? false : dateValue.isBefore(DateTime.now());
+    String formatted = formatDateTime(dateValue);
+    String label = taskDateType.label;
 
     if (dateValue == null) {
       return '';
@@ -99,7 +99,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     }
   }
 
-  String formatDateTime(DateTime dateTime) {
+  String formatDateTime(DateTime? dateTime) {
     var preliminaryString = dateTime == null ? '' : timeago.format(
         dateTime,
         locale: 'en_short',
@@ -124,9 +124,9 @@ class EditableTaskItemWidget extends StatelessWidget {
   DelayedCheckbox _getCheckbox() {
     if (addMode) {
       return DelayedCheckbox(
-        initialState: initialCheckState,
+        initialState: initialCheckState!,
         stateSetter: stateSetter,
-        checkCycleWaiter: onTaskAssignmentToggle,
+        checkCycleWaiter: onTaskAssignmentToggle!,
         checkedColor: Colors.green,
         inactiveIcon: Icons.add,
       );
@@ -136,7 +136,7 @@ class EditableTaskItemWidget extends StatelessWidget {
       return DelayedCheckbox(
         initialState: completed ? CheckState.checked : CheckState.inactive,
         stateSetter: stateSetter,
-        checkCycleWaiter: onTaskCompleteToggle,
+        checkCycleWaiter: onTaskCompleteToggle!,
       );
     }
   }
