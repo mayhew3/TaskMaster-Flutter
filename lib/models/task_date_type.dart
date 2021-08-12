@@ -53,7 +53,7 @@ class TaskDateTypes {
     }
   }
 
-  static TaskDateType getTypeWithLabel(String label) {
+  static TaskDateType? getTypeWithLabel(String? label) {
     return allTypes.singleWhere((dateType) => dateType.label == label, orElse: null);
   }
 }

@@ -32,9 +32,9 @@ class SnoozeDialogState extends State<SnoozeDialog> {
   var dateFormatThisYear = new DateFormat('EEE MMM d');
   var dateFormatOtherYear = new DateFormat('EEE MMM d yyyy');
 
-  int numUnits = 3;
+  int? numUnits = 3;
   String unitName = 'Days';
-  String taskDateType;
+  String? taskDateType;
 
   List<String> possibleRecurUnits = [
     'Days',
@@ -67,15 +67,16 @@ class SnoozeDialogState extends State<SnoozeDialog> {
     onNumUnitsChanged('3');
   }
 
-  void onNumUnitsChanged(String value) {
+  void onNumUnitsChanged(String? value) {
     numUnits = ParseHelper.parseInt(value);
     updateTaskItemWithPreview();
   }
 
   void updateTaskItemWithPreview() {
-    if (numUnits != null) {
+    var typeWithLabel = TaskDateTypes.getTypeWithLabel(taskDateType);
+    if (numUnits != null && typeWithLabel != null) {
       setState(() {
-        widget.taskHelper.previewSnooze(widget.taskItem, numUnits, unitName, TaskDateTypes.getTypeWithLabel(taskDateType));
+        widget.taskHelper.previewSnooze(widget.taskItem, numUnits!, unitName, typeWithLabel);
       });
     }
   }
@@ -101,7 +102,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
                     fieldSetter: onNumUnitsChanged,
                     inputType: TextInputType.number,
                     validator: (value) {
-                      if (value.isEmpty) {
+                      if (value == null || value.isEmpty) {
                         return 'Required';
                       }
                       return null;
@@ -116,7 +117,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
                 labelText: 'Unit',
                 possibleValues: possibleRecurUnits,
                 onChanged: (value) => updateTaskItemWithPreview(),
-                valueSetter: (value) => unitName = value,
+                valueSetter: (value) => unitName = value ?? '',
                 validator: (value) {
                   return null;
                 },
@@ -187,12 +188,16 @@ class SnoozeDialogState extends State<SnoozeDialog> {
               onPressed: () async {
                 final form = formKey.currentState;
 
-                if (form.validate()) {
+                if (form != null && form.validate()) {
                   // need this to trigger valueSetters for any fields still in focus
                   form.save();
                 }
 
-                await widget.taskHelper.snoozeTask(widget.taskItem, numUnits, unitName, TaskDateTypes.getTypeWithLabel(taskDateType));
+                var typeWithLabel = TaskDateTypes.getTypeWithLabel(taskDateType);
+                if (typeWithLabel != null && numUnits != null) {
+                  await widget.taskHelper.snoozeTask(
+                      widget.taskItem, numUnits!, unitName, typeWithLabel);
+                }
                 Navigator.pop(context);
               },
               child: Text('Submit'),

@@ -14,7 +14,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   final GestureTapCallback? onTap;
   final CheckCycleWaiter? onTaskCompleteToggle;
   final CheckCycleWaiter? onTaskAssignmentToggle;
-  final DismissDirectionCallback? onDismissed;
+  final ConfirmDismissCallback? onDismissed;
   final GestureLongPressCallback? onLongPress;
   final GestureForcePressStartCallback? onForcePress;
   final bool addMode;
@@ -110,15 +110,17 @@ class EditableTaskItemWidget extends StatelessWidget {
 
   bool dueInThreshold(int thresholdDays) {
     DateTime inXDays = DateTime.now().add(Duration(days: thresholdDays));
-    return taskItem.dueDate.value != null && taskItem.dueDate.value.isBefore(inXDays);
+    var dueDate = taskItem.dueDate.value;
+    return dueDate != null && dueDate.isBefore(inXDays);
   }
 
   bool dateInFutureThreshold(TaskDateType taskDateType, int thresholdDays) {
     DateTime inXDays = DateTime.now().add(Duration(days: thresholdDays));
     var dateField = taskDateType.dateFieldGetter(taskItem);
-    return dateField.value != null &&
-        dateField.value.isAfter(DateTime.now()) &&
-        dateField.value.isBefore(inXDays);
+    var dateValue = dateField.value;
+    return dateValue != null &&
+        dateValue.isAfter(DateTime.now()) &&
+        dateValue.isBefore(inXDays);
   }
 
   DelayedCheckbox _getCheckbox() {
@@ -267,7 +269,9 @@ class EditableTaskItemWidget extends StatelessWidget {
         onLongPress: onLongPress,
         onForcePressStart: (ForcePressDetails forcePressDetails) {
           print('Force Press detected!');
-          onForcePress(forcePressDetails);
+          if (onForcePress != null) {
+            onForcePress!(forcePressDetails);
+          }
         },
         child: Card(
           shadowColor: _getShadowColor(),
@@ -295,13 +299,13 @@ class EditableTaskItemWidget extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                            taskItem.name.value,
+                            taskItem.name.value!,
                             style: _getHeaderStyle(),
                         ),
                         Visibility(
                           visible: taskItem.project.value != null,
                           child: Text(
-                            taskItem.project.value == null ? '' : taskItem.project.value,
+                            taskItem.project.value == null ? '' : taskItem.project.value!,
                             style: const TextStyle(fontSize: 12.0,
                                 color: Colors.white70),
                           ),
