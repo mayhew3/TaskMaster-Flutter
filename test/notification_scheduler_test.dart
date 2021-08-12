@@ -8,6 +8,7 @@ import 'package:test/test.dart';
 import 'mocks/mock_app_state.dart';
 
 import 'package:mockito/mockito.dart';
+import 'mocks/mock_build_context.dart';
 import 'mocks/mock_data.dart';
 import 'mocks/mock_flutter_plugin.dart';
 import 'mocks/mock_pending_notification_request.dart';
@@ -25,15 +26,15 @@ class MockAppBadger extends Mock implements FlutterBadgerWrapper {
 
 void main() {
 
-  MockFlutterLocalNotificationsPlugin plugin;
-  MockAppBadger flutterBadgerWrapper;
-  AppState appState;
-  TaskHelper taskHelper;
+  late MockFlutterLocalNotificationsPlugin plugin;
+  late MockAppBadger flutterBadgerWrapper;
+  late AppState appState;
+  late TaskHelper taskHelper;
 
-  TaskItem futureDue;
-  TaskItem futureUrgentDue;
-  TaskItem pastUrgentDue;
-  TaskItem straddledUrgentDue;
+  late TaskItem futureDue;
+  late TaskItem futureUrgentDue;
+  late TaskItem pastUrgentDue;
+  late TaskItem straddledUrgentDue;
 
   setUp(() {
     futureDue = TaskItem();
@@ -67,7 +68,7 @@ void main() {
     taskHelper = MockTaskHelper(taskRepository: new MockTaskRepository());
 
     var notificationScheduler = new NotificationScheduler(
-      context: null,
+      context: new MockBuildContext(),
       appState: appState,
       taskHelper: taskHelper,
       flutterLocalNotificationsPlugin: plugin,
@@ -179,10 +180,10 @@ void main() {
     await scheduler.updateNotificationForTask(taskItem);
     expect(plugin.pendings.length, 2);
 
-    var dueRequest = plugin.findRequestFor(taskItem, due: true);
+    var dueRequest = plugin.findRequestFor(taskItem, due: true)!;
     expect(dueRequest.notificationDate, taskItem.dueDate.value);
 
-    var urgentRequest = plugin.findRequestFor(taskItem, due: false);
+    var urgentRequest = plugin.findRequestFor(taskItem, due: false)!;
     expect(urgentRequest.notificationDate, taskItem.urgentDate.value);
   });
 
@@ -190,7 +191,7 @@ void main() {
     var taskItem = futureDue;
     var scheduler = await _createScheduler([taskItem]);
     expect(plugin.pendings.length, 1);
-    await scheduler.cancelNotificationsForTaskId(taskItem.id.value);
+    await scheduler.cancelNotificationsForTaskId(taskItem.id.value!);
     expect(plugin.pendings.length, 0);
   });
 
@@ -198,7 +199,7 @@ void main() {
     var taskItem = futureUrgentDue;
     var scheduler = await _createScheduler([taskItem]);
     expect(plugin.pendings.length, 2);
-    await scheduler.cancelNotificationsForTaskId(taskItem.id.value);
+    await scheduler.cancelNotificationsForTaskId(taskItem.id.value!);
     expect(plugin.pendings.length, 0);
   });
 

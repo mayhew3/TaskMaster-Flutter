@@ -19,13 +19,14 @@ import 'mocks/mock_task_repository.dart';
 void main() {
 
   MockTaskRepository taskRepository = MockTaskRepository();
-  MockNavHelper navHelper = MockNavHelper(taskRepository: taskRepository);
+  late MockNavHelper navHelper;
   StateSetter stateSetter = (callback) => callback();
 
-  TaskHelper createTaskHelper({List<TaskItem> taskItems, List<Sprint> sprints}) {
+  TaskHelper createTaskHelper({List<TaskItem>? taskItems, List<Sprint>? sprints}) {
     MockAppState mockAppState = MockAppState(
         taskItems: taskItems ?? allTasks,
         sprints: sprints ?? allSprints);
+    navHelper = MockNavHelper(appState: mockAppState, taskRepository: taskRepository);
     var taskHelper = TaskHelper(
         appState: mockAppState,
         repository: taskRepository,

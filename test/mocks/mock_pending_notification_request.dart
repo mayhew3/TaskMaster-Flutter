@@ -3,8 +3,8 @@ import 'package:mockito/mockito.dart';
 
 class MockPendingNotificationRequest extends Mock implements PendingNotificationRequest {
   final int id;
-  final String payload;
-  final String title;
+  final String? payload;
+  final String? title;
   final DateTime notificationDate;
 
   MockPendingNotificationRequest(this.id, this.payload, this.title, this.notificationDate);

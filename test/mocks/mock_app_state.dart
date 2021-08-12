@@ -10,7 +10,7 @@ import 'package:taskmaster/notification_scheduler.dart';
 import 'mock_notification_scheduler.dart';
 
 class MockAppState extends Mock implements AppState {
-  GoogleSignInAccount currentUser = MockGoogleSignInAccount();
+  GoogleSignInAccount? currentUser = MockGoogleSignInAccount();
   NotificationScheduler notificationScheduler = MockNotificationScheduler();
 
   int get personId => 1;
@@ -18,8 +18,8 @@ class MockAppState extends Mock implements AppState {
   List<Sprint> sprints;
 
   MockAppState({
-    this.taskItems,
-    this.sprints,
+    this.taskItems = const [],
+    this.sprints = const [],
   });
 
   @override
@@ -34,4 +34,20 @@ class MockAppState extends Mock implements AppState {
 }
 
 
-class MockGoogleSignInAccount extends Mock implements GoogleSignInAccount {}
+class MockGoogleSignInAccount extends Mock implements GoogleSignInAccount {
+  @override
+  bool operator ==(dynamic other) {
+    if (identical(this, other)) return true;
+    if (other is! GoogleSignInAccount) return false;
+    final GoogleSignInAccount otherAccount = other;
+    return displayName == otherAccount.displayName &&
+        email == otherAccount.email &&
+        id == otherAccount.id &&
+        photoUrl == otherAccount.photoUrl;
+  }
+
+  @override
+  // TODO: implement hashCode
+  int get hashCode => super.hashCode;
+
+}

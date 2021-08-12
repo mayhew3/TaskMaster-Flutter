@@ -5,7 +5,7 @@ import 'package:taskmaster/widgets/editable_task_field.dart';
 
 void main() {
 
-  Future<MaterialApp> _createApp(WidgetTester tester, {bool isRequired, FormFieldValidator<String> validator}) async {
+  Future<MaterialApp> _createApp(WidgetTester tester, {bool? isRequired, FormFieldValidator<String>? validator}) async {
 
     var app = MaterialApp(
       home: Scaffold(

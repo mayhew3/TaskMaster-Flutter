@@ -7,13 +7,14 @@ import 'package:mockito/mockito.dart';
 class MockNavHelper extends Mock implements NavHelper {
 
   @override
-  BuildContext context;
+  late BuildContext context;
 
   @override
   AppState appState;
   final TaskRepository taskRepository;
 
   MockNavHelper({
+    required this.appState,
     required this.taskRepository,
   });
 

@@ -39,7 +39,7 @@ abstract class TaskField<T> {
     return value != originalValue;
   }
 
-  initializeValueFromString(String str) {
+  initializeValueFromString(String? str) {
     T? parseValue = _parseValue(str);
     initializeValue(parseValue);
   }

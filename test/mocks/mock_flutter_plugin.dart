@@ -6,26 +6,26 @@ import 'mock_pending_notification_request.dart';
 
 class MockFlutterLocalNotificationsPlugin extends Mock implements FlutterLocalNotificationsPlugin {
   List<MockPendingNotificationRequest> pendings = [];
-  SelectNotificationCallback onSelect;
-  DidReceiveLocalNotificationCallback onNotification;
+  late SelectNotificationCallback? onSelect;
+  late DidReceiveLocalNotificationCallback? onNotification;
 
   @override
-  Future<bool> initialize(InitializationSettings initializationSettings,
-      {SelectNotificationCallback onSelectNotification}) async {
+  Future<bool?> initialize(InitializationSettings initializationSettings,
+      {SelectNotificationCallback? onSelectNotification}) async {
     onSelect = onSelectNotification;
-    onNotification = initializationSettings.iOS.onDidReceiveLocalNotification;
+    onNotification = initializationSettings.iOS?.onDidReceiveLocalNotification;
     return Future.value(true);
   }
 
   @override
-  Future<void> schedule(int id, String title, String body,
+  Future<void> schedule(int id, String? title, String? body,
       DateTime scheduledDate, NotificationDetails notificationDetails,
-      {String payload, bool androidAllowWhileIdle = false}) async {
+      {String? payload, bool androidAllowWhileIdle = false}) async {
     MockPendingNotificationRequest request = new MockPendingNotificationRequest(id, payload, title, scheduledDate);
     pendings.add(request);
   }
 
-  MockPendingNotificationRequest findRequestFor(TaskItem taskItem, {bool due}) {
+  MockPendingNotificationRequest? findRequestFor(TaskItem taskItem, {bool? due}) {
     String dueStr = due == null || due ? 'due' : 'urgent';
     String payload = 'task:${taskItem.id.value}:$dueStr';
     var matching = pendings.where((notification) => notification.payload == payload).iterator;
@@ -47,7 +47,7 @@ class MockFlutterLocalNotificationsPlugin extends Mock implements FlutterLocalNo
   }
 
   @override
-  Future<void> cancel(int id, {String tag}) async {
+  Future<void> cancel(int id, {String? tag}) async {
     pendings.removeWhere((request) => request.id == id);
   }
 
