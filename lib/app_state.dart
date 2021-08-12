@@ -8,6 +8,7 @@ import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/notification_scheduler.dart';
 import 'package:taskmaster/task_helper.dart';
+import 'package:taskmaster/timezone_helper.dart';
 
 class AppState {
   bool isLoading;
@@ -72,6 +73,7 @@ class AppState {
       taskHelper: taskHelper,
       flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
       flutterBadgerWrapper: FlutterBadgerWrapper(),
+      timezoneHelper: TimezoneHelper(),
     );
 
   }

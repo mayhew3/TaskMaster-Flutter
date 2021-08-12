@@ -14,6 +14,7 @@ import 'mocks/mock_flutter_plugin.dart';
 import 'mocks/mock_pending_notification_request.dart';
 import 'mocks/mock_task_helper.dart';
 import 'mocks/mock_task_repository.dart';
+import 'mocks/mock_timezone_helper.dart';
 
 class MockAppBadger extends Mock implements FlutterBadgerWrapper {
   int badgeValue = 0;
@@ -30,6 +31,7 @@ void main() {
   late MockAppBadger flutterBadgerWrapper;
   late AppState appState;
   late TaskHelper taskHelper;
+  late MockTimezoneHelper timezoneHelper;
 
   late TaskItem futureDue;
   late TaskItem futureUrgentDue;
@@ -66,6 +68,7 @@ void main() {
     flutterBadgerWrapper = MockAppBadger();
     appState = MockAppState(taskItems: taskItems);
     taskHelper = MockTaskHelper(taskRepository: new MockTaskRepository());
+    timezoneHelper = new MockTimezoneHelper();
 
     var notificationScheduler = new NotificationScheduler(
       context: new MockBuildContext(),
@@ -73,6 +76,7 @@ void main() {
       taskHelper: taskHelper,
       flutterLocalNotificationsPlugin: plugin,
       flutterBadgerWrapper: flutterBadgerWrapper,
+      timezoneHelper: timezoneHelper,
     );
     List<Future<void>> futures = [];
     appState.taskItems.forEach((taskItem) =>

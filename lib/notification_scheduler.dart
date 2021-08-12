@@ -2,15 +2,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:intl/intl.dart';
 import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/flutter_badger_wrapper.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
 import 'package:taskmaster/task_helper.dart';
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
+import 'package:taskmaster/timezone_helper.dart';
 
 import 'models/sprint.dart';
 
@@ -18,6 +16,7 @@ class NotificationScheduler {
 
   final AppState appState;
   final TaskHelper taskHelper;
+  final TimezoneHelper timezoneHelper;
 
   final BuildContext context;
   late BuildContext homeScreenContext;
@@ -32,8 +31,9 @@ class NotificationScheduler {
     required this.flutterLocalNotificationsPlugin,
     required this.flutterBadgerWrapper,
     required this.taskHelper,
+    required this.timezoneHelper,
   }) {
-    _configureLocalTimeZone();
+    timezoneHelper.configureLocalTimeZone();
 
     // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
     var initializationSettingsAndroid = AndroidInitializationSettings('app_icon');
@@ -45,12 +45,6 @@ class NotificationScheduler {
     );
     this.flutterLocalNotificationsPlugin.initialize(initializationSettings,
         onSelectNotification: _onSelectNotification);
-  }
-
-  Future<void> _configureLocalTimeZone() async {
-    tz.initializeTimeZones();
-    String timezone = await FlutterNativeTimezone.getLocalTimezone();
-    tz.setLocalLocation(tz.getLocation(timezone));
   }
 
   void updateHomeScreenContext(BuildContext context) {
@@ -264,11 +258,12 @@ class NotificationScheduler {
         android: androidPlatformChannelSpecifics,
         iOS: iOSPlatformChannelSpecifics,
     );
+    var localTime = timezoneHelper.getLocalTime(scheduledTime);
     await flutterLocalNotificationsPlugin.zonedSchedule(
         id,
         name,
         message,
-        tz.TZDateTime.from(scheduledTime, tz.local),
+        localTime,
         platformChannelSpecifics,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
