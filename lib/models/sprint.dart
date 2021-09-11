@@ -2,18 +2,16 @@ import 'package:taskmaster/models/data_object.dart';
 import 'package:taskmaster/models/task_field.dart';
 import 'package:taskmaster/models/task_item.dart';
 
-import '../app_state.dart';
-
 class Sprint extends DataObject {
 
-  TaskFieldDate startDate;
-  TaskFieldDate endDate;
-  TaskFieldDate closeDate;
+  late TaskFieldDate startDate;
+  late TaskFieldDate endDate;
+  late TaskFieldDate closeDate;
 
-  TaskFieldInteger numUnits;
-  TaskFieldString unitName;
+  late TaskFieldInteger numUnits;
+  late TaskFieldString unitName;
 
-  TaskFieldInteger personId;
+  late TaskFieldInteger personId;
 
   List<TaskItem> taskItems = [];
 
@@ -30,8 +28,8 @@ class Sprint extends DataObject {
 
   bool isActive() {
     var now = DateTime.now();
-    return this.startDate.value.isBefore(now) &&
-        this.endDate.value.isAfter(now);
+    return this.startDate.value!.isBefore(now) &&
+        this.endDate.value!.isAfter(now);
   }
 
   @override

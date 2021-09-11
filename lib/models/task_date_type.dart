@@ -44,7 +44,7 @@ class TaskDateTypes {
     start, target, urgent, due
   ];
 
-  static TaskDateType getTypePreceding(TaskDateType taskDateType) {
+  static TaskDateType? getTypePreceding(TaskDateType taskDateType) {
     int index = allTypes.indexOf(taskDateType);
     if (index < 1) {
       return null;
@@ -53,7 +53,7 @@ class TaskDateTypes {
     }
   }
 
-  static TaskDateType getTypeWithLabel(String label) {
+  static TaskDateType? getTypeWithLabel(String? label) {
     return allTypes.singleWhere((dateType) => dateType.label == label, orElse: null);
   }
 }
@@ -65,16 +65,17 @@ class TaskDateType {
   final int listThresholdInDays;
 
   TaskDateType({
-    @required this.label,
-    @required this.textColor,
-    @required this.dateFieldGetter,
-    @required this.listThresholdInDays,
+    required this.label,
+    required this.textColor,
+    required this.dateFieldGetter,
+    required this.listThresholdInDays,
   });
 
   bool inListBeforeDisplayThreshold(TaskItem taskItem) {
     TaskFieldDate dateField = this.dateFieldGetter(taskItem);
-    if (dateField.value == null ||
-        dateField.value.isBefore(DateTime.now())) {
+    var dateFieldValue = dateField.value;
+    if (dateFieldValue == null ||
+        dateFieldValue.isBefore(DateTime.now())) {
       return false;
     }
 
@@ -82,14 +83,15 @@ class TaskDateType {
       return true;
     } else {
       DateTime inXDays = DateTime.now().add(Duration(days: this.listThresholdInDays));
-      return dateField.value.isBefore(inXDays);
+      return dateFieldValue.isBefore(inXDays);
     }
   }
 
   bool inListAfterDisplayThreshold(TaskItem taskItem) {
     TaskFieldDate dateField = this.dateFieldGetter(taskItem);
-    if (dateField.value == null ||
-        dateField.value.isAfter(DateTime.now())) {
+    var dateFieldValue = dateField.value;
+    if (dateFieldValue == null ||
+        dateFieldValue.isAfter(DateTime.now())) {
       return false;
     }
 

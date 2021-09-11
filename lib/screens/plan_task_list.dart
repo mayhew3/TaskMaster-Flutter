@@ -1,33 +1,31 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:taskmaster/date_util.dart';
 import 'package:taskmaster/app_state.dart';
+import 'package:taskmaster/date_util.dart';
+import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
-
-import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/delayed_checkbox.dart';
 import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/widgets/header_list_item.dart';
-import 'package:taskmaster/widgets/task_main_menu.dart';
 
 
 class PlanTaskList extends StatefulWidget {
   final AppState appState;
   final TaskHelper taskHelper;
   final TaskListGetter taskListGetter;
-  final int numUnits;
-  final String unitName;
-  final DateTime startDate;
-  final Sprint sprint;
+  final int? numUnits;
+  final String? unitName;
+  final DateTime? startDate;
+  final Sprint? sprint;
 
   PlanTaskList({
-    @required this.appState,
-    @required this.taskHelper,
-    @required this.taskListGetter,
+    required this.appState,
+    required this.taskHelper,
+    required this.taskListGetter,
     this.numUnits,
     this.unitName,
     this.startDate,
@@ -41,8 +39,8 @@ class PlanTaskList extends StatefulWidget {
 class PlanTaskListState extends State<PlanTaskList> {
 
   List<TaskItem> sprintQueued = [];
-  Sprint lastSprint;
-  Sprint activeSprint;
+  Sprint? lastSprint;
+  Sprint? activeSprint;
 
   @override
   void initState() {
@@ -69,7 +67,7 @@ class PlanTaskListState extends State<PlanTaskList> {
     return subList;
   }
 
-  EditableTaskItemWidget _createWidget({TaskItem taskItem}) {
+  EditableTaskItemWidget _createWidget({required TaskItem taskItem}) {
     return EditableTaskItemWidget(
       taskItem: taskItem,
       endDate: getEndDate(),
@@ -120,7 +118,7 @@ class PlanTaskListState extends State<PlanTaskList> {
 
     DateTime endDate = getEndDate();
 
-    Sprint lastCompletedSprint = widget.appState.getLastCompletedSprint();
+    Sprint? lastCompletedSprint = widget.appState.getLastCompletedSprint();
 
     final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted());
     final List<TaskItem> lastSprintTasks = _moveSublist(otherTasks, (taskItem) => taskItem.sprints.contains(lastCompletedSprint));
@@ -182,8 +180,8 @@ class PlanTaskListState extends State<PlanTaskList> {
 
   DateTime getEndDate() {
     return widget.sprint == null ?
-        DateUtil.adjustToDate(widget.startDate, widget.numUnits, widget.unitName) :
-        widget.sprint.endDate.value;
+        DateUtil.adjustToDate(widget.startDate!, widget.numUnits!, widget.unitName!) :
+        widget.sprint!.endDate.value!;
   }
 
   void submit() async {
@@ -199,11 +197,11 @@ class PlanTaskListState extends State<PlanTaskList> {
         sprint.addToTasks(taskItem);
       }
       await widget.taskHelper.addSprintAndTasks(sprint, sprintQueued);
-    } else {
+    } else if (activeSprint != null) {
       for (TaskItem taskItem in sprintQueued) {
-        activeSprint.addToTasks(taskItem);
+        activeSprint!.addToTasks(taskItem);
       }
-      await widget.taskHelper.addTasksToSprint(activeSprint, sprintQueued);
+      await widget.taskHelper.addTasksToSprint(activeSprint!, sprintQueued);
     }
 
     Navigator.pop(context);

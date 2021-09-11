@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:taskmaster/app_state.dart';
@@ -24,17 +23,17 @@ class TaskListScreen extends StatefulWidget {
   final BottomNavigationBarGetter bottomNavigationBarGetter;
   final TaskHelper taskHelper;
   final TaskListGetter taskListGetter;
-  final Sprint sprint;
+  final Sprint? sprint;
   final String title;
-  final String subHeader;
-  final String subSubHeader;
+  final String? subHeader;
+  final String? subSubHeader;
 
   TaskListScreen({
-    @required this.appState,
-    @required this.bottomNavigationBarGetter,
-    @required this.taskHelper,
-    @required this.taskListGetter,
-    @required this.title,
+    required this.appState,
+    required this.bottomNavigationBarGetter,
+    required this.taskHelper,
+    required this.taskListGetter,
+    required this.title,
     this.sprint,
     this.subHeader,
     this.subSubHeader,
@@ -46,11 +45,11 @@ class TaskListScreen extends StatefulWidget {
 }
 
 class TaskListScreenState extends State<TaskListScreen> {
-  bool showScheduled;
-  bool showCompleted;
-  bool showActive;
+  late bool showScheduled;
+  late bool showCompleted;
+  late bool showActive;
 
-  Sprint activeSprint;
+  Sprint? activeSprint;
 
   List<TaskItem> recentlyCompleted = [];
 
@@ -95,8 +94,10 @@ class TaskListScreenState extends State<TaskListScreen> {
   }
 
   Card _createSummaryWidget(Sprint sprint, BuildContext context) {
-    var currentDay = DateTime.now().difference(sprint.startDate.value).inDays + 1;
-    var totalDays = sprint.endDate.value.difference(sprint.startDate.value).inDays;
+    var startDate = sprint.startDate.value!;
+    var endDate = sprint.endDate.value!;
+    var currentDay = DateTime.now().difference(startDate).inDays + 1;
+    var totalDays = endDate.difference(startDate).inDays;
     var sprintStr = "Active Sprint - Day " + currentDay.toString() + " of " + totalDays.toString();
 
     var completed = sprint.taskItems.where((taskItem) => taskItem.completionDate.value != null);
@@ -171,7 +172,7 @@ class TaskListScreenState extends State<TaskListScreen> {
 
 
 
-  EditableTaskItemWidget _createTaskCard({TaskItem taskItem, BuildContext context}) {
+  EditableTaskItemWidget _createTaskCard({required TaskItem taskItem, required BuildContext context}) {
 
     var snoozeDialog = (TaskItem taskItem) {
       HapticFeedback.mediumImpact();
@@ -209,12 +210,9 @@ class TaskListScreenState extends State<TaskListScreen> {
           try {
             await widget.taskHelper.deleteTask(taskItem, (callback) => setState(() => callback()));
             _displaySnackBar("Task Deleted!", context);
-            return true;
           } catch(err) {
-            return false;
           }
         }
-        return false;
       },
     );
   }
@@ -274,7 +272,9 @@ class TaskListScreenState extends State<TaskListScreen> {
 
     if (scheduledTasks.isNotEmpty) {
       tiles.add(HeadingItem('Scheduled'));
-      scheduledTasks.sort((t1, t2) => t1.startDate.value?.compareTo(t2.startDate.value));
+      scheduledTasks.sort((t1, t2) {
+        return t1.startDate.value!.compareTo(t2.startDate.value!);
+      });
       scheduledTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
     }
 
@@ -311,7 +311,7 @@ class TaskListScreenState extends State<TaskListScreen> {
     });
   }
 
-  Widget _createAddMoreButton() {
+  StatelessWidget _createAddMoreButton() {
     return Container(
         padding: EdgeInsets.all(25.0),
         child: Row(
@@ -344,23 +344,25 @@ class TaskListScreenState extends State<TaskListScreen> {
 
   Widget getTaskListBody(BuildContext context) {
     List<Widget> elements = [];
-    if (widget.subHeader != null) {
+    var subHeader = widget.subHeader;
+    if (subHeader != null) {
       elements.add(
         Container(
           padding: EdgeInsets.only(left: 12.0, top: 12.0),
           child: Text(
-            widget.subHeader,
+            subHeader,
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
         )
       );
     }
-    if (widget.subSubHeader != null) {
+    var subSubHeader = widget.subSubHeader;
+    if (subSubHeader != null) {
       elements.add(
         Container(
           padding: EdgeInsets.only(left: 12.0, bottom: 12.0),
           child: Text(
-            widget.subSubHeader,
+            subSubHeader,
             style: TextStyle(fontSize: 18),
           ),
         )

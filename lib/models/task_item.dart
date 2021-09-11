@@ -5,31 +5,31 @@ import 'package:taskmaster/models/task_field.dart';
 
 class TaskItem extends DataObject {
 
-  TaskFieldInteger personId;
+  late TaskFieldInteger personId;
 
-  TaskFieldString name;
-  TaskFieldString description;
-  TaskFieldString project;
-  TaskFieldString context;
+  late TaskFieldString name;
+  late TaskFieldString description;
+  late TaskFieldString project;
+  late TaskFieldString context;
 
-  TaskFieldInteger urgency;
-  TaskFieldInteger priority;
-  TaskFieldInteger duration;
+  late TaskFieldInteger urgency;
+  late TaskFieldInteger priority;
+  late TaskFieldInteger duration;
 
-  TaskFieldDate dateAdded;
-  TaskFieldDate startDate;
-  TaskFieldDate targetDate;
-  TaskFieldDate dueDate;
-  TaskFieldDate completionDate;
-  TaskFieldDate urgentDate;
+  late TaskFieldDate dateAdded;
+  late TaskFieldDate startDate;
+  late TaskFieldDate targetDate;
+  late TaskFieldDate dueDate;
+  late TaskFieldDate completionDate;
+  late TaskFieldDate urgentDate;
 
-  TaskFieldInteger gamePoints;
+  late TaskFieldInteger gamePoints;
 
-  TaskFieldInteger recurNumber;
-  TaskFieldString recurUnit;
-  TaskFieldBoolean recurWait;
+  late TaskFieldInteger recurNumber;
+  late TaskFieldString recurUnit;
+  late TaskFieldBoolean recurWait;
 
-  TaskFieldInteger recurrenceId;
+  late TaskFieldInteger recurrenceId;
 
   List<Sprint> sprints = [];
 
@@ -97,7 +97,7 @@ class TaskItem extends DataObject {
       for (var assignment in assignments) {
         int sprintId = assignment['sprint_id'];
         Iterable<Sprint> matching = sprints.where((sprint) => sprint.id.value == sprintId);
-        Sprint sprint =  matching.isEmpty ? null : matching.first;
+        Sprint? sprint = matching.isEmpty ? null : matching.first;
         if (sprint == null) {
           throw new Exception('No sprint found with ID ' + sprintId.toString());
         }
@@ -113,8 +113,8 @@ class TaskItem extends DataObject {
     var taskItem = new TaskItem();
     for (var field in fields) {
       if (!controlledFields.contains(field.fieldName)) {
-        var newField = taskItem.getTaskField(field.fieldName);
-        newField.initializeValue(field.value);
+        TaskField? newField = taskItem.getTaskField(field.fieldName);
+        newField!.initializeValue(field.value);
       }
     }
     taskItem.personId.initializeValue(personId.value);
@@ -122,7 +122,7 @@ class TaskItem extends DataObject {
     return taskItem;
   }
 
-  TaskField getTaskField(String fieldName) {
+  TaskField? getTaskField(String fieldName) {
     var matching = fields.where((field) => field.fieldName == fieldName);
     if (matching.isEmpty) {
       return null;
@@ -137,7 +137,7 @@ class TaskItem extends DataObject {
     return completionDate.value != null;
   }
 
-  DateTime getFinishedCompletionDate() {
+  DateTime? getFinishedCompletionDate() {
     return pendingCompletion ? null : completionDate.value;
   }
 
@@ -150,19 +150,23 @@ class TaskItem extends DataObject {
   }
 
   bool isDueBefore(DateTime dateTime) {
-    return dueDate.value != null && dueDate.value.isBefore(dateTime);
+    var dueDateValue = dueDate.value;
+    return dueDateValue != null && dueDateValue.isBefore(dateTime);
   }
 
   bool isUrgentBefore(DateTime dateTime) {
-    return urgentDate.value != null && urgentDate.value.isBefore(dateTime);
+    var urgentDateValue = urgentDate.value;
+    return urgentDateValue != null && urgentDateValue.isBefore(dateTime);
   }
 
   bool isTargetBefore(DateTime dateTime) {
-    return targetDate.value != null && targetDate.value.isBefore(dateTime);
+    var targetDateValue = targetDate.value;
+    return targetDateValue != null && targetDateValue.isBefore(dateTime);
   }
 
   bool isScheduledAfter(DateTime dateTime) {
-    return startDate.value != null && startDate.value.isAfter(dateTime);
+    var startDateValue = startDate.value;
+    return startDateValue != null && startDateValue.isAfter(dateTime);
   }
 
   bool isUrgent() {
@@ -174,15 +178,15 @@ class TaskItem extends DataObject {
   }
 
 
-  DateTime getLastDateBefore(TaskDateType taskDateType) {
-    var typePreceding = TaskDateTypes.getTypePreceding(taskDateType);
-    var lastValue = typePreceding.dateFieldGetter(this).value;
+  DateTime? getLastDateBefore(TaskDateType taskDateType) {
+    TaskDateType? typePreceding = TaskDateTypes.getTypePreceding(taskDateType);
+    DateTime? lastValue = typePreceding?.dateFieldGetter(this).value;
 
     if (lastValue != null) {
       return lastValue;
     }
 
-    while ((typePreceding = TaskDateTypes.getTypePreceding(typePreceding)) != null) {
+    while (typePreceding != null && (typePreceding = TaskDateTypes.getTypePreceding(typePreceding)) != null) {
       lastValue = typePreceding?.dateFieldGetter(this).value;
 
       if (lastValue != null) {
@@ -193,15 +197,16 @@ class TaskItem extends DataObject {
     return null;
   }
 
-  DateTime getAnchorDate() {
-    return getAnchorDateType().dateFieldGetter(this).value;
+  DateTime? getAnchorDate() {
+    return getAnchorDateType()?.dateFieldGetter(this).value;
   }
 
   bool isScheduledRecurrence() {
-    return recurWait.value != null && !recurWait.value;
+    var recurWaitValue = recurWait.value;
+    return recurWaitValue != null && !recurWaitValue;
   }
 
-  TaskDateType getAnchorDateType() {
+  TaskDateType? getAnchorDateType() {
     if (dueDate.value != null) {
       return TaskDateTypes.due;
     } else if (urgentDate.value != null) {

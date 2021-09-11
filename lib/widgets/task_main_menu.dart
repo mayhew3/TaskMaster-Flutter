@@ -9,8 +9,8 @@ class TaskMainMenu extends Drawer {
   final AppState appState;
 
   TaskMainMenu({
-    Key key,
-    @required this.appState,
+    Key? key,
+    required this.appState,
   }) : super(key: key);
 
   @override

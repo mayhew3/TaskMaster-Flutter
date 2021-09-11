@@ -9,7 +9,6 @@ void main() {
 
     test('Should be constructed', () {
       final taskItem = TaskItem();
-      expect(taskItem.id == null, false);
       expect(taskItem.id.value, null);
       expect(taskItem.fields.length > 2, true);
     });
@@ -48,15 +47,15 @@ void main() {
     test('getTaskField', () {
       TaskItem taskItem = new TaskItem();
       var fieldName = 'target_date';
-      TaskField taskField = taskItem.getTaskField(fieldName);
+      TaskField? taskField = taskItem.getTaskField(fieldName);
       expect(taskField is TaskFieldDate, true);
-      expect(taskField.fieldName, fieldName);
+      expect(taskField!.fieldName, fieldName);
     });
 
     test('getTaskField with unknown field', () {
       TaskItem taskItem = new TaskItem();
       var fieldName = 'bogus_field';
-      TaskField taskField = taskItem.getTaskField(fieldName);
+      TaskField? taskField = taskItem.getTaskField(fieldName);
       expect(taskField, null);
     });
 

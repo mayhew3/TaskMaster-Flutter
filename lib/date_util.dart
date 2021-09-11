@@ -4,7 +4,7 @@ import 'package:jiffy/jiffy.dart';
 
 class DateUtil {
 
-  static String formatShortMaybeHidingYear(DateTime dateTime) {
+  static String formatShortMaybeHidingYear(DateTime? dateTime) {
     if (dateTime == null) {
       return 'N/A';
     }
@@ -16,7 +16,7 @@ class DateUtil {
     return dateFormat.format(dateTime);
   }
 
-  static String formatMediumMaybeHidingYear(DateTime dateTime) {
+  static String formatMediumMaybeHidingYear(DateTime? dateTime) {
     if (dateTime == null) {
       return 'N/A';
     }
@@ -29,15 +29,12 @@ class DateUtil {
   }
 
   static DateTime adjustToDate(DateTime dateTime, int recurNumber, String recurUnit) {
-    if (dateTime == null) {
-      return null;
-    }
     switch (recurUnit) {
       case 'Days': return Jiffy(dateTime).add(days: recurNumber).dateTime;
       case 'Weeks': return Jiffy(dateTime).add(weeks: recurNumber).dateTime;
       case 'Months': return Jiffy(dateTime).add(months: recurNumber).dateTime;
       case 'Years': return Jiffy(dateTime).add(years: recurNumber).dateTime;
-      default: return null;
+      default: throw new Exception('Unknown recur_unit');
     }
   }
 

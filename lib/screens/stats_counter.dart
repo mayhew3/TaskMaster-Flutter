@@ -13,11 +13,11 @@ class StatsCounter extends StatelessWidget {
   final BottomNavigationBarGetter bottomNavigationBarGetter;
 
   StatsCounter({
-    Key key,
-    @required this.appState,
-    @required this.numActive,
-    @required this.numCompleted,
-    @required this.bottomNavigationBarGetter, })
+    Key? key,
+    required this.appState,
+    required this.numActive,
+    required this.numCompleted,
+    required this.bottomNavigationBarGetter, })
       : super(key: key);
 
   @override

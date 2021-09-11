@@ -7,11 +7,11 @@ class FilterButton extends StatelessWidget {
   final Function toggleScheduled;
   final Function toggleCompleted;
 
-  const FilterButton({Key key,
-    @required this.scheduledGetter,
-    @required this.completedGetter,
-    @required this.toggleScheduled,
-    @required this.toggleCompleted
+  const FilterButton({Key? key,
+    required this.scheduledGetter,
+    required this.completedGetter,
+    required this.toggleScheduled,
+    required this.toggleCompleted
   }) : super(key: key);
 
   void toggleFilter(String key) {

@@ -1,7 +1,7 @@
 
 class ParseHelper {
 
-  static String cleanString(String str) {
+  static String? cleanString(String? str) {
     if (str == null) {
       return null;
     } else {
@@ -14,7 +14,10 @@ class ParseHelper {
     }
   }
 
-  static int parseInt(String str) {
+  static int? parseInt(String? str) {
+    if (str == null) {
+      return null;
+    }
     var cleanString = ParseHelper.cleanString(str);
     return cleanString == null ? null : int.parse(str);
   }

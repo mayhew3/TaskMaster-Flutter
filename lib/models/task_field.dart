@@ -1,7 +1,6 @@
 
-import 'package:intl/intl.dart';
 
-String _cleanString(String str) {
+String? _cleanString(String? str) {
   if (str == null) {
     return null;
   } else {
@@ -16,14 +15,14 @@ String _cleanString(String str) {
 
 abstract class TaskField<T> {
   String fieldName;
-  T value;
-  T originalValue;
+  T? value;
+  T? originalValue;
 
   TaskField(this.fieldName) {
     this.originalValue = this.value;
   }
 
-  initializeValue(T value) {
+  initializeValue(T? value) {
     this.value = value;
     this.originalValue = value;
   }
@@ -40,8 +39,8 @@ abstract class TaskField<T> {
     return value != originalValue;
   }
 
-  initializeValueFromString(String str) {
-    T parseValue = _parseValue(str);
+  initializeValueFromString(String? str) {
+    T? parseValue = _parseValue(str);
     initializeValue(parseValue);
   }
 
@@ -53,12 +52,12 @@ abstract class TaskField<T> {
     }
   }
 
-  setValueFromString(String str) {
-    T parseValue = _parseValue(str);
+  setValueFromString(String? str) {
+    T? parseValue = _parseValue(str);
     value = parseValue;
   }
 
-  Object formatForJSON() {
+  Object? formatForJSON() {
     return value;
   }
 
@@ -70,7 +69,7 @@ abstract class TaskField<T> {
     return displayString;
   }
 
-  T _parseValue(String str);
+  T? _parseValue(String? str);
 }
 
 
@@ -79,22 +78,25 @@ abstract class TaskField<T> {
 class TaskFieldDate extends TaskField<DateTime> {
   TaskFieldDate(String fieldName) : super(fieldName);
 
-  DateTime _parseValue(String str) {
+  DateTime? _parseValue(String? str) {
+    if (str == null) {
+      return null;
+    }
     var cleanString = _cleanString(str);
     return cleanString == null ? null : DateTime.parse(cleanString).toLocal();
   }
 
   bool hasPassed() {
     var now = DateTime.now();
-    return value == null ? false : value.isBefore(now);
+    return value == null ? false : value!.isBefore(now);
   }
 
   @override
-  Object formatForJSON() {
+  Object? formatForJSON() {
     if (value == null) {
       return null;
     } else {
-      var utc = value.toUtc();
+      var utc = value!.toUtc();
       return utc.toIso8601String();
     }
   }
@@ -112,12 +114,12 @@ class TaskFieldString extends TaskField<String> {
   }
 
   @override
-  Object formatForJSON() {
+  Object? formatForJSON() {
     return _cleanString(value);
   }
 
   @override
-  String _parseValue(String str) {
+  String? _parseValue(String? str) {
     return str;
   }
 }
@@ -129,7 +131,10 @@ class TaskFieldInteger extends TaskField<int> {
   TaskFieldInteger(String fieldName) : super(fieldName);
 
   @override
-  int _parseValue(String str) {
+  int? _parseValue(String? str) {
+    if (str == null) {
+      return null;
+    }
     var cleanString = _cleanString(str);
     return cleanString == null ? null : int.parse(str);
   }
@@ -143,7 +148,10 @@ class TaskFieldBoolean extends TaskField<bool> {
   TaskFieldBoolean(String fieldName) : super(fieldName);
 
   @override
-  bool _parseValue(String str) {
+  bool? _parseValue(String? str) {
+    if (str == null) {
+      return null;
+    }
     var cleanString = _cleanString(str);
     return cleanString == null ? null : (str == 'true');
   }

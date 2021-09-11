@@ -120,7 +120,7 @@ void main() {
     });
 
     test('formatForJSON', () {
-      var formatted = '2019-07-13 15:12:55';
+      var formatted = '2019-07-13T15:12:55.000Z';
       final taskField = TaskFieldDate(startDate);
       taskField.value = theDateTime;
       expect(taskField.formatForJSON(), formatted);

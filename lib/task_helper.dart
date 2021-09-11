@@ -18,14 +18,13 @@ class TaskHelper {
   final TaskRepository repository;
   final TaskMasterAuth auth;
   final StateSetter stateSetter;
-  NavHelper navHelper;
+  late NavHelper navHelper;
 
   TaskHelper({
-    @required this.appState,
-    @required this.repository,
-    @required this.auth,
-    @required this.stateSetter,
-    this.navHelper,
+    required this.appState,
+    required this.repository,
+    required this.auth,
+    required this.stateSetter,
   });
 
   Future<void> reloadTasks() async {
@@ -59,23 +58,34 @@ class TaskHelper {
       throw new ArgumentError("CompleteTask() called with null completion date and completed false.");
     }
 
-    TaskItem nextScheduledTask;
-    DateTime completionDate = completed ? DateTime.now() : null;
+    TaskItem? nextScheduledTask;
+    DateTime? completionDate = completed ? DateTime.now() : null;
 
     stateSetter(() {
       taskItem.pendingCompletion = true;
     });
 
-    if (taskItem.recurNumber.value != null && completed) {
-      DateTime anchorDate = taskItem.getAnchorDate();
+    var recurNumber = taskItem.recurNumber.value;
+    var recurUnit = taskItem.recurUnit.value;
+    var recurWait = taskItem.recurWait.value;
+
+    if (recurNumber != null && completed) {
+      if (recurUnit == null || recurWait == null) {
+        throw new Exception('Recur_number has a value, so recur_unit and recur_wait should be non-null!');
+      }
+
+      DateTime? anchorDate = taskItem.getAnchorDate();
+      if (anchorDate == null) {
+        throw new Exception('Recur_number exists without anchor date!');
+      }
       DateTime nextAnchorDate;
 
       nextScheduledTask = taskItem.createCopy();
 
-      if (taskItem.recurWait.value) {
-        nextAnchorDate = _getAdjustedDate(completionDate, taskItem.recurNumber.value, taskItem.recurUnit.value);
+      if (recurWait) {
+        nextAnchorDate = _getAdjustedDate(completionDate!, recurNumber, recurUnit);
       } else {
-        nextAnchorDate = _getAdjustedDate(anchorDate, taskItem.recurNumber.value, taskItem.recurUnit.value);
+        nextAnchorDate = _getAdjustedDate(anchorDate, recurNumber, recurUnit);
       }
 
       DateTime dateWithTime = _getClosestDateForTime(anchorDate, nextAnchorDate);
@@ -109,7 +119,7 @@ class TaskHelper {
   }
 
   Future<void> deleteTask(TaskItem taskItem, StateSetter stateSetter) async {
-    var taskId = taskItem.id.value;
+    int taskId = taskItem.id.value!;
     await repository.deleteTask(taskItem);
     print('Removal of task successful!');
     await appState.notificationScheduler.cancelNotificationsForTaskId(taskId);
@@ -139,7 +149,7 @@ class TaskHelper {
 
     var relevantDateField = dateType.dateFieldGetter(taskItem);
 
-    DateTime originalValue = relevantDateField.originalValue;
+    DateTime? originalValue = relevantDateField.originalValue;
 
     TaskItem updatedTask = await updateTask(taskItem);
 
@@ -176,7 +186,7 @@ class TaskHelper {
     DateTime adjustedDate = _getAdjustedDate(snoozeDate, numUnits, unitSize);
 
     var relevantDateField = dateType.dateFieldGetter(taskItem);
-    DateTime relevantDate = relevantDateField.value;
+    DateTime? relevantDate = relevantDateField.value;
 
     if (relevantDate == null) {
       relevantDateField.value = adjustedDate;
@@ -187,7 +197,7 @@ class TaskHelper {
   }
 
 
-  DateTime _addToDate(DateTime previousDate, Duration duration) {
+  DateTime? _addToDate(DateTime? previousDate, Duration duration) {
     return previousDate?.add(duration);
   }
 
@@ -226,7 +236,7 @@ class TaskHelper {
 
   void _copyChanges(TaskItem inboundTask, TaskItem outboundTask) {
     for (TaskField field in outboundTask.fields) {
-      var inboundField = inboundTask.getTaskField(field.fieldName);
+      var inboundField = inboundTask.getTaskField(field.fieldName)!;
       field.value = inboundField.value;
     }
     outboundTask.treatAsCommitted();

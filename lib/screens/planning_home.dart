@@ -25,10 +25,10 @@ class PlanningHome extends StatefulWidget {
   final TaskHelper taskHelper;
 
   PlanningHome({
-    Key key,
-    @required this.appState,
-    @required this.bottomNavigationBarGetter,
-    @required this.taskHelper,
+    Key? key,
+    required this.appState,
+    required this.bottomNavigationBarGetter,
+    required this.taskHelper,
   }) : super(key: key);
 
   @override
@@ -44,8 +44,8 @@ class PlanningHomeState extends State<PlanningHome> {
 
   int numUnits = 1;
   String unitName = 'Weeks';
-  Sprint activeSprint;
-  Sprint lastCompleted;
+  Sprint? activeSprint;
+  Sprint? lastCompleted;
 
   List<String> possibleRecurUnits = [
     'Days',
@@ -76,8 +76,8 @@ class PlanningHomeState extends State<PlanningHome> {
 
   void _updateDatesOnInit() {
     if (lastCompleted != null) {
-      numUnits = lastCompleted.numUnits.value;
-      unitName = lastCompleted.unitName.value;
+      numUnits = lastCompleted!.numUnits.value!;
+      unitName = lastCompleted!.unitName.value!;
       sprintStart = getNextScheduledStart();
     }
     sprintStartDateController.text = DateFormat('MM-dd-yyyy').format(sprintStart);
@@ -86,9 +86,9 @@ class PlanningHomeState extends State<PlanningHome> {
 
   void _updateNewSprintStartAfterCreate() {
     if (lastCompleted != null) {
-      numUnits = lastCompleted.numUnits.value;
-      unitName = lastCompleted.unitName.value;
-      sprintStart = lastCompleted.endDate.value;
+      numUnits = lastCompleted!.numUnits.value!;
+      unitName = lastCompleted!.unitName.value!;
+      sprintStart = lastCompleted!.endDate.value!;
     }
     sprintStartDateController.text = DateFormat('MM-dd-yyyy').format(sprintStart);
     sprintStartTimeController.text = DateFormat('hh:mm a').format(sprintStart);
@@ -96,29 +96,31 @@ class PlanningHomeState extends State<PlanningHome> {
 
   DateTime getNextScheduledStart() {
     DateTime nextStart;
-    DateTime nextEnd = lastCompleted.endDate.value;
+    DateTime nextEnd = lastCompleted!.endDate.value!;
     DateTime now = DateTime.now();
 
     do {
       nextStart = nextEnd;
       nextEnd = DateUtil.adjustToDate(
           nextStart,
-          lastCompleted.numUnits.value,
-          lastCompleted.unitName.value
+          lastCompleted!.numUnits.value!,
+          lastCompleted!.unitName.value!
       );
     } while (nextEnd.isBefore(now));
 
     return nextStart;
   }
 
-  void updateDateForDateField(DateTime dateTime) {
-    sprintStart = DateUtil.combineDateAndTime(dateTime, sprintStart);
-    sprintStartDateController.text = DateFormat('MM-dd-yyyy').format(dateTime);
+  void updateDateForDateField(DateTime? dateTime) {
+    DateTime base = dateTime ?? DateTime.now();
+    sprintStart = DateUtil.combineDateAndTime(base, sprintStart);
+    sprintStartDateController.text = DateFormat('MM-dd-yyyy').format(base);
   }
 
-  void updateTimeForDateField(DateTime dateTime) {
-    sprintStart = DateUtil.combineDateAndTime(sprintStart, dateTime);
-    sprintStartTimeController.text = DateFormat('hh:mm a').format(dateTime);
+  void updateTimeForDateField(DateTime? dateTime) {
+    DateTime base = dateTime ?? DateTime.now();
+    sprintStart = DateUtil.combineDateAndTime(sprintStart, base);
+    sprintStartTimeController.text = DateFormat('hh:mm a').format(base);
   }
 
   void _openPlanning(BuildContext context) async {
@@ -142,13 +144,13 @@ class PlanningHomeState extends State<PlanningHome> {
   }
 
   String _getSubHeader() {
-    String startDateFormatted = DateFormat('M/d').format(activeSprint.startDate.value);
-    String endDateFormatted = DateFormat('M/d').format(activeSprint.endDate.value);
+    String startDateFormatted = DateFormat('M/d').format(activeSprint!.startDate.value!);
+    String endDateFormatted = DateFormat('M/d').format(activeSprint!.endDate.value!);
     return 'Tasks for ' + startDateFormatted + ' - ' + endDateFormatted;
   }
 
   String _getSubSubHeader() {
-    DateTime endDate = activeSprint.endDate.value;
+    DateTime endDate = activeSprint!.endDate.value!;
     String goodFormat = timeago.format(endDate, allowFromNow: true);
     String better = goodFormat.replaceAll('from now', 'left');
     return '(' + better + ')';
@@ -159,15 +161,16 @@ class PlanningHomeState extends State<PlanningHome> {
       return Text('This is your first sprint! Choose the cadence below:');
     } else {
       DateTime oneYearAgo = DateTime.now().subtract(Duration(days: 365));
-      String dateString = oneYearAgo.isAfter(lastCompleted.endDate.value) ?
+      DateTime lastEndDate = lastCompleted!.endDate.value!;
+      String dateString = oneYearAgo.isAfter(lastEndDate) ?
                         ' over a year ago.' :
-                        DateUtil.formatMediumMaybeHidingYear(lastCompleted.endDate.value);
+                        DateUtil.formatMediumMaybeHidingYear(lastEndDate);
       return Text('Last Sprint Ended: ' + dateString);
     }
   }
 
   DateTime _getLowerLimit() {
-    return lastCompleted?.endDate?.value ?? DateTime(DateTime.now().year - 1);
+    return lastCompleted?.endDate.value ?? DateTime(DateTime.now().year - 1);
   }
 
   @override
@@ -193,8 +196,8 @@ class PlanningHomeState extends State<PlanningHome> {
                       initialText: numUnits.toString(),
                       labelText: 'Num',
                       inputType: TextInputType.number,
-                      onChanged: (value) => numUnits = ParseHelper.parseInt(value),
-                      fieldSetter: (value) => numUnits = ParseHelper.parseInt(value),
+                      onChanged: (value) => numUnits = ParseHelper.parseInt(value) ?? 1,
+                      fieldSetter: (value) => numUnits = ParseHelper.parseInt(value) ?? 1,
                     ),
                   ),
                   Expanded(
@@ -202,8 +205,8 @@ class PlanningHomeState extends State<PlanningHome> {
                       initialValue: unitName,
                       labelText: 'Unit',
                       possibleValues: possibleRecurUnits,
-                      onChanged: (value) => unitName = value,
-                      valueSetter: (value) => unitName = value,
+                      onChanged: (value) => unitName = value ?? '',
+                      valueSetter: (value) => unitName = value ?? '',
                     ),
                   ),
                 ],
@@ -245,9 +248,10 @@ class PlanningHomeState extends State<PlanningHome> {
                         ),
                         onChanged: (value) => updateTimeForDateField(value),
                         onShowPicker: (context, currentValue) async {
+                          DateTime base = currentValue ?? sprintStart;
                           final time = await showTimePicker(
                             context: context,
-                            initialTime: TimeOfDay.fromDateTime(currentValue) ?? TimeOfDay.fromDateTime(sprintStart),
+                            initialTime: TimeOfDay.fromDateTime(base),
                           );
                           return DateTimeField.convert(time);
                         },

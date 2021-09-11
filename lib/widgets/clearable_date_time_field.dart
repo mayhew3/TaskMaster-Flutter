@@ -13,21 +13,21 @@ DateTime daysFromNow(int days) {
 
 class ClearableDateTimeField extends StatelessWidget {
   const ClearableDateTimeField({
-    Key key,
-    @required this.labelText,
-    @required this.dateGetter,
-    @required this.dateSetter,
-    @required this.initialPickerGetter,
+    Key? key,
+    required this.labelText,
+    required this.dateGetter,
+    required this.dateSetter,
+    required this.initialPickerGetter,
     this.firstDateGetter,
     this.currentDateGetter,
   }) : super(key: key);
 
   final String labelText;
-  final ValueGetter<DateTime> dateGetter;
-  final ValueGetter<DateTime> initialPickerGetter;
-  final ValueGetter<DateTime> firstDateGetter;
-  final ValueGetter<DateTime> currentDateGetter;
-  final ValueChanged<DateTime> dateSetter;
+  final ValueGetter<DateTime?> dateGetter;
+  final ValueGetter<DateTime?> initialPickerGetter;
+  final ValueGetter<DateTime?>? firstDateGetter;
+  final ValueGetter<DateTime?>? currentDateGetter;
+  final ValueChanged<DateTime?> dateSetter;
 
   @override
   Widget build(BuildContext context) {
@@ -43,15 +43,19 @@ class ClearableDateTimeField extends StatelessWidget {
         initialValue: dateGetter(),
         onChanged: (pickedDate) => dateSetter(pickedDate),
         onShowPicker: (context, currentValue) async {
+          DateTime? firstDateNullable = firstDateGetter == null ? null : firstDateGetter!();
+          DateTime firstDate = firstDateNullable == null ? DateTime(1900) : firstDateNullable;
+
+          DateTime? currentDateNullable = currentDateGetter == null ? null : currentDateGetter!();
+          DateTime currentDate = currentDateNullable == null ? DateTime.now() : currentDateNullable;
+
+          DateTime initialDate = currentValue ?? initialPickerGetter()!;
+
           final date = await showDatePicker(
               context: context,
-              firstDate: firstDateGetter == null || firstDateGetter() == null ?
-                            DateTime(1900) :
-                            firstDateGetter(),
-              currentDate: currentDateGetter == null || currentDateGetter() == null ?
-                            DateTime.now() :
-                            currentDateGetter(),
-              initialDate: currentValue ?? initialPickerGetter(),
+              firstDate: firstDate,
+              currentDate: currentDate,
+              initialDate: initialDate,
               lastDate: DateTime(2100));
           if (date != null) {
             final time = await showTimePicker(

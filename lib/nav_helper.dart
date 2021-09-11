@@ -11,12 +11,12 @@ class NavHelper {
   final TaskRepository taskRepository;
   final TaskHelper taskHelper;
 
-  BuildContext context;
+  late BuildContext context;
 
   NavHelper({
-    @required this.appState,
-    @required this.taskRepository,
-    @required this.taskHelper,
+    required this.appState,
+    required this.taskRepository,
+    required this.taskHelper,
   }) {
     this.appState.updateNavHelper(this);
   }

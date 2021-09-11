@@ -5,10 +5,10 @@ import 'package:taskmaster/widgets/editable_task_field.dart';
 
 void main() {
 
-  String fieldValue;
+  String? fieldValue;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  Future<MaterialApp> _createApp(WidgetTester tester, {bool isRequired, FormFieldValidator<String> validator}) async {
+  Future<MaterialApp> _createApp(WidgetTester tester, {bool? isRequired, FormFieldValidator<String>? validator}) async {
 
     Form form = Form(
           key: _formKey,
@@ -36,7 +36,7 @@ void main() {
     return find.byType(TextFormField);
   }
 
-  FormState _getForm() {
+  FormState? _getForm() {
     return _formKey.currentState;
   }
 
@@ -68,7 +68,7 @@ void main() {
     expect(newValueFinder, findsOneWidget);
 
     final form = _getForm();
-    form.save();
+    form!.save();
 
     expect(fieldValue, 'Lesser Gunk');
   });
@@ -80,7 +80,7 @@ void main() {
     await tester.enterText(textField, '');
 
     var form = _getForm();
-    expect(form.validate(), true);
+    expect(form!.validate(), true);
   });
 
   testWidgets('validation fails null not ok', (WidgetTester tester) async {
@@ -90,7 +90,7 @@ void main() {
     await tester.enterText(textField, '');
 
     var form = _getForm();
-    expect(form.validate(), false);
+    expect(form!.validate(), false);
   });
 
   testWidgets('validation passes null not ok', (WidgetTester tester) async {
@@ -100,7 +100,7 @@ void main() {
     await tester.enterText(textField, 'Real Text');
 
     var form = _getForm();
-    expect(form.validate(), true);
+    expect(form!.validate(), true);
   });
 
   testWidgets('validation fails if validator fails', (WidgetTester tester) async {
@@ -111,7 +111,7 @@ void main() {
     await tester.enterText(textField, '39');
 
     var form = _getForm();
-    expect(form.validate(), false);
+    expect(form!.validate(), false);
   });
 
 }

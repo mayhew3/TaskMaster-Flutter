@@ -2,15 +2,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:intl/intl.dart';
 import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/flutter_badger_wrapper.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
 import 'package:taskmaster/task_helper.dart';
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
+import 'package:taskmaster/timezone_helper.dart';
 
 import 'models/sprint.dart';
 
@@ -18,22 +16,24 @@ class NotificationScheduler {
 
   final AppState appState;
   final TaskHelper taskHelper;
+  final TimezoneHelper timezoneHelper;
 
   final BuildContext context;
-  BuildContext homeScreenContext;
+  late BuildContext homeScreenContext;
   int nextId = 0;
 
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
   final FlutterBadgerWrapper flutterBadgerWrapper;
 
   NotificationScheduler({
-    @required this.context,
-    @required this.appState,
-    @required this.flutterLocalNotificationsPlugin,
-    @required this.flutterBadgerWrapper,
-    @required this.taskHelper,
+    required this.context,
+    required this.appState,
+    required this.flutterLocalNotificationsPlugin,
+    required this.flutterBadgerWrapper,
+    required this.taskHelper,
+    required this.timezoneHelper,
   }) {
-    _configureLocalTimeZone();
+    timezoneHelper.configureLocalTimeZone();
 
     // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
     var initializationSettingsAndroid = AndroidInitializationSettings('app_icon');
@@ -45,12 +45,6 @@ class NotificationScheduler {
     );
     this.flutterLocalNotificationsPlugin.initialize(initializationSettings,
         onSelectNotification: _onSelectNotification);
-  }
-
-  Future<void> _configureLocalTimeZone() async {
-    tz.initializeTimeZones();
-    String timezone = await FlutterNativeTimezone.getLocalTimezone();
-    tz.setLocalLocation(tz.getLocation(timezone));
   }
 
   void updateHomeScreenContext(BuildContext context) {
@@ -71,14 +65,14 @@ class NotificationScheduler {
   Future<void> cancelNotificationsForTaskId(int taskId) async {
     var taskSearch = 'task:$taskId';
     var pendingNotificationRequests = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
-    var existing = pendingNotificationRequests.where((notification) => notification.payload.startsWith(taskSearch));
+    var existing = pendingNotificationRequests.where((notification) => notification.payload != null && notification.payload!.startsWith(taskSearch));
     for (PendingNotificationRequest notification in existing) {
       print('Removing task: ${notification.payload}');
       await flutterLocalNotificationsPlugin.cancel(notification.id);
     }
   }
 
-  Future<void> syncNotificationForTasksAndSprint(List<TaskItem> taskItems, Sprint sprint) async {
+  Future<void> syncNotificationForTasksAndSprint(List<TaskItem> taskItems, Sprint? sprint) async {
     List<PendingNotificationRequest> requests = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
 
     if (sprint != null) {
@@ -93,7 +87,7 @@ class NotificationScheduler {
     List<PendingNotificationRequest> requests = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
 
     if (taskItem.isCompleted()) {
-      await cancelNotificationsForTaskId(taskItem.id.value);
+      await cancelNotificationsForTaskId(taskItem.id.value!);
     } else {
       await _syncNotificationForTask(taskItem, requests);
     }
@@ -106,9 +100,9 @@ class NotificationScheduler {
     String sprintSearch = 'sprint:${sprint.id.value}';
     String sprintName = 'Sprint ${sprint.id.value}';
 
-    DateTime exactTime = sprint.endDate.value;
-    DateTime hourBefore = sprint.endDate.value?.subtract(Duration(minutes: 60));
-    DateTime dayBefore = sprint.endDate.value?.subtract(Duration(days: 1));
+    DateTime exactTime = sprint.endDate.value!;
+    DateTime hourBefore = sprint.endDate.value!.subtract(Duration(minutes: 60));
+    DateTime dayBefore = sprint.endDate.value!.subtract(Duration(days: 1));
 
     await _maybeReplaceNotification('$sprintSearch:day', requests, dayBefore, '$sprintName (day)', 'Current sprint ends in 1 day!');
     await _maybeReplaceNotification('$sprintSearch:hour', requests, hourBefore, '$sprintName (hour)', 'Current sprint ends in 1 hour!');
@@ -121,8 +115,8 @@ class NotificationScheduler {
   }
 
   Future<void> _syncUrgentNotificationsForTask(TaskItem taskItem, List<PendingNotificationRequest> requests) async {
-    DateTime urgentDate = taskItem.urgentDate.value;
-    DateTime twoHoursBefore = urgentDate?.subtract(Duration(minutes: 120));
+    DateTime? urgentDate = taskItem.urgentDate.value;
+    DateTime? twoHoursBefore = urgentDate?.subtract(Duration(minutes: 120));
 
     if (taskItem.completionDate.value == null) {
       await _maybeReplaceNotification('task:${taskItem.id.value}:urgentTwoHours', requests, twoHoursBefore, '${taskItem.name.value} (urgent 2 hours)', 'Two hours until urgent!');
@@ -131,9 +125,9 @@ class NotificationScheduler {
   }
 
   Future<void> _syncDueNotificationsForTask(TaskItem taskItem, List<PendingNotificationRequest> requests) async {
-    DateTime dueDate = taskItem.dueDate.value;
-    DateTime twoHoursBefore = dueDate?.subtract(Duration(minutes: 120));
-    DateTime oneDayBefore = dueDate?.subtract(Duration(days: 1));
+    DateTime? dueDate = taskItem.dueDate.value;
+    DateTime? twoHoursBefore = dueDate?.subtract(Duration(minutes: 120));
+    DateTime? oneDayBefore = dueDate?.subtract(Duration(days: 1));
 
     if (taskItem.completionDate.value == null) {
       await _maybeReplaceNotification('task:${taskItem.id.value}:dueOneDay', requests, oneDayBefore, '${taskItem.name.value} (due 1 day)', 'One day until due!');
@@ -144,7 +138,7 @@ class NotificationScheduler {
 
 
 
-  Future<bool> _maybeReplaceNotification(String identifier, List<PendingNotificationRequest> requests, DateTime scheduleDate, String logName, String notificationMessage) async {
+  Future<bool> _maybeReplaceNotification(String identifier, List<PendingNotificationRequest> requests, DateTime? scheduleDate, String logName, String notificationMessage) async {
     var removed = false;
 
     var existing = requests.where((notification) => notification.payload == identifier);
@@ -178,36 +172,39 @@ class NotificationScheduler {
   }
 
   Future<void> _goToDetailScreen({
-    String payload,
-    BuildContext incomingContext
+    String? payload,
+    BuildContext? incomingContext
   }) async {
     if (payload != null) {
       debugPrint('notification payload: ' + payload);
+
+      var parts = payload.split(":");
+      var taskId = int.parse(parts[1]);
+      var taskItem = appState.findTaskItemWithId(taskId);
+
+      if (taskItem != null) {
+        var contextToUse = incomingContext ?? homeScreenContext;
+
+        await Navigator.push(
+            contextToUse,
+            MaterialPageRoute(builder: (context) {
+              return DetailScreen(
+                taskItem: taskItem,
+                taskHelper: taskHelper,
+              );
+            })
+        );
+      }
     }
-    var parts = payload.split(":");
-    var taskId = int.parse(parts[1]);
-    var taskItem = appState.findTaskItemWithId(taskId);
-
-    var contextToUse = incomingContext ?? homeScreenContext;
-
-    await Navigator.push(
-        contextToUse,
-        MaterialPageRoute(builder: (context) {
-          return DetailScreen(
-            taskItem: taskItem,
-            taskHelper: taskHelper,
-          );
-        })
-    );
   }
 
-  Future<void> _onSelectNotification(String payload) async {
+  Future<void> _onSelectNotification(String? payload) async {
     updateBadge();
     await _goToDetailScreen(payload: payload);
   }
 
   Future<void> _onDidReceiveLocalNotification(
-      int id, String title, String body, String payload) async {
+      int id, String? title, String? body, String? payload) async {
     updateBadge();
     // display a dialog with the notification details, tap ok to go to another page
     await showDialog(
@@ -261,11 +258,12 @@ class NotificationScheduler {
         android: androidPlatformChannelSpecifics,
         iOS: iOSPlatformChannelSpecifics,
     );
+    var localTime = timezoneHelper.getLocalTime(scheduledTime);
     await flutterLocalNotificationsPlugin.zonedSchedule(
         id,
         name,
         message,
-        tz.TZDateTime.from(scheduledTime, tz.local),
+        localTime,
         platformChannelSpecifics,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,

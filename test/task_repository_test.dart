@@ -20,11 +20,11 @@ import 'mocks/mock_data_builder.dart';
 void main() {
   group('TaskRepository', () {
 
-    http.Client client;
-    AppState appState;
+    late http.Client client;
+    late AppState appState;
     final Uri tasksAPI = Uri.parse("https://taskmaster-general.herokuapp.com/api/tasks");
 
-    TaskRepository createTaskRepository({List<TaskItem> taskItems, List<Sprint> sprints}) {
+    TaskRepository createTaskRepository({List<TaskItem>? taskItems, List<Sprint>? sprints}) {
       appState = new MockAppState();
       client = new MockClient(taskItems ?? allTasks, sprints ?? allSprints);
       return TaskRepository(appState: appState, client: client);
@@ -32,7 +32,7 @@ void main() {
 
     // helper methods
 
-    dynamic _encodeBody(List<int> body, {int id, DateTime dateTime}) {
+    dynamic _encodeBody(List<int> body, {int? id, DateTime? dateTime}) {
       var utfDecoded = utf8.decode(body);
       var jsonObj = json.decode(utfDecoded);
       var jsonTask = jsonObj["task"];

@@ -8,9 +8,9 @@ class ReadOnlyTaskFieldSmall extends StatelessWidget {
   final String textToShow;
 
   const ReadOnlyTaskFieldSmall({
-    Key key,
-    this.textToShow,
-    this.headerName,
+    Key? key,
+    required this.textToShow,
+    required this.headerName,
   }) : super(key: key);
 
   @override

@@ -11,8 +11,8 @@ import 'mocks/mock_task_repository.dart';
 void main() {
 
   AppState createAppState({
-    List<TaskItem> taskItems,
-    List<Sprint> sprints
+    List<TaskItem>? taskItems,
+    List<Sprint>? sprints
   }) {
     var appState = AppState(
       auth: MockTaskMasterAuth(),
@@ -20,6 +20,7 @@ void main() {
       sprints: sprints ?? allSprints
     );
     var navHelper = MockNavHelper(
+      appState: appState,
       taskRepository: MockTaskRepository(),
     );
     appState.updateNavHelper(navHelper);

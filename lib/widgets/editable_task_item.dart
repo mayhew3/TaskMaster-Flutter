@@ -11,38 +11,38 @@ import 'package:timeago/timeago.dart' as timeago;
 
 class EditableTaskItemWidget extends StatelessWidget {
   final TaskItem taskItem;
-  final GestureTapCallback onTap;
-  final CheckCycleWaiter onTaskCompleteToggle;
-  final CheckCycleWaiter onTaskAssignmentToggle;
-  final DismissDirectionCallback onDismissed;
-  final GestureLongPressCallback onLongPress;
-  final GestureForcePressStartCallback onForcePress;
+  final GestureTapCallback? onTap;
+  final CheckCycleWaiter? onTaskCompleteToggle;
+  final CheckCycleWaiter? onTaskAssignmentToggle;
+  final ConfirmDismissCallback? onDismissed;
+  final GestureLongPressCallback? onLongPress;
+  final GestureForcePressStartCallback? onForcePress;
   final bool addMode;
   final MyStateSetter stateSetter;
-  final DateTime endDate;
-  final CheckState initialCheckState;
-  final Sprint sprint;
+  final DateTime? endDate;
+  final CheckState? initialCheckState;
+  final Sprint? sprint;
   final bool highlightSprint;
 
   EditableTaskItemWidget({
-    Key key,
-    @required this.taskItem,
+    Key? key,
+    required this.taskItem,
     this.onTap,
     this.onTaskCompleteToggle,
     this.onTaskAssignmentToggle,
     this.onDismissed,
     this.onLongPress,
     this.onForcePress,
-    @required this.addMode,
-    @required this.stateSetter,
+    required this.addMode,
+    required this.stateSetter,
     this.endDate,
     this.initialCheckState,
-    @required this.sprint,
-    this.highlightSprint,
+    required this.sprint,
+    this.highlightSprint = false,
   }) : super(key: key);
 
-  bool hasPassed(DateTime dateTime) {
-    var now = addMode ? this.endDate : DateTime.now();
+  bool hasPassed(DateTime? dateTime) {
+    var now = addMode ? this.endDate! : DateTime.now();
     return dateTime == null ? false : dateTime.isBefore(now);
   }
 
@@ -72,10 +72,10 @@ class EditableTaskItemWidget extends StatelessWidget {
   }
 
   String getStringForDateType(TaskDateType taskDateType) {
-    var dateValue = taskDateType.dateFieldGetter(taskItem).value;
-    var isPast = dateValue == null ? false : dateValue.isBefore(DateTime.now());
-    var formatted = formatDateTime(dateValue);
-    var label = taskDateType.label;
+    DateTime? dateValue = taskDateType.dateFieldGetter(taskItem).value;
+    bool isPast = dateValue == null ? false : dateValue.isBefore(DateTime.now());
+    String formatted = formatDateTime(dateValue);
+    String label = taskDateType.label;
 
     if (dateValue == null) {
       return '';
@@ -99,7 +99,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     }
   }
 
-  String formatDateTime(DateTime dateTime) {
+  String formatDateTime(DateTime? dateTime) {
     var preliminaryString = dateTime == null ? '' : timeago.format(
         dateTime,
         locale: 'en_short',
@@ -110,23 +110,25 @@ class EditableTaskItemWidget extends StatelessWidget {
 
   bool dueInThreshold(int thresholdDays) {
     DateTime inXDays = DateTime.now().add(Duration(days: thresholdDays));
-    return taskItem.dueDate.value != null && taskItem.dueDate.value.isBefore(inXDays);
+    var dueDate = taskItem.dueDate.value;
+    return dueDate != null && dueDate.isBefore(inXDays);
   }
 
   bool dateInFutureThreshold(TaskDateType taskDateType, int thresholdDays) {
     DateTime inXDays = DateTime.now().add(Duration(days: thresholdDays));
     var dateField = taskDateType.dateFieldGetter(taskItem);
-    return dateField.value != null &&
-        dateField.value.isAfter(DateTime.now()) &&
-        dateField.value.isBefore(inXDays);
+    var dateValue = dateField.value;
+    return dateValue != null &&
+        dateValue.isAfter(DateTime.now()) &&
+        dateValue.isBefore(inXDays);
   }
 
   DelayedCheckbox _getCheckbox() {
     if (addMode) {
       return DelayedCheckbox(
-        initialState: initialCheckState,
+        initialState: initialCheckState!,
         stateSetter: stateSetter,
-        checkCycleWaiter: onTaskAssignmentToggle,
+        checkCycleWaiter: onTaskAssignmentToggle!,
         checkedColor: Colors.green,
         inactiveIcon: Icons.add,
       );
@@ -136,7 +138,7 @@ class EditableTaskItemWidget extends StatelessWidget {
       return DelayedCheckbox(
         initialState: completed ? CheckState.checked : CheckState.inactive,
         stateSetter: stateSetter,
-        checkCycleWaiter: onTaskCompleteToggle,
+        checkCycleWaiter: onTaskCompleteToggle!,
       );
     }
   }
@@ -267,7 +269,9 @@ class EditableTaskItemWidget extends StatelessWidget {
         onLongPress: onLongPress,
         onForcePressStart: (ForcePressDetails forcePressDetails) {
           print('Force Press detected!');
-          onForcePress(forcePressDetails);
+          if (onForcePress != null) {
+            onForcePress!(forcePressDetails);
+          }
         },
         child: Card(
           shadowColor: _getShadowColor(),
@@ -295,13 +299,13 @@ class EditableTaskItemWidget extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                            taskItem.name.value,
+                            taskItem.name.value!,
                             style: _getHeaderStyle(),
                         ),
                         Visibility(
                           visible: taskItem.project.value != null,
                           child: Text(
-                            taskItem.project.value == null ? '' : taskItem.project.value,
+                            taskItem.project.value == null ? '' : taskItem.project.value!,
                             style: const TextStyle(fontSize: 12.0,
                                 color: Colors.white70),
                           ),

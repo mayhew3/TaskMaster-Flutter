@@ -7,8 +7,8 @@ class TopNavItem {
   Widget widget;
 
   TopNavItem({
-    @required this.label,
-    @required this.icon,
-    @required this.widget,
+    required this.label,
+    required this.icon,
+    required this.widget,
   });
 }
