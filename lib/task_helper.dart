@@ -80,9 +80,10 @@ class TaskHelper {
     var recurNumber = taskItem.recurNumber.value!;
     var recurUnit = taskItem.recurUnit.value;
     var recurWait = taskItem.recurWait.value;
+    var recurIteration = taskItem.recurIteration.value;
 
-    if (recurUnit == null || recurWait == null) {
-      throw new Exception('Recur_number has a value, so recur_unit and recur_wait should be non-null!');
+    if (recurUnit == null || recurWait == null || recurIteration == null) {
+      throw new Exception('Recur_number has a value, so recur_unit and recur_wait and recur_iteration should be non-null!');
     }
 
     DateTime? anchorDate = taskItem.getAnchorDate();
@@ -106,6 +107,8 @@ class TaskHelper {
     nextScheduledTask.targetDate.initializeValue(_addToDate(taskItem.targetDate.value, duration));
     nextScheduledTask.urgentDate.initializeValue(_addToDate(taskItem.urgentDate.value, duration));
     nextScheduledTask.dueDate.initializeValue(_addToDate(taskItem.dueDate.value, duration));
+
+    nextScheduledTask.recurIteration.initializeValue(recurIteration + 1);
 
     return nextScheduledTask;
   }
