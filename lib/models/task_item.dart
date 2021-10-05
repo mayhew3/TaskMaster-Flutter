@@ -30,6 +30,7 @@ class TaskItem extends DataObject {
   late TaskFieldBoolean recurWait;
 
   late TaskFieldInteger recurrenceId;
+  late TaskFieldInteger recurIteration;
 
   List<Sprint> sprints = [];
 
@@ -63,6 +64,7 @@ class TaskItem extends DataObject {
     this.recurUnit = addStringField("recur_unit");
     this.recurWait = addBoolField("recur_wait");
     this.recurrenceId = addIntegerField("recurrence_id");
+    this.recurIteration = addIntegerField("recur_iteration");
   }
 
   @override
