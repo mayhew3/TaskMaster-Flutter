@@ -29,7 +29,12 @@ class TaskRepository {
       'email': appState.currentUser!.email
     };
 
-    var uri = Uri.https('taskmaster-general.herokuapp.com', '/api/tasks', queryParameters);
+    var serverEnv = const String.fromEnvironment('SERVER', defaultValue: "remote");
+    var isLocal = serverEnv == 'local';
+
+    var uri = isLocal ?
+    Uri.http('localhost:3000', '/api/tasks', queryParameters) :
+    Uri.https('taskmaster-general.herokuapp.com', '/api/tasks', queryParameters);
 
     String idToken = await appState.getIdToken();
 
