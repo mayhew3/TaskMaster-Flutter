@@ -15,10 +15,28 @@ class TaskRepository {
   AppState appState;
   http.Client client;
 
+  static const serverEnv = String.fromEnvironment('SERVER', defaultValue: 'remote');
+
   TaskRepository({
     required this.appState,
     required this.client,
   });
+
+  String getBaseUrl() {
+    return (serverEnv == 'local') ?
+        'localhost:3000' :
+        'taskmaster-general.herokuapp.com';
+  }
+
+  Uri getUri(String path) {
+    return getUriWithParameters(path, null);
+  }
+
+  Uri getUriWithParameters(String path, Map<String, dynamic>? queryParameters) {
+    return (serverEnv == 'local') ?
+        Uri.http(getBaseUrl(), path, queryParameters) :
+        Uri.https(getBaseUrl(), path, queryParameters);
+  }
 
   Future<void> loadTasks(StateSetter stateSetter) async {
     if (!appState.isAuthenticated()) {
@@ -29,12 +47,7 @@ class TaskRepository {
       'email': appState.currentUser!.email
     };
 
-    var serverEnv = const String.fromEnvironment('SERVER', defaultValue: "remote");
-    var isLocal = serverEnv == 'local';
-
-    var uri = isLocal ?
-    Uri.http('localhost:3000', '/api/tasks', queryParameters) :
-    Uri.https('taskmaster-general.herokuapp.com', '/api/tasks', queryParameters);
+    var uri = getUriWithParameters('/api/tasks', queryParameters);
 
     String idToken = await appState.getIdToken();
 
@@ -182,7 +195,7 @@ class TaskRepository {
       'task_id': taskItem.id.value.toString()
     };
 
-    var uri = Uri.https('taskmaster-general.herokuapp.com', '/api/tasks', queryParameters);
+    var uri = getUriWithParameters('/api/tasks', queryParameters);
 
     var idToken = await appState.getIdToken();
 
@@ -201,7 +214,7 @@ class TaskRepository {
 
     var idToken = await appState.getIdToken();
 
-    var uri = Uri.parse('https://taskmaster-general.herokuapp.com/api/tasks');
+    var uri = getUri('/api/tasks');
     final response = await client.post(uri,
         headers: {HttpHeaders.authorizationHeader: idToken,
           "Content-Type": "application/json"},
@@ -228,7 +241,7 @@ class TaskRepository {
 
     var idToken = await appState.getIdToken();
 
-    var uri = Uri.parse("https://taskmaster-general.herokuapp.com/api/snoozes");
+    var uri = getUri('/api/snoozes');
     final response = await client.post(uri,
         headers: {HttpHeaders.authorizationHeader: idToken,
           "Content-Type": "application/json"},
@@ -255,7 +268,7 @@ class TaskRepository {
 
     var idToken = await appState.getIdToken();
 
-    var uri = Uri.parse("https://taskmaster-general.herokuapp.com/api/sprints");
+    var uri = getUri("/api/sprints");
     final response = await client.post(uri,
         headers: {HttpHeaders.authorizationHeader: idToken,
           "Content-Type": "application/json"},
@@ -282,7 +295,7 @@ class TaskRepository {
 
     var idToken = await appState.getIdToken();
 
-    var uri = Uri.parse("https://taskmaster-general.herokuapp.com/api/assignments");
+    var uri = getUri("/api/assignments");
     final response = await client.post(uri,
         headers: {HttpHeaders.authorizationHeader: idToken,
           "Content-Type": "application/json"},
