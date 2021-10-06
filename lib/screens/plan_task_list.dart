@@ -60,6 +60,8 @@ class PlanTaskListState extends State<PlanTaskList> {
       );
       sprintQueued.addAll(dueOrUrgentTasks);
     }
+
+    createTemporaryIterations(getBaseList());
   }
 
   List<TaskItem> _moveSublist(List<TaskItem> superList, bool Function(TaskItem) condition) {
@@ -78,7 +80,7 @@ class PlanTaskListState extends State<PlanTaskList> {
       highlightSprint: taskItem.sprints.contains(lastSprint),
       initialCheckState: sprintQueued.contains(taskItem) ? CheckState.checked : CheckState.inactive,
       onTaskAssignmentToggle: (checkState) {
-        var alreadyQueued = sprintQueued.contains(taskItem);
+        var alreadyQueued = isChecked(taskItem);
         if (alreadyQueued) {
           setState(() {
             sprintQueued.remove(taskItem);
@@ -138,9 +140,8 @@ class PlanTaskListState extends State<PlanTaskList> {
   
   ListView _buildListView(BuildContext context) {
     widget.appState.notificationScheduler.updateHomeScreenContext(context);
-    tempIterations = [];
     final List<TaskItem> otherTasks = getBaseList();
-    createTemporaryIterations(otherTasks);
+    otherTasks.addAll(tempIterations);
 
     DateTime endDate = getEndDate();
 
@@ -210,9 +211,34 @@ class PlanTaskListState extends State<PlanTaskList> {
         widget.sprint!.endDate.value!;
   }
 
+  TaskItem? findMatching(TaskItem taskItem) {
+    return sprintQueued.firstWhere((TaskItem other) {
+      return matchesId(taskItem, other) || tempMatches(taskItem, other);
+    });
+  }
+
+  bool isChecked(TaskItem taskItem) {
+    var matching = findMatching(taskItem);
+    return matching != null;
+  }
+
+  bool matchesId(TaskItem a, TaskItem b) {
+    return a.id.value != null && b.id.value != null && a.id.value == b.id.value;
+  }
+
+  bool tempMatches(TaskItem a, TaskItem b) {
+    return a.id.value == null && b.id.value == null &&
+        a.urgentDate.value == b.urgentDate.value &&
+        a.dueDate.value == b.dueDate.value &&
+        a.name.value == b.name.value;
+  }
+
   Future<void> createSelectedIterations() async {
-    tempIterations.removeWhere((TaskItem taskItem) => !sprintQueued.contains(taskItem));
-    tempIterations.forEach((TaskItem taskItem) async {
+    var toAdd = tempIterations.where((TaskItem taskItem) {
+      var matching = sprintQueued.where((TaskItem other) => identical(taskItem, other));
+      return matching.isNotEmpty;
+    });
+    toAdd.forEach((TaskItem taskItem) async {
       TaskItem addedTask = await widget.taskHelper.addTask(taskItem);
       sprintQueued.remove(taskItem);
       sprintQueued.add(addedTask);
