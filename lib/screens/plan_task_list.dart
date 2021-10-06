@@ -239,14 +239,17 @@ class PlanTaskListState extends State<PlanTaskList> {
       return matching.isNotEmpty;
     });
     print('${toAdd.length} checked temp items kept.');
-    toAdd.forEach((TaskItem taskItem) async {
+
+    for (TaskItem taskItem in toAdd) {
       TaskItem addedTask = await widget.taskHelper.addTask(taskItem);
       setState(() {
         print('Adding (${taskItem.recurrenceId.value}, ${taskItem.recurIteration.value})');
         sprintQueued.remove(taskItem);
         sprintQueued.add(addedTask);
+        idCheck();
       });
-    });
+    }
+
     idCheck();
   }
 
