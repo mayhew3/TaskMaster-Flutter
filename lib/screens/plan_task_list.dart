@@ -61,7 +61,7 @@ class PlanTaskListState extends State<PlanTaskList> {
       sprintQueued.addAll(dueOrUrgentTasks);
     }
 
-    createTemporaryIterations(getBaseList());
+    createTemporaryIterations();
   }
 
   List<TaskItem> _moveSublist(List<TaskItem> superList, bool Function(TaskItem) condition) {
@@ -115,7 +115,11 @@ class PlanTaskListState extends State<PlanTaskList> {
     return sprints.isNotEmpty;
   }
 
-  void createTemporaryIterations(List<TaskItem> eligibleItems) {
+  void createTemporaryIterations() {
+    List<TaskItem> eligibleItems = getBaseList();
+    if (widget.sprint != null) {
+      eligibleItems.addAll(widget.sprint!.taskItems);
+    }
     DateTime endDate = getEndDate();
     Iterable<TaskItem> recurItems = eligibleItems.where((TaskItem taskItem) => taskItem.recurrenceId.value != null);
     Map<int, Iterable<TaskItem>> groupedByRecurrence = groupBy(recurItems, (TaskItem taskItem) => taskItem.recurrenceId.value!);
