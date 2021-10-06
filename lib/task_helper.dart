@@ -42,13 +42,14 @@ class TaskHelper {
     await appState.syncAllNotifications();
   }
 
-  Future<void> addTask(TaskItem taskItem) async {
-    var inboundTask = await repository.addTask(taskItem);
+  Future<TaskItem> addTask(TaskItem taskItem) async {
+    TaskItem inboundTask = await repository.addTask(taskItem);
     stateSetter(() {
       var addedTask = appState.addNewTaskToList(inboundTask);
       appState.notificationScheduler.updateNotificationForTask(addedTask);
     });
     appState.notificationScheduler.updateBadge();
+    return inboundTask;
   }
 
   TaskItem? maybeCreateNextIteration(TaskItem taskItem, bool completed, DateTime? completionDate) {

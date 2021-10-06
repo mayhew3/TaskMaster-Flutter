@@ -138,6 +138,7 @@ class PlanTaskListState extends State<PlanTaskList> {
   
   ListView _buildListView(BuildContext context) {
     widget.appState.notificationScheduler.updateHomeScreenContext(context);
+    tempIterations = [];
     final List<TaskItem> otherTasks = getBaseList();
     createTemporaryIterations(otherTasks);
 
@@ -209,7 +210,18 @@ class PlanTaskListState extends State<PlanTaskList> {
         widget.sprint!.endDate.value!;
   }
 
+  Future<void> createSelectedIterations() async {
+    tempIterations.removeWhere((TaskItem taskItem) => !sprintQueued.contains(taskItem));
+    tempIterations.forEach((TaskItem taskItem) async {
+      TaskItem addedTask = await widget.taskHelper.addTask(taskItem);
+      sprintQueued.remove(taskItem);
+      sprintQueued.add(addedTask);
+    });
+  }
+
   void submit() async {
+    await createSelectedIterations();
+
     if (widget.sprint == null) {
       DateTime endDate = getEndDate();
       Sprint sprint = Sprint();
