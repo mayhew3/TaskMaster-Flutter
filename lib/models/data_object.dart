@@ -1,9 +1,8 @@
 
-import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:taskmaster/models/task_field.dart';
 
-abstract class DataObject extends Equatable {
+abstract class DataObject {
 
   late TaskFieldInteger id;
   List<TaskField> fields = [];
@@ -84,11 +83,13 @@ abstract class DataObject extends Equatable {
     fields.add(taskFieldDate);
     return taskFieldDate;
   }
-  
+  /*
   @override
-  List<Object> get props => fields;
-
-/*
+  List<Object> get props => fields
+      .where((TaskField taskField) => taskField.value != null)
+      .map((TaskField taskField) => taskField.value as Object)
+      .toList();
+*/
 
   // Overrides
 
@@ -104,6 +105,5 @@ abstract class DataObject extends Equatable {
               other.id.value != null &&
               runtimeType == other.runtimeType &&
               id.value == other.id.value;
-*/
 
 }
