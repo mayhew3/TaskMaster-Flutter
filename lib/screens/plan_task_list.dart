@@ -1,4 +1,4 @@
-
+import "package:collection/collection.dart";
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/app_state.dart';
@@ -39,6 +39,7 @@ class PlanTaskList extends StatefulWidget {
 class PlanTaskListState extends State<PlanTaskList> {
 
   List<TaskItem> sprintQueued = [];
+  List<TaskItem> tempIterations = [];
   Sprint? lastSprint;
   Sprint? activeSprint;
 
@@ -112,14 +113,33 @@ class PlanTaskListState extends State<PlanTaskList> {
     return sprints.isNotEmpty;
   }
 
-  List<TaskItem> createTemporaryIterations(List<TaskItem> eligibleItems) {
+  void createTemporaryIterations(List<TaskItem> eligibleItems) {
+    DateTime endDate = getEndDate();
     Iterable<TaskItem> recurItems = eligibleItems.where((TaskItem taskItem) => taskItem.recurrenceId.value != null);
-    return [];
+    Map<int, Iterable<TaskItem>> groupedByRecurrence = groupBy(recurItems, (TaskItem taskItem) => taskItem.recurrenceId.value!);
+    groupedByRecurrence.forEach((int recurrenceId, Iterable<TaskItem> taskItems) {
+      List<TaskItem> sortedItems = taskItems.sorted((TaskItem t1, TaskItem t2) => t1.recurIteration.value!.compareTo(t2.recurIteration.value!));
+      TaskItem newest = sortedItems.last;
+      if (newest.recurWait.value == false) {
+        addNextIterations(newest, endDate, eligibleItems);
+      }
+    });
+  }
+
+  void addNextIterations(TaskItem newest, DateTime endDate, List<TaskItem> collector) {
+    TaskItem nextIteration = widget.taskHelper.createNextIteration(newest, DateTime.now());
+    if (nextIteration.isDueBefore(endDate) || nextIteration.isUrgentBefore(endDate)) {
+      sprintQueued.add(nextIteration);
+      tempIterations.add(nextIteration);
+      collector.add(nextIteration);
+      addNextIterations(nextIteration, endDate, collector);
+    }
   }
   
   ListView _buildListView(BuildContext context) {
     widget.appState.notificationScheduler.updateHomeScreenContext(context);
     final List<TaskItem> otherTasks = getBaseList();
+    createTemporaryIterations(otherTasks);
 
     DateTime endDate = getEndDate();
 

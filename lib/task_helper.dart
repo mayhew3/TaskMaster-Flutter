@@ -51,7 +51,7 @@ class TaskHelper {
     appState.notificationScheduler.updateBadge();
   }
 
-  Future<TaskItem?> maybeCreateNextIteration(TaskItem taskItem, bool completed, DateTime? completionDate) async {
+  TaskItem? maybeCreateNextIteration(TaskItem taskItem, bool completed, DateTime? completionDate) {
 
     var recurNumber = taskItem.recurNumber.value;
     var recurUnit = taskItem.recurUnit.value;
@@ -68,14 +68,14 @@ class TaskHelper {
       Iterable<TaskItem> nextInLine = sameRecurrence.where((TaskItem ti) => ti.recurIteration.value! > recurIteration);
 
       if (nextInLine.isEmpty) {
-        return await createNextIteration(taskItem, completionDate!);
+        return createNextIteration(taskItem, completionDate!);
       }
     }
 
     return null;
   }
 
-  Future<TaskItem> createNextIteration(TaskItem taskItem, DateTime completionDate) async {
+  TaskItem createNextIteration(TaskItem taskItem, DateTime completionDate) {
 
     var recurNumber = taskItem.recurNumber.value!;
     var recurUnit = taskItem.recurUnit.value;
@@ -125,7 +125,7 @@ class TaskHelper {
     });
 
     DateTime? completionDate = completed ? DateTime.now() : null;
-    TaskItem? nextScheduledTask = await maybeCreateNextIteration(taskItem, completed, completionDate);
+    TaskItem? nextScheduledTask = maybeCreateNextIteration(taskItem, completed, completionDate);
 
     stateSetter(() {
       taskItem.completionDate.value = completionDate;
