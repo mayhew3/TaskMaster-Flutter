@@ -112,6 +112,11 @@ class PlanTaskListState extends State<PlanTaskList> {
     return sprints.isNotEmpty;
   }
 
+  List<TaskItem> createTemporaryIterations(List<TaskItem> eligibleItems) {
+    Iterable<TaskItem> recurItems = eligibleItems.where((TaskItem taskItem) => taskItem.recurrenceId.value != null);
+    return [];
+  }
+  
   ListView _buildListView(BuildContext context) {
     widget.appState.notificationScheduler.updateHomeScreenContext(context);
     final List<TaskItem> otherTasks = getBaseList();
