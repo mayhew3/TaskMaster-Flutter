@@ -242,12 +242,10 @@ class PlanTaskListState extends State<PlanTaskList> {
 
     for (TaskItem taskItem in toAdd) {
       TaskItem addedTask = await widget.taskHelper.addTask(taskItem);
-      setState(() {
-        print('Adding (${taskItem.recurrenceId.value}, ${taskItem.recurIteration.value})');
-        sprintQueued.remove(taskItem);
-        sprintQueued.add(addedTask);
-        idCheck();
-      });
+      print('Adding (${taskItem.recurrenceId.value}, ${taskItem.recurIteration.value})');
+      sprintQueued.remove(taskItem);
+      sprintQueued.add(addedTask);
+      idCheck();
     }
 
     idCheck();
