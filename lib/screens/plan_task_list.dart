@@ -80,7 +80,7 @@ class PlanTaskListState extends State<PlanTaskList> {
       highlightSprint: taskItem.sprints.contains(lastSprint),
       initialCheckState: sprintQueued.contains(taskItem) ? CheckState.checked : CheckState.inactive,
       onTaskAssignmentToggle: (checkState) {
-        var alreadyQueued = isChecked(taskItem);
+        var alreadyQueued = sprintQueued.contains(taskItem);
         if (alreadyQueued) {
           setState(() {
             sprintQueued.remove(taskItem);
@@ -228,21 +228,34 @@ class PlanTaskListState extends State<PlanTaskList> {
 
   bool tempMatches(TaskItem a, TaskItem b) {
     return a.id.value == null && b.id.value == null &&
-        a.urgentDate.value == b.urgentDate.value &&
-        a.dueDate.value == b.dueDate.value &&
-        a.name.value == b.name.value;
+        a.recurrenceId.value == b.recurrenceId.value &&
+        a.recurIteration.value == b.recurIteration.value;
   }
 
   Future<void> createSelectedIterations() async {
+    print('${tempIterations.length} temp items created.');
     var toAdd = tempIterations.where((TaskItem taskItem) {
-      var matching = sprintQueued.where((TaskItem other) => identical(taskItem, other));
+      var matching = sprintQueued.where((TaskItem other) => tempMatches(taskItem, other));
       return matching.isNotEmpty;
     });
+    print('${toAdd.length} checked temp items kept.');
     toAdd.forEach((TaskItem taskItem) async {
       TaskItem addedTask = await widget.taskHelper.addTask(taskItem);
-      sprintQueued.remove(taskItem);
-      sprintQueued.add(addedTask);
+      setState(() {
+        print('Adding (${taskItem.recurrenceId.value}, ${taskItem.recurIteration.value})');
+        sprintQueued.remove(taskItem);
+        sprintQueued.add(addedTask);
+      });
     });
+    idCheck();
+  }
+
+  void idCheck() {
+    var withoutId = sprintQueued.where((TaskItem taskItem) => taskItem.id.value == null);
+    print('${withoutId.length} items still remain without an ID!');
+    for (var item in withoutId) {
+      print('Item: (${item.recurrenceId.value}, ${item.recurIteration.value})');
+    }
   }
 
   void submit() async {
@@ -256,6 +269,7 @@ class PlanTaskListState extends State<PlanTaskList> {
       sprint.numUnits.value = widget.numUnits;
       sprint.unitName.value = widget.unitName;
       sprint.personId.value = widget.appState.personId;
+      idCheck();
       for (TaskItem taskItem in sprintQueued) {
         sprint.addToTasks(taskItem);
       }

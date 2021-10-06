@@ -20,6 +20,7 @@ dependencies:
   flutter:
     sdk: flutter
   datetime_picker_formfield: ^2.0.0
+  equatable: ^2.0.3
   http: ^0.13.3
   intl: ^0.17.0
   jiffy: ^4.1.0
