@@ -2,7 +2,7 @@
 import 'package:taskmaster/models/task_item.dart';
 
 class TaskItemBuilder {
-  late int id;
+  int? id;
   late String name;
   late String description;
   late String project;
@@ -11,16 +11,16 @@ class TaskItemBuilder {
   late int priority;
   late int duration;
   late DateTime dateAdded;
-  late DateTime startDate;
-  late DateTime targetDate;
-  late DateTime urgentDate;
-  late DateTime dueDate;
-  late DateTime completionDate;
+  DateTime? startDate;
+  DateTime? targetDate;
+  DateTime? urgentDate;
+  DateTime? dueDate;
+  DateTime? completionDate;
   late int gamePoints;
-  late int recurNumber;
-  late String recurUnit;
-  late bool recurWait;
-  late int recurrenceId;
+  int? recurNumber;
+  String? recurUnit;
+  bool? recurWait;
+  int? recurrenceId;
 
   TaskItemBuilder();
 

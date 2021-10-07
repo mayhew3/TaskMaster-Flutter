@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:mockito/annotations.dart';
 
 import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/sprint.dart';
@@ -9,14 +11,14 @@ import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';
+import 'task_repository_test.mocks.dart';
 
 import 'dart:convert';
-import 'mocks/mock_app_state.dart';
-import 'mocks/mock_client.dart';
 
 import 'mocks/mock_data.dart';
 import 'mocks/mock_data_builder.dart';
 
+@GenerateMocks([http.Client, AppState, GoogleSignInAccount])
 void main() {
   group('TaskRepository', () {
 
@@ -24,10 +26,68 @@ void main() {
     late AppState appState;
     final Uri tasksAPI = Uri.parse("https://taskmaster-general.herokuapp.com/api/tasks");
 
+    dynamic _getMockTask(TaskItem taskItem) {
+      var mockObj = {};
+      for (var field in taskItem.fields) {
+        mockObj[field.fieldName] = field.formatForJSON();
+      }
+      var sprintAssignments = [];
+      for (var sprint in taskItem.sprints) {
+        var obj = {
+          'id': 1234,
+          'sprint_id': sprint.id.value
+        };
+        sprintAssignments.add(obj);
+      }
+      mockObj['sprint_assignments'] = sprintAssignments;
+      return mockObj;
+    }
+
+    String _mockTheJSON({List<TaskItem>? taskItems, List<Sprint>? sprints}) {
+      var taskObj = {};
+      taskObj['person_id'] = 1;
+      var mockPlayerList = [];
+      var mockSprintList = [];
+
+      for (var taskItem in taskItems ?? allTasks) {
+        mockPlayerList.add(_getMockTask(taskItem));
+      }
+
+      for (var sprintItem in sprints ?? allSprints) {
+        var mockObj = {};
+        for (var field in sprintItem.fields) {
+          mockObj[field.fieldName] = field.formatForJSON();
+        }
+        mockSprintList.add(mockObj);
+      }
+
+      taskObj['tasks'] = mockPlayerList;
+      taskObj['sprints'] = mockSprintList;
+      return json.encode(taskObj);
+    }
+
     TaskRepository createTaskRepository({List<TaskItem>? taskItems, List<Sprint>? sprints}) {
       appState = new MockAppState();
-      client = new MockClient(taskItems ?? allTasks, sprints ?? allSprints);
-      return TaskRepository(appState: appState, client: client);
+      GoogleSignInAccount googleUser = new MockGoogleSignInAccount();
+      client = new MockClient();
+      var taskRepository = TaskRepository(appState: appState, client: client);
+      when(client.get(taskRepository.getUriWithParameters('/api/tasks', {'email': 'scorpy@gmail.com'}), headers: anyNamed('headers')))
+          .thenAnswer((_) async => http.Response(_mockTheJSON(taskItems: taskItems, sprints: sprints), 200));
+      when(appState.isAuthenticated())
+          .thenAnswer((_) => true);
+      when(appState.getIdToken())
+          .thenAnswer((_) async => 'asdbhjsfd');
+      when(appState.currentUser)
+          .thenAnswer((_) => googleUser);
+      when(appState.taskItems)
+          .thenAnswer((_) => taskItems ?? allTasks);
+      when(googleUser.email)
+          .thenAnswer((_) => 'scorpy@gmail.com');
+      when(appState.personId)
+          .thenAnswer((_) => 1);
+      when(appState.sprints)
+          .thenAnswer((_) => sprints ?? allSprints);
+      return taskRepository;
     }
 
     // helper methods
@@ -136,5 +196,6 @@ void main() {
 
     // todo: updateTask, addSnooze, addSprint
   });
+
 
 }

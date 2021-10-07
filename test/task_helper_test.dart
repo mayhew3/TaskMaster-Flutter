@@ -24,7 +24,7 @@ void main() {
   StateSetter stateSetter = (callback) => callback();
 
   TaskHelper createTaskHelper({List<TaskItem>? taskItems, List<Sprint>? sprints}) {
-    MockAppState mockAppState = MockAppState(
+    MockAppStateOld mockAppState = MockAppStateOld(
         taskItems: taskItems ?? allTasks,
         sprints: sprints ?? allSprints);
     navHelper = MockNavHelper(appState: mockAppState, taskRepository: taskRepository);

@@ -9,7 +9,7 @@ import 'package:taskmaster/notification_scheduler.dart';
 
 import 'mock_notification_scheduler.dart';
 
-class MockAppState extends Mock implements AppState {
+class MockAppStateOld extends Mock implements AppState {
   GoogleSignInAccount? currentUser = MockGoogleSignInAccount();
   NotificationScheduler notificationScheduler = MockNotificationScheduler();
 
@@ -17,7 +17,7 @@ class MockAppState extends Mock implements AppState {
   List<TaskItem> taskItems;
   List<Sprint> sprints;
 
-  MockAppState({
+  MockAppStateOld({
     this.taskItems = const [],
     this.sprints = const [],
   });

@@ -66,7 +66,7 @@ void main() {
   Future<NotificationScheduler> _createScheduler(List<TaskItem> taskItems) async {
     plugin = MockFlutterLocalNotificationsPlugin();
     flutterBadgerWrapper = MockAppBadger();
-    appState = MockAppState(taskItems: taskItems);
+    appState = MockAppStateOld(taskItems: taskItems);
     taskHelper = MockTaskHelper(taskRepository: new MockTaskRepository());
     timezoneHelper = new MockTimezoneHelper();
 
