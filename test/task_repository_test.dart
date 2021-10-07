@@ -6,11 +6,13 @@ import 'package:intl/intl.dart';
 import 'package:mockito/annotations.dart';
 
 import 'package:taskmaster/app_state.dart';
+import 'package:taskmaster/auth.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';
+import 'mocks/mock_task_master_auth.dart';
 import 'task_repository_test.mocks.dart';
 
 import 'dart:convert';
@@ -18,7 +20,7 @@ import 'dart:convert';
 import 'mocks/mock_data.dart';
 import 'mocks/mock_data_builder.dart';
 
-@GenerateMocks([http.Client, AppState, GoogleSignInAccount])
+@GenerateMocks([http.Client, GoogleSignInAccount])
 void main() {
   group('TaskRepository', () {
 
@@ -66,29 +68,27 @@ void main() {
       return json.encode(taskObj);
     }
 
-    TaskRepository createTaskRepository({List<TaskItem>? taskItems, List<Sprint>? sprints}) {
-      appState = new MockAppState();
+    TaskRepository createTaskRepositoryWithoutLoad({List<TaskItem>? taskItems, List<Sprint>? sprints}) {
+      TaskMasterAuth auth = MockTaskMasterAuth();
       GoogleSignInAccount googleUser = new MockGoogleSignInAccount();
+      appState = new AppState(auth: auth);
+      appState.currentUser = googleUser;
+      appState.tokenRetrieved = true;
       client = new MockClient();
       var taskRepository = TaskRepository(appState: appState, client: client);
       when(client.get(taskRepository.getUriWithParameters('/api/tasks', {'email': 'scorpy@gmail.com'}), headers: anyNamed('headers')))
           .thenAnswer((_) async => http.Response(_mockTheJSON(taskItems: taskItems, sprints: sprints), 200));
-      when(appState.isAuthenticated())
-          .thenAnswer((_) => true);
-      when(appState.getIdToken())
-          .thenAnswer((_) async => 'asdbhjsfd');
-      when(appState.currentUser)
-          .thenAnswer((_) => googleUser);
-      when(appState.taskItems)
-          .thenAnswer((_) => taskItems ?? allTasks);
       when(googleUser.email)
           .thenAnswer((_) => 'scorpy@gmail.com');
-      when(appState.personId)
-          .thenAnswer((_) => 1);
-      when(appState.sprints)
-          .thenAnswer((_) => sprints ?? allSprints);
       return taskRepository;
     }
+
+    Future<TaskRepository> createTaskRepositoryAndLoad({List<TaskItem>? taskItems, List<Sprint>? sprints}) async {
+      TaskRepository taskRepository = createTaskRepositoryWithoutLoad(taskItems: taskItems, sprints: sprints);
+      await taskRepository.loadTasks((callback) => callback());
+      return taskRepository;
+    }
+
 
     // helper methods
 
@@ -117,7 +117,7 @@ void main() {
     // tests
 
     test('loadTasks with no tasks', () async {
-      TaskRepository taskRepository = createTaskRepository(taskItems: []);
+      TaskRepository taskRepository = createTaskRepositoryWithoutLoad(taskItems: []);
 
       await taskRepository.loadTasks((callback) => callback());
       List<TaskItem> taskList = appState.taskItems;
@@ -126,7 +126,7 @@ void main() {
     });
 
     test('loadTasks with tasks', () async {
-      TaskRepository taskRepository = createTaskRepository();
+      TaskRepository taskRepository = createTaskRepositoryWithoutLoad();
 
       await taskRepository.loadTasks((callback) => callback());
       List<TaskItem> taskList = appState.taskItems;
@@ -137,7 +137,7 @@ void main() {
     test('addTask', () async {
       int id = 2345;
 
-      TaskRepository taskRepository = createTaskRepository();
+      TaskRepository taskRepository = await createTaskRepositoryAndLoad();
 
       var addedItem = (TaskItemBuilder.asPreCommit()).create();
 
@@ -166,7 +166,7 @@ void main() {
         taskItem
       ];
 
-      TaskRepository taskRepository = createTaskRepository(taskItems: taskItems);
+      TaskRepository taskRepository = createTaskRepositoryWithoutLoad(taskItems: taskItems);
 
       when(client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")))
           .thenAnswer((invocation) async {
