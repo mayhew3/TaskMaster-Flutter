@@ -7,7 +7,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:core';
 
-class MockClientOld extends Mock implements http.Client {
+class MockClientOld extends Fake implements http.Client {
   List<TaskItem> taskList;
   List<Sprint> sprintList;
 

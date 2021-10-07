@@ -3,7 +3,7 @@ import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/task_repository.dart';
 
-class MockTaskHelper extends Mock implements TaskHelper {
+class MockTaskHelper extends Fake implements TaskHelper {
 
   @override
   late AppState appState;

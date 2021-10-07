@@ -9,7 +9,8 @@ import 'package:taskmaster/notification_scheduler.dart';
 
 import 'mock_notification_scheduler.dart';
 
-class MockAppStateOld extends Mock implements AppState {
+class MockAppStateOld extends Fake implements AppState {
+  bool isLoading = true;
   GoogleSignInAccount? currentUser = MockGoogleSignInAccount();
   NotificationScheduler notificationScheduler = MockNotificationScheduler();
 
@@ -27,6 +28,13 @@ class MockAppStateOld extends Mock implements AppState {
     return true;
   }
 
+  void finishedLoading() {
+    isLoading = false;
+  }
+
+  Future<void> syncAllNotifications() async {
+  }
+
   @override
   Future<String> getIdToken() async {
     return Future<String>.value('asdbhjsfd');
@@ -34,7 +42,7 @@ class MockAppStateOld extends Mock implements AppState {
 }
 
 
-class MockGoogleSignInAccount extends Mock implements GoogleSignInAccount {
+class MockGoogleSignInAccount extends Fake implements GoogleSignInAccount {
   @override
   bool operator ==(dynamic other) {
     if (identical(this, other)) return true;

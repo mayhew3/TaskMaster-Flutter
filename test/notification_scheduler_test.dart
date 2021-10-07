@@ -16,7 +16,7 @@ import 'mocks/mock_task_helper.dart';
 import 'mocks/mock_task_repository.dart';
 import 'mocks/mock_timezone_helper.dart';
 
-class MockAppBadger extends Mock implements FlutterBadgerWrapper {
+class MockAppBadger extends Fake implements FlutterBadgerWrapper {
   int badgeValue = 0;
 
   @override

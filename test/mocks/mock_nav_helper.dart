@@ -4,7 +4,7 @@ import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:mockito/mockito.dart';
 
-class MockNavHelper extends Mock implements NavHelper {
+class MockNavHelper extends Fake implements NavHelper {
 
   @override
   late BuildContext context;
@@ -18,5 +18,10 @@ class MockNavHelper extends Mock implements NavHelper {
     required this.taskRepository,
   });
 
+  void goToLoadingScreen(String msg) {
+  }
+
+  void goToHomeScreen() {
+  }
 
 }

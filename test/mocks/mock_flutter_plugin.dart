@@ -4,7 +4,7 @@ import 'package:taskmaster/models/task_item.dart';
 
 import 'mock_pending_notification_request.dart';
 
-class MockFlutterLocalNotificationsPlugin extends Mock implements FlutterLocalNotificationsPlugin {
+class MockFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNotificationsPlugin {
   List<MockPendingNotificationRequest> pendings = [];
   late SelectNotificationCallback? onSelect;
   late DidReceiveLocalNotificationCallback? onNotification;

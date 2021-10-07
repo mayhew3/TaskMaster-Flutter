@@ -3,7 +3,7 @@ import 'package:taskmaster/timezone_helper.dart';
 import 'package:timezone/data/latest.dart' as latest;
 import 'package:timezone/timezone.dart' as tz;
 
-class MockTimezoneHelper extends Mock implements TimezoneHelper {
+class MockTimezoneHelper extends Fake implements TimezoneHelper {
   Future<void> configureLocalTimeZone() async {
     latest.initializeTimeZones();
     String timezone = "America/Los_Angeles";
