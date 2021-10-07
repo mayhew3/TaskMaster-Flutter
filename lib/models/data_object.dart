@@ -83,6 +83,13 @@ abstract class DataObject {
     fields.add(taskFieldDate);
     return taskFieldDate;
   }
+  /*
+  @override
+  List<Object> get props => fields
+      .where((TaskField taskField) => taskField.value != null)
+      .map((TaskField taskField) => taskField.value as Object)
+      .toList();
+*/
 
   // Overrides
 
@@ -94,6 +101,8 @@ abstract class DataObject {
   bool operator ==(Object other) =>
       identical(this, other) ||
           other is DataObject &&
+              id.value != null &&
+              other.id.value != null &&
               runtimeType == other.runtimeType &&
               id.value == other.id.value;
 

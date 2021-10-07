@@ -42,28 +42,17 @@ class TaskHelper {
     await appState.syncAllNotifications();
   }
 
-  Future<void> addTask(TaskItem taskItem) async {
-    var inboundTask = await repository.addTask(taskItem);
+  Future<TaskItem> addTask(TaskItem taskItem) async {
+    TaskItem inboundTask = await repository.addTask(taskItem);
     stateSetter(() {
       var addedTask = appState.addNewTaskToList(inboundTask);
       appState.notificationScheduler.updateNotificationForTask(addedTask);
     });
     appState.notificationScheduler.updateBadge();
+    return inboundTask;
   }
 
-  Future<TaskItem> completeTask(TaskItem taskItem, bool completed, StateSetter stateSetter) async {
-    if (completed && taskItem.completionDate.value != null) {
-      throw new ArgumentError("CompleteTask() called with non-null completion date and completed true.");
-    } else if (!completed && taskItem.completionDate.value == null) {
-      throw new ArgumentError("CompleteTask() called with null completion date and completed false.");
-    }
-
-    TaskItem? nextScheduledTask;
-    DateTime? completionDate = completed ? DateTime.now() : null;
-
-    stateSetter(() {
-      taskItem.pendingCompletion = true;
-    });
+  TaskItem? maybeCreateNextIteration(TaskItem taskItem, bool completed, DateTime? completionDate) {
 
     var recurNumber = taskItem.recurNumber.value;
     var recurUnit = taskItem.recurUnit.value;
@@ -74,28 +63,70 @@ class TaskHelper {
         throw new Exception('Recur_number has a value, so recur_unit and recur_wait should be non-null!');
       }
 
-      DateTime? anchorDate = taskItem.getAnchorDate();
-      if (anchorDate == null) {
-        throw new Exception('Recur_number exists without anchor date!');
+      var recurIteration = taskItem.recurIteration.value!;
+
+      Iterable<TaskItem> sameRecurrence = repository.appState.taskItems.where((TaskItem ti) => ti.recurrenceId.value == taskItem.recurrenceId.value);
+      Iterable<TaskItem> nextInLine = sameRecurrence.where((TaskItem ti) => ti.recurIteration.value! > recurIteration);
+
+      if (nextInLine.isEmpty) {
+        return createNextIteration(taskItem, completionDate!);
       }
-      DateTime nextAnchorDate;
-
-      nextScheduledTask = taskItem.createCopy();
-
-      if (recurWait) {
-        nextAnchorDate = _getAdjustedDate(completionDate!, recurNumber, recurUnit);
-      } else {
-        nextAnchorDate = _getAdjustedDate(anchorDate, recurNumber, recurUnit);
-      }
-
-      DateTime dateWithTime = _getClosestDateForTime(anchorDate, nextAnchorDate);
-      Duration duration = dateWithTime.difference(anchorDate);
-
-      nextScheduledTask.startDate.initializeValue(_addToDate(taskItem.startDate.value, duration));
-      nextScheduledTask.targetDate.initializeValue(_addToDate(taskItem.targetDate.value, duration));
-      nextScheduledTask.urgentDate.initializeValue(_addToDate(taskItem.urgentDate.value, duration));
-      nextScheduledTask.dueDate.initializeValue(_addToDate(taskItem.dueDate.value, duration));
     }
+
+    return null;
+  }
+
+  TaskItem createNextIteration(TaskItem taskItem, DateTime completionDate) {
+
+    var recurNumber = taskItem.recurNumber.value!;
+    var recurUnit = taskItem.recurUnit.value;
+    var recurWait = taskItem.recurWait.value;
+    var recurIteration = taskItem.recurIteration.value;
+
+    if (recurUnit == null || recurWait == null || recurIteration == null) {
+      throw new Exception('Recur_number has a value, so recur_unit and recur_wait and recur_iteration should be non-null!');
+    }
+
+    DateTime? anchorDate = taskItem.getAnchorDate();
+    if (anchorDate == null) {
+      throw new Exception('Recur_number exists without anchor date!');
+    }
+    DateTime nextAnchorDate;
+
+    TaskItem nextScheduledTask = taskItem.createCopy();
+
+    if (recurWait) {
+      nextAnchorDate = _getAdjustedDate(completionDate, recurNumber, recurUnit);
+    } else {
+      nextAnchorDate = _getAdjustedDate(anchorDate, recurNumber, recurUnit);
+    }
+
+    DateTime dateWithTime = _getClosestDateForTime(anchorDate, nextAnchorDate);
+    Duration duration = dateWithTime.difference(anchorDate);
+
+    nextScheduledTask.startDate.initializeValue(_addToDate(taskItem.startDate.value, duration));
+    nextScheduledTask.targetDate.initializeValue(_addToDate(taskItem.targetDate.value, duration));
+    nextScheduledTask.urgentDate.initializeValue(_addToDate(taskItem.urgentDate.value, duration));
+    nextScheduledTask.dueDate.initializeValue(_addToDate(taskItem.dueDate.value, duration));
+
+    nextScheduledTask.recurIteration.initializeValue(recurIteration + 1);
+
+    return nextScheduledTask;
+  }
+
+  Future<TaskItem> completeTask(TaskItem taskItem, bool completed, StateSetter stateSetter) async {
+    if (completed && taskItem.completionDate.value != null) {
+      throw new ArgumentError("CompleteTask() called with non-null completion date and completed true.");
+    } else if (!completed && taskItem.completionDate.value == null) {
+      throw new ArgumentError("CompleteTask() called with null completion date and completed false.");
+    }
+
+    stateSetter(() {
+      taskItem.pendingCompletion = true;
+    });
+
+    DateTime? completionDate = completed ? DateTime.now() : null;
+    TaskItem? nextScheduledTask = maybeCreateNextIteration(taskItem, completed, completionDate);
 
     stateSetter(() {
       taskItem.completionDate.value = completionDate;
