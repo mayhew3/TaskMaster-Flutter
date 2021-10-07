@@ -166,6 +166,11 @@ class TaskItem extends DataObject {
     return targetDateValue != null && targetDateValue.isBefore(dateTime);
   }
 
+  bool isScheduledBefore(DateTime dateTime) {
+    var startDateValue = startDate.value;
+    return startDateValue != null && startDateValue.isBefore(dateTime);
+  }
+
   bool isScheduledAfter(DateTime dateTime) {
     var startDateValue = startDate.value;
     return startDateValue != null && startDateValue.isAfter(dateTime);
