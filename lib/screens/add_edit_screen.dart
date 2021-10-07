@@ -422,6 +422,9 @@ class AddEditScreenState extends State<AddEditScreen> {
                   taskItemRefresher2(updatedItem);
                 }
               } else {
+                if (_repeatOn) {
+                  widget.taskItem.recurIteration.value = 1;
+                }
                 await widget.taskHelper.addTask(widget.taskItem);
               }
 
