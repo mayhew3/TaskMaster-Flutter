@@ -134,8 +134,13 @@ class PlanTaskListState extends State<PlanTaskList> {
 
   void addNextIterations(TaskItem newest, DateTime endDate, List<TaskItem> collector) {
     TaskItem nextIteration = widget.taskHelper.createNextIteration(newest, DateTime.now());
-    if (nextIteration.isDueBefore(endDate) || nextIteration.isUrgentBefore(endDate)) {
-      sprintQueued.add(nextIteration);
+    var willBeUrgentOrDue = nextIteration.isDueBefore(endDate) || nextIteration.isUrgentBefore(endDate);
+    var willBeTargetOrStart = nextIteration.isTargetBefore(endDate) || nextIteration.isScheduledBefore(endDate);
+
+    if (willBeUrgentOrDue || willBeTargetOrStart) {
+      if (willBeUrgentOrDue) {
+        sprintQueued.add(nextIteration);
+      }
       tempIterations.add(nextIteration);
       collector.add(nextIteration);
       addNextIterations(nextIteration, endDate, collector);
