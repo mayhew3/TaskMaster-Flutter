@@ -19,7 +19,7 @@ void main() {
       taskItems: taskItems ?? allTasks,
       sprints: sprints ?? allSprints
     );
-    var navHelper = MockNavHelper(
+    var navHelper = MockNavHelperOld(
       appState: appState,
       taskRepository: MockTaskRepository(),
     );

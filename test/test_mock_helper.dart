@@ -1,22 +1,18 @@
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:mockito/mockito.dart';
-import 'package:mockito/annotations.dart';
-import 'package:http/http.dart' as http;
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/auth.dart';
-import 'package:intl/intl.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/task_repository.dart';
 
+import 'mocks/mock_data.dart';
 import 'mocks/mock_task_master_auth.dart';
 import 'test_mock_helper.mocks.dart';
-
-import 'mocks/mock_data.dart';
-import 'mocks/mock_data_builder.dart';
 
 @GenerateMocks([http.Client, GoogleSignInAccount])
 void main() {
@@ -50,20 +46,6 @@ class TestMockHelper {
   }
 
   // helper methods
-
-  static dynamic _encodeBody(List<int> body, {int? id, DateTime? dateTime}) {
-    var utfDecoded = utf8.decode(body);
-    var jsonObj = json.decode(utfDecoded);
-    var jsonTask = jsonObj["task"];
-    if (id != null) {
-      jsonTask["id"] = id;
-    }
-    if (dateTime != null) {
-      jsonTask["date_added"] =
-          DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime.toUtc());
-    }
-    return json.encode(jsonTask);
-  }
 
   static dynamic _getMockTask(TaskItem taskItem) {
     var mockObj = {};
