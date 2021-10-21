@@ -22,20 +22,14 @@ class TaskRepository {
     required this.client,
   });
 
-  String getBaseUrl() {
+  Uri getUriWithParameters(String path, Map<String, dynamic>? queryParameters) {
     return (serverEnv == 'local') ?
-        'localhost:3000' :
-        'taskmaster-general.herokuapp.com';
+    Uri.http('localhost:3000', path, queryParameters) :
+    Uri.https('taskmaster-general.herokuapp.com', path, queryParameters);
   }
 
   Uri getUri(String path) {
     return getUriWithParameters(path, null);
-  }
-
-  Uri getUriWithParameters(String path, Map<String, dynamic>? queryParameters) {
-    return (serverEnv == 'local') ?
-        Uri.http(getBaseUrl(), path, queryParameters) :
-        Uri.https(getBaseUrl(), path, queryParameters);
   }
 
   Future<void> loadTasks(StateSetter stateSetter) async {
