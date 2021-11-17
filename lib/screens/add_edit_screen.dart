@@ -410,12 +410,17 @@ class AddEditScreenState extends State<AddEditScreen> {
               widget.taskItem.recurNumber.value = null;
               widget.taskItem.recurWait.value = null;
               widget.taskItem.recurrenceId.value = null;
+              widget.taskItem.recurIteration.value = null;
             }
 
             if (form != null && form.validate()) {
               form.save();
 
               if (widget.isEditing) {
+                if (_repeatOn && widget.taskItem.recurrenceId.value == null) {
+                  widget.taskItem.recurrenceId.value = widget.taskItem.id.value;
+                  widget.taskItem.recurIteration.value = 1;
+                }
                 var updatedItem = await widget.taskHelper.updateTask(widget.taskItem);
                 var taskItemRefresher2 = widget.taskItemRefresher;
                 if (taskItemRefresher2 != null) {
