@@ -244,7 +244,7 @@ class NotificationScheduler {
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'taskmaster',
       'TaskMaster',
-      'Notifications for the TaskMaster app',
+      channelDescription: 'Notifications for the TaskMaster app',
       importance: Importance.max,
       priority: Priority.high,
       ticker: 'ticker',
