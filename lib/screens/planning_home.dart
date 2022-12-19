@@ -263,7 +263,7 @@ class PlanningHomeState extends State<PlanningHome> {
               ),
               TextButton(
                   style: TextButton.styleFrom(
-                    foregroundColor: TaskColors.cardColor
+                    backgroundColor: TaskColors.cardColor
                   ),
                   onPressed: () => _openPlanning(context),
                   child: Text('Create Sprint')),

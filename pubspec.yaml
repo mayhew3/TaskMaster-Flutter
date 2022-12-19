@@ -45,6 +45,9 @@ dev_dependencies:
   flutter_launcher_icons: ^0.9.1
   mockito: ^5.0.14
 
+dependency_overrides:
+  firebase_core_platform_interface: 4.5.1
+
 flutter_icons:
   ios: true
   android: true
