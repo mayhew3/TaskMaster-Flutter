@@ -261,8 +261,10 @@ class PlanningHomeState extends State<PlanningHome> {
                   ),
                 ],
               ),
-              FlatButton(
-                  color: TaskColors.cardColor,
+              TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: TaskColors.cardColor
+                  ),
                   onPressed: () => _openPlanning(context),
                   child: Text('Create Sprint')),
             ],

@@ -63,7 +63,7 @@ class TaskListScreenState extends State<TaskListScreen> {
   }
 
   void _displaySnackBar(String msg, BuildContext context) {
-    Scaffold.of(context).showSnackBar(SnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(msg),
     ));
   }
