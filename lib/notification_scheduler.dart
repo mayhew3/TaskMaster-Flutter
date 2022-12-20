@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
@@ -37,14 +36,14 @@ class NotificationScheduler {
 
     // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
     var initializationSettingsAndroid = AndroidInitializationSettings('app_icon');
-    var initializationSettingsIOS = IOSInitializationSettings(
+    var initializationSettingsIOS = DarwinInitializationSettings(
         onDidReceiveLocalNotification: _onDidReceiveLocalNotification);
     var initializationSettings = InitializationSettings(
         android: initializationSettingsAndroid,
         iOS: initializationSettingsIOS
     );
     this.flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onSelectNotification: _onSelectNotification);
+        onDidReceiveNotificationResponse: _onSelectNotification);
   }
 
   void updateHomeScreenContext(BuildContext context) {
@@ -198,9 +197,9 @@ class NotificationScheduler {
     }
   }
 
-  Future<void> _onSelectNotification(String? payload) async {
+  Future<void> _onSelectNotification(NotificationResponse? response) async {
     updateBadge();
-    await _goToDetailScreen(payload: payload);
+    await _goToDetailScreen(payload: response?.payload);
   }
 
   Future<void> _onDidReceiveLocalNotification(
@@ -249,7 +248,7 @@ class NotificationScheduler {
       priority: Priority.high,
       ticker: 'ticker',
     );
-    var iOSPlatformChannelSpecifics = IOSNotificationDetails(
+    var iOSPlatformChannelSpecifics = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
