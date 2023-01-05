@@ -39,7 +39,7 @@ class SignInScreenState extends State<SignInScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
             const Text("You are not currently signed in."),
-            RaisedButton(
+            ElevatedButton(
               child: const Text('SIGN IN'),
               onPressed: widget.appState.auth.handleSignIn,
             ),
