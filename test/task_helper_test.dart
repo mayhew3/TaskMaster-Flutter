@@ -1,33 +1,32 @@
 
 import 'package:flutter/cupertino.dart';
+import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/date_util.dart';
-import 'package:taskmaster/models/snooze.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/task_helper.dart';
+import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
-import 'mocks/mock_app_state.dart';
 import 'mocks/mock_data.dart';
 import 'mocks/mock_data_builder.dart';
-import 'mocks/mock_nav_helper.dart';
 import 'mocks/mock_task_master_auth.dart';
-import 'mocks/mock_task_repository.dart';
+import 'task_helper_test.mocks.dart';
 
+@GenerateMocks([NavHelper, AppState, TaskRepository])
 void main() {
 
-  MockTaskRepository taskRepository = MockTaskRepository();
+  MockTaskRepository taskRepository = new MockTaskRepository();
   late MockNavHelper navHelper;
   StateSetter stateSetter = (callback) => callback();
 
   TaskHelper createTaskHelper({List<TaskItem>? taskItems, List<Sprint>? sprints}) {
-    MockAppStateOld mockAppState = MockAppStateOld(
-        taskItems: taskItems ?? allTasks,
-        sprints: sprints ?? allSprints);
-    navHelper = MockNavHelper(appState: mockAppState, taskRepository: taskRepository);
+    MockAppState mockAppState = MockAppState();
+    navHelper = MockNavHelper();
     var taskHelper = TaskHelper(
         appState: mockAppState,
         repository: taskRepository,
@@ -35,6 +34,11 @@ void main() {
         stateSetter: stateSetter);
     taskHelper.navHelper = navHelper;
     return taskHelper;
+  }
+
+  void mockMethods() {
+    var appState = taskRepository.appState;
+
   }
 
   test('reloadTasks', () async {

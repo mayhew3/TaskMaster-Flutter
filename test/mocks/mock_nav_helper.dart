@@ -4,7 +4,7 @@ import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:mockito/mockito.dart';
 
-class MockNavHelper extends Fake implements NavHelper {
+class MockNavHelperOld extends Fake implements NavHelper {
 
   @override
   late BuildContext context;
@@ -13,7 +13,7 @@ class MockNavHelper extends Fake implements NavHelper {
   AppState appState;
   final TaskRepository taskRepository;
 
-  MockNavHelper({
+  MockNavHelperOld({
     required this.appState,
     required this.taskRepository,
   });

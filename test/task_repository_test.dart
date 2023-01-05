@@ -1,94 +1,22 @@
+import 'dart:convert';
 import 'dart:io';
 
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:mockito/annotations.dart';
-
+import 'package:mockito/mockito.dart';
 import 'package:taskmaster/app_state.dart';
-import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
-import 'package:mockito/mockito.dart';
-import 'task_repository_test.mocks.dart';
-
-import 'dart:convert';
 
 import 'mocks/mock_data.dart';
 import 'mocks/mock_data_builder.dart';
+import 'test_mock_helper.dart';
 
-@GenerateMocks([http.Client, AppState, GoogleSignInAccount])
 void main() {
   group('TaskRepository', () {
 
-    late http.Client client;
-    late AppState appState;
     final Uri tasksAPI = Uri.parse("https://taskmaster-general.herokuapp.com/api/tasks");
-
-    dynamic _getMockTask(TaskItem taskItem) {
-      var mockObj = {};
-      for (var field in taskItem.fields) {
-        mockObj[field.fieldName] = field.formatForJSON();
-      }
-      var sprintAssignments = [];
-      for (var sprint in taskItem.sprints) {
-        var obj = {
-          'id': 1234,
-          'sprint_id': sprint.id.value
-        };
-        sprintAssignments.add(obj);
-      }
-      mockObj['sprint_assignments'] = sprintAssignments;
-      return mockObj;
-    }
-
-    String _mockTheJSON({List<TaskItem>? taskItems, List<Sprint>? sprints}) {
-      var taskObj = {};
-      taskObj['person_id'] = 1;
-      var mockPlayerList = [];
-      var mockSprintList = [];
-
-      for (var taskItem in taskItems ?? allTasks) {
-        mockPlayerList.add(_getMockTask(taskItem));
-      }
-
-      for (var sprintItem in sprints ?? allSprints) {
-        var mockObj = {};
-        for (var field in sprintItem.fields) {
-          mockObj[field.fieldName] = field.formatForJSON();
-        }
-        mockSprintList.add(mockObj);
-      }
-
-      taskObj['tasks'] = mockPlayerList;
-      taskObj['sprints'] = mockSprintList;
-      return json.encode(taskObj);
-    }
-
-    TaskRepository createTaskRepository({List<TaskItem>? taskItems, List<Sprint>? sprints}) {
-      appState = new MockAppState();
-      GoogleSignInAccount googleUser = new MockGoogleSignInAccount();
-      client = new MockClient();
-      var taskRepository = TaskRepository(appState: appState, client: client);
-      when(client.get(taskRepository.getUriWithParameters('/api/tasks', {'email': 'scorpy@gmail.com'}), headers: anyNamed('headers')))
-          .thenAnswer((_) async => http.Response(_mockTheJSON(taskItems: taskItems, sprints: sprints), 200));
-      when(appState.isAuthenticated())
-          .thenAnswer((_) => true);
-      when(appState.getIdToken())
-          .thenAnswer((_) async => 'asdbhjsfd');
-      when(appState.currentUser)
-          .thenAnswer((_) => googleUser);
-      when(appState.taskItems)
-          .thenAnswer((_) => taskItems ?? allTasks);
-      when(googleUser.email)
-          .thenAnswer((_) => 'scorpy@gmail.com');
-      when(appState.personId)
-          .thenAnswer((_) => 1);
-      when(appState.sprints)
-          .thenAnswer((_) => sprints ?? allSprints);
-      return taskRepository;
-    }
 
     // helper methods
 
@@ -106,30 +34,29 @@ void main() {
       return json.encode(jsonTask);
     }
 
-    void _validateToken(Invocation invocation) async {
+    void _validateToken(Invocation invocation, AppState appState) async {
       var headers = invocation.namedArguments[Symbol("headers")];
       var tokenInfo = headers[HttpHeaders.authorizationHeader];
       var expectedToken = await appState.getIdToken();
       expect(tokenInfo, expectedToken);
     }
 
-
     // tests
 
     test('loadTasks with no tasks', () async {
-      TaskRepository taskRepository = createTaskRepository(taskItems: []);
+      TaskRepository taskRepository = TestMockHelper.createTaskRepositoryWithoutLoad(taskItems: []);
 
       await taskRepository.loadTasks((callback) => callback());
-      List<TaskItem> taskList = appState.taskItems;
+      List<TaskItem> taskList = taskRepository.appState.taskItems;
       expect(taskList, const TypeMatcher<List<TaskItem>>());
       expect(taskList.length, 0);
     });
 
     test('loadTasks with tasks', () async {
-      TaskRepository taskRepository = createTaskRepository();
+      TaskRepository taskRepository = TestMockHelper.createTaskRepositoryWithoutLoad();
 
       await taskRepository.loadTasks((callback) => callback());
-      List<TaskItem> taskList = appState.taskItems;
+      List<TaskItem> taskList = taskRepository.appState.taskItems;
       expect(taskList, const TypeMatcher<List<TaskItem>>());
       expect(taskList, hasLength(allTasks.length));
     });
@@ -137,13 +64,13 @@ void main() {
     test('addTask', () async {
       int id = 2345;
 
-      TaskRepository taskRepository = createTaskRepository();
+      TaskRepository taskRepository = await TestMockHelper.createTaskRepositoryAndLoad();
 
       var addedItem = (TaskItemBuilder.asPreCommit()).create();
 
-      when(client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")))
+      when(taskRepository.client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")))
           .thenAnswer((invocation) async {
-        _validateToken(invocation);
+        _validateToken(invocation, taskRepository.appState);
 
         var body = invocation.namedArguments[Symbol("body")];
         var payload = _encodeBody(body, id: id, dateTime: DateTime.now());
@@ -152,7 +79,7 @@ void main() {
 
       var returnedItem = await taskRepository.addTask(addedItem);
 
-      verify(client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")));
+      verify(taskRepository.client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")));
 
       expect(returnedItem.id.value, id);
       expect(returnedItem.name.value, addedItem.name.value);
@@ -166,11 +93,11 @@ void main() {
         taskItem
       ];
 
-      TaskRepository taskRepository = createTaskRepository(taskItems: taskItems);
+      TaskRepository taskRepository = TestMockHelper.createTaskRepositoryWithoutLoad(taskItems: taskItems);
 
-      when(client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")))
+      when(taskRepository.client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")))
           .thenAnswer((invocation) async {
-        _validateToken(invocation);
+        _validateToken(invocation, taskRepository.appState);
 
         var body = invocation.namedArguments[Symbol("body")];
         var payload = _encodeBody(body);
@@ -185,7 +112,7 @@ void main() {
 
       var returnedItem = await taskRepository.updateTask(taskItem);
 
-      verify(client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")));
+      verify(taskRepository.client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")));
 
       expect(returnedItem.project.value, newProject);
       expect(returnedItem.project.originalValue, newProject);
