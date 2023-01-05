@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:taskmaster/models/task_field.dart';
+import 'package:test/test.dart';
 
 void main() {
   String addWhitespace(String str) {
@@ -8,7 +8,7 @@ void main() {
 
   group('TaskFieldDate', () {
 
-    final DateTime theDateTime = DateTime(2019, 7, 13, 8, 12, 55);
+    DateTime theDateTime = DateTime.utc(2019, 7, 13, 15, 12, 55).toLocal();
     final startDate = 'startDate';
 
     String formatDateTime(DateTime dateTime) {
@@ -127,7 +127,7 @@ void main() {
     });
 
     test('toString', () {
-      var stringOutput = startDate + ': (null) -> 2019-07-13 08:12:55.000';
+      var stringOutput = startDate + ': (null) -> ' + theDateTime.toString();
       final taskField = TaskFieldDate(startDate);
       taskField.value = theDateTime;
       expect(taskField.toString(), stringOutput);

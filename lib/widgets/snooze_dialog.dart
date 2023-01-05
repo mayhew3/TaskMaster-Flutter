@@ -175,7 +175,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
           ),
         ),
         actions: [
-          FlatButton(
+          TextButton(
             onPressed: () {
               widget.taskItem.revertAllChanges();
               Navigator.pop(context);
@@ -184,7 +184,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
           ),
           Visibility(
             visible: !widget.taskItem.isScheduledRecurrence(),
-            child: FlatButton(
+            child: TextButton(
               onPressed: () async {
                 final form = formKey.currentState;
 
