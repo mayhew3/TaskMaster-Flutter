@@ -121,11 +121,11 @@ void main() {
     expect(plugin.pendings.length, 0);
   });
 
-  test('updateNotificationForTask adds two notifications for urgent and due date', () async {
+  test('updateNotificationForTask adds five notifications for urgent and due date', () async {
     var scheduler = await _createScheduler([]);
 
     await scheduler.updateNotificationForTask(futureUrgentDue);
-    expect(plugin.pendings.length, 2);
+    expect(plugin.pendings.length, 5);
 
     var duePayload = 'task:${futureUrgentDue.id.value}:due';
     var urgentPayload = 'task:${futureUrgentDue.id.value}:urgent';
@@ -138,13 +138,13 @@ void main() {
     expect(urgentNotification.title, 'Give a Penny (urgent)');
   });
 
-  test('updateNotificationForTask adds one notification for past urgent and future due date', () async {
+  test('updateNotificationForTask adds three notification for past urgent and future due date', () async {
     var taskItem = straddledUrgentDue;
 
     var scheduler = await _createScheduler([]);
     await scheduler.updateNotificationForTask(taskItem);
-    expect(plugin.pendings.length, 1);
-    MockPendingNotificationRequest request = plugin.pendings[0];
+    expect(plugin.pendings.length, 3);
+    MockPendingNotificationRequest request = plugin.pendings[2];
     expect(request.payload, 'task:${taskItem.id.value}:due');
     expect(request.notificationDate, taskItem.dueDate.value);
     expect(request.title, 'Eat a Penny (due)');
@@ -154,14 +154,14 @@ void main() {
     var taskItem = futureDue;
 
     var scheduler = await _createScheduler([taskItem]);
-    expect(plugin.pendings.length, 1);
+    expect(plugin.pendings.length, 3);
 
     var newDueDate = DateTime.now().add(Duration(days: 8));
     taskItem.dueDate.value = newDueDate;
 
     await scheduler.updateNotificationForTask(taskItem);
-    expect(plugin.pendings.length, 1);
-    var request = plugin.pendings[0];
+    expect(plugin.pendings.length, 3);
+    var request = plugin.pendings[2];
     expect(request.notificationDate, newDueDate);
   });
 
@@ -169,7 +169,7 @@ void main() {
     var taskItem = futureDue;
 
     var scheduler = await _createScheduler([taskItem]);
-    expect(plugin.pendings.length, 1);
+    expect(plugin.pendings.length, 3);
 
     var newDueDate = DateTime.now().subtract(Duration(days: 8));
     taskItem.dueDate.value = newDueDate;
@@ -182,13 +182,13 @@ void main() {
     var taskItem = futureUrgentDue;
 
     var scheduler = await _createScheduler([taskItem]);
-    expect(plugin.pendings.length, 2);
+    expect(plugin.pendings.length, 5);
 
     taskItem.dueDate.value = DateTime.now().add(Duration(days: 12));
     taskItem.urgentDate.value = DateTime.now().add(Duration(days: 4));
 
     await scheduler.updateNotificationForTask(taskItem);
-    expect(plugin.pendings.length, 2);
+    expect(plugin.pendings.length, 5);
 
     var dueRequest = plugin.findRequestFor(taskItem, due: true)!;
     expect(dueRequest.notificationDate, taskItem.dueDate.value);
@@ -200,7 +200,7 @@ void main() {
   test('cancelNotificationsForTaskId cancels due notification', () async {
     var taskItem = futureDue;
     var scheduler = await _createScheduler([taskItem]);
-    expect(plugin.pendings.length, 1);
+    expect(plugin.pendings.length, 3);
     await scheduler.cancelNotificationsForTaskId(taskItem.id.value!);
     expect(plugin.pendings.length, 0);
   });
@@ -208,14 +208,14 @@ void main() {
   test('cancelNotificationsForTaskId cancels both urgent and due', () async {
     var taskItem = futureUrgentDue;
     var scheduler = await _createScheduler([taskItem]);
-    expect(plugin.pendings.length, 2);
+    expect(plugin.pendings.length, 5);
     await scheduler.cancelNotificationsForTaskId(taskItem.id.value!);
     expect(plugin.pendings.length, 0);
   });
 
   test('cancelAllNotifications', () async {
     var scheduler = await _createScheduler([futureUrgentDue, birthdayTask]);
-    expect(plugin.pendings.length, 3);
+    expect(plugin.pendings.length, 8);
     await scheduler.cancelAllNotifications();
     expect(plugin.pendings.length, 0);
   });
@@ -229,7 +229,7 @@ void main() {
 
   test('updateBadge includes task with past urgent and future due', () async {
     var scheduler = await _createScheduler([straddledUrgentDue]);
-    expect(plugin.pendings.length, 1);
+    expect(plugin.pendings.length, 3);
     scheduler.updateBadge();
     expect(flutterBadgerWrapper.badgeValue, 1);
   });
