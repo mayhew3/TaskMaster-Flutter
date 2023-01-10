@@ -30,6 +30,7 @@ void main() {
     MockAppState mockAppState = MockAppState();
     MockNotificationScheduler mockNotificationScheduler = new MockNotificationScheduler();
 
+    when(taskRepository.appState).thenReturn(mockAppState);
     when(mockAppState.notificationScheduler).thenReturn(mockNotificationScheduler);
 
     navHelper = MockNavHelper();
@@ -80,7 +81,7 @@ void main() {
     var notificationScheduler = mockAppState.notificationScheduler;
     expect(notificationScheduler, isNot(null));
 
-    var inboundTask = TaskItem.fromJson(birthdayJSON, mockAppState.sprints);
+    var inboundTask = TaskItem.fromJson(birthdayJSON, allSprints);
     var now = DateTime.now();
     inboundTask.completionDate.initializeValue(now);
 
@@ -89,7 +90,7 @@ void main() {
     var returnedTask = await taskHelper.completeTask(birthdayTask, true, stateSetter);
     verify(notificationScheduler.updateNotificationForTask(birthdayTask));
     verify(notificationScheduler.updateBadge());
-    // verifyNever(taskRepository.addTask(any));
+    verifyNever(taskRepository.addTask(any));
 
     expect(returnedTask, birthdayTask);
     expect(birthdayTask.pendingCompletion, false);
@@ -107,14 +108,14 @@ void main() {
     var notificationScheduler = mockAppState.notificationScheduler;
     expect(notificationScheduler, isNot(null));
 
-    var inboundTask = TaskItem.fromJson(originalJSON, mockAppState.sprints);
+    var inboundTask = TaskItem.fromJson(originalJSON, allSprints);
     inboundTask.completionDate.initializeValue(null);
 
     when(taskRepository.completeTask(originalTask)).thenAnswer((_) => Future.value(inboundTask));
 
     var returnedTask = await taskHelper.completeTask(originalTask, false, stateSetter);
-    verify(mockAppState.notificationScheduler.updateNotificationForTask(originalTask));
-    verify(mockAppState.notificationScheduler.updateBadge());
+    verify(notificationScheduler.updateNotificationForTask(originalTask));
+    verify(notificationScheduler.updateBadge());
     // verifyNever(taskRepository.addTask(any));
 
     expect(returnedTask, originalTask);
@@ -131,7 +132,7 @@ void main() {
     var notificationScheduler = mockAppState.notificationScheduler;
     expect(notificationScheduler, isNot(null));
 
-    var inboundTask = TaskItem.fromJson(pastJSON, mockAppState.sprints);
+    var inboundTask = TaskItem.fromJson(pastJSON, allSprints);
     var now = DateTime.now();
     inboundTask.completionDate.initializeValue(now);
 
@@ -145,8 +146,8 @@ void main() {
     when(mockAppState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) => invocation.positionalArguments[0]);
 */
     var returnedTask = await taskHelper.completeTask(originalTask, true, stateSetter);
-    verify(mockAppState.notificationScheduler.updateNotificationForTask(originalTask));
-    verify(mockAppState.notificationScheduler.updateBadge());
+    verify(notificationScheduler.updateNotificationForTask(originalTask));
+    verify(notificationScheduler.updateBadge());
     // verify(taskRepository.addTask(any));
     // verify(mockAppState.addNewTaskToList(any));
     // verify(mockAppState.notificationScheduler.updateNotificationForTask(any));
@@ -177,7 +178,7 @@ void main() {
     var notificationScheduler = mockAppState.notificationScheduler;
     expect(notificationScheduler, isNot(null));
 
-    var inboundTask = TaskItem.fromJson(originalJSON, mockAppState.sprints);
+    var inboundTask = TaskItem.fromJson(originalJSON, allSprints);
     inboundTask.completionDate.initializeValue(null);
 
     when(taskRepository.completeTask(originalTask)).thenAnswer((_) => Future.value(inboundTask));
