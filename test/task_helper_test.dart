@@ -235,8 +235,8 @@ void main() {
     expect(returnedItem, originalTask);
     expect(originalTask.description.originalValue, changedDescription);
     expect(originalTask.description.value, changedDescription);
-    expect(originalTask.targetDate.originalValue, DateUtil.withoutMillis(changedTarget));
-    expect(originalTask.targetDate.value, DateUtil.withoutMillis(changedTarget));
+    expect(originalTask.targetDate.originalValue, changedTarget.toLocal());
+    expect(originalTask.targetDate.value, changedTarget.toLocal());
   });
 
   test('previewSnooze move multiple', () {
@@ -379,9 +379,7 @@ void main() {
 
     verify(taskRepository.addSprint(sprint));
     verify(taskRepository.addTasksToSprint(taskItems, returnedSprint));
-
-    expect(mockAppState.sprints, hasLength(2));
-    expect(mockAppState.sprints, contains(returnedSprint));
+    verify(mockAppState.sprints.add(sprint));
 
   });
 
@@ -402,8 +400,7 @@ void main() {
 
     verifyNever(taskRepository.addSprint(sprint));
     verify(taskRepository.addTasksToSprint(taskItems, returnedSprint));
-
-    expect(appState.sprints, hasLength(1));
+    verifyNever(appState.sprints.add(sprint));
 
   });
 
