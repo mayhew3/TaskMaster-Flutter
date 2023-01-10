@@ -1,20 +1,18 @@
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 import 'package:taskmaster/flutter_badger_wrapper.dart';
-import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/notification_scheduler.dart';
 import 'package:taskmaster/task_helper.dart';
 import 'package:test/test.dart';
 
-import 'mocks/mock_app_state.dart';
-
-import 'package:mockito/mockito.dart';
 import 'mocks/mock_build_context.dart';
 import 'mocks/mock_data.dart';
 import 'mocks/mock_flutter_plugin.dart';
 import 'mocks/mock_pending_notification_request.dart';
-import 'mocks/mock_task_helper.dart';
-import 'mocks/mock_task_repository.dart';
 import 'mocks/mock_timezone_helper.dart';
+import 'notification_scheduler_test.mocks.dart';
+import 'task_helper_test.mocks.dart';
 
 class MockAppBadger extends Fake implements FlutterBadgerWrapper {
   int badgeValue = 0;
@@ -25,13 +23,15 @@ class MockAppBadger extends Fake implements FlutterBadgerWrapper {
   }
 }
 
+@GenerateNiceMocks([MockSpec<TaskHelper>()])
 void main() {
 
   late MockFlutterLocalNotificationsPlugin plugin;
   late MockAppBadger flutterBadgerWrapper;
-  late AppState appState;
-  late TaskHelper taskHelper;
+  late MockAppState appState;
+  late MockTaskHelper taskHelper;
   late MockTimezoneHelper timezoneHelper;
+  late MockTaskRepository taskRepository;
 
   late TaskItem futureDue;
   late TaskItem futureUrgentDue;
@@ -66,8 +66,11 @@ void main() {
   Future<NotificationScheduler> _createScheduler(List<TaskItem> taskItems) async {
     plugin = MockFlutterLocalNotificationsPlugin();
     flutterBadgerWrapper = MockAppBadger();
-    appState = MockAppStateOld(taskItems: taskItems);
-    taskHelper = MockTaskHelper(taskRepository: new MockTaskRepository());
+    appState = MockAppState();
+    when(appState.taskItems).thenReturn(taskItems);
+    taskHelper = MockTaskHelper();
+    taskRepository = MockTaskRepository();
+    when(taskHelper.repository).thenReturn(taskRepository);
     timezoneHelper = new MockTimezoneHelper();
 
     var notificationScheduler = new NotificationScheduler(
@@ -79,7 +82,7 @@ void main() {
       timezoneHelper: timezoneHelper,
     );
     List<Future<void>> futures = [];
-    appState.taskItems.forEach((taskItem) =>
+    taskItems.forEach((taskItem) =>
       futures.add(notificationScheduler.updateNotificationForTask(taskItem))
     );
     await Future.wait(futures);
@@ -96,8 +99,10 @@ void main() {
     var taskItem = birthdayTask;
     var scheduler = await _createScheduler([]);
     await scheduler.updateNotificationForTask(taskItem);
-    expect(plugin.pendings.length, 1);
-    MockPendingNotificationRequest request = plugin.pendings[0];
+    expect(plugin.pendings.length, 3);
+
+    // todo: assert all notifications
+    MockPendingNotificationRequest request = plugin.pendings[2];
     expect(request.payload, 'task:${taskItem.id.value}:due');
     expect(request.notificationDate, taskItem.dueDate.value);
     expect(request.title, 'Hunter Birthday (due)');

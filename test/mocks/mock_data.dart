@@ -69,7 +69,7 @@ final Map<String, dynamic> catLitterJSON = {
   ]
 };
 
-final DateTime bdayDue = DateTime.now().add(Duration(days: 200)).toUtc();
+final DateTime bdayDue = DateTime.now().add(Duration(days: 20)).toUtc();
 final DateTime bdayAdded = DateTime.utc(2019, 8, 30, 17, 32, 14, 674);
 
 final Map<String, dynamic> birthdayJSON = {

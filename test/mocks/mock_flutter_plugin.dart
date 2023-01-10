@@ -2,6 +2,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:mockito/mockito.dart';
 import 'package:taskmaster/models/task_item.dart';
 
+import 'package:timezone/timezone.dart';
 import 'mock_pending_notification_request.dart';
 
 class MockFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNotificationsPlugin {
@@ -21,9 +22,17 @@ class MockFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNo
   }
 
   @override
-  Future<void> schedule(int id, String? title, String? body,
-      DateTime scheduledDate, NotificationDetails notificationDetails,
-      {String? payload, bool androidAllowWhileIdle = false}) async {
+  Future<void> zonedSchedule(int id,
+      String? title,
+      String? body,
+      TZDateTime scheduledDate,
+      NotificationDetails notificationDetails, {
+        required UILocalNotificationDateInterpretation
+        uiLocalNotificationDateInterpretation,
+        required bool androidAllowWhileIdle,
+        String? payload,
+        DateTimeComponents? matchDateTimeComponents,
+      }) async {
     MockPendingNotificationRequest request = new MockPendingNotificationRequest(id, payload, title, scheduledDate);
     pendings.add(request);
   }
