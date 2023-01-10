@@ -1,9 +1,11 @@
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/flutter_badger_wrapper.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/notification_scheduler.dart';
 import 'package:taskmaster/task_helper.dart';
+import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
 import 'mocks/mock_build_context.dart';
@@ -12,7 +14,6 @@ import 'mocks/mock_flutter_plugin.dart';
 import 'mocks/mock_pending_notification_request.dart';
 import 'mocks/mock_timezone_helper.dart';
 import 'notification_scheduler_test.mocks.dart';
-import 'task_helper_test.mocks.dart';
 
 class MockAppBadger extends Fake implements FlutterBadgerWrapper {
   int badgeValue = 0;
@@ -23,7 +24,7 @@ class MockAppBadger extends Fake implements FlutterBadgerWrapper {
   }
 }
 
-@GenerateNiceMocks([MockSpec<TaskHelper>()])
+@GenerateNiceMocks([MockSpec<AppState>(), MockSpec<TaskRepository>(), MockSpec<TaskHelper>()])
 void main() {
 
   late MockFlutterLocalNotificationsPlugin plugin;
