@@ -1,13 +1,17 @@
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/nav_helper.dart';
+import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
+import 'app_state_test.mocks.dart';
 import 'mocks/mock_data.dart';
-import 'mocks/mock_nav_helper.dart';
 import 'mocks/mock_task_master_auth.dart';
-import 'mocks/mock_task_repository.dart';
 
+@GenerateNiceMocks([MockSpec<NavHelper>(), MockSpec<TaskRepository>()])
 void main() {
 
   AppState createAppState({
@@ -19,10 +23,10 @@ void main() {
       taskItems: taskItems ?? allTasks,
       sprints: sprints ?? allSprints
     );
-    var navHelper = MockNavHelperOld(
-      appState: appState,
-      taskRepository: MockTaskRepository(),
-    );
+    var mockTaskRepository = MockTaskRepository();
+    var navHelper = MockNavHelper();
+    when(navHelper.appState).thenReturn(appState);
+    when(navHelper.taskRepository).thenReturn(mockTaskRepository);
     appState.updateNavHelper(navHelper);
     return appState;
   }
