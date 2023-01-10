@@ -14,7 +14,7 @@ import 'mocks/mock_data.dart';
 import 'mocks/mock_task_master_auth.dart';
 import 'test_mock_helper.mocks.dart';
 
-@GenerateMocks([http.Client, GoogleSignInAccount])
+@GenerateNiceMocks([MockSpec<http.Client>(), MockSpec<GoogleSignInAccount>()])
 void main() {
 
 }
