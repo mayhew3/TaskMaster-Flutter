@@ -91,6 +91,49 @@ void main() {
     return notificationScheduler;
   }
 
+
+  // helper methods
+
+  void _verifyDueNotificationsExist(List<MockPendingNotificationRequest> requests, TaskItem taskItem) {
+    var dueDate = taskItem.dueDate.value;
+    DateTime? twoHoursBefore = dueDate?.subtract(Duration(minutes: 120));
+    DateTime? oneDayBefore = dueDate?.subtract(Duration(days: 1));
+
+    var dueRequest = requests.singleWhere((notification) => notification.payload == 'task:${taskItem.id.value}:due');
+    expect(dueRequest, isNot(null));
+    expect(dueRequest.notificationDate, dueDate);
+    expect(dueRequest.title, '${taskItem.name.value} (due)');
+
+    var twoHourRequest = requests.singleWhere((notification) => notification.payload == 'task:${taskItem.id.value}:dueTwoHours');
+    expect(twoHourRequest, isNot(null));
+    expect(twoHourRequest.notificationDate, twoHoursBefore);
+    expect(twoHourRequest.title, '${taskItem.name.value} (due 2 hours)');
+
+    var oneDayRequest = requests.singleWhere((notification) => notification.payload == 'task:${taskItem.id.value}:dueOneDay');
+    expect(oneDayRequest, isNot(null));
+    expect(oneDayRequest.notificationDate, oneDayBefore);
+    expect(oneDayRequest.title, '${taskItem.name.value} (due 1 day)');
+  }
+
+  void _verifyUrgentNotificationsExist(List<MockPendingNotificationRequest> requests, TaskItem taskItem) {
+    var urgentDate = taskItem.urgentDate.value;
+    DateTime? twoHoursBefore = urgentDate?.subtract(Duration(minutes: 120));
+
+    var urgentRequest = requests.singleWhere((notification) => notification.payload == 'task:${taskItem.id.value}:urgent');
+    expect(urgentRequest, isNot(null));
+    expect(urgentRequest.notificationDate, urgentDate);
+    expect(urgentRequest.title, '${taskItem.name.value} (urgent)');
+
+    var twoHourRequest = requests.singleWhere((notification) => notification.payload == 'task:${taskItem.id.value}:urgentTwoHours');
+    expect(twoHourRequest, isNot(null));
+    expect(twoHourRequest.notificationDate, twoHoursBefore);
+    expect(twoHourRequest.title, '${taskItem.name.value} (urgent 2 hours)');
+
+  }
+
+
+  // test methods
+
   test('construct with empty list', () {
     _createScheduler([]);
     expect(plugin.pendings.length, 0);
@@ -102,11 +145,7 @@ void main() {
     await scheduler.updateNotificationForTask(taskItem);
     expect(plugin.pendings.length, 3);
 
-    // todo: assert all notifications
-    MockPendingNotificationRequest request = plugin.pendings[2];
-    expect(request.payload, 'task:${taskItem.id.value}:due');
-    expect(request.notificationDate, taskItem.dueDate.value);
-    expect(request.title, 'Hunter Birthday (due)');
+    _verifyDueNotificationsExist(plugin.pendings, taskItem);
   });
 
   test('updateNotificationForTask adds nothing if no urgent or due date', () async {
@@ -127,15 +166,8 @@ void main() {
     await scheduler.updateNotificationForTask(futureUrgentDue);
     expect(plugin.pendings.length, 5);
 
-    var duePayload = 'task:${futureUrgentDue.id.value}:due';
-    var urgentPayload = 'task:${futureUrgentDue.id.value}:urgent';
-
-    var dueNotification = plugin.pendings.singleWhere((notification) => notification.payload == duePayload);
-    var urgentNotification = plugin.pendings.singleWhere((notification) => notification.payload == urgentPayload);
-
-    expect(dueNotification, isNot(null));
-    expect(urgentNotification, isNot(null));
-    expect(urgentNotification.title, 'Give a Penny (urgent)');
+    _verifyDueNotificationsExist(plugin.pendings, futureUrgentDue);
+    _verifyUrgentNotificationsExist(plugin.pendings, futureUrgentDue);
   });
 
   test('updateNotificationForTask adds three notification for past urgent and future due date', () async {
@@ -144,10 +176,8 @@ void main() {
     var scheduler = await _createScheduler([]);
     await scheduler.updateNotificationForTask(taskItem);
     expect(plugin.pendings.length, 3);
-    MockPendingNotificationRequest request = plugin.pendings[2];
-    expect(request.payload, 'task:${taskItem.id.value}:due');
-    expect(request.notificationDate, taskItem.dueDate.value);
-    expect(request.title, 'Eat a Penny (due)');
+
+    _verifyDueNotificationsExist(plugin.pendings, taskItem);
   });
 
   test('updateNotificationForTask replaces old due notification', () async {
@@ -161,8 +191,8 @@ void main() {
 
     await scheduler.updateNotificationForTask(taskItem);
     expect(plugin.pendings.length, 3);
-    var request = plugin.pendings[2];
-    expect(request.notificationDate, newDueDate);
+
+    _verifyDueNotificationsExist(plugin.pendings, taskItem);
   });
 
   test('updateNotificationForTask removes old due notification if due date moved back', () async {
@@ -190,11 +220,8 @@ void main() {
     await scheduler.updateNotificationForTask(taskItem);
     expect(plugin.pendings.length, 5);
 
-    var dueRequest = plugin.findRequestFor(taskItem, due: true)!;
-    expect(dueRequest.notificationDate, taskItem.dueDate.value);
-
-    var urgentRequest = plugin.findRequestFor(taskItem, due: false)!;
-    expect(urgentRequest.notificationDate, taskItem.urgentDate.value);
+    _verifyDueNotificationsExist(plugin.pendings, taskItem);
+    _verifyUrgentNotificationsExist(plugin.pendings, taskItem);
   });
 
   test('cancelNotificationsForTaskId cancels due notification', () async {
@@ -248,5 +275,6 @@ void main() {
     scheduler.updateBadge();
     expect(flutterBadgerWrapper.badgeValue, 0);
   });
+
 
 }
