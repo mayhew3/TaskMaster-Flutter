@@ -1,34 +1,22 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-
+import 'package:mockito/mockito.dart';
 import 'package:taskmaster/app_state.dart';
-import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
-import 'package:mockito/mockito.dart';
-
-import 'dart:convert';
-import 'mocks/mock_app_state.dart';
-import 'mocks/mock_client.dart';
 
 import 'mocks/mock_data.dart';
 import 'mocks/mock_data_builder.dart';
+import 'test_mock_helper.dart';
 
 void main() {
   group('TaskRepository', () {
 
-    late http.Client client;
-    late AppState appState;
     final Uri tasksAPI = Uri.parse("https://taskmaster-general.herokuapp.com/api/tasks");
-
-    TaskRepository createTaskRepository({List<TaskItem>? taskItems, List<Sprint>? sprints}) {
-      appState = new MockAppState();
-      client = new MockClient(taskItems ?? allTasks, sprints ?? allSprints);
-      return TaskRepository(appState: appState, client: client);
-    }
 
     // helper methods
 
@@ -46,30 +34,29 @@ void main() {
       return json.encode(jsonTask);
     }
 
-    void _validateToken(Invocation invocation) async {
+    void _validateToken(Invocation invocation, AppState appState) async {
       var headers = invocation.namedArguments[Symbol("headers")];
       var tokenInfo = headers[HttpHeaders.authorizationHeader];
       var expectedToken = await appState.getIdToken();
       expect(tokenInfo, expectedToken);
     }
 
-
     // tests
 
     test('loadTasks with no tasks', () async {
-      TaskRepository taskRepository = createTaskRepository(taskItems: []);
+      TaskRepository taskRepository = TestMockHelper.createTaskRepositoryWithoutLoad(taskItems: []);
 
       await taskRepository.loadTasks((callback) => callback());
-      List<TaskItem> taskList = appState.taskItems;
+      List<TaskItem> taskList = taskRepository.appState.taskItems;
       expect(taskList, const TypeMatcher<List<TaskItem>>());
       expect(taskList.length, 0);
     });
 
     test('loadTasks with tasks', () async {
-      TaskRepository taskRepository = createTaskRepository();
+      TaskRepository taskRepository = TestMockHelper.createTaskRepositoryWithoutLoad();
 
       await taskRepository.loadTasks((callback) => callback());
-      List<TaskItem> taskList = appState.taskItems;
+      List<TaskItem> taskList = taskRepository.appState.taskItems;
       expect(taskList, const TypeMatcher<List<TaskItem>>());
       expect(taskList, hasLength(allTasks.length));
     });
@@ -77,13 +64,13 @@ void main() {
     test('addTask', () async {
       int id = 2345;
 
-      TaskRepository taskRepository = createTaskRepository();
+      TaskRepository taskRepository = await TestMockHelper.createTaskRepositoryAndLoad();
 
       var addedItem = (TaskItemBuilder.asPreCommit()).create();
 
-      when(client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")))
+      when(taskRepository.client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")))
           .thenAnswer((invocation) async {
-        _validateToken(invocation);
+        _validateToken(invocation, taskRepository.appState);
 
         var body = invocation.namedArguments[Symbol("body")];
         var payload = _encodeBody(body, id: id, dateTime: DateTime.now());
@@ -92,7 +79,7 @@ void main() {
 
       var returnedItem = await taskRepository.addTask(addedItem);
 
-      verify(client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")));
+      verify(taskRepository.client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")));
 
       expect(returnedItem.id.value, id);
       expect(returnedItem.name.value, addedItem.name.value);
@@ -106,11 +93,11 @@ void main() {
         taskItem
       ];
 
-      TaskRepository taskRepository = createTaskRepository(taskItems: taskItems);
+      TaskRepository taskRepository = TestMockHelper.createTaskRepositoryWithoutLoad(taskItems: taskItems);
 
-      when(client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")))
+      when(taskRepository.client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")))
           .thenAnswer((invocation) async {
-        _validateToken(invocation);
+        _validateToken(invocation, taskRepository.appState);
 
         var body = invocation.namedArguments[Symbol("body")];
         var payload = _encodeBody(body);
@@ -125,7 +112,7 @@ void main() {
 
       var returnedItem = await taskRepository.updateTask(taskItem);
 
-      verify(client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")));
+      verify(taskRepository.client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")));
 
       expect(returnedItem.project.value, newProject);
       expect(returnedItem.project.originalValue, newProject);
@@ -136,5 +123,6 @@ void main() {
 
     // todo: updateTask, addSnooze, addSprint
   });
+
 
 }

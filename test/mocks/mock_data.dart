@@ -56,6 +56,7 @@ final Map<String, dynamic> catLitterJSON = {
   "recur_number": 10,
   "recur_unit": "Days",
   "recur_wait": true,
+  "recur_iteration": 1,
   "recurrence_id": null,
   "date_added": catAdded.toIso8601String(),
   "retired": 0,
@@ -68,7 +69,7 @@ final Map<String, dynamic> catLitterJSON = {
   ]
 };
 
-final DateTime bdayDue = DateTime.now().add(Duration(days: 200)).toUtc();
+final DateTime bdayDue = DateTime.now().add(Duration(days: 20)).toUtc();
 final DateTime bdayAdded = DateTime.utc(2019, 8, 30, 17, 32, 14, 674);
 
 final Map<String, dynamic> birthdayJSON = {
@@ -90,6 +91,7 @@ final Map<String, dynamic> birthdayJSON = {
   "recur_number": null,
   "recur_unit": null,
   "recur_wait": null,
+  "recur_iteration": null,
   "recurrence_id": null,
   "date_added": bdayAdded.toIso8601String(),
   "retired": 0,
@@ -128,6 +130,7 @@ final Map<String, dynamic> futureJSON = {
   "recur_number": null,
   "recur_unit": null,
   "recur_wait": null,
+  "recur_iteration": null,
   "recurrence_id": null,
   "date_added": futureAdded.toIso8601String(),
   "retired": 0,
@@ -157,6 +160,7 @@ final Map<String, dynamic> pastJSON = {
   "recur_number": 6,
   "recur_unit": 'Weeks',
   "recur_wait": false,
+  "recur_iteration": 1,
   "recurrence_id": null,
   "date_added": pastAdded.toIso8601String(),
   "retired": 0,
@@ -192,6 +196,7 @@ final Map<String, dynamic> burnJSON = {
   "recur_number": null,
   "recur_unit": null,
   "recur_wait": null,
+  "recur_iteration": null,
   "recurrence_id": null,
   "date_added": burnAdded.toIso8601String(),
   "retired": 0,

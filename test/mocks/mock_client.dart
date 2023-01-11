@@ -7,11 +7,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:core';
 
-class MockClient extends Mock implements http.Client {
+class MockClientOld extends Fake implements http.Client {
   List<TaskItem> taskList;
   List<Sprint> sprintList;
 
-  MockClient(this.taskList, this.sprintList);
+  MockClientOld(this.taskList, this.sprintList);
 
   String _mockTheJSON() {
     var taskObj = {};
