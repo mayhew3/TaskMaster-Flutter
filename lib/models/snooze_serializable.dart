@@ -9,7 +9,7 @@ part 'snooze_serializable.g.dart';
 @JsonSerializable(fieldRename: FieldRename.snake)
 class SnoozeSerializable {
 
-  late int taskID;
+  late int taskId;
   late int snoozeNumber;
   late String snoozeUnits;
   late String snoozeAnchor;

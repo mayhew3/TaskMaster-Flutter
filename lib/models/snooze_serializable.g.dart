@@ -8,7 +8,7 @@ part of 'snooze_serializable.dart';
 
 SnoozeSerializable _$SnoozeSerializableFromJson(Map<String, dynamic> json) =>
     SnoozeSerializable()
-      ..taskID = json['task_i_d'] as int
+      ..taskId = json['task_id'] as int
       ..snoozeNumber = json['snooze_number'] as int
       ..snoozeUnits = json['snooze_units'] as String
       ..snoozeAnchor = json['snooze_anchor'] as String
@@ -17,7 +17,7 @@ SnoozeSerializable _$SnoozeSerializableFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$SnoozeSerializableToJson(SnoozeSerializable instance) =>
     <String, dynamic>{
-      'task_i_d': instance.taskID,
+      'task_id': instance.taskId,
       'snooze_number': instance.snoozeNumber,
       'snooze_units': instance.snoozeUnits,
       'snooze_anchor': instance.snoozeAnchor,
