@@ -6,15 +6,15 @@ import 'package:taskmaster/models/data_object.dart';
 /// the star denotes the source file name.
 part 'snooze_serializable.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
 class SnoozeSerializable {
 
   late int taskId;
-  late int snoozeNumber;
-  late String snoozeUnits;
-  late String snoozeAnchor;
-  late DateTime previousAnchor;
-  late DateTime newAnchor;
+  int? snoozeNumber;
+  String? snoozeUnits;
+  String? snoozeAnchor;
+  DateTime? previousAnchor;
+  DateTime? newAnchor;
 
   static List<String> controlledFields = ['id', 'date_added'];
 
