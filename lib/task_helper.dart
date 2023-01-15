@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:taskmaster/date_util.dart';
-import 'package:taskmaster/models/snooze_serializable.dart';
+import 'package:taskmaster/models/snooze.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_field.dart';
@@ -184,7 +184,7 @@ class TaskHelper {
 
     TaskItem updatedTask = await updateTask(taskItem);
 
-    SnoozeSerializable snooze = new SnoozeSerializable(
+    Snooze snooze = new Snooze(
         taskId: updatedTask.id.value!,
         snoozeNumber: numUnits,
         snoozeUnits: unitSize,

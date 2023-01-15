@@ -1,13 +1,12 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'snooze_serializable.dart';
+part of 'snooze.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-SnoozeSerializable _$SnoozeSerializableFromJson(Map<String, dynamic> json) =>
-    SnoozeSerializable(
+Snooze _$SnoozeFromJson(Map<String, dynamic> json) => Snooze(
       taskId: json['task_id'] as int,
       snoozeNumber: json['snooze_number'] as int,
       snoozeUnits: json['snooze_units'] as String,
@@ -18,7 +17,7 @@ SnoozeSerializable _$SnoozeSerializableFromJson(Map<String, dynamic> json) =>
       newAnchor: DateTime.parse(json['new_anchor'] as String),
     );
 
-Map<String, dynamic> _$SnoozeSerializableToJson(SnoozeSerializable instance) {
+Map<String, dynamic> _$SnoozeToJson(Snooze instance) {
   final val = <String, dynamic>{
     'task_id': instance.taskId,
     'snooze_number': instance.snoozeNumber,

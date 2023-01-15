@@ -1,11 +1,11 @@
 
-import 'package:taskmaster/models/snooze_serializable.dart';
+import 'package:taskmaster/models/snooze.dart';
 import 'package:test/test.dart';
 
 void main() {
 
   test('to json', () async {
-    SnoozeSerializable snoozeSerializable = new SnoozeSerializable(
+    Snooze snoozeSerializable = new Snooze(
         taskId: 4,
         snoozeNumber: 1,
         snoozeUnits: "days",
@@ -30,7 +30,7 @@ void main() {
       "new_anchor": "2023-02-01T00:00:00.000"
     };
 
-    SnoozeSerializable snoozeSerializable = SnoozeSerializable.fromJson(json);
+    Snooze snoozeSerializable = Snooze.fromJson(json);
     expect(snoozeSerializable.taskId, 4);
     expect(snoozeSerializable.snoozeNumber, 1);
     expect(snoozeSerializable.snoozeUnits, "days");

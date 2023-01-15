@@ -3,10 +3,10 @@ import 'package:json_annotation/json_annotation.dart';
 /// This allows the `User` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
 /// the star denotes the source file name.
-part 'snooze_serializable.g.dart';
+part 'snooze.g.dart';
 
 @JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
-class SnoozeSerializable {
+class Snooze {
 
   int taskId;
   int snoozeNumber;
@@ -17,7 +17,7 @@ class SnoozeSerializable {
 
   static List<String> controlledFields = ['id', 'date_added'];
 
-  SnoozeSerializable({
+  Snooze({
     required this.taskId,
     required this.snoozeNumber,
     required this.snoozeUnits,
@@ -33,10 +33,10 @@ class SnoozeSerializable {
   /// A necessary factory constructor for creating a new User instance
   /// from a map. Pass the map to the generated `_$UserFromJson()` constructor.
   /// The constructor is named after the source class, in this case, User.
-  factory SnoozeSerializable.fromJson(Map<String, dynamic> json) => _$SnoozeSerializableFromJson(json);
+  factory Snooze.fromJson(Map<String, dynamic> json) => _$SnoozeFromJson(json);
 
   /// `toJson` is the convention for a class to declare support for serialization
   /// to JSON. The implementation simply calls the private, generated
   /// helper method `_$UserToJson`.
-  Map<String, dynamic> toJson() => _$SnoozeSerializableToJson(this);
+  Map<String, dynamic> toJson() => _$SnoozeToJson(this);
 }

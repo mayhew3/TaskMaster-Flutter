@@ -12,7 +12,7 @@ import 'package:http/http.dart' as _i7;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:taskmaster/app_state.dart' as _i6;
 import 'package:taskmaster/auth.dart' as _i2;
-import 'package:taskmaster/models/snooze_serializable.dart' as _i8;
+import 'package:taskmaster/models/snooze.dart' as _i8;
 import 'package:taskmaster/models/sprint.dart' as _i9;
 import 'package:taskmaster/models/task_date_type.dart' as _i16;
 import 'package:taskmaster/models/task_item.dart' as _i5;
@@ -104,9 +104,8 @@ class _FakeUri_6 extends _i1.SmartFake implements Uri {
         );
 }
 
-class _FakeSnoozeSerializable_7 extends _i1.SmartFake
-    implements _i8.SnoozeSerializable {
-  _FakeSnoozeSerializable_7(
+class _FakeSnooze_7 extends _i1.SmartFake implements _i8.Snooze {
+  _FakeSnooze_7(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -550,30 +549,27 @@ class MockTaskRepository extends _i1.Mock implements _i10.TaskRepository {
         )),
       ) as _i12.Future<_i5.TaskItem>);
   @override
-  _i12.Future<_i8.SnoozeSerializable> addSnoozeSerializable(
-          _i8.SnoozeSerializable? snooze) =>
+  _i12.Future<_i8.Snooze> addSnoozeSerializable(_i8.Snooze? snooze) =>
       (super.noSuchMethod(
         Invocation.method(
           #addSnoozeSerializable,
           [snooze],
         ),
-        returnValue:
-            _i12.Future<_i8.SnoozeSerializable>.value(_FakeSnoozeSerializable_7(
+        returnValue: _i12.Future<_i8.Snooze>.value(_FakeSnooze_7(
           this,
           Invocation.method(
             #addSnoozeSerializable,
             [snooze],
           ),
         )),
-        returnValueForMissingStub:
-            _i12.Future<_i8.SnoozeSerializable>.value(_FakeSnoozeSerializable_7(
+        returnValueForMissingStub: _i12.Future<_i8.Snooze>.value(_FakeSnooze_7(
           this,
           Invocation.method(
             #addSnoozeSerializable,
             [snooze],
           ),
         )),
-      ) as _i12.Future<_i8.SnoozeSerializable>);
+      ) as _i12.Future<_i8.Snooze>);
   @override
   _i12.Future<_i9.Sprint> addSprint(_i9.Sprint? sprint) => (super.noSuchMethod(
         Invocation.method(

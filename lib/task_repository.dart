@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:taskmaster/app_state.dart';
-import 'package:taskmaster/models/snooze_serializable.dart';
+import 'package:taskmaster/models/snooze.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 
@@ -107,7 +107,7 @@ class TaskRepository {
     return _addOrUpdateJSON(payload, 'add');
   }
 
-  Future<SnoozeSerializable> addSnoozeSerializable(SnoozeSerializable snooze) async {
+  Future<Snooze> addSnoozeSerializable(Snooze snooze) async {
     var payload = {
       'snooze': snooze.toJson()
     };
@@ -223,7 +223,7 @@ class TaskRepository {
     }
   }
 
-  Future<SnoozeSerializable> _addOrUpdateSnoozeSerializableJSON(Map<String, dynamic> payload) async {
+  Future<Snooze> _addOrUpdateSnoozeSerializableJSON(Map<String, dynamic> payload) async {
     var body = utf8.encode(json.encode(payload));
 
     var idToken = await appState.getIdToken();
@@ -238,7 +238,7 @@ class TaskRepository {
     if (response.statusCode == 200) {
       try {
         var jsonObj = json.decode(response.body);
-        SnoozeSerializable inboundSnooze = SnoozeSerializable.fromJson(jsonObj);
+        Snooze inboundSnooze = Snooze.fromJson(jsonObj);
         return inboundSnooze;
       } catch(exception, stackTrace) {
         print(exception);
