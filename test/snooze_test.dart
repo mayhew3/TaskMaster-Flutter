@@ -5,14 +5,14 @@ import 'package:test/test.dart';
 void main() {
 
   test('to json', () async {
-    Snooze snoozeSerializable = new Snooze(
+    Snooze snooze = new Snooze(
         taskId: 4,
         snoozeNumber: 1,
         snoozeUnits: "days",
         snoozeAnchor: "Due",
         newAnchor: DateTime(2023, 2, 1));
 
-    Map<String, dynamic> json = snoozeSerializable.toJson();
+    Map<String, dynamic> json = snooze.toJson();
     expect(json.length, 5);
     expect(json['task_id'], 4);
     expect(json['snooze_number'], 1);
@@ -23,6 +23,8 @@ void main() {
 
   test('from json', () async {
     Map<String, dynamic> json = {
+      "id": 2302,
+      "date_added": "2023-01-01T00:00:00.000",
       "task_id": 4,
       "snooze_number": 1,
       "snooze_units": "days",
@@ -30,12 +32,14 @@ void main() {
       "new_anchor": "2023-02-01T00:00:00.000"
     };
 
-    Snooze snoozeSerializable = Snooze.fromJson(json);
-    expect(snoozeSerializable.taskId, 4);
-    expect(snoozeSerializable.snoozeNumber, 1);
-    expect(snoozeSerializable.snoozeUnits, "days");
-    expect(snoozeSerializable.snoozeAnchor, "Due");
-    expect(snoozeSerializable.newAnchor, DateTime(2023, 2, 1));
+    Snooze snooze = Snooze.fromJson(json);
+    expect(snooze.id, 2302);
+    expect(snooze.dateAdded, DateTime(2023, 1, 1));
+    expect(snooze.taskId, 4);
+    expect(snooze.snoozeNumber, 1);
+    expect(snooze.snoozeUnits, "days");
+    expect(snooze.snoozeAnchor, "Due");
+    expect(snooze.newAnchor, DateTime(2023, 2, 1));
   });
 
 }

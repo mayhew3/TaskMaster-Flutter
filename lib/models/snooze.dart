@@ -8,6 +8,9 @@ part 'snooze.g.dart';
 @JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
 class Snooze {
 
+  int? id;
+  DateTime? dateAdded;
+
   int taskId;
   int snoozeNumber;
   String snoozeUnits;

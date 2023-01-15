@@ -15,15 +15,14 @@ Snooze _$SnoozeFromJson(Map<String, dynamic> json) => Snooze(
           ? null
           : DateTime.parse(json['previous_anchor'] as String),
       newAnchor: DateTime.parse(json['new_anchor'] as String),
-    );
+    )
+      ..id = json['id'] as int?
+      ..dateAdded = json['date_added'] == null
+          ? null
+          : DateTime.parse(json['date_added'] as String);
 
 Map<String, dynamic> _$SnoozeToJson(Snooze instance) {
-  final val = <String, dynamic>{
-    'task_id': instance.taskId,
-    'snooze_number': instance.snoozeNumber,
-    'snooze_units': instance.snoozeUnits,
-    'snooze_anchor': instance.snoozeAnchor,
-  };
+  final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -31,6 +30,12 @@ Map<String, dynamic> _$SnoozeToJson(Snooze instance) {
     }
   }
 
+  writeNotNull('id', instance.id);
+  writeNotNull('date_added', instance.dateAdded?.toIso8601String());
+  val['task_id'] = instance.taskId;
+  val['snooze_number'] = instance.snoozeNumber;
+  val['snooze_units'] = instance.snoozeUnits;
+  val['snooze_anchor'] = instance.snoozeAnchor;
   writeNotNull('previous_anchor', instance.previousAnchor?.toIso8601String());
   val['new_anchor'] = instance.newAnchor.toIso8601String();
   return val;
