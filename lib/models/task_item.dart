@@ -1,76 +1,72 @@
-import 'package:taskmaster/models/data_object.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_field.dart';
 
-class TaskItem extends DataObject {
+import 'package:json_annotation/json_annotation.dart';
 
-  late TaskFieldInteger personId;
+/// This allows the `Sprint` class to access private members in
+/// the generated file. The value for this is *.g.dart, where
+/// the star denotes the source file name.
+part 'task_item.g.dart';
 
-  late TaskFieldString name;
-  late TaskFieldString description;
-  late TaskFieldString project;
-  late TaskFieldString context;
+@JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
+class TaskItem {
 
-  late TaskFieldInteger urgency;
-  late TaskFieldInteger priority;
-  late TaskFieldInteger duration;
+  int? id;
+  int personId;
 
-  late TaskFieldDate dateAdded;
-  late TaskFieldDate startDate;
-  late TaskFieldDate targetDate;
-  late TaskFieldDate dueDate;
-  late TaskFieldDate completionDate;
-  late TaskFieldDate urgentDate;
+  String name;
+  String? description;
+  String? project;
+  String? context;
 
-  late TaskFieldInteger gamePoints;
+  int urgency;
+  int priority;
+  int duration;
 
-  late TaskFieldInteger recurNumber;
-  late TaskFieldString recurUnit;
-  late TaskFieldBoolean recurWait;
+  DateTime? dateAdded;
+  DateTime? startDate;
+  DateTime? targetDate;
+  DateTime? dueDate;
+  DateTime? completionDate;
+  DateTime? urgentDate;
 
-  late TaskFieldInteger recurrenceId;
-  late TaskFieldInteger recurIteration;
+  int gamePoints;
+
+  int? recurNumber;
+  String? recurUnit;
+  bool? recurWait;
+
+  int? recurrenceId;
+  int? recurIteration;
 
   List<Sprint> sprints = [];
 
+  @JsonKey(ignore: true)
   bool pendingCompletion = false;
 
-  static List<String> controlledFields = [
-    'id',
-    'person_id',
-    'date_added',
-    'completion_date'
-  ];
-
-  @override
-  TaskItem() : super() {
-    this.personId = addIntegerField("person_id");
-    this.name = addStringField("name");
-    this.description = addStringField("description");
-    this.project = addStringField("project");
-    this.context = addStringField("context");
-    this.urgency = addIntegerField("urgency");
-    this.priority = addIntegerField("priority");
-    this.duration = addIntegerField("duration");
-    this.dateAdded = addDateField("date_added");
-    this.startDate = addDateField("start_date");
-    this.targetDate = addDateField("target_date");
-    this.dueDate = addDateField("due_date");
-    this.completionDate = addDateField("completion_date");
-    this.urgentDate = addDateField("urgent_date");
-    this.gamePoints = addIntegerField("game_points");
-    this.recurNumber = addIntegerField("recur_number");
-    this.recurUnit = addStringField("recur_unit");
-    this.recurWait = addBoolField("recur_wait");
-    this.recurrenceId = addIntegerField("recurrence_id");
-    this.recurIteration = addIntegerField("recur_iteration");
-  }
-
-  @override
-  List<String> getControlledFields() {
-    return controlledFields;
-  }
+  TaskItem({
+    required this.personId,
+    required this.name,
+    this.description,
+    this.project,
+    this.context,
+    required this.urgency,
+    required this.priority,
+    required this.duration,
+    this.dateAdded,
+    this.startDate,
+    this.targetDate,
+    this.dueDate,
+    this.completionDate,
+    this.urgentDate,
+    required this.gamePoints,
+    this.recurNumber,
+    this.recurUnit,
+    this.recurWait,
+    this.recurrenceId,
+    this.recurIteration
+  });
 
   void addToSprints(Sprint sprint) {
     if (!sprints.contains(sprint)) {
@@ -83,144 +79,115 @@ class TaskItem extends DataObject {
     return matching.isNotEmpty;
   }
 
-  factory TaskItem.fromJson(Map<String, dynamic> json, List<Sprint> sprints) {
-    TaskItem taskItem = TaskItem();
-    for (var field in taskItem.fields) {
-      var jsonVal = json[field.fieldName];
-      if (jsonVal is String) {
-        field.initializeValueFromString(jsonVal);
-      } else {
-        field.initializeValue(jsonVal);
-      }
-    }
-
-    if (json.containsKey('sprint_assignments')) {
-      List<dynamic> assignments = json['sprint_assignments'];
-      for (var assignment in assignments) {
-        int sprintId = assignment['sprint_id'];
-        Iterable<Sprint> matching = sprints.where((sprint) => sprint.id == sprintId);
-        Sprint? sprint = matching.isEmpty ? null : matching.first;
-        if (sprint == null) {
-          throw new Exception('No sprint found with ID ' + sprintId.toString());
-        }
-        taskItem.addToSprints(sprint);
-        sprint.addToTasks(taskItem);
-      }
-    }
-
-    return taskItem;
-  }
-
   TaskItem createCopy() {
-    var taskItem = new TaskItem();
-    for (var field in fields) {
-      if (!controlledFields.contains(field.fieldName)) {
-        TaskField? newField = taskItem.getTaskField(field.fieldName);
-        newField!.initializeValue(field.value);
-      }
-    }
-    taskItem.personId.initializeValue(personId.value);
+    var taskItem = new TaskItem(
+        personId: this.personId,
+        name: this.name,
+        description: this.description,
+        project:  this.project,
+        context: this.context,
+        urgency: this.urgency,
+        priority: this.priority,
+        duration: this.duration,
+        dateAdded: this.dateAdded,
+        startDate: this.startDate,
+        targetDate: this.targetDate,
+        dueDate: this.dueDate,
+        completionDate: this.completionDate,
+        urgentDate: this.urgentDate,
+        gamePoints: this.gamePoints,
+        recurNumber: this.recurNumber,
+        recurUnit: this.recurUnit,
+        recurWait: this.recurWait,
+        recurrenceId: this.recurrenceId,
+        recurIteration: this.recurIteration
+    );
 
     return taskItem;
   }
 
   TaskField? getTaskField(String fieldName) {
-    var matching = fields.where((field) => field.fieldName == fieldName);
-    if (matching.isEmpty) {
-      return null;
-    } else if (matching.length > 1) {
-      throw Exception("Bad state: multiple matches for fieldName $fieldName");
-    } else {
-      return matching.first;
-    }
+    return null;
   }
 
   bool isCompleted() {
-    return completionDate.value != null;
+    return completionDate != null;
   }
 
   DateTime? getFinishedCompletionDate() {
-    return pendingCompletion ? null : completionDate.value;
+    return pendingCompletion ? null : completionDate;
+  }
+
+  bool hasPassed(DateTime? dateTime) {
+    return dateTime != null && dateTime.isBefore(DateTime.now());
+  }
+
+  bool isFuture(DateTime? dateTime) {
+    return dateTime != null && dateTime.isAfter(DateTime.now());
   }
 
   bool isScheduled() {
-    return startDate.value != null && !startDate.hasPassed();
+    return isFuture(startDate);
   }
 
   bool isPastDue() {
-    return dueDate.hasPassed();
+    return hasPassed(dueDate);
   }
 
   bool isDueBefore(DateTime dateTime) {
-    var dueDateValue = dueDate.value;
-    return dueDateValue != null && dueDateValue.isBefore(dateTime);
+    return dueDate != null && dueDate!.isBefore(dateTime);
   }
 
   bool isUrgentBefore(DateTime dateTime) {
-    var urgentDateValue = urgentDate.value;
-    return urgentDateValue != null && urgentDateValue.isBefore(dateTime);
+    return urgentDate != null && urgentDate!.isBefore(dateTime);
   }
 
   bool isTargetBefore(DateTime dateTime) {
-    var targetDateValue = targetDate.value;
-    return targetDateValue != null && targetDateValue.isBefore(dateTime);
+    return targetDate != null && targetDate!.isBefore(dateTime);
   }
 
   bool isScheduledBefore(DateTime dateTime) {
-    var startDateValue = startDate.value;
-    return startDateValue != null && startDateValue.isBefore(dateTime);
+    return startDate != null && startDate!.isBefore(dateTime);
   }
 
   bool isScheduledAfter(DateTime dateTime) {
-    var startDateValue = startDate.value;
-    return startDateValue != null && startDateValue.isAfter(dateTime);
+    return startDate != null && startDate!.isAfter(dateTime);
   }
 
   bool isUrgent() {
-    return urgentDate.hasPassed();
+    return hasPassed(urgentDate);
   }
 
   bool isTarget() {
-    return targetDate.hasPassed();
+    return hasPassed(targetDate);
   }
 
 
   DateTime? getLastDateBefore(TaskDateType taskDateType) {
-    TaskDateType? typePreceding = TaskDateTypes.getTypePreceding(taskDateType);
-    DateTime? lastValue = typePreceding?.dateFieldGetter(this).value;
 
-    if (lastValue != null) {
-      return lastValue;
-    }
-
-    while (typePreceding != null && (typePreceding = TaskDateTypes.getTypePreceding(typePreceding)) != null) {
-      lastValue = typePreceding?.dateFieldGetter(this).value;
-
-      if (lastValue != null) {
-        return lastValue;
-      }
-    }
+    // todo: implement
 
     return null;
   }
 
   DateTime? getAnchorDate() {
-    return getAnchorDateType()?.dateFieldGetter(this).value;
+    // todo: implement
+    return null;
   }
 
   bool isScheduledRecurrence() {
-    var recurWaitValue = recurWait.value;
+    var recurWaitValue = recurWait;
     return recurWaitValue != null && !recurWaitValue;
   }
 
   TaskDateType? getAnchorDateType() {
-    if (dueDate.value != null) {
+    if (dueDate != null) {
       return TaskDateTypes.due;
-    } else if (urgentDate.value != null) {
+    } else if (urgentDate != null) {
       return TaskDateTypes.urgent;
-    } else if (targetDate.value != null) {
+    } else if (targetDate != null) {
       return TaskDateTypes.target;
-    } else if (startDate.value != null) {
+    } else if (startDate != null) {
       return TaskDateTypes.start;
     } else {
       return null;
@@ -228,18 +195,17 @@ class TaskItem extends DataObject {
   }
 
   void incrementDateIfExists(TaskDateType taskDateType, Duration duration) {
-    var field = taskDateType.dateFieldGetter(this);
-    field.value = field.value?.add(duration);
+    // todo: implement
   }
 
   @override
   String toString() {
     return 'TaskItem{'
-        'id: ${id.value}, '
-        'name: ${name.value}, '
-        'personId: ${personId.value}, '
-        'dateAdded: ${dateAdded.value}, '
-        'completionDate: ${completionDate.value}}';
+        'id: $id, '
+        'name: $name, '
+        'personId: $personId, '
+        'dateAdded: $dateAdded, '
+        'completionDate: $completionDate}';
   }
 
 }
