@@ -9,16 +9,23 @@ part 'snooze_serializable.g.dart';
 @JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
 class SnoozeSerializable {
 
-  late int taskId;
-  int? snoozeNumber;
-  String? snoozeUnits;
-  String? snoozeAnchor;
+  int taskId;
+  int snoozeNumber;
+  String snoozeUnits;
+  String snoozeAnchor;
   DateTime? previousAnchor;
-  DateTime? newAnchor;
+  DateTime newAnchor;
 
   static List<String> controlledFields = ['id', 'date_added'];
 
-  SnoozeSerializable(): super();
+  SnoozeSerializable({
+    required this.taskId,
+    required this.snoozeNumber,
+    required this.snoozeUnits,
+    required this.snoozeAnchor,
+    this.previousAnchor,
+    required this.newAnchor
+  });
 
   List<String> getControlledFields() {
     return controlledFields;
