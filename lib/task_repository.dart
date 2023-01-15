@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/snooze.dart';
+import 'package:taskmaster/models/snooze_serializable.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 
@@ -119,6 +120,13 @@ class TaskRepository {
       'snooze': snoozeObj
     };
     return _addOrUpdateSnoozeJSON(payload);
+  }
+
+  Future<SnoozeSerializable> addSnoozeSerializable(SnoozeSerializable snooze) async {
+    var payload = {
+      'snooze': snooze.toJson()
+    };
+    return _addOrUpdateSnoozeSerializableJSON(payload);
   }
 
   Future<Sprint> addSprint(Sprint sprint) async {
@@ -246,6 +254,33 @@ class TaskRepository {
       try {
         var jsonObj = json.decode(response.body);
         Snooze inboundSnooze = Snooze.fromJson(jsonObj);
+        return inboundSnooze;
+      } catch(exception, stackTrace) {
+        print(exception);
+        print(stackTrace);
+        throw Exception('Error parsing snooze from the server. Talk to Mayhew.');
+      }
+    } else {
+      throw Exception('Failed to add snooze. Talk to Mayhew.');
+    }
+  }
+
+  Future<SnoozeSerializable> _addOrUpdateSnoozeSerializableJSON(Map<String, dynamic> payload) async {
+    var body = utf8.encode(json.encode(payload));
+
+    var idToken = await appState.getIdToken();
+
+    var uri = getUri('/api/snoozes');
+    final response = await client.post(uri,
+        headers: {HttpHeaders.authorizationHeader: idToken,
+          "Content-Type": "application/json"},
+        body: body
+    );
+
+    if (response.statusCode == 200) {
+      try {
+        var jsonObj = json.decode(response.body);
+        SnoozeSerializable inboundSnooze = SnoozeSerializable.fromJson(jsonObj);
         return inboundSnooze;
       } catch(exception, stackTrace) {
         print(exception);

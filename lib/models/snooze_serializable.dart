@@ -1,5 +1,4 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:taskmaster/models/data_object.dart';
 
 /// This allows the `User` class to access private members in
 /// the generated file. The value for this is *.g.dart, where

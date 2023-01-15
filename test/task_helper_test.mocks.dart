@@ -3,25 +3,26 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i17;
+import 'dart:async' as _i18;
 
 import 'package:flutter/material.dart' as _i5;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
-    as _i14;
-import 'package:google_sign_in/google_sign_in.dart' as _i16;
+    as _i15;
+import 'package:google_sign_in/google_sign_in.dart' as _i17;
 import 'package:http/http.dart' as _i10;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:taskmaster/app_state.dart' as _i2;
 import 'package:taskmaster/auth.dart' as _i6;
-import 'package:taskmaster/flutter_badger_wrapper.dart' as _i15;
+import 'package:taskmaster/flutter_badger_wrapper.dart' as _i16;
 import 'package:taskmaster/models/snooze.dart' as _i11;
-import 'package:taskmaster/models/sprint.dart' as _i12;
+import 'package:taskmaster/models/snooze_serializable.dart' as _i12;
+import 'package:taskmaster/models/sprint.dart' as _i13;
 import 'package:taskmaster/models/task_item.dart' as _i9;
 import 'package:taskmaster/nav_helper.dart' as _i8;
 import 'package:taskmaster/notification_scheduler.dart' as _i7;
 import 'package:taskmaster/task_helper.dart' as _i4;
 import 'package:taskmaster/task_repository.dart' as _i3;
-import 'package:taskmaster/timezone_helper.dart' as _i13;
+import 'package:taskmaster/timezone_helper.dart' as _i14;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -147,8 +148,9 @@ class _FakeSnooze_10 extends _i1.SmartFake implements _i11.Snooze {
         );
 }
 
-class _FakeSprint_11 extends _i1.SmartFake implements _i12.Sprint {
-  _FakeSprint_11(
+class _FakeSnoozeSerializable_11 extends _i1.SmartFake
+    implements _i12.SnoozeSerializable {
+  _FakeSnoozeSerializable_11(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -157,9 +159,8 @@ class _FakeSprint_11 extends _i1.SmartFake implements _i12.Sprint {
         );
 }
 
-class _FakeTimezoneHelper_12 extends _i1.SmartFake
-    implements _i13.TimezoneHelper {
-  _FakeTimezoneHelper_12(
+class _FakeSprint_12 extends _i1.SmartFake implements _i13.Sprint {
+  _FakeSprint_12(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -168,9 +169,9 @@ class _FakeTimezoneHelper_12 extends _i1.SmartFake
         );
 }
 
-class _FakeFlutterLocalNotificationsPlugin_13 extends _i1.SmartFake
-    implements _i14.FlutterLocalNotificationsPlugin {
-  _FakeFlutterLocalNotificationsPlugin_13(
+class _FakeTimezoneHelper_13 extends _i1.SmartFake
+    implements _i14.TimezoneHelper {
+  _FakeTimezoneHelper_13(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -179,9 +180,20 @@ class _FakeFlutterLocalNotificationsPlugin_13 extends _i1.SmartFake
         );
 }
 
-class _FakeFlutterBadgerWrapper_14 extends _i1.SmartFake
-    implements _i15.FlutterBadgerWrapper {
-  _FakeFlutterBadgerWrapper_14(
+class _FakeFlutterLocalNotificationsPlugin_14 extends _i1.SmartFake
+    implements _i15.FlutterLocalNotificationsPlugin {
+  _FakeFlutterLocalNotificationsPlugin_14(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeFlutterBadgerWrapper_15 extends _i1.SmartFake
+    implements _i16.FlutterBadgerWrapper {
+  _FakeFlutterBadgerWrapper_15(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -317,13 +329,13 @@ class MockAppState extends _i1.Mock implements _i2.AppState {
         returnValueForMissingStub: null,
       );
   @override
-  List<_i12.Sprint> get sprints => (super.noSuchMethod(
+  List<_i13.Sprint> get sprints => (super.noSuchMethod(
         Invocation.getter(#sprints),
-        returnValue: <_i12.Sprint>[],
-        returnValueForMissingStub: <_i12.Sprint>[],
-      ) as List<_i12.Sprint>);
+        returnValue: <_i13.Sprint>[],
+        returnValueForMissingStub: <_i13.Sprint>[],
+      ) as List<_i13.Sprint>);
   @override
-  set sprints(List<_i12.Sprint>? _sprints) => super.noSuchMethod(
+  set sprints(List<_i13.Sprint>? _sprints) => super.noSuchMethod(
         Invocation.setter(
           #sprints,
           _sprints,
@@ -343,7 +355,7 @@ class MockAppState extends _i1.Mock implements _i2.AppState {
         ),
       ) as _i6.TaskMasterAuth);
   @override
-  set currentUser(_i16.GoogleSignInAccount? _currentUser) => super.noSuchMethod(
+  set currentUser(_i17.GoogleSignInAccount? _currentUser) => super.noSuchMethod(
         Invocation.setter(
           #currentUser,
           _currentUser,
@@ -443,14 +455,14 @@ class MockAppState extends _i1.Mock implements _i2.AppState {
         returnValueForMissingStub: null,
       );
   @override
-  _i17.Future<String> getIdToken() => (super.noSuchMethod(
+  _i18.Future<String> getIdToken() => (super.noSuchMethod(
         Invocation.method(
           #getIdToken,
           [],
         ),
-        returnValue: _i17.Future<String>.value(''),
-        returnValueForMissingStub: _i17.Future<String>.value(''),
-      ) as _i17.Future<String>);
+        returnValue: _i18.Future<String>.value(''),
+        returnValueForMissingStub: _i18.Future<String>.value(''),
+      ) as _i18.Future<String>);
   @override
   List<_i9.TaskItem> getAllTasks() => (super.noSuchMethod(
         Invocation.method(
@@ -478,13 +490,13 @@ class MockAppState extends _i1.Mock implements _i2.AppState {
         returnValueForMissingStub: null,
       ) as _i9.TaskItem?);
   @override
-  _i12.Sprint? findSprintWithId(int? sprintId) => (super.noSuchMethod(
+  _i13.Sprint? findSprintWithId(int? sprintId) => (super.noSuchMethod(
         Invocation.method(
           #findSprintWithId,
           [sprintId],
         ),
         returnValueForMissingStub: null,
-      ) as _i12.Sprint?);
+      ) as _i13.Sprint?);
   @override
   void updateNotificationScheduler(
     _i5.BuildContext? context,
@@ -501,14 +513,14 @@ class MockAppState extends _i1.Mock implements _i2.AppState {
         returnValueForMissingStub: null,
       );
   @override
-  _i17.Future<void> syncAllNotifications() => (super.noSuchMethod(
+  _i18.Future<void> syncAllNotifications() => (super.noSuchMethod(
         Invocation.method(
           #syncAllNotifications,
           [],
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
   @override
   void finishedLoading() => super.noSuchMethod(
         Invocation.method(
@@ -665,23 +677,23 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
         ),
       ) as Uri);
   @override
-  _i17.Future<void> loadTasks(_i5.StateSetter? stateSetter) =>
+  _i18.Future<void> loadTasks(_i5.StateSetter? stateSetter) =>
       (super.noSuchMethod(
         Invocation.method(
           #loadTasks,
           [stateSetter],
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
   @override
-  _i17.Future<_i9.TaskItem> addTask(_i9.TaskItem? taskItem) =>
+  _i18.Future<_i9.TaskItem> addTask(_i9.TaskItem? taskItem) =>
       (super.noSuchMethod(
         Invocation.method(
           #addTask,
           [taskItem],
         ),
-        returnValue: _i17.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
+        returnValue: _i18.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
           this,
           Invocation.method(
             #addTask,
@@ -689,22 +701,22 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i17.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
+            _i18.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
           this,
           Invocation.method(
             #addTask,
             [taskItem],
           ),
         )),
-      ) as _i17.Future<_i9.TaskItem>);
+      ) as _i18.Future<_i9.TaskItem>);
   @override
-  _i17.Future<_i11.Snooze> addSnooze(_i11.Snooze? snooze) =>
+  _i18.Future<_i11.Snooze> addSnooze(_i11.Snooze? snooze) =>
       (super.noSuchMethod(
         Invocation.method(
           #addSnooze,
           [snooze],
         ),
-        returnValue: _i17.Future<_i11.Snooze>.value(_FakeSnooze_10(
+        returnValue: _i18.Future<_i11.Snooze>.value(_FakeSnooze_10(
           this,
           Invocation.method(
             #addSnooze,
@@ -712,22 +724,47 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i17.Future<_i11.Snooze>.value(_FakeSnooze_10(
+            _i18.Future<_i11.Snooze>.value(_FakeSnooze_10(
           this,
           Invocation.method(
             #addSnooze,
             [snooze],
           ),
         )),
-      ) as _i17.Future<_i11.Snooze>);
+      ) as _i18.Future<_i11.Snooze>);
   @override
-  _i17.Future<_i12.Sprint> addSprint(_i12.Sprint? sprint) =>
+  _i18.Future<_i12.SnoozeSerializable> addSnoozeSerializable(
+          _i12.SnoozeSerializable? snooze) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #addSnoozeSerializable,
+          [snooze],
+        ),
+        returnValue: _i18.Future<_i12.SnoozeSerializable>.value(
+            _FakeSnoozeSerializable_11(
+          this,
+          Invocation.method(
+            #addSnoozeSerializable,
+            [snooze],
+          ),
+        )),
+        returnValueForMissingStub: _i18.Future<_i12.SnoozeSerializable>.value(
+            _FakeSnoozeSerializable_11(
+          this,
+          Invocation.method(
+            #addSnoozeSerializable,
+            [snooze],
+          ),
+        )),
+      ) as _i18.Future<_i12.SnoozeSerializable>);
+  @override
+  _i18.Future<_i13.Sprint> addSprint(_i13.Sprint? sprint) =>
       (super.noSuchMethod(
         Invocation.method(
           #addSprint,
           [sprint],
         ),
-        returnValue: _i17.Future<_i12.Sprint>.value(_FakeSprint_11(
+        returnValue: _i18.Future<_i13.Sprint>.value(_FakeSprint_12(
           this,
           Invocation.method(
             #addSprint,
@@ -735,18 +772,18 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i17.Future<_i12.Sprint>.value(_FakeSprint_11(
+            _i18.Future<_i13.Sprint>.value(_FakeSprint_12(
           this,
           Invocation.method(
             #addSprint,
             [sprint],
           ),
         )),
-      ) as _i17.Future<_i12.Sprint>);
+      ) as _i18.Future<_i13.Sprint>);
   @override
-  _i17.Future<void> addTasksToSprint(
+  _i18.Future<void> addTasksToSprint(
     List<_i9.TaskItem>? taskItems,
-    _i12.Sprint? sprint,
+    _i13.Sprint? sprint,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -756,17 +793,17 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
             sprint,
           ],
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
   @override
-  _i17.Future<_i9.TaskItem> completeTask(_i9.TaskItem? taskItem) =>
+  _i18.Future<_i9.TaskItem> completeTask(_i9.TaskItem? taskItem) =>
       (super.noSuchMethod(
         Invocation.method(
           #completeTask,
           [taskItem],
         ),
-        returnValue: _i17.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
+        returnValue: _i18.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
           this,
           Invocation.method(
             #completeTask,
@@ -774,22 +811,22 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i17.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
+            _i18.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
           this,
           Invocation.method(
             #completeTask,
             [taskItem],
           ),
         )),
-      ) as _i17.Future<_i9.TaskItem>);
+      ) as _i18.Future<_i9.TaskItem>);
   @override
-  _i17.Future<_i9.TaskItem> updateTask(_i9.TaskItem? taskItem) =>
+  _i18.Future<_i9.TaskItem> updateTask(_i9.TaskItem? taskItem) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateTask,
           [taskItem],
         ),
-        returnValue: _i17.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
+        returnValue: _i18.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
           this,
           Invocation.method(
             #updateTask,
@@ -797,23 +834,23 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i17.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
+            _i18.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
           this,
           Invocation.method(
             #updateTask,
             [taskItem],
           ),
         )),
-      ) as _i17.Future<_i9.TaskItem>);
+      ) as _i18.Future<_i9.TaskItem>);
   @override
-  _i17.Future<void> deleteTask(_i9.TaskItem? taskItem) => (super.noSuchMethod(
+  _i18.Future<void> deleteTask(_i9.TaskItem? taskItem) => (super.noSuchMethod(
         Invocation.method(
           #deleteTask,
           [taskItem],
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
 }
 
 /// A class which mocks [NotificationScheduler].
@@ -846,17 +883,17 @@ class MockNotificationScheduler extends _i1.Mock
         ),
       ) as _i4.TaskHelper);
   @override
-  _i13.TimezoneHelper get timezoneHelper => (super.noSuchMethod(
+  _i14.TimezoneHelper get timezoneHelper => (super.noSuchMethod(
         Invocation.getter(#timezoneHelper),
-        returnValue: _FakeTimezoneHelper_12(
+        returnValue: _FakeTimezoneHelper_13(
           this,
           Invocation.getter(#timezoneHelper),
         ),
-        returnValueForMissingStub: _FakeTimezoneHelper_12(
+        returnValueForMissingStub: _FakeTimezoneHelper_13(
           this,
           Invocation.getter(#timezoneHelper),
         ),
-      ) as _i13.TimezoneHelper);
+      ) as _i14.TimezoneHelper);
   @override
   _i5.BuildContext get context => (super.noSuchMethod(
         Invocation.getter(#context),
@@ -905,30 +942,30 @@ class MockNotificationScheduler extends _i1.Mock
         returnValueForMissingStub: null,
       );
   @override
-  _i14.FlutterLocalNotificationsPlugin get flutterLocalNotificationsPlugin =>
+  _i15.FlutterLocalNotificationsPlugin get flutterLocalNotificationsPlugin =>
       (super.noSuchMethod(
         Invocation.getter(#flutterLocalNotificationsPlugin),
-        returnValue: _FakeFlutterLocalNotificationsPlugin_13(
+        returnValue: _FakeFlutterLocalNotificationsPlugin_14(
           this,
           Invocation.getter(#flutterLocalNotificationsPlugin),
         ),
-        returnValueForMissingStub: _FakeFlutterLocalNotificationsPlugin_13(
+        returnValueForMissingStub: _FakeFlutterLocalNotificationsPlugin_14(
           this,
           Invocation.getter(#flutterLocalNotificationsPlugin),
         ),
-      ) as _i14.FlutterLocalNotificationsPlugin);
+      ) as _i15.FlutterLocalNotificationsPlugin);
   @override
-  _i15.FlutterBadgerWrapper get flutterBadgerWrapper => (super.noSuchMethod(
+  _i16.FlutterBadgerWrapper get flutterBadgerWrapper => (super.noSuchMethod(
         Invocation.getter(#flutterBadgerWrapper),
-        returnValue: _FakeFlutterBadgerWrapper_14(
+        returnValue: _FakeFlutterBadgerWrapper_15(
           this,
           Invocation.getter(#flutterBadgerWrapper),
         ),
-        returnValueForMissingStub: _FakeFlutterBadgerWrapper_14(
+        returnValueForMissingStub: _FakeFlutterBadgerWrapper_15(
           this,
           Invocation.getter(#flutterBadgerWrapper),
         ),
-      ) as _i15.FlutterBadgerWrapper);
+      ) as _i16.FlutterBadgerWrapper);
   @override
   void updateHomeScreenContext(_i5.BuildContext? context) => super.noSuchMethod(
         Invocation.method(
@@ -946,28 +983,28 @@ class MockNotificationScheduler extends _i1.Mock
         returnValueForMissingStub: null,
       );
   @override
-  _i17.Future<void> cancelAllNotifications() => (super.noSuchMethod(
+  _i18.Future<void> cancelAllNotifications() => (super.noSuchMethod(
         Invocation.method(
           #cancelAllNotifications,
           [],
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
   @override
-  _i17.Future<void> cancelNotificationsForTaskId(int? taskId) =>
+  _i18.Future<void> cancelNotificationsForTaskId(int? taskId) =>
       (super.noSuchMethod(
         Invocation.method(
           #cancelNotificationsForTaskId,
           [taskId],
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
   @override
-  _i17.Future<void> syncNotificationForTasksAndSprint(
+  _i18.Future<void> syncNotificationForTasksAndSprint(
     List<_i9.TaskItem>? taskItems,
-    _i12.Sprint? sprint,
+    _i13.Sprint? sprint,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -977,17 +1014,17 @@ class MockNotificationScheduler extends _i1.Mock
             sprint,
           ],
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
   @override
-  _i17.Future<void> updateNotificationForTask(_i9.TaskItem? taskItem) =>
+  _i18.Future<void> updateNotificationForTask(_i9.TaskItem? taskItem) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateNotificationForTask,
           [taskItem],
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
 }
