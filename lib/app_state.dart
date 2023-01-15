@@ -60,7 +60,7 @@ class AppState {
   }
 
   Sprint? findSprintWithId(int sprintId) {
-    var matching = sprints.where((sprint) => sprint.id.value == sprintId);
+    var matching = sprints.where((sprint) => sprint.id == sprintId);
     return matching.isEmpty ? null : matching.first;
   }
 
@@ -86,17 +86,17 @@ class AppState {
   Sprint? getActiveSprint() {
     DateTime now = DateTime.now();
     Iterable<Sprint> matching = this.sprints.where((sprint) =>
-        sprint.startDate.value!.isBefore(now) &&
-        sprint.endDate.value!.isAfter(now) &&
-        sprint.closeDate.value == null);
+        sprint.startDate.isBefore(now) &&
+        sprint.endDate.isAfter(now) &&
+        sprint.closeDate == null);
     return matching.isEmpty ? null : matching.first;
   }
 
   Sprint? getLastCompletedSprint() {
     List<Sprint> matching = this.sprints.where((sprint) {
-      return DateTime.now().isAfter(sprint.endDate.value!);
+      return DateTime.now().isAfter(sprint.endDate);
     }).toList();
-    matching.sort((a, b) => a.endDate.value!.compareTo(b.endDate.value!));
+    matching.sort((a, b) => a.endDate.compareTo(b.endDate));
     return matching.isEmpty ? null : matching.last;
   }
 

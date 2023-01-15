@@ -24,11 +24,7 @@ class MockClientOld extends Fake implements http.Client {
     }
 
     for (var sprintItem in sprintList) {
-      var mockObj = {};
-      for (var field in sprintItem.fields) {
-        mockObj[field.fieldName] = field.formatForJSON();
-      }
-      mockSprintList.add(mockObj);
+      mockSprintList.add(sprintItem.toJson());
     }
 
     taskObj['tasks'] = mockPlayerList;
@@ -45,7 +41,7 @@ class MockClientOld extends Fake implements http.Client {
     for (var sprint in taskItem.sprints) {
       var obj = {
         'id': 1234,
-        'sprint_id': sprint.id.value
+        'sprint_id': sprint.id
       };
       sprintAssignments.add(obj);
     }

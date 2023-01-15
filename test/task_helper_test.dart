@@ -374,7 +374,7 @@ void main() {
     var notificationScheduler = mockAppState.notificationScheduler;
     expect(notificationScheduler, isNot(null));
 
-    when(taskRepository.addSprint(sprint)).thenAnswer((_) => Future.value(Sprint.fromJson(sprint.toJSON())));
+    when(taskRepository.addSprint(sprint)).thenAnswer((_) => Future.value(Sprint.fromJson(sprint.toJson())));
 
     Sprint returnedSprint = await taskHelper.addSprintAndTasks(sprint, taskItems);
 

@@ -217,7 +217,7 @@ class PlanTaskListState extends State<PlanTaskList> {
   DateTime getEndDate() {
     return widget.sprint == null ?
         DateUtil.adjustToDate(widget.startDate!, widget.numUnits!, widget.unitName!) :
-        widget.sprint!.endDate.value!;
+        widget.sprint!.endDate;
   }
 
   TaskItem? findMatching(TaskItem taskItem) {
@@ -273,12 +273,13 @@ class PlanTaskListState extends State<PlanTaskList> {
 
     if (widget.sprint == null) {
       DateTime endDate = getEndDate();
-      Sprint sprint = Sprint();
-      sprint.startDate.value = widget.startDate;
-      sprint.endDate.value = endDate;
-      sprint.numUnits.value = widget.numUnits;
-      sprint.unitName.value = widget.unitName;
-      sprint.personId.value = widget.appState.personId;
+      Sprint sprint = Sprint(
+        startDate: widget.startDate!,
+        endDate: endDate,
+        numUnits: widget.numUnits!,
+        unitName: widget.unitName!,
+        personId: widget.appState.personId
+      );
       idCheck();
       for (TaskItem taskItem in sprintQueued) {
         sprint.addToTasks(taskItem);

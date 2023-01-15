@@ -96,12 +96,12 @@ class NotificationScheduler {
   // Private Methods
 
   Future<void> _syncNotificationForSprint(Sprint sprint, List<PendingNotificationRequest> requests) async {
-    String sprintSearch = 'sprint:${sprint.id.value}';
-    String sprintName = 'Sprint ${sprint.id.value}';
+    String sprintSearch = 'sprint:${sprint.id}';
+    String sprintName = 'Sprint ${sprint.id}';
 
-    DateTime exactTime = sprint.endDate.value!;
-    DateTime hourBefore = sprint.endDate.value!.subtract(Duration(minutes: 60));
-    DateTime dayBefore = sprint.endDate.value!.subtract(Duration(days: 1));
+    DateTime exactTime = sprint.endDate;
+    DateTime hourBefore = sprint.endDate.subtract(Duration(minutes: 60));
+    DateTime dayBefore = sprint.endDate.subtract(Duration(days: 1));
 
     await _maybeReplaceNotification('$sprintSearch:day', requests, dayBefore, '$sprintName (day)', 'Current sprint ends in 1 day!');
     await _maybeReplaceNotification('$sprintSearch:hour', requests, hourBefore, '$sprintName (hour)', 'Current sprint ends in 1 hour!');

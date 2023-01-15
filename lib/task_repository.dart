@@ -115,15 +115,8 @@ class TaskRepository {
   }
 
   Future<Sprint> addSprint(Sprint sprint) async {
-    var sprintObj = {};
-    sprint.fields.forEach((field) {
-      if (!Sprint.controlledFields.contains(field.fieldName)) {
-        sprintObj[field.fieldName] = field.formatForJSON();
-      }
-    });
-
     var payload = {
-      'sprint': sprintObj
+      'sprint': sprint.toJson()
     };
     return _addSprintJSON(payload);
   }
@@ -135,7 +128,7 @@ class TaskRepository {
     }
 
     Map<String, Object> payload = {
-      'sprint_id': sprint.id.value!,
+      'sprint_id': sprint.id!,
       'task_ids': taskIds,
     };
 
