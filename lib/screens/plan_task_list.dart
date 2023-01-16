@@ -56,7 +56,7 @@ class PlanTaskListState extends State<PlanTaskList> {
       final Iterable<TaskItem> dueOrUrgentTasks = baseList.where((taskItem) =>
           taskItem.isDueBefore(endDate) ||
           taskItem.isUrgentBefore(endDate) ||
-          taskItem.sprintAssignments.contains(lastSprint)
+          taskItem.sprints.contains(lastSprint)
       );
       sprintQueued.addAll(dueOrUrgentTasks);
     }
@@ -77,7 +77,7 @@ class PlanTaskListState extends State<PlanTaskList> {
       sprint: null,
       stateSetter: (callback) => setState(() => callback()),
       addMode: true,
-      highlightSprint: taskItem.sprintAssignments.contains(lastSprint),
+      highlightSprint: taskItem.sprints.contains(lastSprint),
       initialCheckState: sprintQueued.contains(taskItem) ? CheckState.checked : CheckState.inactive,
       onTaskAssignmentToggle: (checkState) {
         var alreadyQueued = sprintQueued.contains(taskItem);
@@ -100,7 +100,7 @@ class PlanTaskListState extends State<PlanTaskList> {
     DateTime endDate = getEndDate();
     List<TaskItem> filtered = taskItems.where((taskItem) {
       return !taskItem.isScheduledAfter(endDate) && !taskItem.isCompleted() &&
-          (widget.sprint == null || !taskItem.sprintAssignments.contains(widget.sprint));
+          (widget.sprint == null || !taskItem.sprints.contains(widget.sprint));
     }).toList();
     return filtered;
   }
@@ -111,7 +111,7 @@ class PlanTaskListState extends State<PlanTaskList> {
   }
 
   bool wasInEarlierSprint(TaskItemEdit taskItem) {
-    var sprints = taskItem.sprintAssignments.where((sprint) => sprint != lastSprint);
+    var sprints = taskItem.sprints.where((sprint) => sprint != lastSprint);
     return sprints.isNotEmpty;
   }
 
@@ -157,7 +157,7 @@ class PlanTaskListState extends State<PlanTaskList> {
     Sprint? lastCompletedSprint = widget.appState.getLastCompletedSprint();
 
     final List<TaskItemEdit> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted());
-    final List<TaskItemEdit> lastSprintTasks = _moveSublist(otherTasks, (taskItem) => taskItem.sprintAssignments.contains(lastCompletedSprint));
+    final List<TaskItemEdit> lastSprintTasks = _moveSublist(otherTasks, (taskItem) => taskItem.sprints.contains(lastCompletedSprint));
     final List<TaskItemEdit> otherSprintTasks = _moveSublist(otherTasks, (taskItem) => wasInEarlierSprint(taskItem));
     final List<TaskItemEdit> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isDueBefore(endDate));
     final List<TaskItemEdit> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgentBefore(endDate));

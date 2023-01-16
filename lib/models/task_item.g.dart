@@ -40,10 +40,7 @@ TaskItem _$TaskItemFromJson(Map<String, dynamic> json) => TaskItem(
       ..recurWait = json['recur_wait'] as bool?
       ..recurrenceId = json['recurrence_id'] as int?
       ..recurIteration = json['recur_iteration'] as int?
-      ..id = json['id'] as int?
-      ..sprintAssignments = (json['sprint_assignments'] as List<dynamic>)
-          .map((e) => Sprint.fromJson(e as Map<String, dynamic>))
-          .toList();
+      ..id = json['id'] as int?;
 
 Map<String, dynamic> _$TaskItemToJson(TaskItem instance) {
   final val = <String, dynamic>{};
@@ -75,6 +72,5 @@ Map<String, dynamic> _$TaskItemToJson(TaskItem instance) {
   writeNotNull('recur_iteration', instance.recurIteration);
   writeNotNull('id', instance.id);
   val['person_id'] = instance.personId;
-  val['sprint_assignments'] = instance.sprintAssignments;
   return val;
 }

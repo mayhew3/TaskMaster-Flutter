@@ -747,7 +747,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
       ) as _i17.Future<_i12.Sprint>);
   @override
   _i17.Future<void> addTasksToSprint(
-    List<_i9.TaskItem>? taskItems,
+    List<_i19.TaskItemEdit>? taskItems,
     _i12.Sprint? sprint,
   ) =>
       (super.noSuchMethod(

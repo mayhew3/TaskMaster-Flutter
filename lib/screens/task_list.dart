@@ -186,7 +186,7 @@ class TaskListScreenState extends State<TaskListScreen> {
       stateSetter: (callback) => setState(() => callback()),
       addMode: false,
       sprint: widget.sprint,
-      highlightSprint: (widget.sprint == null && activeSprint != null && taskItem.sprintAssignments.contains(activeSprint)),
+      highlightSprint: (widget.sprint == null && activeSprint != null && taskItem.sprints.contains(activeSprint)),
       onTap: () async {
         await Navigator.of(context).push(
           MaterialPageRoute(builder: (_) {
@@ -221,7 +221,7 @@ class TaskListScreenState extends State<TaskListScreen> {
     List<TaskItem> filtered = taskItems.where((taskItem) {
       bool passesScheduleFilter = showScheduled || !taskItem.isScheduled();
       bool passesCompletedFilter = showCompleted || !(taskItem.isCompleted() && !recentlyCompleted.contains(taskItem));
-      bool passesActiveFilter = showActive || !(taskItem.sprintAssignments.contains(activeSprint));
+      bool passesActiveFilter = showActive || !(taskItem.sprints.contains(activeSprint));
       return passesScheduleFilter && passesCompletedFilter && passesActiveFilter;
     }).toList();
     return filtered;

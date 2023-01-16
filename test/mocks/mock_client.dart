@@ -38,7 +38,7 @@ class MockClientOld extends Fake implements http.Client {
       mockObj[field.fieldName] = field.formatForJSON();
     }
     var sprintAssignments = [];
-    for (var sprint in taskItem.sprintAssignments) {
+    for (var sprint in taskItem.sprints) {
       var obj = {
         'id': 1234,
         'sprint_id': sprint.id

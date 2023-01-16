@@ -605,7 +605,7 @@ class MockTaskRepository extends _i1.Mock implements _i10.TaskRepository {
       ) as _i13.Future<_i9.Sprint>);
   @override
   _i13.Future<void> addTasksToSprint(
-    List<_i5.TaskItem>? taskItems,
+    List<_i11.TaskItemEdit>? taskItems,
     _i9.Sprint? sprint,
   ) =>
       (super.noSuchMethod(
@@ -1003,7 +1003,7 @@ class MockTaskHelper extends _i1.Mock implements _i15.TaskHelper {
   @override
   _i13.Future<_i9.Sprint> addSprintAndTasks(
     _i9.Sprint? sprint,
-    List<_i5.TaskItem>? taskItems,
+    List<_i11.TaskItemEdit>? taskItems,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -1037,7 +1037,7 @@ class MockTaskHelper extends _i1.Mock implements _i15.TaskHelper {
   @override
   _i13.Future<_i9.Sprint> addTasksToSprint(
     _i9.Sprint? sprint,
-    List<_i5.TaskItem>? taskItems,
+    List<_i11.TaskItemEdit>? taskItems,
   ) =>
       (super.noSuchMethod(
         Invocation.method(

@@ -16,7 +16,7 @@ class TaskItemEdit extends TaskItemBlueprint {
   int personId;
 
   @JsonKey(ignore: true)
-  List<Sprint> sprintAssignments = [];
+  List<Sprint> sprints = [];
 
   @JsonKey(ignore: true)
   bool pendingCompletion = false;
@@ -69,13 +69,13 @@ class TaskItemEdit extends TaskItemBlueprint {
   }
 
   void addToSprints(Sprint sprint) {
-    if (!sprintAssignments.contains(sprint)) {
-      sprintAssignments.add(sprint);
+    if (!sprints.contains(sprint)) {
+      sprints.add(sprint);
     }
   }
 
   bool isInActiveSprint() {
-    var matching = sprintAssignments.where((sprint) => sprint.isActive());
+    var matching = sprints.where((sprint) => sprint.isActive());
     return matching.isNotEmpty;
   }
 
