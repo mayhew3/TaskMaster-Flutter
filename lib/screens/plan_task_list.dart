@@ -281,14 +281,8 @@ class PlanTaskListState extends State<PlanTaskList> {
         personId: widget.appState.personId
       );
       idCheck();
-      for (TaskItemEdit taskItem in sprintQueued) {
-        sprint.addToTasks(taskItem);
-      }
       await widget.taskHelper.addSprintAndTasks(sprint, sprintQueued);
     } else if (activeSprint != null) {
-      for (TaskItemEdit taskItem in sprintQueued) {
-        activeSprint!.addToTasks(taskItem);
-      }
       await widget.taskHelper.addTasksToSprint(activeSprint!, sprintQueued);
     }
 

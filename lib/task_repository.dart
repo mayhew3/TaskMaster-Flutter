@@ -1,5 +1,4 @@
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
@@ -120,9 +119,9 @@ class TaskRepository {
     return _addSprintJSON(payload);
   }
 
-  Future<void> addTasksToSprint(List<TaskItem> taskItems, Sprint sprint) async {
+  Future<void> addTasksToSprint(List<TaskItemEdit> taskItems, Sprint sprint) async {
     List<int> taskIds = [];
-    for (TaskItem taskItem in taskItems) {
+    for (TaskItemEdit taskItem in taskItems) {
       taskIds.add(taskItem.id!);
     }
 

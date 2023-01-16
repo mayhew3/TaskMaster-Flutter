@@ -15,6 +15,7 @@ class TaskItemEdit extends TaskItemBlueprint {
 
   int personId;
 
+  @JsonKey(ignore: true)
   List<Sprint> sprintAssignments = [];
 
   @JsonKey(ignore: true)
