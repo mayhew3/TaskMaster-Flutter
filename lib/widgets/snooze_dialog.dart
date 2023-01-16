@@ -1,9 +1,7 @@
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:taskmaster/models/task_date_type.dart';
-import 'package:taskmaster/models/task_field.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/parse_helper.dart';
 import 'package:taskmaster/task_helper.dart';
@@ -50,7 +48,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
     super.initState();
     TaskDateTypes.allTypes.forEach((dateType) {
       var dateFieldOfType = dateType.dateFieldGetter(widget.taskItem);
-      if (dateFieldOfType.value != null) {
+      if (dateFieldOfType != null) {
         possibleDateTypes.add(dateType.label);
       }
     });
@@ -138,9 +136,9 @@ class SnoozeDialogState extends State<SnoozeDialog> {
       ];
 
       TaskDateTypes.allTypes.forEach((dateType) {
-        TaskField dateFieldOfType = dateType.dateFieldGetter(widget.taskItem);
+        DateTime? dateFieldOfType = dateType.dateFieldGetter(widget.taskItem);
         var dateTypeString = dateType.label;
-        var actualDate = dateFieldOfType.value;
+        var actualDate = dateFieldOfType;
         if (actualDate != null) {
           String dateFormatted = (DateTime
               .now()
@@ -161,7 +159,6 @@ class SnoozeDialogState extends State<SnoozeDialog> {
 
     return WillPopScope(
       onWillPop: () async {
-        widget.taskItem.revertAllChanges();
         return true;
       },
       child: AlertDialog(
@@ -177,7 +174,6 @@ class SnoozeDialogState extends State<SnoozeDialog> {
         actions: [
           TextButton(
             onPressed: () {
-              widget.taskItem.revertAllChanges();
               Navigator.pop(context);
             },
             child: Text('Cancel'),

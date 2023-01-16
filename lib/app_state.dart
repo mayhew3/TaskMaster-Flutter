@@ -55,7 +55,7 @@ class AppState {
   }
 
   TaskItem? findTaskItemWithId(int taskId) {
-    var matching = taskItems.where((taskItem) => taskItem.id.value == taskId);
+    var matching = taskItems.where((taskItem) => taskItem.id == taskId);
     return matching.isEmpty ? null : matching.first;
   }
 

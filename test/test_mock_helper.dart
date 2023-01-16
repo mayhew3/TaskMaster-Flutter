@@ -53,7 +53,7 @@ class TestMockHelper {
       mockObj[field.fieldName] = field.formatForJSON();
     }
     var sprintAssignments = [];
-    for (var sprint in taskItem.sprints) {
+    for (var sprint in taskItem.sprintAssignments) {
       var obj = {
         'id': 1234,
         'sprint_id': sprint.id

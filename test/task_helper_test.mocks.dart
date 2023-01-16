@@ -17,6 +17,7 @@ import 'package:taskmaster/flutter_badger_wrapper.dart' as _i15;
 import 'package:taskmaster/models/snooze.dart' as _i11;
 import 'package:taskmaster/models/sprint.dart' as _i12;
 import 'package:taskmaster/models/task_item.dart' as _i9;
+import 'package:taskmaster/models/task_item_form.dart' as _i18;
 import 'package:taskmaster/nav_helper.dart' as _i8;
 import 'package:taskmaster/notification_scheduler.dart' as _i7;
 import 'package:taskmaster/task_helper.dart' as _i4;
@@ -675,17 +676,17 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
         returnValueForMissingStub: _i17.Future<void>.value(),
       ) as _i17.Future<void>);
   @override
-  _i17.Future<_i9.TaskItem> addTask(_i9.TaskItem? taskItem) =>
+  _i17.Future<_i9.TaskItem> addTask(_i18.TaskItemForm? taskItemForm) =>
       (super.noSuchMethod(
         Invocation.method(
           #addTask,
-          [taskItem],
+          [taskItemForm],
         ),
         returnValue: _i17.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
           this,
           Invocation.method(
             #addTask,
-            [taskItem],
+            [taskItemForm],
           ),
         )),
         returnValueForMissingStub:
@@ -693,7 +694,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           this,
           Invocation.method(
             #addTask,
-            [taskItem],
+            [taskItemForm],
           ),
         )),
       ) as _i17.Future<_i9.TaskItem>);
@@ -783,17 +784,17 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
         )),
       ) as _i17.Future<_i9.TaskItem>);
   @override
-  _i17.Future<_i9.TaskItem> updateTask(_i9.TaskItem? taskItem) =>
+  _i17.Future<_i9.TaskItem> updateTask(_i18.TaskItemForm? taskItemForm) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateTask,
-          [taskItem],
+          [taskItemForm],
         ),
         returnValue: _i17.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
           this,
           Invocation.method(
             #updateTask,
-            [taskItem],
+            [taskItemForm],
           ),
         )),
         returnValueForMissingStub:
@@ -801,7 +802,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           this,
           Invocation.method(
             #updateTask,
-            [taskItem],
+            [taskItemForm],
           ),
         )),
       ) as _i17.Future<_i9.TaskItem>);

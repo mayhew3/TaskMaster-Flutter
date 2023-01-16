@@ -4,12 +4,12 @@ import 'package:taskmaster/date_util.dart';
 import 'package:taskmaster/models/snooze.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_date_type.dart';
-import 'package:taskmaster/models/task_field.dart';
 import 'package:taskmaster/task_repository.dart';
 
 import 'auth.dart';
 import 'app_state.dart';
 import 'models/task_item.dart';
+import 'models/task_item_form.dart';
 import 'nav_helper.dart';
 import 'package:jiffy/jiffy.dart';
 
@@ -42,7 +42,7 @@ class TaskHelper {
     await appState.syncAllNotifications();
   }
 
-  Future<TaskItem> addTask(TaskItem taskItem) async {
+  Future<TaskItem> addTask(TaskItemForm taskItem) async {
     TaskItem inboundTask = await repository.addTask(taskItem);
     stateSetter(() {
       var addedTask = appState.addNewTaskToList(inboundTask);
@@ -52,21 +52,21 @@ class TaskHelper {
     return inboundTask;
   }
 
-  TaskItem? maybeCreateNextIteration(TaskItem taskItem, bool completed, DateTime? completionDate) {
+  TaskItemForm? maybeCreateNextIteration(TaskItem taskItem, bool completed, DateTime? completionDate) {
 
-    var recurNumber = taskItem.recurNumber.value;
-    var recurUnit = taskItem.recurUnit.value;
-    var recurWait = taskItem.recurWait.value;
+    var recurNumber = taskItem.recurNumber;
+    var recurUnit = taskItem.recurUnit;
+    var recurWait = taskItem.recurWait;
 
     if (recurNumber != null && completed) {
       if (recurUnit == null || recurWait == null) {
         throw new Exception('Recur_number has a value, so recur_unit and recur_wait should be non-null!');
       }
 
-      var recurIteration = taskItem.recurIteration.value!;
+      var recurIteration = taskItem.recurIteration!;
 
-      Iterable<TaskItem> sameRecurrence = repository.appState.taskItems.where((TaskItem ti) => ti.recurrenceId.value == taskItem.recurrenceId.value);
-      Iterable<TaskItem> nextInLine = sameRecurrence.where((TaskItem ti) => ti.recurIteration.value! > recurIteration);
+      Iterable<TaskItem> sameRecurrence = repository.appState.taskItems.where((TaskItem ti) => ti.recurrenceId == taskItem.recurrenceId);
+      Iterable<TaskItem> nextInLine = sameRecurrence.where((TaskItem ti) => ti.recurIteration! > recurIteration);
 
       if (nextInLine.isEmpty) {
         return createNextIteration(taskItem, completionDate!);
@@ -76,12 +76,12 @@ class TaskHelper {
     return null;
   }
 
-  TaskItem createNextIteration(TaskItem taskItem, DateTime completionDate) {
+  TaskItemForm createNextIteration(TaskItemForm taskItem, DateTime completionDate) {
 
-    var recurNumber = taskItem.recurNumber.value!;
-    var recurUnit = taskItem.recurUnit.value;
-    var recurWait = taskItem.recurWait.value;
-    var recurIteration = taskItem.recurIteration.value;
+    var recurNumber = taskItem.recurNumber!;
+    var recurUnit = taskItem.recurUnit;
+    var recurWait = taskItem.recurWait;
+    var recurIteration = taskItem.recurIteration;
 
     if (recurUnit == null || recurWait == null || recurIteration == null) {
       throw new Exception('Recur_number has a value, so recur_unit and recur_wait and recur_iteration should be non-null!');
@@ -93,7 +93,7 @@ class TaskHelper {
     }
     DateTime nextAnchorDate;
 
-    TaskItem nextScheduledTask = taskItem.createCopy();
+    TaskItemForm nextScheduledTask = taskItem.createChangeTemplate();
 
     if (recurWait) {
       nextAnchorDate = _getAdjustedDate(completionDate, recurNumber, recurUnit);
@@ -104,20 +104,22 @@ class TaskHelper {
     DateTime dateWithTime = _getClosestDateForTime(anchorDate, nextAnchorDate);
     Duration duration = dateWithTime.difference(anchorDate);
 
-    nextScheduledTask.startDate.initializeValue(_addToDate(taskItem.startDate.value, duration));
-    nextScheduledTask.targetDate.initializeValue(_addToDate(taskItem.targetDate.value, duration));
-    nextScheduledTask.urgentDate.initializeValue(_addToDate(taskItem.urgentDate.value, duration));
-    nextScheduledTask.dueDate.initializeValue(_addToDate(taskItem.dueDate.value, duration));
+    nextScheduledTask.startDate = _addToDate(taskItem.startDate, duration);
+    nextScheduledTask.targetDate = _addToDate(taskItem.targetDate, duration);
+    nextScheduledTask.urgentDate = _addToDate(taskItem.urgentDate, duration);
+    nextScheduledTask.dueDate = _addToDate(taskItem.dueDate, duration);
 
-    nextScheduledTask.recurIteration.initializeValue(recurIteration + 1);
+    if (nextScheduledTask.recurIteration != null) {
+      nextScheduledTask.recurIteration = nextScheduledTask.recurIteration! + 1;
+    }
 
     return nextScheduledTask;
   }
 
   Future<TaskItem> completeTask(TaskItem taskItem, bool completed, StateSetter stateSetter) async {
-    if (completed && taskItem.completionDate.value != null) {
+    if (completed && taskItem.completionDate != null) {
       throw new ArgumentError("CompleteTask() called with non-null completion date and completed true.");
-    } else if (!completed && taskItem.completionDate.value == null) {
+    } else if (!completed && taskItem.completionDate == null) {
       throw new ArgumentError("CompleteTask() called with null completion date and completed false.");
     }
 
@@ -126,11 +128,10 @@ class TaskHelper {
     });
 
     DateTime? completionDate = completed ? DateTime.now() : null;
-    TaskItem? nextScheduledTask = maybeCreateNextIteration(taskItem, completed, completionDate);
+    TaskItemForm? nextScheduledTask = maybeCreateNextIteration(taskItem, completed, completionDate);
 
     stateSetter(() {
-      taskItem.completionDate.value = completionDate;
-      taskItem.treatAsCommitted();
+      taskItem.completionDate = completionDate;
     });
 
     var inboundTask = await repository.completeTask(taskItem);
@@ -150,7 +151,7 @@ class TaskHelper {
   }
 
   Future<void> deleteTask(TaskItem taskItem, StateSetter stateSetter) async {
-    int taskId = taskItem.id.value!;
+    int taskId = taskItem.id!;
     await repository.deleteTask(taskItem);
     print('Removal of task successful!');
     await appState.notificationScheduler.cancelNotificationsForTaskId(taskId);
@@ -161,8 +162,8 @@ class TaskHelper {
     appState.notificationScheduler.updateBadge();
   }
 
-  Future<TaskItem> updateTask(TaskItem taskItem) async {
-    var inboundTask = await repository.updateTask(taskItem);
+  Future<TaskItem> updateTask(TaskItem taskItem, TaskItemForm changes) async {
+    var inboundTask = await repository.updateTask(changes);
     stateSetter(() {
       _copyChanges(inboundTask, taskItem);
     });
@@ -171,26 +172,26 @@ class TaskHelper {
     return taskItem;
   }
 
-  void previewSnooze(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) {
-    _generatePreview(taskItem, numUnits, unitSize, dateType);
+  TaskItemForm previewSnooze(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) {
+    return _generatePreview(taskItem, numUnits, unitSize, dateType);
   }
 
   Future<TaskItem> snoozeTask(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) async {
-    _generatePreview(taskItem, numUnits, unitSize, dateType);
+    TaskItemForm changes = _generatePreview(taskItem, numUnits, unitSize, dateType);
 
-    var relevantDateField = dateType.dateFieldGetter(taskItem);
+    var relevantDateField = dateType.dateFieldGetter(changes);
 
-    DateTime? originalValue = relevantDateField.originalValue;
+    DateTime? originalValue = relevantDateField;
 
-    TaskItem updatedTask = await updateTask(taskItem);
+    TaskItem updatedTask = await updateTask(taskItem, changes);
 
     Snooze snooze = new Snooze(
-        taskId: updatedTask.id.value!,
+        taskId: updatedTask.id!,
         snoozeNumber: numUnits,
         snoozeUnits: unitSize,
         snoozeAnchor: dateType.label,
         previousAnchor: originalValue,
-        newAnchor: relevantDateField.value!);
+        newAnchor: relevantDateField!);
 
     await repository.addSnoozeSerializable(snooze);
     return updatedTask;
@@ -212,19 +213,23 @@ class TaskHelper {
 
   // private helpers
 
-  void _generatePreview(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) {
+  TaskItemForm _generatePreview(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) {
+    TaskItemForm taskItemForm = taskItem.createChangeTemplate();
+
     DateTime snoozeDate = DateTime.now();
     DateTime adjustedDate = _getAdjustedDate(snoozeDate, numUnits, unitSize);
 
-    var relevantDateField = dateType.dateFieldGetter(taskItem);
-    DateTime? relevantDate = relevantDateField.value;
+    var relevantDateField = dateType.dateFieldGetter(taskItemForm);
+    DateTime? relevantDate = relevantDateField;
 
     if (relevantDate == null) {
-      relevantDateField.value = adjustedDate;
+      relevantDateField = adjustedDate;
     } else {
       Duration difference = adjustedDate.difference(relevantDate);
-      TaskDateTypes.allTypes.forEach((taskDateType) => taskItem.incrementDateIfExists(taskDateType, difference));
+      TaskDateTypes.allTypes.forEach((taskDateType) => taskItemForm.incrementDateIfExists(taskDateType, difference));
     }
+
+    return taskItemForm;
   }
 
 
@@ -265,12 +270,29 @@ class TaskHelper {
     }
   }
 
+  // todo: make more dynamic?
   void _copyChanges(TaskItem inboundTask, TaskItem outboundTask) {
-    for (TaskField field in outboundTask.fields) {
-      var inboundField = inboundTask.getTaskField(field.fieldName)!;
-      field.value = inboundField.value;
-    }
-    outboundTask.treatAsCommitted();
+    outboundTask.id = inboundTask.id;
+    outboundTask.personId = inboundTask.personId;
+    outboundTask.name = inboundTask.name;
+    outboundTask.description = inboundTask.description;
+    outboundTask.project = inboundTask.project;
+    outboundTask.context = inboundTask.context;
+    outboundTask.urgency = inboundTask.urgency;
+    outboundTask.priority = inboundTask.priority;
+    outboundTask.duration = inboundTask.duration;
+    outboundTask.dateAdded = inboundTask.dateAdded;
+    outboundTask.startDate = inboundTask.startDate;
+    outboundTask.targetDate = inboundTask.targetDate;
+    outboundTask.dueDate = inboundTask.dueDate;
+    outboundTask.completionDate = inboundTask.completionDate;
+    outboundTask.urgentDate = inboundTask.urgentDate;
+    outboundTask.gamePoints = inboundTask.gamePoints;
+    outboundTask.recurNumber = inboundTask.recurNumber;
+    outboundTask.recurUnit = inboundTask.recurUnit;
+    outboundTask.recurWait = inboundTask.recurWait;
+    outboundTask.recurrenceId = inboundTask.recurrenceId;
+    outboundTask.recurIteration = inboundTask.recurIteration;
   }
 
 }

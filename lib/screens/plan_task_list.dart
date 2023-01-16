@@ -56,7 +56,7 @@ class PlanTaskListState extends State<PlanTaskList> {
       final Iterable<TaskItem> dueOrUrgentTasks = baseList.where((taskItem) =>
           taskItem.isDueBefore(endDate) ||
           taskItem.isUrgentBefore(endDate) ||
-          taskItem.sprints.contains(lastSprint)
+          taskItem.sprintAssignments.contains(lastSprint)
       );
       sprintQueued.addAll(dueOrUrgentTasks);
     }
@@ -77,7 +77,7 @@ class PlanTaskListState extends State<PlanTaskList> {
       sprint: null,
       stateSetter: (callback) => setState(() => callback()),
       addMode: true,
-      highlightSprint: taskItem.sprints.contains(lastSprint),
+      highlightSprint: taskItem.sprintAssignments.contains(lastSprint),
       initialCheckState: sprintQueued.contains(taskItem) ? CheckState.checked : CheckState.inactive,
       onTaskAssignmentToggle: (checkState) {
         var alreadyQueued = sprintQueued.contains(taskItem);
@@ -85,12 +85,12 @@ class PlanTaskListState extends State<PlanTaskList> {
           setState(() {
             sprintQueued.remove(taskItem);
           });
-          return Future.value(CheckState.inactive);
+          return Future(CheckState.inactive);
         } else {
           setState(() {
             sprintQueued.add(taskItem);
           });
-          return Future.value(CheckState.checked);
+          return Future(CheckState.checked);
         }
       },
     );
@@ -100,7 +100,7 @@ class PlanTaskListState extends State<PlanTaskList> {
     DateTime endDate = getEndDate();
     List<TaskItem> filtered = taskItems.where((taskItem) {
       return !taskItem.isScheduledAfter(endDate) && !taskItem.isCompleted() &&
-          (widget.sprint == null || !taskItem.sprints.contains(widget.sprint));
+          (widget.sprint == null || !taskItem.sprintAssignments.contains(widget.sprint));
     }).toList();
     return filtered;
   }
@@ -111,7 +111,7 @@ class PlanTaskListState extends State<PlanTaskList> {
   }
 
   bool wasInEarlierSprint(TaskItem taskItem) {
-    var sprints = taskItem.sprints.where((sprint) => sprint != lastSprint);
+    var sprints = taskItem.sprintAssignments.where((sprint) => sprint != lastSprint);
     return sprints.isNotEmpty;
   }
 
@@ -121,12 +121,12 @@ class PlanTaskListState extends State<PlanTaskList> {
       eligibleItems.addAll(widget.sprint!.taskItems);
     }
     DateTime endDate = getEndDate();
-    Iterable<TaskItem> recurItems = eligibleItems.where((TaskItem taskItem) => taskItem.recurrenceId.value != null);
-    Map<int, Iterable<TaskItem>> groupedByRecurrence = groupBy(recurItems, (TaskItem taskItem) => taskItem.recurrenceId.value!);
+    Iterable<TaskItem> recurItems = eligibleItems.where((TaskItem taskItem) => taskItem.recurrenceId != null);
+    Map<int, Iterable<TaskItem>> groupedByRecurrence = groupBy(recurItems, (TaskItem taskItem) => taskItem.recurrenceId!);
     groupedByRecurrence.forEach((int recurrenceId, Iterable<TaskItem> taskItems) {
-      List<TaskItem> sortedItems = taskItems.sorted((TaskItem t1, TaskItem t2) => t1.recurIteration.value!.compareTo(t2.recurIteration.value!));
+      List<TaskItem> sortedItems = taskItems.sorted((TaskItem t1, TaskItem t2) => t1.recurIteration!.compareTo(t2.recurIteration!));
       TaskItem newest = sortedItems.last;
-      if (newest.recurWait.value == false) {
+      if (newest.recurWait == false) {
         addNextIterations(newest, endDate, eligibleItems);
       }
     });
@@ -232,13 +232,13 @@ class PlanTaskListState extends State<PlanTaskList> {
   }
 
   bool matchesId(TaskItem a, TaskItem b) {
-    return a.id.value != null && b.id.value != null && a.id.value == b.id.value;
+    return a.id != null && b.id != null && a.id == b.id;
   }
 
   bool tempMatches(TaskItem a, TaskItem b) {
-    return a.id.value == null && b.id.value == null &&
-        a.recurrenceId.value == b.recurrenceId.value &&
-        a.recurIteration.value == b.recurIteration.value;
+    return a.id == null && b.id == null &&
+        a.recurrenceId == b.recurrenceId &&
+        a.recurIteration == b.recurIteration;
   }
 
   Future<void> createSelectedIterations() async {
@@ -251,7 +251,7 @@ class PlanTaskListState extends State<PlanTaskList> {
 
     for (TaskItem taskItem in toAdd) {
       TaskItem addedTask = await widget.taskHelper.addTask(taskItem);
-      print('Adding (${taskItem.recurrenceId.value}, ${taskItem.recurIteration.value})');
+      print('Adding (${taskItem.recurrenceId}, ${taskItem.recurIteration})');
       sprintQueued.remove(taskItem);
       sprintQueued.add(addedTask);
       idCheck();
@@ -261,10 +261,10 @@ class PlanTaskListState extends State<PlanTaskList> {
   }
 
   void idCheck() {
-    var withoutId = sprintQueued.where((TaskItem taskItem) => taskItem.id.value == null);
+    var withoutId = sprintQueued.where((TaskItem taskItem) => taskItem.id == null);
     print('${withoutId.length} items still remain without an ID!');
     for (var item in withoutId) {
-      print('Item: (${item.recurrenceId.value}, ${item.recurIteration.value})');
+      print('Item: (${item.recurrenceId}, ${item.recurIteration})');
     }
   }
 

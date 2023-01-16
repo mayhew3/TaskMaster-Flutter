@@ -10,6 +10,7 @@ import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/snooze.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/models/task_item_form.dart';
 
 class TaskRepository {
   AppState appState;
@@ -72,7 +73,7 @@ class TaskRepository {
 
         List tasks = jsonObj['tasks'];
         for (var taskJson in tasks) {
-          TaskItem taskItem = TaskItem.fromJson(taskJson, sprintList);
+          TaskItem taskItem = TaskItem.fromJson(taskJson);
           taskList.add(taskItem);
         }
 
@@ -90,15 +91,12 @@ class TaskRepository {
     }
   }
 
-  Future<TaskItem> addTask(TaskItem taskItem) async {
+  Future<TaskItem> addTask(TaskItemForm taskItemForm) async {
     if (!appState.isAuthenticated()) {
       throw Exception("Cannot add task before being signed in.");
     }
-    if (appState.personId == null) {
-      throw Exception("Cannot add task with no personId.");
-    }
 
-    var taskObj = taskItem.toJSONWithout(TaskItem.controlledFields);
+    var taskObj = taskItemForm.toJson();
     taskObj['person_id'] = appState.personId;
 
     var payload = {
@@ -124,7 +122,7 @@ class TaskRepository {
   Future<void> addTasksToSprint(List<TaskItem> taskItems, Sprint sprint) async {
     List<int> taskIds = [];
     for (TaskItem taskItem in taskItems) {
-      taskIds.add(taskItem.id.value!);
+      taskIds.add(taskItem.id!);
     }
 
     Map<String, Object> payload = {
@@ -136,6 +134,15 @@ class TaskRepository {
   }
 
 
+  String? formatForJson(DateTime? dateTime) {
+    if (dateTime == null) {
+      return null;
+    } else {
+      var utc = dateTime.toUtc();
+      return utc.toIso8601String();
+    }
+  }
+
   Future<TaskItem> completeTask(TaskItem taskItem) {
     if (!appState.isAuthenticated()) {
       throw Exception("Cannot update task before being signed in.");
@@ -143,22 +150,21 @@ class TaskRepository {
 
     var payload = {
       "task": {
-        "id": taskItem.id.formatForJSON(),
-        "completion_date": taskItem.completionDate.formatForJSON(),
-        "recurrence_id": taskItem.recurrenceId.formatForJSON(),
+        "id": taskItem.id,
+        "completion_date": formatForJson(taskItem.completionDate),
+        "recurrence_id": taskItem.recurrenceId,
       }
     };
 
     return _addOrUpdateJSON(payload, 'update');
   }
 
-  Future<TaskItem> updateTask(TaskItem taskItem) async {
+  Future<TaskItem> updateTask(TaskItemForm taskItemForm) async {
     if (!appState.isAuthenticated()) {
       throw Exception("Cannot update task before being signed in.");
     }
 
-    var taskObj = taskItem.toJSONWithout(TaskItem.controlledFields);
-    taskObj['id'] = taskItem.id.value;
+    var taskObj = taskItemForm.toJson();
 
     var payload = {
       "task": taskObj
@@ -172,7 +178,7 @@ class TaskRepository {
     }
 
     var queryParameters = {
-      'task_id': taskItem.id.value.toString()
+      'task_id': taskItem.id.toString()
     };
 
     var uri = getUriWithParameters('/api/tasks', queryParameters);
@@ -204,7 +210,7 @@ class TaskRepository {
     if (response.statusCode == 200) {
       try {
         var jsonObj = json.decode(response.body);
-        TaskItem inboundTask = TaskItem.fromJson(jsonObj, this.appState.sprints);
+        TaskItem inboundTask = TaskItem.fromJson(jsonObj);
         return inboundTask;
       } catch(exception, stackTrace) {
         print(exception);

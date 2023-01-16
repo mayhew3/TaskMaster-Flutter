@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/sprint.dart';
@@ -48,11 +47,11 @@ class EditableTaskItemWidget extends StatelessWidget {
 
   Color getBackgroundColor() {
     var pending = taskItem.pendingCompletion;
-    var due = hasPassed(taskItem.dueDate.value);
-    var urgent = hasPassed(taskItem.urgentDate.value);
-    var target = hasPassed(taskItem.targetDate.value);
+    var due = hasPassed(taskItem.dueDate);
+    var urgent = hasPassed(taskItem.urgentDate);
+    var target = hasPassed(taskItem.targetDate);
     var scheduled = taskItem.isScheduled();
-    var completed = taskItem.completionDate.value != null;
+    var completed = taskItem.completionDate != null;
 
     if (pending) {
       return TaskColors.pendingBackground;
@@ -72,7 +71,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   }
 
   String getStringForDateType(TaskDateType taskDateType) {
-    DateTime? dateValue = taskDateType.dateFieldGetter(taskItem).value;
+    DateTime? dateValue = taskDateType.dateFieldGetter(taskItem);
     bool isPast = dateValue == null ? false : dateValue.isBefore(DateTime.now());
     String formatted = formatDateTime(dateValue);
     String label = taskDateType.label;
@@ -89,7 +88,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   }
 
   String getDueDateString() {
-    var dueDate = taskItem.dueDate.value;
+    var dueDate = taskItem.dueDate;
     if (dueDate == null) {
       return '';
     } else if (taskItem.isPastDue()) {
@@ -110,14 +109,14 @@ class EditableTaskItemWidget extends StatelessWidget {
 
   bool dueInThreshold(int thresholdDays) {
     DateTime inXDays = DateTime.now().add(Duration(days: thresholdDays));
-    var dueDate = taskItem.dueDate.value;
+    var dueDate = taskItem.dueDate;
     return dueDate != null && dueDate.isBefore(inXDays);
   }
 
   bool dateInFutureThreshold(TaskDateType taskDateType, int thresholdDays) {
     DateTime inXDays = DateTime.now().add(Duration(days: thresholdDays));
     var dateField = taskDateType.dateFieldGetter(taskItem);
-    var dateValue = dateField.value;
+    var dateValue = dateField;
     return dateValue != null &&
         dateValue.isAfter(DateTime.now()) &&
         dateValue.isBefore(inXDays);
@@ -133,7 +132,7 @@ class EditableTaskItemWidget extends StatelessWidget {
         inactiveIcon: Icons.add,
       );
     } else {
-      var completed = taskItem.completionDate.value != null;
+      var completed = taskItem.completionDate != null;
 
       return DelayedCheckbox(
         initialState: completed ? CheckState.checked : CheckState.inactive,
@@ -159,7 +158,7 @@ class EditableTaskItemWidget extends StatelessWidget {
       ];
 
       for (TaskDateType taskDateType in reversed) {
-        var dateValue = taskDateType.dateFieldGetter(taskItem).value;
+        var dateValue = taskDateType.dateFieldGetter(taskItem);
         if (!taskItem.isCompleted() &&
             hasPassed(dateValue) &&
             dateValue != null &&
@@ -262,7 +261,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   Widget build(BuildContext context) {
 
     return Dismissible(
-      key: TaskMasterKeys.taskItem(taskItem.id.value.toString()),
+      key: TaskMasterKeys.taskItem(taskItem.id.toString()),
       confirmDismiss: onDismissed,
       child: GestureDetector(
         onTap: onTap,
@@ -299,13 +298,13 @@ class EditableTaskItemWidget extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                            taskItem.name.value!,
+                            taskItem.name!,
                             style: _getHeaderStyle(),
                         ),
                         Visibility(
-                          visible: taskItem.project.value != null,
+                          visible: taskItem.project != null,
                           child: Text(
-                            taskItem.project.value == null ? '' : taskItem.project.value!,
+                            taskItem.project == null ? '' : taskItem.project!,
                             style: const TextStyle(fontSize: 12.0,
                                 color: Colors.white70),
                           ),

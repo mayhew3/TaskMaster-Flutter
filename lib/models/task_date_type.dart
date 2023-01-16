@@ -1,6 +1,5 @@
 
 import 'package:flutter/material.dart';
-import 'package:taskmaster/models/task_field.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/typedefs.dart';
 
@@ -72,8 +71,7 @@ class TaskDateType {
   });
 
   bool inListBeforeDisplayThreshold(TaskItem taskItem) {
-    TaskFieldDate dateField = this.dateFieldGetter(taskItem);
-    var dateFieldValue = dateField.value;
+    DateTime? dateFieldValue = this.dateFieldGetter(taskItem);
     if (dateFieldValue == null ||
         dateFieldValue.isBefore(DateTime.now())) {
       return false;
@@ -88,8 +86,7 @@ class TaskDateType {
   }
 
   bool inListAfterDisplayThreshold(TaskItem taskItem) {
-    TaskFieldDate dateField = this.dateFieldGetter(taskItem);
-    var dateFieldValue = dateField.value;
+    DateTime? dateFieldValue = this.dateFieldGetter(taskItem);
     if (dateFieldValue == null ||
         dateFieldValue.isAfter(DateTime.now())) {
       return false;
