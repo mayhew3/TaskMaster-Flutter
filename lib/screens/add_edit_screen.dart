@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/models/task_item_form.dart';
+import 'package:taskmaster/models/task_item_blueprint.dart';
+import 'package:taskmaster/models/task_item_edit.dart';
 import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/clearable_date_time_field.dart';
@@ -40,7 +41,7 @@ class AddEditScreenState extends State<AddEditScreen> {
   bool _repeatOn = false;
   bool _initialRepeatOn = false;
 
-  late TaskItemForm fields;
+  late TaskItemBlueprint fields;
 
   @override
   void initState() {
@@ -48,7 +49,7 @@ class AddEditScreenState extends State<AddEditScreen> {
 
     _hasChanges = false;
 
-    fields = widget.taskItem.createChangeTemplate();
+    fields = widget.isEditing ? widget.taskItem.createEditTemplate() : widget.taskItem.createBlueprint();
 
     _initialRepeatOn = fields.recurNumber != null;
     _repeatOn = _initialRepeatOn;
@@ -455,16 +456,17 @@ class AddEditScreenState extends State<AddEditScreen> {
               form.save();
 
               if (widget.isEditing) {
-                if (_repeatOn && fields.recurrenceId == null) {
-                  fields.recurrenceId = fields.id;
-                  fields.recurIteration = 1;
+                var editing = fields as TaskItemEdit;
+                if (_repeatOn && editing.recurrenceId == null) {
+                  editing.recurrenceId = editing.id;
+                  editing.recurIteration = 1;
                 }
-                var updatedItem = await widget.taskHelper.updateTask(widget.taskItem, fields);
+                var updatedItem = await widget.taskHelper.updateTask(widget.taskItem, editing);
                 var taskItemRefresher2 = widget.taskItemRefresher;
                 if (taskItemRefresher2 != null) {
                   taskItemRefresher2(updatedItem);
-                } else {
                 }
+              } else {
                 if (_repeatOn) {
                   fields.recurIteration = 1;
                 }

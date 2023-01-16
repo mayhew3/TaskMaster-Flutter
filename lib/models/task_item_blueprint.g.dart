@@ -1,14 +1,13 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'task_item.dart';
+part of 'task_item_blueprint.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-TaskItem _$TaskItemFromJson(Map<String, dynamic> json) => TaskItem(
-      personId: json['person_id'] as int,
-    )
+TaskItemBlueprint _$TaskItemBlueprintFromJson(Map<String, dynamic> json) =>
+    TaskItemBlueprint()
       ..name = json['name'] as String?
       ..description = json['description'] as String?
       ..project = json['project'] as String?
@@ -39,13 +38,9 @@ TaskItem _$TaskItemFromJson(Map<String, dynamic> json) => TaskItem(
       ..recurUnit = json['recur_unit'] as String?
       ..recurWait = json['recur_wait'] as bool?
       ..recurrenceId = json['recurrence_id'] as int?
-      ..recurIteration = json['recur_iteration'] as int?
-      ..id = json['id'] as int?
-      ..sprintAssignments = (json['sprint_assignments'] as List<dynamic>)
-          .map((e) => Sprint.fromJson(e as Map<String, dynamic>))
-          .toList();
+      ..recurIteration = json['recur_iteration'] as int?;
 
-Map<String, dynamic> _$TaskItemToJson(TaskItem instance) {
+Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) {
   final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {
@@ -73,8 +68,5 @@ Map<String, dynamic> _$TaskItemToJson(TaskItem instance) {
   writeNotNull('recur_wait', instance.recurWait);
   writeNotNull('recurrence_id', instance.recurrenceId);
   writeNotNull('recur_iteration', instance.recurIteration);
-  writeNotNull('id', instance.id);
-  val['person_id'] = instance.personId;
-  val['sprint_assignments'] = instance.sprintAssignments;
   return val;
 }

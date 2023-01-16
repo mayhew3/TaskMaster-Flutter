@@ -1,9 +1,7 @@
 import 'package:taskmaster/models/sprint.dart';
-import 'package:taskmaster/models/task_date_type.dart';
-import 'package:taskmaster/models/task_field.dart';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:taskmaster/models/task_item_form.dart';
+import 'package:taskmaster/models/task_item_edit.dart';
 
 /// This allows the `Sprint` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
@@ -11,34 +9,19 @@ import 'package:taskmaster/models/task_item_form.dart';
 part 'task_item.g.dart';
 
 @JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
-class TaskItem extends TaskItemForm {
-
-  int personId;
-
-  List<Sprint> sprintAssignments = [];
-
-  @JsonKey(ignore: true)
-  bool pendingCompletion = false;
+class TaskItem extends TaskItemEdit {
 
   TaskItem({
-    required this.personId
-  });
+    required int personId
+  }): super(personId: personId);
 
-  void addToSprints(Sprint sprint) {
-    if (!sprintAssignments.contains(sprint)) {
-      sprintAssignments.add(sprint);
-    }
-  }
-
-  bool isInActiveSprint() {
-    var matching = sprintAssignments.where((sprint) => sprint.isActive());
-    return matching.isNotEmpty;
+  @override
+  bool isEditable() {
+    return false;
   }
 
   TaskItem createCopy() {
-    var fields = new TaskItem(
-        personId: this.personId,
-    );
+    var fields = new TaskItem(personId: this.personId);
 
     // todo: make more dynamic?
     fields.id = id;
@@ -63,22 +46,6 @@ class TaskItem extends TaskItemForm {
     fields.recurIteration = recurIteration;
 
     return fields;
-  }
-
-  DateTime? getFinishedCompletionDate() {
-    return pendingCompletion ? null : completionDate;
-  }
-
-  DateTime? getLastDateBefore(TaskDateType taskDateType) {
-    var allDates = [startDate, targetDate, urgentDate, dueDate];
-    var pastDates = allDates.where((dateTime) => dateTime != null && hasPassed(dateTime));
-
-    return pastDates.reduce((a, b) => a!.isAfter(b!) ? a : b);
-  }
-
-  bool isScheduledRecurrence() {
-    var recurWaitValue = recurWait;
-    return recurWaitValue != null && !recurWaitValue;
   }
 
   /// A necessary factory constructor for creating a new User instance

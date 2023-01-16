@@ -4,12 +4,10 @@ import 'package:taskmaster/models/task_date_type.dart';
 /// This allows the `Sprint` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
 /// the star denotes the source file name.
-part 'task_item_form.g.dart';
+part 'task_item_blueprint.g.dart';
 
 @JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
-class TaskItemForm {
-
-  int? id;
+class TaskItemBlueprint {
 
   String? name;
   String? description;
@@ -39,14 +37,13 @@ class TaskItemForm {
   /// `toJson` is the convention for a class to declare support for serialization
   /// to JSON. The implementation simply calls the private, generated
   /// helper method `_$TaskItemFormToJson`.
-  Map<String, dynamic> toJson() => _$TaskItemFormToJson(this);
+  Map<String, dynamic> toJson() => _$TaskItemBlueprintToJson(this);
 
-  TaskItemForm createChangeTemplate() {
+  TaskItemBlueprint createBlueprint() {
 
-    TaskItemForm fields = TaskItemForm();
+    TaskItemBlueprint fields = TaskItemBlueprint();
 
     // todo: make more dynamic?
-    fields.id = id;
     fields.name = name;
     fields.description = description;
     fields.project = project;
@@ -123,6 +120,18 @@ class TaskItemForm {
     return hasPassed(targetDate);
   }
 
+  DateTime? getLastDateBefore(TaskDateType taskDateType) {
+    var allDates = [startDate, targetDate, urgentDate, dueDate];
+    var pastDates = allDates.where((dateTime) => dateTime != null && hasPassed(dateTime));
+
+    return pastDates.reduce((a, b) => a!.isAfter(b!) ? a : b);
+  }
+
+  bool isScheduledRecurrence() {
+    var recurWaitValue = recurWait;
+    return recurWaitValue != null && !recurWaitValue;
+  }
+
   TaskDateType? getAnchorDateType() {
     if (dueDate != null) {
       return TaskDateTypes.due;
@@ -139,6 +148,14 @@ class TaskItemForm {
 
   DateTime? getAnchorDate() {
     return getAnchorDateType()?.dateFieldGetter(this);
+  }
+
+  @override
+  String toString() {
+    return 'TaskItem{'
+        'name: $name, '
+        'dateAdded: $dateAdded, '
+        'completionDate: $completionDate}';
   }
 
 }

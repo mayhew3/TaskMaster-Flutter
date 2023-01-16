@@ -4,12 +4,13 @@ import 'package:taskmaster/date_util.dart';
 import 'package:taskmaster/models/snooze.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_date_type.dart';
+import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/task_repository.dart';
 
 import 'auth.dart';
 import 'app_state.dart';
 import 'models/task_item.dart';
-import 'models/task_item_form.dart';
+import 'models/task_item_edit.dart';
 import 'nav_helper.dart';
 import 'package:jiffy/jiffy.dart';
 
@@ -42,7 +43,7 @@ class TaskHelper {
     await appState.syncAllNotifications();
   }
 
-  Future<TaskItem> addTask(TaskItemForm taskItem) async {
+  Future<TaskItem> addTask(TaskItemBlueprint taskItem) async {
     TaskItem inboundTask = await repository.addTask(taskItem);
     stateSetter(() {
       var addedTask = appState.addNewTaskToList(inboundTask);
@@ -52,7 +53,7 @@ class TaskHelper {
     return inboundTask;
   }
 
-  TaskItemForm? maybeCreateNextIteration(TaskItem taskItem, bool completed, DateTime? completionDate) {
+  TaskItemEdit? maybeCreateNextIteration(TaskItem taskItem, bool completed, DateTime? completionDate) {
 
     var recurNumber = taskItem.recurNumber;
     var recurUnit = taskItem.recurUnit;
@@ -76,7 +77,7 @@ class TaskHelper {
     return null;
   }
 
-  TaskItemForm createNextIteration(TaskItemForm taskItem, DateTime completionDate) {
+  TaskItemEdit createNextIteration(TaskItemEdit taskItem, DateTime completionDate) {
 
     var recurNumber = taskItem.recurNumber!;
     var recurUnit = taskItem.recurUnit;
@@ -93,7 +94,7 @@ class TaskHelper {
     }
     DateTime nextAnchorDate;
 
-    TaskItemForm nextScheduledTask = taskItem.createChangeTemplate();
+    TaskItemEdit nextScheduledTask = taskItem.createEditTemplate();
 
     if (recurWait) {
       nextAnchorDate = _getAdjustedDate(completionDate, recurNumber, recurUnit);
@@ -128,7 +129,7 @@ class TaskHelper {
     });
 
     DateTime? completionDate = completed ? DateTime.now() : null;
-    TaskItemForm? nextScheduledTask = maybeCreateNextIteration(taskItem, completed, completionDate);
+    TaskItemEdit? nextScheduledTask = maybeCreateNextIteration(taskItem, completed, completionDate);
 
     stateSetter(() {
       taskItem.completionDate = completionDate;
@@ -162,7 +163,7 @@ class TaskHelper {
     appState.notificationScheduler.updateBadge();
   }
 
-  Future<TaskItem> updateTask(TaskItem taskItem, TaskItemForm changes) async {
+  Future<TaskItem> updateTask(TaskItem taskItem, TaskItemEdit changes) async {
     var inboundTask = await repository.updateTask(changes);
     stateSetter(() {
       _copyChanges(inboundTask, taskItem);
@@ -172,12 +173,12 @@ class TaskHelper {
     return taskItem;
   }
 
-  TaskItemForm previewSnooze(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) {
+  TaskItemEdit previewSnooze(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) {
     return _generatePreview(taskItem, numUnits, unitSize, dateType);
   }
 
   Future<TaskItem> snoozeTask(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) async {
-    TaskItemForm changes = _generatePreview(taskItem, numUnits, unitSize, dateType);
+    TaskItemEdit changes = _generatePreview(taskItem, numUnits, unitSize, dateType);
 
     var relevantDateField = dateType.dateFieldGetter(changes);
 
@@ -213,8 +214,8 @@ class TaskHelper {
 
   // private helpers
 
-  TaskItemForm _generatePreview(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) {
-    TaskItemForm taskItemForm = taskItem.createChangeTemplate();
+  TaskItemEdit _generatePreview(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) {
+    TaskItemEdit taskItemForm = taskItem.createEditTemplate();
 
     DateTime snoozeDate = DateTime.now();
     DateTime adjustedDate = _getAdjustedDate(snoozeDate, numUnits, unitSize);

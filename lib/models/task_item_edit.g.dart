@@ -1,12 +1,12 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'task_item.dart';
+part of 'task_item_edit.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-TaskItem _$TaskItemFromJson(Map<String, dynamic> json) => TaskItem(
+TaskItemEdit _$TaskItemEditFromJson(Map<String, dynamic> json) => TaskItemEdit(
       personId: json['person_id'] as int,
     )
       ..name = json['name'] as String?
@@ -45,7 +45,7 @@ TaskItem _$TaskItemFromJson(Map<String, dynamic> json) => TaskItem(
           .map((e) => Sprint.fromJson(e as Map<String, dynamic>))
           .toList();
 
-Map<String, dynamic> _$TaskItemToJson(TaskItem instance) {
+Map<String, dynamic> _$TaskItemEditToJson(TaskItemEdit instance) {
   final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {

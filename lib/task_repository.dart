@@ -10,7 +10,8 @@ import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/snooze.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/models/task_item_form.dart';
+import 'package:taskmaster/models/task_item_blueprint.dart';
+import 'package:taskmaster/models/task_item_edit.dart';
 
 class TaskRepository {
   AppState appState;
@@ -91,7 +92,7 @@ class TaskRepository {
     }
   }
 
-  Future<TaskItem> addTask(TaskItemForm taskItemForm) async {
+  Future<TaskItem> addTask(TaskItemBlueprint taskItemForm) async {
     if (!appState.isAuthenticated()) {
       throw Exception("Cannot add task before being signed in.");
     }
@@ -159,7 +160,7 @@ class TaskRepository {
     return _addOrUpdateJSON(payload, 'update');
   }
 
-  Future<TaskItem> updateTask(TaskItemForm taskItemForm) async {
+  Future<TaskItem> updateTask(TaskItemEdit taskItemForm) async {
     if (!appState.isAuthenticated()) {
       throw Exception("Cannot update task before being signed in.");
     }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:taskmaster/models/task_field.dart';
 import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/models/task_item_form.dart';
 import 'package:taskmaster/widgets/delayed_checkbox.dart';
+
+import 'models/task_item_blueprint.dart';
 
 typedef UserUpdater(GoogleSignInAccount? account);
 typedef IdTokenUpdater(String? idToken);
@@ -21,4 +21,4 @@ typedef List<TaskItem> TaskListGetter();
 
 typedef Future<CheckState> CheckCycleWaiter(CheckState startingState);
 
-typedef DateTime? DateFieldGetter(TaskItemForm taskItem);
+typedef DateTime? DateFieldGetter(TaskItemBlueprint taskItem);
