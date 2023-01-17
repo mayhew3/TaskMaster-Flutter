@@ -149,7 +149,8 @@ class PlanTaskListState extends State<PlanTaskList> {
   
   ListView _buildListView(BuildContext context) {
     widget.appState.notificationScheduler.updateHomeScreenContext(context);
-    final List<TaskItemEdit> otherTasks = getBaseList();
+    final List<TaskItemEdit> otherTasks = [];
+    otherTasks.addAll(getBaseList());
     otherTasks.addAll(tempIterations);
 
     DateTime endDate = getEndDate();

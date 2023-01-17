@@ -74,6 +74,14 @@ class TaskRepository {
         List tasks = jsonObj['tasks'];
         for (var taskJson in tasks) {
           TaskItem taskItem = TaskItem.fromJson(taskJson);
+          if (taskItem.sprintAssignments != null) {
+            for (var sprintAssignment in taskItem.sprintAssignments!) {
+              Iterable<Sprint> sprints = appState.sprints.where((sprint) => sprint.id == sprintAssignment.sprintId);
+              if (sprints.isNotEmpty) {
+                taskItem.sprints.add(sprints.first);
+              }
+            }
+          }
           taskList.add(taskItem);
         }
 

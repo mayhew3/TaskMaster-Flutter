@@ -209,11 +209,11 @@ final Map<String, dynamic> burnJSON = {
   ]
 };
 
-TaskItem catLitterTask = TaskItem.fromJson(catLitterJSON, allSprints);
-TaskItem birthdayTask = TaskItem.fromJson(birthdayJSON, allSprints);
-TaskItem futureTask = TaskItem.fromJson(futureJSON, allSprints);
-TaskItem pastTask = TaskItem.fromJson(pastJSON, allSprints);
-TaskItem burnTask = TaskItem.fromJson(burnJSON, allSprints);
+TaskItem catLitterTask = TaskItem.fromJson(catLitterJSON);
+TaskItem birthdayTask = TaskItem.fromJson(birthdayJSON);
+TaskItem futureTask = TaskItem.fromJson(futureJSON);
+TaskItem pastTask = TaskItem.fromJson(pastJSON);
+TaskItem burnTask = TaskItem.fromJson(burnJSON);
 
 List<TaskItem> allTasks = [catLitterTask, birthdayTask, futureTask, pastTask, burnTask];
 

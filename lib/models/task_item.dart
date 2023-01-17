@@ -1,6 +1,7 @@
 import 'package:taskmaster/models/sprint.dart';
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/task_item_edit.dart';
 
 /// This allows the `Sprint` class to access private members in
@@ -10,6 +11,8 @@ part 'task_item.g.dart';
 
 @JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
 class TaskItem extends TaskItemEdit {
+
+  List<SprintAssignment>? sprintAssignments;
 
   TaskItem({
     required int personId
