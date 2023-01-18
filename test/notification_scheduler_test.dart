@@ -101,17 +101,17 @@ void main() {
 
     var dueRequest = requests.singleWhere((notification) => notification.payload == 'task:${taskItem.id}:due');
     expect(dueRequest, isNot(null));
-    expect(dueRequest.notificationDate, dueDate);
+    expect(dueRequest.notificationDate, dueDate?.toLocal());
     expect(dueRequest.title, '${taskItem.name} (due)');
 
     var twoHourRequest = requests.singleWhere((notification) => notification.payload == 'task:${taskItem.id}:dueTwoHours');
     expect(twoHourRequest, isNot(null));
-    expect(twoHourRequest.notificationDate, twoHoursBefore);
+    expect(twoHourRequest.notificationDate, twoHoursBefore?.toLocal());
     expect(twoHourRequest.title, '${taskItem.name} (due 2 hours)');
 
     var oneDayRequest = requests.singleWhere((notification) => notification.payload == 'task:${taskItem.id}:dueOneDay');
     expect(oneDayRequest, isNot(null));
-    expect(oneDayRequest.notificationDate, oneDayBefore);
+    expect(oneDayRequest.notificationDate, oneDayBefore?.toLocal());
     expect(oneDayRequest.title, '${taskItem.name} (due 1 day)');
   }
 
