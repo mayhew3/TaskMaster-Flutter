@@ -53,40 +53,15 @@ class TaskRepository {
 
     if (response.statusCode == 200) {
       try {
-        List<TaskItem> taskList = [];
-        List<Sprint> sprintList = [];
-
         var jsonObj = json.decode(response.body);
 
-        int personId = jsonObj['person_id'];
-        appState.personId = personId;
-
-        List sprints = jsonObj['sprints'];
-        for (var sprintJson in sprints) {
-          Sprint sprint = Sprint.fromJson(sprintJson);
-          sprintList.add(sprint);
-        }
+        appState.personId = jsonObj['person_id'];
 
         stateSetter(() {
-          appState.sprints = sprintList;
-        });
+          List<Sprint> sprints = jsonObj['sprints'].map((sprint) => Sprint.fromJson(sprint));
+          List<TaskItem> taskItems = jsonObj['tasks'].map((task) => TaskItem.fromJson(task));
 
-        List tasks = jsonObj['tasks'];
-        for (var taskJson in tasks) {
-          TaskItem taskItem = TaskItem.fromJson(taskJson);
-          if (taskItem.sprintAssignments != null) {
-            for (var sprintAssignment in taskItem.sprintAssignments!) {
-              Iterable<Sprint> sprints = appState.sprints.where((sprint) => sprint.id == sprintAssignment.sprintId);
-              if (sprints.isNotEmpty) {
-                taskItem.sprints.add(sprints.first);
-              }
-            }
-          }
-          taskList.add(taskItem);
-        }
-
-        stateSetter(() {
-          appState.taskItems = taskList;
+          appState.updateTasksAndSprints(taskItems, sprints);
         });
 
       } catch(exception, stackTrace) {
