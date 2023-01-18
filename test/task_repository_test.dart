@@ -81,10 +81,10 @@ void main() {
 
       verify(taskRepository.client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")));
 
-      expect(returnedItem.id.value, id);
-      expect(returnedItem.name.value, addedItem.name.value);
-      expect(returnedItem.personId.value, 1);
-      expect(returnedItem.dateAdded.value, isNot(null));
+      expect(returnedItem.id, id);
+      expect(returnedItem.name, addedItem.name);
+      expect(returnedItem.personId, 1);
+      expect(returnedItem.dateAdded, isNot(null));
     });
 
     test('updateTask', () async {
@@ -107,17 +107,17 @@ void main() {
       var newProject = "Groovy Time";
       var newTargetDate = DateTime.now().add(Duration(days: 3));
 
-      taskItem.project.value = newProject;
-      taskItem.targetDate.value = newTargetDate;
+      taskItem.project = newProject;
+      taskItem.targetDate = newTargetDate;
 
       var returnedItem = await taskRepository.updateTask(taskItem);
 
       verify(taskRepository.client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")));
 
-      expect(returnedItem.project.value, newProject);
-      expect(returnedItem.project.originalValue, newProject);
-      expect(returnedItem.targetDate.value, newTargetDate);
-      expect(returnedItem.targetDate.originalValue, newTargetDate);
+      expect(returnedItem.project, newProject);
+      expect(returnedItem.project, newProject);
+      expect(returnedItem.targetDate, newTargetDate);
+      expect(returnedItem.targetDate, newTargetDate);
 
     });
 

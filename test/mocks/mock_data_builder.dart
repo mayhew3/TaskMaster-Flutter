@@ -25,29 +25,27 @@ class TaskItemBuilder {
   TaskItemBuilder();
 
   TaskItem create() {
-    TaskItem taskItem = new TaskItem();
+    TaskItem taskItem = new TaskItem(personId: 1);
 
-    taskItem.id.value = id;
-    taskItem.name.value = name;
-    taskItem.description.value = description;
-    taskItem.project.value = project;
-    taskItem.context.value = context;
-    taskItem.urgency.value = urgency;
-    taskItem.priority.value = priority;
-    taskItem.duration.value = duration;
-    taskItem.dateAdded.value = dateAdded;
-    taskItem.startDate.value = startDate;
-    taskItem.targetDate.value = targetDate;
-    taskItem.urgentDate.value = urgentDate;
-    taskItem.dueDate.value = dueDate;
-    taskItem.completionDate.value = completionDate;
-    taskItem.gamePoints.value = gamePoints;
-    taskItem.recurNumber.value = recurNumber;
-    taskItem.recurUnit.value = recurUnit;
-    taskItem.recurWait.value = recurWait;
-    taskItem.recurrenceId.value = recurrenceId;
-
-    taskItem.treatAsCommitted();
+    taskItem.id = id;
+    taskItem.name = name;
+    taskItem.description = description;
+    taskItem.project = project;
+    taskItem.context = context;
+    taskItem.urgency = urgency;
+    taskItem.priority = priority;
+    taskItem.duration = duration;
+    taskItem.dateAdded = dateAdded;
+    taskItem.startDate = startDate;
+    taskItem.targetDate = targetDate;
+    taskItem.urgentDate = urgentDate;
+    taskItem.dueDate = dueDate;
+    taskItem.completionDate = completionDate;
+    taskItem.gamePoints = gamePoints;
+    taskItem.recurNumber = recurNumber;
+    taskItem.recurUnit = recurUnit;
+    taskItem.recurWait = recurWait;
+    taskItem.recurrenceId = recurrenceId;
 
     return taskItem;
   }
