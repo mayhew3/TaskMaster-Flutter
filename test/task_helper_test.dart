@@ -242,12 +242,9 @@ void main() {
   test('previewSnooze move multiple', () {
     var taskItem = TaskItemBuilder
         .withDates()
-        .create();
+        .create().createEditTemplate();
 
     var taskHelper = createTaskHelper();
-
-    var originalDue = taskItem.dueDate;
-    var originalTarget = taskItem.targetDate;
 
     taskHelper.previewSnooze(taskItem, 6, 'Days', TaskDateTypes.target);
 
@@ -255,13 +252,11 @@ void main() {
     var diffTarget = newTarget.difference(DateUtil.withoutMillis(DateTime.now())).inDays;
 
     expect(diffTarget, 6, reason: 'Expect Target date to be in 6 days.');
-    expect(taskItem.targetDate, originalTarget);
 
     var newDue = DateUtil.withoutMillis(taskItem.dueDate!);
     var diffDue = newDue.difference(DateUtil.withoutMillis(DateTime.now())).inDays;
 
     expect(diffDue, 13, reason: 'Expect Due date to be in 13 days.');
-    expect(taskItem.dueDate, originalDue);
 
   });
 
@@ -269,7 +264,7 @@ void main() {
   test('previewSnooze add start', () {
     var taskItem = TaskItemBuilder
         .asDefault()
-        .create();
+        .create().createEditTemplate();
 
     var taskHelper = createTaskHelper();
 
@@ -279,7 +274,6 @@ void main() {
     var diffDue = newStart.difference(DateUtil.withoutMillis(DateTime.now())).inDays;
 
     expect(diffDue, 4, reason: 'Expect Start date to be 4 days from now.');
-    expect(taskItem.startDate, null);
 
   });
 
@@ -295,9 +289,11 @@ void main() {
 
     var originalTarget = taskItem.targetDate;
 
-    when(taskRepository.updateTask(taskItem)).thenAnswer((_) => Future.value(TaskItem.fromJson(taskItem.toJson())));
+    var taskItemEdit = taskItem.createEditTemplate();
 
-    var returnedItem = await taskHelper.snoozeTask(taskItem, 6, 'Days', TaskDateTypes.target);
+    when(taskRepository.updateTask(taskItemEdit)).thenAnswer((_) => Future.value(TaskItem.fromJson(taskItem.toJson())));
+
+    var returnedItem = await taskHelper.snoozeTask(taskItem, taskItemEdit, 6, 'Days', TaskDateTypes.target);
 /*
 
     Snooze snooze = verify(taskRepository.addSnooze(captureThat(isA<Snooze>()))).captured.single;
@@ -337,9 +333,11 @@ void main() {
 
     var originalStart = taskItem.startDate;
 
-    when(taskRepository.updateTask(taskItem)).thenAnswer((_) => Future.value(TaskItem.fromJson(taskItem.toJson())));
+    var taskItemEdit = taskItem.createEditTemplate();
 
-    var returnedItem = await taskHelper.snoozeTask(taskItem, 4, 'Days', TaskDateTypes.start);
+    when(taskRepository.updateTask(taskItemEdit)).thenAnswer((_) => Future.value(TaskItem.fromJson(taskItem.toJson())));
+
+    var returnedItem = await taskHelper.snoozeTask(taskItem, taskItemEdit, 4, 'Days', TaskDateTypes.start);
 /*
 
     Snooze snooze = verify(taskRepository.addSnooze(captureThat(isA<Snooze>()))).captured.single;

@@ -923,50 +923,28 @@ class MockTaskHelper extends _i1.Mock implements _i15.TaskHelper {
         )),
       ) as _i13.Future<_i5.TaskItem>);
   @override
-  _i11.TaskItemEdit previewSnooze(
-    _i5.TaskItem? taskItem,
+  void previewSnooze(
+    _i11.TaskItemEdit? taskItemEdit,
     int? numUnits,
     String? unitSize,
     _i18.TaskDateType? dateType,
   ) =>
-      (super.noSuchMethod(
+      super.noSuchMethod(
         Invocation.method(
           #previewSnooze,
           [
-            taskItem,
+            taskItemEdit,
             numUnits,
             unitSize,
             dateType,
           ],
         ),
-        returnValue: _FakeTaskItemEdit_10(
-          this,
-          Invocation.method(
-            #previewSnooze,
-            [
-              taskItem,
-              numUnits,
-              unitSize,
-              dateType,
-            ],
-          ),
-        ),
-        returnValueForMissingStub: _FakeTaskItemEdit_10(
-          this,
-          Invocation.method(
-            #previewSnooze,
-            [
-              taskItem,
-              numUnits,
-              unitSize,
-              dateType,
-            ],
-          ),
-        ),
-      ) as _i11.TaskItemEdit);
+        returnValueForMissingStub: null,
+      );
   @override
   _i13.Future<_i5.TaskItem> snoozeTask(
     _i5.TaskItem? taskItem,
+    _i11.TaskItemEdit? taskItemEdit,
     int? numUnits,
     String? unitSize,
     _i18.TaskDateType? dateType,
@@ -976,6 +954,7 @@ class MockTaskHelper extends _i1.Mock implements _i15.TaskHelper {
           #snoozeTask,
           [
             taskItem,
+            taskItemEdit,
             numUnits,
             unitSize,
             dateType,
@@ -987,6 +966,7 @@ class MockTaskHelper extends _i1.Mock implements _i15.TaskHelper {
             #snoozeTask,
             [
               taskItem,
+              taskItemEdit,
               numUnits,
               unitSize,
               dateType,
@@ -1000,6 +980,7 @@ class MockTaskHelper extends _i1.Mock implements _i15.TaskHelper {
             #snoozeTask,
             [
               taskItem,
+              taskItemEdit,
               numUnits,
               unitSize,
               dateType,

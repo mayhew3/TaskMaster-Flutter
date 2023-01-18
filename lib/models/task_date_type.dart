@@ -8,6 +8,7 @@ class TaskDateTypes {
     label: 'Start',
     textColor: Color.fromRGBO(235, 235, 235, 0.8),
     dateFieldGetter: (taskItem) => taskItem.startDate,
+    dateFieldSetter: (taskItem, newDate) => taskItem.startDate = newDate,
     listThresholdInDays: -1,
   );
 
@@ -15,6 +16,7 @@ class TaskDateTypes {
     label: 'Target',
     textColor: Color.fromRGBO(235, 235, 167, 1.0),
     dateFieldGetter: (taskItem) => taskItem.targetDate,
+    dateFieldSetter: (taskItem, newDate) => taskItem.targetDate = newDate,
     listThresholdInDays: 10,
   );
 
@@ -22,6 +24,7 @@ class TaskDateTypes {
     label: 'Urgent',
     textColor: Color.fromRGBO(235, 200, 167, 1.0),
     dateFieldGetter: (taskItem) => taskItem.urgentDate,
+    dateFieldSetter: (taskItem, newDate) => taskItem.urgentDate = newDate,
     listThresholdInDays: 10,
   );
 
@@ -29,6 +32,7 @@ class TaskDateTypes {
     label: 'Due',
     textColor: Color.fromRGBO(235, 167, 167, 1.0),
     dateFieldGetter: (taskItem) => taskItem.dueDate,
+    dateFieldSetter: (taskItem, newDate) => taskItem.dueDate = newDate,
     listThresholdInDays: 10,
   );
 
@@ -36,6 +40,7 @@ class TaskDateTypes {
     label: 'Completed',
     textColor: Color.fromRGBO(235, 167, 235, 1.0),
     dateFieldGetter: (taskItem) => taskItem.completionDate,
+    dateFieldSetter: (taskItem, newDate) => taskItem.completionDate = newDate,
     listThresholdInDays: -1,
   );
 
@@ -61,12 +66,14 @@ class TaskDateType {
   final String label;
   final Color textColor;
   final DateFieldGetter dateFieldGetter;
+  final DateFieldSetter dateFieldSetter;
   final int listThresholdInDays;
 
   TaskDateType({
     required this.label,
     required this.textColor,
     required this.dateFieldGetter,
+    required this.dateFieldSetter,
     required this.listThresholdInDays,
   });
 

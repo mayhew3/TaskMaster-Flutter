@@ -78,7 +78,7 @@ class TaskItemEdit extends TaskItemBlueprint {
 
   void incrementDateIfExists(TaskDateType taskDateType, Duration duration) {
     var dateTime = taskDateType.dateFieldGetter(this);
-    dateTime = dateTime?.add(duration);
+    taskDateType.dateFieldSetter(this, dateTime?.add(duration));
   }
 
   DateTime? getAnchorDate() {

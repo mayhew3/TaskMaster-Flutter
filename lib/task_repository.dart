@@ -58,8 +58,18 @@ class TaskRepository {
         appState.personId = jsonObj['person_id'];
 
         stateSetter(() {
-          List<Sprint> sprints = jsonObj['sprints'].map((sprint) => Sprint.fromJson(sprint));
-          List<TaskItem> taskItems = jsonObj['tasks'].map((task) => TaskItem.fromJson(task));
+          List<Sprint> sprints = [];
+
+          for (var sprintJson in jsonObj['sprints']) {
+            var sprint = Sprint.fromJson(sprintJson);
+            sprints.add(sprint);
+          }
+
+          List<TaskItem> taskItems = [];
+          for (var taskJson in jsonObj['tasks']) {
+            var taskItem = TaskItem.fromJson(taskJson);
+            taskItems.add(taskItem);
+          }
 
           appState.updateTasksAndSprints(taskItems, sprints);
         });

@@ -10,4 +10,6 @@ class SprintAssignment {
   SprintAssignment();
 
   factory SprintAssignment.fromJson(Map<String, dynamic> json) => _$SprintAssignmentFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SprintAssignmentToJson(this);
 }

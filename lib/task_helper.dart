@@ -174,18 +174,18 @@ class TaskHelper {
     return taskItem;
   }
 
-  TaskItemEdit previewSnooze(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) {
-    return _generatePreview(taskItem, numUnits, unitSize, dateType);
+  void previewSnooze(TaskItemEdit taskItemEdit, int numUnits, String unitSize, TaskDateType dateType) {
+    _generatePreview(taskItemEdit, numUnits, unitSize, dateType);
   }
 
-  Future<TaskItem> snoozeTask(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) async {
-    TaskItemEdit changes = _generatePreview(taskItem, numUnits, unitSize, dateType);
+  Future<TaskItem> snoozeTask(TaskItem taskItem, TaskItemEdit taskItemEdit, int numUnits, String unitSize, TaskDateType dateType) async {
+    _generatePreview(taskItemEdit, numUnits, unitSize, dateType);
 
-    var relevantDateField = dateType.dateFieldGetter(changes);
+    var relevantDateField = dateType.dateFieldGetter(taskItemEdit);
 
     DateTime? originalValue = relevantDateField;
 
-    TaskItem updatedTask = await updateTask(taskItem, changes);
+    TaskItem updatedTask = await updateTask(taskItem, taskItemEdit);
 
     Snooze snooze = new Snooze(
         taskId: updatedTask.id!,
@@ -215,23 +215,19 @@ class TaskHelper {
 
   // private helpers
 
-  TaskItemEdit _generatePreview(TaskItem taskItem, int numUnits, String unitSize, TaskDateType dateType) {
-    TaskItemEdit taskItemForm = taskItem.createEditTemplate();
-
+  void _generatePreview(TaskItemEdit taskItemEdit, int numUnits, String unitSize, TaskDateType dateType) {
     DateTime snoozeDate = DateTime.now();
     DateTime adjustedDate = _getAdjustedDate(snoozeDate, numUnits, unitSize);
 
-    var relevantDateField = dateType.dateFieldGetter(taskItemForm);
-    DateTime? relevantDate = relevantDateField;
+    DateTime? relevantDate = dateType.dateFieldGetter(taskItemEdit);
 
     if (relevantDate == null) {
-      relevantDateField = adjustedDate;
+      dateType.dateFieldSetter(taskItemEdit, adjustedDate);
     } else {
       Duration difference = adjustedDate.difference(relevantDate);
-      TaskDateTypes.allTypes.forEach((taskDateType) => taskItemForm.incrementDateIfExists(taskDateType, difference));
+      TaskDateTypes.allTypes.forEach((taskDateType) => taskItemEdit.incrementDateIfExists(taskDateType, difference));
     }
 
-    return taskItemForm;
   }
 
 
