@@ -305,34 +305,6 @@ class MockAppState extends _i1.Mock implements _i2.AppState {
         returnValueForMissingStub: null,
       );
   @override
-  List<_i9.TaskItem> get taskItems => (super.noSuchMethod(
-        Invocation.getter(#taskItems),
-        returnValue: <_i9.TaskItem>[],
-        returnValueForMissingStub: <_i9.TaskItem>[],
-      ) as List<_i9.TaskItem>);
-  @override
-  set taskItems(List<_i9.TaskItem>? _taskItems) => super.noSuchMethod(
-        Invocation.setter(
-          #taskItems,
-          _taskItems,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  List<_i12.Sprint> get sprints => (super.noSuchMethod(
-        Invocation.getter(#sprints),
-        returnValue: <_i12.Sprint>[],
-        returnValueForMissingStub: <_i12.Sprint>[],
-      ) as List<_i12.Sprint>);
-  @override
-  set sprints(List<_i12.Sprint>? _sprints) => super.noSuchMethod(
-        Invocation.setter(
-          #sprints,
-          _sprints,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   _i6.TaskMasterAuth get auth => (super.noSuchMethod(
         Invocation.getter(#auth),
         returnValue: _FakeTaskMasterAuth_4(
@@ -433,6 +405,41 @@ class MockAppState extends _i1.Mock implements _i2.AppState {
         Invocation.setter(
           #navHelper,
           _navHelper,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  List<_i9.TaskItem> get taskItems => (super.noSuchMethod(
+        Invocation.getter(#taskItems),
+        returnValue: <_i9.TaskItem>[],
+        returnValueForMissingStub: <_i9.TaskItem>[],
+      ) as List<_i9.TaskItem>);
+  @override
+  List<_i12.Sprint> get sprints => (super.noSuchMethod(
+        Invocation.getter(#sprints),
+        returnValue: <_i12.Sprint>[],
+        returnValueForMissingStub: <_i12.Sprint>[],
+      ) as List<_i12.Sprint>);
+  @override
+  void updateTasksAndSprints(
+    List<_i9.TaskItem>? taskItems,
+    List<_i12.Sprint>? sprints,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #updateTasksAndSprints,
+          [
+            taskItems,
+            sprints,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  void linkTasksToSprints() => super.noSuchMethod(
+        Invocation.method(
+          #linkTasksToSprints,
+          [],
         ),
         returnValueForMissingStub: null,
       );

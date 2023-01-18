@@ -95,6 +95,7 @@ class TaskHelper {
     DateTime nextAnchorDate;
 
     TaskItemEdit nextScheduledTask = taskItem.createEditTemplate();
+    nextScheduledTask.completionDate = null;
 
     if (recurWait) {
       nextAnchorDate = _getAdjustedDate(completionDate, recurNumber, recurUnit);

@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/sprint.dart';
+import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 
 /// This allows the `Sprint` class to access private members in
@@ -14,6 +15,9 @@ class TaskItemEdit extends TaskItemBlueprint {
   int? id;
 
   int personId;
+
+  DateTime? dateAdded;
+  DateTime? completionDate;
 
   @JsonKey(ignore: true)
   List<Sprint> sprints = [];
@@ -64,8 +68,21 @@ class TaskItemEdit extends TaskItemBlueprint {
     return true;
   }
 
+  bool isCompleted() {
+    return completionDate != null;
+  }
+
   DateTime? getFinishedCompletionDate() {
     return pendingCompletion ? null : completionDate;
+  }
+
+  void incrementDateIfExists(TaskDateType taskDateType, Duration duration) {
+    var dateTime = taskDateType.dateFieldGetter(this);
+    dateTime = dateTime?.add(duration);
+  }
+
+  DateTime? getAnchorDate() {
+    return getAnchorDateType()?.dateFieldGetter(this);
   }
 
   void addToSprints(Sprint sprint) {
@@ -79,5 +96,17 @@ class TaskItemEdit extends TaskItemBlueprint {
     return matching.isNotEmpty;
   }
 
+  @override
+  int get hashCode =>
+      id.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is TaskItemEdit &&
+              id != null &&
+              other.id != null &&
+              runtimeType == other.runtimeType &&
+              id == other.id;
 
 }

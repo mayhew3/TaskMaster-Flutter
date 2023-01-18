@@ -16,9 +16,6 @@ TaskItem _$TaskItemFromJson(Map<String, dynamic> json) => TaskItem(
       ..urgency = json['urgency'] as int?
       ..priority = json['priority'] as int?
       ..duration = json['duration'] as int?
-      ..dateAdded = json['date_added'] == null
-          ? null
-          : DateTime.parse(json['date_added'] as String)
       ..startDate = json['start_date'] == null
           ? null
           : DateTime.parse(json['start_date'] as String)
@@ -28,9 +25,6 @@ TaskItem _$TaskItemFromJson(Map<String, dynamic> json) => TaskItem(
       ..dueDate = json['due_date'] == null
           ? null
           : DateTime.parse(json['due_date'] as String)
-      ..completionDate = json['completion_date'] == null
-          ? null
-          : DateTime.parse(json['completion_date'] as String)
       ..urgentDate = json['urgent_date'] == null
           ? null
           : DateTime.parse(json['urgent_date'] as String)
@@ -41,6 +35,12 @@ TaskItem _$TaskItemFromJson(Map<String, dynamic> json) => TaskItem(
       ..recurrenceId = json['recurrence_id'] as int?
       ..recurIteration = json['recur_iteration'] as int?
       ..id = json['id'] as int?
+      ..dateAdded = json['date_added'] == null
+          ? null
+          : DateTime.parse(json['date_added'] as String)
+      ..completionDate = json['completion_date'] == null
+          ? null
+          : DateTime.parse(json['completion_date'] as String)
       ..sprintAssignments = (json['sprint_assignments'] as List<dynamic>?)
           ?.map((e) => SprintAssignment.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -61,11 +61,9 @@ Map<String, dynamic> _$TaskItemToJson(TaskItem instance) {
   writeNotNull('urgency', instance.urgency);
   writeNotNull('priority', instance.priority);
   writeNotNull('duration', instance.duration);
-  writeNotNull('date_added', instance.dateAdded?.toIso8601String());
   writeNotNull('start_date', instance.startDate?.toIso8601String());
   writeNotNull('target_date', instance.targetDate?.toIso8601String());
   writeNotNull('due_date', instance.dueDate?.toIso8601String());
-  writeNotNull('completion_date', instance.completionDate?.toIso8601String());
   writeNotNull('urgent_date', instance.urgentDate?.toIso8601String());
   writeNotNull('game_points', instance.gamePoints);
   writeNotNull('recur_number', instance.recurNumber);
@@ -75,6 +73,8 @@ Map<String, dynamic> _$TaskItemToJson(TaskItem instance) {
   writeNotNull('recur_iteration', instance.recurIteration);
   writeNotNull('id', instance.id);
   val['person_id'] = instance.personId;
+  writeNotNull('date_added', instance.dateAdded?.toIso8601String());
+  writeNotNull('completion_date', instance.completionDate?.toIso8601String());
   writeNotNull('sprint_assignments', instance.sprintAssignments);
   return val;
 }

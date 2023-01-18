@@ -234,10 +234,8 @@ void main() {
     verify(notificationScheduler.updateNotificationForTask(returnedItem));
     verify(notificationScheduler.updateBadge());
 
-    expect(returnedItem, originalTask);
+    expect(returnedItem.id, originalTask.id);
     expect(originalTask.description, changedDescription);
-    expect(originalTask.description, changedDescription);
-    expect(originalTask.targetDate, changedTarget.toLocal());
     expect(originalTask.targetDate, changedTarget.toLocal());
   });
 

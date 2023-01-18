@@ -1,4 +1,5 @@
 import 'package:taskmaster/models/sprint_assignment.dart';
+import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:test/test.dart';
 import 'package:taskmaster/models/task_item.dart';
 
@@ -10,14 +11,6 @@ void main() {
     test('Should be constructed', () {
       final taskItem = TaskItem(personId: 1);
       expect(taskItem.id, null);
-    });
-
-    test('revertAllChanges', () {
-      final taskItem = TaskItem(personId: 1);
-      taskItem.name = 'Cat Litter';
-      taskItem.priority = 4;
-      expect(taskItem.name, null);
-      expect(taskItem.priority, null);
     });
 
     test('fromJSON', () {
@@ -35,17 +28,6 @@ void main() {
       SprintAssignment sprintAssignment = catLitter.sprintAssignments![0];
       expect(sprintAssignment.id, 2346);
       expect(sprintAssignment.sprintId, 11);
-    });
-
-    test('createCopy skips some fields', () {
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      TaskItem catCopy = catLitter.createCopy();
-      expect(catCopy.id, null);
-      expect(catCopy.name, "Cat Litter");
-      expect(catCopy.dateAdded, null);
-      expect(catCopy.targetDate, catTarget.toLocal());
-      expect(catCopy.recurWait, true);
-      expect(catCopy.completionDate, null);
     });
 
     test('isCompleted', () {

@@ -15,9 +15,6 @@ TaskItemBlueprint _$TaskItemBlueprintFromJson(Map<String, dynamic> json) =>
       ..urgency = json['urgency'] as int?
       ..priority = json['priority'] as int?
       ..duration = json['duration'] as int?
-      ..dateAdded = json['date_added'] == null
-          ? null
-          : DateTime.parse(json['date_added'] as String)
       ..startDate = json['start_date'] == null
           ? null
           : DateTime.parse(json['start_date'] as String)
@@ -27,9 +24,6 @@ TaskItemBlueprint _$TaskItemBlueprintFromJson(Map<String, dynamic> json) =>
       ..dueDate = json['due_date'] == null
           ? null
           : DateTime.parse(json['due_date'] as String)
-      ..completionDate = json['completion_date'] == null
-          ? null
-          : DateTime.parse(json['completion_date'] as String)
       ..urgentDate = json['urgent_date'] == null
           ? null
           : DateTime.parse(json['urgent_date'] as String)
@@ -56,11 +50,9 @@ Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) {
   writeNotNull('urgency', instance.urgency);
   writeNotNull('priority', instance.priority);
   writeNotNull('duration', instance.duration);
-  writeNotNull('date_added', instance.dateAdded?.toIso8601String());
   writeNotNull('start_date', instance.startDate?.toIso8601String());
   writeNotNull('target_date', instance.targetDate?.toIso8601String());
   writeNotNull('due_date', instance.dueDate?.toIso8601String());
-  writeNotNull('completion_date', instance.completionDate?.toIso8601String());
   writeNotNull('urgent_date', instance.urgentDate?.toIso8601String());
   writeNotNull('game_points', instance.gamePoints);
   writeNotNull('recur_number', instance.recurNumber);

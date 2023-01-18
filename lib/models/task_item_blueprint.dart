@@ -18,11 +18,9 @@ class TaskItemBlueprint {
   int? priority;
   int? duration;
 
-  DateTime? dateAdded;
   DateTime? startDate;
   DateTime? targetDate;
   DateTime? dueDate;
-  DateTime? completionDate;
   DateTime? urgentDate;
 
   int? gamePoints;
@@ -51,11 +49,9 @@ class TaskItemBlueprint {
     fields.urgency = urgency;
     fields.priority = priority;
     fields.duration = duration;
-    fields.dateAdded = dateAdded;
     fields.startDate = startDate;
     fields.targetDate = targetDate;
     fields.dueDate = dueDate;
-    fields.completionDate = completionDate;
     fields.urgentDate = urgentDate;
     fields.gamePoints = gamePoints;
     fields.recurNumber = recurNumber;
@@ -65,15 +61,6 @@ class TaskItemBlueprint {
     fields.recurIteration = recurIteration;
 
     return fields;
-  }
-
-  void incrementDateIfExists(TaskDateType taskDateType, Duration duration) {
-    var dateTime = taskDateType.dateFieldGetter(this);
-    dateTime = dateTime?.add(duration);
-  }
-
-  bool isCompleted() {
-    return completionDate != null;
   }
 
   bool hasPassed(DateTime? dateTime) {
@@ -146,16 +133,10 @@ class TaskItemBlueprint {
     }
   }
 
-  DateTime? getAnchorDate() {
-    return getAnchorDateType()?.dateFieldGetter(this);
-  }
-
   @override
   String toString() {
-    return 'TaskItem{'
-        'name: $name, '
-        'dateAdded: $dateAdded, '
-        'completionDate: $completionDate}';
+    return 'TaskItemBlueprint{'
+        'name: $name';
   }
 
 }
