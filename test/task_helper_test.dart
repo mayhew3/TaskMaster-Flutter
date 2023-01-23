@@ -4,6 +4,7 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/date_util.dart';
+import 'package:taskmaster/models/snooze.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
@@ -291,32 +292,28 @@ void main() {
 
     var taskItemEdit = taskItem.createEditTemplate();
 
-    when(taskRepository.updateTask(taskItemEdit)).thenAnswer((_) => Future.value(TaskItem.fromJson(taskItem.toJson())));
+    when(taskRepository.updateTask(taskItemEdit)).thenAnswer((_) => Future.value(TaskItem.fromJson(taskItemEdit.toJson())));
 
     var returnedItem = await taskHelper.snoozeTask(taskItem, taskItemEdit, 6, 'Days', TaskDateTypes.target);
-/*
 
     Snooze snooze = verify(taskRepository.addSnooze(captureThat(isA<Snooze>()))).captured.single;
 
-    expect(snooze.taskID, returnedItem.id);
+    expect(snooze.taskId, returnedItem.id);
     expect(snooze.snoozeNumber, 6);
     expect(snooze.snoozeUnits, 'Days');
     expect(snooze.snoozeAnchor, 'Target');
     expect(snooze.previousAnchor, originalTarget);
     expect(snooze.newAnchor, returnedItem.targetDate);
 
-    var newTarget = DateUtil.withoutMillis(returnedItem.targetDate);
+    var newTarget = DateUtil.withoutMillis(returnedItem.targetDate!);
     var diffTarget = newTarget.difference(DateUtil.withoutMillis(DateTime.now())).inDays;
 
     expect(diffTarget, 6, reason: 'Expect Target date to be in 6 days.');
-    expect(returnedItem.targetDate, newTarget);
 
-    var newDue = DateUtil.withoutMillis(returnedItem.dueDate);
+    var newDue = DateUtil.withoutMillis(returnedItem.dueDate!);
     var diffDue = newDue.difference(DateUtil.withoutMillis(DateTime.now())).inDays;
 
     expect(diffDue, 13, reason: 'Expect Due date to be 13 days from now.');
-    expect(returnedItem.dueDate, newDue);
-*/
 
   });
 
@@ -335,26 +332,23 @@ void main() {
 
     var taskItemEdit = taskItem.createEditTemplate();
 
-    when(taskRepository.updateTask(taskItemEdit)).thenAnswer((_) => Future.value(TaskItem.fromJson(taskItem.toJson())));
+    when(taskRepository.updateTask(taskItemEdit)).thenAnswer((_) => Future.value(TaskItem.fromJson(taskItemEdit.toJson())));
 
     var returnedItem = await taskHelper.snoozeTask(taskItem, taskItemEdit, 4, 'Days', TaskDateTypes.start);
-/*
 
     Snooze snooze = verify(taskRepository.addSnooze(captureThat(isA<Snooze>()))).captured.single;
 
-    expect(snooze.taskID, returnedItem.id);
+    expect(snooze.taskId, returnedItem.id);
     expect(snooze.snoozeNumber, 4);
     expect(snooze.snoozeUnits, 'Days');
     expect(snooze.snoozeAnchor, 'Start');
     expect(snooze.previousAnchor, originalStart);
     expect(snooze.newAnchor, returnedItem.startDate);
 
-    var newStart = DateUtil.withoutMillis(returnedItem.startDate);
+    var newStart = DateUtil.withoutMillis(returnedItem.startDate!);
     var diffDue = newStart.difference(DateUtil.withoutMillis(DateTime.now())).inDays;
 
     expect(diffDue, 4, reason: 'Expect Start date to be 4 days from now.');
-    expect(returnedItem.startDate, newStart);
-*/
 
   });
 

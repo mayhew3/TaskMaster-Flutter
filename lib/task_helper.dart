@@ -181,9 +181,8 @@ class TaskHelper {
   Future<TaskItem> snoozeTask(TaskItem taskItem, TaskItemEdit taskItemEdit, int numUnits, String unitSize, TaskDateType dateType) async {
     _generatePreview(taskItemEdit, numUnits, unitSize, dateType);
 
-    var relevantDateField = dateType.dateFieldGetter(taskItemEdit);
-
-    DateTime? originalValue = relevantDateField;
+    DateTime? originalValue = dateType.dateFieldGetter(taskItem);
+    DateTime relevantDateField = dateType.dateFieldGetter(taskItemEdit)!;
 
     TaskItem updatedTask = await updateTask(taskItem, taskItemEdit);
 
@@ -193,9 +192,9 @@ class TaskHelper {
         snoozeUnits: unitSize,
         snoozeAnchor: dateType.label,
         previousAnchor: originalValue,
-        newAnchor: relevantDateField!);
+        newAnchor: relevantDateField);
 
-    await repository.addSnoozeSerializable(snooze);
+    await repository.addSnooze(snooze);
     return updatedTask;
   }
 

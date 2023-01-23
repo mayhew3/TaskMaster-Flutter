@@ -98,7 +98,7 @@ class TaskRepository {
     return _addOrUpdateJSON(payload, 'add');
   }
 
-  Future<Snooze> addSnoozeSerializable(Snooze snooze) async {
+  Future<Snooze> addSnooze(Snooze snooze) async {
     var payload = {
       'snooze': snooze.toJson()
     };

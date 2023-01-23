@@ -707,16 +707,16 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
         )),
       ) as _i17.Future<_i9.TaskItem>);
   @override
-  _i17.Future<_i11.Snooze> addSnoozeSerializable(_i11.Snooze? snooze) =>
+  _i17.Future<_i11.Snooze> addSnooze(_i11.Snooze? snooze) =>
       (super.noSuchMethod(
         Invocation.method(
-          #addSnoozeSerializable,
+          #addSnooze,
           [snooze],
         ),
         returnValue: _i17.Future<_i11.Snooze>.value(_FakeSnooze_10(
           this,
           Invocation.method(
-            #addSnoozeSerializable,
+            #addSnooze,
             [snooze],
           ),
         )),
@@ -724,7 +724,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
             _i17.Future<_i11.Snooze>.value(_FakeSnooze_10(
           this,
           Invocation.method(
-            #addSnoozeSerializable,
+            #addSnooze,
             [snooze],
           ),
         )),
