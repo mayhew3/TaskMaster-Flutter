@@ -1,5 +1,3 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/app_state.dart';
@@ -59,8 +57,8 @@ class HomeScreenState extends State<HomeScreen> {
         icon: Icons.show_chart,
         widget: StatsCounter(
           appState: widget.appState,
-          numActive: widget.appState.taskItems.where((taskItem) => taskItem.completionDate.value == null).length,
-          numCompleted: widget.appState.taskItems.where((taskItem) => taskItem.completionDate.value != null).length,
+          numActive: widget.appState.taskItems.where((taskItem) => taskItem.completionDate == null).length,
+          numCompleted: widget.appState.taskItems.where((taskItem) => taskItem.completionDate != null).length,
           bottomNavigationBarGetter: getBottomNavigationBar,
         ));
 

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:taskmaster/app_state.dart';
@@ -94,13 +93,13 @@ class TaskListScreenState extends State<TaskListScreen> {
   }
 
   Card _createSummaryWidget(Sprint sprint, BuildContext context) {
-    var startDate = sprint.startDate.value!;
-    var endDate = sprint.endDate.value!;
+    var startDate = sprint.startDate;
+    var endDate = sprint.endDate;
     var currentDay = DateTime.now().difference(startDate).inDays + 1;
     var totalDays = endDate.difference(startDate).inDays;
     var sprintStr = "Active Sprint - Day " + currentDay.toString() + " of " + totalDays.toString();
 
-    var completed = sprint.taskItems.where((taskItem) => taskItem.completionDate.value != null);
+    var completed = sprint.taskItems.where((taskItem) => taskItem.completionDate != null);
     var taskStr = completed.length.toString() + "/" + sprint.taskItems.length.toString() + " Tasks Complete";
 
     return Card(
@@ -273,7 +272,7 @@ class TaskListScreenState extends State<TaskListScreen> {
     if (scheduledTasks.isNotEmpty) {
       tiles.add(HeadingItem('Scheduled'));
       scheduledTasks.sort((t1, t2) {
-        return t1.startDate.value!.compareTo(t2.startDate.value!);
+        return t1.startDate!.compareTo(t2.startDate!);
       });
       scheduledTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
     }
@@ -416,7 +415,7 @@ class TaskListScreenState extends State<TaskListScreen> {
               await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => AddEditScreen(
-                  taskItem: TaskItem(),
+                  taskItem: TaskItem(personId: widget.appState.personId),
                   taskHelper: widget.taskHelper,
                   isEditing: false,
                 )),

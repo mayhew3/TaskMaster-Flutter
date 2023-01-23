@@ -48,20 +48,7 @@ class TestMockHelper {
   // helper methods
 
   static dynamic _getMockTask(TaskItem taskItem) {
-    var mockObj = {};
-    for (var field in taskItem.fields) {
-      mockObj[field.fieldName] = field.formatForJSON();
-    }
-    var sprintAssignments = [];
-    for (var sprint in taskItem.sprints) {
-      var obj = {
-        'id': 1234,
-        'sprint_id': sprint.id.value
-      };
-      sprintAssignments.add(obj);
-    }
-    mockObj['sprint_assignments'] = sprintAssignments;
-    return mockObj;
+    return taskItem.toJson();
   }
 
   static String _mockTheJSON({List<TaskItem>? taskItems, List<Sprint>? sprints}) {
@@ -75,11 +62,7 @@ class TestMockHelper {
     }
 
     for (var sprintItem in sprints ?? allSprints) {
-      var mockObj = {};
-      for (var field in sprintItem.fields) {
-        mockObj[field.fieldName] = field.formatForJSON();
-      }
-      mockSprintList.add(mockObj);
+      mockSprintList.add(sprintItem.toJson());
     }
 
     taskObj['tasks'] = mockPlayerList;

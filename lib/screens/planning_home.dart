@@ -76,8 +76,8 @@ class PlanningHomeState extends State<PlanningHome> {
 
   void _updateDatesOnInit() {
     if (lastCompleted != null) {
-      numUnits = lastCompleted!.numUnits.value!;
-      unitName = lastCompleted!.unitName.value!;
+      numUnits = lastCompleted!.numUnits;
+      unitName = lastCompleted!.unitName;
       sprintStart = getNextScheduledStart();
     }
     sprintStartDateController.text = DateFormat('MM-dd-yyyy').format(sprintStart);
@@ -86,9 +86,9 @@ class PlanningHomeState extends State<PlanningHome> {
 
   void _updateNewSprintStartAfterCreate() {
     if (lastCompleted != null) {
-      numUnits = lastCompleted!.numUnits.value!;
-      unitName = lastCompleted!.unitName.value!;
-      sprintStart = lastCompleted!.endDate.value!;
+      numUnits = lastCompleted!.numUnits;
+      unitName = lastCompleted!.unitName;
+      sprintStart = lastCompleted!.endDate;
     }
     sprintStartDateController.text = DateFormat('MM-dd-yyyy').format(sprintStart);
     sprintStartTimeController.text = DateFormat('hh:mm a').format(sprintStart);
@@ -96,15 +96,15 @@ class PlanningHomeState extends State<PlanningHome> {
 
   DateTime getNextScheduledStart() {
     DateTime nextStart;
-    DateTime nextEnd = lastCompleted!.endDate.value!;
+    DateTime nextEnd = lastCompleted!.endDate;
     DateTime now = DateTime.now();
 
     do {
       nextStart = nextEnd;
       nextEnd = DateUtil.adjustToDate(
           nextStart,
-          lastCompleted!.numUnits.value!,
-          lastCompleted!.unitName.value!
+          lastCompleted!.numUnits,
+          lastCompleted!.unitName
       );
     } while (nextEnd.isBefore(now));
 
@@ -144,13 +144,13 @@ class PlanningHomeState extends State<PlanningHome> {
   }
 
   String _getSubHeader() {
-    String startDateFormatted = DateFormat('M/d').format(activeSprint!.startDate.value!);
-    String endDateFormatted = DateFormat('M/d').format(activeSprint!.endDate.value!);
+    String startDateFormatted = DateFormat('M/d').format(activeSprint!.startDate);
+    String endDateFormatted = DateFormat('M/d').format(activeSprint!.endDate);
     return 'Tasks for ' + startDateFormatted + ' - ' + endDateFormatted;
   }
 
   String _getSubSubHeader() {
-    DateTime endDate = activeSprint!.endDate.value!;
+    DateTime endDate = activeSprint!.endDate;
     String goodFormat = timeago.format(endDate, allowFromNow: true);
     String better = goodFormat.replaceAll('from now', 'left');
     return '(' + better + ')';
@@ -161,7 +161,7 @@ class PlanningHomeState extends State<PlanningHome> {
       return Text('This is your first sprint! Choose the cadence below:');
     } else {
       DateTime oneYearAgo = DateTime.now().subtract(Duration(days: 365));
-      DateTime lastEndDate = lastCompleted!.endDate.value!;
+      DateTime lastEndDate = lastCompleted!.endDate;
       String dateString = oneYearAgo.isAfter(lastEndDate) ?
                         ' over a year ago.' :
                         DateUtil.formatMediumMaybeHidingYear(lastEndDate);
@@ -170,7 +170,7 @@ class PlanningHomeState extends State<PlanningHome> {
   }
 
   DateTime _getLowerLimit() {
-    return lastCompleted?.endDate.value ?? DateTime(DateTime.now().year - 1);
+    return lastCompleted?.endDate ?? DateTime(DateTime.now().year - 1);
   }
 
   @override

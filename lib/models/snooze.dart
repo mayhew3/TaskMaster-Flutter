@@ -1,42 +1,39 @@
-import 'package:taskmaster/models/data_object.dart';
-import 'package:taskmaster/models/task_field.dart';
+import 'package:json_annotation/json_annotation.dart';
 
-class Snooze extends DataObject {
+/// This allows the `Snooze` class to access private members in
+/// the generated file. The value for this is *.g.dart, where
+/// the star denotes the source file name.
+part 'snooze.g.dart';
 
-  late TaskFieldInteger taskID;
-  late TaskFieldInteger snoozeNumber;
-  late TaskFieldString snoozeUnits;
-  late TaskFieldString snoozeAnchor;
-  late TaskFieldDate previousAnchor;
-  late TaskFieldDate newAnchor;
+@JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
+class Snooze {
 
-  static List<String> controlledFields = ['id', 'date_added'];
+  int? id;
+  DateTime? dateAdded;
 
-  Snooze(): super() {
-    this.taskID = addIntegerField('task_id');
-    this.snoozeNumber = addIntegerField('snooze_number');
-    this.snoozeUnits = addStringField('snooze_units');
-    this.snoozeAnchor = addStringField('snooze_anchor');
-    this.previousAnchor = addDateField('previous_anchor');
-    this.newAnchor = addDateField('new_anchor');
-  }
+  int taskId;
+  int snoozeNumber;
+  String snoozeUnits;
+  String snoozeAnchor;
+  DateTime? previousAnchor;
+  DateTime newAnchor;
 
-  @override
-  List<String> getControlledFields() {
-    return controlledFields;
-  }
+  Snooze({
+    required this.taskId,
+    required this.snoozeNumber,
+    required this.snoozeUnits,
+    required this.snoozeAnchor,
+    this.previousAnchor,
+    required this.newAnchor
+  });
 
-  factory Snooze.fromJson(Map<String, dynamic> json) {
-    Snooze taskItem = Snooze();
-    for (var field in taskItem.fields) {
-      var jsonVal = json[field.fieldName];
-      if (jsonVal is String) {
-        field.initializeValueFromString(jsonVal);
-      } else {
-        field.initializeValue(jsonVal);
-      }
-    }
-    return taskItem;
-  }
+  /// A necessary factory constructor for creating a new User instance
+  /// from a map. Pass the map to the generated `_$UserFromJson()` constructor.
+  /// The constructor is named after the source class, in this case, User.
+  factory Snooze.fromJson(Map<String, dynamic> json) => _$SnoozeFromJson(json);
 
+  /// `toJson` is the convention for a class to declare support for serialization
+  /// to JSON. The implementation simply calls the private, generated
+  /// helper method `_$UserToJson`.
+  Map<String, dynamic> toJson() => _$SnoozeToJson(this);
 }

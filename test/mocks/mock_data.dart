@@ -64,7 +64,7 @@ final Map<String, dynamic> catLitterJSON = {
   "sprint_assignments": [
     {
       "id": 2346,
-      "sprint_id": currentSprint.id.value
+      "sprint_id": currentSprint.id
     }
   ]
 };
@@ -99,11 +99,11 @@ final Map<String, dynamic> birthdayJSON = {
   "sprint_assignments": [
     {
       "id": 1234,
-      "sprint_id": pastSprint.id.value
+      "sprint_id": pastSprint.id
     },
     {
       "id": 2345,
-      "sprint_id": currentSprint.id.value
+      "sprint_id": currentSprint.id
     }
   ]
 };
@@ -168,7 +168,7 @@ final Map<String, dynamic> pastJSON = {
   "sprint_assignments": [
     {
       "id": 1233,
-      "sprint_id": pastSprint.id.value
+      "sprint_id": pastSprint.id
     }
   ]
 };
@@ -204,16 +204,16 @@ final Map<String, dynamic> burnJSON = {
   "sprint_assignments": [
     {
       "id": 1233,
-      "sprint_id": currentSprint.id.value
+      "sprint_id": currentSprint.id
     }
   ]
 };
 
-TaskItem catLitterTask = TaskItem.fromJson(catLitterJSON, allSprints);
-TaskItem birthdayTask = TaskItem.fromJson(birthdayJSON, allSprints);
-TaskItem futureTask = TaskItem.fromJson(futureJSON, allSprints);
-TaskItem pastTask = TaskItem.fromJson(pastJSON, allSprints);
-TaskItem burnTask = TaskItem.fromJson(burnJSON, allSprints);
+TaskItem catLitterTask = TaskItem.fromJson(catLitterJSON);
+TaskItem birthdayTask = TaskItem.fromJson(birthdayJSON);
+TaskItem futureTask = TaskItem.fromJson(futureJSON);
+TaskItem pastTask = TaskItem.fromJson(pastJSON);
+TaskItem burnTask = TaskItem.fromJson(burnJSON);
 
 List<TaskItem> allTasks = [catLitterTask, birthdayTask, futureTask, pastTask, burnTask];
 

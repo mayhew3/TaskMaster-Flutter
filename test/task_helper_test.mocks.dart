@@ -17,6 +17,8 @@ import 'package:taskmaster/flutter_badger_wrapper.dart' as _i15;
 import 'package:taskmaster/models/snooze.dart' as _i11;
 import 'package:taskmaster/models/sprint.dart' as _i12;
 import 'package:taskmaster/models/task_item.dart' as _i9;
+import 'package:taskmaster/models/task_item_blueprint.dart' as _i18;
+import 'package:taskmaster/models/task_item_edit.dart' as _i19;
 import 'package:taskmaster/nav_helper.dart' as _i8;
 import 'package:taskmaster/notification_scheduler.dart' as _i7;
 import 'package:taskmaster/task_helper.dart' as _i4;
@@ -303,34 +305,6 @@ class MockAppState extends _i1.Mock implements _i2.AppState {
         returnValueForMissingStub: null,
       );
   @override
-  List<_i9.TaskItem> get taskItems => (super.noSuchMethod(
-        Invocation.getter(#taskItems),
-        returnValue: <_i9.TaskItem>[],
-        returnValueForMissingStub: <_i9.TaskItem>[],
-      ) as List<_i9.TaskItem>);
-  @override
-  set taskItems(List<_i9.TaskItem>? _taskItems) => super.noSuchMethod(
-        Invocation.setter(
-          #taskItems,
-          _taskItems,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  List<_i12.Sprint> get sprints => (super.noSuchMethod(
-        Invocation.getter(#sprints),
-        returnValue: <_i12.Sprint>[],
-        returnValueForMissingStub: <_i12.Sprint>[],
-      ) as List<_i12.Sprint>);
-  @override
-  set sprints(List<_i12.Sprint>? _sprints) => super.noSuchMethod(
-        Invocation.setter(
-          #sprints,
-          _sprints,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   _i6.TaskMasterAuth get auth => (super.noSuchMethod(
         Invocation.getter(#auth),
         returnValue: _FakeTaskMasterAuth_4(
@@ -431,6 +405,41 @@ class MockAppState extends _i1.Mock implements _i2.AppState {
         Invocation.setter(
           #navHelper,
           _navHelper,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  List<_i9.TaskItem> get taskItems => (super.noSuchMethod(
+        Invocation.getter(#taskItems),
+        returnValue: <_i9.TaskItem>[],
+        returnValueForMissingStub: <_i9.TaskItem>[],
+      ) as List<_i9.TaskItem>);
+  @override
+  List<_i12.Sprint> get sprints => (super.noSuchMethod(
+        Invocation.getter(#sprints),
+        returnValue: <_i12.Sprint>[],
+        returnValueForMissingStub: <_i12.Sprint>[],
+      ) as List<_i12.Sprint>);
+  @override
+  void updateTasksAndSprints(
+    List<_i9.TaskItem>? taskItems,
+    List<_i12.Sprint>? sprints,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #updateTasksAndSprints,
+          [
+            taskItems,
+            sprints,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  void linkTasksToSprints() => super.noSuchMethod(
+        Invocation.method(
+          #linkTasksToSprints,
+          [],
         ),
         returnValueForMissingStub: null,
       );
@@ -675,17 +684,17 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
         returnValueForMissingStub: _i17.Future<void>.value(),
       ) as _i17.Future<void>);
   @override
-  _i17.Future<_i9.TaskItem> addTask(_i9.TaskItem? taskItem) =>
+  _i17.Future<_i9.TaskItem> addTask(_i18.TaskItemBlueprint? taskItemForm) =>
       (super.noSuchMethod(
         Invocation.method(
           #addTask,
-          [taskItem],
+          [taskItemForm],
         ),
         returnValue: _i17.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
           this,
           Invocation.method(
             #addTask,
-            [taskItem],
+            [taskItemForm],
           ),
         )),
         returnValueForMissingStub:
@@ -693,7 +702,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           this,
           Invocation.method(
             #addTask,
-            [taskItem],
+            [taskItemForm],
           ),
         )),
       ) as _i17.Future<_i9.TaskItem>);
@@ -745,7 +754,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
       ) as _i17.Future<_i12.Sprint>);
   @override
   _i17.Future<void> addTasksToSprint(
-    List<_i9.TaskItem>? taskItems,
+    List<_i19.TaskItemEdit>? taskItems,
     _i12.Sprint? sprint,
   ) =>
       (super.noSuchMethod(
@@ -783,17 +792,17 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
         )),
       ) as _i17.Future<_i9.TaskItem>);
   @override
-  _i17.Future<_i9.TaskItem> updateTask(_i9.TaskItem? taskItem) =>
+  _i17.Future<_i9.TaskItem> updateTask(_i19.TaskItemEdit? taskItemForm) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateTask,
-          [taskItem],
+          [taskItemForm],
         ),
         returnValue: _i17.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
           this,
           Invocation.method(
             #updateTask,
-            [taskItem],
+            [taskItemForm],
           ),
         )),
         returnValueForMissingStub:
@@ -801,7 +810,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           this,
           Invocation.method(
             #updateTask,
-            [taskItem],
+            [taskItemForm],
           ),
         )),
       ) as _i17.Future<_i9.TaskItem>);

@@ -3,7 +3,6 @@ import 'package:mockito/mockito.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:core';
 
@@ -24,11 +23,7 @@ class MockClientOld extends Fake implements http.Client {
     }
 
     for (var sprintItem in sprintList) {
-      var mockObj = {};
-      for (var field in sprintItem.fields) {
-        mockObj[field.fieldName] = field.formatForJSON();
-      }
-      mockSprintList.add(mockObj);
+      mockSprintList.add(sprintItem.toJson());
     }
 
     taskObj['tasks'] = mockPlayerList;
@@ -37,20 +32,7 @@ class MockClientOld extends Fake implements http.Client {
   }
 
   dynamic _getMockTask(TaskItem taskItem) {
-    var mockObj = {};
-    for (var field in taskItem.fields) {
-      mockObj[field.fieldName] = field.formatForJSON();
-    }
-    var sprintAssignments = [];
-    for (var sprint in taskItem.sprints) {
-      var obj = {
-        'id': 1234,
-        'sprint_id': sprint.id.value
-      };
-      sprintAssignments.add(obj);
-    }
-    mockObj['sprint_assignments'] = sprintAssignments;
-    return mockObj;
+    return taskItem.toJson();
   }
 
   @override

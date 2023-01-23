@@ -86,7 +86,7 @@ class NotificationScheduler {
     List<PendingNotificationRequest> requests = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
 
     if (taskItem.isCompleted()) {
-      await cancelNotificationsForTaskId(taskItem.id.value!);
+      await cancelNotificationsForTaskId(taskItem.id!);
     } else {
       await _syncNotificationForTask(taskItem, requests);
     }
@@ -96,12 +96,12 @@ class NotificationScheduler {
   // Private Methods
 
   Future<void> _syncNotificationForSprint(Sprint sprint, List<PendingNotificationRequest> requests) async {
-    String sprintSearch = 'sprint:${sprint.id.value}';
-    String sprintName = 'Sprint ${sprint.id.value}';
+    String sprintSearch = 'sprint:${sprint.id}';
+    String sprintName = 'Sprint ${sprint.id}';
 
-    DateTime exactTime = sprint.endDate.value!;
-    DateTime hourBefore = sprint.endDate.value!.subtract(Duration(minutes: 60));
-    DateTime dayBefore = sprint.endDate.value!.subtract(Duration(days: 1));
+    DateTime exactTime = sprint.endDate;
+    DateTime hourBefore = sprint.endDate.subtract(Duration(minutes: 60));
+    DateTime dayBefore = sprint.endDate.subtract(Duration(days: 1));
 
     await _maybeReplaceNotification('$sprintSearch:day', requests, dayBefore, '$sprintName (day)', 'Current sprint ends in 1 day!');
     await _maybeReplaceNotification('$sprintSearch:hour', requests, hourBefore, '$sprintName (hour)', 'Current sprint ends in 1 hour!');
@@ -114,24 +114,24 @@ class NotificationScheduler {
   }
 
   Future<void> _syncUrgentNotificationsForTask(TaskItem taskItem, List<PendingNotificationRequest> requests) async {
-    DateTime? urgentDate = taskItem.urgentDate.value;
+    DateTime? urgentDate = taskItem.urgentDate;
     DateTime? twoHoursBefore = urgentDate?.subtract(Duration(minutes: 120));
 
-    if (taskItem.completionDate.value == null) {
-      await _maybeReplaceNotification('task:${taskItem.id.value}:urgentTwoHours', requests, twoHoursBefore, '${taskItem.name.value} (urgent 2 hours)', 'Two hours until urgent!');
-      await _maybeReplaceNotification('task:${taskItem.id.value}:urgent', requests, urgentDate, '${taskItem.name.value} (urgent)', 'Task has reached urgent date');
+    if (taskItem.completionDate == null) {
+      await _maybeReplaceNotification('task:${taskItem.id}:urgentTwoHours', requests, twoHoursBefore, '${taskItem.name} (urgent 2 hours)', 'Two hours until urgent!');
+      await _maybeReplaceNotification('task:${taskItem.id}:urgent', requests, urgentDate, '${taskItem.name} (urgent)', 'Task has reached urgent date');
     }
   }
 
   Future<void> _syncDueNotificationsForTask(TaskItem taskItem, List<PendingNotificationRequest> requests) async {
-    DateTime? dueDate = taskItem.dueDate.value;
+    DateTime? dueDate = taskItem.dueDate;
     DateTime? twoHoursBefore = dueDate?.subtract(Duration(minutes: 120));
     DateTime? oneDayBefore = dueDate?.subtract(Duration(days: 1));
 
-    if (taskItem.completionDate.value == null) {
-      await _maybeReplaceNotification('task:${taskItem.id.value}:dueOneDay', requests, oneDayBefore, '${taskItem.name.value} (due 1 day)', 'One day until due!');
-      await _maybeReplaceNotification('task:${taskItem.id.value}:dueTwoHours', requests, twoHoursBefore, '${taskItem.name.value} (due 2 hours)', 'Two hours until due!');
-      await _maybeReplaceNotification('task:${taskItem.id.value}:due', requests, dueDate, '${taskItem.name.value} (due)', 'Task has reached due date!');
+    if (taskItem.completionDate == null) {
+      await _maybeReplaceNotification('task:${taskItem.id}:dueOneDay', requests, oneDayBefore, '${taskItem.name} (due 1 day)', 'One day until due!');
+      await _maybeReplaceNotification('task:${taskItem.id}:dueTwoHours', requests, twoHoursBefore, '${taskItem.name} (due 2 hours)', 'Two hours until due!');
+      await _maybeReplaceNotification('task:${taskItem.id}:due', requests, dueDate, '${taskItem.name} (due)', 'Task has reached due date!');
     }
   }
 
@@ -166,7 +166,7 @@ class NotificationScheduler {
 
   int _getNumberOfUrgentTasks() {
     var urgentTasks = appState.taskItems.where((taskItem) =>
-    (taskItem.urgentDate.hasPassed() || taskItem.dueDate.hasPassed()) && taskItem.completionDate.value == null);
+    (taskItem.isUrgent() || taskItem.isPastDue()) && taskItem.completionDate == null);
     return urgentTasks.length;
   }
 

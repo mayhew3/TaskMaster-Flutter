@@ -1,40 +1,42 @@
-import 'package:taskmaster/models/data_object.dart';
-import 'package:taskmaster/models/task_field.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/task_item.dart';
 
-class Sprint extends DataObject {
+/// This allows the `Sprint` class to access private members in
+/// the generated file. The value for this is *.g.dart, where
+/// the star denotes the source file name.
+part 'sprint.g.dart';
 
-  late TaskFieldDate startDate;
-  late TaskFieldDate endDate;
-  late TaskFieldDate closeDate;
+@JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
+class Sprint {
 
-  late TaskFieldInteger numUnits;
-  late TaskFieldString unitName;
+  int? id;
+  DateTime? dateAdded;
 
-  late TaskFieldInteger personId;
+  DateTime startDate;
+  DateTime endDate;
+  DateTime? closeDate;
 
+  int numUnits;
+  String unitName;
+
+  int personId;
+
+  @JsonKey(ignore: true)
   List<TaskItem> taskItems = [];
 
-  static List<String> controlledFields = ['id'];
-
-  Sprint(): super() {
-    startDate = addDateField('start_date');
-    endDate = addDateField('end_date');
-    closeDate = addDateField('close_date');
-    personId = addIntegerField('person_id');
-    numUnits = addIntegerField('num_units');
-    unitName = addStringField('unit_name');
-  }
+  Sprint({
+    required this.startDate,
+    required this.endDate,
+    this.closeDate,
+    required this.numUnits,
+    required this.unitName,
+    required this.personId
+  });
 
   bool isActive() {
     var now = DateTime.now();
-    return this.startDate.value!.isBefore(now) &&
-        this.endDate.value!.isAfter(now);
-  }
-
-  @override
-  List<String> getControlledFields() {
-    return controlledFields;
+    return this.startDate.isBefore(now) &&
+        this.endDate.isAfter(now);
   }
 
   void addToTasks(TaskItem taskItem) {
@@ -47,10 +49,13 @@ class Sprint extends DataObject {
     taskItems.remove(taskItem);
   }
 
-  factory Sprint.fromJson(Map<String, dynamic> json) {
-    Sprint sprint = Sprint();
-    sprint.initFromFields(json);
-    return sprint;
-  }
+  /// A necessary factory constructor for creating a new User instance
+  /// from a map. Pass the map to the generated `_$UserFromJson()` constructor.
+  /// The constructor is named after the source class, in this case, User.
+  factory Sprint.fromJson(Map<String, dynamic> json) => _$SprintFromJson(json);
 
+  /// `toJson` is the convention for a class to declare support for serialization
+  /// to JSON. The implementation simply calls the private, generated
+  /// helper method `_$UserToJson`.
+  Map<String, dynamic> toJson() => _$SprintToJson(this);
 }

@@ -12,8 +12,8 @@ import 'package:taskmaster/timezone_helper.dart';
 
 class AppState {
   bool isLoading;
-  List<TaskItem> taskItems;
-  List<Sprint> sprints;
+  List<TaskItem> _taskItems = [];
+  List<Sprint> _sprints = [];
   final TaskMasterAuth auth;
   GoogleSignInAccount? currentUser;
   bool tokenRetrieved = false;
@@ -24,11 +24,35 @@ class AppState {
 
   AppState({
     this.isLoading = true,
-    this.taskItems = const [],
-    this.sprints = const [],
+    List<TaskItem> taskItems = const [],
+    List<Sprint> sprints = const [],
     required this.auth,
   }) {
     title = 'TaskMaster 3000';
+    this._taskItems = taskItems;
+    this._sprints = sprints;
+    linkTasksToSprints();
+  }
+
+  void updateTasksAndSprints(List<TaskItem> taskItems, List<Sprint> sprints) {
+    this._sprints = sprints;
+    this._taskItems = taskItems;
+    linkTasksToSprints();
+  }
+
+  void linkTasksToSprints() {
+    for (var taskItem in _taskItems) {
+      if (taskItem.sprintAssignments != null) {
+        for (var sprintAssignment in taskItem.sprintAssignments!) {
+          Iterable<Sprint> sprints = this._sprints.where((sprint) => sprint.id == sprintAssignment.sprintId);
+          if (sprints.isNotEmpty) {
+            var sprint = sprints.first;
+            taskItem.sprints.add(sprint);
+            sprint.addToTasks(taskItem);
+          }
+        }
+      }
+    }
   }
 
   void updateNavHelper(NavHelper navHelper) {
@@ -45,8 +69,17 @@ class AppState {
     }
   }
 
+  // need getter function to pass as argument
   List<TaskItem> getAllTasks() {
-    return taskItems;
+    return _taskItems;
+  }
+
+  List<TaskItem> get taskItems {
+    return _taskItems;
+  }
+
+  List<Sprint> get sprints {
+    return _sprints;
   }
 
   List<TaskItem> getTasksForActiveSprint() {
@@ -55,12 +88,12 @@ class AppState {
   }
 
   TaskItem? findTaskItemWithId(int taskId) {
-    var matching = taskItems.where((taskItem) => taskItem.id.value == taskId);
+    var matching = _taskItems.where((taskItem) => taskItem.id == taskId);
     return matching.isEmpty ? null : matching.first;
   }
 
   Sprint? findSprintWithId(int sprintId) {
-    var matching = sprints.where((sprint) => sprint.id.value == sprintId);
+    var matching = _sprints.where((sprint) => sprint.id == sprintId);
     return matching.isEmpty ? null : matching.first;
   }
 
@@ -80,23 +113,23 @@ class AppState {
 
   Future<void> syncAllNotifications() async {
     await notificationScheduler.cancelAllNotifications();
-    await notificationScheduler.syncNotificationForTasksAndSprint(taskItems, getActiveSprint());
+    await notificationScheduler.syncNotificationForTasksAndSprint(_taskItems, getActiveSprint());
   }
 
   Sprint? getActiveSprint() {
     DateTime now = DateTime.now();
-    Iterable<Sprint> matching = this.sprints.where((sprint) =>
-        sprint.startDate.value!.isBefore(now) &&
-        sprint.endDate.value!.isAfter(now) &&
-        sprint.closeDate.value == null);
+    Iterable<Sprint> matching = this._sprints.where((sprint) =>
+        sprint.startDate.isBefore(now) &&
+        sprint.endDate.isAfter(now) &&
+        sprint.closeDate == null);
     return matching.isEmpty ? null : matching.first;
   }
 
   Sprint? getLastCompletedSprint() {
-    List<Sprint> matching = this.sprints.where((sprint) {
-      return DateTime.now().isAfter(sprint.endDate.value!);
+    List<Sprint> matching = this._sprints.where((sprint) {
+      return DateTime.now().isAfter(sprint.endDate);
     }).toList();
-    matching.sort((a, b) => a.endDate.value!.compareTo(b.endDate.value!));
+    matching.sort((a, b) => a.endDate.compareTo(b.endDate));
     return matching.isEmpty ? null : matching.last;
   }
 
@@ -105,12 +138,12 @@ class AppState {
   }
 
   TaskItem addNewTaskToList(TaskItem taskItem) {
-    taskItems.add(taskItem);
+    _taskItems.add(taskItem);
     return taskItem;
   }
 
   void deleteTaskFromList(TaskItem taskItem) {
-    taskItems.remove(taskItem);
+    _taskItems.remove(taskItem);
   }
 
   bool isAuthenticated() {
@@ -123,18 +156,18 @@ class AppState {
   }
 
   @override
-  int get hashCode => taskItems.hashCode ^ isLoading.hashCode;
+  int get hashCode => _taskItems.hashCode ^ isLoading.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
           other is AppState &&
               runtimeType == other.runtimeType &&
-              taskItems == other.taskItems &&
+              _taskItems == other._taskItems &&
               isLoading == other.isLoading;
 
   @override
   String toString() {
-    return 'AppState{taskItems: $taskItems, isLoading: $isLoading}';
+    return 'AppState{taskItems: $_taskItems, isLoading: $isLoading}';
   }
 }

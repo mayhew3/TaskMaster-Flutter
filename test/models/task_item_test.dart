@@ -1,4 +1,5 @@
-import 'package:taskmaster/models/task_field.dart';
+import 'package:taskmaster/models/sprint_assignment.dart';
+import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:test/test.dart';
 import 'package:taskmaster/models/task_item.dart';
 
@@ -8,179 +9,141 @@ void main() {
   group('TaskItem', () {
 
     test('Should be constructed', () {
-      final taskItem = TaskItem();
-      expect(taskItem.id.value, null);
-      expect(taskItem.fields.length > 2, true);
-    });
-
-    test('revertAllChanges', () {
-      final taskItem = TaskItem();
-      taskItem.name.value = 'Cat Litter';
-      taskItem.priority.value = 4;
-      taskItem.revertAllChanges();
-      expect(taskItem.name.value, null);
-      expect(taskItem.priority.value, null);
+      final taskItem = TaskItem(personId: 1);
+      expect(taskItem.id, null);
     });
 
     test('fromJSON', () {
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON, allSprints);
-      expect(catLitter.id.value, 25);
-      expect(catLitter.name.value, "Cat Litter");
-      expect(catLitter.startDate.value, null);
-      expect(catLitter.targetDate.value, catTarget.toLocal());
-      expect(catLitter.dateAdded.value, catAdded.toLocal());
-      expect(catLitter.completionDate.value, catEnd.toLocal());
-      expect(catLitter.recurWait.value, true);
-    });
+      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
+      expect(catLitter.id, 25);
+      expect(catLitter.name, "Cat Litter");
+      expect(catLitter.startDate, null);
+      expect(catLitter.targetDate, catTarget);
+      expect(catLitter.dateAdded, catAdded);
+      expect(catLitter.completionDate, catEnd);
+      expect(catLitter.recurWait, true);
+      expect(catLitter.sprintAssignments, isNot(null));
+      expect(catLitter.sprintAssignments!.length, 1);
 
-    test('createCopy skips some fields', () {
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON, allSprints);
-      TaskItem catCopy = catLitter.createCopy();
-      expect(catCopy.id.value, null);
-      expect(catCopy.name.value, "Cat Litter");
-      expect(catCopy.dateAdded.value, null);
-      expect(catCopy.targetDate.value, catTarget.toLocal());
-      expect(catCopy.recurWait.value, true);
-      expect(catCopy.completionDate.value, null);
-    });
-
-    test('getTaskField', () {
-      TaskItem taskItem = new TaskItem();
-      var fieldName = 'target_date';
-      TaskField? taskField = taskItem.getTaskField(fieldName);
-      expect(taskField is TaskFieldDate, true);
-      expect(taskField!.fieldName, fieldName);
-    });
-
-    test('getTaskField with unknown field', () {
-      TaskItem taskItem = new TaskItem();
-      var fieldName = 'bogus_field';
-      TaskField? taskField = taskItem.getTaskField(fieldName);
-      expect(taskField, null);
-    });
-
-    test('getTaskField with unknown field', () {
-      TaskItem taskItem = new TaskItem();
-      var fieldName = 'target_date';
-      var dupeField = new TaskFieldDate(fieldName);
-      taskItem.fields.add(dupeField);
-      expect(() => taskItem.getTaskField(fieldName), throwsException);
+      SprintAssignment sprintAssignment = catLitter.sprintAssignments![0];
+      expect(sprintAssignment.id, 2346);
+      expect(sprintAssignment.sprintId, 11);
     });
 
     test('isCompleted', () {
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON, allSprints);
+      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
       expect(catLitter.isCompleted(), true);
     });
 
     test('isCompleted not completed', () {
-      TaskItem taskItem = new TaskItem();
+      TaskItem taskItem = new TaskItem(personId: 1);
       expect(taskItem.isCompleted(), false);
     });
 
     test('isScheduled is false for past date', () {
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON, allSprints);
-      catLitter.startDate.value = catTarget;
+      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
+      catLitter.startDate = catTarget;
       expect(catTarget.isBefore(DateTime.now()), true);
       expect(catLitter.isScheduled(), false);
     });
 
     test('isScheduled is false for null date', () {
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON, allSprints);
-      expect(catLitter.startDate.value, null);
+      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
+      expect(catLitter.startDate, null);
       expect(catLitter.isScheduled(), false);
     });
 
     test('isScheduled is true for future date', () {
       DateTime futureDate = DateTime.now().add(Duration(days: 5));
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON, allSprints);
-      catLitter.startDate.value = futureDate;
+      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
+      catLitter.startDate = futureDate;
       expect(catLitter.isScheduled(), true);
     });
 
     test('isPastDue is true for past date', () {
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON, allSprints);
-      catLitter.dueDate.value = catTarget;
+      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
+      catLitter.dueDate = catTarget;
       expect(catTarget.isBefore(DateTime.now()), true);
       expect(catLitter.isPastDue(), true);
     });
 
     test('isPastDue is false for null date', () {
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON, allSprints);
-      expect(catLitter.dueDate.value, null);
+      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
+      expect(catLitter.dueDate, null);
       expect(catLitter.isPastDue(), false);
     });
 
     test('isPastDue is false for future date', () {
       DateTime futureDate = DateTime.now().add(Duration(days: 5));
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON, allSprints);
-      catLitter.dueDate.value = futureDate;
+      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
+      catLitter.dueDate = futureDate;
       expect(catLitter.isPastDue(), false);
     });
 
     test('isUrgent is true for past date', () {
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON, allSprints);
-      catLitter.urgentDate.value = catTarget;
+      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
+      catLitter.urgentDate = catTarget;
       expect(catTarget.isBefore(DateTime.now()), true);
       expect(catLitter.isUrgent(), true);
     });
 
     test('isUrgent is false for null date', () {
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON, allSprints);
-      expect(catLitter.urgentDate.value, null);
+      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
+      expect(catLitter.urgentDate, null);
       expect(catLitter.isUrgent(), false);
     });
 
     test('isUrgent is false for future date', () {
       DateTime futureDate = DateTime.now().add(Duration(days: 5));
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON, allSprints);
-      catLitter.urgentDate.value = futureDate;
+      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
+      catLitter.urgentDate = futureDate;
       expect(catLitter.isUrgent(), false);
     });
 
     test('getAnchorDate targetDate when only date', () {
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON, allSprints);
-      var expected = catLitter.targetDate.value;
+      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
+      var expected = catLitter.targetDate;
       expect(catLitter.getAnchorDate(), expected);
     });
 
     test('getAnchorDate targetDate instead of start date', () {
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON, allSprints);
-      catLitter.startDate.value = catTarget.subtract(Duration(days: 3));
-      var expected = catLitter.targetDate.value;
+      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
+      catLitter.startDate = catTarget.subtract(Duration(days: 3));
+      var expected = catLitter.targetDate;
       expect(catLitter.getAnchorDate(), expected);
     });
 
     test('getAnchorDate urgentDate', () {
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON, allSprints);
+      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
       var expected = catTarget.add(Duration(days: 4));
-      catLitter.urgentDate.value = expected;
+      catLitter.urgentDate = expected;
       expect(catLitter.getAnchorDate(), expected);
     });
 
     test('getAnchorDate dueDate', () {
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON, allSprints);
-      catLitter.urgentDate.value = catTarget.add(Duration(days: 3));
+      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
+      catLitter.urgentDate = catTarget.add(Duration(days: 3));
       var expected = catTarget.add(Duration(days: 6));
-      catLitter.dueDate.value = expected;
+      catLitter.dueDate = expected;
       expect(catLitter.getAnchorDate(), expected);
     });
 
     test("equals identity", () {
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON, allSprints);
+      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
       expect(catLitter, catLitter);
     });
 
     test("equals only id matching", () {
-      TaskItem taskItem = new TaskItem();
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON, allSprints);
-      taskItem.id.value = catLitter.id.value;
+      TaskItem taskItem = new TaskItem(personId: 1);
+      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
+      taskItem.id = catLitter.id;
       expect(catLitter, taskItem);
     });
 
     test("equals no matching", () {
-      TaskItem taskItem = new TaskItem();
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON, allSprints);
-      taskItem.id.value = 3;
+      TaskItem taskItem = new TaskItem(personId: 1);
+      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
+      taskItem.id = 3;
       expect(catLitter, isNot(taskItem));
     });
 

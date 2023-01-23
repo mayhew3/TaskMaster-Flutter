@@ -39,12 +39,12 @@ class MockFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNo
 
   MockPendingNotificationRequest? findRequestFor(TaskItem taskItem, {bool? due}) {
     String dueStr = due == null || due ? 'due' : 'urgent';
-    String payload = 'task:${taskItem.id.value}:$dueStr';
+    String payload = 'task:${taskItem.id}:$dueStr';
     var matching = pendings.where((notification) => notification.payload == payload).iterator;
     if (matching.moveNext()) {
       var goodOne = matching.current;
       if (matching.moveNext()) {
-        throw Exception("Multiple matches found for task item ${taskItem.id.value} and date $dueStr");
+        throw Exception("Multiple matches found for task item ${taskItem.id} and date $dueStr");
       }
       return goodOne;
     } else {
