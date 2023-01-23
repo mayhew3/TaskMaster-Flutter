@@ -25,22 +25,17 @@ import 'task_helper_test.mocks.dart';
 void main() {
 
   MockTaskRepository taskRepository = new MockTaskRepository();
-  late MockNavHelper navHelper;
-  late MockAppState mockAppState;
-  late MockNotificationScheduler mockNotificationScheduler;
+  MockNavHelper navHelper = MockNavHelper();
+  MockAppState appState = MockAppState();
+  MockNotificationScheduler notificationScheduler = new MockNotificationScheduler();
   StateSetter stateSetter = (callback) => callback();
 
   TaskHelper createTaskHelper({List<TaskItemEdit>? taskItems, List<Sprint>? sprints}) {
+    when(taskRepository.appState).thenReturn(appState);
+    when(appState.notificationScheduler).thenReturn(notificationScheduler);
 
-    mockAppState = MockAppState();
-    mockNotificationScheduler = new MockNotificationScheduler();
-
-    when(taskRepository.appState).thenReturn(mockAppState);
-    when(mockAppState.notificationScheduler).thenReturn(mockNotificationScheduler);
-
-    navHelper = MockNavHelper();
     var taskHelper = TaskHelper(
-        appState: mockAppState,
+        appState: appState,
         repository: taskRepository,
         auth: MockTaskMasterAuth(),
         stateSetter: stateSetter);
@@ -188,7 +183,7 @@ void main() {
   test('completeTask recur', () async {
     var originalTask = pastTask;
     var taskHelper = createTaskHelper(taskItems: [originalTask]);
-    expect(mockNotificationScheduler, isNot(null));
+    expect(notificationScheduler, isNot(null));
 
     var inboundTask = TaskItem.fromJson(pastJSON);
     var now = DateTime.now();
@@ -201,14 +196,14 @@ void main() {
       addedTask = invocation.positionalArguments[0];
       return Future.value(mockAddTask(addedTask!));
     });
-    when(mockAppState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) => invocation.positionalArguments[0]);
+    when(appState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) => invocation.positionalArguments[0]);
 
     var returnedTask = await taskHelper.completeTask(originalTask, true, stateSetter);
-    verify(mockNotificationScheduler.updateNotificationForTask(originalTask));
-    verify(mockNotificationScheduler.updateBadge());
+    verify(notificationScheduler.updateNotificationForTask(originalTask));
+    verify(notificationScheduler.updateBadge());
     verify(taskRepository.addTask(any));
-    verify(mockAppState.addNewTaskToList(any));
-    verify(mockNotificationScheduler.updateNotificationForTask(any));
+    verify(appState.addNewTaskToList(any));
+    verify(notificationScheduler.updateNotificationForTask(any));
 
     expect(returnedTask, originalTask);
     expect(originalTask.pendingCompletion, false);
