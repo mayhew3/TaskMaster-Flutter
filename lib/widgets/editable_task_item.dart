@@ -143,10 +143,6 @@ class EditableTaskItemWidget extends StatelessWidget {
     }
   }
 
-  bool showTarget(TaskDateType taskDateType) {
-    return sprint == null || !(TaskDateTypes.target == taskDateType);
-  }
-
   Widget _getDateWarnings() {
     List<Widget> dateWarnings = [];
 
@@ -177,7 +173,6 @@ class EditableTaskItemWidget extends StatelessWidget {
       for (TaskDateType taskDateType in TaskDateTypes.allTypes) {
         if (!taskItem.isCompleted() &&
             taskDateType.inListBeforeDisplayThreshold(taskItem) &&
-            showTarget(taskDateType) &&
             dateWarnings.length < 1) {
           dateWarnings.add(_getDateFromNow(taskDateType));
         }
