@@ -1,12 +1,13 @@
 
 import 'package:flutter/material.dart';
+import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_item_edit.dart';
 import 'package:taskmaster/typedefs.dart';
 
 class TaskDateTypes {
   static final TaskDateType start = TaskDateType(
     label: 'Start',
-    textColor: Color.fromRGBO(235, 235, 235, 0.8),
+    textColor: TaskColors.startText,
     dateFieldGetter: (taskItem) => taskItem.startDate,
     dateFieldSetter: (taskItem, newDate) => taskItem.startDate = newDate,
     listThresholdInDays: -1,
@@ -14,7 +15,7 @@ class TaskDateTypes {
 
   static final TaskDateType target = TaskDateType(
     label: 'Target',
-    textColor: Color.fromRGBO(235, 235, 167, 1.0),
+    textColor: TaskColors.targetText,
     dateFieldGetter: (taskItem) => taskItem.targetDate,
     dateFieldSetter: (taskItem, newDate) => taskItem.targetDate = newDate,
     listThresholdInDays: 10,
@@ -22,7 +23,7 @@ class TaskDateTypes {
 
   static final TaskDateType urgent = TaskDateType(
     label: 'Urgent',
-    textColor: Color.fromRGBO(235, 200, 167, 1.0),
+    textColor: TaskColors.urgentText,
     dateFieldGetter: (taskItem) => taskItem.urgentDate,
     dateFieldSetter: (taskItem, newDate) => taskItem.urgentDate = newDate,
     listThresholdInDays: 10,
@@ -30,7 +31,7 @@ class TaskDateTypes {
 
   static final TaskDateType due = TaskDateType(
     label: 'Due',
-    textColor: Color.fromRGBO(235, 167, 167, 1.0),
+    textColor: TaskColors.dueText,
     dateFieldGetter: (taskItem) => taskItem.dueDate,
     dateFieldSetter: (taskItem, newDate) => taskItem.dueDate = newDate,
     listThresholdInDays: 10,
@@ -38,7 +39,7 @@ class TaskDateTypes {
 
   static final TaskDateType completed = TaskDateType(
     label: 'Completed',
-    textColor: Color.fromRGBO(235, 167, 235, 1.0),
+    textColor: TaskColors.completedText,
     dateFieldGetter: (taskItem) => taskItem.completionDate,
     dateFieldSetter: (taskItem, newDate) => taskItem.completionDate = newDate,
     listThresholdInDays: -1,

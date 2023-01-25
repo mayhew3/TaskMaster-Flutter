@@ -2,6 +2,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:taskmaster/models/task_colors.dart';
 
 class ReadOnlyTaskField extends StatelessWidget {
   final String headerName;
@@ -24,7 +25,7 @@ class ReadOnlyTaskField extends StatelessWidget {
   }) : super(key: key);
 
   Color getBackgroundColor() {
-    return this.optionalBackgroundColor ?? Color.fromRGBO(76, 77, 105, 1.0);
+    return this.optionalBackgroundColor ?? TaskColors.cardColor;
   }
 
   ShapeBorder _getBorder() {
@@ -67,7 +68,7 @@ class ReadOnlyTaskField extends StatelessWidget {
     return Visibility(
       visible: textToShow != null && textToShow!.isNotEmpty,
       child: Card(
-        shadowColor: hasShadow ? Colors.black : Color.fromRGBO(0, 0, 0, 0.0),
+        shadowColor: hasShadow ? Colors.black : TaskColors.invisible,
         elevation: 3.0,
         shape: _getBorder(),
         color: getBackgroundColor(),

@@ -3,6 +3,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/auth.dart';
+import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/screens/loading.dart';
 import 'package:taskmaster/task_helper.dart';
@@ -99,24 +100,21 @@ class TaskMasterAppState extends State<TaskMasterApp> {
 
   @override
   Widget build(BuildContext context) {
-    var myPink = Color.fromRGBO(217, 71, 142, 1.0);
-    var myLavender = Color.fromRGBO(102, 106, 186, 1.0);
-    var myDarkLavender = Color.fromRGBO(55, 56, 81, 1.0);
 
     final ThemeData theme = ThemeData(
       brightness: Brightness.dark,
-      primaryColor: myLavender,
-      canvasColor: myDarkLavender,
-      toggleableActiveColor: myPink,
+      primaryColor: TaskColors.menuColor,
+      canvasColor: TaskColors.backgroundColor,
+      toggleableActiveColor: TaskColors.highlight,
     );
 
     return MaterialApp(
       title: appState.title,
       theme: theme.copyWith(
           colorScheme: theme.colorScheme.copyWith(
-            primaryVariant: myDarkLavender,
-            secondary: myPink,
-            surface: myLavender,
+            primary: TaskColors.backgroundColor,
+            secondary: TaskColors.highlight,
+            surface: TaskColors.menuColor,
           )
       ),
       home: LoadingScreen(

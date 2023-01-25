@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
@@ -334,7 +335,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                     visible: hasDate(),
                     child: Card(
                       elevation: 3.0,
-                      color: Color.fromRGBO(76, 77, 105, 1.0),
+                      color: TaskColors.cardColor,
                       child: Padding(
                           padding: EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
                           child: Column(
