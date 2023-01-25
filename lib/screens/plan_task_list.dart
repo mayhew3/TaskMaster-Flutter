@@ -118,7 +118,8 @@ class PlanTaskListState extends State<PlanTaskList> {
   }
 
   void createTemporaryIterations() {
-    List<TaskItemEdit> eligibleItems = getBaseList();
+    List<TaskItemEdit> eligibleItems = [];
+    eligibleItems.addAll(getBaseList());
     if (widget.sprint != null) {
       eligibleItems.addAll(widget.sprint!.taskItems);
     }
