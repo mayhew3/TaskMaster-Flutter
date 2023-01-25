@@ -136,7 +136,7 @@ class AddEditScreenState extends State<AddEditScreen> {
       var allDates = <DateTime?>[fields.startDate, fields.targetDate, fields.urgentDate, fields.dueDate];
       var pastDates = allDates.whereType<DateTime>().where((dateTime) => hasPassed(dateTime));
 
-      return DateUtil.maxDate(pastDates);
+      return pastDates.length == 0 ? null : DateUtil.maxDate(pastDates);
     }
 
     DateTime _getPreviousDateOrNow(TaskDateType taskDateType) {
