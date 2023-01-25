@@ -169,7 +169,44 @@ class TaskListScreenState extends State<TaskListScreen> {
     );
   }
 
-
+  Card _createNoTasksFoundCard() {
+    return Card(
+      shadowColor: TaskColors.invisible,
+      color: TaskColors.backgroundColor,
+      elevation: 3.0,
+      margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
+      child: ClipPath(
+        clipper: ShapeBorderClipper(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(3.0),
+            )
+        ),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: Container(
+                padding: EdgeInsets.only(
+                  top: 0,
+                  bottom: 0,
+                  right: 0,
+                  left: 15.0,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'No eligible tasks found.',
+                      style: TextStyle(fontSize: 17.0),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   EditableTaskItemWidget _createTaskCard({required TaskItem taskItem, required BuildContext context}) {
 
@@ -241,6 +278,7 @@ class TaskListScreenState extends State<TaskListScreen> {
     final List<TaskItem> scheduledTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isScheduled());
 
     List<StatelessWidget> tiles = [];
+    int eligibleTasks = dueTasks.length + urgentTasks.length + targetTasks.length + scheduledTasks.length + completedTasks.length;
 
     if (widget.sprint == null) {
       var activeSprint = widget.appState.getActiveSprint();
@@ -280,6 +318,10 @@ class TaskListScreenState extends State<TaskListScreen> {
     if (completedTasks.isNotEmpty) {
       tiles.add(HeadingItem('Completed'));
       completedTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
+    }
+
+    if (eligibleTasks == 0) {
+      tiles.add(_createNoTasksFoundCard());
     }
 
     if (widget.sprint != null) {

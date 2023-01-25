@@ -247,7 +247,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   Color _getShadowColor() {
     if (taskItem.isScheduled()) {
       // no shadow for scheduled task, by using 0 alpha
-      return Color.fromRGBO(0, 0, 0, 0.0);
+      return TaskColors.invisible;
     } else {
       return Colors.black;
     }
