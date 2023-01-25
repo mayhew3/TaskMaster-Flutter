@@ -1,6 +1,8 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 
+import '../date_util.dart';
+
 /// This allows the `Sprint` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
 /// the star denotes the source file name.
@@ -108,10 +110,10 @@ class TaskItemBlueprint {
   }
 
   DateTime? getLastDateBefore(TaskDateType taskDateType) {
-    var allDates = [startDate, targetDate, urgentDate, dueDate];
-    var pastDates = allDates.where((dateTime) => dateTime != null && hasPassed(dateTime));
+    var allDates = <DateTime?>[startDate, targetDate, urgentDate, dueDate];
+    Iterable<DateTime> pastDates = allDates.whereType<DateTime>().where((dateTime) => hasPassed(dateTime));
 
-    return pastDates.reduce((a, b) => a!.isAfter(b!) ? a : b);
+    return DateUtil.maxDate(pastDates);
   }
 
   bool isScheduledRecurrence() {

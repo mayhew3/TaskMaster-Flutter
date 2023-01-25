@@ -10,6 +10,8 @@ import 'package:taskmaster/widgets/clearable_date_time_field.dart';
 import 'package:taskmaster/widgets/editable_task_field.dart';
 import 'package:taskmaster/widgets/nullable_dropdown.dart';
 
+import '../date_util.dart';
+
 class AddEditScreen extends StatefulWidget {
   final TaskItem taskItem;
   final TaskItemRefresher? taskItemRefresher;
@@ -131,10 +133,10 @@ class AddEditScreenState extends State<AddEditScreen> {
     }
 
     DateTime? getLastDateBefore(TaskDateType taskDateType) {
-      var allDates = [fields.startDate, fields.targetDate, fields.urgentDate, fields.dueDate];
-      var pastDates = allDates.where((dateTime) => dateTime != null && hasPassed(dateTime));
+      var allDates = <DateTime?>[fields.startDate, fields.targetDate, fields.urgentDate, fields.dueDate];
+      var pastDates = allDates.whereType<DateTime>().where((dateTime) => hasPassed(dateTime));
 
-      return pastDates.reduce((a, b) => a!.isAfter(b!) ? a : b);
+      return DateUtil.maxDate(pastDates);
     }
 
     DateTime _getPreviousDateOrNow(TaskDateType taskDateType) {

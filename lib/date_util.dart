@@ -16,6 +16,10 @@ class DateUtil {
     return dateFormat.format(dateTime);
   }
 
+  static DateTime maxDate(Iterable<DateTime> dateTimes) {
+    return dateTimes.reduce((a, b) => a.isAfter(b) ? a : b);
+  }
+
   static String formatMediumMaybeHidingYear(DateTime? dateTime) {
     if (dateTime == null) {
       return 'N/A';
