@@ -12,6 +12,8 @@ import 'package:taskmaster/widgets/delayed_checkbox.dart';
 import 'package:taskmaster/widgets/editable_task_item.dart';
 import 'package:taskmaster/widgets/header_list_item.dart';
 
+import '../models/task_colors.dart';
+
 
 class PlanTaskList extends StatefulWidget {
   final AppState appState;
@@ -166,6 +168,7 @@ class PlanTaskListState extends State<PlanTaskList> {
     final List<TaskItemEdit> scheduledTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isScheduledAfter(endDate));
 
     List<StatelessWidget> tiles = [];
+    int eligibleTasks = dueTasks.length + urgentTasks.length + targetTasks.length + scheduledTasks.length + completedTasks.length;
 
     if (lastSprintTasks.isNotEmpty) {
       tiles.add(HeadingItem('Last Sprint'));
@@ -207,12 +210,55 @@ class PlanTaskListState extends State<PlanTaskList> {
       completedTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
     }
 
+    if (eligibleTasks == 0) {
+      tiles.add(_createNoTasksFoundCard());
+    }
+
     return ListView.builder(
         padding: const EdgeInsets.only(bottom: kFloatingActionButtonMargin + 54),
         itemCount: tiles.length,
         itemBuilder: (context, index) {
           return tiles[index];
         });
+  }
+
+  Card _createNoTasksFoundCard() {
+    return Card(
+      shadowColor: TaskColors.invisible,
+      color: TaskColors.backgroundColor,
+      elevation: 3.0,
+      margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
+      child: ClipPath(
+        clipper: ShapeBorderClipper(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(3.0),
+            )
+        ),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: Container(
+                padding: EdgeInsets.only(
+                  top: 0,
+                  bottom: 0,
+                  right: 0,
+                  left: 15.0,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'No eligible tasks found.',
+                      style: TextStyle(fontSize: 17.0),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   DateTime getEndDate() {
