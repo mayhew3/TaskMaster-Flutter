@@ -97,7 +97,7 @@ class NotificationScheduler {
 
   Future<void> _syncNotificationForSprint(Sprint sprint, List<PendingNotificationRequest> requests) async {
     String sprintSearch = 'sprint:${sprint.id}';
-    String sprintName = 'Sprint ${sprint.id}';
+    String sprintName = 'Sprint ${sprint.sprintNumber}';
 
     DateTime exactTime = sprint.endDate;
     DateTime hourBefore = sprint.endDate.subtract(Duration(minutes: 60));

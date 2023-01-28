@@ -12,7 +12,8 @@ final Map<String, dynamic> pastSprintJSON = {
   "end_date": pastSprintStart.add(Duration(days: 7)).toIso8601String(),
   "num_units": 1,
   "unit_name": "Weeks",
-  "person_id": 1
+  "person_id": 1,
+  "sprint_number": 5
 };
 
 final DateTime currentSprintStart = DateTime.now().subtract(Duration(days: 3));
@@ -24,7 +25,8 @@ final Map<String, dynamic> currentSprintJSON = {
   "end_date": currentSprintStart.add(Duration(days: 7)).toIso8601String(),
   "num_units": 1,
   "unit_name": "Weeks",
-  "person_id": 1
+  "person_id": 1,
+  "sprint_number": 6
 };
 
 Sprint pastSprint = Sprint.fromJson(pastSprintJSON);

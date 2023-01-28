@@ -19,7 +19,8 @@ Sprint _$SprintFromJson(Map<String, dynamic> json) => Sprint(
       ..id = json['id'] as int?
       ..dateAdded = json['date_added'] == null
           ? null
-          : DateTime.parse(json['date_added'] as String);
+          : DateTime.parse(json['date_added'] as String)
+      ..sprintNumber = json['sprint_number'] as int?;
 
 Map<String, dynamic> _$SprintToJson(Sprint instance) {
   final val = <String, dynamic>{};
@@ -38,5 +39,6 @@ Map<String, dynamic> _$SprintToJson(Sprint instance) {
   val['num_units'] = instance.numUnits;
   val['unit_name'] = instance.unitName;
   val['person_id'] = instance.personId;
+  writeNotNull('sprint_number', instance.sprintNumber);
   return val;
 }

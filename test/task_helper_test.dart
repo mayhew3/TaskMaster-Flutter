@@ -423,6 +423,7 @@ void main() {
     verify(taskRepository.addSprint(sprint));
     verify(taskRepository.addTasksToSprint(taskItems, returnedSprint));
     verify(mockAppState.sprints.add(sprint));
+    expect(returnedSprint.sprintNumber, 6);
 
   });
 
