@@ -21,6 +21,8 @@ class Sprint {
 
   int personId;
 
+  int? sprintNumber;
+
   @JsonKey(ignore: true)
   List<TaskItem> taskItems = [];
 
