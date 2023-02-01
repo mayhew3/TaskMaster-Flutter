@@ -395,7 +395,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                                         ),
                                         Expanded(
                                           child: NullableDropdown(
-                                            initialValue: _getInputDisplay(fields.recurUnit),
+                                            initialValue: fields.recurUnit,
                                             labelText: 'Unit',
                                             possibleValues: possibleRecurUnits,
                                             valueSetter: (value) => fields.recurUnit = value,
