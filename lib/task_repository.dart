@@ -113,14 +113,14 @@ class TaskRepository {
   }
 
   Future<void> addTasksToSprint(List<TaskItemEdit> taskItems, Sprint sprint) async {
-    List<int> taskIds = [];
+    Set<int> taskIds = new Set<int>();
     for (TaskItemEdit taskItem in taskItems) {
       taskIds.add(taskItem.id!);
     }
 
     Map<String, Object> payload = {
       'sprint_id': sprint.id!,
-      'task_ids': taskIds,
+      'task_ids': taskIds.toList(),
     };
 
     return _addTaskListJSON(payload);
