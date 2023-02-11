@@ -70,8 +70,13 @@ class SnoozeDialogState extends State<SnoozeDialog> {
   }
 
   void onNumUnitsChanged(String? value) {
-    numUnits = ParseHelper.parseInt(value);
-    updateTaskItemWithPreview();
+    try {
+      numUnits = ParseHelper.parseInt(value);
+      updateTaskItemWithPreview();
+    } catch (e) {
+      String valueStr = value == null ? '' : value;
+      print('Invalid number: ' + valueStr);
+    }
   }
 
   void updateTaskItemWithPreview() {
