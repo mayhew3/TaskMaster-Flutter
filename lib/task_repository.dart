@@ -16,7 +16,7 @@ class TaskRepository {
   AppState appState;
   http.Client client;
 
-  static const serverEnv = String.fromEnvironment('SERVER');
+  static const serverEnv = String.fromEnvironment('SERVER', defaultValue: 'heroku');
 
   TaskRepository({
     required this.appState,
