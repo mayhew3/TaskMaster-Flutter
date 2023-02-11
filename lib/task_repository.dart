@@ -16,7 +16,7 @@ class TaskRepository {
   AppState appState;
   http.Client client;
 
-  static const serverEnv = String.fromEnvironment('SERVER', defaultValue: 'remote');
+  static const serverEnv = String.fromEnvironment('SERVER');
 
   TaskRepository({
     required this.appState,
@@ -24,9 +24,19 @@ class TaskRepository {
   });
 
   Uri getUriWithParameters(String path, Map<String, dynamic>? queryParameters) {
-    return (serverEnv == 'local') ?
-    Uri.http('localhost:3000', path, queryParameters) :
-    Uri.https('taskmaster-general.herokuapp.com', path, queryParameters);
+    if (serverEnv == "") {
+      throw new Exception('Missing required SERVER environment variable.');
+    }
+    switch(serverEnv) {
+      case 'local':
+        return Uri.http('localhost:3000', path, queryParameters);
+      case 'staging':
+        return Uri.https('taskmaster-staging.herokuapp.com', path, queryParameters);
+      case 'heroku':
+        return Uri.https('taskmaster-general.herokuapp.com', path, queryParameters);
+      default:
+        throw new Exception('Unknown SERVER environment variable: ' + serverEnv);
+    }
   }
 
   Uri getUri(String path) {
