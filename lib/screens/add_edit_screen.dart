@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_date_type.dart';
-import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_item_edit.dart';
 import 'package:taskmaster/task_helper.dart';
@@ -12,19 +11,18 @@ import 'package:taskmaster/widgets/editable_task_field.dart';
 import 'package:taskmaster/widgets/nullable_dropdown.dart';
 
 import '../date_util.dart';
+import '../models/task_item.dart';
 
 class AddEditScreen extends StatefulWidget {
-  final TaskItem taskItem;
+  final TaskItem? taskItem;
   final TaskItemRefresher? taskItemRefresher;
   final TaskHelper taskHelper;
-  final bool isEditing;
 
   const AddEditScreen({
     Key? key,
-    required this.taskItem,
+    this.taskItem,
     this.taskItemRefresher,
     required this.taskHelper,
-    required this.isEditing,
   }) : super(key: key);
 
   @override
@@ -52,7 +50,9 @@ class AddEditScreenState extends State<AddEditScreen> {
 
     _hasChanges = false;
 
-    fields = widget.isEditing ? widget.taskItem.createEditTemplate() : widget.taskItem.createBlueprint();
+    var taskItemTmp = widget.taskItem;
+
+    fields = taskItemTmp == null ? TaskItemBlueprint() : taskItemTmp.createEditTemplate();
 
     _initialRepeatOn = fields.recurNumber != null;
     _repeatOn = _initialRepeatOn;
@@ -99,6 +99,10 @@ class AddEditScreenState extends State<AddEditScreen> {
       'Months',
       'Years',
     ];
+  }
+
+  bool get isEditing {
+    return widget.taskItem != null;
   }
 
   bool hasDate() {
@@ -443,7 +447,7 @@ class AddEditScreenState extends State<AddEditScreen> {
       floatingActionButton: Visibility(
         visible: _hasChanges || (_initialRepeatOn && !_repeatOn),
         child: FloatingActionButton(
-          child: Icon(widget.isEditing ? Icons.check : Icons.add),
+          child: Icon(isEditing ? Icons.check : Icons.add),
           onPressed: () async {
             final form = formKey.currentState;
 
@@ -458,13 +462,15 @@ class AddEditScreenState extends State<AddEditScreen> {
             if (form != null && form.validate()) {
               form.save();
 
-              if (widget.isEditing) {
+              var tmpTaskItem = widget.taskItem;
+
+              if (tmpTaskItem != null) {
                 var editing = fields as TaskItemEdit;
                 if (_repeatOn && editing.recurrenceId == null) {
                   editing.recurrenceId = editing.id;
                   editing.recurIteration = 1;
                 }
-                var updatedItem = await widget.taskHelper.updateTask(widget.taskItem, editing);
+                var updatedItem = await widget.taskHelper.updateTask(tmpTaskItem, editing);
                 var taskItemRefresher2 = widget.taskItemRefresher;
                 if (taskItemRefresher2 != null) {
                   taskItemRefresher2(updatedItem);

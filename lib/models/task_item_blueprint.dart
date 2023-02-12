@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/task_date_type.dart';
+import 'dart:math';
 
 import '../date_util.dart';
 
@@ -34,6 +35,14 @@ class TaskItemBlueprint {
   int? recurrenceId;
   int? recurIteration;
 
+  @JsonKey(ignore: true)
+  late int tmpId;
+
+  TaskItemBlueprint() {
+    tmpId = new Random().nextInt(60000);
+  }
+
+
   /// `toJson` is the convention for a class to declare support for serialization
   /// to JSON. The implementation simply calls the private, generated
   /// helper method `_$TaskItemFormToJson`.
@@ -41,28 +50,28 @@ class TaskItemBlueprint {
 
   TaskItemBlueprint createBlueprint() {
 
-    TaskItemBlueprint fields = TaskItemBlueprint();
+    TaskItemBlueprint blueprint = TaskItemBlueprint();
 
     // todo: make more dynamic?
-    fields.name = name;
-    fields.description = description;
-    fields.project = project;
-    fields.context = context;
-    fields.urgency = urgency;
-    fields.priority = priority;
-    fields.duration = duration;
-    fields.startDate = startDate;
-    fields.targetDate = targetDate;
-    fields.dueDate = dueDate;
-    fields.urgentDate = urgentDate;
-    fields.gamePoints = gamePoints;
-    fields.recurNumber = recurNumber;
-    fields.recurUnit = recurUnit;
-    fields.recurWait = recurWait;
-    fields.recurrenceId = recurrenceId;
-    fields.recurIteration = recurIteration;
+    blueprint.name = name;
+    blueprint.description = description;
+    blueprint.project = project;
+    blueprint.context = context;
+    blueprint.urgency = urgency;
+    blueprint.priority = priority;
+    blueprint.duration = duration;
+    blueprint.startDate = startDate;
+    blueprint.targetDate = targetDate;
+    blueprint.dueDate = dueDate;
+    blueprint.urgentDate = urgentDate;
+    blueprint.gamePoints = gamePoints;
+    blueprint.recurNumber = recurNumber;
+    blueprint.recurUnit = recurUnit;
+    blueprint.recurWait = recurWait;
+    blueprint.recurrenceId = recurrenceId;
+    blueprint.recurIteration = recurIteration;
 
-    return fields;
+    return blueprint;
   }
 
   bool hasPassed(DateTime? dateTime) {
@@ -119,6 +128,18 @@ class TaskItemBlueprint {
   bool isScheduledRecurrence() {
     var recurWaitValue = recurWait;
     return recurWaitValue != null && !recurWaitValue;
+  }
+
+  DateTime? getAnchorDate() {
+    return getAnchorDateType()?.dateFieldGetter(this);
+  }
+
+  bool isCompleted() {
+    return false;
+  }
+
+  bool get pendingCompletion {
+    return false;
   }
 
   TaskDateType? getAnchorDateType() {

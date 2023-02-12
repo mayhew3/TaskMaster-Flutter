@@ -1,5 +1,7 @@
 
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/models/task_item_blueprint.dart';
+import 'package:taskmaster/models/task_item_edit.dart';
 
 class TaskItemBuilder {
   int? id;
@@ -24,10 +26,32 @@ class TaskItemBuilder {
 
   TaskItemBuilder();
 
-  TaskItem create() {
-    TaskItem taskItem = new TaskItem(personId: 1);
+  TaskItemBlueprint createBlueprint() {
+    TaskItemBlueprint taskItem = new TaskItemBlueprint();
 
-    taskItem.id = id;
+    taskItem.name = name;
+    taskItem.description = description;
+    taskItem.project = project;
+    taskItem.context = context;
+    taskItem.urgency = urgency;
+    taskItem.priority = priority;
+    taskItem.duration = duration;
+    taskItem.startDate = startDate;
+    taskItem.targetDate = targetDate;
+    taskItem.urgentDate = urgentDate;
+    taskItem.dueDate = dueDate;
+    taskItem.gamePoints = gamePoints;
+    taskItem.recurNumber = recurNumber;
+    taskItem.recurUnit = recurUnit;
+    taskItem.recurWait = recurWait;
+    taskItem.recurrenceId = recurrenceId;
+
+    return taskItem;
+  }
+
+  TaskItem create() {
+    TaskItem taskItem = new TaskItem(id: id!, personId: 1);
+
     taskItem.name = name;
     taskItem.description = description;
     taskItem.project = project;

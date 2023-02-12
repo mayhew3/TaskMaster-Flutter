@@ -40,24 +40,24 @@ void main() {
   late TaskItem straddledUrgentDue;
 
   setUp(() {
-    futureDue = TaskItem(personId: 1);
+    futureDue = TaskItem(id: 2, personId: 1);
     futureDue.id = 30;
     futureDue.name = 'Barf a Penny';
     futureDue.dueDate = DateTime.now().add(Duration(days: 4));
 
-    futureUrgentDue = TaskItem(personId: 1);
+    futureUrgentDue = TaskItem(id: 2, personId: 1);
     futureUrgentDue.id = 30;
     futureUrgentDue.name = 'Give a Penny';
     futureUrgentDue.dueDate = DateTime.now().add(Duration(days: 4));
     futureUrgentDue.urgentDate = DateTime.now().add(Duration(days: 2));
 
-    pastUrgentDue = TaskItem(personId: 1);
+    pastUrgentDue = TaskItem(id: 2, personId: 1);
     pastUrgentDue.id = 30;
     pastUrgentDue.name = 'Take a Penny';
     pastUrgentDue.dueDate = DateTime.now().subtract(Duration(days: 2));
     pastUrgentDue.urgentDate = DateTime.now().subtract(Duration(days: 4));
 
-    straddledUrgentDue = TaskItem(personId: 1);
+    straddledUrgentDue = TaskItem(id: 2, personId: 1);
     straddledUrgentDue.id = 30;
     straddledUrgentDue.name = 'Eat a Penny';
     straddledUrgentDue.dueDate = DateTime.now().add(Duration(days: 7));
@@ -228,7 +228,7 @@ void main() {
     var taskItem = futureDue;
     var scheduler = await _createScheduler([taskItem]);
     expect(plugin.pendings.length, 3);
-    await scheduler.cancelNotificationsForTaskId(taskItem.id!);
+    await scheduler.cancelNotificationsForTaskId(taskItem.id);
     expect(plugin.pendings.length, 0);
   });
 
@@ -236,7 +236,7 @@ void main() {
     var taskItem = futureUrgentDue;
     var scheduler = await _createScheduler([taskItem]);
     expect(plugin.pendings.length, 5);
-    await scheduler.cancelNotificationsForTaskId(taskItem.id!);
+    await scheduler.cancelNotificationsForTaskId(taskItem.id);
     expect(plugin.pendings.length, 0);
   });
 

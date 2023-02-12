@@ -457,9 +457,7 @@ class TaskListScreenState extends State<TaskListScreen> {
               await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => AddEditScreen(
-                  taskItem: TaskItem(personId: widget.appState.personId),
                   taskHelper: widget.taskHelper,
-                  isEditing: false,
                 )),
               );
               setState(() {});

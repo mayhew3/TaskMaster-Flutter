@@ -15,8 +15,9 @@ class TaskItem extends TaskItemEdit {
   List<SprintAssignment>? sprintAssignments;
 
   TaskItem({
+    required int id,
     required int personId
-  }): super(personId: personId);
+  }): super(id: id, personId: personId);
 
   @override
   bool isEditable() {
@@ -24,10 +25,9 @@ class TaskItem extends TaskItemEdit {
   }
 
   TaskItem createCopy() {
-    var fields = new TaskItem(personId: this.personId);
+    var fields = new TaskItem(id: this.id, personId: this.personId);
 
     // todo: make more dynamic?
-    fields.id = id;
     fields.name = name;
     fields.description = description;
     fields.project = project;

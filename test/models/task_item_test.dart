@@ -8,11 +8,6 @@ import '../mocks/mock_data.dart';
 void main() {
   group('TaskItem', () {
 
-    test('Should be constructed', () {
-      final taskItem = TaskItem(personId: 1);
-      expect(taskItem.id, null);
-    });
-
     test('fromJSON', () {
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
       expect(catLitter.id, 25);
@@ -36,7 +31,7 @@ void main() {
     });
 
     test('isCompleted not completed', () {
-      TaskItem taskItem = new TaskItem(personId: 1);
+      TaskItem taskItem = new TaskItem(id: 2, personId: 1);
       expect(taskItem.isCompleted(), false);
     });
 
@@ -134,14 +129,14 @@ void main() {
     });
 
     test("equals only id matching", () {
-      TaskItem taskItem = new TaskItem(personId: 1);
+      TaskItem taskItem = new TaskItem(id: 2, personId: 1);
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
       taskItem.id = catLitter.id;
       expect(catLitter, taskItem);
     });
 
     test("equals no matching", () {
-      TaskItem taskItem = new TaskItem(personId: 1);
+      TaskItem taskItem = new TaskItem(id: 2, personId: 1);
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
       taskItem.id = 3;
       expect(catLitter, isNot(taskItem));

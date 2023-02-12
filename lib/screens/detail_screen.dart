@@ -264,7 +264,6 @@ class DetailScreenState extends State<DetailScreen> {
                   taskItem: taskItem,
                   taskItemRefresher: refreshLocalTaskItem,
                   taskHelper: widget.taskHelper,
-                  isEditing: true,
                 );
               },
             ),
