@@ -49,6 +49,7 @@ class TaskListScreenState extends State<TaskListScreen> {
   late bool showActive;
 
   Sprint? activeSprint;
+  bool hasTiles = false;
 
   List<TaskItem> recentlyCompleted = [];
 
@@ -208,8 +209,89 @@ class TaskListScreenState extends State<TaskListScreen> {
     );
   }
 
-  EditableTaskItemWidget _createTaskCard({required TaskItem taskItem, required BuildContext context}) {
+  List<TaskItem> getFilteredTasks(List<TaskItem> taskItems) {
+    var activeSprint = widget.appState.getActiveSprint();
+    List<TaskItem> filtered = taskItems.where((taskItem) {
+      bool passesScheduleFilter = showScheduled || !taskItem.isScheduled();
+      bool passesCompletedFilter = showCompleted || !(taskItem.isCompleted() && !recentlyCompleted.contains(taskItem));
+      bool passesActiveFilter = showActive || !(taskItem.sprints.contains(activeSprint));
+      return passesScheduleFilter && passesCompletedFilter && passesActiveFilter;
+    }).toList();
+    return filtered;
+  }
 
+  ListView _buildListView(BuildContext context) {
+    widget.appState.notificationScheduler.updateHomeScreenContext(context);
+    final List<TaskItem> allTasks = widget.taskListGetter();
+    final List<TaskItem> otherTasks = getFilteredTasks(allTasks);
+
+    final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted() && !recentlyCompleted.contains(taskItem));
+    final List<TaskItem> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isPastDue());
+    final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgent());
+
+    List<TaskItem> targetTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isTarget());
+
+    final List<TaskItem> scheduledTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isScheduled());
+
+    List<StatelessWidget> tiles = [];
+
+    if (widget.sprint == null) {
+      var activeSprint = widget.appState.getActiveSprint();
+      if (activeSprint != null) {
+        tiles.add(_createSummaryWidget(activeSprint, context));
+      }
+    }
+
+    if (dueTasks.isNotEmpty) {
+      tiles.add(HeadingItem('Past Due'));
+      dueTasks.forEach((task) => _addTaskTile(taskItem: task, context: context, tiles: tiles));
+    }
+
+    if (urgentTasks.isNotEmpty) {
+      tiles.add(HeadingItem('Urgent'));
+      urgentTasks.forEach((task) => _addTaskTile(taskItem: task, context: context, tiles: tiles));
+    }
+
+    if (targetTasks.isNotEmpty) {
+      tiles.add(HeadingItem('Target'));
+      targetTasks.forEach((task) => _addTaskTile(taskItem: task, context: context, tiles: tiles));
+    }
+
+    if (otherTasks.isNotEmpty) {
+      tiles.add(HeadingItem('Tasks'));
+      otherTasks.forEach((task) => _addTaskTile(taskItem: task, context: context, tiles: tiles));
+    }
+
+    if (scheduledTasks.isNotEmpty) {
+      tiles.add(HeadingItem('Scheduled'));
+      scheduledTasks.sort((t1, t2) {
+        return t1.startDate!.compareTo(t2.startDate!);
+      });
+      scheduledTasks.forEach((task) => _addTaskTile(taskItem: task, context: context, tiles: tiles));
+    }
+
+    if (completedTasks.isNotEmpty) {
+      tiles.add(HeadingItem('Completed'));
+      completedTasks.forEach((task) => _addTaskTile(taskItem: task, context: context, tiles: tiles));
+    }
+
+    if (!hasTiles) {
+      tiles.add(_createNoTasksFoundCard());
+    }
+
+    if (widget.sprint != null) {
+      tiles.add(_createAddMoreButton());
+    }
+
+    return ListView.builder(
+        padding: const EdgeInsets.only(bottom: kFloatingActionButtonMargin + 54),
+        itemCount: tiles.length,
+        itemBuilder: (context, index) {
+          return tiles[index];
+        });
+  }
+
+  void _addTaskTile({required TaskItem taskItem, required BuildContext context, required List<StatelessWidget> tiles}) {
     var snoozeDialog = (TaskItem taskItem) {
       HapticFeedback.mediumImpact();
       showDialog<void>(context: context, builder: (context) => SnoozeDialog(
@@ -217,8 +299,7 @@ class TaskListScreenState extends State<TaskListScreen> {
         taskHelper: widget.taskHelper,
       ));
     };
-
-    return EditableTaskItemWidget(
+    var taskCard = EditableTaskItemWidget(
       taskItem: taskItem,
       stateSetter: (callback) => setState(() => callback()),
       addMode: false,
@@ -246,94 +327,16 @@ class TaskListScreenState extends State<TaskListScreen> {
           try {
             await widget.taskHelper.deleteTask(taskItem, (callback) => setState(() => callback()));
             _displaySnackBar("Task Deleted!", context);
+            return true;
           } catch(err) {
+            return false;
           }
         }
+        return false;
       },
     );
-  }
-
-  List<TaskItem> getFilteredTasks(List<TaskItem> taskItems) {
-    var activeSprint = widget.appState.getActiveSprint();
-    List<TaskItem> filtered = taskItems.where((taskItem) {
-      bool passesScheduleFilter = showScheduled || !taskItem.isScheduled();
-      bool passesCompletedFilter = showCompleted || !(taskItem.isCompleted() && !recentlyCompleted.contains(taskItem));
-      bool passesActiveFilter = showActive || !(taskItem.sprints.contains(activeSprint));
-      return passesScheduleFilter && passesCompletedFilter && passesActiveFilter;
-    }).toList();
-    return filtered;
-  }
-
-  ListView _buildListView(BuildContext context) {
-    widget.appState.notificationScheduler.updateHomeScreenContext(context);
-    final List<TaskItem> allTasks = widget.taskListGetter();
-    final List<TaskItem> otherTasks = getFilteredTasks(allTasks);
-
-    final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted() && !recentlyCompleted.contains(taskItem));
-    final List<TaskItem> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isPastDue());
-    final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgent());
-
-    List<TaskItem> targetTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isTarget());
-
-    final List<TaskItem> scheduledTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isScheduled());
-
-    List<StatelessWidget> tiles = [];
-    int eligibleTasks = dueTasks.length + urgentTasks.length + targetTasks.length + scheduledTasks.length + completedTasks.length;
-
-    if (widget.sprint == null) {
-      var activeSprint = widget.appState.getActiveSprint();
-      if (activeSprint != null) {
-        tiles.add(_createSummaryWidget(activeSprint, context));
-      }
-    }
-
-    if (dueTasks.isNotEmpty) {
-      tiles.add(HeadingItem('Past Due'));
-      dueTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
-    }
-
-    if (urgentTasks.isNotEmpty) {
-      tiles.add(HeadingItem('Urgent'));
-      urgentTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
-    }
-
-    if (targetTasks.isNotEmpty) {
-      tiles.add(HeadingItem('Target'));
-      targetTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
-    }
-
-    if (otherTasks.isNotEmpty) {
-      tiles.add(HeadingItem('Tasks'));
-      otherTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
-    }
-
-    if (scheduledTasks.isNotEmpty) {
-      tiles.add(HeadingItem('Scheduled'));
-      scheduledTasks.sort((t1, t2) {
-        return t1.startDate!.compareTo(t2.startDate!);
-      });
-      scheduledTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
-    }
-
-    if (completedTasks.isNotEmpty) {
-      tiles.add(HeadingItem('Completed'));
-      completedTasks.forEach((task) => tiles.add(_createTaskCard(taskItem: task, context: context)));
-    }
-
-    if (eligibleTasks == 0) {
-      tiles.add(_createNoTasksFoundCard());
-    }
-
-    if (widget.sprint != null) {
-      tiles.add(_createAddMoreButton());
-    }
-
-    return ListView.builder(
-        padding: const EdgeInsets.only(bottom: kFloatingActionButtonMargin + 54),
-        itemCount: tiles.length,
-        itemBuilder: (context, index) {
-          return tiles[index];
-        });
+    tiles.add(taskCard);
+    hasTiles = true;
   }
 
   void _openPlanning(BuildContext context) async {
