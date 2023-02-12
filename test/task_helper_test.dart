@@ -187,7 +187,7 @@ void main() {
     var now = DateTime.now();
     inboundTask.completionDate = now;
 
-    TaskItemEdit? addedTask;
+    TaskItemBlueprint? addedTask;
 
     when(taskRepository.completeTask(originalTask)).thenAnswer((_) => Future.value(inboundTask));
     when(taskRepository.addTask(argThat(isA<TaskItemBlueprint>()))).thenAnswer((invocation) {
@@ -211,8 +211,6 @@ void main() {
     expect(addedTask, isNot(null), reason: 'Expect new task to be created based on recur.');
     expect(addedTask, isNot(returnedTask));
     expect(addedTask!.pendingCompletion, false);
-    expect(addedTask!.completionDate, null, reason: 'New recurrence should not have completion date.');
-    expect(addedTask!.completionDate, null, reason: 'New recurrence should not have completion date.');
 
     var originalStart = DateUtil.withoutMillis(originalTask.startDate!);
     var newStart = DateUtil.withoutMillis(addedTask!.startDate!);

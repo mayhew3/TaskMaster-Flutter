@@ -66,7 +66,7 @@ void main() {
 
       TaskRepository taskRepository = await TestMockHelper.createTaskRepositoryAndLoad();
 
-      var addedItem = (TaskItemBuilder.asPreCommit()).create();
+      var addedItem = (TaskItemBuilder.asPreCommit()).createBlueprint();
 
       when(taskRepository.client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")))
           .thenAnswer((invocation) async {
