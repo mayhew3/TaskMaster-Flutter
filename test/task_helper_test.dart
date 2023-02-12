@@ -44,9 +44,8 @@ void main() {
   }
 
   TaskItem mockAddTask(TaskItemBlueprint taskItemEdit) {
-    TaskItem taskItem = new TaskItem(personId: 1);
+    TaskItem taskItem = new TaskItem(id: 1, personId: 1);
 
-    taskItem.id = 1;
     taskItem.name = taskItemEdit.name;
     taskItem.description = taskItemEdit.description;
     taskItem.project = taskItemEdit.project;
@@ -71,9 +70,8 @@ void main() {
   }
 
   TaskItem mockEditTask(TaskItemEdit taskItemEdit) {
-    TaskItem taskItem = new TaskItem(personId: 1);
+    TaskItem taskItem = new TaskItem(id: taskItemEdit.id ?? 1, personId: 1);
 
-    taskItem.id = taskItemEdit.id ?? 1;
     taskItem.name = taskItemEdit.name;
     taskItem.description = taskItemEdit.description;
     taskItem.project = taskItemEdit.project;
@@ -256,7 +254,7 @@ void main() {
     expect(notificationScheduler, isNot(null));
 
     await taskHelper.deleteTask(originalTask, stateSetter);
-    verify(notificationScheduler.cancelNotificationsForTaskId(originalTask.id!));
+    verify(notificationScheduler.cancelNotificationsForTaskId(originalTask.id));
     verify(mockAppState.deleteTaskFromList(originalTask));
     verify(notificationScheduler.updateBadge());
     verify(taskRepository.deleteTask(originalTask));

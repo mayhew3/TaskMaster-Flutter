@@ -16,8 +16,8 @@ import 'package:taskmaster/models/snooze.dart' as _i8;
 import 'package:taskmaster/models/sprint.dart' as _i9;
 import 'package:taskmaster/models/task_date_type.dart' as _i18;
 import 'package:taskmaster/models/task_item.dart' as _i5;
-import 'package:taskmaster/models/task_item_blueprint.dart' as _i16;
-import 'package:taskmaster/models/task_item_edit.dart' as _i11;
+import 'package:taskmaster/models/task_item_blueprint.dart' as _i11;
+import 'package:taskmaster/models/task_item_edit.dart' as _i16;
 import 'package:taskmaster/nav_helper.dart' as _i4;
 import 'package:taskmaster/notification_scheduler.dart' as _i3;
 import 'package:taskmaster/task_helper.dart' as _i15;
@@ -137,8 +137,9 @@ class _FakeTaskRepository_9 extends _i1.SmartFake
         );
 }
 
-class _FakeTaskItemEdit_10 extends _i1.SmartFake implements _i11.TaskItemEdit {
-  _FakeTaskItemEdit_10(
+class _FakeTaskItemBlueprint_10 extends _i1.SmartFake
+    implements _i11.TaskItemBlueprint {
+  _FakeTaskItemBlueprint_10(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -545,7 +546,7 @@ class MockTaskRepository extends _i1.Mock implements _i10.TaskRepository {
         returnValueForMissingStub: _i13.Future<void>.value(),
       ) as _i13.Future<void>);
   @override
-  _i13.Future<_i5.TaskItem> addTask(_i16.TaskItemBlueprint? taskItemForm) =>
+  _i13.Future<_i5.TaskItem> addTask(_i11.TaskItemBlueprint? taskItemForm) =>
       (super.noSuchMethod(
         Invocation.method(
           #addTask,
@@ -611,7 +612,7 @@ class MockTaskRepository extends _i1.Mock implements _i10.TaskRepository {
       ) as _i13.Future<_i9.Sprint>);
   @override
   _i13.Future<void> addTasksToSprint(
-    List<_i11.TaskItemEdit>? taskItems,
+    List<_i16.TaskItemEdit>? taskItems,
     _i9.Sprint? sprint,
   ) =>
       (super.noSuchMethod(
@@ -649,7 +650,7 @@ class MockTaskRepository extends _i1.Mock implements _i10.TaskRepository {
         )),
       ) as _i13.Future<_i5.TaskItem>);
   @override
-  _i13.Future<_i5.TaskItem> updateTask(_i11.TaskItemEdit? taskItemForm) =>
+  _i13.Future<_i5.TaskItem> updateTask(_i16.TaskItemEdit? taskItemForm) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateTask,
@@ -758,7 +759,7 @@ class MockTaskHelper extends _i1.Mock implements _i15.TaskHelper {
         returnValueForMissingStub: _i13.Future<void>.value(),
       ) as _i13.Future<void>);
   @override
-  _i13.Future<_i5.TaskItem> addTask(_i16.TaskItemBlueprint? taskItem) =>
+  _i13.Future<_i5.TaskItem> addTask(_i11.TaskItemBlueprint? taskItem) =>
       (super.noSuchMethod(
         Invocation.method(
           #addTask,
@@ -781,7 +782,7 @@ class MockTaskHelper extends _i1.Mock implements _i15.TaskHelper {
         )),
       ) as _i13.Future<_i5.TaskItem>);
   @override
-  _i11.TaskItemEdit? maybeCreateNextIteration(
+  _i11.TaskItemBlueprint? maybeCreateNextIteration(
     _i5.TaskItem? taskItem,
     bool? completed,
     DateTime? completionDate,
@@ -796,10 +797,10 @@ class MockTaskHelper extends _i1.Mock implements _i15.TaskHelper {
           ],
         ),
         returnValueForMissingStub: null,
-      ) as _i11.TaskItemEdit?);
+      ) as _i11.TaskItemBlueprint?);
   @override
-  _i11.TaskItemEdit createNextIteration(
-    _i11.TaskItemEdit? taskItem,
+  _i11.TaskItemBlueprint createNextIteration(
+    _i11.TaskItemBlueprint? taskItem,
     DateTime? completionDate,
   ) =>
       (super.noSuchMethod(
@@ -810,7 +811,7 @@ class MockTaskHelper extends _i1.Mock implements _i15.TaskHelper {
             completionDate,
           ],
         ),
-        returnValue: _FakeTaskItemEdit_10(
+        returnValue: _FakeTaskItemBlueprint_10(
           this,
           Invocation.method(
             #createNextIteration,
@@ -820,7 +821,7 @@ class MockTaskHelper extends _i1.Mock implements _i15.TaskHelper {
             ],
           ),
         ),
-        returnValueForMissingStub: _FakeTaskItemEdit_10(
+        returnValueForMissingStub: _FakeTaskItemBlueprint_10(
           this,
           Invocation.method(
             #createNextIteration,
@@ -830,7 +831,7 @@ class MockTaskHelper extends _i1.Mock implements _i15.TaskHelper {
             ],
           ),
         ),
-      ) as _i11.TaskItemEdit);
+      ) as _i11.TaskItemBlueprint);
   @override
   _i13.Future<_i5.TaskItem> completeTask(
     _i5.TaskItem? taskItem,
@@ -889,7 +890,7 @@ class MockTaskHelper extends _i1.Mock implements _i15.TaskHelper {
   @override
   _i13.Future<_i5.TaskItem> updateTask(
     _i5.TaskItem? taskItem,
-    _i11.TaskItemEdit? changes,
+    _i16.TaskItemEdit? changes,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -923,7 +924,7 @@ class MockTaskHelper extends _i1.Mock implements _i15.TaskHelper {
       ) as _i13.Future<_i5.TaskItem>);
   @override
   void previewSnooze(
-    _i11.TaskItemEdit? taskItemEdit,
+    _i16.TaskItemEdit? taskItemEdit,
     int? numUnits,
     String? unitSize,
     _i18.TaskDateType? dateType,
@@ -943,7 +944,7 @@ class MockTaskHelper extends _i1.Mock implements _i15.TaskHelper {
   @override
   _i13.Future<_i5.TaskItem> snoozeTask(
     _i5.TaskItem? taskItem,
-    _i11.TaskItemEdit? taskItemEdit,
+    _i16.TaskItemEdit? taskItemEdit,
     int? numUnits,
     String? unitSize,
     _i18.TaskDateType? dateType,
@@ -990,7 +991,7 @@ class MockTaskHelper extends _i1.Mock implements _i15.TaskHelper {
   @override
   _i13.Future<_i9.Sprint> addSprintAndTasks(
     _i9.Sprint? sprint,
-    List<_i11.TaskItemEdit>? taskItems,
+    List<_i16.TaskItemEdit>? taskItems,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -1024,7 +1025,7 @@ class MockTaskHelper extends _i1.Mock implements _i15.TaskHelper {
   @override
   _i13.Future<_i9.Sprint> addTasksToSprint(
     _i9.Sprint? sprint,
-    List<_i11.TaskItemEdit>? taskItems,
+    List<_i16.TaskItemEdit>? taskItems,
   ) =>
       (super.noSuchMethod(
         Invocation.method(

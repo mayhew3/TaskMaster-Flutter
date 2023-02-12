@@ -7,6 +7,7 @@ part of 'task_item_edit.dart';
 // **************************************************************************
 
 TaskItemEdit _$TaskItemEditFromJson(Map<String, dynamic> json) => TaskItemEdit(
+      id: json['id'] as int,
       personId: json['person_id'] as int,
     )
       ..name = json['name'] as String?
@@ -34,7 +35,6 @@ TaskItemEdit _$TaskItemEditFromJson(Map<String, dynamic> json) => TaskItemEdit(
       ..recurWait = json['recur_wait'] as bool?
       ..recurrenceId = json['recurrence_id'] as int?
       ..recurIteration = json['recur_iteration'] as int?
-      ..id = json['id'] as int?
       ..dateAdded = json['date_added'] == null
           ? null
           : DateTime.parse(json['date_added'] as String)
@@ -68,7 +68,7 @@ Map<String, dynamic> _$TaskItemEditToJson(TaskItemEdit instance) {
   writeNotNull('recur_wait', instance.recurWait);
   writeNotNull('recurrence_id', instance.recurrenceId);
   writeNotNull('recur_iteration', instance.recurIteration);
-  writeNotNull('id', instance.id);
+  val['id'] = instance.id;
   val['person_id'] = instance.personId;
   writeNotNull('date_added', instance.dateAdded?.toIso8601String());
   writeNotNull('completion_date', instance.completionDate?.toIso8601String());

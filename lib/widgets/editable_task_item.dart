@@ -3,14 +3,14 @@ import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_date_type.dart';
+import 'package:taskmaster/models/task_item_blueprint.dart';
+import 'package:taskmaster/models/task_item_edit.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/delayed_checkbox.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
-import '../models/task_item_edit.dart';
-
 class EditableTaskItemWidget extends StatelessWidget {
-  final TaskItemEdit taskItem;
+  final TaskItemBlueprint taskItem;
   final GestureTapCallback? onTap;
   final CheckCycleWaiter? onTaskCompleteToggle;
   final CheckCycleWaiter? onTaskAssignmentToggle;
@@ -52,7 +52,9 @@ class EditableTaskItemWidget extends StatelessWidget {
     var urgent = hasPassed(taskItem.urgentDate);
     var target = hasPassed(taskItem.targetDate);
     var scheduled = taskItem.isScheduled();
-    var completed = taskItem.completionDate != null;
+
+    var tmpTaskItem = taskItem;
+    var completed = (tmpTaskItem is TaskItemEdit) && tmpTaskItem.completionDate != null;
 
     if (pending) {
       return TaskColors.pendingBackground;
@@ -133,7 +135,8 @@ class EditableTaskItemWidget extends StatelessWidget {
         inactiveIcon: Icons.add,
       );
     } else {
-      var completed = taskItem.completionDate != null;
+      var tmpTaskItem = taskItem;
+      var completed = tmpTaskItem is TaskItemEdit && tmpTaskItem.completionDate != null;
 
       return DelayedCheckbox(
         initialState: completed ? CheckState.checked : CheckState.inactive,
@@ -253,11 +256,16 @@ class EditableTaskItemWidget extends StatelessWidget {
     }
   }
 
+  int getKey() {
+    var taskItemTmp = taskItem;
+    return taskItemTmp is TaskItemEdit ? taskItemTmp.id : taskItemTmp.tmpId;
+  }
+
   @override
   Widget build(BuildContext context) {
 
     return Dismissible(
-      key: TaskMasterKeys.taskItem(taskItem.id.toString()),
+      key: TaskMasterKeys.taskItem(getKey().toString()),
       confirmDismiss: onDismissed,
       child: GestureDetector(
         onTap: onTap,

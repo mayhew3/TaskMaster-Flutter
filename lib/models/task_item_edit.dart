@@ -12,8 +12,7 @@ part 'task_item_edit.g.dart';
 @JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
 class TaskItemEdit extends TaskItemBlueprint {
 
-  int? id;
-
+  int id;
   int personId;
 
   DateTime? dateAdded;
@@ -26,6 +25,7 @@ class TaskItemEdit extends TaskItemBlueprint {
   bool pendingCompletion = false;
 
   TaskItemEdit({
+    required this.id,
     required this.personId
   });
 
@@ -37,10 +37,9 @@ class TaskItemEdit extends TaskItemBlueprint {
 
   TaskItemEdit createEditTemplate() {
 
-    TaskItemEdit fields = TaskItemEdit(personId: this.personId);
+    TaskItemEdit fields = TaskItemEdit(id : id, personId: this.personId);
 
     // todo: make more dynamic?
-    fields.id = id;
     fields.name = name;
     fields.description = description;
     fields.project = project;
@@ -68,6 +67,7 @@ class TaskItemEdit extends TaskItemBlueprint {
     return true;
   }
 
+  @override
   bool isCompleted() {
     return completionDate != null;
   }
@@ -79,10 +79,6 @@ class TaskItemEdit extends TaskItemBlueprint {
   void incrementDateIfExists(TaskDateType taskDateType, Duration duration) {
     var dateTime = taskDateType.dateFieldGetter(this);
     taskDateType.dateFieldSetter(this, dateTime?.add(duration));
-  }
-
-  DateTime? getAnchorDate() {
-    return getAnchorDateType()?.dateFieldGetter(this);
   }
 
   void addToSprints(Sprint sprint) {

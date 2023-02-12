@@ -53,7 +53,7 @@ class TaskHelper {
     return inboundTask;
   }
 
-  TaskItemEdit? maybeCreateNextIteration(TaskItem taskItem, bool completed, DateTime? completionDate) {
+  TaskItemBlueprint? maybeCreateNextIteration(TaskItem taskItem, bool completed, DateTime? completionDate) {
 
     var recurNumber = taskItem.recurNumber;
     var recurUnit = taskItem.recurUnit;
@@ -77,7 +77,7 @@ class TaskHelper {
     return null;
   }
 
-  TaskItemEdit createNextIteration(TaskItemEdit taskItem, DateTime completionDate) {
+  TaskItemBlueprint createNextIteration(TaskItemBlueprint taskItem, DateTime completionDate) {
 
     var recurNumber = taskItem.recurNumber!;
     var recurUnit = taskItem.recurUnit;
@@ -94,8 +94,7 @@ class TaskHelper {
     }
     DateTime nextAnchorDate;
 
-    TaskItemEdit nextScheduledTask = taskItem.createEditTemplate();
-    nextScheduledTask.completionDate = null;
+    TaskItemBlueprint nextScheduledTask = taskItem.createBlueprint();
 
     if (recurWait) {
       nextAnchorDate = _getAdjustedDate(completionDate, recurNumber, recurUnit);
@@ -130,7 +129,7 @@ class TaskHelper {
     });
 
     DateTime? completionDate = completed ? DateTime.now() : null;
-    TaskItemEdit? nextScheduledTask = maybeCreateNextIteration(taskItem, completed, completionDate);
+    TaskItemBlueprint? nextScheduledTask = maybeCreateNextIteration(taskItem, completed, completionDate);
 
     stateSetter(() {
       taskItem.completionDate = completionDate;
@@ -153,7 +152,7 @@ class TaskHelper {
   }
 
   Future<void> deleteTask(TaskItem taskItem, StateSetter stateSetter) async {
-    int taskId = taskItem.id!;
+    int taskId = taskItem.id;
     await repository.deleteTask(taskItem);
     print('Removal of task successful!');
     await appState.notificationScheduler.cancelNotificationsForTaskId(taskId);
@@ -187,7 +186,7 @@ class TaskHelper {
     TaskItem updatedTask = await updateTask(taskItem, taskItemEdit);
 
     Snooze snooze = new Snooze(
-        taskId: updatedTask.id!,
+        taskId: updatedTask.id,
         snoozeNumber: numUnits,
         snoozeUnits: unitSize,
         snoozeAnchor: dateType.label,

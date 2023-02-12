@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:taskmaster/models/task_colors.dart';
+import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_item_edit.dart';
 import 'package:taskmaster/typedefs.dart';
 
@@ -40,8 +41,8 @@ class TaskDateTypes {
   static final TaskDateType completed = TaskDateType(
     label: 'Completed',
     textColor: TaskColors.completedText,
-    dateFieldGetter: (taskItem) => taskItem.completionDate,
-    dateFieldSetter: (taskItem, newDate) => taskItem.completionDate = newDate,
+    dateFieldGetter: (taskItem) => taskItem is TaskItemEdit ? taskItem.completionDate : null,
+    dateFieldSetter: (taskItem, newDate) => taskItem is TaskItemEdit ? taskItem.completionDate = newDate : {},
     listThresholdInDays: -1,
   );
 
@@ -78,7 +79,7 @@ class TaskDateType {
     required this.listThresholdInDays,
   });
 
-  bool inListBeforeDisplayThreshold(TaskItemEdit taskItem) {
+  bool inListBeforeDisplayThreshold(TaskItemBlueprint taskItem) {
     DateTime? dateFieldValue = this.dateFieldGetter(taskItem);
     if (dateFieldValue == null ||
         dateFieldValue.isBefore(DateTime.now())) {
@@ -93,7 +94,7 @@ class TaskDateType {
     }
   }
 
-  bool inListAfterDisplayThreshold(TaskItemEdit taskItem) {
+  bool inListAfterDisplayThreshold(TaskItemBlueprint taskItem) {
     DateTime? dateFieldValue = this.dateFieldGetter(taskItem);
     if (dateFieldValue == null ||
         dateFieldValue.isAfter(DateTime.now())) {
