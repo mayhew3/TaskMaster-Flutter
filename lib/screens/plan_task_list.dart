@@ -46,6 +46,8 @@ class PlanTaskListState extends State<PlanTaskList> {
   Sprint? lastSprint;
   Sprint? activeSprint;
 
+  bool hasTiles = false;
+
   @override
   void initState() {
     super.initState();
@@ -159,6 +161,11 @@ class PlanTaskListState extends State<PlanTaskList> {
     }
   }
   
+  void _addTaskTile({required List<StatelessWidget> tiles, required TaskItemBlueprint task}) {
+    tiles.add(_createWidget(taskItem: task));
+    hasTiles = true;
+  }
+
   ListView _buildListView(BuildContext context) {
     widget.appState.notificationScheduler.updateHomeScreenContext(context);
     final List<TaskItemBlueprint> otherTasks = [];
@@ -178,49 +185,48 @@ class PlanTaskListState extends State<PlanTaskList> {
     final List<TaskItemBlueprint> scheduledTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isScheduledAfter(endDate));
 
     List<StatelessWidget> tiles = [];
-    int eligibleTasks = dueTasks.length + urgentTasks.length + targetTasks.length + scheduledTasks.length + completedTasks.length;
 
     if (lastSprintTasks.isNotEmpty) {
       tiles.add(HeadingItem('Last Sprint'));
-      lastSprintTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
+      lastSprintTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task));
     }
 
     if (otherSprintTasks.isNotEmpty) {
       tiles.add(HeadingItem('Older Sprints'));
-      otherSprintTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
+      otherSprintTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task));
     }
 
     if (dueTasks.isNotEmpty) {
       tiles.add(HeadingItem('Due Soon'));
-      dueTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
+      dueTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task));
     }
 
     if (urgentTasks.isNotEmpty) {
       tiles.add(HeadingItem('Urgent Soon'));
-      urgentTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
+      urgentTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task));
     }
 
     if (targetTasks.isNotEmpty) {
       tiles.add(HeadingItem('Target Soon'));
-      targetTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
+      targetTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task));
     }
 
     if (otherTasks.isNotEmpty) {
       tiles.add(HeadingItem('Tasks'));
-      otherTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
+      otherTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task));
     }
 
     if (scheduledTasks.isNotEmpty) {
       tiles.add(HeadingItem('Starting Later'));
-      scheduledTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
+      scheduledTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task));
     }
 
     if (completedTasks.isNotEmpty) {
       tiles.add(HeadingItem('Completed'));
-      completedTasks.forEach((task) => tiles.add(_createWidget(taskItem: task)));
+      completedTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task));
     }
 
-    if (eligibleTasks == 0) {
+    if (!hasTiles) {
       tiles.add(_createNoTasksFoundCard());
     }
 
