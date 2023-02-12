@@ -447,7 +447,7 @@ class AddEditScreenState extends State<AddEditScreen> {
       floatingActionButton: Visibility(
         visible: _hasChanges || (_initialRepeatOn && !_repeatOn),
         child: FloatingActionButton(
-          child: Icon(isEditing ? Icons.add : Icons.check),
+          child: Icon(isEditing ? Icons.check : Icons.add),
           onPressed: () async {
             final form = formKey.currentState;
 
