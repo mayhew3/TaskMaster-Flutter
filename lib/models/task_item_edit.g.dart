@@ -42,35 +42,27 @@ TaskItemEdit _$TaskItemEditFromJson(Map<String, dynamic> json) => TaskItemEdit(
           ? null
           : DateTime.parse(json['completion_date'] as String);
 
-Map<String, dynamic> _$TaskItemEditToJson(TaskItemEdit instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('name', instance.name);
-  writeNotNull('description', instance.description);
-  writeNotNull('project', instance.project);
-  writeNotNull('context', instance.context);
-  writeNotNull('urgency', instance.urgency);
-  writeNotNull('priority', instance.priority);
-  writeNotNull('duration', instance.duration);
-  writeNotNull('start_date', instance.startDate?.toIso8601String());
-  writeNotNull('target_date', instance.targetDate?.toIso8601String());
-  writeNotNull('due_date', instance.dueDate?.toIso8601String());
-  writeNotNull('urgent_date', instance.urgentDate?.toIso8601String());
-  writeNotNull('game_points', instance.gamePoints);
-  writeNotNull('recur_number', instance.recurNumber);
-  writeNotNull('recur_unit', instance.recurUnit);
-  writeNotNull('recur_wait', instance.recurWait);
-  writeNotNull('recurrence_id', instance.recurrenceId);
-  writeNotNull('recur_iteration', instance.recurIteration);
-  val['id'] = instance.id;
-  val['person_id'] = instance.personId;
-  writeNotNull('date_added', instance.dateAdded?.toIso8601String());
-  writeNotNull('completion_date', instance.completionDate?.toIso8601String());
-  return val;
-}
+Map<String, dynamic> _$TaskItemEditToJson(TaskItemEdit instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'description': instance.description,
+      'project': instance.project,
+      'context': instance.context,
+      'urgency': instance.urgency,
+      'priority': instance.priority,
+      'duration': instance.duration,
+      'start_date': instance.startDate?.toIso8601String(),
+      'target_date': instance.targetDate?.toIso8601String(),
+      'due_date': instance.dueDate?.toIso8601String(),
+      'urgent_date': instance.urgentDate?.toIso8601String(),
+      'game_points': instance.gamePoints,
+      'recur_number': instance.recurNumber,
+      'recur_unit': instance.recurUnit,
+      'recur_wait': instance.recurWait,
+      'recurrence_id': instance.recurrenceId,
+      'recur_iteration': instance.recurIteration,
+      'id': instance.id,
+      'person_id': instance.personId,
+      'date_added': instance.dateAdded?.toIso8601String(),
+      'completion_date': instance.completionDate?.toIso8601String(),
+    };

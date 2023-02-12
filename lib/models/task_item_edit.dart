@@ -9,7 +9,7 @@ import 'package:taskmaster/models/task_item_blueprint.dart';
 part 'task_item_edit.g.dart';
 
 
-@JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
+@JsonSerializable(fieldRename: FieldRename.snake)
 class TaskItemEdit extends TaskItemBlueprint {
 
   int id;
