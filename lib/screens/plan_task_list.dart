@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import "package:collection/collection.dart";
 import 'package:flutter/material.dart';
 import 'package:taskmaster/app_state.dart';
@@ -129,21 +131,29 @@ class PlanTaskListState extends State<PlanTaskList> {
   }
 
   void createTemporaryIterations() {
-    List<TaskItemEdit> eligibleItems = [];
+    List<TaskItemBlueprint> eligibleItems = [];
     eligibleItems.addAll(getBaseList());
     if (widget.sprint != null) {
       eligibleItems.addAll(widget.sprint!.taskItems);
     }
     DateTime endDate = getEndDate();
-    Iterable<TaskItemEdit> recurItems = eligibleItems.where((TaskItemEdit taskItem) => taskItem.recurrenceId != null);
-    Map<int, Iterable<TaskItemEdit>> groupedByRecurrence = groupBy(recurItems, (TaskItemEdit taskItem) => taskItem.recurrenceId!);
-    groupedByRecurrence.forEach((int recurrenceId, Iterable<TaskItemEdit> taskItems) {
-      List<TaskItemEdit> sortedItems = taskItems.sorted((TaskItemEdit t1, TaskItemEdit t2) => t1.recurIteration!.compareTo(t2.recurIteration!));
-      TaskItemEdit newest = sortedItems.last;
+    Set<int> recurIDs = new HashSet();
+
+    for (var taskItem in eligibleItems) {
+      if (taskItem.recurrenceId != null) {
+        recurIDs.add(taskItem.recurrenceId!);
+      }
+    }
+
+    for (var recurID in recurIDs) {
+      Iterable<TaskItemBlueprint> recurItems = eligibleItems.where((var taskItem) => taskItem.recurrenceId == recurID);
+      List<TaskItemBlueprint> sortedItems = recurItems.sorted((TaskItemBlueprint t1, TaskItemBlueprint t2) => t1.recurIteration!.compareTo(t2.recurIteration!));
+      TaskItemBlueprint newest = sortedItems.last;
       if (newest.recurWait == false) {
         addNextIterations(newest, endDate, eligibleItems);
       }
-    });
+    }
+
   }
 
   void addNextIterations(TaskItemBlueprint newest, DateTime endDate, List<TaskItemBlueprint> collector) {
@@ -306,35 +316,33 @@ class PlanTaskListState extends State<PlanTaskList> {
 
   Future<void> createSelectedIterations() async {
     print('${tempIterations.length} temp items created.');
-    var toAdd = tempIterations.where((TaskItemBlueprint taskItem) {
-      var matching = sprintQueued.where((TaskItemBlueprint other) => tempMatches(taskItem, other));
-      return matching.isNotEmpty;
-    });
+    var toAdd = tempIterations.where((TaskItemBlueprint taskItem) => !(taskItem is TaskItem));
     print('${toAdd.length} checked temp items kept.');
 
-    for (TaskItemBlueprint taskItem in toAdd) {
+    for (var taskItem in toAdd) {
       TaskItemEdit addedTask = await widget.taskHelper.addTask(taskItem);
-      print('Adding (${taskItem.recurrenceId}, ${taskItem.recurIteration})');
-      sprintQueued.remove(taskItem);
+      print('Adding (Recurrence ID ${taskItem.recurrenceId}, TaskItem ID ${taskItem.recurIteration})');
       sprintQueued.add(addedTask);
-      idCheck();
     }
 
+    sprintQueued.removeWhere((element) => !(element is TaskItem));
     idCheck();
   }
 
-  List<TaskItemEdit> idCheck() {
-    var withoutId = sprintQueued.where((TaskItemBlueprint taskItem) => !(taskItem is TaskItemEdit));
-    print('${withoutId.length} items still remain without an ID!');
-    for (var item in withoutId) {
-      print('Item: (${item.recurrenceId}, ${item.recurIteration})');
+  List<TaskItem> idCheck() {
+    var withoutId = sprintQueued.where((TaskItemBlueprint taskItem) => !(taskItem is TaskItem));
+    if (withoutId.isNotEmpty) {
+      print('${withoutId.length} items still remain without an ID!');
+      for (var item in withoutId) {
+        print('Item: (${item.recurrenceId}, ${item.recurIteration})');
+      }
     }
-    return sprintQueued.cast<TaskItemEdit>();
+    return sprintQueued.cast<TaskItem>();
   }
 
   void submit() async {
     await createSelectedIterations();
-    List<TaskItemEdit> verified = idCheck();
+    List<TaskItem> verified = idCheck();
 
     if (widget.sprint == null) {
       DateTime endDate = getEndDate();
