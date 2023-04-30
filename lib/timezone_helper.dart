@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
@@ -11,5 +12,9 @@ class TimezoneHelper {
 
   tz.TZDateTime getLocalTime(DateTime dateTime) {
     return tz.TZDateTime.from(dateTime, tz.local);
+  }
+
+  String getFormattedLocalTime(DateTime dateTime, String format) {
+    return DateFormat(format).format(getLocalTime(dateTime));
   }
 }

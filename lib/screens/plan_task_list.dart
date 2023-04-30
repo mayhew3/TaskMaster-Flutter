@@ -358,7 +358,7 @@ class PlanTaskListState extends State<PlanTaskList> {
       await widget.taskHelper.addTasksToSprint(activeSprint!, verified);
     }
 
-    Navigator.pop(context);
+    Navigator.pop(context, 'Added');
   }
 
   @override
