@@ -5,6 +5,7 @@ import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_item_edit.dart';
 import 'package:taskmaster/task_helper.dart';
+import 'package:taskmaster/timezone_helper.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/clearable_date_time_field.dart';
 import 'package:taskmaster/widgets/editable_task_field.dart';
@@ -31,6 +32,8 @@ class AddEditScreen extends StatefulWidget {
 
 class AddEditScreenState extends State<AddEditScreen> {
   static final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+  TimezoneHelper timezoneHelper = TimezoneHelper();
 
   late List<String> possibleProjects;
   late List<String> possibleContexts;
@@ -103,6 +106,10 @@ class AddEditScreenState extends State<AddEditScreen> {
 
   bool get isEditing {
     return widget.taskItem != null;
+  }
+
+  DateTime getLocalDate(DateTime dateTime) {
+    return timezoneHelper.getLocalTime(dateTime);
   }
 
   bool hasDate() {
@@ -265,6 +272,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                         }
                       });
                     },
+                    timezoneHelper: timezoneHelper,
                   ),
                   ClearableDateTimeField(
                     labelText: 'Target Date',
@@ -288,6 +296,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                         }
                       });
                     },
+                    timezoneHelper: timezoneHelper,
                   ),
                   ClearableDateTimeField(
                     labelText: 'Urgent Date',
@@ -311,6 +320,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                         }
                       });
                     },
+                    timezoneHelper: timezoneHelper,
                   ),
                   ClearableDateTimeField(
                     labelText: 'Due Date',
@@ -334,6 +344,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                         }
                       });
                     },
+                    timezoneHelper: timezoneHelper,
                   ),
                   Visibility(
                     visible: hasDate(),

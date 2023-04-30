@@ -2,6 +2,7 @@ import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:taskmaster/timezone_helper.dart';
 
 final longDateFormat = DateFormat.yMMMMd().add_jm();
 
@@ -20,6 +21,7 @@ class ClearableDateTimeField extends StatelessWidget {
     required this.initialPickerGetter,
     this.firstDateGetter,
     this.currentDateGetter,
+    required this.timezoneHelper
   }) : super(key: key);
 
   final String labelText;
@@ -28,7 +30,12 @@ class ClearableDateTimeField extends StatelessWidget {
   final ValueGetter<DateTime?>? firstDateGetter;
   final ValueGetter<DateTime?>? currentDateGetter;
   final ValueChanged<DateTime?> dateSetter;
+  final TimezoneHelper timezoneHelper;
 
+  DateTime? getLocalDate(DateTime? dateTime) {
+    return dateTime == null ? null : timezoneHelper.getLocalTime(dateTime);
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -40,7 +47,7 @@ class ClearableDateTimeField extends StatelessWidget {
           border: OutlineInputBorder(),
         ),
         format: longDateFormat,
-        initialValue: dateGetter(),
+        initialValue: getLocalDate(dateGetter()),
         onChanged: (pickedDate) => dateSetter(pickedDate),
         onShowPicker: (context, currentValue) async {
           DateTime? firstDateNullable = firstDateGetter == null ? null : firstDateGetter!();
