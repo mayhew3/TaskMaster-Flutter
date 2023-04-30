@@ -15,6 +15,10 @@ class TimezoneHelper {
   }
 
   String getFormattedLocalTime(DateTime dateTime, String format) {
-    return DateFormat(format).format(getLocalTime(dateTime));
+    return getFormattedLocalTimeFromFormat(dateTime, DateFormat(format));
+  }
+
+  String getFormattedLocalTimeFromFormat(DateTime dateTime, DateFormat dateFormat) {
+    return dateFormat.format(getLocalTime(dateTime));
   }
 }

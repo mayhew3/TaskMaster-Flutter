@@ -1,16 +1,25 @@
 import 'package:mockito/mockito.dart';
 import 'package:taskmaster/timezone_helper.dart';
-import 'package:timezone/data/latest.dart' as latest;
+import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:intl/intl.dart';
 
 class MockTimezoneHelper extends Fake implements TimezoneHelper {
   Future<void> configureLocalTimeZone() async {
-    latest.initializeTimeZones();
+    tz.initializeTimeZones();
     String timezone = "America/Los_Angeles";
     tz.setLocalLocation(tz.getLocation(timezone));
   }
 
   tz.TZDateTime getLocalTime(DateTime dateTime) {
     return tz.TZDateTime.from(dateTime, tz.local);
+  }
+
+  String getFormattedLocalTime(DateTime dateTime, String format) {
+    return getFormattedLocalTimeFromFormat(dateTime, DateFormat(format));
+  }
+
+  String getFormattedLocalTimeFromFormat(DateTime dateTime, DateFormat dateFormat) {
+    return dateFormat.format(getLocalTime(dateTime));
   }
 }
