@@ -6,6 +6,7 @@ import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_edit.dart';
 import 'package:taskmaster/parse_helper.dart';
 import 'package:taskmaster/task_helper.dart';
+import 'package:taskmaster/timezone_helper.dart';
 
 import 'editable_task_field.dart';
 import 'nullable_dropdown.dart';
@@ -30,6 +31,8 @@ class SnoozeDialogState extends State<SnoozeDialog> {
 
   var dateFormatThisYear = new DateFormat('EEE MMM d');
   var dateFormatOtherYear = new DateFormat('EEE MMM d yyyy');
+
+  TimezoneHelper timezoneHelper = TimezoneHelper();
 
   late TaskItemEdit taskItemEdit;
 
@@ -149,11 +152,12 @@ class SnoozeDialogState extends State<SnoozeDialog> {
         var dateTypeString = dateType.label;
         var actualDate = dateFieldOfType;
         if (actualDate != null) {
+          DateTime localDate = timezoneHelper.getLocalTime(actualDate);
           String dateFormatted = (DateTime
               .now()
-              .year == actualDate.year) ?
-          dateFormatThisYear.format(actualDate) :
-          dateFormatOtherYear.format(actualDate);
+              .year == localDate.year) ?
+          dateFormatThisYear.format(localDate) :
+          dateFormatOtherYear.format(localDate);
           Text text = Text(dateTypeString + ': ' + dateFormatted);
           widgets.add(text);
         }
