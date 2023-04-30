@@ -116,11 +116,17 @@ class TaskMasterAppState extends State<TaskMasterApp> {
             secondary: TaskColors.highlight,
             surface: TaskColors.menuColor,
           ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+              style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: TaskColors.menuColor
+              )
+          ),
           textButtonTheme: TextButtonThemeData(
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.white,
-              backgroundColor: TaskColors.menuColor
-            )
+              style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: TaskColors.menuColor
+              )
           )
       ),
       home: LoadingScreen(
