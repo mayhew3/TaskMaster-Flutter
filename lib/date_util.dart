@@ -1,19 +1,30 @@
 
 import 'package:intl/intl.dart';
 import 'package:jiffy/jiffy.dart';
+import 'package:taskmaster/timezone_helper.dart';
 
 class DateUtil {
+
+  static TimezoneHelper timezoneHelper = new TimezoneHelper();
+
+  static bool isSameDay(DateTime dateTime1, DateTime dateTime2) {
+    var dateFormat = DateFormat.MMMd();
+    var formattedDate1 = timezoneHelper.getFormattedLocalTimeFromFormat(dateTime1, dateFormat);
+    var formattedDate2 = timezoneHelper.getFormattedLocalTimeFromFormat(dateTime2, dateFormat);
+    return formattedDate1 == formattedDate2;
+  }
 
   static String formatShortMaybeHidingYear(DateTime? dateTime) {
     if (dateTime == null) {
       return 'N/A';
     }
     int thisYear = DateTime.now().year;
+    var localTime = timezoneHelper.getLocalTime(dateTime);
 
-    DateFormat dateFormat = dateTime.year == thisYear ?
+    DateFormat dateFormat = localTime.year == thisYear ?
                           DateFormat('M/d') :
                           DateFormat('M/d/yyyy');
-    return dateFormat.format(dateTime);
+    return dateFormat.format(localTime);
   }
 
   static DateTime maxDate(Iterable<DateTime> dateTimes) {
@@ -25,11 +36,12 @@ class DateUtil {
       return 'N/A';
     }
     int thisYear = DateTime.now().year;
+    var localTime = timezoneHelper.getLocalTime(dateTime);
 
-    DateFormat dateFormat = dateTime.year == thisYear ?
+    DateFormat dateFormat = localTime.year == thisYear ?
                           DateFormat('EEE MMM d') :
                           DateFormat('EEE MMM d yyyy');
-    return dateFormat.format(dateTime);
+    return dateFormat.format(localTime);
   }
 
   static DateTime adjustToDate(DateTime dateTime, int recurNumber, String recurUnit) {

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:taskmaster/app_state.dart';
+import 'package:taskmaster/date_util.dart';
 import 'package:taskmaster/flutter_badger_wrapper.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/detail_screen.dart';
@@ -86,7 +87,7 @@ class NotificationScheduler {
     List<PendingNotificationRequest> requests = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
 
     if (taskItem.isCompleted()) {
-      await cancelNotificationsForTaskId(taskItem.id!);
+      await cancelNotificationsForTaskId(taskItem.id);
     } else {
       await _syncNotificationForTask(taskItem, requests);
     }
@@ -225,18 +226,14 @@ class NotificationScheduler {
     );
   }
 
-  bool _isSameDay(DateTime dateTime1, DateTime dateTime2) {
-    return DateFormat.MMMd().format(dateTime1) == DateFormat.MMMd().format(dateTime2);
-  }
-
   Future<void> _scheduleNotification(int id, DateTime scheduledTime, String name, String payload, String message, bool replacingOriginal) async {
     String verificationMessage;
     var opener = replacingOriginal ? 'Replaced' : 'Scheduled';
-    var formattedTime = DateFormat.jm().format(scheduledTime);
-    if (_isSameDay(DateTime.now(), scheduledTime)) {
+    var formattedTime = timezoneHelper.getFormattedLocalTimeFromFormat(scheduledTime, DateFormat.jm());
+    if (DateUtil.isSameDay(DateTime.now(), scheduledTime)) {
       verificationMessage = '$opener notification for $name today at $formattedTime';
     } else {
-      var formattedDay = DateFormat.MMMd().format(scheduledTime);
+      var formattedDay = timezoneHelper.getFormattedLocalTimeFromFormat(scheduledTime, DateFormat.MMMd());
       verificationMessage = '$opener notification for $name on $formattedDay at $formattedTime';
     }
 

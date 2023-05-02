@@ -7,6 +7,7 @@ import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/screens/add_edit_screen.dart';
 import 'package:taskmaster/task_helper.dart';
+import 'package:taskmaster/timezone_helper.dart';
 import 'package:taskmaster/widgets/delayed_checkbox.dart';
 import 'package:taskmaster/widgets/readonly_task_field.dart';
 import 'package:taskmaster/widgets/readonly_task_field_small.dart';
@@ -35,6 +36,7 @@ class DetailScreenState extends State<DetailScreen> {
 
   late bool completed;
   late TaskItem taskItem;
+  TimezoneHelper timezoneHelper = TimezoneHelper();
 
   DetailScreenState(TaskItem taskItem) {
     this.taskItem = taskItem;
@@ -50,7 +52,8 @@ class DetailScreenState extends State<DetailScreen> {
     if (dateTime == null) {
       return '';
     }
-    var jiffy = Jiffy(dateTime);
+    var localTime = timezoneHelper.getLocalTime(dateTime);
+    var jiffy = Jiffy(localTime);
     var isToday = jiffy.yMMMd == Jiffy().yMMMd;
     var isThisYear = jiffy.year == Jiffy().year;
     var jiffyTime = jiffy.format("h:mm a");

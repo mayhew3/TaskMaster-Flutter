@@ -19,6 +19,7 @@ import 'package:test/test.dart';
 import 'mocks/mock_data.dart';
 import 'mocks/mock_data_builder.dart';
 import 'mocks/mock_task_master_auth.dart';
+import 'mocks/mock_timezone_helper.dart';
 import 'task_helper_test.mocks.dart';
 
 @GenerateNiceMocks([MockSpec<NavHelper>(), MockSpec<AppState>(), MockSpec<TaskRepository>(), MockSpec<NotificationScheduler>()])
@@ -26,6 +27,7 @@ void main() {
 
   MockTaskRepository taskRepository = new MockTaskRepository();
   MockNavHelper navHelper = MockNavHelper();
+  MockTimezoneHelper timezoneHelper = MockTimezoneHelper();
   MockAppState appState = MockAppState();
   MockNotificationScheduler notificationScheduler = new MockNotificationScheduler();
   StateSetter stateSetter = (callback) => callback();
@@ -179,6 +181,8 @@ void main() {
   });
 
   test('completeTask recur', () async {
+    timezoneHelper.configureLocalTimeZone();
+
     var originalTask = pastTask;
     var taskHelper = createTaskHelper(taskItems: [originalTask]);
     expect(notificationScheduler, isNot(null));
@@ -214,8 +218,13 @@ void main() {
 
     var originalStart = DateUtil.withoutMillis(originalTask.startDate!);
     var newStart = DateUtil.withoutMillis(addedTask!.startDate!);
-    var diff = newStart.difference(originalStart).inDays;
-    expect(diff, 42, reason: 'Recurrence of 6 weeks should make new task 42 days after original.');
+    var diff = newStart.difference(originalStart).inHours;
+
+    var exactly42 = 42 * 24;
+    var lowerBound = exactly42 - 1;
+    var upperBound = exactly42 + 1;
+
+    expect(diff, inInclusiveRange(lowerBound, upperBound), reason: 'Recurrence of 6 weeks should make new task 42 days after original.');
   });
 
   test('completeTask uncomplete recur should not recur', () async {

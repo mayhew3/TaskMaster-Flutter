@@ -1,16 +1,15 @@
 
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:taskmaster/app_state.dart';
+import 'package:taskmaster/date_util.dart';
 import 'package:taskmaster/models/sprint.dart';
-import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/parse_helper.dart';
 import 'package:taskmaster/screens/plan_task_list.dart';
 import 'package:taskmaster/screens/task_list.dart';
 import 'package:taskmaster/task_helper.dart';
-import 'package:taskmaster/date_util.dart';
+import 'package:taskmaster/timezone_helper.dart';
 import 'package:taskmaster/widgets/editable_task_field.dart';
 import 'package:taskmaster/widgets/nullable_dropdown.dart';
 import 'package:taskmaster/widgets/task_main_menu.dart';
@@ -38,6 +37,7 @@ class PlanningHome extends StatefulWidget {
 
 class PlanningHomeState extends State<PlanningHome> {
 
+  TimezoneHelper timezoneHelper = new TimezoneHelper();
   DateTime sprintStart = DateTime.now();
   TextEditingController sprintStartDateController = TextEditingController();
   TextEditingController sprintStartTimeController = TextEditingController();
@@ -75,36 +75,40 @@ class PlanningHomeState extends State<PlanningHome> {
   }
 
   void _updateDatesOnInit() {
-    if (lastCompleted != null) {
-      numUnits = lastCompleted!.numUnits;
-      unitName = lastCompleted!.unitName;
-      sprintStart = getNextScheduledStart();
-    }
-    sprintStartDateController.text = DateFormat('MM-dd-yyyy').format(sprintStart);
-    sprintStartTimeController.text = DateFormat('hh:mm a').format(sprintStart);
+    _updateDates(getNextScheduledStart());
   }
 
   void _updateNewSprintStartAfterCreate() {
-    if (lastCompleted != null) {
-      numUnits = lastCompleted!.numUnits;
-      unitName = lastCompleted!.unitName;
-      sprintStart = lastCompleted!.endDate;
-    }
-    sprintStartDateController.text = DateFormat('MM-dd-yyyy').format(sprintStart);
-    sprintStartTimeController.text = DateFormat('hh:mm a').format(sprintStart);
+    _updateDates(lastCompleted?.endDate);
   }
 
-  DateTime getNextScheduledStart() {
+  void _updateDates(DateTime? nextScheduled) {
+    if (nextScheduled != null) {
+      numUnits = lastCompleted!.numUnits;
+      unitName = lastCompleted!.unitName;
+      sprintStart = nextScheduled;
+    }
+    sprintStartDateController.text = timezoneHelper.getFormattedLocalTime(sprintStart, 'MM-dd-yyyy');
+    sprintStartTimeController.text = timezoneHelper.getFormattedLocalTime(sprintStart, 'hh:mm a');
+  }
+
+  DateTime? getNextScheduledStart() {
+    Sprint? localLastCompleted = lastCompleted;
+
+    if (localLastCompleted == null) {
+      return null;
+    }
+
     DateTime nextStart;
-    DateTime nextEnd = lastCompleted!.endDate;
+    DateTime nextEnd = localLastCompleted.endDate;
     DateTime now = DateTime.now();
 
     do {
       nextStart = nextEnd;
       nextEnd = DateUtil.adjustToDate(
           nextStart,
-          lastCompleted!.numUnits,
-          lastCompleted!.unitName
+          localLastCompleted.numUnits,
+          localLastCompleted.unitName
       );
     } while (nextEnd.isBefore(now));
 
@@ -114,17 +118,17 @@ class PlanningHomeState extends State<PlanningHome> {
   void updateDateForDateField(DateTime? dateTime) {
     DateTime base = dateTime ?? DateTime.now();
     sprintStart = DateUtil.combineDateAndTime(base, sprintStart);
-    sprintStartDateController.text = DateFormat('MM-dd-yyyy').format(base);
+    sprintStartDateController.text = timezoneHelper.getFormattedLocalTime(base, 'MM-dd-yyyy');
   }
 
   void updateTimeForDateField(DateTime? dateTime) {
     DateTime base = dateTime ?? DateTime.now();
     sprintStart = DateUtil.combineDateAndTime(sprintStart, base);
-    sprintStartTimeController.text = DateFormat('hh:mm a').format(base);
+    sprintStartTimeController.text = timezoneHelper.getFormattedLocalTime(base, 'hh:mm a');
   }
 
   void _openPlanning(BuildContext context) async {
-    await Navigator.of(context).push(
+    final result = await Navigator.of(context).push(
         MaterialPageRoute(builder: (context) {
           return PlanTaskList(
             appState: widget.appState,
@@ -138,14 +142,18 @@ class PlanningHomeState extends State<PlanningHome> {
         )
     );
     setState(() {
-      _updateSprints();
-      _updateNewSprintStartAfterCreate();
+      if (result == 'Added') {
+        _updateSprints();
+        _updateNewSprintStartAfterCreate();
+      } else {
+        _updateDatesOnInit();
+      }
     });
   }
 
   String _getSubHeader() {
-    String startDateFormatted = DateFormat('M/d').format(activeSprint!.startDate);
-    String endDateFormatted = DateFormat('M/d').format(activeSprint!.endDate);
+    String startDateFormatted = timezoneHelper.getFormattedLocalTime(activeSprint!.startDate, 'M/d');
+    String endDateFormatted = timezoneHelper.getFormattedLocalTime(activeSprint!.endDate, 'M/d');
     return 'Tasks for ' + startDateFormatted + ' - ' + endDateFormatted;
   }
 
