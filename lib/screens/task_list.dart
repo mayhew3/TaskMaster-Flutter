@@ -233,6 +233,8 @@ class TaskListScreenState extends State<TaskListScreen> {
 
     final List<TaskItem> scheduledTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isScheduled());
 
+    completedTasks.sort((a, b) => b.completionDate!.compareTo(a.completionDate!));
+
     List<StatelessWidget> tiles = [];
 
     if (widget.sprint == null) {
