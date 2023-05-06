@@ -4,7 +4,7 @@ import 'dart:math';
 
 import '../date_util.dart';
 
-/// This allows the `Sprint` class to access private members in
+/// This allows the `TaskItemBlueprint` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
 /// the star denotes the source file name.
 part 'task_item_blueprint.g.dart';
