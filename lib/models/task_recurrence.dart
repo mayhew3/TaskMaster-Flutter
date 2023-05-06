@@ -1,11 +1,36 @@
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:taskmaster/models/task_recurrence_edit.dart';
 
-// @JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
-class TaskRecurrence {
+/// This allows the `TaskRecurrence` class to access private members in
+/// the generated file. The value for this is *.g.dart, where
+/// the star denotes the source file name.
+part 'task_recurrence.g.dart';
+
+@JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
+class TaskRecurrence extends TaskRecurrenceEdit {
 
   TaskRecurrence({
     required int id,
-    required int personId
-  });
+    required int personId,
+    required String name,
+    required int recurNumber,
+    required String recurUnit,
+    bool? recurWait,
+    required int recurIteration,
+    required DateTime anchorDate,
+    required String anchorType,
+  }) : super(
+    id: id,
+    personId: personId,
+    name: name,
+    recurNumber: recurNumber,
+    recurUnit: recurUnit,
+    recurWait: recurWait,
+    recurIteration: recurIteration,
+    anchorDate: anchorDate,
+    anchorType: anchorType
+  );
+
+  Map<String, dynamic> toJson() => _$TaskRecurrenceToJson(this);
 }
