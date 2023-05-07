@@ -18,5 +18,12 @@ class TaskRecurrenceBlueprint {
   DateTime? anchorDate;
   String? anchorType;
 
+  TaskRecurrenceBlueprint();
+
+  /// A necessary factory constructor for creating a new User instance
+  /// from a map. Pass the map to the generated `_$TaskRecurrenceFromJson()` constructor.
+  /// The constructor is named after the source class, in this case, User.
+  factory TaskRecurrenceBlueprint.fromJson(Map<String, dynamic> json) => _$TaskRecurrenceBlueprintFromJson(json);
+
   Map<String, dynamic> toJson() => _$TaskRecurrenceBlueprintToJson(this);
 }

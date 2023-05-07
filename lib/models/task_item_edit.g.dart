@@ -35,10 +35,10 @@ TaskItemEdit _$TaskItemEditFromJson(Map<String, dynamic> json) => TaskItemEdit(
       ..recurWait = json['recur_wait'] as bool?
       ..recurrenceId = json['recurrence_id'] as int?
       ..recurIteration = json['recur_iteration'] as int?
-      ..taskRecurrence = json['task_recurrence'] == null
+      ..taskRecurrenceBlueprint = json['task_recurrence_blueprint'] == null
           ? null
-          : TaskRecurrence.fromJson(
-              json['task_recurrence'] as Map<String, dynamic>)
+          : TaskRecurrenceBlueprint.fromJson(
+              json['task_recurrence_blueprint'] as Map<String, dynamic>)
       ..dateAdded = json['date_added'] == null
           ? null
           : DateTime.parse(json['date_added'] as String)
@@ -65,7 +65,7 @@ Map<String, dynamic> _$TaskItemEditToJson(TaskItemEdit instance) =>
       'recur_wait': instance.recurWait,
       'recurrence_id': instance.recurrenceId,
       'recur_iteration': instance.recurIteration,
-      'task_recurrence': instance.taskRecurrence,
+      'task_recurrence_blueprint': instance.taskRecurrenceBlueprint,
       'id': instance.id,
       'person_id': instance.personId,
       'date_added': instance.dateAdded?.toIso8601String(),

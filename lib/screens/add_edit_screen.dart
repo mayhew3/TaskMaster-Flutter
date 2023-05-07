@@ -4,6 +4,7 @@ import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_item_edit.dart';
+import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/timezone_helper.dart';
 import 'package:taskmaster/typedefs.dart';
@@ -489,6 +490,16 @@ class AddEditScreenState extends State<AddEditScreen> {
               } else {
                 if (_repeatOn) {
                   fields.recurIteration = 1;
+
+                  var recurrence = new TaskRecurrenceBlueprint();
+                  recurrence.recurUnit = fields.recurUnit;
+                  recurrence.recurIteration = fields.recurIteration;
+                  recurrence.recurNumber = fields.recurNumber;
+                  recurrence.recurWait = fields.recurWait;
+                  recurrence.anchorDate = fields.getAnchorDate();
+                  recurrence.anchorType = fields.getAnchorDateType()!.label;
+
+                  fields.taskRecurrenceBlueprint = recurrence;
                 }
                 await widget.taskHelper.addTask(fields);
               }
