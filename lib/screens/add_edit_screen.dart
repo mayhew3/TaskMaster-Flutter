@@ -492,6 +492,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                   fields.recurIteration = 1;
 
                   var recurrence = new TaskRecurrenceBlueprint();
+                  recurrence.name = fields.name;
                   recurrence.recurUnit = fields.recurUnit;
                   recurrence.recurIteration = fields.recurIteration;
                   recurrence.recurNumber = fields.recurNumber;
