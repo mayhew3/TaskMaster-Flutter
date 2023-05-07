@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/task_date_type.dart';
+import 'package:taskmaster/models/task_recurrence.dart';
 import 'dart:math';
 
 import '../date_util.dart';
@@ -34,6 +35,8 @@ class TaskItemBlueprint {
 
   int? recurrenceId;
   int? recurIteration;
+
+  TaskRecurrence? taskRecurrence;
 
   @JsonKey(ignore: true)
   late int tmpId;

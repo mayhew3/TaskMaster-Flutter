@@ -5,6 +5,7 @@ import 'package:taskmaster/auth.dart';
 import 'package:taskmaster/flutter_badger_wrapper.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/notification_scheduler.dart';
 import 'package:taskmaster/task_helper.dart';
@@ -14,6 +15,7 @@ class AppState {
   bool isLoading;
   List<TaskItem> _taskItems = [];
   List<Sprint> _sprints = [];
+  List<TaskRecurrence> _taskRecurrences = [];
   final TaskMasterAuth auth;
   GoogleSignInAccount? currentUser;
   bool tokenRetrieved = false;
@@ -26,6 +28,7 @@ class AppState {
     this.isLoading = true,
     List<TaskItem> taskItems = const [],
     List<Sprint> sprints = const [],
+    List<TaskRecurrence> taskRecurrences = const [],
     required this.auth,
   }) {
     title = 'TaskMaster 3000';
@@ -34,10 +37,12 @@ class AppState {
     linkTasksToSprints();
   }
 
-  void updateTasksAndSprints(List<TaskItem> taskItems, List<Sprint> sprints) {
+  void updateTasksAndSprints(List<TaskItem> taskItems, List<Sprint> sprints, List<TaskRecurrence> taskRecurrences) {
     this._sprints = sprints;
     this._taskItems = taskItems;
+    this._taskRecurrences = taskRecurrences;
     linkTasksToSprints();
+    linkTasksToRecurrences();
   }
 
   void linkTasksToSprints() {
@@ -50,6 +55,17 @@ class AppState {
             taskItem.sprints.add(sprint);
             sprint.addToTasks(taskItem);
           }
+        }
+      }
+    }
+  }
+
+  void linkTasksToRecurrences() {
+    for (var taskItem in _taskItems) {
+      if (taskItem.recurrenceId != null) {
+        Iterable<TaskRecurrence> taskRecurrences = this._taskRecurrences.where((taskRecurrence) => taskRecurrence.id == taskItem.recurrenceId);
+        if (taskRecurrences.isNotEmpty) {
+          taskItem.taskRecurrence = taskRecurrences.first;
         }
       }
     }

@@ -3,7 +3,7 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i17;
+import 'dart:async' as _i18;
 
 import 'package:flutter/material.dart' as _i5;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
@@ -17,8 +17,9 @@ import 'package:taskmaster/flutter_badger_wrapper.dart' as _i15;
 import 'package:taskmaster/models/snooze.dart' as _i11;
 import 'package:taskmaster/models/sprint.dart' as _i12;
 import 'package:taskmaster/models/task_item.dart' as _i9;
-import 'package:taskmaster/models/task_item_blueprint.dart' as _i18;
-import 'package:taskmaster/models/task_item_edit.dart' as _i19;
+import 'package:taskmaster/models/task_item_blueprint.dart' as _i19;
+import 'package:taskmaster/models/task_item_edit.dart' as _i20;
+import 'package:taskmaster/models/task_recurrence.dart' as _i17;
 import 'package:taskmaster/nav_helper.dart' as _i8;
 import 'package:taskmaster/notification_scheduler.dart' as _i7;
 import 'package:taskmaster/task_helper.dart' as _i4;
@@ -424,6 +425,7 @@ class MockAppState extends _i1.Mock implements _i2.AppState {
   void updateTasksAndSprints(
     List<_i9.TaskItem>? taskItems,
     List<_i12.Sprint>? sprints,
+    List<_i17.TaskRecurrence>? taskRecurrences,
   ) =>
       super.noSuchMethod(
         Invocation.method(
@@ -431,6 +433,7 @@ class MockAppState extends _i1.Mock implements _i2.AppState {
           [
             taskItems,
             sprints,
+            taskRecurrences,
           ],
         ),
         returnValueForMissingStub: null,
@@ -444,6 +447,14 @@ class MockAppState extends _i1.Mock implements _i2.AppState {
         returnValueForMissingStub: null,
       );
   @override
+  void linkTasksToRecurrences() => super.noSuchMethod(
+        Invocation.method(
+          #linkTasksToRecurrences,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   void updateNavHelper(_i8.NavHelper? navHelper) => super.noSuchMethod(
         Invocation.method(
           #updateNavHelper,
@@ -452,14 +463,14 @@ class MockAppState extends _i1.Mock implements _i2.AppState {
         returnValueForMissingStub: null,
       );
   @override
-  _i17.Future<String> getIdToken() => (super.noSuchMethod(
+  _i18.Future<String> getIdToken() => (super.noSuchMethod(
         Invocation.method(
           #getIdToken,
           [],
         ),
-        returnValue: _i17.Future<String>.value(''),
-        returnValueForMissingStub: _i17.Future<String>.value(''),
-      ) as _i17.Future<String>);
+        returnValue: _i18.Future<String>.value(''),
+        returnValueForMissingStub: _i18.Future<String>.value(''),
+      ) as _i18.Future<String>);
   @override
   List<_i9.TaskItem> getAllTasks() => (super.noSuchMethod(
         Invocation.method(
@@ -510,14 +521,14 @@ class MockAppState extends _i1.Mock implements _i2.AppState {
         returnValueForMissingStub: null,
       );
   @override
-  _i17.Future<void> syncAllNotifications() => (super.noSuchMethod(
+  _i18.Future<void> syncAllNotifications() => (super.noSuchMethod(
         Invocation.method(
           #syncAllNotifications,
           [],
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
   @override
   void finishedLoading() => super.noSuchMethod(
         Invocation.method(
@@ -674,23 +685,23 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
         ),
       ) as Uri);
   @override
-  _i17.Future<void> loadTasks(_i5.StateSetter? stateSetter) =>
+  _i18.Future<void> loadTasks(_i5.StateSetter? stateSetter) =>
       (super.noSuchMethod(
         Invocation.method(
           #loadTasks,
           [stateSetter],
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
   @override
-  _i17.Future<_i9.TaskItem> addTask(_i18.TaskItemBlueprint? taskItemForm) =>
+  _i18.Future<_i9.TaskItem> addTask(_i19.TaskItemBlueprint? taskItemForm) =>
       (super.noSuchMethod(
         Invocation.method(
           #addTask,
           [taskItemForm],
         ),
-        returnValue: _i17.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
+        returnValue: _i18.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
           this,
           Invocation.method(
             #addTask,
@@ -698,22 +709,22 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i17.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
+            _i18.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
           this,
           Invocation.method(
             #addTask,
             [taskItemForm],
           ),
         )),
-      ) as _i17.Future<_i9.TaskItem>);
+      ) as _i18.Future<_i9.TaskItem>);
   @override
-  _i17.Future<_i11.Snooze> addSnooze(_i11.Snooze? snooze) =>
+  _i18.Future<_i11.Snooze> addSnooze(_i11.Snooze? snooze) =>
       (super.noSuchMethod(
         Invocation.method(
           #addSnooze,
           [snooze],
         ),
-        returnValue: _i17.Future<_i11.Snooze>.value(_FakeSnooze_10(
+        returnValue: _i18.Future<_i11.Snooze>.value(_FakeSnooze_10(
           this,
           Invocation.method(
             #addSnooze,
@@ -721,22 +732,22 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i17.Future<_i11.Snooze>.value(_FakeSnooze_10(
+            _i18.Future<_i11.Snooze>.value(_FakeSnooze_10(
           this,
           Invocation.method(
             #addSnooze,
             [snooze],
           ),
         )),
-      ) as _i17.Future<_i11.Snooze>);
+      ) as _i18.Future<_i11.Snooze>);
   @override
-  _i17.Future<_i12.Sprint> addSprint(_i12.Sprint? sprint) =>
+  _i18.Future<_i12.Sprint> addSprint(_i12.Sprint? sprint) =>
       (super.noSuchMethod(
         Invocation.method(
           #addSprint,
           [sprint],
         ),
-        returnValue: _i17.Future<_i12.Sprint>.value(_FakeSprint_11(
+        returnValue: _i18.Future<_i12.Sprint>.value(_FakeSprint_11(
           this,
           Invocation.method(
             #addSprint,
@@ -744,17 +755,17 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i17.Future<_i12.Sprint>.value(_FakeSprint_11(
+            _i18.Future<_i12.Sprint>.value(_FakeSprint_11(
           this,
           Invocation.method(
             #addSprint,
             [sprint],
           ),
         )),
-      ) as _i17.Future<_i12.Sprint>);
+      ) as _i18.Future<_i12.Sprint>);
   @override
-  _i17.Future<void> addTasksToSprint(
-    List<_i19.TaskItemEdit>? taskItems,
+  _i18.Future<void> addTasksToSprint(
+    List<_i20.TaskItemEdit>? taskItems,
     _i12.Sprint? sprint,
   ) =>
       (super.noSuchMethod(
@@ -765,17 +776,17 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
             sprint,
           ],
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
   @override
-  _i17.Future<_i9.TaskItem> completeTask(_i9.TaskItem? taskItem) =>
+  _i18.Future<_i9.TaskItem> completeTask(_i9.TaskItem? taskItem) =>
       (super.noSuchMethod(
         Invocation.method(
           #completeTask,
           [taskItem],
         ),
-        returnValue: _i17.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
+        returnValue: _i18.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
           this,
           Invocation.method(
             #completeTask,
@@ -783,22 +794,22 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i17.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
+            _i18.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
           this,
           Invocation.method(
             #completeTask,
             [taskItem],
           ),
         )),
-      ) as _i17.Future<_i9.TaskItem>);
+      ) as _i18.Future<_i9.TaskItem>);
   @override
-  _i17.Future<_i9.TaskItem> updateTask(_i19.TaskItemEdit? taskItemForm) =>
+  _i18.Future<_i9.TaskItem> updateTask(_i20.TaskItemEdit? taskItemForm) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateTask,
           [taskItemForm],
         ),
-        returnValue: _i17.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
+        returnValue: _i18.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
           this,
           Invocation.method(
             #updateTask,
@@ -806,23 +817,23 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i17.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
+            _i18.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
           this,
           Invocation.method(
             #updateTask,
             [taskItemForm],
           ),
         )),
-      ) as _i17.Future<_i9.TaskItem>);
+      ) as _i18.Future<_i9.TaskItem>);
   @override
-  _i17.Future<void> deleteTask(_i9.TaskItem? taskItem) => (super.noSuchMethod(
+  _i18.Future<void> deleteTask(_i9.TaskItem? taskItem) => (super.noSuchMethod(
         Invocation.method(
           #deleteTask,
           [taskItem],
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
 }
 
 /// A class which mocks [NotificationScheduler].
@@ -955,26 +966,26 @@ class MockNotificationScheduler extends _i1.Mock
         returnValueForMissingStub: null,
       );
   @override
-  _i17.Future<void> cancelAllNotifications() => (super.noSuchMethod(
+  _i18.Future<void> cancelAllNotifications() => (super.noSuchMethod(
         Invocation.method(
           #cancelAllNotifications,
           [],
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
   @override
-  _i17.Future<void> cancelNotificationsForTaskId(int? taskId) =>
+  _i18.Future<void> cancelNotificationsForTaskId(int? taskId) =>
       (super.noSuchMethod(
         Invocation.method(
           #cancelNotificationsForTaskId,
           [taskId],
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
   @override
-  _i17.Future<void> syncNotificationForTasksAndSprint(
+  _i18.Future<void> syncNotificationForTasksAndSprint(
     List<_i9.TaskItem>? taskItems,
     _i12.Sprint? sprint,
   ) =>
@@ -986,17 +997,17 @@ class MockNotificationScheduler extends _i1.Mock
             sprint,
           ],
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
   @override
-  _i17.Future<void> updateNotificationForTask(_i9.TaskItem? taskItem) =>
+  _i18.Future<void> updateNotificationForTask(_i9.TaskItem? taskItem) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateNotificationForTask,
           [taskItem],
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
 }

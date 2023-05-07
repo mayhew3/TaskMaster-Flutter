@@ -32,7 +32,11 @@ TaskItemBlueprint _$TaskItemBlueprintFromJson(Map<String, dynamic> json) =>
       ..recurUnit = json['recur_unit'] as String?
       ..recurWait = json['recur_wait'] as bool?
       ..recurrenceId = json['recurrence_id'] as int?
-      ..recurIteration = json['recur_iteration'] as int?;
+      ..recurIteration = json['recur_iteration'] as int?
+      ..taskRecurrence = json['task_recurrence'] == null
+          ? null
+          : TaskRecurrence.fromJson(
+              json['task_recurrence'] as Map<String, dynamic>);
 
 Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) {
   final val = <String, dynamic>{};
@@ -60,5 +64,6 @@ Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) {
   writeNotNull('recur_wait', instance.recurWait);
   writeNotNull('recurrence_id', instance.recurrenceId);
   writeNotNull('recur_iteration', instance.recurIteration);
+  writeNotNull('task_recurrence', instance.taskRecurrence);
   return val;
 }

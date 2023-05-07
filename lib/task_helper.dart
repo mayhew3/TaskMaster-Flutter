@@ -31,7 +31,7 @@ class TaskHelper {
   Future<void> reloadTasks() async {
     navHelper.goToLoadingScreen('Reloading tasks...');
     appState.isLoading = true;
-    appState.updateTasksAndSprints([], appState.sprints);
+    appState.updateTasksAndSprints([], appState.sprints, []);
 
     try {
       await repository.loadTasks(stateSetter);

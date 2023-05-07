@@ -11,6 +11,7 @@ import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_item_edit.dart';
+import 'package:taskmaster/models/task_recurrence.dart';
 
 class TaskRepository {
   AppState appState;
@@ -69,10 +70,15 @@ class TaskRepository {
 
         stateSetter(() {
           List<Sprint> sprints = [];
-
           for (var sprintJson in jsonObj['sprints']) {
             var sprint = Sprint.fromJson(sprintJson);
             sprints.add(sprint);
+          }
+
+          List<TaskRecurrence> taskRecurrences = [];
+          for (var taskJson in jsonObj['taskRecurrences']) {
+            var taskRecurrence = TaskRecurrence.fromJson(taskJson);
+            taskRecurrences.add(taskRecurrence);
           }
 
           List<TaskItem> taskItems = [];
@@ -81,7 +87,7 @@ class TaskRepository {
             taskItems.add(taskItem);
           }
 
-          appState.updateTasksAndSprints(taskItems, sprints);
+          appState.updateTasksAndSprints(taskItems, sprints, taskRecurrences);
         });
 
       } catch(exception, stackTrace) {

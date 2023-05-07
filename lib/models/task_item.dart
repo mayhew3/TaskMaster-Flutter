@@ -3,6 +3,7 @@ import 'package:taskmaster/models/sprint.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/task_item_edit.dart';
+import 'package:taskmaster/models/task_recurrence.dart';
 
 /// This allows the `Sprint` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
