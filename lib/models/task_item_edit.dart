@@ -22,9 +22,6 @@ class TaskItemEdit extends TaskItemBlueprint {
   DateTime? completionDate;
 
   @JsonKey(ignore: true)
-  TaskRecurrenceEdit? taskRecurrence;
-
-  @JsonKey(ignore: true)
   List<Sprint> sprints = [];
 
   @JsonKey(ignore: true)
@@ -35,6 +32,9 @@ class TaskItemEdit extends TaskItemBlueprint {
     required this.personId
   });
 
+  bool isRecurring() {
+    return taskRecurrence != null;
+  }
 
   /// `toJson` is the convention for a class to declare support for serialization
   /// to JSON. The implementation simply calls the private, generated
@@ -65,6 +65,8 @@ class TaskItemEdit extends TaskItemBlueprint {
     fields.recurWait = recurWait;
     fields.recurrenceId = recurrenceId;
     fields.recurIteration = recurIteration;
+
+    fields.taskRecurrence = taskRecurrence;
 
     return fields;
   }

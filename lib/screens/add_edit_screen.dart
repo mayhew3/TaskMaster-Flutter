@@ -46,7 +46,7 @@ class AddEditScreenState extends State<AddEditScreen> {
   bool _repeatOn = false;
   bool _initialRepeatOn = false;
 
-  late TaskItemBlueprint fields;
+  late TaskItemBlueprint blueprint;
 
   @override
   void initState() {
@@ -56,9 +56,9 @@ class AddEditScreenState extends State<AddEditScreen> {
 
     var taskItemTmp = widget.taskItem;
 
-    fields = taskItemTmp == null ? TaskItemBlueprint() : taskItemTmp.createEditTemplate();
+    blueprint = taskItemTmp == null ? TaskItemBlueprint() : taskItemTmp.createEditTemplate();
 
-    _initialRepeatOn = fields.recurNumber != null;
+    _initialRepeatOn = blueprint.isRecurring();
     _repeatOn = _initialRepeatOn;
 
     possibleProjects = [
@@ -115,10 +115,10 @@ class AddEditScreenState extends State<AddEditScreen> {
 
   bool hasDate() {
     return
-      fields.startDate != null ||
-      fields.targetDate != null ||
-      fields.urgentDate != null ||
-      fields.dueDate != null;
+      blueprint.startDate != null ||
+      blueprint.targetDate != null ||
+      blueprint.urgentDate != null ||
+      blueprint.dueDate != null;
   }
 
   bool? anchorDateToRecurWait(String anchorDate) {
@@ -146,7 +146,7 @@ class AddEditScreenState extends State<AddEditScreen> {
     }
 
     DateTime? getLastDateBefore(TaskDateType taskDateType) {
-      var allDates = <DateTime?>[fields.startDate, fields.targetDate, fields.urgentDate, fields.dueDate];
+      var allDates = <DateTime?>[blueprint.startDate, blueprint.targetDate, blueprint.urgentDate, blueprint.dueDate];
       var pastDates = allDates.whereType<DateTime>().where((dateTime) => hasPassed(dateTime));
 
       return pastDates.length == 0 ? null : DateUtil.maxDate(pastDates);
@@ -209,49 +209,49 @@ class AddEditScreenState extends State<AddEditScreen> {
               child: Column(
                 children: <Widget>[
                   EditableTaskField(
-                    initialText: fields.name,
+                    initialText: blueprint.name,
                     labelText: 'Name',
-                    fieldSetter: (value) => fields.name = value,
+                    fieldSetter: (value) => blueprint.name = value,
                     inputType: TextInputType.multiline,
                     isRequired: true,
                     wordCaps: true,
                   ),
                   NullableDropdown(
-                    initialValue: fields.project,
+                    initialValue: blueprint.project,
                     labelText: 'Project',
                     possibleValues: possibleProjects,
-                    valueSetter: (value) => fields.project = value,
+                    valueSetter: (value) => blueprint.project = value,
                   ),
                   NullableDropdown(
-                    initialValue: fields.context,
+                    initialValue: blueprint.context,
                     labelText: 'Context',
                     possibleValues: possibleContexts,
-                    valueSetter: (value) => fields.context = value,
+                    valueSetter: (value) => blueprint.context = value,
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: <Widget>[
                       Expanded(
                         child: EditableTaskField(
-                          initialText: _getInputDisplay(fields.priority),
+                          initialText: _getInputDisplay(blueprint.priority),
                           labelText: 'Priority',
-                          fieldSetter: (value) => fields.priority = _parseInt(value),
+                          fieldSetter: (value) => blueprint.priority = _parseInt(value),
                           inputType: TextInputType.number,
                         ),
                       ),
                       Expanded(
                         child: EditableTaskField(
-                          initialText: _getInputDisplay(fields.gamePoints),
+                          initialText: _getInputDisplay(blueprint.gamePoints),
                           labelText: 'Points',
-                          fieldSetter: (value) => fields.gamePoints = _parseInt(value),
+                          fieldSetter: (value) => blueprint.gamePoints = _parseInt(value),
                           inputType: TextInputType.number,
                         ),
                       ),
                       Expanded(
                         child: EditableTaskField(
-                          initialText: _getInputDisplay(fields.duration),
+                          initialText: _getInputDisplay(blueprint.duration),
                           labelText: 'Length',
-                          fieldSetter: (value) => fields.duration = _parseInt(value),
+                          fieldSetter: (value) => blueprint.duration = _parseInt(value),
                           inputType: TextInputType.number,
                         ),
                       ),
@@ -260,14 +260,14 @@ class AddEditScreenState extends State<AddEditScreen> {
                   ClearableDateTimeField(
                     labelText: 'Start Date',
                     dateGetter: () {
-                      return fields.startDate;
+                      return blueprint.startDate;
                     },
                     initialPickerGetter: () {
                       return DateTime.now();
                     },
                     dateSetter: (DateTime? pickedDate) {
                       setState(() {
-                        fields.startDate = pickedDate;
+                        blueprint.startDate = pickedDate;
                         if (!hasDate()) {
                           clearRepeatOn();
                         }
@@ -278,20 +278,20 @@ class AddEditScreenState extends State<AddEditScreen> {
                   ClearableDateTimeField(
                     labelText: 'Target Date',
                     dateGetter: () {
-                      return fields.targetDate;
+                      return blueprint.targetDate;
                     },
                     initialPickerGetter: () {
                       return _getOnePastPreviousDateOrNow(TaskDateTypes.target);
                     },
                     firstDateGetter: () {
-                      return fields.startDate;
+                      return blueprint.startDate;
                     },
                     currentDateGetter: () {
                       return _getPreviousDateOrNow(TaskDateTypes.target);
                     },
                     dateSetter: (DateTime? pickedDate) {
                       setState(() {
-                        fields.targetDate = pickedDate;
+                        blueprint.targetDate = pickedDate;
                         if (!hasDate()) {
                           clearRepeatOn();
                         }
@@ -302,20 +302,20 @@ class AddEditScreenState extends State<AddEditScreen> {
                   ClearableDateTimeField(
                     labelText: 'Urgent Date',
                     dateGetter: () {
-                      return fields.urgentDate;
+                      return blueprint.urgentDate;
                     },
                     initialPickerGetter: () {
                       return _getOnePastPreviousDateOrNow(TaskDateTypes.urgent);
                     },
                     firstDateGetter: () {
-                      return fields.startDate;
+                      return blueprint.startDate;
                     },
                     currentDateGetter: () {
                       return _getPreviousDateOrNow(TaskDateTypes.urgent);
                     },
                     dateSetter: (DateTime? pickedDate) {
                       setState(() {
-                        fields.urgentDate = pickedDate;
+                        blueprint.urgentDate = pickedDate;
                         if (!hasDate()) {
                           clearRepeatOn();
                         }
@@ -326,20 +326,20 @@ class AddEditScreenState extends State<AddEditScreen> {
                   ClearableDateTimeField(
                     labelText: 'Due Date',
                     dateGetter: () {
-                      return fields.dueDate;
+                      return blueprint.dueDate;
                     },
                     initialPickerGetter: () {
                       return _getOnePastPreviousDateOrNow(TaskDateTypes.due);
                     },
                     firstDateGetter: () {
-                      return fields.startDate;
+                      return blueprint.startDate;
                     },
                     currentDateGetter: () {
                       return _getPreviousDateOrNow(TaskDateTypes.due);
                     },
                     dateSetter: (DateTime? pickedDate) {
                       setState(() {
-                        fields.dueDate = pickedDate;
+                        blueprint.dueDate = pickedDate;
                         if (!hasDate()) {
                           clearRepeatOn();
                         }
@@ -395,9 +395,9 @@ class AddEditScreenState extends State<AddEditScreen> {
                                             SizedBox(
                                               width: 80.0,
                                               child: EditableTaskField(
-                                                initialText: _getInputDisplay(fields.recurNumber),
+                                                initialText: _getInputDisplay(blueprint.recurNumber),
                                                 labelText: 'Num',
-                                                fieldSetter: (value) => fields.recurNumber = _parseInt(value),
+                                                fieldSetter: (value) => blueprint.recurNumber = _parseInt(value),
                                                 inputType: TextInputType.number,
                                                 validator: (value) {
                                                   if (_repeatOn && value != null && value.isEmpty) {
@@ -411,10 +411,10 @@ class AddEditScreenState extends State<AddEditScreen> {
                                         ),
                                         Expanded(
                                           child: NullableDropdown(
-                                            initialValue: fields.recurUnit,
+                                            initialValue: blueprint.recurUnit,
                                             labelText: 'Unit',
                                             possibleValues: possibleRecurUnits,
-                                            valueSetter: (value) => fields.recurUnit = value,
+                                            valueSetter: (value) => blueprint.recurUnit = value,
                                             validator: (value) {
                                               if (_repeatOn && value == '(none)') {
                                                 return 'Unit is required for repeat.';
@@ -426,10 +426,10 @@ class AddEditScreenState extends State<AddEditScreen> {
                                       ],
                                     ),
                                     NullableDropdown(
-                                      initialValue: recurWaitToAnchorDate(fields.recurWait),
+                                      initialValue: recurWaitToAnchorDate(blueprint.recurWait),
                                       labelText: 'Anchor',
                                       possibleValues: possibleAnchorDates,
-                                      valueSetter: (value) => fields.recurWait = anchorDateToRecurWait(value!),
+                                      valueSetter: (value) => blueprint.recurWait = anchorDateToRecurWait(value!),
                                       validator: (value) {
                                         if (_repeatOn && value == '(none)') {
                                           return 'Anchor Date is required for repeat.';
@@ -446,9 +446,9 @@ class AddEditScreenState extends State<AddEditScreen> {
                     ),
                   ),
                   EditableTaskField(
-                    initialText: fields.description,
+                    initialText: blueprint.description,
                     labelText: 'Notes',
-                    fieldSetter: (value) => fields.description = value,
+                    fieldSetter: (value) => blueprint.description = value,
                     inputType: TextInputType.multiline,
                   ),
                 ],
@@ -464,11 +464,11 @@ class AddEditScreenState extends State<AddEditScreen> {
             final form = formKey.currentState;
 
             if (!_repeatOn) {
-              fields.recurUnit = null;
-              fields.recurNumber = null;
-              fields.recurWait = null;
-              fields.recurrenceId = null;
-              fields.recurIteration = null;
+              blueprint.recurUnit = null;
+              blueprint.recurNumber = null;
+              blueprint.recurWait = null;
+              blueprint.recurrenceId = null;
+              blueprint.recurIteration = null;
             }
 
             if (form != null && form.validate()) {
@@ -477,7 +477,7 @@ class AddEditScreenState extends State<AddEditScreen> {
               var tmpTaskItem = widget.taskItem;
 
               if (tmpTaskItem != null) {
-                var editing = fields as TaskItemEdit;
+                var editing = blueprint as TaskItemEdit;
                 if (_repeatOn && editing.recurrenceId == null) {
                   editing.recurrenceId = editing.id;
                   editing.recurIteration = 1;
@@ -489,20 +489,20 @@ class AddEditScreenState extends State<AddEditScreen> {
                 }
               } else {
                 if (_repeatOn) {
-                  fields.recurIteration = 1;
+                  blueprint.recurIteration = 1;
 
                   var recurrence = new TaskRecurrenceBlueprint();
-                  recurrence.name = fields.name;
-                  recurrence.recurUnit = fields.recurUnit;
-                  recurrence.recurIteration = fields.recurIteration;
-                  recurrence.recurNumber = fields.recurNumber;
-                  recurrence.recurWait = fields.recurWait;
-                  recurrence.anchorDate = fields.getAnchorDate();
-                  recurrence.anchorType = fields.getAnchorDateType()!.label;
+                  recurrence.name = blueprint.name;
+                  recurrence.recurUnit = blueprint.recurUnit;
+                  recurrence.recurIteration = blueprint.recurIteration;
+                  recurrence.recurNumber = blueprint.recurNumber;
+                  recurrence.recurWait = blueprint.recurWait;
+                  recurrence.anchorDate = blueprint.getAnchorDate();
+                  recurrence.anchorType = blueprint.getAnchorDateType()!.label;
 
-                  fields.taskRecurrenceBlueprint = recurrence;
+                  blueprint.taskRecurrenceBlueprint = recurrence;
                 }
-                await widget.taskHelper.addTask(fields);
+                await widget.taskHelper.addTask(blueprint);
               }
 
               Navigator.pop(context);

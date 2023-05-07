@@ -14,7 +14,7 @@ class TaskRecurrenceEdit {
 
   int recurNumber;
   String recurUnit;
-  bool? recurWait;
+  bool recurWait;
 
   int recurIteration;
 
@@ -27,7 +27,7 @@ class TaskRecurrenceEdit {
     required this.name,
     required this.recurNumber,
     required this.recurUnit,
-    this.recurWait,
+    required this.recurWait,
     required this.recurIteration,
     required this.anchorDate,
     required this.anchorType,

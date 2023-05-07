@@ -2,6 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
+import 'package:taskmaster/models/task_recurrence_edit.dart';
 import 'dart:math';
 
 import '../date_util.dart';
@@ -40,12 +41,18 @@ class TaskItemBlueprint {
   TaskRecurrenceBlueprint? taskRecurrenceBlueprint;
 
   @JsonKey(ignore: true)
+  TaskRecurrenceEdit? taskRecurrence;
+
+  @JsonKey(ignore: true)
   late int tmpId;
 
   TaskItemBlueprint() {
     tmpId = new Random().nextInt(60000);
   }
 
+  bool isRecurring() {
+    return taskRecurrenceBlueprint != null || taskRecurrence != null;
+  }
 
   /// `toJson` is the convention for a class to declare support for serialization
   /// to JSON. The implementation simply calls the private, generated
@@ -74,6 +81,9 @@ class TaskItemBlueprint {
     blueprint.recurWait = recurWait;
     blueprint.recurrenceId = recurrenceId;
     blueprint.recurIteration = recurIteration;
+
+    blueprint.taskRecurrenceBlueprint = taskRecurrenceBlueprint;
+    blueprint.taskRecurrence = taskRecurrence;
 
     return blueprint;
   }

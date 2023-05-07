@@ -16,7 +16,7 @@ class TaskRecurrence extends TaskRecurrenceEdit {
     required String name,
     required int recurNumber,
     required String recurUnit,
-    bool? recurWait,
+    required bool recurWait,
     required int recurIteration,
     required DateTime anchorDate,
     required String anchorType,
