@@ -464,7 +464,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                   EditableTaskField(
                     initialText: blueprint.description,
                     labelText: 'Notes',
-                    fieldSetter: (value) => blueprint.description = value,
+                    fieldSetter: (value) => blueprint.description = value == null || value.isEmpty ? null : value,
                     inputType: TextInputType.multiline,
                   ),
                 ],
