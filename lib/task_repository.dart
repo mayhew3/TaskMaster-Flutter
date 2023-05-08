@@ -188,6 +188,7 @@ class TaskRepository {
 
     var taskObj = taskItemForm.toJson();
     taskObj['id'] = taskItem.id;
+    taskObj['person_id'] = taskItem.personId;
 
     var payload = {
       "task": taskObj

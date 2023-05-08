@@ -169,6 +169,23 @@ class AddEditScreenState extends State<AddEditScreen> {
       }
     }
 
+    TaskRecurrenceBlueprint addNewRecurrence() {
+      blueprint.recurIteration = 1;
+
+      var recurrence = new TaskRecurrenceBlueprint();
+      recurrence.name = blueprint.name;
+      recurrence.recurUnit = blueprint.recurUnit;
+      recurrence.recurIteration = blueprint.recurIteration;
+      recurrence.recurNumber = blueprint.recurNumber;
+      recurrence.recurWait = blueprint.recurWait;
+      recurrence.anchorDate = blueprint.getAnchorDate();
+      recurrence.anchorType = blueprint.getAnchorDateType()!.label;
+
+      blueprint.taskRecurrenceBlueprint = recurrence;
+
+      return recurrence;
+    }
+
     String? _cleanString(String? str) {
       if (str == null) {
         return null;
@@ -468,6 +485,7 @@ class AddEditScreenState extends State<AddEditScreen> {
               blueprint.recurWait = null;
               blueprint.recurrenceId = null;
               blueprint.recurIteration = null;
+              blueprint.taskRecurrenceBlueprint = null;
             }
 
             if (form != null && form.validate()) {
@@ -476,26 +494,17 @@ class AddEditScreenState extends State<AddEditScreen> {
               var tmpTaskItem = widget.taskItem;
 
               if (tmpTaskItem != null) {
-                var editing = blueprint;
-                var updatedItem = await widget.taskHelper.updateTask(tmpTaskItem, editing);
+                if (_repeatOn && !_initialRepeatOn) {
+                  addNewRecurrence();
+                }
+                var updatedItem = await widget.taskHelper.updateTask(tmpTaskItem, blueprint);
                 var taskItemRefresher2 = widget.taskItemRefresher;
                 if (taskItemRefresher2 != null) {
                   taskItemRefresher2(updatedItem);
                 }
               } else {
                 if (_repeatOn) {
-                  blueprint.recurIteration = 1;
-
-                  var recurrence = new TaskRecurrenceBlueprint();
-                  recurrence.name = blueprint.name;
-                  recurrence.recurUnit = blueprint.recurUnit;
-                  recurrence.recurIteration = blueprint.recurIteration;
-                  recurrence.recurNumber = blueprint.recurNumber;
-                  recurrence.recurWait = blueprint.recurWait;
-                  recurrence.anchorDate = blueprint.getAnchorDate();
-                  recurrence.anchorType = blueprint.getAnchorDateType()!.label;
-
-                  blueprint.taskRecurrenceBlueprint = recurrence;
+                  addNewRecurrence();
                 }
                 await widget.taskHelper.addTask(blueprint);
               }
