@@ -13,7 +13,6 @@ import 'package:taskmaster/models/snooze.dart' as _i8;
 import 'package:taskmaster/models/sprint.dart' as _i9;
 import 'package:taskmaster/models/task_item.dart' as _i7;
 import 'package:taskmaster/models/task_item_blueprint.dart' as _i12;
-import 'package:taskmaster/models/task_item_edit.dart' as _i14;
 import 'package:taskmaster/models/task_item_preview.dart' as _i13;
 import 'package:taskmaster/nav_helper.dart' as _i10;
 import 'package:taskmaster/task_helper.dart' as _i4;
@@ -415,7 +414,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
       ) as _i11.Future<_i9.Sprint>);
   @override
   _i11.Future<void> addTasksToSprint(
-    List<_i14.TaskItemEdit>? taskItems,
+    List<_i7.TaskItem>? taskItems,
     _i9.Sprint? sprint,
   ) =>
       (super.noSuchMethod(

@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/sprint_assignment.dart';
-import 'package:taskmaster/models/task_item_edit.dart';
-import 'package:taskmaster/models/task_recurrence_blueprint.dart';
+import 'package:taskmaster/models/task_item_blueprint.dart';
+import 'package:taskmaster/models/task_item_preview.dart';
 
 /// This allows the `Sprint` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
@@ -10,19 +10,27 @@ import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 part 'task_item.g.dart';
 
 @JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
-class TaskItem extends TaskItemEdit {
+class TaskItem extends TaskItemPreview {
+
+  int id;
+  int personId;
+
+  @JsonKey(ignore: true)
+  List<Sprint> sprints = [];
+
+  @JsonKey(ignore: true)
+  bool pendingCompletion = false;
 
   List<SprintAssignment>? sprintAssignments;
 
   TaskItem({
-    required int id,
-    required int personId,
+    required this.id,
+    required this.personId,
     required String name,
-  }): super(id: id, personId: personId, name: name);
+  }): super(name: name);
 
-  @override
-  bool isEditable() {
-    return false;
+  bool isRecurring() {
+    return taskRecurrence != null;
   }
 
   TaskItem createCopy() {
@@ -54,6 +62,29 @@ class TaskItem extends TaskItemEdit {
     return fields;
   }
 
+  TaskItemBlueprint createEditBlueprint() {
+    TaskItemBlueprint blueprint = TaskItemBlueprint();
+
+    blueprint.description = description;
+    blueprint.project = project;
+    blueprint.context = context;
+    blueprint.urgency = urgency;
+    blueprint.priority = priority;
+    blueprint.duration = duration;
+    blueprint.startDate = startDate;
+    blueprint.targetDate = targetDate;
+    blueprint.dueDate = dueDate;
+    blueprint.urgentDate = urgentDate;
+    blueprint.gamePoints = gamePoints;
+    blueprint.recurNumber = recurNumber;
+    blueprint.recurUnit = recurUnit;
+    blueprint.recurWait = recurWait;
+    blueprint.recurrenceId = recurrenceId;
+    blueprint.recurIteration = recurIteration;
+
+    return blueprint;
+  }
+
   /// A necessary factory constructor for creating a new User instance
   /// from a map. Pass the map to the generated `_$UserFromJson()` constructor.
   /// The constructor is named after the source class, in this case, User.
@@ -63,6 +94,37 @@ class TaskItem extends TaskItemEdit {
   /// to JSON. The implementation simply calls the private, generated
   /// helper method `_$UserToJson`.
   Map<String, dynamic> toJson() => _$TaskItemToJson(this);
+
+  @override
+  bool isCompleted() {
+    return completionDate != null;
+  }
+
+  DateTime? getFinishedCompletionDate() {
+    return pendingCompletion ? null : completionDate;
+  }
+
+  void addToSprints(Sprint sprint) {
+    if (!sprints.contains(sprint)) {
+      sprints.add(sprint);
+    }
+  }
+
+  bool isInActiveSprint() {
+    var matching = sprints.where((sprint) => sprint.isActive());
+    return matching.isNotEmpty;
+  }
+
+  @override
+  int get hashCode =>
+      id.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is TaskItem &&
+              runtimeType == other.runtimeType &&
+              id == other.id;
 
   @override
   String toString() {

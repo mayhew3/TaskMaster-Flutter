@@ -23,6 +23,12 @@ TaskItem _$TaskItemFromJson(Map<String, dynamic> json) => TaskItem(
       ..urgentDate = json['urgent_date'] == null
           ? null
           : DateTime.parse(json['urgent_date'] as String)
+      ..dateAdded = json['date_added'] == null
+          ? null
+          : DateTime.parse(json['date_added'] as String)
+      ..completionDate = json['completion_date'] == null
+          ? null
+          : DateTime.parse(json['completion_date'] as String)
       ..description = json['description'] as String?
       ..project = json['project'] as String?
       ..context = json['context'] as String?
@@ -35,12 +41,6 @@ TaskItem _$TaskItemFromJson(Map<String, dynamic> json) => TaskItem(
       ..recurWait = json['recur_wait'] as bool?
       ..recurrenceId = json['recurrence_id'] as int?
       ..recurIteration = json['recur_iteration'] as int?
-      ..dateAdded = json['date_added'] == null
-          ? null
-          : DateTime.parse(json['date_added'] as String)
-      ..completionDate = json['completion_date'] == null
-          ? null
-          : DateTime.parse(json['completion_date'] as String)
       ..sprintAssignments = (json['sprint_assignments'] as List<dynamic>?)
           ?.map((e) => SprintAssignment.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -58,6 +58,8 @@ Map<String, dynamic> _$TaskItemToJson(TaskItem instance) {
   writeNotNull('target_date', instance.targetDate?.toIso8601String());
   writeNotNull('due_date', instance.dueDate?.toIso8601String());
   writeNotNull('urgent_date', instance.urgentDate?.toIso8601String());
+  writeNotNull('date_added', instance.dateAdded?.toIso8601String());
+  writeNotNull('completion_date', instance.completionDate?.toIso8601String());
   val['name'] = instance.name;
   writeNotNull('description', instance.description);
   writeNotNull('project', instance.project);
@@ -73,8 +75,6 @@ Map<String, dynamic> _$TaskItemToJson(TaskItem instance) {
   writeNotNull('recur_iteration', instance.recurIteration);
   val['id'] = instance.id;
   val['person_id'] = instance.personId;
-  writeNotNull('date_added', instance.dateAdded?.toIso8601String());
-  writeNotNull('completion_date', instance.completionDate?.toIso8601String());
   writeNotNull('sprint_assignments', instance.sprintAssignments);
   return val;
 }

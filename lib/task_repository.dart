@@ -10,7 +10,6 @@ import 'package:taskmaster/models/snooze.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
-import 'package:taskmaster/models/task_item_edit.dart';
 import 'package:taskmaster/models/task_item_preview.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
 
@@ -142,9 +141,9 @@ class TaskRepository {
     return _addSprintJSON(payload);
   }
 
-  Future<void> addTasksToSprint(List<TaskItemEdit> taskItems, Sprint sprint) async {
+  Future<void> addTasksToSprint(List<TaskItem> taskItems, Sprint sprint) async {
     Set<int> taskIds = new Set<int>();
-    for (TaskItemEdit taskItem in taskItems) {
+    for (TaskItem taskItem in taskItems) {
       taskIds.add(taskItem.id);
     }
 

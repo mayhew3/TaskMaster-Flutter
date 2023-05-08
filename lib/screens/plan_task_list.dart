@@ -7,7 +7,6 @@ import 'package:taskmaster/date_util.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/models/task_item_edit.dart';
 import 'package:taskmaster/models/task_item_preview.dart';
 import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/typedefs.dart';
@@ -118,11 +117,11 @@ class PlanTaskListState extends State<PlanTaskList> {
   }
 
   bool highlightSprint(TaskItemPreview taskItem) {
-    return (taskItem is TaskItemEdit) ? taskItem.sprints.contains(lastSprint) : false;
+    return (taskItem is TaskItem) ? taskItem.sprints.contains(lastSprint) : false;
   }
 
   bool wasInEarlierSprint(TaskItemPreview taskItem) {
-    if (taskItem is TaskItemEdit) {
+    if (taskItem is TaskItem) {
       var sprints = taskItem.sprints.where((sprint) => sprint != lastSprint);
       return sprints.isNotEmpty;
     } else {
@@ -187,7 +186,7 @@ class PlanTaskListState extends State<PlanTaskList> {
     Sprint? lastCompletedSprint = widget.appState.getLastCompletedSprint();
 
     final List<TaskItemPreview> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted());
-    final List<TaskItemPreview> lastSprintTasks = _moveSublist(otherTasks, (taskItem) => (taskItem is TaskItemEdit) && taskItem.sprints.contains(lastCompletedSprint));
+    final List<TaskItemPreview> lastSprintTasks = _moveSublist(otherTasks, (taskItem) => (taskItem is TaskItem) && taskItem.sprints.contains(lastCompletedSprint));
     final List<TaskItemPreview> otherSprintTasks = _moveSublist(otherTasks, (taskItem) => wasInEarlierSprint(taskItem));
     final List<TaskItemPreview> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isDueBefore(endDate));
     final List<TaskItemPreview> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgentBefore(endDate));
@@ -299,17 +298,17 @@ class PlanTaskListState extends State<PlanTaskList> {
     });
   }
 
-  bool isChecked(TaskItemEdit taskItem) {
+  bool isChecked(TaskItem taskItem) {
     var matching = findMatching(taskItem);
     return matching != null;
   }
 
   bool matchesId(TaskItemPreview a, TaskItemPreview b) {
-    return a is TaskItemEdit && b is TaskItemEdit && a.id == b.id;
+    return a is TaskItem && b is TaskItem && a.id == b.id;
   }
 
   bool tempMatches(TaskItemPreview a, TaskItemPreview b) {
-    return a is TaskItemEdit && b is TaskItemEdit &&
+    return a is TaskItem && b is TaskItem &&
         a.recurrenceId == b.recurrenceId &&
         a.recurIteration == b.recurIteration;
   }
@@ -320,7 +319,7 @@ class PlanTaskListState extends State<PlanTaskList> {
     print('${toAdd.length} checked temp items kept.');
 
     for (var taskItem in toAdd) {
-      TaskItemEdit addedTask = await widget.taskHelper.addTaskIteration(taskItem);
+      TaskItem addedTask = await widget.taskHelper.addTaskIteration(taskItem);
       print('Adding (Recurrence ID ${taskItem.recurrenceId}, TaskItem ID ${taskItem.recurIteration})');
       sprintQueued.add(addedTask);
     }

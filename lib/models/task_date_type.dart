@@ -2,8 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
-import 'package:taskmaster/models/task_item_blueprint.dart';
-import 'package:taskmaster/models/task_item_edit.dart';
+import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/typedefs.dart';
 
 class TaskDateTypes {
@@ -42,8 +41,8 @@ class TaskDateTypes {
   static final TaskDateType completed = TaskDateType(
     label: 'Completed',
     textColor: TaskColors.completedText,
-    dateFieldGetter: (taskItem) => taskItem is TaskItemEdit ? taskItem.completionDate : null,
-    dateFieldSetter: (taskItem, newDate) => taskItem is TaskItemEdit ? taskItem.completionDate = newDate : {},
+    dateFieldGetter: (taskItem) => taskItem is TaskItem ? taskItem.completionDate : null,
+    dateFieldSetter: (taskItem, newDate) => taskItem is TaskItem ? taskItem.completionDate = newDate : {},
     listThresholdInDays: -1,
   );
 

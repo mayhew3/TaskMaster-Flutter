@@ -9,7 +9,7 @@ import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
-import 'package:taskmaster/models/task_item_edit.dart';
+import 'package:taskmaster/models/task_item_preview.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/notification_scheduler.dart';
 import 'package:taskmaster/task_helper.dart';
@@ -32,7 +32,7 @@ void main() {
   MockNotificationScheduler notificationScheduler = new MockNotificationScheduler();
   StateSetter stateSetter = (callback) => callback();
 
-  TaskHelper createTaskHelper({List<TaskItemEdit>? taskItems, List<Sprint>? sprints}) {
+  TaskHelper createTaskHelper({List<TaskItem>? taskItems, List<Sprint>? sprints}) {
     when(taskRepository.appState).thenReturn(appState);
     when(appState.notificationScheduler).thenReturn(notificationScheduler);
 
@@ -45,34 +45,33 @@ void main() {
     return taskHelper;
   }
 
-  TaskItem mockAddTask(TaskItemBlueprint taskItemEdit) {
-    TaskItem taskItem = new TaskItem(id: 1, personId: 1);
+  TaskItem mockAddTask(TaskItemPreview taskItemPreview) {
+    TaskItem taskItem = new TaskItem(name: taskItemPreview.name, id: 1, personId: 1);
 
-    taskItem.name = taskItemEdit.name;
-    taskItem.description = taskItemEdit.description;
-    taskItem.project = taskItemEdit.project;
-    taskItem.context = taskItemEdit.context;
-    taskItem.urgency = taskItemEdit.urgency;
-    taskItem.priority = taskItemEdit.priority;
-    taskItem.duration = taskItemEdit.duration;
+    taskItem.description = taskItemPreview.description;
+    taskItem.project = taskItemPreview.project;
+    taskItem.context = taskItemPreview.context;
+    taskItem.urgency = taskItemPreview.urgency;
+    taskItem.priority = taskItemPreview.priority;
+    taskItem.duration = taskItemPreview.duration;
     taskItem.dateAdded = DateTime.now();
-    taskItem.startDate = taskItemEdit.startDate;
-    taskItem.targetDate = taskItemEdit.targetDate;
-    taskItem.dueDate = taskItemEdit.dueDate;
+    taskItem.startDate = taskItemPreview.startDate;
+    taskItem.targetDate = taskItemPreview.targetDate;
+    taskItem.dueDate = taskItemPreview.dueDate;
     taskItem.completionDate = null;
-    taskItem.urgentDate = taskItemEdit.urgentDate;
-    taskItem.gamePoints = taskItemEdit.gamePoints;
-    taskItem.recurNumber = taskItemEdit.recurNumber;
-    taskItem.recurUnit = taskItemEdit.recurUnit;
-    taskItem.recurWait = taskItemEdit.recurWait;
-    taskItem.recurrenceId = taskItemEdit.recurrenceId;
-    taskItem.recurIteration = taskItemEdit.recurIteration;
+    taskItem.urgentDate = taskItemPreview.urgentDate;
+    taskItem.gamePoints = taskItemPreview.gamePoints;
+    taskItem.recurNumber = taskItemPreview.recurNumber;
+    taskItem.recurUnit = taskItemPreview.recurUnit;
+    taskItem.recurWait = taskItemPreview.recurWait;
+    taskItem.recurrenceId = taskItemPreview.recurrenceId;
+    taskItem.recurIteration = taskItemPreview.recurIteration;
 
     return taskItem;
   }
 
-  TaskItem mockEditTask(TaskItemEdit taskItemEdit) {
-    TaskItem taskItem = new TaskItem(id: taskItemEdit.id ?? 1, personId: 1);
+  TaskItem mockEditTask(TaskItem taskItemEdit) {
+    TaskItem taskItem = new TaskItem(name: taskItemEdit.name, id: taskItemEdit.id, personId: 1);
 
     taskItem.name = taskItemEdit.name;
     taskItem.description = taskItemEdit.description;
@@ -119,12 +118,13 @@ void main() {
     var notificationScheduler = mockAppState.notificationScheduler;
     expect(notificationScheduler, isNot(null));
     var taskItem = TaskItem.fromJson(birthdayJSON);
+    var taskItemBlueprint = TaskItemBlueprint.fromJson(birthdayJSON);
 
-    when(taskRepository.addTask(taskItem)).thenAnswer((_) => Future.value(taskItem));
+    when(taskRepository.addTask(taskItemBlueprint)).thenAnswer((_) => Future.value(taskItem));
     when(mockAppState.addNewTaskToList(taskItem)).thenReturn(taskItem);
 
-    await taskHelper.addTask(taskItem);
-    verify(taskRepository.addTask(taskItem));
+    await taskHelper.addTask(taskItemBlueprint);
+    verify(taskRepository.addTask(taskItemBlueprint));
     verify(mockAppState.addNewTaskToList(taskItem));
     verify(notificationScheduler.updateNotificationForTask(birthdayTask));
     verify(notificationScheduler.updateBadge());
@@ -191,10 +191,10 @@ void main() {
     var now = DateTime.now();
     inboundTask.completionDate = now;
 
-    TaskItemBlueprint? addedTask;
+    TaskItemPreview? addedTask;
 
     when(taskRepository.completeTask(originalTask)).thenAnswer((_) => Future.value(inboundTask));
-    when(taskRepository.addTask(argThat(isA<TaskItemBlueprint>()))).thenAnswer((invocation) {
+    when(taskRepository.addTask(argThat(isA<TaskItemPreview>()))).thenAnswer((invocation) {
       addedTask = invocation.positionalArguments[0];
       return Future.value(mockAddTask(addedTask!));
     });
@@ -270,36 +270,38 @@ void main() {
 
 
   test('updateTask', () async {
-    var taskEdit = birthdayTask.createEditTemplate();
+    var taskItem = birthdayTask.createCopy();
+    var blueprint = taskItem.createEditBlueprint();
 
-    var taskHelper = createTaskHelper(taskItems: [taskEdit]);
+
+    var taskHelper = createTaskHelper(taskItems: [taskItem]);
     var mockAppState = taskHelper.appState;
     var notificationScheduler = mockAppState.notificationScheduler;
     expect(notificationScheduler, isNot(null));
 
     var changedDescription = "Just kidding";
     var changedTarget = DateTime.utc(2019, 8, 30, 17, 32, 14, 674);
-    taskEdit.description = changedDescription;
+    blueprint.description = changedDescription;
 
-    taskEdit.targetDate = changedTarget.toLocal();
+    blueprint.targetDate = changedTarget.toLocal();
 
-    when(taskRepository.updateTask(taskEdit)).thenAnswer((realInvocation) => Future.value(mockEditTask(taskEdit)));
+    when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((realInvocation) => Future.value(mockEditTask(taskItem)));
 
-    var returnedItem = await taskHelper.updateTask(birthdayTask, taskEdit);
+    var returnedItem = await taskHelper.updateTask(birthdayTask, blueprint);
 
-    verify(taskRepository.updateTask(taskEdit));
+    verify(taskRepository.updateTask(taskItem, blueprint));
     verify(notificationScheduler.updateNotificationForTask(returnedItem));
     verify(notificationScheduler.updateBadge());
 
-    expect(returnedItem.id, taskEdit.id);
-    expect(taskEdit.description, changedDescription);
-    expect(taskEdit.targetDate, changedTarget.toLocal());
+    expect(returnedItem.id, taskItem.id);
+    expect(taskItem.description, changedDescription);
+    expect(taskItem.targetDate, changedTarget.toLocal());
   });
 
   test('previewSnooze move multiple', () {
     var taskItem = TaskItemBuilder
         .withDates()
-        .create().createEditTemplate();
+        .create().createEditBlueprint();
 
     var taskHelper = createTaskHelper();
 
@@ -321,7 +323,7 @@ void main() {
   test('previewSnooze add start', () {
     var taskItem = TaskItemBuilder
         .asDefault()
-        .create().createEditTemplate();
+        .create().createEditBlueprint();
 
     var taskHelper = createTaskHelper();
 
@@ -346,9 +348,9 @@ void main() {
 
     var originalTarget = taskItem.targetDate;
 
-    var taskItemEdit = taskItem.createEditTemplate();
+    var taskItemEdit = taskItem.createEditBlueprint();
 
-    when(taskRepository.updateTask(taskItemEdit)).thenAnswer((_) => Future.value(mockEditTask(taskItemEdit)));
+    when(taskRepository.updateTask(taskItem, taskItemEdit)).thenAnswer((_) => Future.value(mockEditTask(taskItem)));
 
     var returnedItem = await taskHelper.snoozeTask(taskItem, taskItemEdit, 6, 'Days', TaskDateTypes.target);
 
@@ -386,9 +388,9 @@ void main() {
 
     var originalStart = taskItem.startDate;
 
-    var taskItemEdit = taskItem.createEditTemplate();
+    var taskItemEdit = taskItem.createEditBlueprint();
 
-    when(taskRepository.updateTask(taskItemEdit)).thenAnswer((_) => Future.value(mockEditTask(taskItemEdit)));
+    when(taskRepository.updateTask(taskItem, taskItemEdit)).thenAnswer((_) => Future.value(mockEditTask(taskItem)));
 
     var returnedItem = await taskHelper.snoozeTask(taskItem, taskItemEdit, 4, 'Days', TaskDateTypes.start);
 

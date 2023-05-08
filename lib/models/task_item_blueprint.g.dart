@@ -20,6 +20,12 @@ TaskItemBlueprint _$TaskItemBlueprintFromJson(Map<String, dynamic> json) =>
       ..urgentDate = json['urgent_date'] == null
           ? null
           : DateTime.parse(json['urgent_date'] as String)
+      ..dateAdded = json['date_added'] == null
+          ? null
+          : DateTime.parse(json['date_added'] as String)
+      ..completionDate = json['completion_date'] == null
+          ? null
+          : DateTime.parse(json['completion_date'] as String)
       ..name = json['name'] as String?
       ..description = json['description'] as String?
       ..project = json['project'] as String?
@@ -51,6 +57,8 @@ Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) {
   writeNotNull('target_date', instance.targetDate?.toIso8601String());
   writeNotNull('due_date', instance.dueDate?.toIso8601String());
   writeNotNull('urgent_date', instance.urgentDate?.toIso8601String());
+  writeNotNull('date_added', instance.dateAdded?.toIso8601String());
+  writeNotNull('completion_date', instance.completionDate?.toIso8601String());
   writeNotNull('name', instance.name);
   writeNotNull('description', instance.description);
   writeNotNull('project', instance.project);

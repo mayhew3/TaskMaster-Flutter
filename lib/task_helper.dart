@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:jiffy/jiffy.dart';
 import 'package:taskmaster/date_util.dart';
 import 'package:taskmaster/models/snooze.dart';
 import 'package:taskmaster/models/sprint.dart';
@@ -8,12 +9,10 @@ import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_item_preview.dart';
 import 'package:taskmaster/task_repository.dart';
 
-import 'auth.dart';
 import 'app_state.dart';
+import 'auth.dart';
 import 'models/task_item.dart';
-import 'models/task_item_edit.dart';
 import 'nav_helper.dart';
-import 'package:jiffy/jiffy.dart';
 
 class TaskHelper {
   final AppState appState;
@@ -209,13 +208,13 @@ class TaskHelper {
 
   // sprint methods
 
-  Future<Sprint> addSprintAndTasks(Sprint sprint, List<TaskItemEdit> taskItems) async {
+  Future<Sprint> addSprintAndTasks(Sprint sprint, List<TaskItem> taskItems) async {
     Sprint updatedSprint = await repository.addSprint(sprint);
     stateSetter(() => appState.sprints.add(updatedSprint));
     return await addTasksToSprint(updatedSprint, taskItems);
   }
 
-  Future<Sprint> addTasksToSprint(Sprint sprint, List<TaskItemEdit> taskItems) async {
+  Future<Sprint> addTasksToSprint(Sprint sprint, List<TaskItem> taskItems) async {
     await repository.addTasksToSprint(taskItems, sprint);
     stateSetter(() => {});
     return sprint;

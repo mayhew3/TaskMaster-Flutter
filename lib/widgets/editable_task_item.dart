@@ -3,11 +3,12 @@ import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_date_type.dart';
-import 'package:taskmaster/models/task_item_edit.dart';
 import 'package:taskmaster/models/task_item_preview.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/delayed_checkbox.dart';
 import 'package:timeago/timeago.dart' as timeago;
+
+import '../models/task_item.dart';
 
 class EditableTaskItemWidget extends StatelessWidget {
   final TaskItemPreview taskItem;
@@ -54,7 +55,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     var scheduled = taskItem.isScheduled();
 
     var tmpTaskItem = taskItem;
-    var completed = (tmpTaskItem is TaskItemEdit) && tmpTaskItem.completionDate != null;
+    var completed = (tmpTaskItem is TaskItem) && tmpTaskItem.completionDate != null;
 
     if (pending) {
       return TaskColors.pendingBackground;
@@ -136,7 +137,7 @@ class EditableTaskItemWidget extends StatelessWidget {
       );
     } else {
       var tmpTaskItem = taskItem;
-      var completed = tmpTaskItem is TaskItemEdit && tmpTaskItem.completionDate != null;
+      var completed = tmpTaskItem is TaskItem && tmpTaskItem.completionDate != null;
 
       return DelayedCheckbox(
         initialState: completed ? CheckState.checked : CheckState.inactive,
@@ -258,7 +259,7 @@ class EditableTaskItemWidget extends StatelessWidget {
 
   int getKey() {
     var taskItemTmp = taskItem;
-    return taskItemTmp is TaskItemEdit ? taskItemTmp.id : taskItemTmp.tmpId;
+    return taskItemTmp is TaskItem ? taskItemTmp.id : taskItemTmp.tmpId;
   }
 
   @override

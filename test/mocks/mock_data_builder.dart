@@ -1,7 +1,6 @@
 
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
-import 'package:taskmaster/models/task_item_edit.dart';
 
 class TaskItemBuilder {
   int? id;
@@ -50,9 +49,8 @@ class TaskItemBuilder {
   }
 
   TaskItem create() {
-    TaskItem taskItem = new TaskItem(id: id!, personId: 1);
+    TaskItem taskItem = new TaskItem(id: id!, personId: 1, name: name);
 
-    taskItem.name = name;
     taskItem.description = description;
     taskItem.project = project;
     taskItem.context = context;
