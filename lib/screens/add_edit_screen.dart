@@ -57,7 +57,7 @@ class AddEditScreenState extends State<AddEditScreen> {
 
     blueprint = taskItemTmp == null ? TaskItemBlueprint() : taskItemTmp.createEditBlueprint();
 
-    _initialRepeatOn = blueprint.isRecurring();
+    _initialRepeatOn = taskItemTmp?.recurrenceId != null;
     _repeatOn = _initialRepeatOn;
 
     possibleProjects = [
