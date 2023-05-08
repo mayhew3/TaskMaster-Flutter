@@ -79,7 +79,6 @@ void main() {
     taskItem.urgency = blueprint.urgency;
     taskItem.priority = blueprint.priority;
     taskItem.duration = blueprint.duration;
-    taskItem.dateAdded = blueprint.dateAdded;
     taskItem.startDate = blueprint.startDate;
     taskItem.targetDate = blueprint.targetDate;
     taskItem.dueDate = blueprint.dueDate;

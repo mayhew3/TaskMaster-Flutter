@@ -9,7 +9,7 @@ import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 /// the star denotes the source file name.
 part 'task_item_blueprint.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
+@JsonSerializable(fieldRename: FieldRename.snake)
 class TaskItemBlueprint extends DateHolder {
 
   String? name;
@@ -30,6 +30,7 @@ class TaskItemBlueprint extends DateHolder {
   int? recurrenceId;
   int? recurIteration;
 
+  @JsonKey(includeIfNull: false)
   TaskRecurrenceBlueprint? taskRecurrenceBlueprint;
 
   @JsonKey(ignore: true)

@@ -22,15 +22,15 @@ TaskItemPreview _$TaskItemPreviewFromJson(Map<String, dynamic> json) =>
       ..urgentDate = json['urgent_date'] == null
           ? null
           : DateTime.parse(json['urgent_date'] as String)
-      ..dateAdded = json['date_added'] == null
-          ? null
-          : DateTime.parse(json['date_added'] as String)
       ..completionDate = json['completion_date'] == null
           ? null
           : DateTime.parse(json['completion_date'] as String)
       ..description = json['description'] as String?
       ..project = json['project'] as String?
       ..context = json['context'] as String?
+      ..dateAdded = json['date_added'] == null
+          ? null
+          : DateTime.parse(json['date_added'] as String)
       ..urgency = json['urgency'] as int?
       ..priority = json['priority'] as int?
       ..duration = json['duration'] as int?
@@ -54,12 +54,12 @@ Map<String, dynamic> _$TaskItemPreviewToJson(TaskItemPreview instance) {
   writeNotNull('target_date', instance.targetDate?.toIso8601String());
   writeNotNull('due_date', instance.dueDate?.toIso8601String());
   writeNotNull('urgent_date', instance.urgentDate?.toIso8601String());
-  writeNotNull('date_added', instance.dateAdded?.toIso8601String());
   writeNotNull('completion_date', instance.completionDate?.toIso8601String());
   val['name'] = instance.name;
   writeNotNull('description', instance.description);
   writeNotNull('project', instance.project);
   writeNotNull('context', instance.context);
+  writeNotNull('date_added', instance.dateAdded?.toIso8601String());
   writeNotNull('urgency', instance.urgency);
   writeNotNull('priority', instance.priority);
   writeNotNull('duration', instance.duration);

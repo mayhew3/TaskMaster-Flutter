@@ -18,6 +18,8 @@ class TaskItemPreview extends DateHolder {
   String? project;
   String? context;
 
+  DateTime? dateAdded;
+
   int? urgency;
   int? priority;
   int? duration;

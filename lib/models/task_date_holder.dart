@@ -7,7 +7,6 @@ class DateHolder {
   DateTime? targetDate;
   DateTime? dueDate;
   DateTime? urgentDate;
-  DateTime? dateAdded;
   DateTime? completionDate;
 
   bool hasPassed(DateTime? dateTime) {

@@ -20,9 +20,6 @@ TaskItemBlueprint _$TaskItemBlueprintFromJson(Map<String, dynamic> json) =>
       ..urgentDate = json['urgent_date'] == null
           ? null
           : DateTime.parse(json['urgent_date'] as String)
-      ..dateAdded = json['date_added'] == null
-          ? null
-          : DateTime.parse(json['date_added'] as String)
       ..completionDate = json['completion_date'] == null
           ? null
           : DateTime.parse(json['completion_date'] as String)
@@ -45,7 +42,26 @@ TaskItemBlueprint _$TaskItemBlueprintFromJson(Map<String, dynamic> json) =>
               json['task_recurrence_blueprint'] as Map<String, dynamic>);
 
 Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) {
-  final val = <String, dynamic>{};
+  final val = <String, dynamic>{
+    'start_date': instance.startDate?.toIso8601String(),
+    'target_date': instance.targetDate?.toIso8601String(),
+    'due_date': instance.dueDate?.toIso8601String(),
+    'urgent_date': instance.urgentDate?.toIso8601String(),
+    'completion_date': instance.completionDate?.toIso8601String(),
+    'name': instance.name,
+    'description': instance.description,
+    'project': instance.project,
+    'context': instance.context,
+    'urgency': instance.urgency,
+    'priority': instance.priority,
+    'duration': instance.duration,
+    'game_points': instance.gamePoints,
+    'recur_number': instance.recurNumber,
+    'recur_unit': instance.recurUnit,
+    'recur_wait': instance.recurWait,
+    'recurrence_id': instance.recurrenceId,
+    'recur_iteration': instance.recurIteration,
+  };
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -53,25 +69,6 @@ Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) {
     }
   }
 
-  writeNotNull('start_date', instance.startDate?.toIso8601String());
-  writeNotNull('target_date', instance.targetDate?.toIso8601String());
-  writeNotNull('due_date', instance.dueDate?.toIso8601String());
-  writeNotNull('urgent_date', instance.urgentDate?.toIso8601String());
-  writeNotNull('date_added', instance.dateAdded?.toIso8601String());
-  writeNotNull('completion_date', instance.completionDate?.toIso8601String());
-  writeNotNull('name', instance.name);
-  writeNotNull('description', instance.description);
-  writeNotNull('project', instance.project);
-  writeNotNull('context', instance.context);
-  writeNotNull('urgency', instance.urgency);
-  writeNotNull('priority', instance.priority);
-  writeNotNull('duration', instance.duration);
-  writeNotNull('game_points', instance.gamePoints);
-  writeNotNull('recur_number', instance.recurNumber);
-  writeNotNull('recur_unit', instance.recurUnit);
-  writeNotNull('recur_wait', instance.recurWait);
-  writeNotNull('recurrence_id', instance.recurrenceId);
-  writeNotNull('recur_iteration', instance.recurIteration);
   writeNotNull('task_recurrence_blueprint', instance.taskRecurrenceBlueprint);
   return val;
 }
