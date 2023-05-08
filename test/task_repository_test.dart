@@ -92,6 +92,7 @@ void main() {
       var taskItems = [
         taskItem
       ];
+      var blueprint = taskItem.createEditBlueprint();
 
       TaskRepository taskRepository = TestMockHelper.createTaskRepositoryWithoutLoad(taskItems: taskItems);
 
@@ -107,10 +108,10 @@ void main() {
       var newProject = "Groovy Time";
       var newTargetDate = DateTime.now().add(Duration(days: 3));
 
-      taskItem.project = newProject;
-      taskItem.targetDate = newTargetDate;
+      blueprint.project = newProject;
+      blueprint.targetDate = newTargetDate;
 
-      var returnedItem = await taskRepository.updateTask(taskItem);
+      var returnedItem = await taskRepository.updateTask(taskItem, blueprint);
 
       verify(taskRepository.client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")));
 

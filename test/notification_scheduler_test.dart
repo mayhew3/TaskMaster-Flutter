@@ -40,26 +40,19 @@ void main() {
   late TaskItem straddledUrgentDue;
 
   setUp(() {
-    futureDue = TaskItem(id: 2, personId: 1);
-    futureDue.id = 30;
-    futureDue.name = 'Barf a Penny';
+    futureDue = TaskItem(id: 30, personId: 1, name: 'Barf a Penny');
     futureDue.dueDate = DateTime.now().add(Duration(days: 4));
 
-    futureUrgentDue = TaskItem(id: 2, personId: 1);
-    futureUrgentDue.id = 30;
-    futureUrgentDue.name = 'Give a Penny';
+    futureUrgentDue = TaskItem(id: 31, personId: 1, name: 'Give a Penny');
     futureUrgentDue.dueDate = DateTime.now().add(Duration(days: 4));
     futureUrgentDue.urgentDate = DateTime.now().add(Duration(days: 2));
 
-    pastUrgentDue = TaskItem(id: 2, personId: 1);
-    pastUrgentDue.id = 30;
-    pastUrgentDue.name = 'Take a Penny';
+    pastUrgentDue = TaskItem(id: 32, personId: 1, name: 'Take a Penny');
     pastUrgentDue.dueDate = DateTime.now().subtract(Duration(days: 2));
     pastUrgentDue.urgentDate = DateTime.now().subtract(Duration(days: 4));
 
-    straddledUrgentDue = TaskItem(id: 2, personId: 1);
-    straddledUrgentDue.id = 30;
-    straddledUrgentDue.name = 'Eat a Penny';
+    straddledUrgentDue = TaskItem(id: 2, personId: 1, name: 'Eat a Penny');
+    straddledUrgentDue.id = 33;
     straddledUrgentDue.dueDate = DateTime.now().add(Duration(days: 7));
     straddledUrgentDue.urgentDate = DateTime.now().subtract(Duration(days: 5));
   });

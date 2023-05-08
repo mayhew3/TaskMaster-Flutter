@@ -31,7 +31,7 @@ void main() {
     });
 
     test('isCompleted not completed', () {
-      TaskItem taskItem = new TaskItem(id: 2, personId: 1);
+      TaskItem taskItem = new TaskItem(id: 2, personId: 1, name: 'Eat a Penny');
       expect(taskItem.isCompleted(), false);
     });
 
@@ -129,14 +129,14 @@ void main() {
     });
 
     test("equals only id matching", () {
-      TaskItem taskItem = new TaskItem(id: 2, personId: 1);
+      TaskItem taskItem = new TaskItem(id: 2, personId: 1, name: 'Eat a Penny');
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
       taskItem.id = catLitter.id;
       expect(catLitter, taskItem);
     });
 
     test("equals no matching", () {
-      TaskItem taskItem = new TaskItem(id: 2, personId: 1);
+      TaskItem taskItem = new TaskItem(id: 2, personId: 1, name: 'Eat a Penny');
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
       taskItem.id = 3;
       expect(catLitter, isNot(taskItem));
