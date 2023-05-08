@@ -8,6 +8,7 @@ import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/auth.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/task_repository.dart';
 
 import 'mocks/mock_data.dart';
@@ -51,22 +52,28 @@ class TestMockHelper {
     return taskItem.toJson();
   }
 
-  static String _mockTheJSON({List<TaskItem>? taskItems, List<Sprint>? sprints}) {
+  static String _mockTheJSON({List<TaskItem>? taskItems, List<Sprint>? sprints, List<TaskRecurrence>? recurrences}) {
     var taskObj = {};
     taskObj['person_id'] = 1;
-    var mockPlayerList = [];
+    var mockTaskList = [];
     var mockSprintList = [];
+    var mockRecurrenceList = [];
 
     for (var taskItem in taskItems ?? allTasks) {
-      mockPlayerList.add(_getMockTask(taskItem));
+      mockTaskList.add(_getMockTask(taskItem));
     }
 
     for (var sprintItem in sprints ?? allSprints) {
       mockSprintList.add(sprintItem.toJson());
     }
 
-    taskObj['tasks'] = mockPlayerList;
+    for (var recurrence in recurrences ?? []) {
+      mockRecurrenceList.add(recurrence.toJson());
+    }
+
+    taskObj['tasks'] = mockTaskList;
     taskObj['sprints'] = mockSprintList;
+    taskObj['taskRecurrences'] = mockRecurrenceList;
     return json.encode(taskObj);
   }
 

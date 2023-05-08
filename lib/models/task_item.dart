@@ -65,6 +65,7 @@ class TaskItem extends TaskItemPreview {
   TaskItemBlueprint createEditBlueprint() {
     TaskItemBlueprint blueprint = TaskItemBlueprint();
 
+    blueprint.name = name;
     blueprint.description = description;
     blueprint.project = project;
     blueprint.context = context;

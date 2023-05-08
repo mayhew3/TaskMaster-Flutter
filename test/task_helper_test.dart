@@ -70,28 +70,27 @@ void main() {
     return taskItem;
   }
 
-  TaskItem mockEditTask(TaskItem taskItemEdit) {
-    TaskItem taskItem = new TaskItem(name: taskItemEdit.name, id: taskItemEdit.id, personId: 1);
+  TaskItem mockEditTask(TaskItem original, TaskItemBlueprint blueprint) {
+    TaskItem taskItem = new TaskItem(name: original.name, id: original.id, personId: 1);
 
-    taskItem.name = taskItemEdit.name;
-    taskItem.description = taskItemEdit.description;
-    taskItem.project = taskItemEdit.project;
-    taskItem.context = taskItemEdit.context;
-    taskItem.urgency = taskItemEdit.urgency;
-    taskItem.priority = taskItemEdit.priority;
-    taskItem.duration = taskItemEdit.duration;
-    taskItem.dateAdded = taskItemEdit.dateAdded;
-    taskItem.startDate = taskItemEdit.startDate;
-    taskItem.targetDate = taskItemEdit.targetDate;
-    taskItem.dueDate = taskItemEdit.dueDate;
-    taskItem.completionDate = taskItemEdit.completionDate;
-    taskItem.urgentDate = taskItemEdit.urgentDate;
-    taskItem.gamePoints = taskItemEdit.gamePoints;
-    taskItem.recurNumber = taskItemEdit.recurNumber;
-    taskItem.recurUnit = taskItemEdit.recurUnit;
-    taskItem.recurWait = taskItemEdit.recurWait;
-    taskItem.recurrenceId = taskItemEdit.recurrenceId;
-    taskItem.recurIteration = taskItemEdit.recurIteration;
+    taskItem.description = blueprint.description;
+    taskItem.project = blueprint.project;
+    taskItem.context = blueprint.context;
+    taskItem.urgency = blueprint.urgency;
+    taskItem.priority = blueprint.priority;
+    taskItem.duration = blueprint.duration;
+    taskItem.dateAdded = blueprint.dateAdded;
+    taskItem.startDate = blueprint.startDate;
+    taskItem.targetDate = blueprint.targetDate;
+    taskItem.dueDate = blueprint.dueDate;
+    taskItem.completionDate = blueprint.completionDate;
+    taskItem.urgentDate = blueprint.urgentDate;
+    taskItem.gamePoints = blueprint.gamePoints;
+    taskItem.recurNumber = blueprint.recurNumber;
+    taskItem.recurUnit = blueprint.recurUnit;
+    taskItem.recurWait = blueprint.recurWait;
+    taskItem.recurrenceId = blueprint.recurrenceId;
+    taskItem.recurIteration = blueprint.recurIteration;
 
     return taskItem;
   }
@@ -194,7 +193,7 @@ void main() {
     TaskItemPreview? addedTask;
 
     when(taskRepository.completeTask(originalTask)).thenAnswer((_) => Future.value(inboundTask));
-    when(taskRepository.addTask(argThat(isA<TaskItemPreview>()))).thenAnswer((invocation) {
+    when(taskRepository.addTaskIteration(argThat(isA<TaskItemPreview>()))).thenAnswer((invocation) {
       addedTask = invocation.positionalArguments[0];
       return Future.value(mockAddTask(addedTask!));
     });
@@ -203,7 +202,7 @@ void main() {
     var returnedTask = await taskHelper.completeTask(originalTask, true, stateSetter);
     verify(notificationScheduler.updateNotificationForTask(originalTask));
     verify(notificationScheduler.updateBadge());
-    verify(taskRepository.addTask(any));
+    verify(taskRepository.addTaskIteration(any));
     verify(appState.addNewTaskToList(any));
     verify(notificationScheduler.updateNotificationForTask(any));
 
@@ -282,10 +281,9 @@ void main() {
     var changedDescription = "Just kidding";
     var changedTarget = DateTime.utc(2019, 8, 30, 17, 32, 14, 674);
     blueprint.description = changedDescription;
-
     blueprint.targetDate = changedTarget.toLocal();
 
-    when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((realInvocation) => Future.value(mockEditTask(taskItem)));
+    when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((realInvocation) => Future.value(mockEditTask(taskItem, blueprint)));
 
     var returnedItem = await taskHelper.updateTask(birthdayTask, blueprint);
 
@@ -294,8 +292,8 @@ void main() {
     verify(notificationScheduler.updateBadge());
 
     expect(returnedItem.id, taskItem.id);
-    expect(taskItem.description, changedDescription);
-    expect(taskItem.targetDate, changedTarget.toLocal());
+    expect(returnedItem.description, changedDescription);
+    expect(returnedItem.targetDate, changedTarget.toLocal());
   });
 
   test('previewSnooze move multiple', () {
@@ -348,11 +346,11 @@ void main() {
 
     var originalTarget = taskItem.targetDate;
 
-    var taskItemEdit = taskItem.createEditBlueprint();
+    var blueprint = taskItem.createEditBlueprint();
 
-    when(taskRepository.updateTask(taskItem, taskItemEdit)).thenAnswer((_) => Future.value(mockEditTask(taskItem)));
+    when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((_) => Future.value(mockEditTask(taskItem, blueprint)));
 
-    var returnedItem = await taskHelper.snoozeTask(taskItem, taskItemEdit, 6, 'Days', TaskDateTypes.target);
+    var returnedItem = await taskHelper.snoozeTask(taskItem, blueprint, 6, 'Days', TaskDateTypes.target);
 
     Snooze snooze = verify(taskRepository.addSnooze(captureThat(isA<Snooze>()))).captured.single;
 
@@ -388,11 +386,11 @@ void main() {
 
     var originalStart = taskItem.startDate;
 
-    var taskItemEdit = taskItem.createEditBlueprint();
+    var blueprint = taskItem.createEditBlueprint();
 
-    when(taskRepository.updateTask(taskItem, taskItemEdit)).thenAnswer((_) => Future.value(mockEditTask(taskItem)));
+    when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((_) => Future.value(mockEditTask(taskItem, blueprint)));
 
-    var returnedItem = await taskHelper.snoozeTask(taskItem, taskItemEdit, 4, 'Days', TaskDateTypes.start);
+    var returnedItem = await taskHelper.snoozeTask(taskItem, blueprint, 4, 'Days', TaskDateTypes.start);
 
     Snooze snooze = verify(taskRepository.addSnooze(captureThat(isA<Snooze>()))).captured.single;
 

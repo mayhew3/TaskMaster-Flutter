@@ -27,6 +27,7 @@ void main() {
       if (id != null) {
         jsonTask["id"] = id;
       }
+      jsonTask["person_id"] = 1;
       if (dateTime != null) {
         jsonTask["date_added"] =
             DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime.toUtc());
