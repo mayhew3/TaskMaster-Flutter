@@ -18,7 +18,8 @@ import 'package:taskmaster/models/snooze.dart' as _i11;
 import 'package:taskmaster/models/sprint.dart' as _i12;
 import 'package:taskmaster/models/task_item.dart' as _i9;
 import 'package:taskmaster/models/task_item_blueprint.dart' as _i19;
-import 'package:taskmaster/models/task_item_edit.dart' as _i20;
+import 'package:taskmaster/models/task_item_edit.dart' as _i21;
+import 'package:taskmaster/models/task_item_preview.dart' as _i20;
 import 'package:taskmaster/models/task_recurrence.dart' as _i17;
 import 'package:taskmaster/nav_helper.dart' as _i8;
 import 'package:taskmaster/notification_scheduler.dart' as _i7;
@@ -718,6 +719,30 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
         )),
       ) as _i18.Future<_i9.TaskItem>);
   @override
+  _i18.Future<_i9.TaskItem> addTaskIteration(
+          _i20.TaskItemPreview? taskItemPreview) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #addTaskIteration,
+          [taskItemPreview],
+        ),
+        returnValue: _i18.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
+          this,
+          Invocation.method(
+            #addTaskIteration,
+            [taskItemPreview],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i18.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
+          this,
+          Invocation.method(
+            #addTaskIteration,
+            [taskItemPreview],
+          ),
+        )),
+      ) as _i18.Future<_i9.TaskItem>);
+  @override
   _i18.Future<_i11.Snooze> addSnooze(_i11.Snooze? snooze) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -765,7 +790,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
       ) as _i18.Future<_i12.Sprint>);
   @override
   _i18.Future<void> addTasksToSprint(
-    List<_i20.TaskItemEdit>? taskItems,
+    List<_i21.TaskItemEdit>? taskItems,
     _i12.Sprint? sprint,
   ) =>
       (super.noSuchMethod(
@@ -803,17 +828,26 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
         )),
       ) as _i18.Future<_i9.TaskItem>);
   @override
-  _i18.Future<_i9.TaskItem> updateTask(_i20.TaskItemEdit? taskItemForm) =>
+  _i18.Future<_i9.TaskItem> updateTask(
+    _i9.TaskItem? taskItem,
+    _i19.TaskItemBlueprint? taskItemForm,
+  ) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateTask,
-          [taskItemForm],
+          [
+            taskItem,
+            taskItemForm,
+          ],
         ),
         returnValue: _i18.Future<_i9.TaskItem>.value(_FakeTaskItem_7(
           this,
           Invocation.method(
             #updateTask,
-            [taskItemForm],
+            [
+              taskItem,
+              taskItemForm,
+            ],
           ),
         )),
         returnValueForMissingStub:
@@ -821,7 +855,10 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           this,
           Invocation.method(
             #updateTask,
-            [taskItemForm],
+            [
+              taskItem,
+              taskItemForm,
+            ],
           ),
         )),
       ) as _i18.Future<_i9.TaskItem>);

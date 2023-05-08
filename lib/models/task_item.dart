@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/task_item_edit.dart';
@@ -15,8 +16,9 @@ class TaskItem extends TaskItemEdit {
 
   TaskItem({
     required int id,
-    required int personId
-  }): super(id: id, personId: personId);
+    required int personId,
+    required String name,
+  }): super(id: id, personId: personId, name: name);
 
   @override
   bool isEditable() {
@@ -24,7 +26,7 @@ class TaskItem extends TaskItemEdit {
   }
 
   TaskItem createCopy() {
-    var fields = new TaskItem(id: this.id, personId: this.personId);
+    var fields = new TaskItem(id: id, personId: personId, name: name);
 
     // todo: make more dynamic?
     fields.name = name;

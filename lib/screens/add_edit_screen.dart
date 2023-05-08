@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
-import 'package:taskmaster/models/task_item_edit.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/timezone_helper.dart';
@@ -56,7 +55,7 @@ class AddEditScreenState extends State<AddEditScreen> {
 
     var taskItemTmp = widget.taskItem;
 
-    blueprint = taskItemTmp == null ? TaskItemBlueprint() : taskItemTmp.createEditTemplate();
+    blueprint = taskItemTmp == null ? TaskItemBlueprint() : taskItemTmp.createEditBlueprint();
 
     _initialRepeatOn = blueprint.isRecurring();
     _repeatOn = _initialRepeatOn;
@@ -477,11 +476,7 @@ class AddEditScreenState extends State<AddEditScreen> {
               var tmpTaskItem = widget.taskItem;
 
               if (tmpTaskItem != null) {
-                var editing = blueprint as TaskItemEdit;
-                if (_repeatOn && editing.recurrenceId == null) {
-                  editing.recurrenceId = editing.id;
-                  editing.recurIteration = 1;
-                }
+                var editing = blueprint;
                 var updatedItem = await widget.taskHelper.updateTask(tmpTaskItem, editing);
                 var taskItemRefresher2 = widget.taskItemRefresher;
                 if (taskItemRefresher2 != null) {

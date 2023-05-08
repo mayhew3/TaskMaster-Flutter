@@ -7,8 +7,8 @@ import 'package:taskmaster/date_util.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_item_edit.dart';
+import 'package:taskmaster/models/task_item_preview.dart';
 import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/typedefs.dart';
 import 'package:taskmaster/widgets/delayed_checkbox.dart';
@@ -43,8 +43,8 @@ class PlanTaskList extends StatefulWidget {
 
 class PlanTaskListState extends State<PlanTaskList> {
 
-  List<TaskItemBlueprint> sprintQueued = [];
-  List<TaskItemBlueprint> tempIterations = [];
+  List<TaskItemPreview> sprintQueued = [];
+  List<TaskItemPreview> tempIterations = [];
   Sprint? lastSprint;
   Sprint? activeSprint;
 
@@ -71,13 +71,13 @@ class PlanTaskListState extends State<PlanTaskList> {
     createTemporaryIterations();
   }
 
-  List<TaskItemBlueprint> _moveSublist(List<TaskItemBlueprint> superList, bool Function(TaskItemBlueprint) condition) {
-    List<TaskItemBlueprint> subList = superList.where(condition).toList(growable: false);
+  List<TaskItemPreview> _moveSublist(List<TaskItemPreview> superList, bool Function(TaskItemPreview) condition) {
+    List<TaskItemPreview> subList = superList.where(condition).toList(growable: false);
     subList.forEach((task) => superList.remove(task));
     return subList;
   }
 
-  EditableTaskItemWidget _createWidget({required TaskItemBlueprint taskItem}) {
+  EditableTaskItemWidget _createWidget({required TaskItemPreview taskItem}) {
     return EditableTaskItemWidget(
       taskItem: taskItem,
       endDate: getEndDate(),
@@ -117,11 +117,11 @@ class PlanTaskListState extends State<PlanTaskList> {
     return getFilteredTasks(allTasks);
   }
 
-  bool highlightSprint(TaskItemBlueprint taskItem) {
+  bool highlightSprint(TaskItemPreview taskItem) {
     return (taskItem is TaskItemEdit) ? taskItem.sprints.contains(lastSprint) : false;
   }
 
-  bool wasInEarlierSprint(TaskItemBlueprint taskItem) {
+  bool wasInEarlierSprint(TaskItemPreview taskItem) {
     if (taskItem is TaskItemEdit) {
       var sprints = taskItem.sprints.where((sprint) => sprint != lastSprint);
       return sprints.isNotEmpty;
@@ -131,7 +131,7 @@ class PlanTaskListState extends State<PlanTaskList> {
   }
 
   void createTemporaryIterations() {
-    List<TaskItemBlueprint> eligibleItems = [];
+    List<TaskItemPreview> eligibleItems = [];
     eligibleItems.addAll(getBaseList());
     if (widget.sprint != null) {
       eligibleItems.addAll(widget.sprint!.taskItems);
@@ -146,9 +146,9 @@ class PlanTaskListState extends State<PlanTaskList> {
     }
 
     for (var recurID in recurIDs) {
-      Iterable<TaskItemBlueprint> recurItems = eligibleItems.where((var taskItem) => taskItem.recurrenceId == recurID);
-      List<TaskItemBlueprint> sortedItems = recurItems.sorted((TaskItemBlueprint t1, TaskItemBlueprint t2) => t1.recurIteration!.compareTo(t2.recurIteration!));
-      TaskItemBlueprint newest = sortedItems.last;
+      Iterable<TaskItemPreview> recurItems = eligibleItems.where((var taskItem) => taskItem.recurrenceId == recurID);
+      List<TaskItemPreview> sortedItems = recurItems.sorted((TaskItemPreview t1, TaskItemPreview t2) => t1.recurIteration!.compareTo(t2.recurIteration!));
+      TaskItemPreview newest = sortedItems.last;
       if (newest.recurWait == false) {
         addNextIterations(newest, endDate, eligibleItems);
       }
@@ -156,8 +156,8 @@ class PlanTaskListState extends State<PlanTaskList> {
 
   }
 
-  void addNextIterations(TaskItemBlueprint newest, DateTime endDate, List<TaskItemBlueprint> collector) {
-    TaskItemBlueprint nextIteration = widget.taskHelper.createNextIteration(newest, DateTime.now());
+  void addNextIterations(TaskItemPreview newest, DateTime endDate, List<TaskItemPreview> collector) {
+    TaskItemPreview nextIteration = widget.taskHelper.createNextIteration(newest, DateTime.now());
     var willBeUrgentOrDue = nextIteration.isDueBefore(endDate) || nextIteration.isUrgentBefore(endDate);
     var willBeTargetOrStart = nextIteration.isTargetBefore(endDate) || nextIteration.isScheduledBefore(endDate);
 
@@ -171,14 +171,14 @@ class PlanTaskListState extends State<PlanTaskList> {
     }
   }
   
-  void _addTaskTile({required List<StatelessWidget> tiles, required TaskItemBlueprint task}) {
+  void _addTaskTile({required List<StatelessWidget> tiles, required TaskItemPreview task}) {
     tiles.add(_createWidget(taskItem: task));
     hasTiles = true;
   }
 
   ListView _buildListView(BuildContext context) {
     widget.appState.notificationScheduler.updateHomeScreenContext(context);
-    final List<TaskItemBlueprint> otherTasks = [];
+    final List<TaskItemPreview> otherTasks = [];
     otherTasks.addAll(getBaseList());
     otherTasks.addAll(tempIterations);
 
@@ -186,13 +186,13 @@ class PlanTaskListState extends State<PlanTaskList> {
 
     Sprint? lastCompletedSprint = widget.appState.getLastCompletedSprint();
 
-    final List<TaskItemBlueprint> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted());
-    final List<TaskItemBlueprint> lastSprintTasks = _moveSublist(otherTasks, (taskItem) => (taskItem is TaskItemEdit) && taskItem.sprints.contains(lastCompletedSprint));
-    final List<TaskItemBlueprint> otherSprintTasks = _moveSublist(otherTasks, (taskItem) => wasInEarlierSprint(taskItem));
-    final List<TaskItemBlueprint> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isDueBefore(endDate));
-    final List<TaskItemBlueprint> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgentBefore(endDate));
-    final List<TaskItemBlueprint> targetTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isTargetBefore(endDate));
-    final List<TaskItemBlueprint> scheduledTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isScheduledAfter(endDate));
+    final List<TaskItemPreview> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted());
+    final List<TaskItemPreview> lastSprintTasks = _moveSublist(otherTasks, (taskItem) => (taskItem is TaskItemEdit) && taskItem.sprints.contains(lastCompletedSprint));
+    final List<TaskItemPreview> otherSprintTasks = _moveSublist(otherTasks, (taskItem) => wasInEarlierSprint(taskItem));
+    final List<TaskItemPreview> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isDueBefore(endDate));
+    final List<TaskItemPreview> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgentBefore(endDate));
+    final List<TaskItemPreview> targetTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isTargetBefore(endDate));
+    final List<TaskItemPreview> scheduledTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isScheduledAfter(endDate));
 
     List<StatelessWidget> tiles = [];
 
@@ -293,8 +293,8 @@ class PlanTaskListState extends State<PlanTaskList> {
         widget.sprint!.endDate;
   }
 
-  TaskItemBlueprint? findMatching(TaskItemBlueprint taskItem) {
-    return sprintQueued.firstWhere((TaskItemBlueprint other) {
+  TaskItemPreview? findMatching(TaskItemPreview taskItem) {
+    return sprintQueued.firstWhere((TaskItemPreview other) {
       return matchesId(taskItem, other) || tempMatches(taskItem, other);
     });
   }
@@ -304,11 +304,11 @@ class PlanTaskListState extends State<PlanTaskList> {
     return matching != null;
   }
 
-  bool matchesId(TaskItemBlueprint a, TaskItemBlueprint b) {
+  bool matchesId(TaskItemPreview a, TaskItemPreview b) {
     return a is TaskItemEdit && b is TaskItemEdit && a.id == b.id;
   }
 
-  bool tempMatches(TaskItemBlueprint a, TaskItemBlueprint b) {
+  bool tempMatches(TaskItemPreview a, TaskItemPreview b) {
     return a is TaskItemEdit && b is TaskItemEdit &&
         a.recurrenceId == b.recurrenceId &&
         a.recurIteration == b.recurIteration;
@@ -316,11 +316,11 @@ class PlanTaskListState extends State<PlanTaskList> {
 
   Future<void> createSelectedIterations() async {
     print('${tempIterations.length} temp items created.');
-    var toAdd = tempIterations.where((TaskItemBlueprint taskItem) => !(taskItem is TaskItem));
+    var toAdd = tempIterations.where((TaskItemPreview taskItem) => !(taskItem is TaskItem));
     print('${toAdd.length} checked temp items kept.');
 
     for (var taskItem in toAdd) {
-      TaskItemEdit addedTask = await widget.taskHelper.addTask(taskItem);
+      TaskItemEdit addedTask = await widget.taskHelper.addTaskIteration(taskItem);
       print('Adding (Recurrence ID ${taskItem.recurrenceId}, TaskItem ID ${taskItem.recurIteration})');
       sprintQueued.add(addedTask);
     }
@@ -330,7 +330,7 @@ class PlanTaskListState extends State<PlanTaskList> {
   }
 
   List<TaskItem> idCheck() {
-    var withoutId = sprintQueued.where((TaskItemBlueprint taskItem) => !(taskItem is TaskItem));
+    var withoutId = sprintQueued.where((TaskItemPreview taskItem) => !(taskItem is TaskItem));
     if (withoutId.isNotEmpty) {
       print('${withoutId.length} items still remain without an ID!');
       for (var item in withoutId) {

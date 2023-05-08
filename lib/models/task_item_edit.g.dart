@@ -9,14 +9,8 @@ part of 'task_item_edit.dart';
 TaskItemEdit _$TaskItemEditFromJson(Map<String, dynamic> json) => TaskItemEdit(
       id: json['id'] as int,
       personId: json['person_id'] as int,
+      name: json['name'] as String,
     )
-      ..name = json['name'] as String?
-      ..description = json['description'] as String?
-      ..project = json['project'] as String?
-      ..context = json['context'] as String?
-      ..urgency = json['urgency'] as int?
-      ..priority = json['priority'] as int?
-      ..duration = json['duration'] as int?
       ..startDate = json['start_date'] == null
           ? null
           : DateTime.parse(json['start_date'] as String)
@@ -29,16 +23,18 @@ TaskItemEdit _$TaskItemEditFromJson(Map<String, dynamic> json) => TaskItemEdit(
       ..urgentDate = json['urgent_date'] == null
           ? null
           : DateTime.parse(json['urgent_date'] as String)
+      ..description = json['description'] as String?
+      ..project = json['project'] as String?
+      ..context = json['context'] as String?
+      ..urgency = json['urgency'] as int?
+      ..priority = json['priority'] as int?
+      ..duration = json['duration'] as int?
       ..gamePoints = json['game_points'] as int?
       ..recurNumber = json['recur_number'] as int?
       ..recurUnit = json['recur_unit'] as String?
       ..recurWait = json['recur_wait'] as bool?
       ..recurrenceId = json['recurrence_id'] as int?
       ..recurIteration = json['recur_iteration'] as int?
-      ..taskRecurrenceBlueprint = json['task_recurrence_blueprint'] == null
-          ? null
-          : TaskRecurrenceBlueprint.fromJson(
-              json['task_recurrence_blueprint'] as Map<String, dynamic>)
       ..dateAdded = json['date_added'] == null
           ? null
           : DateTime.parse(json['date_added'] as String)
@@ -48,6 +44,10 @@ TaskItemEdit _$TaskItemEditFromJson(Map<String, dynamic> json) => TaskItemEdit(
 
 Map<String, dynamic> _$TaskItemEditToJson(TaskItemEdit instance) =>
     <String, dynamic>{
+      'start_date': instance.startDate?.toIso8601String(),
+      'target_date': instance.targetDate?.toIso8601String(),
+      'due_date': instance.dueDate?.toIso8601String(),
+      'urgent_date': instance.urgentDate?.toIso8601String(),
       'name': instance.name,
       'description': instance.description,
       'project': instance.project,
@@ -55,17 +55,12 @@ Map<String, dynamic> _$TaskItemEditToJson(TaskItemEdit instance) =>
       'urgency': instance.urgency,
       'priority': instance.priority,
       'duration': instance.duration,
-      'start_date': instance.startDate?.toIso8601String(),
-      'target_date': instance.targetDate?.toIso8601String(),
-      'due_date': instance.dueDate?.toIso8601String(),
-      'urgent_date': instance.urgentDate?.toIso8601String(),
       'game_points': instance.gamePoints,
       'recur_number': instance.recurNumber,
       'recur_unit': instance.recurUnit,
       'recur_wait': instance.recurWait,
       'recurrence_id': instance.recurrenceId,
       'recur_iteration': instance.recurIteration,
-      'task_recurrence_blueprint': instance.taskRecurrenceBlueprint,
       'id': instance.id,
       'person_id': instance.personId,
       'date_added': instance.dateAdded?.toIso8601String(),

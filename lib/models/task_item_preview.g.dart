@@ -1,13 +1,15 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'task_item_blueprint.dart';
+part of 'task_item_preview.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-TaskItemBlueprint _$TaskItemBlueprintFromJson(Map<String, dynamic> json) =>
-    TaskItemBlueprint()
+TaskItemPreview _$TaskItemPreviewFromJson(Map<String, dynamic> json) =>
+    TaskItemPreview(
+      name: json['name'] as String,
+    )
       ..startDate = json['start_date'] == null
           ? null
           : DateTime.parse(json['start_date'] as String)
@@ -20,7 +22,6 @@ TaskItemBlueprint _$TaskItemBlueprintFromJson(Map<String, dynamic> json) =>
       ..urgentDate = json['urgent_date'] == null
           ? null
           : DateTime.parse(json['urgent_date'] as String)
-      ..name = json['name'] as String?
       ..description = json['description'] as String?
       ..project = json['project'] as String?
       ..context = json['context'] as String?
@@ -32,13 +33,9 @@ TaskItemBlueprint _$TaskItemBlueprintFromJson(Map<String, dynamic> json) =>
       ..recurUnit = json['recur_unit'] as String?
       ..recurWait = json['recur_wait'] as bool?
       ..recurrenceId = json['recurrence_id'] as int?
-      ..recurIteration = json['recur_iteration'] as int?
-      ..taskRecurrenceBlueprint = json['task_recurrence_blueprint'] == null
-          ? null
-          : TaskRecurrenceBlueprint.fromJson(
-              json['task_recurrence_blueprint'] as Map<String, dynamic>);
+      ..recurIteration = json['recur_iteration'] as int?;
 
-Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) {
+Map<String, dynamic> _$TaskItemPreviewToJson(TaskItemPreview instance) {
   final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {
@@ -51,7 +48,7 @@ Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) {
   writeNotNull('target_date', instance.targetDate?.toIso8601String());
   writeNotNull('due_date', instance.dueDate?.toIso8601String());
   writeNotNull('urgent_date', instance.urgentDate?.toIso8601String());
-  writeNotNull('name', instance.name);
+  val['name'] = instance.name;
   writeNotNull('description', instance.description);
   writeNotNull('project', instance.project);
   writeNotNull('context', instance.context);
@@ -64,6 +61,5 @@ Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) {
   writeNotNull('recur_wait', instance.recurWait);
   writeNotNull('recurrence_id', instance.recurrenceId);
   writeNotNull('recur_iteration', instance.recurIteration);
-  writeNotNull('task_recurrence_blueprint', instance.taskRecurrenceBlueprint);
   return val;
 }

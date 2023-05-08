@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/models/task_item_edit.dart';
+import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/parse_helper.dart';
 import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/timezone_helper.dart';
@@ -34,7 +34,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
 
   TimezoneHelper timezoneHelper = TimezoneHelper();
 
-  late TaskItemEdit taskItemEdit;
+  late TaskItemBlueprint blueprint;
 
   int? numUnits = 3;
   String unitName = 'Days';
@@ -52,9 +52,9 @@ class SnoozeDialogState extends State<SnoozeDialog> {
   @override
   void initState() {
     super.initState();
-    taskItemEdit = widget.taskItem.createEditTemplate();
+    blueprint = widget.taskItem.createEditBlueprint();
     TaskDateTypes.allTypes.forEach((dateType) {
-      var dateFieldOfType = dateType.dateFieldGetter(taskItemEdit);
+      var dateFieldOfType = dateType.dateFieldGetter(blueprint);
       if (dateFieldOfType != null) {
         possibleDateTypes.add(dateType.label);
       }
@@ -86,13 +86,13 @@ class SnoozeDialogState extends State<SnoozeDialog> {
     var typeWithLabel = TaskDateTypes.getTypeWithLabel(taskDateType);
     if (numUnits != null && typeWithLabel != null) {
       setState(() {
-        widget.taskHelper.previewSnooze(taskItemEdit, numUnits!, unitName, typeWithLabel);
+        widget.taskHelper.previewSnooze(blueprint, numUnits!, unitName, typeWithLabel);
       });
     }
   }
 
   List<Widget> getWidgets() {
-    if (taskItemEdit.isScheduledRecurrence()) {
+    if (blueprint.isScheduledRecurrence()) {
       return [
         Text('Snooze doesn''t yet support Scheduled Dates recurrences.')
       ];
@@ -148,7 +148,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
       ];
 
       TaskDateTypes.allTypes.forEach((dateType) {
-        DateTime? dateFieldOfType = dateType.dateFieldGetter(taskItemEdit);
+        DateTime? dateFieldOfType = dateType.dateFieldGetter(blueprint);
         var dateTypeString = dateType.label;
         var actualDate = dateFieldOfType;
         if (actualDate != null) {
@@ -192,7 +192,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
             child: Text('Cancel'),
           ),
           Visibility(
-            visible: !taskItemEdit.isScheduledRecurrence(),
+            visible: !blueprint.isScheduledRecurrence(),
             child: TextButton(
               onPressed: () async {
                 final form = formKey.currentState;
@@ -205,7 +205,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
                 var typeWithLabel = TaskDateTypes.getTypeWithLabel(taskDateType);
                 if (typeWithLabel != null && numUnits != null) {
                   await widget.taskHelper.snoozeTask(widget.taskItem,
-                      taskItemEdit, numUnits!, unitName, typeWithLabel);
+                      blueprint, numUnits!, unitName, typeWithLabel);
                 }
                 Navigator.pop(context);
               },

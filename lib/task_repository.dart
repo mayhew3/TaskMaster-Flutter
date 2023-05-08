@@ -11,6 +11,7 @@ import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_item_edit.dart';
+import 'package:taskmaster/models/task_item_preview.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
 
 class TaskRepository {
@@ -114,6 +115,19 @@ class TaskRepository {
     return _addOrUpdateJSON(payload, 'add');
   }
 
+  Future<TaskItem> addTaskIteration(TaskItemPreview taskItemPreview) async {
+    if (!appState.isAuthenticated()) {
+      throw Exception("Cannot add task before being signed in.");
+    }
+
+    var taskObj = taskItemPreview.toJson();
+
+    var payload = {
+      "task": taskObj
+    };
+    return _addOrUpdateJSON(payload, 'add');
+  }
+
   Future<Snooze> addSnooze(Snooze snooze) async {
     var payload = {
       'snooze': snooze.toJson()
@@ -168,12 +182,13 @@ class TaskRepository {
     return _addOrUpdateJSON(payload, 'update');
   }
 
-  Future<TaskItem> updateTask(TaskItemEdit taskItemForm) async {
+  Future<TaskItem> updateTask(TaskItem taskItem, TaskItemBlueprint taskItemForm) async {
     if (!appState.isAuthenticated()) {
       throw Exception("Cannot update task before being signed in.");
     }
 
     var taskObj = taskItemForm.toJson();
+    taskObj['id'] = taskItem.id;
 
     var payload = {
       "task": taskObj

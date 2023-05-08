@@ -2,8 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
-import 'package:taskmaster/models/task_recurrence.dart';
-import 'package:taskmaster/models/task_recurrence_edit.dart';
+import 'package:taskmaster/models/task_item_preview.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 
 /// This allows the `Sprint` class to access private members in
@@ -13,7 +12,7 @@ part 'task_item_edit.g.dart';
 
 
 @JsonSerializable(fieldRename: FieldRename.snake)
-class TaskItemEdit extends TaskItemBlueprint {
+class TaskItemEdit extends TaskItemPreview {
 
   int id;
   int personId;
@@ -29,8 +28,9 @@ class TaskItemEdit extends TaskItemBlueprint {
 
   TaskItemEdit({
     required this.id,
-    required this.personId
-  });
+    required this.personId,
+    required String name
+  }) : super(name: name);
 
   bool isRecurring() {
     return taskRecurrence != null;
@@ -43,10 +43,9 @@ class TaskItemEdit extends TaskItemBlueprint {
 
   TaskItemEdit createEditTemplate() {
 
-    TaskItemEdit fields = TaskItemEdit(id : id, personId: this.personId);
+    TaskItemEdit fields = TaskItemEdit(id : id, personId: personId, name: name);
 
     // todo: make more dynamic?
-    fields.name = name;
     fields.description = description;
     fields.project = project;
     fields.context = context;
@@ -71,6 +70,29 @@ class TaskItemEdit extends TaskItemBlueprint {
     return fields;
   }
 
+  TaskItemBlueprint createEditBlueprint() {
+    TaskItemBlueprint blueprint = TaskItemBlueprint();
+
+    blueprint.description = description;
+    blueprint.project = project;
+    blueprint.context = context;
+    blueprint.urgency = urgency;
+    blueprint.priority = priority;
+    blueprint.duration = duration;
+    blueprint.startDate = startDate;
+    blueprint.targetDate = targetDate;
+    blueprint.dueDate = dueDate;
+    blueprint.urgentDate = urgentDate;
+    blueprint.gamePoints = gamePoints;
+    blueprint.recurNumber = recurNumber;
+    blueprint.recurUnit = recurUnit;
+    blueprint.recurWait = recurWait;
+    blueprint.recurrenceId = recurrenceId;
+    blueprint.recurIteration = recurIteration;
+
+    return blueprint;
+  }
+
   bool isEditable() {
     return true;
   }
@@ -82,11 +104,6 @@ class TaskItemEdit extends TaskItemBlueprint {
 
   DateTime? getFinishedCompletionDate() {
     return pendingCompletion ? null : completionDate;
-  }
-
-  void incrementDateIfExists(TaskDateType taskDateType, Duration duration) {
-    var dateTime = taskDateType.dateFieldGetter(this);
-    taskDateType.dateFieldSetter(this, dateTime?.add(duration));
   }
 
   void addToSprints(Sprint sprint) {
