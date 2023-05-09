@@ -129,16 +129,14 @@ void main() {
     });
 
     test("equals only id matching", () {
-      TaskItem taskItem = new TaskItem(id: 2, personId: 1, name: 'Eat a Penny');
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      taskItem.id = catLitter.id;
+      TaskItem taskItem = new TaskItem(id: catLitter.id, personId: 1, name: 'Eat a Penny');
       expect(catLitter, taskItem);
     });
 
     test("equals no matching", () {
       TaskItem taskItem = new TaskItem(id: 2, personId: 1, name: 'Eat a Penny');
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      taskItem.id = 3;
       expect(catLitter, isNot(taskItem));
     });
 

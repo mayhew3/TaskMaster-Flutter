@@ -162,6 +162,11 @@ class AppState {
     _taskItems.remove(taskItem);
   }
 
+  void replaceTaskItem(TaskItem oldTaskItem, TaskItem newTaskItem) {
+    var indexOf = _taskItems.indexOf(oldTaskItem);
+    _taskItems[indexOf] = newTaskItem;
+  }
+
   bool isAuthenticated() {
     return currentUser != null && tokenRetrieved;
   }

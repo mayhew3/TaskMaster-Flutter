@@ -51,8 +51,7 @@ void main() {
     pastUrgentDue.dueDate = DateTime.now().subtract(Duration(days: 2));
     pastUrgentDue.urgentDate = DateTime.now().subtract(Duration(days: 4));
 
-    straddledUrgentDue = TaskItem(id: 2, personId: 1, name: 'Eat a Penny');
-    straddledUrgentDue.id = 33;
+    straddledUrgentDue = TaskItem(id: 33, personId: 1, name: 'Eat a Penny');
     straddledUrgentDue.dueDate = DateTime.now().add(Duration(days: 7));
     straddledUrgentDue.urgentDate = DateTime.now().subtract(Duration(days: 5));
   });

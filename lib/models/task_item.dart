@@ -12,8 +12,8 @@ part 'task_item.g.dart';
 @JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
 class TaskItem extends TaskItemPreview {
 
-  int id;
-  int personId;
+  final int id;
+  final int personId;
 
   @JsonKey(ignore: true)
   List<Sprint> sprints = [];

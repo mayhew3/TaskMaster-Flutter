@@ -429,6 +429,21 @@ class MockAppState extends _i1.Mock implements _i6.AppState {
         returnValueForMissingStub: null,
       );
   @override
+  void replaceTaskItem(
+    _i5.TaskItem? oldTaskItem,
+    _i5.TaskItem? newTaskItem,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #replaceTaskItem,
+          [
+            oldTaskItem,
+            newTaskItem,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool isAuthenticated() => (super.noSuchMethod(
         Invocation.method(
           #isAuthenticated,

@@ -92,79 +92,74 @@ class SnoozeDialogState extends State<SnoozeDialog> {
   }
 
   List<Widget> getWidgets() {
-    if (blueprint.isScheduledRecurrence()) {
-      return [
-        Text('Snooze doesn''t yet support Scheduled Dates recurrences.')
-      ];
-    } else {
-      var widgets = [
-        Row(
-          children: <Widget>[
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: <Widget>[
-                SizedBox(
-                  width: 80.0,
-                  child: EditableTaskField(
-                    initialText: numUnits.toString(),
-                    labelText: 'Num',
-                    onChanged: onNumUnitsChanged,
-                    fieldSetter: onNumUnitsChanged,
-                    inputType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Required';
-                      }
-                      return null;
-                    },
-                  ),
+
+    var widgets = [
+      Row(
+        children: <Widget>[
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: <Widget>[
+              SizedBox(
+                width: 80.0,
+                child: EditableTaskField(
+                  initialText: numUnits.toString(),
+                  labelText: 'Num',
+                  onChanged: onNumUnitsChanged,
+                  fieldSetter: onNumUnitsChanged,
+                  inputType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Required';
+                    }
+                    return null;
+                  },
                 ),
-              ],
-            ),
-            Expanded(
-              child: NullableDropdown(
-                initialValue: unitName,
-                labelText: 'Unit',
-                possibleValues: possibleRecurUnits,
-                onChanged: (value) => updateTaskItemWithPreview(),
-                valueSetter: (value) => unitName = value ?? '',
-                validator: (value) {
-                  return null;
-                },
               ),
+            ],
+          ),
+          Expanded(
+            child: NullableDropdown(
+              initialValue: unitName,
+              labelText: 'Unit',
+              possibleValues: possibleRecurUnits,
+              onChanged: (value) => updateTaskItemWithPreview(),
+              valueSetter: (value) => unitName = value ?? '',
+              validator: (value) {
+                return null;
+              },
             ),
-          ],
-        ),
-        NullableDropdown(
-          initialValue: taskDateType,
-          labelText: 'For Date',
-          possibleValues: possibleDateTypes,
-          onChanged: (value) => updateTaskItemWithPreview(),
-          valueSetter: (value) => taskDateType = value,
-          validator: (value) {
-            return null;
-          },
-        ),
-      ];
+          ),
+        ],
+      ),
+      NullableDropdown(
+        initialValue: taskDateType,
+        labelText: 'For Date',
+        possibleValues: possibleDateTypes,
+        onChanged: (value) => updateTaskItemWithPreview(),
+        valueSetter: (value) => taskDateType = value,
+        validator: (value) {
+          return null;
+        },
+      ),
+    ];
 
-      TaskDateTypes.allTypes.forEach((dateType) {
-        DateTime? dateFieldOfType = dateType.dateFieldGetter(blueprint);
-        var dateTypeString = dateType.label;
-        var actualDate = dateFieldOfType;
-        if (actualDate != null) {
-          DateTime localDate = timezoneHelper.getLocalTime(actualDate);
-          String dateFormatted = (DateTime
-              .now()
-              .year == localDate.year) ?
-          dateFormatThisYear.format(localDate) :
-          dateFormatOtherYear.format(localDate);
-          Text text = Text(dateTypeString + ': ' + dateFormatted);
-          widgets.add(text);
-        }
-      });
+    TaskDateTypes.allTypes.forEach((dateType) {
+      DateTime? dateFieldOfType = dateType.dateFieldGetter(blueprint);
+      var dateTypeString = dateType.label;
+      var actualDate = dateFieldOfType;
+      if (actualDate != null) {
+        DateTime localDate = timezoneHelper.getLocalTime(actualDate);
+        String dateFormatted = (DateTime
+            .now()
+            .year == localDate.year) ?
+        dateFormatThisYear.format(localDate) :
+        dateFormatOtherYear.format(localDate);
+        Text text = Text(dateTypeString + ': ' + dateFormatted);
+        widgets.add(text);
+      }
+    });
 
-      return widgets;
-    }
+    return widgets;
   }
 
   @override
@@ -192,7 +187,6 @@ class SnoozeDialogState extends State<SnoozeDialog> {
             child: Text('Cancel'),
           ),
           Visibility(
-            visible: !blueprint.isScheduledRecurrence(),
             child: TextButton(
               onPressed: () async {
                 final form = formKey.currentState;

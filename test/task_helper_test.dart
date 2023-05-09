@@ -73,6 +73,7 @@ void main() {
   TaskItem mockEditTask(TaskItem original, TaskItemBlueprint blueprint) {
     TaskItem taskItem = new TaskItem(name: original.name, id: original.id, personId: 1);
 
+    taskItem.dateAdded = original.dateAdded;
     taskItem.description = blueprint.description;
     taskItem.project = blueprint.project;
     taskItem.context = blueprint.context;
@@ -141,14 +142,14 @@ void main() {
     when(taskRepository.completeTask(birthdayTask)).thenAnswer((_) => Future.value(inboundTask));
 
     var returnedTask = await taskHelper.completeTask(birthdayTask, true, stateSetter);
-    verify(notificationScheduler.updateNotificationForTask(birthdayTask));
+    verify(notificationScheduler.updateNotificationForTask(returnedTask));
     verify(notificationScheduler.updateBadge());
     verifyNever(taskRepository.addTask(any));
 
     expect(returnedTask, birthdayTask);
-    expect(birthdayTask.pendingCompletion, false);
-    expect(birthdayTask.completionDate, now);
-    expect(birthdayTask.completionDate, now);
+    expect(returnedTask.pendingCompletion, false);
+    expect(returnedTask.completionDate, now);
+    expect(returnedTask.completionDate, now);
 
   });
 
@@ -199,16 +200,15 @@ void main() {
     when(appState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) => invocation.positionalArguments[0]);
 
     var returnedTask = await taskHelper.completeTask(originalTask, true, stateSetter);
-    verify(notificationScheduler.updateNotificationForTask(originalTask));
+    verify(notificationScheduler.updateNotificationForTask(returnedTask));
     verify(notificationScheduler.updateBadge());
     verify(taskRepository.addTaskIteration(any));
     verify(appState.addNewTaskToList(any));
     verify(notificationScheduler.updateNotificationForTask(any));
 
     expect(returnedTask, originalTask);
-    expect(originalTask.pendingCompletion, false);
-    expect(originalTask.completionDate, now);
-    expect(originalTask.completionDate, now);
+    expect(returnedTask.pendingCompletion, false);
+    expect(returnedTask.completionDate, now);
 
     expect(addedTask, isNot(null), reason: 'Expect new task to be created based on recur.');
     expect(addedTask, isNot(returnedTask));
@@ -378,6 +378,8 @@ void main() {
         .asDefault()
         .create();
 
+    var now = DateTime.now();
+
     var taskHelper = createTaskHelper();
     var mockAppState = taskHelper.appState;
     var notificationScheduler = mockAppState.notificationScheduler;
@@ -401,7 +403,7 @@ void main() {
     expect(snooze.newAnchor, returnedItem.startDate);
 
     var newStart = DateUtil.withoutMillis(returnedItem.startDate!);
-    var diffDue = newStart.difference(DateUtil.withoutMillis(DateTime.now())).inDays;
+    var diffDue = newStart.difference(DateUtil.withoutMillis(now)).inDays;
 
     expect(diffDue, 4, reason: 'Expect Start date to be 4 days from now.');
 

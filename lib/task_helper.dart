@@ -147,9 +147,9 @@ class TaskHelper {
     var inboundTask = await repository.completeTask(taskItem);
 
     stateSetter(() {
-      _copyChanges(inboundTask, taskItem);
+      appState.replaceTaskItem(taskItem, inboundTask);
       taskItem.pendingCompletion = false;
-      appState.notificationScheduler.updateNotificationForTask(taskItem);
+      appState.notificationScheduler.updateNotificationForTask(inboundTask);
     });
     appState.notificationScheduler.updateBadge();
 
@@ -157,7 +157,7 @@ class TaskHelper {
       await addTaskIteration(nextScheduledTask);
     }
 
-    return taskItem;
+    return inboundTask;
   }
 
   Future<void> deleteTask(TaskItem taskItem, StateSetter stateSetter) async {
@@ -175,11 +175,11 @@ class TaskHelper {
   Future<TaskItem> updateTask(TaskItem taskItem, TaskItemBlueprint changes) async {
     var inboundTask = await repository.updateTask(taskItem, changes);
     stateSetter(() {
-      _copyChanges(inboundTask, taskItem);
+      appState.replaceTaskItem(taskItem, inboundTask);
     });
     await appState.notificationScheduler.updateNotificationForTask(taskItem);
     appState.notificationScheduler.updateBadge();
-    return taskItem;
+    return inboundTask;
   }
 
   void previewSnooze(TaskItemBlueprint taskItemEdit, int numUnits, String unitSize, TaskDateType dateType) {
@@ -273,31 +273,6 @@ class TaskHelper {
     } else {
       return next;
     }
-  }
-
-  // todo: make more dynamic?
-  void _copyChanges(TaskItem inboundTask, TaskItem outboundTask) {
-    outboundTask.id = inboundTask.id;
-    outboundTask.personId = inboundTask.personId;
-    outboundTask.name = inboundTask.name;
-    outboundTask.description = inboundTask.description;
-    outboundTask.project = inboundTask.project;
-    outboundTask.context = inboundTask.context;
-    outboundTask.urgency = inboundTask.urgency;
-    outboundTask.priority = inboundTask.priority;
-    outboundTask.duration = inboundTask.duration;
-    outboundTask.dateAdded = inboundTask.dateAdded;
-    outboundTask.startDate = inboundTask.startDate;
-    outboundTask.targetDate = inboundTask.targetDate;
-    outboundTask.dueDate = inboundTask.dueDate;
-    outboundTask.completionDate = inboundTask.completionDate;
-    outboundTask.urgentDate = inboundTask.urgentDate;
-    outboundTask.gamePoints = inboundTask.gamePoints;
-    outboundTask.recurNumber = inboundTask.recurNumber;
-    outboundTask.recurUnit = inboundTask.recurUnit;
-    outboundTask.recurWait = inboundTask.recurWait;
-    outboundTask.recurrenceId = inboundTask.recurrenceId;
-    outboundTask.recurIteration = inboundTask.recurIteration;
   }
 
 }
