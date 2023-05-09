@@ -9,6 +9,7 @@ part of 'task_item_preview.dart';
 TaskItemPreview _$TaskItemPreviewFromJson(Map<String, dynamic> json) =>
     TaskItemPreview(
       name: json['name'] as String,
+      offCycle: json['off_cycle'] as bool? ?? false,
     )
       ..startDate = json['start_date'] == null
           ? null
@@ -69,5 +70,6 @@ Map<String, dynamic> _$TaskItemPreviewToJson(TaskItemPreview instance) {
   writeNotNull('recur_wait', instance.recurWait);
   writeNotNull('recurrence_id', instance.recurrenceId);
   writeNotNull('recur_iteration', instance.recurIteration);
+  val['off_cycle'] = instance.offCycle;
   return val;
 }

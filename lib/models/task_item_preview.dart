@@ -32,13 +32,18 @@ class TaskItemPreview extends DateHolder {
   int? recurrenceId;
   int? recurIteration;
 
+  bool offCycle;
+
   @JsonKey(ignore: true)
   TaskRecurrence? taskRecurrence;
 
   @JsonKey(ignore: true)
   late int tmpId;
 
-  TaskItemPreview({required this.name}) {
+  TaskItemPreview({
+    required this.name,
+    this.offCycle = false
+  }) {
     tmpId = new Random().nextInt(60000);
   }
 
@@ -53,7 +58,7 @@ class TaskItemPreview extends DateHolder {
 
   TaskItemPreview createPreview() {
 
-    TaskItemPreview preview = TaskItemPreview(name: name);
+    TaskItemPreview preview = TaskItemPreview(name: name, offCycle: offCycle);
 
     // todo: make more dynamic?
     preview.description = description;

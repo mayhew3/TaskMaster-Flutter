@@ -27,14 +27,18 @@ class TaskItem extends TaskItemPreview {
     required this.id,
     required this.personId,
     required String name,
-  }): super(name: name);
+    bool offCycle = false
+  }): super(
+      name: name,
+      offCycle: offCycle
+  );
 
   bool isRecurring() {
     return taskRecurrence != null;
   }
 
   TaskItem createCopy() {
-    var fields = new TaskItem(id: id, personId: personId, name: name);
+    var fields = new TaskItem(id: id, personId: personId, name: name, offCycle: offCycle);
 
     // todo: make more dynamic?
     fields.name = name;

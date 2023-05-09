@@ -10,6 +10,7 @@ TaskItem _$TaskItemFromJson(Map<String, dynamic> json) => TaskItem(
       id: json['id'] as int,
       personId: json['person_id'] as int,
       name: json['name'] as String,
+      offCycle: json['off_cycle'] as bool? ?? false,
     )
       ..startDate = json['start_date'] == null
           ? null
@@ -73,6 +74,7 @@ Map<String, dynamic> _$TaskItemToJson(TaskItem instance) {
   writeNotNull('recur_wait', instance.recurWait);
   writeNotNull('recurrence_id', instance.recurrenceId);
   writeNotNull('recur_iteration', instance.recurIteration);
+  val['off_cycle'] = instance.offCycle;
   val['id'] = instance.id;
   val['person_id'] = instance.personId;
   writeNotNull('sprint_assignments', instance.sprintAssignments);
