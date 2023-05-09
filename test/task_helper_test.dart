@@ -78,18 +78,18 @@ void main() {
       name: original.name,
       id: original.id,
       personId: 1,
-      description: original.description,
-      project: original.project,
-      context: original.context,
-      urgency: original.urgency,
-      priority: original.priority,
-      duration: original.duration,
-      gamePoints: original.gamePoints,
-      recurNumber: original.recurNumber,
-      recurUnit: original.recurUnit,
-      recurWait: original.recurWait,
-      recurrenceId: original.recurrenceId,
-      recurIteration: original.recurIteration,
+      description: blueprint.description,
+      project: blueprint.project,
+      context: blueprint.context,
+      urgency: blueprint.urgency,
+      priority: blueprint.priority,
+      duration: blueprint.duration,
+      gamePoints: blueprint.gamePoints,
+      recurNumber: blueprint.recurNumber,
+      recurUnit: blueprint.recurUnit,
+      recurWait: blueprint.recurWait,
+      recurrenceId: blueprint.recurrenceId,
+      recurIteration: blueprint.recurIteration,
     );
 
     taskItem.startDate = blueprint.startDate;
@@ -277,7 +277,6 @@ void main() {
     var taskItem = birthdayTask.createCopy();
     var blueprint = taskItem.createEditBlueprint();
 
-
     var taskHelper = createTaskHelper(taskItems: [taskItem]);
     var mockAppState = taskHelper.appState;
     var notificationScheduler = mockAppState.notificationScheduler;
@@ -344,6 +343,8 @@ void main() {
         .withDates()
         .create();
 
+    var now = DateTime.now();
+
     var taskHelper = createTaskHelper();
     var mockAppState = taskHelper.appState;
     var notificationScheduler = mockAppState.notificationScheduler;
@@ -367,12 +368,12 @@ void main() {
     expect(snooze.newAnchor, returnedItem.targetDate);
 
     var newTarget = DateUtil.withoutMillis(returnedItem.targetDate!);
-    var diffTarget = newTarget.difference(DateUtil.withoutMillis(DateTime.now())).inDays;
+    var diffTarget = newTarget.difference(DateUtil.withoutMillis(now)).inDays;
 
     expect(diffTarget, 6, reason: 'Expect Target date to be in 6 days.');
 
     var newDue = DateUtil.withoutMillis(returnedItem.dueDate!);
-    var diffDue = newDue.difference(DateUtil.withoutMillis(DateTime.now())).inDays;
+    var diffDue = newDue.difference(DateUtil.withoutMillis(now)).inDays;
 
     expect(diffDue, 13, reason: 'Expect Due date to be 13 days from now.');
 

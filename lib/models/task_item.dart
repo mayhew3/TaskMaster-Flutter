@@ -41,8 +41,20 @@ class TaskItem extends TaskItemPreview {
     int? recurIteration,
     bool offCycle = false
   }): super(
-      name: name,
-      offCycle: offCycle,
+    name: name,
+    description: description,
+    project: project,
+    context: context,
+    urgency: urgency,
+    priority: priority,
+    duration: duration,
+    gamePoints: gamePoints,
+    recurNumber: recurNumber,
+    recurUnit: recurUnit,
+    recurWait: recurWait,
+    recurrenceId: recurrenceId,
+    recurIteration: recurIteration,
+    offCycle: offCycle,
   );
 
   bool isRecurring() {
