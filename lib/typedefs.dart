@@ -23,4 +23,4 @@ typedef List<TaskItem> TaskListGetter();
 typedef Future<CheckState> CheckCycleWaiter(CheckState startingState);
 
 typedef DateTime? DateFieldGetter(DateHolder dateHolder);
-typedef void DateFieldSetter(DateHolder dateHolder, DateTime? newDate);
+typedef void DateFieldSetter(TaskItemBlueprint blueprint, DateTime? newDate);

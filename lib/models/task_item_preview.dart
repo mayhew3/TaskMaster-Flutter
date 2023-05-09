@@ -24,6 +24,12 @@ class TaskItemPreview extends DateHolder {
 
   final int? gamePoints;
 
+  final DateTime? startDate;
+  final DateTime? targetDate;
+  final DateTime? dueDate;
+  final DateTime? urgentDate;
+  final DateTime? completionDate;
+
   final int? recurNumber;
   final String? recurUnit;
   final bool? recurWait;
@@ -48,6 +54,11 @@ class TaskItemPreview extends DateHolder {
     this.priority,
     this.duration,
     this.gamePoints,
+    this.startDate,
+    this.targetDate,
+    this.urgentDate,
+    this.dueDate,
+    this.completionDate,
     this.recurNumber,
     this.recurUnit,
     this.recurWait,
@@ -68,6 +79,10 @@ class TaskItemPreview extends DateHolder {
   Map<String, dynamic> toJson() => _$TaskItemPreviewToJson(this);
 
   TaskItemPreview createPreview({
+    DateTime? startDate,
+    DateTime? targetDate,
+    DateTime? urgentDate,
+    DateTime? dueDate,
     int? recurIteration,
   }) {
 
@@ -81,6 +96,11 @@ class TaskItemPreview extends DateHolder {
         priority: priority,
         duration: duration,
         gamePoints: gamePoints,
+        startDate: startDate ?? this.startDate,
+        targetDate: targetDate ?? this.targetDate,
+        urgentDate: urgentDate ?? this.urgentDate,
+        dueDate: dueDate ?? this.dueDate,
+        completionDate: completionDate,
         recurNumber: recurNumber,
         recurUnit: recurUnit,
         recurWait: recurWait,
@@ -88,11 +108,6 @@ class TaskItemPreview extends DateHolder {
         recurIteration: recurIteration ?? this.recurIteration,
         offCycle: offCycle
     );
-
-    preview.startDate = startDate;
-    preview.targetDate = targetDate;
-    preview.dueDate = dueDate;
-    preview.urgentDate = urgentDate;
 
     preview.taskRecurrence = taskRecurrence;
 

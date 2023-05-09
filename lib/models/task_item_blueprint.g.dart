@@ -8,6 +8,14 @@ part of 'task_item_blueprint.dart';
 
 TaskItemBlueprint _$TaskItemBlueprintFromJson(Map<String, dynamic> json) =>
     TaskItemBlueprint()
+      ..name = json['name'] as String?
+      ..description = json['description'] as String?
+      ..project = json['project'] as String?
+      ..context = json['context'] as String?
+      ..urgency = json['urgency'] as int?
+      ..priority = json['priority'] as int?
+      ..duration = json['duration'] as int?
+      ..gamePoints = json['game_points'] as int?
       ..startDate = json['start_date'] == null
           ? null
           : DateTime.parse(json['start_date'] as String)
@@ -23,14 +31,6 @@ TaskItemBlueprint _$TaskItemBlueprintFromJson(Map<String, dynamic> json) =>
       ..completionDate = json['completion_date'] == null
           ? null
           : DateTime.parse(json['completion_date'] as String)
-      ..name = json['name'] as String?
-      ..description = json['description'] as String?
-      ..project = json['project'] as String?
-      ..context = json['context'] as String?
-      ..urgency = json['urgency'] as int?
-      ..priority = json['priority'] as int?
-      ..duration = json['duration'] as int?
-      ..gamePoints = json['game_points'] as int?
       ..recurNumber = json['recur_number'] as int?
       ..recurUnit = json['recur_unit'] as String?
       ..recurWait = json['recur_wait'] as bool?
@@ -43,11 +43,6 @@ TaskItemBlueprint _$TaskItemBlueprintFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) {
   final val = <String, dynamic>{
-    'start_date': instance.startDate?.toIso8601String(),
-    'target_date': instance.targetDate?.toIso8601String(),
-    'due_date': instance.dueDate?.toIso8601String(),
-    'urgent_date': instance.urgentDate?.toIso8601String(),
-    'completion_date': instance.completionDate?.toIso8601String(),
     'name': instance.name,
     'description': instance.description,
     'project': instance.project,
@@ -56,6 +51,11 @@ Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) {
     'priority': instance.priority,
     'duration': instance.duration,
     'game_points': instance.gamePoints,
+    'start_date': instance.startDate?.toIso8601String(),
+    'target_date': instance.targetDate?.toIso8601String(),
+    'due_date': instance.dueDate?.toIso8601String(),
+    'urgent_date': instance.urgentDate?.toIso8601String(),
+    'completion_date': instance.completionDate?.toIso8601String(),
     'recur_number': instance.recurNumber,
     'recur_unit': instance.recurUnit,
     'recur_wait': instance.recurWait,

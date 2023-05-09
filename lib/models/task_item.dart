@@ -34,6 +34,11 @@ class TaskItem extends TaskItemPreview {
     int? priority,
     int? duration,
     int? gamePoints,
+    DateTime? startDate,
+    DateTime? targetDate,
+    DateTime? urgentDate,
+    DateTime? dueDate,
+    DateTime? completionDate,
     int? recurNumber,
     String? recurUnit,
     bool? recurWait,
@@ -49,6 +54,11 @@ class TaskItem extends TaskItemPreview {
     priority: priority,
     duration: duration,
     gamePoints: gamePoints,
+    startDate: startDate,
+    targetDate: targetDate,
+    urgentDate: urgentDate,
+    dueDate: dueDate,
+    completionDate: completionDate,
     recurNumber: recurNumber,
     recurUnit: recurUnit,
     recurWait: recurWait,
@@ -76,18 +86,17 @@ class TaskItem extends TaskItemPreview {
         priority: priority,
         duration: duration,
         gamePoints: gamePoints,
+        startDate: startDate,
+        targetDate: targetDate,
+        urgentDate: urgentDate,
+        dueDate: dueDate,
+        completionDate: completionDate,
         recurNumber: recurNumber,
         recurUnit: recurUnit,
         recurWait: recurWait,
         recurrenceId: recurrenceId,
         recurIteration: recurIteration
     );
-
-    fields.startDate = startDate;
-    fields.targetDate = targetDate;
-    fields.dueDate = dueDate;
-    fields.completionDate = completionDate;
-    fields.urgentDate = urgentDate;
 
     fields.taskRecurrence = taskRecurrence;
 

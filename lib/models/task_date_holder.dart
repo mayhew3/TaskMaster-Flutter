@@ -2,12 +2,13 @@ import 'package:taskmaster/models/task_date_type.dart';
 
 import '../date_util.dart';
 
-class DateHolder {
-  DateTime? startDate;
-  DateTime? targetDate;
-  DateTime? dueDate;
-  DateTime? urgentDate;
-  DateTime? completionDate;
+abstract class DateHolder {
+
+  DateTime? get startDate;
+  DateTime? get targetDate;
+  DateTime? get dueDate;
+  DateTime? get urgentDate;
+  DateTime? get completionDate;
 
   bool hasPassed(DateTime? dateTime) {
     return dateTime != null && dateTime.isBefore(DateTime.now());
@@ -51,11 +52,6 @@ class DateHolder {
 
   bool isTarget() {
     return hasPassed(targetDate);
-  }
-
-  void incrementDateIfExists(TaskDateType taskDateType, Duration duration) {
-    var dateTime = taskDateType.dateFieldGetter(this);
-    taskDateType.dateFieldSetter(this, dateTime?.add(duration));
   }
 
   DateTime? getLastDateBefore(TaskDateType taskDateType) {

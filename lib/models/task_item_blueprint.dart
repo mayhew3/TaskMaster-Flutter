@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
+import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 
 /// This allows the `TaskItemBlueprint` class to access private members in
@@ -22,6 +23,12 @@ class TaskItemBlueprint extends DateHolder {
   int? duration;
 
   int? gamePoints;
+
+  DateTime? startDate;
+  DateTime? targetDate;
+  DateTime? dueDate;
+  DateTime? urgentDate;
+  DateTime? completionDate;
 
   int? recurNumber;
   String? recurUnit;
@@ -53,6 +60,11 @@ class TaskItemBlueprint extends DateHolder {
   bool isScheduledRecurrence() {
     var recurWaitValue = recurWait;
     return recurWaitValue != null && !recurWaitValue;
+  }
+
+  void incrementDateIfExists(TaskDateType taskDateType, Duration duration) {
+    var dateTime = taskDateType.dateFieldGetter(this);
+    taskDateType.dateFieldSetter(this, dateTime?.add(duration));
   }
 
   @override

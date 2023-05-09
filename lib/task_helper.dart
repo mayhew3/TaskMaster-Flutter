@@ -112,12 +112,13 @@ class TaskHelper {
     DateTime dateWithTime = _getClosestDateForTime(anchorDate, nextAnchorDate);
     Duration duration = dateWithTime.difference(anchorDate);
 
-    TaskItemPreview nextScheduledTask = taskItem.createPreview(recurIteration: recurIteration + 1);
-
-    nextScheduledTask.startDate = _addToDate(taskItem.startDate, duration);
-    nextScheduledTask.targetDate = _addToDate(taskItem.targetDate, duration);
-    nextScheduledTask.urgentDate = _addToDate(taskItem.urgentDate, duration);
-    nextScheduledTask.dueDate = _addToDate(taskItem.dueDate, duration);
+    TaskItemPreview nextScheduledTask = taskItem.createPreview(
+        startDate: _addToDate(taskItem.startDate, duration),
+        targetDate: _addToDate(taskItem.targetDate, duration),
+        urgentDate: _addToDate(taskItem.urgentDate, duration),
+        dueDate: _addToDate(taskItem.dueDate, duration),
+        recurIteration: recurIteration + 1
+    );
 
     return nextScheduledTask;
   }
