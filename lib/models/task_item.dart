@@ -27,10 +27,22 @@ class TaskItem extends TaskItemPreview {
     required this.id,
     required this.personId,
     required String name,
+    String? description,
+    String? project,
+    String? context,
+    int? urgency,
+    int? priority,
+    int? duration,
+    int? gamePoints,
+    int? recurNumber,
+    String? recurUnit,
+    bool? recurWait,
+    int? recurrenceId,
+    int? recurIteration,
     bool offCycle = false
   }): super(
       name: name,
-      offCycle: offCycle
+      offCycle: offCycle,
   );
 
   bool isRecurring() {
@@ -38,28 +50,32 @@ class TaskItem extends TaskItemPreview {
   }
 
   TaskItem createCopy() {
-    var fields = new TaskItem(id: id, personId: personId, name: name, offCycle: offCycle);
 
     // todo: make more dynamic?
-    fields.name = name;
-    fields.description = description;
-    fields.project = project;
-    fields.context = context;
-    fields.urgency = urgency;
-    fields.priority = priority;
-    fields.duration = duration;
-    fields.dateAdded = dateAdded;
+    var fields = new TaskItem(
+        id: id,
+        personId: personId,
+        name: name,
+        offCycle: offCycle,
+        description: description,
+        project: project,
+        context: context,
+        urgency: urgency,
+        priority: priority,
+        duration: duration,
+        gamePoints: gamePoints,
+        recurNumber: recurNumber,
+        recurUnit: recurUnit,
+        recurWait: recurWait,
+        recurrenceId: recurrenceId,
+        recurIteration: recurIteration
+    );
+
     fields.startDate = startDate;
     fields.targetDate = targetDate;
     fields.dueDate = dueDate;
     fields.completionDate = completionDate;
     fields.urgentDate = urgentDate;
-    fields.gamePoints = gamePoints;
-    fields.recurNumber = recurNumber;
-    fields.recurUnit = recurUnit;
-    fields.recurWait = recurWait;
-    fields.recurrenceId = recurrenceId;
-    fields.recurIteration = recurIteration;
 
     fields.taskRecurrence = taskRecurrence;
 
@@ -137,7 +153,6 @@ class TaskItem extends TaskItemPreview {
         'id: $id, '
         'name: $name, '
         'personId: $personId, '
-        'dateAdded: $dateAdded, '
         'completionDate: $completionDate}';
   }
 

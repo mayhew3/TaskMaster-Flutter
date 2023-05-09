@@ -9,6 +9,18 @@ part of 'task_item_preview.dart';
 TaskItemPreview _$TaskItemPreviewFromJson(Map<String, dynamic> json) =>
     TaskItemPreview(
       name: json['name'] as String,
+      description: json['description'] as String?,
+      project: json['project'] as String?,
+      context: json['context'] as String?,
+      urgency: json['urgency'] as int?,
+      priority: json['priority'] as int?,
+      duration: json['duration'] as int?,
+      gamePoints: json['game_points'] as int?,
+      recurNumber: json['recur_number'] as int?,
+      recurUnit: json['recur_unit'] as String?,
+      recurWait: json['recur_wait'] as bool?,
+      recurrenceId: json['recurrence_id'] as int?,
+      recurIteration: json['recur_iteration'] as int?,
       offCycle: json['off_cycle'] as bool? ?? false,
     )
       ..startDate = json['start_date'] == null
@@ -25,22 +37,7 @@ TaskItemPreview _$TaskItemPreviewFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['urgent_date'] as String)
       ..completionDate = json['completion_date'] == null
           ? null
-          : DateTime.parse(json['completion_date'] as String)
-      ..description = json['description'] as String?
-      ..project = json['project'] as String?
-      ..context = json['context'] as String?
-      ..dateAdded = json['date_added'] == null
-          ? null
-          : DateTime.parse(json['date_added'] as String)
-      ..urgency = json['urgency'] as int?
-      ..priority = json['priority'] as int?
-      ..duration = json['duration'] as int?
-      ..gamePoints = json['game_points'] as int?
-      ..recurNumber = json['recur_number'] as int?
-      ..recurUnit = json['recur_unit'] as String?
-      ..recurWait = json['recur_wait'] as bool?
-      ..recurrenceId = json['recurrence_id'] as int?
-      ..recurIteration = json['recur_iteration'] as int?;
+          : DateTime.parse(json['completion_date'] as String);
 
 Map<String, dynamic> _$TaskItemPreviewToJson(TaskItemPreview instance) {
   final val = <String, dynamic>{};
@@ -60,7 +57,6 @@ Map<String, dynamic> _$TaskItemPreviewToJson(TaskItemPreview instance) {
   writeNotNull('description', instance.description);
   writeNotNull('project', instance.project);
   writeNotNull('context', instance.context);
-  writeNotNull('date_added', instance.dateAdded?.toIso8601String());
   writeNotNull('urgency', instance.urgency);
   writeNotNull('priority', instance.priority);
   writeNotNull('duration', instance.duration);

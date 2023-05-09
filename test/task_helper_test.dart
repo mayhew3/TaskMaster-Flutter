@@ -46,51 +46,57 @@ void main() {
   }
 
   TaskItem mockAddTask(TaskItemPreview taskItemPreview) {
-    TaskItem taskItem = new TaskItem(name: taskItemPreview.name, id: 1, personId: 1);
-
-    taskItem.description = taskItemPreview.description;
-    taskItem.project = taskItemPreview.project;
-    taskItem.context = taskItemPreview.context;
-    taskItem.urgency = taskItemPreview.urgency;
-    taskItem.priority = taskItemPreview.priority;
-    taskItem.duration = taskItemPreview.duration;
-    taskItem.dateAdded = DateTime.now();
+    TaskItem taskItem = new TaskItem(
+      name: taskItemPreview.name,
+      id: 1,
+      personId: 1,
+      description: taskItemPreview.description,
+      project: taskItemPreview.project,
+      context: taskItemPreview.context,
+      urgency: taskItemPreview.urgency,
+      priority: taskItemPreview.priority,
+      duration: taskItemPreview.duration,
+      gamePoints: taskItemPreview.gamePoints,
+      recurNumber: taskItemPreview.recurNumber,
+      recurUnit: taskItemPreview.recurUnit,
+      recurWait: taskItemPreview.recurWait,
+      recurrenceId: taskItemPreview.recurrenceId,
+      recurIteration: taskItemPreview.recurIteration,
+    );
+    
     taskItem.startDate = taskItemPreview.startDate;
     taskItem.targetDate = taskItemPreview.targetDate;
     taskItem.dueDate = taskItemPreview.dueDate;
     taskItem.completionDate = null;
     taskItem.urgentDate = taskItemPreview.urgentDate;
-    taskItem.gamePoints = taskItemPreview.gamePoints;
-    taskItem.recurNumber = taskItemPreview.recurNumber;
-    taskItem.recurUnit = taskItemPreview.recurUnit;
-    taskItem.recurWait = taskItemPreview.recurWait;
-    taskItem.recurrenceId = taskItemPreview.recurrenceId;
-    taskItem.recurIteration = taskItemPreview.recurIteration;
 
     return taskItem;
   }
 
   TaskItem mockEditTask(TaskItem original, TaskItemBlueprint blueprint) {
-    TaskItem taskItem = new TaskItem(name: original.name, id: original.id, personId: 1);
+    TaskItem taskItem = new TaskItem(
+      name: original.name,
+      id: original.id,
+      personId: 1,
+      description: original.description,
+      project: original.project,
+      context: original.context,
+      urgency: original.urgency,
+      priority: original.priority,
+      duration: original.duration,
+      gamePoints: original.gamePoints,
+      recurNumber: original.recurNumber,
+      recurUnit: original.recurUnit,
+      recurWait: original.recurWait,
+      recurrenceId: original.recurrenceId,
+      recurIteration: original.recurIteration,
+    );
 
-    taskItem.dateAdded = original.dateAdded;
-    taskItem.description = blueprint.description;
-    taskItem.project = blueprint.project;
-    taskItem.context = blueprint.context;
-    taskItem.urgency = blueprint.urgency;
-    taskItem.priority = blueprint.priority;
-    taskItem.duration = blueprint.duration;
     taskItem.startDate = blueprint.startDate;
     taskItem.targetDate = blueprint.targetDate;
     taskItem.dueDate = blueprint.dueDate;
     taskItem.completionDate = blueprint.completionDate;
     taskItem.urgentDate = blueprint.urgentDate;
-    taskItem.gamePoints = blueprint.gamePoints;
-    taskItem.recurNumber = blueprint.recurNumber;
-    taskItem.recurUnit = blueprint.recurUnit;
-    taskItem.recurWait = blueprint.recurWait;
-    taskItem.recurrenceId = blueprint.recurrenceId;
-    taskItem.recurIteration = blueprint.recurIteration;
 
     return taskItem;
   }

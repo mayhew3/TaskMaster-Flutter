@@ -49,25 +49,28 @@ class TaskItemBuilder {
   }
 
   TaskItem create() {
-    TaskItem taskItem = new TaskItem(id: id!, personId: 1, name: name);
+    TaskItem taskItem = new TaskItem(
+      id: id!,
+      personId: 1,
+      name: name,
+      description: description,
+      project: project,
+      context: context,
+      urgency: urgency,
+      priority: priority,
+      duration: duration,
+      gamePoints: gamePoints,
+      recurNumber: recurNumber,
+      recurUnit: recurUnit,
+      recurWait: recurWait,
+      recurrenceId: recurrenceId,
+    );
 
-    taskItem.description = description;
-    taskItem.project = project;
-    taskItem.context = context;
-    taskItem.urgency = urgency;
-    taskItem.priority = priority;
-    taskItem.duration = duration;
-    taskItem.dateAdded = dateAdded;
     taskItem.startDate = startDate;
     taskItem.targetDate = targetDate;
     taskItem.urgentDate = urgentDate;
     taskItem.dueDate = dueDate;
     taskItem.completionDate = completionDate;
-    taskItem.gamePoints = gamePoints;
-    taskItem.recurNumber = recurNumber;
-    taskItem.recurUnit = recurUnit;
-    taskItem.recurWait = recurWait;
-    taskItem.recurrenceId = recurrenceId;
 
     return taskItem;
   }

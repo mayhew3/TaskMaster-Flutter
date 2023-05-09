@@ -1,7 +1,6 @@
 import 'package:taskmaster/models/sprint_assignment.dart';
-import 'package:taskmaster/models/task_item_blueprint.dart';
-import 'package:test/test.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:test/test.dart';
 
 import '../mocks/mock_data.dart';
 
@@ -14,7 +13,6 @@ void main() {
       expect(catLitter.name, "Cat Litter");
       expect(catLitter.startDate, null);
       expect(catLitter.targetDate, catTarget);
-      expect(catLitter.dateAdded, catAdded);
       expect(catLitter.completionDate, catEnd);
       expect(catLitter.recurWait, true);
       expect(catLitter.sprintAssignments, isNot(null));

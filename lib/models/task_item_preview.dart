@@ -12,27 +12,26 @@ part 'task_item_preview.g.dart';
 @JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
 class TaskItemPreview extends DateHolder {
 
-  String name;
-  String? description;
-  String? project;
-  String? context;
+  final String name;
 
-  DateTime? dateAdded;
+  final String? description;
+  final String? project;
+  final String? context;
 
-  int? urgency;
-  int? priority;
-  int? duration;
+  final int? urgency;
+  final int? priority;
+  final int? duration;
 
-  int? gamePoints;
+  final int? gamePoints;
 
-  int? recurNumber;
-  String? recurUnit;
-  bool? recurWait;
+  final int? recurNumber;
+  final String? recurUnit;
+  final bool? recurWait;
 
-  int? recurrenceId;
-  int? recurIteration;
+  final int? recurrenceId;
+  final int? recurIteration;
 
-  bool offCycle;
+  final bool offCycle;
 
   @JsonKey(ignore: true)
   TaskRecurrence? taskRecurrence;
@@ -42,6 +41,18 @@ class TaskItemPreview extends DateHolder {
 
   TaskItemPreview({
     required this.name,
+    this.description,
+    this.project,
+    this.context,
+    this.urgency,
+    this.priority,
+    this.duration,
+    this.gamePoints,
+    this.recurNumber,
+    this.recurUnit,
+    this.recurWait,
+    this.recurrenceId,
+    this.recurIteration,
     this.offCycle = false
   }) {
     tmpId = new Random().nextInt(60000);
@@ -56,27 +67,32 @@ class TaskItemPreview extends DateHolder {
   /// helper method `_$TaskItemFormToJson`.
   Map<String, dynamic> toJson() => _$TaskItemPreviewToJson(this);
 
-  TaskItemPreview createPreview() {
-
-    TaskItemPreview preview = TaskItemPreview(name: name, offCycle: offCycle);
+  TaskItemPreview createPreview({
+    int? recurIteration,
+  }) {
 
     // todo: make more dynamic?
-    preview.description = description;
-    preview.project = project;
-    preview.context = context;
-    preview.urgency = urgency;
-    preview.priority = priority;
-    preview.duration = duration;
+    TaskItemPreview preview = TaskItemPreview(
+        name: name,
+        description: description,
+        project: project,
+        context: context,
+        urgency: urgency,
+        priority: priority,
+        duration: duration,
+        gamePoints: gamePoints,
+        recurNumber: recurNumber,
+        recurUnit: recurUnit,
+        recurWait: recurWait,
+        recurrenceId: recurrenceId,
+        recurIteration: recurIteration ?? this.recurIteration,
+        offCycle: offCycle
+    );
+
     preview.startDate = startDate;
     preview.targetDate = targetDate;
     preview.dueDate = dueDate;
     preview.urgentDate = urgentDate;
-    preview.gamePoints = gamePoints;
-    preview.recurNumber = recurNumber;
-    preview.recurUnit = recurUnit;
-    preview.recurWait = recurWait;
-    preview.recurrenceId = recurrenceId;
-    preview.recurIteration = recurIteration;
 
     preview.taskRecurrence = taskRecurrence;
 
