@@ -494,8 +494,12 @@ class AddEditScreenState extends State<AddEditScreen> {
               var tmpTaskItem = widget.taskItem;
 
               if (tmpTaskItem != null) {
-                if (_repeatOn && !_initialRepeatOn) {
-                  addNewRecurrence();
+                if (_repeatOn) {
+                  if (!_initialRepeatOn) {
+                    addNewRecurrence();
+                  } else {
+                    // todo: update recurrence
+                  }
                 }
                 var updatedItem = await widget.taskHelper.updateTask(tmpTaskItem, blueprint);
                 var taskItemRefresher2 = widget.taskItemRefresher;

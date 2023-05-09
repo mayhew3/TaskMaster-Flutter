@@ -65,7 +65,7 @@ class AppState {
       if (taskItem.recurrenceId != null) {
         Iterable<TaskRecurrence> taskRecurrences = this._taskRecurrences.where((taskRecurrence) => taskRecurrence.id == taskItem.recurrenceId);
         if (taskRecurrences.isNotEmpty) {
-          taskItem.taskRecurrence = taskRecurrences.first;
+          taskRecurrences.first.addToTaskItems(taskItem);
         }
       }
     }

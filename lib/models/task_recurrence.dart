@@ -1,5 +1,6 @@
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_recurrence_edit.dart';
 
 /// This allows the `TaskRecurrence` class to access private members in
@@ -9,6 +10,9 @@ part 'task_recurrence.g.dart';
 
 @JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
 class TaskRecurrence extends TaskRecurrenceEdit {
+
+  @JsonKey(ignore: true)
+  List<TaskItem> taskItems = [];
 
   TaskRecurrence({
     required int id,
@@ -31,6 +35,11 @@ class TaskRecurrence extends TaskRecurrenceEdit {
     anchorDate: anchorDate,
     anchorType: anchorType
   );
+
+  void addToTaskItems(TaskItem taskItem) {
+    taskItems.add(taskItem);
+    taskItem.taskRecurrence = this;
+  }
 
   /// A necessary factory constructor for creating a new User instance
   /// from a map. Pass the map to the generated `_$TaskRecurrenceFromJson()` constructor.
