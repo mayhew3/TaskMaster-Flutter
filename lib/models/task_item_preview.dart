@@ -2,8 +2,7 @@ import 'dart:math';
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
-import 'package:taskmaster/models/task_date_type.dart';
-import 'package:taskmaster/models/task_recurrence_edit.dart';
+import 'package:taskmaster/models/task_recurrence.dart';
 
 /// This allows the `TaskItemBlueprint` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
@@ -34,7 +33,7 @@ class TaskItemPreview extends DateHolder {
   int? recurIteration;
 
   @JsonKey(ignore: true)
-  TaskRecurrenceEdit? taskRecurrence;
+  TaskRecurrence? taskRecurrence;
 
   @JsonKey(ignore: true)
   late int tmpId;

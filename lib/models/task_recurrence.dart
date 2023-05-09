@@ -1,7 +1,6 @@
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/models/task_recurrence_edit.dart';
 
 /// This allows the `TaskRecurrence` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
@@ -9,32 +8,36 @@ import 'package:taskmaster/models/task_recurrence_edit.dart';
 part 'task_recurrence.g.dart';
 
 @JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
-class TaskRecurrence extends TaskRecurrenceEdit {
+class TaskRecurrence {
+
+  int id;
+  int personId;
+
+  String name;
+
+  int recurNumber;
+  String recurUnit;
+  bool recurWait;
+
+  int recurIteration;
+
+  DateTime anchorDate;
+  String anchorType;
 
   @JsonKey(ignore: true)
   List<TaskItem> taskItems = [];
 
   TaskRecurrence({
-    required int id,
-    required int personId,
-    required String name,
-    required int recurNumber,
-    required String recurUnit,
-    required bool recurWait,
-    required int recurIteration,
-    required DateTime anchorDate,
-    required String anchorType,
-  }) : super(
-    id: id,
-    personId: personId,
-    name: name,
-    recurNumber: recurNumber,
-    recurUnit: recurUnit,
-    recurWait: recurWait,
-    recurIteration: recurIteration,
-    anchorDate: anchorDate,
-    anchorType: anchorType
-  );
+    required this.id,
+    required this.personId,
+    required this.name,
+    required this.recurNumber,
+    required this.recurUnit,
+    required this.recurWait,
+    required this.recurIteration,
+    required this.anchorDate,
+    required this.anchorType,
+  });
 
   void addToTaskItems(TaskItem taskItem) {
     taskItems.add(taskItem);
