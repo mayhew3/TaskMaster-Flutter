@@ -46,6 +46,7 @@ class AddEditScreenState extends State<AddEditScreen> {
   bool _initialRepeatOn = false;
 
   late TaskItemBlueprint blueprint;
+  late TaskItem? taskItem;
 
   @override
   void initState() {
@@ -53,11 +54,13 @@ class AddEditScreenState extends State<AddEditScreen> {
 
     _hasChanges = false;
 
-    var taskItemTmp = widget.taskItem;
+    taskItem = widget.taskItem;
+    var taskRecurrence = taskItem?.taskRecurrence;
 
-    blueprint = taskItemTmp == null ? TaskItemBlueprint() : taskItemTmp.createEditBlueprint();
+    blueprint = taskItem == null ? TaskItemBlueprint() : taskItem!.createEditBlueprint();
+    blueprint.taskRecurrenceBlueprint = taskItem == null || taskRecurrence == null ? TaskRecurrenceBlueprint() : taskRecurrence.createEditBlueprint();
 
-    _initialRepeatOn = taskItemTmp?.recurrenceId != null;
+    _initialRepeatOn = taskItem?.recurrenceId != null;
     _repeatOn = _initialRepeatOn;
 
     possibleProjects = [
@@ -113,11 +116,7 @@ class AddEditScreenState extends State<AddEditScreen> {
   }
 
   bool hasDate() {
-    return
-      blueprint.startDate != null ||
-      blueprint.targetDate != null ||
-      blueprint.urgentDate != null ||
-      blueprint.dueDate != null;
+    return blueprint.getAnchorDate() != null;
   }
 
   bool? anchorDateToRecurWait(String anchorDate) {
@@ -169,21 +168,31 @@ class AddEditScreenState extends State<AddEditScreen> {
       }
     }
 
-    TaskRecurrenceBlueprint addNewRecurrence() {
-      blueprint.recurIteration = 1;
+    void clearRecurrenceFieldsFromTask() {
+      blueprint.recurUnit = null;
+      blueprint.recurNumber = null;
+      blueprint.recurWait = null;
+      blueprint.recurrenceId = null;
+      blueprint.recurIteration = null;
+      blueprint.taskRecurrenceBlueprint = null;
+    }
 
-      var recurrence = new TaskRecurrenceBlueprint();
-      recurrence.name = blueprint.name;
-      recurrence.recurUnit = blueprint.recurUnit;
-      recurrence.recurIteration = blueprint.recurIteration;
-      recurrence.recurNumber = blueprint.recurNumber;
-      recurrence.recurWait = blueprint.recurWait;
-      recurrence.anchorDate = blueprint.getAnchorDate();
-      recurrence.anchorType = blueprint.getAnchorDateType()!.label;
+    void updateRecurrenceBlueprint() {
+      var recurrenceBlueprint = blueprint.taskRecurrenceBlueprint;
 
-      blueprint.taskRecurrenceBlueprint = recurrence;
+      if (recurrenceBlueprint != null) {
+        recurrenceBlueprint.name = blueprint.name;
+        recurrenceBlueprint.recurUnit = blueprint.recurUnit;
+        recurrenceBlueprint.recurIteration = blueprint.recurIteration;
+        recurrenceBlueprint.recurNumber = blueprint.recurNumber;
+        recurrenceBlueprint.recurWait = blueprint.recurWait;
+        recurrenceBlueprint.anchorDate = blueprint.getAnchorDate();
+        recurrenceBlueprint.anchorType = blueprint.getAnchorDateType()!.label;
+      }
+    }
 
-      return recurrence;
+    bool editMode() {
+      return taskItem != null;
     }
 
     String? _cleanString(String? str) {
@@ -475,47 +484,36 @@ class AddEditScreenState extends State<AddEditScreen> {
       floatingActionButton: Visibility(
         visible: _hasChanges || (_initialRepeatOn && !_repeatOn),
         child: FloatingActionButton(
-          child: Icon(isEditing ? Icons.check : Icons.add),
-          onPressed: () async {
-            final form = formKey.currentState;
+            child: Icon(isEditing ? Icons.check : Icons.add),
+            onPressed: () async {
+              final form = formKey.currentState;
 
-            if (!_repeatOn) {
-              blueprint.recurUnit = null;
-              blueprint.recurNumber = null;
-              blueprint.recurWait = null;
-              blueprint.recurrenceId = null;
-              blueprint.recurIteration = null;
-              blueprint.taskRecurrenceBlueprint = null;
-            }
+              if (!_repeatOn) {
+                clearRecurrenceFieldsFromTask();
+              }
 
-            if (form != null && form.validate()) {
-              form.save();
+              if (form != null && form.validate()) {
+                form.save();
 
-              var tmpTaskItem = widget.taskItem;
-
-              if (tmpTaskItem != null) {
                 if (_repeatOn) {
                   if (!_initialRepeatOn) {
-                    addNewRecurrence();
-                  } else {
-                    // todo: update recurrence
+                    blueprint.recurIteration = 1;
                   }
+                  updateRecurrenceBlueprint();
                 }
-                var updatedItem = await widget.taskHelper.updateTask(tmpTaskItem, blueprint);
-                var taskItemRefresher2 = widget.taskItemRefresher;
-                if (taskItemRefresher2 != null) {
-                  taskItemRefresher2(updatedItem);
-                }
-              } else {
-                if (_repeatOn) {
-                  addNewRecurrence();
-                }
-                await widget.taskHelper.addTask(blueprint);
+
+                if (editMode()) {
+                  var updatedItem = await widget.taskHelper.updateTask(taskItem!, blueprint);
+                  var refresher = widget.taskItemRefresher;
+                  if (refresher != null) {
+                    refresher(updatedItem);
+                  }
+                } else // add mode {
+                  await widget.taskHelper.addTask(blueprint);
               }
 
               Navigator.pop(context);
             }
-          },
         ),
       ),
     );

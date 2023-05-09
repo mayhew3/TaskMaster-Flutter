@@ -1,6 +1,7 @@
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 
 /// This allows the `TaskRecurrence` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
@@ -42,6 +43,20 @@ class TaskRecurrence {
   void addToTaskItems(TaskItem taskItem) {
     taskItems.add(taskItem);
     taskItem.taskRecurrence = this;
+  }
+
+  TaskRecurrenceBlueprint createEditBlueprint() {
+    TaskRecurrenceBlueprint blueprint = TaskRecurrenceBlueprint();
+
+    blueprint.name = name;
+    blueprint.recurNumber = recurNumber;
+    blueprint.recurUnit = recurUnit;
+    blueprint.recurWait = recurWait;
+    blueprint.recurIteration = recurIteration;
+    blueprint.anchorDate = anchorDate;
+    blueprint.anchorType = anchorType;
+
+    return blueprint;
   }
 
   /// A necessary factory constructor for creating a new User instance
