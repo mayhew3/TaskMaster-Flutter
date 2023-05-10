@@ -1,5 +1,6 @@
 import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/models/task_item_preview.dart';
 import 'package:test/test.dart';
 
 import '../mocks/mock_data.dart';
@@ -35,9 +36,9 @@ void main() {
 
     test('isScheduled is false for past date', () {
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      catLitter.startDate = catTarget;
+      TaskItemPreview preview = catLitter.createPreview(startDate: catTarget);
       expect(catTarget.isBefore(DateTime.now()), true);
-      expect(catLitter.isScheduled(), false);
+      expect(preview.isScheduled(), false);
     });
 
     test('isScheduled is false for null date', () {
@@ -49,15 +50,15 @@ void main() {
     test('isScheduled is true for future date', () {
       DateTime futureDate = DateTime.now().add(Duration(days: 5));
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      catLitter.startDate = futureDate;
-      expect(catLitter.isScheduled(), true);
+      TaskItemPreview preview = catLitter.createPreview(startDate: futureDate);
+      expect(preview.isScheduled(), true);
     });
 
     test('isPastDue is true for past date', () {
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      catLitter.dueDate = catTarget;
+      TaskItemPreview preview = catLitter.createPreview(dueDate: catTarget);
       expect(catTarget.isBefore(DateTime.now()), true);
-      expect(catLitter.isPastDue(), true);
+      expect(preview.isPastDue(), true);
     });
 
     test('isPastDue is false for null date', () {
@@ -69,15 +70,15 @@ void main() {
     test('isPastDue is false for future date', () {
       DateTime futureDate = DateTime.now().add(Duration(days: 5));
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      catLitter.dueDate = futureDate;
-      expect(catLitter.isPastDue(), false);
+      TaskItemPreview preview = catLitter.createPreview(dueDate: futureDate);
+      expect(preview.isPastDue(), false);
     });
 
     test('isUrgent is true for past date', () {
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      catLitter.urgentDate = catTarget;
+      TaskItemPreview preview = catLitter.createPreview(urgentDate: catTarget);
       expect(catTarget.isBefore(DateTime.now()), true);
-      expect(catLitter.isUrgent(), true);
+      expect(preview.isUrgent(), true);
     });
 
     test('isUrgent is false for null date', () {
@@ -89,8 +90,8 @@ void main() {
     test('isUrgent is false for future date', () {
       DateTime futureDate = DateTime.now().add(Duration(days: 5));
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      catLitter.urgentDate = futureDate;
-      expect(catLitter.isUrgent(), false);
+      TaskItemPreview preview = catLitter.createPreview(urgentDate: futureDate);
+      expect(preview.isUrgent(), false);
     });
 
     test('getAnchorDate targetDate when only date', () {
@@ -101,24 +102,23 @@ void main() {
 
     test('getAnchorDate targetDate instead of start date', () {
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      catLitter.startDate = catTarget.subtract(Duration(days: 3));
+      TaskItemPreview preview = catLitter.createPreview(startDate: catTarget.subtract(Duration(days: 3)));
       var expected = catLitter.targetDate;
-      expect(catLitter.getAnchorDate(), expected);
+      expect(preview.getAnchorDate(), expected);
     });
 
     test('getAnchorDate urgentDate', () {
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
       var expected = catTarget.add(Duration(days: 4));
-      catLitter.urgentDate = expected;
-      expect(catLitter.getAnchorDate(), expected);
+      TaskItemPreview preview = catLitter.createPreview(urgentDate: expected);
+      expect(preview.getAnchorDate(), expected);
     });
 
     test('getAnchorDate dueDate', () {
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      catLitter.urgentDate = catTarget.add(Duration(days: 3));
       var expected = catTarget.add(Duration(days: 6));
-      catLitter.dueDate = expected;
-      expect(catLitter.getAnchorDate(), expected);
+      var preview = catLitter.createPreview(urgentDate: catTarget.add(Duration(days: 3)), dueDate: expected);
+      expect(preview.getAnchorDate(), expected);
     });
 
     test("equals identity", () {

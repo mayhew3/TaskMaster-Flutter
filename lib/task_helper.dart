@@ -137,15 +137,10 @@ class TaskHelper {
     DateTime? completionDate = completed ? DateTime.now() : null;
     TaskItemPreview? nextScheduledTask = maybeCreateNextIteration(taskItem, completed, completionDate);
 
-    stateSetter(() {
-      taskItem.completionDate = completionDate;
-    });
-
-    var inboundTask = await repository.completeTask(taskItem);
+    var inboundTask = await repository.completeTask(taskItem, completionDate);
 
     stateSetter(() {
       appState.replaceTaskItem(taskItem, inboundTask);
-      taskItem.pendingCompletion = false;
       appState.notificationScheduler.updateNotificationForTask(inboundTask);
     });
     appState.notificationScheduler.updateBadge();

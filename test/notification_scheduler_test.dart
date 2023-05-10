@@ -40,20 +40,35 @@ void main() {
   late TaskItem straddledUrgentDue;
 
   setUp(() {
-    futureDue = TaskItem(id: 30, personId: 1, name: 'Barf a Penny');
-    futureDue.dueDate = DateTime.now().add(Duration(days: 4));
+    futureDue = TaskItem(
+        id: 30,
+        personId: 1,
+        name: 'Barf a Penny',
+        dueDate: DateTime.now().add(Duration(days: 4)));
 
-    futureUrgentDue = TaskItem(id: 31, personId: 1, name: 'Give a Penny');
-    futureUrgentDue.dueDate = DateTime.now().add(Duration(days: 4));
-    futureUrgentDue.urgentDate = DateTime.now().add(Duration(days: 2));
+    futureUrgentDue = TaskItem(
+        id: 31,
+        personId: 1,
+        name: 'Give a Penny',
+        dueDate: DateTime.now().add(Duration(days: 4)),
+        urgentDate: DateTime.now().add(Duration(days: 2))
+    );
 
-    pastUrgentDue = TaskItem(id: 32, personId: 1, name: 'Take a Penny');
-    pastUrgentDue.dueDate = DateTime.now().subtract(Duration(days: 2));
-    pastUrgentDue.urgentDate = DateTime.now().subtract(Duration(days: 4));
+    pastUrgentDue = TaskItem(
+        id: 32,
+        personId: 1,
+        name: 'Take a Penny',
+        dueDate: DateTime.now().subtract(Duration(days: 2)),
+        urgentDate: DateTime.now().subtract(Duration(days: 4))
+    );
 
-    straddledUrgentDue = TaskItem(id: 33, personId: 1, name: 'Eat a Penny');
-    straddledUrgentDue.dueDate = DateTime.now().add(Duration(days: 7));
-    straddledUrgentDue.urgentDate = DateTime.now().subtract(Duration(days: 5));
+    straddledUrgentDue = TaskItem(
+        id: 33,
+        personId: 1,
+        name: 'Eat a Penny',
+        dueDate: DateTime.now().add(Duration(days: 7)),
+        urgentDate: DateTime.now().subtract(Duration(days: 5))
+    );
   });
 
   Future<NotificationScheduler> _createScheduler(List<TaskItem> taskItems) async {
@@ -179,9 +194,9 @@ void main() {
     expect(plugin.pendings.length, 3);
 
     var newDueDate = DateTime.now().add(Duration(days: 8));
-    taskItem.dueDate = newDueDate;
+    var preview = taskItem.createPreview(dueDate: newDueDate);
 
-    await scheduler.updateNotificationForTask(taskItem);
+    await scheduler.updateNotificationForTask(preview);
     expect(plugin.pendings.length, 3);
 
     _verifyDueNotificationsExist(plugin.pendings, taskItem);

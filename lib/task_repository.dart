@@ -165,7 +165,7 @@ class TaskRepository {
     }
   }
 
-  Future<TaskItem> completeTask(TaskItem taskItem) {
+  Future<TaskItem> completeTask(TaskItem taskItem, DateTime? completionDate) {
     if (!appState.isAuthenticated()) {
       throw Exception("Cannot update task before being signed in.");
     }
@@ -173,7 +173,7 @@ class TaskRepository {
     var payload = {
       "task": {
         "id": taskItem.id,
-        "completion_date": formatForJson(taskItem.completionDate),
+        "completion_date": formatForJson(completionDate),
         "recurrence_id": taskItem.recurrenceId,
       }
     };

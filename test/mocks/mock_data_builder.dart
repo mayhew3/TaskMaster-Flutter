@@ -60,17 +60,16 @@ class TaskItemBuilder {
       priority: priority,
       duration: duration,
       gamePoints: gamePoints,
+      startDate: startDate,
+      targetDate: targetDate,
+      urgentDate: urgentDate,
+      dueDate: dueDate,
+      completionDate: completionDate,
       recurNumber: recurNumber,
       recurUnit: recurUnit,
       recurWait: recurWait,
       recurrenceId: recurrenceId,
     );
-
-    taskItem.startDate = startDate;
-    taskItem.targetDate = targetDate;
-    taskItem.urgentDate = urgentDate;
-    taskItem.dueDate = dueDate;
-    taskItem.completionDate = completionDate;
 
     return taskItem;
   }
