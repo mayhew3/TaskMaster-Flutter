@@ -8,6 +8,8 @@ import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/auth.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/models/task_item_blueprint.dart';
+import 'package:taskmaster/models/task_item_preview.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/task_repository.dart';
 
@@ -75,6 +77,60 @@ class TestMockHelper {
     taskObj['sprints'] = mockSprintList;
     taskObj['taskRecurrences'] = mockRecurrenceList;
     return json.encode(taskObj);
+  }
+
+  static TaskItem mockAddTask(TaskItemPreview taskItemPreview) {
+    TaskItem taskItem = new TaskItem(
+      name: taskItemPreview.name,
+      id: 1,
+      personId: 1,
+      description: taskItemPreview.description,
+      project: taskItemPreview.project,
+      context: taskItemPreview.context,
+      urgency: taskItemPreview.urgency,
+      priority: taskItemPreview.priority,
+      duration: taskItemPreview.duration,
+      gamePoints: taskItemPreview.gamePoints,
+      startDate: taskItemPreview.startDate,
+      targetDate: taskItemPreview.targetDate,
+      urgentDate: taskItemPreview.urgentDate,
+      dueDate: taskItemPreview.dueDate,
+      completionDate: taskItemPreview.completionDate,
+      recurNumber: taskItemPreview.recurNumber,
+      recurUnit: taskItemPreview.recurUnit,
+      recurWait: taskItemPreview.recurWait,
+      recurrenceId: taskItemPreview.recurrenceId,
+      recurIteration: taskItemPreview.recurIteration,
+    );
+
+    return taskItem;
+  }
+
+  static TaskItem mockEditTask(TaskItem original, TaskItemBlueprint blueprint) {
+    TaskItem taskItem = new TaskItem(
+      name: original.name,
+      id: original.id,
+      personId: 1,
+      description: blueprint.description,
+      project: blueprint.project,
+      context: blueprint.context,
+      urgency: blueprint.urgency,
+      priority: blueprint.priority,
+      duration: blueprint.duration,
+      gamePoints: blueprint.gamePoints,
+      startDate: blueprint.startDate,
+      targetDate: blueprint.targetDate,
+      urgentDate: blueprint.urgentDate,
+      dueDate: blueprint.dueDate,
+      completionDate: blueprint.completionDate,
+      recurNumber: blueprint.recurNumber,
+      recurUnit: blueprint.recurUnit,
+      recurWait: blueprint.recurWait,
+      recurrenceId: blueprint.recurrenceId,
+      recurIteration: blueprint.recurIteration,
+    );
+
+    return taskItem;
   }
 
 }

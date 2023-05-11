@@ -677,17 +677,26 @@ class MockTaskRepository extends _i1.Mock implements _i10.TaskRepository {
         returnValueForMissingStub: _i14.Future<void>.value(),
       ) as _i14.Future<void>);
   @override
-  _i14.Future<_i5.TaskItem> completeTask(_i5.TaskItem? taskItem) =>
+  _i14.Future<_i5.TaskItem> completeTask(
+    _i5.TaskItem? taskItem,
+    DateTime? completionDate,
+  ) =>
       (super.noSuchMethod(
         Invocation.method(
           #completeTask,
-          [taskItem],
+          [
+            taskItem,
+            completionDate,
+          ],
         ),
         returnValue: _i14.Future<_i5.TaskItem>.value(_FakeTaskItem_3(
           this,
           Invocation.method(
             #completeTask,
-            [taskItem],
+            [
+              taskItem,
+              completionDate,
+            ],
           ),
         )),
         returnValueForMissingStub:
@@ -695,7 +704,10 @@ class MockTaskRepository extends _i1.Mock implements _i10.TaskRepository {
           this,
           Invocation.method(
             #completeTask,
-            [taskItem],
+            [
+              taskItem,
+              completionDate,
+            ],
           ),
         )),
       ) as _i14.Future<_i5.TaskItem>);

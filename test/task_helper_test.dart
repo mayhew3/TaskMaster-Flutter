@@ -21,6 +21,7 @@ import 'mocks/mock_data_builder.dart';
 import 'mocks/mock_task_master_auth.dart';
 import 'mocks/mock_timezone_helper.dart';
 import 'task_helper_test.mocks.dart';
+import 'test_mock_helper.dart';
 
 @GenerateNiceMocks([MockSpec<NavHelper>(), MockSpec<AppState>(), MockSpec<TaskRepository>(), MockSpec<NotificationScheduler>()])
 void main() {
@@ -45,62 +46,11 @@ void main() {
     return taskHelper;
   }
 
-  TaskItem mockAddTask(TaskItemPreview taskItemPreview) {
-    TaskItem taskItem = new TaskItem(
-      name: taskItemPreview.name,
-      id: 1,
-      personId: 1,
-      description: taskItemPreview.description,
-      project: taskItemPreview.project,
-      context: taskItemPreview.context,
-      urgency: taskItemPreview.urgency,
-      priority: taskItemPreview.priority,
-      duration: taskItemPreview.duration,
-      gamePoints: taskItemPreview.gamePoints,
-      recurNumber: taskItemPreview.recurNumber,
-      recurUnit: taskItemPreview.recurUnit,
-      recurWait: taskItemPreview.recurWait,
-      recurrenceId: taskItemPreview.recurrenceId,
-      recurIteration: taskItemPreview.recurIteration,
-    );
-    
-    taskItem.startDate = taskItemPreview.startDate;
-    taskItem.targetDate = taskItemPreview.targetDate;
-    taskItem.dueDate = taskItemPreview.dueDate;
-    taskItem.completionDate = null;
-    taskItem.urgentDate = taskItemPreview.urgentDate;
-
-    return taskItem;
+  TaskItem _mockComplete(TaskItem taskItem, DateTime? completionDate) {
+    var blueprint = taskItem.createEditBlueprint();
+    blueprint.completionDate = completionDate;
+    return TestMockHelper.mockEditTask(taskItem, blueprint);
   }
-
-  TaskItem mockEditTask(TaskItem original, TaskItemBlueprint blueprint) {
-    TaskItem taskItem = new TaskItem(
-      name: original.name,
-      id: original.id,
-      personId: 1,
-      description: blueprint.description,
-      project: blueprint.project,
-      context: blueprint.context,
-      urgency: blueprint.urgency,
-      priority: blueprint.priority,
-      duration: blueprint.duration,
-      gamePoints: blueprint.gamePoints,
-      recurNumber: blueprint.recurNumber,
-      recurUnit: blueprint.recurUnit,
-      recurWait: blueprint.recurWait,
-      recurrenceId: blueprint.recurrenceId,
-      recurIteration: blueprint.recurIteration,
-    );
-
-    taskItem.startDate = blueprint.startDate;
-    taskItem.targetDate = blueprint.targetDate;
-    taskItem.dueDate = blueprint.dueDate;
-    taskItem.completionDate = blueprint.completionDate;
-    taskItem.urgentDate = blueprint.urgentDate;
-
-    return taskItem;
-  }
-  
   
   test('reloadTasks', () async {
     var taskHelper = createTaskHelper();
@@ -141,18 +91,17 @@ void main() {
     var notificationScheduler = mockAppState.notificationScheduler;
     expect(notificationScheduler, isNot(null));
 
-    var inboundTask = TaskItem.fromJson(birthdayJSON);
     var now = DateTime.now();
-    inboundTask.completionDate = now;
+    var inboundTask = _mockComplete(birthdayTask, now);
 
-    when(taskRepository.completeTask(birthdayTask)).thenAnswer((_) => Future.value(inboundTask));
+    when(taskRepository.completeTask(birthdayTask, now)).thenAnswer((_) => Future.value(inboundTask));
 
     var returnedTask = await taskHelper.completeTask(birthdayTask, true, stateSetter);
     verify(notificationScheduler.updateNotificationForTask(returnedTask));
     verify(notificationScheduler.updateBadge());
     verifyNever(taskRepository.addTask(any));
 
-    expect(returnedTask, birthdayTask);
+    expect(returnedTask.id, birthdayTask.id);
     expect(returnedTask.pendingCompletion, false);
     expect(returnedTask.completionDate, now);
     expect(returnedTask.completionDate, now);
@@ -161,17 +110,15 @@ void main() {
 
   test('completeTask uncomplete no recur', () async {
     var originalTask = burnTask;
-    var originalJSON = burnJSON;
 
     var taskHelper = createTaskHelper(taskItems: [originalTask]);
     var mockAppState = taskHelper.appState;
     var notificationScheduler = mockAppState.notificationScheduler;
     expect(notificationScheduler, isNot(null));
 
-    var inboundTask = TaskItem.fromJson(originalJSON);
-    inboundTask.completionDate = null;
+    var inboundTask = _mockComplete(originalTask, null);
 
-    when(taskRepository.completeTask(originalTask)).thenAnswer((_) => Future.value(inboundTask));
+    when(taskRepository.completeTask(originalTask, null)).thenAnswer((_) => Future.value(inboundTask));
 
     var returnedTask = await taskHelper.completeTask(originalTask, false, stateSetter);
     verify(notificationScheduler.updateNotificationForTask(originalTask));
@@ -179,9 +126,8 @@ void main() {
     verifyNever(taskRepository.addTask(any));
 
     expect(returnedTask, originalTask);
-    expect(originalTask.pendingCompletion, false);
-    expect(originalTask.completionDate, null);
-    expect(originalTask.completionDate, null);
+    expect(returnedTask.pendingCompletion, false);
+    expect(returnedTask.completionDate, null);
 
   });
 
@@ -192,18 +138,20 @@ void main() {
     var taskHelper = createTaskHelper(taskItems: [originalTask]);
     expect(notificationScheduler, isNot(null));
 
-    var inboundTask = TaskItem.fromJson(pastJSON);
     var now = DateTime.now();
-    inboundTask.completionDate = now;
+    var inboundTask = _mockComplete(originalTask, now);
 
     TaskItemPreview? addedTask;
 
-    when(taskRepository.completeTask(originalTask)).thenAnswer((_) => Future.value(inboundTask));
+    when(taskRepository.completeTask(originalTask, now)).thenAnswer((_) => Future.value(inboundTask));
     when(taskRepository.addTaskIteration(argThat(isA<TaskItemPreview>()))).thenAnswer((invocation) {
       addedTask = invocation.positionalArguments[0];
-      return Future.value(mockAddTask(addedTask!));
+      return Future.value(TestMockHelper.mockAddTask(addedTask!));
     });
     when(appState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) => invocation.positionalArguments[0]);
+
+    var originalId = originalTask.id;
+    var originalStart = DateUtil.withoutMillis(originalTask.startDate!);
 
     var returnedTask = await taskHelper.completeTask(originalTask, true, stateSetter);
     verify(notificationScheduler.updateNotificationForTask(returnedTask));
@@ -212,7 +160,7 @@ void main() {
     verify(appState.addNewTaskToList(any));
     verify(notificationScheduler.updateNotificationForTask(any));
 
-    expect(returnedTask, originalTask);
+    expect(returnedTask.id, originalId);
     expect(returnedTask.pendingCompletion, false);
     expect(returnedTask.completionDate, now);
 
@@ -220,7 +168,6 @@ void main() {
     expect(addedTask, isNot(returnedTask));
     expect(addedTask!.pendingCompletion, false);
 
-    var originalStart = DateUtil.withoutMillis(originalTask.startDate!);
     var newStart = DateUtil.withoutMillis(addedTask!.startDate!);
     var diff = newStart.difference(originalStart).inHours;
 
@@ -233,17 +180,15 @@ void main() {
 
   test('completeTask uncomplete recur should not recur', () async {
     var originalTask = catLitterTask;
-    var originalJSON = catLitterJSON;
 
     var taskHelper = createTaskHelper(taskItems: [originalTask]);
     var mockAppState = taskHelper.appState;
     var notificationScheduler = mockAppState.notificationScheduler;
     expect(notificationScheduler, isNot(null));
 
-    var inboundTask = TaskItem.fromJson(originalJSON);
-    inboundTask.completionDate = null;
+    var inboundTask = _mockComplete(originalTask, null);
 
-    when(taskRepository.completeTask(originalTask)).thenAnswer((_) => Future.value(inboundTask));
+    when(taskRepository.completeTask(originalTask, null)).thenAnswer((_) => Future.value(inboundTask));
 
     var returnedTask = await taskHelper.completeTask(originalTask, false, stateSetter);
     verify(notificationScheduler.updateNotificationForTask(originalTask));
@@ -251,9 +196,8 @@ void main() {
     verifyNever(taskRepository.addTask(any));
 
     expect(returnedTask, originalTask);
-    expect(originalTask.pendingCompletion, false);
-    expect(originalTask.completionDate, null);
-    expect(originalTask.completionDate, null);
+    expect(returnedTask.pendingCompletion, false);
+    expect(returnedTask.completionDate, null);
   });
 
   test('deleteTask', () async {
@@ -287,7 +231,7 @@ void main() {
     blueprint.description = changedDescription;
     blueprint.targetDate = changedTarget.toLocal();
 
-    when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((realInvocation) => Future.value(mockEditTask(taskItem, blueprint)));
+    when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((realInvocation) => Future.value(TestMockHelper.mockEditTask(taskItem, blueprint)));
 
     var returnedItem = await taskHelper.updateTask(birthdayTask, blueprint);
 
@@ -354,7 +298,7 @@ void main() {
 
     var blueprint = taskItem.createEditBlueprint();
 
-    when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((_) => Future.value(mockEditTask(taskItem, blueprint)));
+    when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((_) => Future.value(TestMockHelper.mockEditTask(taskItem, blueprint)));
 
     var returnedItem = await taskHelper.snoozeTask(taskItem, blueprint, 6, 'Days', TaskDateTypes.target);
 
@@ -396,7 +340,7 @@ void main() {
 
     var blueprint = taskItem.createEditBlueprint();
 
-    when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((_) => Future.value(mockEditTask(taskItem, blueprint)));
+    when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((_) => Future.value(TestMockHelper.mockEditTask(taskItem, blueprint)));
 
     var returnedItem = await taskHelper.snoozeTask(taskItem, blueprint, 4, 'Days', TaskDateTypes.start);
 

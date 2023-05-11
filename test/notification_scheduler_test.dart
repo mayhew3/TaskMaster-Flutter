@@ -14,6 +14,7 @@ import 'mocks/mock_flutter_plugin.dart';
 import 'mocks/mock_pending_notification_request.dart';
 import 'mocks/mock_timezone_helper.dart';
 import 'notification_scheduler_test.mocks.dart';
+import 'test_mock_helper.dart';
 
 class MockAppBadger extends Fake implements FlutterBadgerWrapper {
   int badgeValue = 0;
@@ -193,13 +194,14 @@ void main() {
     var scheduler = await _createScheduler([taskItem]);
     expect(plugin.pendings.length, 3);
 
-    var newDueDate = DateTime.now().add(Duration(days: 8));
-    var preview = taskItem.createPreview(dueDate: newDueDate);
+    var blueprint = taskItem.createEditBlueprint();
+    blueprint.dueDate = DateTime.now().add(Duration(days: 8));
+    var edited = TestMockHelper.mockEditTask(taskItem, blueprint);
 
-    await scheduler.updateNotificationForTask(preview);
+    await scheduler.updateNotificationForTask(edited);
     expect(plugin.pendings.length, 3);
 
-    _verifyDueNotificationsExist(plugin.pendings, taskItem);
+    _verifyDueNotificationsExist(plugin.pendings, edited);
   });
 
   test('updateNotificationForTask removes old due notification if due date moved back', () async {
@@ -208,10 +210,11 @@ void main() {
     var scheduler = await _createScheduler([taskItem]);
     expect(plugin.pendings.length, 3);
 
-    var newDueDate = DateTime.now().subtract(Duration(days: 8));
-    taskItem.dueDate = newDueDate;
+    var blueprint = taskItem.createEditBlueprint();
+    blueprint.dueDate = DateTime.now().subtract(Duration(days: 8));
+    var edited = TestMockHelper.mockEditTask(taskItem, blueprint);
 
-    await scheduler.updateNotificationForTask(taskItem);
+    await scheduler.updateNotificationForTask(edited);
     expect(plugin.pendings.length, 0);
   });
 
@@ -221,14 +224,16 @@ void main() {
     var scheduler = await _createScheduler([taskItem]);
     expect(plugin.pendings.length, 5);
 
-    taskItem.dueDate = DateTime.now().add(Duration(days: 12));
-    taskItem.urgentDate = DateTime.now().add(Duration(days: 4));
+    var blueprint = taskItem.createEditBlueprint();
+    blueprint.dueDate = DateTime.now().add(Duration(days: 12));
+    blueprint.urgentDate = DateTime.now().add(Duration(days: 4));
+    var edited = TestMockHelper.mockEditTask(taskItem, blueprint);
 
-    await scheduler.updateNotificationForTask(taskItem);
+    await scheduler.updateNotificationForTask(edited);
     expect(plugin.pendings.length, 5);
 
-    _verifyDueNotificationsExist(plugin.pendings, taskItem);
-    _verifyUrgentNotificationsExist(plugin.pendings, taskItem);
+    _verifyDueNotificationsExist(plugin.pendings, edited);
+    _verifyUrgentNotificationsExist(plugin.pendings, edited);
   });
 
   test('cancelNotificationsForTaskId cancels due notification', () async {
@@ -276,8 +281,11 @@ void main() {
   });
 
   test('updateBadge excludes completed', () async {
-    pastUrgentDue.completionDate = DateTime.now();
-    var scheduler = await _createScheduler([pastUrgentDue]);
+    var blueprint = pastUrgentDue.createEditBlueprint();
+    blueprint.completionDate = DateTime.now();
+    var edited = TestMockHelper.mockEditTask(pastUrgentDue, blueprint);
+
+    var scheduler = await _createScheduler([edited]);
     expect(plugin.pendings.length, 0);
     scheduler.updateBadge();
     expect(flutterBadgerWrapper.badgeValue, 0);
