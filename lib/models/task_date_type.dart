@@ -59,6 +59,7 @@ class TaskDateTypes {
     }
   }
 
+  // todo: write some tests
   static List<TaskDateType> getTypesPreceding(TaskDateType taskDateType) {
     int index = allTypes.indexOf(taskDateType);
     return allTypes.sublist(0, index);

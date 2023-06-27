@@ -146,11 +146,13 @@ class AddEditScreenState extends State<AddEditScreen> {
       return allDates.length == 0 ? null : DateUtil.maxDate(allDates);
     }
 
+    // todo: write some tests
     DateTime _getPreviousDateOrNow(TaskDateType taskDateType) {
       var lastDate = getLastDateBefore(taskDateType);
       return lastDate == null ? DateTime.now() : lastDate;
     }
 
+    // todo: write some tests
     DateTime _getOnePastPreviousDateOrNow(TaskDateType taskDateType) {
       var lastDate = getLastDateBefore(taskDateType);
       return lastDate == null ? DateTime.now() : lastDate.add(Duration(days: 1));
