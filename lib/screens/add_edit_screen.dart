@@ -139,15 +139,11 @@ class AddEditScreenState extends State<AddEditScreen> {
   @override
   Widget build(BuildContext context) {
 
-    bool hasPassed(DateTime? dateTime) {
-      return dateTime != null && dateTime.isBefore(DateTime.now());
-    }
-
     DateTime? getLastDateBefore(TaskDateType taskDateType) {
-      var allDates = <DateTime?>[blueprint.startDate, blueprint.targetDate, blueprint.urgentDate, blueprint.dueDate];
-      var pastDates = allDates.whereType<DateTime>().where((dateTime) => hasPassed(dateTime));
+      var typesPreceding = TaskDateTypes.getTypesPreceding(taskDateType);
+      var allDates = typesPreceding.map((type) => type.dateFieldGetter(blueprint)).whereType<DateTime>();
 
-      return pastDates.length == 0 ? null : DateUtil.maxDate(pastDates);
+      return allDates.length == 0 ? null : DateUtil.maxDate(allDates);
     }
 
     DateTime _getPreviousDateOrNow(TaskDateType taskDateType) {

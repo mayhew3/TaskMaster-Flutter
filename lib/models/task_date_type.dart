@@ -59,6 +59,11 @@ class TaskDateTypes {
     }
   }
 
+  static List<TaskDateType> getTypesPreceding(TaskDateType taskDateType) {
+    int index = allTypes.indexOf(taskDateType);
+    return allTypes.sublist(0, index);
+  }
+
   static TaskDateType? getTypeWithLabel(String? label) {
     return allTypes.singleWhere((dateType) => dateType.label == label, orElse: null);
   }
