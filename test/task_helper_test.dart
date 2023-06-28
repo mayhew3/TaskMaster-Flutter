@@ -94,7 +94,7 @@ void main() {
     var now = DateTime.now();
     var inboundTask = _mockComplete(birthdayTask, now);
 
-    when(taskRepository.completeTask(birthdayTask, now)).thenAnswer((_) => Future.value(inboundTask));
+    when(taskRepository.completeTask(birthdayTask, any)).thenAnswer((_) => Future.value(inboundTask));
 
     var returnedTask = await taskHelper.completeTask(birthdayTask, true, stateSetter);
     verify(notificationScheduler.updateNotificationForTask(returnedTask));
@@ -143,7 +143,7 @@ void main() {
 
     TaskItemPreview? addedTask;
 
-    when(taskRepository.completeTask(originalTask, now)).thenAnswer((_) => Future.value(inboundTask));
+    when(taskRepository.completeTask(originalTask, any)).thenAnswer((_) => Future.value(inboundTask));
     when(taskRepository.addTaskIteration(argThat(isA<TaskItemPreview>()))).thenAnswer((invocation) {
       addedTask = invocation.positionalArguments[0];
       return Future.value(TestMockHelper.mockAddTask(addedTask!));
