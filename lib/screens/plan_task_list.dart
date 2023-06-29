@@ -319,7 +319,7 @@ class PlanTaskListState extends State<PlanTaskList> {
     print('${toAdd.length} checked temp items kept.');
 
     for (var taskItem in toAdd) {
-      TaskItem addedTask = await widget.taskHelper.addTaskIteration(taskItem);
+      TaskItem addedTask = await widget.taskHelper.addTaskIteration(taskItem, widget.appState.personId);
       print('Adding (Recurrence ID ${taskItem.recurrenceId}, TaskItem ID ${taskItem.recurIteration})');
       sprintQueued.add(addedTask);
     }

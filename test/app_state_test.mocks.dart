@@ -348,17 +348,25 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
       ) as _i11.Future<_i7.TaskItem>);
   @override
   _i11.Future<_i7.TaskItem> addTaskIteration(
-          _i13.TaskItemPreview? taskItemPreview) =>
+    _i13.TaskItemPreview? taskItemPreview,
+    int? personId,
+  ) =>
       (super.noSuchMethod(
         Invocation.method(
           #addTaskIteration,
-          [taskItemPreview],
+          [
+            taskItemPreview,
+            personId,
+          ],
         ),
         returnValue: _i11.Future<_i7.TaskItem>.value(_FakeTaskItem_6(
           this,
           Invocation.method(
             #addTaskIteration,
-            [taskItemPreview],
+            [
+              taskItemPreview,
+              personId,
+            ],
           ),
         )),
         returnValueForMissingStub:
@@ -366,7 +374,10 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           this,
           Invocation.method(
             #addTaskIteration,
-            [taskItemPreview],
+            [
+              taskItemPreview,
+              personId,
+            ],
           ),
         )),
       ) as _i11.Future<_i7.TaskItem>);

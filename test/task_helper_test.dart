@@ -144,7 +144,7 @@ void main() {
     TaskItemPreview? addedTask;
 
     when(taskRepository.completeTask(originalTask, any)).thenAnswer((_) => Future.value(inboundTask));
-    when(taskRepository.addTaskIteration(argThat(isA<TaskItemPreview>()))).thenAnswer((invocation) {
+    when(taskRepository.addTaskIteration(argThat(isA<TaskItemPreview>()), any)).thenAnswer((invocation) {
       addedTask = invocation.positionalArguments[0];
       return Future.value(TestMockHelper.mockAddTask(addedTask!));
     });
@@ -156,7 +156,7 @@ void main() {
     var returnedTask = await taskHelper.completeTask(originalTask, true, stateSetter);
     verify(notificationScheduler.updateNotificationForTask(returnedTask));
     verify(notificationScheduler.updateBadge());
-    verify(taskRepository.addTaskIteration(any));
+    verify(taskRepository.addTaskIteration(any, any));
     verify(appState.addNewTaskToList(any));
     verify(notificationScheduler.updateNotificationForTask(any));
 

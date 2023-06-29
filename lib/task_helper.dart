@@ -48,8 +48,8 @@ class TaskHelper {
     return updateTaskList(inboundTask);
   }
 
-  Future<TaskItem> addTaskIteration(TaskItemPreview taskItem) async {
-    TaskItem inboundTask = await repository.addTaskIteration(taskItem);
+  Future<TaskItem> addTaskIteration(TaskItemPreview taskItem, int personId) async {
+    TaskItem inboundTask = await repository.addTaskIteration(taskItem, personId);
     return updateTaskList(inboundTask);
   }
 
@@ -130,6 +130,8 @@ class TaskHelper {
       throw new ArgumentError("CompleteTask() called with null completion date and completed false.");
     }
 
+    int personId = taskItem.personId;
+
     stateSetter(() {
       taskItem.pendingCompletion = true;
     });
@@ -146,7 +148,7 @@ class TaskHelper {
     appState.notificationScheduler.updateBadge();
 
     if (nextScheduledTask != null) {
-      await addTaskIteration(nextScheduledTask);
+      await addTaskIteration(nextScheduledTask, personId);
     }
 
     return inboundTask;

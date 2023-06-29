@@ -114,12 +114,13 @@ class TaskRepository {
     return _addOrUpdateJSON(payload, 'add');
   }
 
-  Future<TaskItem> addTaskIteration(TaskItemPreview taskItemPreview) async {
+  Future<TaskItem> addTaskIteration(TaskItemPreview taskItemPreview, int personId) async {
     if (!appState.isAuthenticated()) {
       throw Exception("Cannot add task before being signed in.");
     }
 
     var taskObj = taskItemPreview.toJson();
+    taskObj['person_id'] = personId;
 
     var payload = {
       "task": taskObj

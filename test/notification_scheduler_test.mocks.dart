@@ -595,17 +595,25 @@ class MockTaskRepository extends _i1.Mock implements _i10.TaskRepository {
       ) as _i14.Future<_i5.TaskItem>);
   @override
   _i14.Future<_i5.TaskItem> addTaskIteration(
-          _i11.TaskItemPreview? taskItemPreview) =>
+    _i11.TaskItemPreview? taskItemPreview,
+    int? personId,
+  ) =>
       (super.noSuchMethod(
         Invocation.method(
           #addTaskIteration,
-          [taskItemPreview],
+          [
+            taskItemPreview,
+            personId,
+          ],
         ),
         returnValue: _i14.Future<_i5.TaskItem>.value(_FakeTaskItem_3(
           this,
           Invocation.method(
             #addTaskIteration,
-            [taskItemPreview],
+            [
+              taskItemPreview,
+              personId,
+            ],
           ),
         )),
         returnValueForMissingStub:
@@ -613,7 +621,10 @@ class MockTaskRepository extends _i1.Mock implements _i10.TaskRepository {
           this,
           Invocation.method(
             #addTaskIteration,
-            [taskItemPreview],
+            [
+              taskItemPreview,
+              personId,
+            ],
           ),
         )),
       ) as _i14.Future<_i5.TaskItem>);
@@ -855,17 +866,26 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
         )),
       ) as _i14.Future<_i5.TaskItem>);
   @override
-  _i14.Future<_i5.TaskItem> addTaskIteration(_i11.TaskItemPreview? taskItem) =>
+  _i14.Future<_i5.TaskItem> addTaskIteration(
+    _i11.TaskItemPreview? taskItem,
+    int? personId,
+  ) =>
       (super.noSuchMethod(
         Invocation.method(
           #addTaskIteration,
-          [taskItem],
+          [
+            taskItem,
+            personId,
+          ],
         ),
         returnValue: _i14.Future<_i5.TaskItem>.value(_FakeTaskItem_3(
           this,
           Invocation.method(
             #addTaskIteration,
-            [taskItem],
+            [
+              taskItem,
+              personId,
+            ],
           ),
         )),
         returnValueForMissingStub:
@@ -873,7 +893,10 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
           this,
           Invocation.method(
             #addTaskIteration,
-            [taskItem],
+            [
+              taskItem,
+              personId,
+            ],
           ),
         )),
       ) as _i14.Future<_i5.TaskItem>);
