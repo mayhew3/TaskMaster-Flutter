@@ -162,9 +162,19 @@ class AppState {
     _taskItems.remove(taskItem);
   }
 
+  // todo: need to replace the task item in active sprint as well
   void replaceTaskItem(TaskItem oldTaskItem, TaskItem newTaskItem) {
     var indexOf = _taskItems.indexOf(oldTaskItem);
     _taskItems[indexOf] = newTaskItem;
+
+    var activeSprint = getActiveSprint();
+    var sprintItems = activeSprint?.taskItems;
+    if (sprintItems != null) {
+      var sprintIndexOf = sprintItems.indexOf(oldTaskItem);
+      if (sprintIndexOf > -1) {
+        sprintItems[sprintIndexOf] = newTaskItem;
+      }
+    }
   }
 
   bool isAuthenticated() {
