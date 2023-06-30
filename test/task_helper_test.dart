@@ -233,7 +233,7 @@ void main() {
 
     when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((realInvocation) => Future.value(TestMockHelper.mockEditTask(taskItem, blueprint)));
 
-    var returnedItem = await taskHelper.updateTask(birthdayTask, blueprint);
+    var returnedItem = await taskHelper.updateTask(birthdayTask, blueprint, (_) => {});
 
     verify(taskRepository.updateTask(taskItem, blueprint));
     verify(notificationScheduler.updateNotificationForTask(returnedItem));
@@ -300,7 +300,7 @@ void main() {
 
     when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((_) => Future.value(TestMockHelper.mockEditTask(taskItem, blueprint)));
 
-    var returnedItem = await taskHelper.snoozeTask(taskItem, blueprint, 6, 'Days', TaskDateTypes.target);
+    var returnedItem = await taskHelper.snoozeTask(taskItem, blueprint, 6, 'Days', TaskDateTypes.target, (_) => {});
 
     Snooze snooze = verify(taskRepository.addSnooze(captureThat(isA<Snooze>()))).captured.single;
 
@@ -342,7 +342,7 @@ void main() {
 
     when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((_) => Future.value(TestMockHelper.mockEditTask(taskItem, blueprint)));
 
-    var returnedItem = await taskHelper.snoozeTask(taskItem, blueprint, 4, 'Days', TaskDateTypes.start);
+    var returnedItem = await taskHelper.snoozeTask(taskItem, blueprint, 4, 'Days', TaskDateTypes.start, (_) => {});
 
     Snooze snooze = verify(taskRepository.addSnooze(captureThat(isA<Snooze>()))).captured.single;
 

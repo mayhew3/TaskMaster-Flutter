@@ -166,7 +166,7 @@ class TaskHelper {
     appState.notificationScheduler.updateBadge();
   }
 
-  Future<TaskItem> updateTask(TaskItem taskItem, TaskItemBlueprint changes) async {
+  Future<TaskItem> updateTask(TaskItem taskItem, TaskItemBlueprint changes, StateSetter stateSetter) async {
     var inboundTask = await repository.updateTask(taskItem, changes);
     stateSetter(() {
       appState.replaceTaskItem(taskItem, inboundTask);
@@ -180,13 +180,13 @@ class TaskHelper {
     _generatePreview(taskItemEdit, numUnits, unitSize, dateType);
   }
 
-  Future<TaskItem> snoozeTask(TaskItem taskItem, TaskItemBlueprint taskItemEdit, int numUnits, String unitSize, TaskDateType dateType) async {
+  Future<TaskItem> snoozeTask(TaskItem taskItem, TaskItemBlueprint taskItemEdit, int numUnits, String unitSize, TaskDateType dateType, StateSetter stateSetter) async {
     _generatePreview(taskItemEdit, numUnits, unitSize, dateType);
 
     DateTime? originalValue = dateType.dateFieldGetter(taskItem);
     DateTime relevantDateField = dateType.dateFieldGetter(taskItemEdit)!;
 
-    TaskItem updatedTask = await updateTask(taskItem, taskItemEdit);
+    TaskItem updatedTask = await updateTask(taskItem, taskItemEdit, stateSetter);
 
     Snooze snooze = new Snooze(
         taskId: updatedTask.id,

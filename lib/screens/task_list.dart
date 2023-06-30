@@ -300,6 +300,7 @@ class TaskListScreenState extends State<TaskListScreen> {
       showDialog<void>(context: context, builder: (context) => SnoozeDialog(
         taskItem: taskItem,
         taskHelper: widget.taskHelper,
+        stateSetter: (callback) => setState(() => callback()),
       ));
     };
     var taskCard = EditableTaskItemWidget(

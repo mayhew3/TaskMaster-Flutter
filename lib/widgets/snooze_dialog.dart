@@ -15,10 +15,12 @@ class SnoozeDialog extends StatefulWidget {
 
   final TaskItem taskItem;
   final TaskHelper taskHelper;
+  final StateSetter stateSetter;
 
   SnoozeDialog({
     required this.taskItem,
     required this.taskHelper,
+    required this.stateSetter
   });
 
   @override
@@ -199,7 +201,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
                 var typeWithLabel = TaskDateTypes.getTypeWithLabel(taskDateType);
                 if (typeWithLabel != null && numUnits != null) {
                   await widget.taskHelper.snoozeTask(widget.taskItem,
-                      blueprint, numUnits!, unitName, typeWithLabel);
+                      blueprint, numUnits!, unitName, typeWithLabel, widget.stateSetter);
                 }
                 Navigator.pop(context);
               },
