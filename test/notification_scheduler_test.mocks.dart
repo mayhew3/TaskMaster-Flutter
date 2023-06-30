@@ -1032,6 +1032,7 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
   _i14.Future<_i5.TaskItem> updateTask(
     _i5.TaskItem? taskItem,
     _i17.TaskItemBlueprint? changes,
+    _i15.StateSetter? stateSetter,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -1039,6 +1040,7 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
           [
             taskItem,
             changes,
+            stateSetter,
           ],
         ),
         returnValue: _i14.Future<_i5.TaskItem>.value(_FakeTaskItem_3(
@@ -1048,6 +1050,7 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
             [
               taskItem,
               changes,
+              stateSetter,
             ],
           ),
         )),
@@ -1059,6 +1062,7 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
             [
               taskItem,
               changes,
+              stateSetter,
             ],
           ),
         )),
@@ -1089,6 +1093,7 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
     int? numUnits,
     String? unitSize,
     _i18.TaskDateType? dateType,
+    _i15.StateSetter? stateSetter,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -1099,6 +1104,7 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
             numUnits,
             unitSize,
             dateType,
+            stateSetter,
           ],
         ),
         returnValue: _i14.Future<_i5.TaskItem>.value(_FakeTaskItem_3(
@@ -1111,6 +1117,7 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
               numUnits,
               unitSize,
               dateType,
+              stateSetter,
             ],
           ),
         )),
@@ -1125,6 +1132,7 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
               numUnits,
               unitSize,
               dateType,
+              stateSetter,
             ],
           ),
         )),
