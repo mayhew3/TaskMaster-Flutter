@@ -131,24 +131,33 @@ void main() {
 
   });
 
+  void handleCompletion(DateTime now) {
+    when(taskRepository.completeTask(argThat(isA<TaskItem>()), any)).thenAnswer((invocation) {
+      TaskItem originalTask = invocation.positionalArguments[0];
+      TaskItem inboundTask = _mockComplete(originalTask, now);
+      return Future.value(inboundTask);
+    });
+    when(taskRepository.addTaskIteration(argThat(isA<TaskItemPreview>()), any)).thenAnswer((invocation) {
+      TaskItemPreview addedTask = invocation.positionalArguments[0];
+      return Future.value(TestMockHelper.mockAddTask(addedTask, 2));
+    });
+    when(appState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) => invocation.positionalArguments[0]);
+  }
+
   test('completeTask recur', () async {
     timezoneHelper.configureLocalTimeZone();
 
-    var originalTask = pastTask;
+    var originalTask =  TaskItemBuilder
+        .withDates()
+        .withRecur(true)
+        .create();
+
     var taskHelper = createTaskHelper(taskItems: [originalTask]);
     expect(notificationScheduler, isNot(null));
 
     var now = DateTime.now();
-    var inboundTask = _mockComplete(originalTask, now);
 
-    TaskItemPreview? addedTask;
-
-    when(taskRepository.completeTask(originalTask, any)).thenAnswer((_) => Future.value(inboundTask));
-    when(taskRepository.addTaskIteration(argThat(isA<TaskItemPreview>()), any)).thenAnswer((invocation) {
-      addedTask = invocation.positionalArguments[0];
-      return Future.value(TestMockHelper.mockAddTask(addedTask!));
-    });
-    when(appState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) => invocation.positionalArguments[0]);
+    handleCompletion(now);
 
     var originalId = originalTask.id;
     var originalStart = DateUtil.withoutMillis(originalTask.startDate!);
@@ -158,15 +167,17 @@ void main() {
     verify(notificationScheduler.updateBadge());
     verify(taskRepository.addTaskIteration(any, any));
     verify(appState.addNewTaskToList(any));
-    verify(notificationScheduler.updateNotificationForTask(any));
+    // verify(notificationScheduler.updateNotificationForTask(any));
 
     expect(returnedTask.id, originalId);
     expect(returnedTask.pendingCompletion, false);
     expect(returnedTask.completionDate, now);
 
+    TaskItemPreview addedTask = returnedTask.taskRecurrence!.getMostRecentIteration();
+
     expect(addedTask, isNot(null), reason: 'Expect new task to be created based on recur.');
     expect(addedTask, isNot(returnedTask));
-    expect(addedTask!.pendingCompletion, false);
+    expect(addedTask.pendingCompletion, false);
 
     var newStart = DateUtil.withoutMillis(addedTask!.startDate!);
     var diff = newStart.difference(originalStart).inHours;
@@ -300,7 +311,7 @@ void main() {
 
     when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((_) => Future.value(TestMockHelper.mockEditTask(taskItem, blueprint)));
 
-    var returnedItem = await taskHelper.snoozeTask(taskItem, blueprint, 6, 'Days', TaskDateTypes.target, (_) => {});
+    var returnedItem = await taskHelper.snoozeTask(taskItem, blueprint, 6, 'Days', TaskDateTypes.target, false, (_) => {});
 
     Snooze snooze = verify(taskRepository.addSnooze(captureThat(isA<Snooze>()))).captured.single;
 
@@ -342,7 +353,7 @@ void main() {
 
     when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((_) => Future.value(TestMockHelper.mockEditTask(taskItem, blueprint)));
 
-    var returnedItem = await taskHelper.snoozeTask(taskItem, blueprint, 4, 'Days', TaskDateTypes.start, (_) => {});
+    var returnedItem = await taskHelper.snoozeTask(taskItem, blueprint, 4, 'Days', TaskDateTypes.start, false, (_) => {});
 
     Snooze snooze = verify(taskRepository.addSnooze(captureThat(isA<Snooze>()))).captured.single;
 

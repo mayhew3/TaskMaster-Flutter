@@ -79,10 +79,10 @@ class TestMockHelper {
     return json.encode(taskObj);
   }
 
-  static TaskItem mockAddTask(TaskItemPreview taskItemPreview) {
+  static TaskItem mockAddTask(TaskItemPreview taskItemPreview, int id) {
     TaskItem taskItem = new TaskItem(
       name: taskItemPreview.name,
-      id: 1,
+      id: id,
       personId: 1,
       description: taskItemPreview.description,
       project: taskItemPreview.project,
@@ -102,6 +102,11 @@ class TestMockHelper {
       recurrenceId: taskItemPreview.recurrenceId,
       recurIteration: taskItemPreview.recurIteration,
     );
+
+    var taskRecurrence = taskItemPreview.taskRecurrence;
+    if (taskRecurrence != null) {
+      taskRecurrence.addToTaskItems(taskItem);
+    }
 
     return taskItem;
   }
@@ -129,6 +134,8 @@ class TestMockHelper {
       recurrenceId: blueprint.recurrenceId,
       recurIteration: blueprint.recurIteration,
     );
+
+    taskItem.taskRecurrence = original.taskRecurrence;
 
     return taskItem;
   }

@@ -1093,6 +1093,7 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
     int? numUnits,
     String? unitSize,
     _i18.TaskDateType? dateType,
+    bool? offCycle,
     _i15.StateSetter? stateSetter,
   ) =>
       (super.noSuchMethod(
@@ -1104,6 +1105,7 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
             numUnits,
             unitSize,
             dateType,
+            offCycle,
             stateSetter,
           ],
         ),
@@ -1117,6 +1119,7 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
               numUnits,
               unitSize,
               dateType,
+              offCycle,
               stateSetter,
             ],
           ),
@@ -1132,6 +1135,7 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
               numUnits,
               unitSize,
               dateType,
+              offCycle,
               stateSetter,
             ],
           ),

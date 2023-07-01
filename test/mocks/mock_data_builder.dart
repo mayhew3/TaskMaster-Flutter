@@ -1,6 +1,7 @@
 
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
+import 'package:taskmaster/models/task_recurrence.dart';
 
 class TaskItemBuilder {
   int? id;
@@ -21,7 +22,10 @@ class TaskItemBuilder {
   int? recurNumber;
   String? recurUnit;
   bool? recurWait;
+  int? recurIteration;
   int? recurrenceId;
+
+  TaskRecurrence? taskRecurrence;
 
   TaskItemBuilder();
 
@@ -43,6 +47,7 @@ class TaskItemBuilder {
     taskItem.recurNumber = recurNumber;
     taskItem.recurUnit = recurUnit;
     taskItem.recurWait = recurWait;
+    taskItem.recurIteration = recurIteration;
     taskItem.recurrenceId = recurrenceId;
 
     return taskItem;
@@ -68,8 +73,14 @@ class TaskItemBuilder {
       recurNumber: recurNumber,
       recurUnit: recurUnit,
       recurWait: recurWait,
+      recurIteration: recurIteration,
       recurrenceId: recurrenceId,
     );
+
+    TaskRecurrence? tmpTaskRecurrence = taskRecurrence;
+    if (tmpTaskRecurrence != null) {
+      tmpTaskRecurrence.addToTaskItems(taskItem);
+    }
 
     return taskItem;
   }
@@ -99,5 +110,25 @@ class TaskItemBuilder {
         ..targetDate = now.add(Duration(days: 1))
         ..urgentDate = now.add(Duration(days: 5))
         ..dueDate = now.add(Duration(days: 8));
+  }
+
+  TaskItemBuilder withRecur(bool recurWait) {
+    taskRecurrence = new TaskRecurrence(
+        id: 1,
+        personId: 1,
+        name: name,
+        recurNumber: 1,
+        recurUnit: 'Weeks',
+        recurWait: recurWait,
+        recurIteration: 1,
+        anchorDate: DateTime.now(),
+        anchorType: 'target');
+    recurrenceId = 1;
+    recurNumber = 1;
+    recurIteration = 1;
+    recurUnit = 'Weeks';
+    this.recurWait = recurWait;
+
+    return this;
   }
 }

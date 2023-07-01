@@ -50,7 +50,7 @@ class DateUtil {
       case 'Weeks': return Jiffy(dateTime).add(weeks: recurNumber).dateTime;
       case 'Months': return Jiffy(dateTime).add(months: recurNumber).dateTime;
       case 'Years': return Jiffy(dateTime).add(years: recurNumber).dateTime;
-      default: throw new Exception('Unknown recur_unit');
+      default: throw new Exception('Unknown recur_unit: ' + recurUnit);
     }
   }
 

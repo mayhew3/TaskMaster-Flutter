@@ -43,6 +43,15 @@ class TaskRecurrence {
   void addToTaskItems(TaskItem taskItem) {
     taskItems.add(taskItem);
     taskItem.taskRecurrence = this;
+    sortItems();
+  }
+
+  void sortItems() {
+    taskItems.sort((t1, t2) => t1.recurIteration!.compareTo(t2.recurIteration!));
+  }
+
+  TaskItem getMostRecentIteration() {
+    return taskItems.last;
   }
 
   TaskRecurrenceBlueprint createEditBlueprint() {

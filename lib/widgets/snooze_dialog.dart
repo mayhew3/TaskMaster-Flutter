@@ -201,7 +201,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
                 var typeWithLabel = TaskDateTypes.getTypeWithLabel(taskDateType);
                 if (typeWithLabel != null && numUnits != null) {
                   await widget.taskHelper.snoozeTask(widget.taskItem,
-                      blueprint, numUnits!, unitName, typeWithLabel, widget.stateSetter);
+                      blueprint, numUnits!, unitName, typeWithLabel, false, widget.stateSetter);
                 }
                 Navigator.pop(context);
               },

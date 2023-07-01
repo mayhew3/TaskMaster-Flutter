@@ -117,7 +117,7 @@ class TaskHelper {
         targetDate: _addToDate(taskItem.targetDate, duration),
         urgentDate: _addToDate(taskItem.urgentDate, duration),
         dueDate: _addToDate(taskItem.dueDate, duration),
-        recurIteration: recurIteration + 1
+        recurIteration: recurIteration + 1,
     );
 
     return nextScheduledTask;
@@ -180,7 +180,7 @@ class TaskHelper {
     _generatePreview(taskItemEdit, numUnits, unitSize, dateType);
   }
 
-  Future<TaskItem> snoozeTask(TaskItem taskItem, TaskItemBlueprint taskItemEdit, int numUnits, String unitSize, TaskDateType dateType, StateSetter stateSetter) async {
+  Future<TaskItem> snoozeTask(TaskItem taskItem, TaskItemBlueprint taskItemEdit, int numUnits, String unitSize, TaskDateType dateType, bool offCycle, StateSetter stateSetter) async {
     _generatePreview(taskItemEdit, numUnits, unitSize, dateType);
 
     DateTime? originalValue = dateType.dateFieldGetter(taskItem);
