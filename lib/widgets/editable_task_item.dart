@@ -129,8 +129,8 @@ class EditableTaskItemWidget extends StatelessWidget {
   DelayedCheckbox _getCheckbox() {
     if (addMode) {
       return DelayedCheckbox(
+        taskName: taskItem.name,
         initialState: initialCheckState!,
-        stateSetter: stateSetter,
         checkCycleWaiter: onTaskAssignmentToggle!,
         checkedColor: Colors.green,
         inactiveIcon: Icons.add,
@@ -139,9 +139,13 @@ class EditableTaskItemWidget extends StatelessWidget {
       var tmpTaskItem = taskItem;
       var completed = tmpTaskItem is TaskItem && tmpTaskItem.completionDate != null;
 
+      var pending = tmpTaskItem.pendingCompletion;
+
+      print("Checkbox: " + tmpTaskItem.name + ", " + completed.toString());
+
       return DelayedCheckbox(
-        initialState: completed ? CheckState.checked : CheckState.inactive,
-        stateSetter: stateSetter,
+        taskName: taskItem.name,
+        initialState: completed ? CheckState.checked : pending ? CheckState.pending : CheckState.inactive,
         checkCycleWaiter: onTaskCompleteToggle!,
       );
     }

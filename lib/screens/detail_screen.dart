@@ -35,6 +35,7 @@ class DetailScreen extends StatefulWidget {
 class DetailScreenState extends State<DetailScreen> {
 
   late bool completed;
+  late bool pending;
   late TaskItem taskItem;
   TimezoneHelper timezoneHelper = TimezoneHelper();
 
@@ -46,6 +47,7 @@ class DetailScreenState extends State<DetailScreen> {
   void initState() {
     super.initState();
     completed = (taskItem.completionDate != null);
+    pending = taskItem.pendingCompletion;
   }
 
   String formatDateTime(DateTime? dateTime) {
@@ -118,6 +120,7 @@ class DetailScreenState extends State<DetailScreen> {
     setState(() {
       this.taskItem = taskItem;
       completed = (taskItem.completionDate != null);
+      pending = false;
     });
   }
 
@@ -142,8 +145,10 @@ class DetailScreenState extends State<DetailScreen> {
   }
 
   Future<TaskItem> toggleAndUpdateCompleted(TaskItem taskItem, bool complete) async {
+    setState(() {
+      pending = true;
+    });
     var future = await widget.taskHelper.completeTask(taskItem, complete, (callback) => setState(() => callback()));
-    setState(() {});
     return future;
   }
 
@@ -172,8 +177,8 @@ class DetailScreenState extends State<DetailScreen> {
                 Padding(
                   padding: EdgeInsets.all(4.0),
                   child: DelayedCheckbox(
-                    initialState: completed ? CheckState.checked : CheckState.inactive,
-                    stateSetter: (callback) => setState(() => callback()),
+                    taskName: widget.taskItem.name,
+                    initialState: completed ? CheckState.checked : pending ? CheckState.pending : CheckState.inactive,
                     checkCycleWaiter: (checkState) async {
                       var updatedTask = await toggleAndUpdateCompleted(taskItem, CheckState.inactive == checkState);
                       refreshLocalTaskItem(updatedTask);
