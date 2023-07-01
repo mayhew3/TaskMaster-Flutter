@@ -177,6 +177,7 @@ void main() {
 
     expect(addedTask, isNot(null), reason: 'Expect new task to be created based on recur.');
     expect(addedTask, isNot(returnedTask));
+    expect(addedTask.completionDate, null);
     expect(addedTask.pendingCompletion, false);
 
     var newStart = DateUtil.withoutMillis(addedTask.startDate!);
