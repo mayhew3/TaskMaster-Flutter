@@ -83,7 +83,6 @@ class TaskListScreenState extends State<TaskListScreen> {
   Future<TaskItem> toggleAndUpdateCompleted(TaskItem taskItem, bool complete) async {
     recentlyCompleted.add(taskItem);
     var future = await widget.taskHelper.completeTask(taskItem, complete, (callback) => setState(() => callback()));
-    setState(() {});
     return future;
   }
 
@@ -300,6 +299,7 @@ class TaskListScreenState extends State<TaskListScreen> {
       showDialog<void>(context: context, builder: (context) => SnoozeDialog(
         taskItem: taskItem,
         taskHelper: widget.taskHelper,
+        stateSetter: (callback) => setState(() => callback()),
       ));
     };
     var taskCard = EditableTaskItemWidget(

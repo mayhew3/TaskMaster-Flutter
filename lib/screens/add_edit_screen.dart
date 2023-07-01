@@ -501,7 +501,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                 }
 
                 if (editMode()) {
-                  var updatedItem = await widget.taskHelper.updateTask(taskItem!, blueprint);
+                  var updatedItem = await widget.taskHelper.updateTask(taskItem!, blueprint, (callback) => setState(() => callback()));
                   var refresher = widget.taskItemRefresher;
                   if (refresher != null) {
                     refresher(updatedItem);
