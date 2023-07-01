@@ -117,14 +117,14 @@ class TaskItemBuilder {
         id: 1,
         personId: 1,
         name: name,
-        recurNumber: 1,
+        recurNumber: 6,
         recurUnit: 'Weeks',
         recurWait: recurWait,
         recurIteration: 1,
         anchorDate: DateTime.now(),
         anchorType: 'target');
     recurrenceId = 1;
-    recurNumber = 1;
+    recurNumber = 6;
     recurIteration = 1;
     recurUnit = 'Weeks';
     this.recurWait = recurWait;

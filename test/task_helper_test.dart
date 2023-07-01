@@ -147,9 +147,9 @@ void main() {
   test('completeTask recur', () async {
     timezoneHelper.configureLocalTimeZone();
 
-    var originalTask =  TaskItemBuilder
+    var originalTask = TaskItemBuilder
         .withDates()
-        .withRecur(true)
+        .withRecur(false)
         .create();
 
     var taskHelper = createTaskHelper(taskItems: [originalTask]);
@@ -167,7 +167,7 @@ void main() {
     verify(notificationScheduler.updateBadge());
     verify(taskRepository.addTaskIteration(any, any));
     verify(appState.addNewTaskToList(any));
-    // verify(notificationScheduler.updateNotificationForTask(any));
+    verify(notificationScheduler.updateNotificationForTask(any));
 
     expect(returnedTask.id, originalId);
     expect(returnedTask.pendingCompletion, false);
@@ -179,7 +179,7 @@ void main() {
     expect(addedTask, isNot(returnedTask));
     expect(addedTask.pendingCompletion, false);
 
-    var newStart = DateUtil.withoutMillis(addedTask!.startDate!);
+    var newStart = DateUtil.withoutMillis(addedTask.startDate!);
     var diff = newStart.difference(originalStart).inHours;
 
     var exactly42 = 42 * 24;
