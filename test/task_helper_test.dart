@@ -26,6 +26,8 @@ import 'test_mock_helper.dart';
 @GenerateNiceMocks([MockSpec<NavHelper>(), MockSpec<AppState>(), MockSpec<TaskRepository>(), MockSpec<NotificationScheduler>()])
 void main() {
 
+  int maxId = 0;
+
   MockTaskRepository taskRepository = new MockTaskRepository();
   MockNavHelper navHelper = MockNavHelper();
   MockTimezoneHelper timezoneHelper = MockTimezoneHelper();
@@ -36,6 +38,10 @@ void main() {
   TaskHelper createTaskHelper({List<TaskItem>? taskItems, List<Sprint>? sprints}) {
     when(taskRepository.appState).thenReturn(appState);
     when(appState.notificationScheduler).thenReturn(notificationScheduler);
+    when(appState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) {
+      maxId++;
+      return invocation.positionalArguments[0];
+    });
 
     var taskHelper = TaskHelper(
         appState: appState,
@@ -139,7 +145,7 @@ void main() {
     });
     when(taskRepository.addTaskIteration(argThat(isA<TaskItemPreview>()), any)).thenAnswer((invocation) {
       TaskItemPreview addedTask = invocation.positionalArguments[0];
-      return Future.value(TestMockHelper.mockAddTask(addedTask, 2));
+      return Future.value(TestMockHelper.mockAddTask(addedTask, maxId++));
     });
     when(appState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) => invocation.positionalArguments[0]);
   }
@@ -150,7 +156,7 @@ void main() {
     var originalTask = TaskItemBuilder
         .withDates()
         .withRecur(false)
-        .create();
+        .create(appState: appState);
 
     var taskHelper = createTaskHelper(taskItems: [originalTask]);
     expect(notificationScheduler, isNot(null));
@@ -167,13 +173,13 @@ void main() {
     verify(notificationScheduler.updateBadge());
     verify(taskRepository.addTaskIteration(any, any));
     verify(appState.addNewTaskToList(any));
-    verify(notificationScheduler.updateNotificationForTask(any));
-
     expect(returnedTask.id, originalId);
     expect(returnedTask.pendingCompletion, false);
     expect(returnedTask.completionDate, now);
 
-    TaskItemPreview addedTask = returnedTask.taskRecurrence!.getMostRecentIteration();
+    TaskItem addedTask = returnedTask.taskRecurrence!.getMostRecentIteration();
+
+    verify(notificationScheduler.updateNotificationForTask(addedTask));
 
     expect(addedTask, isNot(null), reason: 'Expect new task to be created based on recur.');
     expect(addedTask, isNot(returnedTask));
@@ -259,7 +265,7 @@ void main() {
   test('previewSnooze move multiple', () {
     var taskItem = TaskItemBuilder
         .withDates()
-        .create().createEditBlueprint();
+        .create(appState: appState).createEditBlueprint();
 
     var taskHelper = createTaskHelper();
 
@@ -281,7 +287,7 @@ void main() {
   test('previewSnooze add start', () {
     var taskItem = TaskItemBuilder
         .asDefault()
-        .create().createEditBlueprint();
+        .create(appState: appState).createEditBlueprint();
 
     var taskHelper = createTaskHelper();
 
@@ -297,7 +303,7 @@ void main() {
   test('snoozeTask move multiple', () async {
     var taskItem = TaskItemBuilder
         .withDates()
-        .create();
+        .create(appState: appState);
 
     var now = DateTime.now();
 
@@ -339,7 +345,7 @@ void main() {
   test('snooze task add start', () async {
     TaskItem taskItem = TaskItemBuilder
         .asDefault()
-        .create();
+        .create(appState: appState);
 
     var now = DateTime.now();
 
@@ -374,9 +380,9 @@ void main() {
 
   test('addSprintAndTasks', () async {
     List<TaskItem> taskItems = [
-      ((TaskItemBuilder.asDefault()..id=1).create()),
-      ((TaskItemBuilder.asDefault()..id=2).create()),
-      ((TaskItemBuilder.asDefault()..id=3).create()),
+      ((TaskItemBuilder.asDefault()..id=1).create(appState: appState)),
+      ((TaskItemBuilder.asDefault()..id=2).create(appState: appState)),
+      ((TaskItemBuilder.asDefault()..id=3).create(appState: appState)),
     ];
     Sprint sprint = currentSprint;
 
@@ -398,14 +404,13 @@ void main() {
 
   test('addTaskToSprint', () async {
     List<TaskItem> taskItems = [
-      ((TaskItemBuilder.asDefault()..id=1).create()),
-      ((TaskItemBuilder.asDefault()..id=2).create()),
-      ((TaskItemBuilder.asDefault()..id=3).create()),
+      ((TaskItemBuilder.asDefault()..id=1).create(appState: appState)),
+      ((TaskItemBuilder.asDefault()..id=2).create(appState: appState)),
+      ((TaskItemBuilder.asDefault()..id=3).create(appState: appState)),
     ];
     Sprint sprint = currentSprint;
 
     TaskHelper taskHelper = createTaskHelper(taskItems: taskItems, sprints: [pastSprint]);
-    AppState appState = taskHelper.appState;
     var notificationScheduler = appState.notificationScheduler;
     expect(notificationScheduler, isNot(null));
 

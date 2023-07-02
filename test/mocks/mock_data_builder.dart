@@ -1,4 +1,5 @@
 
+import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
@@ -53,7 +54,9 @@ class TaskItemBuilder {
     return taskItem;
   }
 
-  TaskItem create() {
+  TaskItem create({
+    AppState? appState
+  }) {
     TaskItem taskItem = new TaskItem(
       id: id!,
       personId: 1,
@@ -80,6 +83,10 @@ class TaskItemBuilder {
     TaskRecurrence? tmpTaskRecurrence = taskRecurrence;
     if (tmpTaskRecurrence != null) {
       tmpTaskRecurrence.addToTaskItems(taskItem);
+    }
+
+    if (appState != null) {
+      appState.addNewTaskToList(taskItem);
     }
 
     return taskItem;
