@@ -159,22 +159,25 @@ void main() {
   test('completeTask recur schedule', () async {
     timezoneHelper.configureLocalTimeZone();
 
-    var originalTask = TaskItemBuilder
+    var taskItem = TaskItemBuilder
         .withDates()
         .withRecur(false)
         .create();
 
-    var taskHelper = createTaskHelper(taskItems: [originalTask]);
+    var taskHelper = createTaskHelper(taskItems: [taskItem]);
     expect(notificationScheduler, isNot(null));
+
+    var taskRecurrence = taskItem.taskRecurrence;
+    expect(taskRecurrence, isNot(null));
 
     var now = DateTime.now();
 
     handleCompletion(now);
 
-    var originalId = originalTask.id;
-    var originalStart = DateUtil.withoutMillis(originalTask.startDate!);
+    var originalId = taskItem.id;
+    var originalStart = DateUtil.withoutMillis(taskItem.startDate!);
 
-    var returnedTask = await taskHelper.completeTask(originalTask, true, stateSetter);
+    var returnedTask = await taskHelper.completeTask(taskItem, true, stateSetter);
     verify(notificationScheduler.updateNotificationForTask(returnedTask));
     verify(notificationScheduler.updateBadge());
     verify(taskRepository.addTaskIteration(any, any));
@@ -182,6 +185,10 @@ void main() {
     expect(returnedTask.id, originalId);
     expect(returnedTask.pendingCompletion, false);
     expect(returnedTask.completionDate, now);
+
+    var returnedRecurrence = returnedTask.taskRecurrence;
+    expect(returnedRecurrence, isNot(null));
+    expect(returnedRecurrence, taskRecurrence);
 
     TaskItem addedTask = returnedTask.taskRecurrence!.getMostRecentIteration();
 
@@ -191,6 +198,10 @@ void main() {
     expect(addedTask, isNot(returnedTask));
     expect(addedTask.completionDate, null);
     expect(addedTask.pendingCompletion, false);
+
+    var addedItemRecurrence = addedTask.taskRecurrence;
+    expect(addedItemRecurrence, isNot(null));
+    expect(addedItemRecurrence, returnedRecurrence);
 
     var newStart = DateUtil.withoutMillis(addedTask.startDate!);
     var diff = newStart.difference(originalStart).inHours;
@@ -213,6 +224,9 @@ void main() {
     var taskHelper = createTaskHelper(taskItems: [taskItem]);
     expect(notificationScheduler, isNot(null));
 
+    var taskRecurrence = taskItem.taskRecurrence;
+    expect(taskRecurrence, isNot(null));
+
     var now = DateTime.now();
 
     handleCompletion(now);
@@ -228,6 +242,10 @@ void main() {
     expect(returnedTask.pendingCompletion, false);
     expect(returnedTask.completionDate, now);
 
+    var returnedRecurrence = returnedTask.taskRecurrence;
+    expect(returnedRecurrence, isNot(null));
+    expect(returnedRecurrence, taskRecurrence);
+
     TaskItem addedTask = returnedTask.taskRecurrence!.getMostRecentIteration();
 
     verify(notificationScheduler.updateNotificationForTask(addedTask));
@@ -236,6 +254,10 @@ void main() {
     expect(addedTask, isNot(returnedTask));
     expect(addedTask.completionDate, null);
     expect(addedTask.pendingCompletion, false);
+
+    var addedItemRecurrence = addedTask.taskRecurrence;
+    expect(addedItemRecurrence, isNot(null));
+    expect(addedItemRecurrence, returnedRecurrence);
 
     var newDue = DateUtil.withoutMillis(addedTask.dueDate!);
     var diff = newDue.difference(now).inHours;
