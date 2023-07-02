@@ -65,7 +65,21 @@ void main() {
     blueprint.completionDate = completionDate;
     return TestMockHelper.mockEditTask(taskItem, blueprint);
   }
-  
+
+  void handleCompletion() {
+    when(taskRepository.completeTask(argThat(isA<TaskItem>()), argThat(isA<DateTime?>()))).thenAnswer((invocation) {
+      TaskItem originalTask = invocation.positionalArguments[0];
+      DateTime? completionDate = invocation.positionalArguments[1];
+      TaskItem inboundTask = _mockComplete(originalTask, completionDate);
+      return Future.value(inboundTask);
+    });
+    when(taskRepository.addTaskIteration(argThat(isA<TaskItemPreview>()), any)).thenAnswer((invocation) {
+      TaskItemPreview addedTask = invocation.positionalArguments[0];
+      return Future.value(TestMockHelper.mockAddTask(addedTask, ++maxId));
+    });
+    when(appState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) => invocation.positionalArguments[0]);
+  }
+
   test('reloadTasks', () async {
     var taskHelper = createTaskHelper();
     var mockAppState = taskHelper.appState;
@@ -145,20 +159,6 @@ void main() {
 
   });
 
-  void handleCompletion() {
-    when(taskRepository.completeTask(argThat(isA<TaskItem>()), argThat(isA<DateTime?>()))).thenAnswer((invocation) {
-      TaskItem originalTask = invocation.positionalArguments[0];
-      DateTime? completionDate = invocation.positionalArguments[1];
-      TaskItem inboundTask = _mockComplete(originalTask, completionDate);
-      return Future.value(inboundTask);
-    });
-    when(taskRepository.addTaskIteration(argThat(isA<TaskItemPreview>()), any)).thenAnswer((invocation) {
-      TaskItemPreview addedTask = invocation.positionalArguments[0];
-      return Future.value(TestMockHelper.mockAddTask(addedTask, ++maxId));
-    });
-    when(appState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) => invocation.positionalArguments[0]);
-  }
-
   test('completeTask recur schedule', () async {
     timezoneHelper.configureLocalTimeZone();
 
@@ -172,6 +172,7 @@ void main() {
 
     var taskRecurrence = taskItem.taskRecurrence;
     expect(taskRecurrence, isNot(null));
+    expect(taskRecurrence!.recurIteration, 1);
 
     var now = DateTime.now();
 
@@ -192,6 +193,7 @@ void main() {
     var returnedRecurrence = returnedTask.taskRecurrence;
     expect(returnedRecurrence, isNot(null));
     expect(returnedRecurrence, taskRecurrence);
+    expect(returnedRecurrence!.recurIteration, 2);
 
     TaskItem addedTask = returnedTask.taskRecurrence!.getMostRecentIteration();
 
@@ -205,6 +207,7 @@ void main() {
     var addedItemRecurrence = addedTask.taskRecurrence;
     expect(addedItemRecurrence, isNot(null));
     expect(addedItemRecurrence, returnedRecurrence);
+    expect(addedItemRecurrence!.recurIteration, 2);
 
     var newStart = DateUtil.withoutMillis(addedTask.startDate!);
     var diff = newStart.difference(originalStart).inHours;
