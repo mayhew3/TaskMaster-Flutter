@@ -59,7 +59,7 @@ final Map<String, dynamic> catLitterJSON = {
   "recur_unit": "Days",
   "recur_wait": true,
   "recur_iteration": 1,
-  "recurrence_id": null,
+  "recurrence_id": 1,
   "date_added": catAdded.toIso8601String(),
   "retired": 0,
   "retired_date": null,
@@ -69,6 +69,21 @@ final Map<String, dynamic> catLitterJSON = {
       "sprint_id": currentSprint.id
     }
   ]
+};
+
+final Map<String, dynamic> catLitterRecurrenceJSON = {
+  "id": 1,
+  "person_id": 1,
+  "name": "Cat Litter",
+  "recur_number": 10,
+  "recur_unit": "Days",
+  "recur_wait": true,
+  "recur_iteration": 1,
+  "anchor_date": catAdded.toIso8601String(),
+  "anchor_type": "Target",
+  "date_added": catAdded.toIso8601String(),
+  "retired": 0,
+  "retired_date": null,
 };
 
 final DateTime bdayDue = DateTime.now().add(Duration(days: 20)).toUtc();
@@ -163,7 +178,7 @@ final Map<String, dynamic> pastJSON = {
   "recur_unit": 'Weeks',
   "recur_wait": false,
   "recur_iteration": 1,
-  "recurrence_id": null,
+  "recurrence_id": 1,
   "date_added": pastAdded.toIso8601String(),
   "retired": 0,
   "retired_date": null,

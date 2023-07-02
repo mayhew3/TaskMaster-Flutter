@@ -10,6 +10,8 @@ import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_item_preview.dart';
+import 'package:taskmaster/models/task_recurrence.dart';
+import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/notification_scheduler.dart';
 import 'package:taskmaster/task_helper.dart';
@@ -28,8 +30,6 @@ import 'test_mock_helper.dart';
 @GenerateNiceMocks([MockSpec<NavHelper>(), MockSpec<AppState>(), MockSpec<TaskRepository>(), MockSpec<NotificationScheduler>()])
 void main() {
 
-  int maxId = 0;
-
   MockTaskRepository taskRepository = new MockTaskRepository();
   MockNavHelper navHelper = MockNavHelper();
   MockTimezoneHelper timezoneHelper = MockTimezoneHelper();
@@ -37,18 +37,32 @@ void main() {
   MockNotificationScheduler notificationScheduler = new MockNotificationScheduler();
   StateSetter stateSetter = (callback) => callback();
 
-  TaskHelper createTaskHelper({List<TaskItem>? taskItems, List<Sprint>? sprints}) {
+  List<TaskItem> appTaskItems = [];
+  List<Sprint> appSprints = [];
+  List<TaskRecurrence> appTaskRecurrences = [];
+
+  TaskHelper createTaskHelper({List<TaskItem>? taskItems, List<Sprint>? sprints, List<TaskRecurrence>? taskRecurrences}) {
     when(taskRepository.appState).thenReturn(appState);
     when(appState.notificationScheduler).thenReturn(notificationScheduler);
     when(appState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) {
-      maxId++;
-      return invocation.positionalArguments[0];
+      TaskItem taskItem = invocation.positionalArguments[0];
+      appTaskItems.add(taskItem);
+      if (taskItem.taskRecurrence != null) {
+        appTaskRecurrences.add(taskItem.taskRecurrence!);
+      }
+      return taskItem;
     });
 
     if (taskItems != null) {
-      for (var taskItem in taskItems) {
-        appState.addNewTaskToList(taskItem);
-      }
+      appTaskItems = taskItems;
+    }
+
+    if (sprints != null) {
+      appSprints = sprints;
+    }
+
+    if (taskRecurrences != null) {
+      appTaskRecurrences = taskRecurrences;
     }
 
     var taskHelper = TaskHelper(
@@ -75,7 +89,7 @@ void main() {
     });
     when(taskRepository.addTaskIteration(argThat(isA<TaskItemPreview>()), any)).thenAnswer((invocation) {
       TaskItemPreview addedTask = invocation.positionalArguments[0];
-      return Future.value(TestMockHelper.mockAddTask(addedTask, ++maxId));
+      return Future.value(TestMockHelper.mockAddTask(addedTask, appTaskItems.length));
     });
     when(appState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) => invocation.positionalArguments[0]);
   }
@@ -111,6 +125,33 @@ void main() {
     verify(mockAppState.addNewTaskToList(taskItem));
     verify(notificationScheduler.updateNotificationForTask(birthdayTask));
     verify(notificationScheduler.updateBadge());
+  });
+
+  test('addTask with recurrence', () async {
+    var taskHelper = createTaskHelper(taskItems: [birthdayTask]);
+    var mockAppState = taskHelper.appState;
+    var notificationScheduler = mockAppState.notificationScheduler;
+    expect(notificationScheduler, isNot(null));
+    var taskItem = TaskItem.fromJson(catLitterJSON);
+    var taskItemBlueprint = TaskItemBlueprint.fromJson(catLitterJSON);
+
+    var taskRecurrence = TaskRecurrence.fromJson(catLitterRecurrenceJSON);
+    var taskRecurrenceBlueprint = TaskRecurrenceBlueprint.fromJson(catLitterRecurrenceJSON);
+
+    taskItemBlueprint.taskRecurrenceBlueprint = taskRecurrenceBlueprint;
+    taskItem.taskRecurrence = taskRecurrence;
+
+    when(taskRepository.addTask(taskItemBlueprint)).thenAnswer((_) => Future.value(taskItem));
+    when(mockAppState.addNewTaskToList(taskItem)).thenReturn(taskItem);
+
+    TaskItem resultingTaskItem = await taskHelper.addTask(taskItemBlueprint);
+    verify(taskRepository.addTask(taskItemBlueprint));
+    verify(mockAppState.addNewTaskToList(taskItem));
+    verify(notificationScheduler.updateNotificationForTask(catLitterTask));
+    verify(notificationScheduler.updateBadge());
+
+    expect(resultingTaskItem, taskItem);
+    expect(resultingTaskItem.taskRecurrence, taskRecurrence);
   });
 
   test('completeTask no recur', () async {
