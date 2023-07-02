@@ -156,7 +156,7 @@ void main() {
     when(appState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) => invocation.positionalArguments[0]);
   }
 
-  test('completeTask recur', () async {
+  test('completeTask recur schedule', () async {
     timezoneHelper.configureLocalTimeZone();
 
     var originalTask = TaskItemBuilder
@@ -200,6 +200,51 @@ void main() {
     var upperBound = exactly42 + 1;
 
     expect(diff, inInclusiveRange(lowerBound, upperBound), reason: 'Recurrence of 6 weeks should make new task 42 days after original.');
+  });
+
+  test('completeTask recur completed', () async {
+    timezoneHelper.configureLocalTimeZone();
+
+    var taskItem = TaskItemBuilder
+        .withDates()
+        .withRecur(true)
+        .create();
+
+    var taskHelper = createTaskHelper(taskItems: [taskItem]);
+    expect(notificationScheduler, isNot(null));
+
+    var now = DateTime.now();
+
+    handleCompletion(now);
+
+    var originalId = taskItem.id;
+
+    var returnedTask = await taskHelper.completeTask(taskItem, true, stateSetter);
+    verify(notificationScheduler.updateNotificationForTask(returnedTask));
+    verify(notificationScheduler.updateBadge());
+    verify(taskRepository.addTaskIteration(any, any));
+    verify(appState.addNewTaskToList(any));
+    expect(returnedTask.id, originalId);
+    expect(returnedTask.pendingCompletion, false);
+    expect(returnedTask.completionDate, now);
+
+    TaskItem addedTask = returnedTask.taskRecurrence!.getMostRecentIteration();
+
+    verify(notificationScheduler.updateNotificationForTask(addedTask));
+
+    expect(addedTask, isNot(null), reason: 'Expect new task to be created based on recur.');
+    expect(addedTask, isNot(returnedTask));
+    expect(addedTask.completionDate, null);
+    expect(addedTask.pendingCompletion, false);
+
+    var newDue = DateUtil.withoutMillis(addedTask.dueDate!);
+    var diff = newDue.difference(now).inHours;
+
+    var exactly42 = 42 * 24;
+    var lowerBound = exactly42 - 1;
+    var upperBound = exactly42 + 1;
+
+    expect(diff, inInclusiveRange(lowerBound, upperBound), reason: 'Recurrence of 6 weeks should make new task 42 days after now.');
   });
 
   test('completeTask uncomplete recur should not recur', () async {
