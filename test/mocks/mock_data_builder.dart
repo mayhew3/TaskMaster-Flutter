@@ -113,6 +113,11 @@ class TaskItemBuilder {
         ..dueDate = now.add(Duration(days: 8));
   }
 
+  TaskItemBuilder asCompleted() {
+    completionDate = DateTime.now();
+    return this;
+  }
+
   TaskItemBuilder withRecur(bool recurWait) {
     taskRecurrence = new TaskRecurrence(
         id: 1,

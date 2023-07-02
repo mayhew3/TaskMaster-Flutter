@@ -16,12 +16,14 @@ import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
+import 'matchers/approximate_time_matcher.dart';
 import 'mocks/mock_data.dart';
 import 'mocks/mock_data_builder.dart';
 import 'mocks/mock_task_master_auth.dart';
 import 'mocks/mock_timezone_helper.dart';
 import 'task_helper_test.mocks.dart';
 import 'test_mock_helper.dart';
+
 
 @GenerateNiceMocks([MockSpec<NavHelper>(), MockSpec<AppState>(), MockSpec<TaskRepository>(), MockSpec<NotificationScheduler>()])
 void main() {
@@ -143,10 +145,11 @@ void main() {
 
   });
 
-  void handleCompletion(DateTime now) {
-    when(taskRepository.completeTask(argThat(isA<TaskItem>()), any)).thenAnswer((invocation) {
+  void handleCompletion() {
+    when(taskRepository.completeTask(argThat(isA<TaskItem>()), argThat(isA<DateTime>()))).thenAnswer((invocation) {
       TaskItem originalTask = invocation.positionalArguments[0];
-      TaskItem inboundTask = _mockComplete(originalTask, now);
+      DateTime? completionDate = invocation.positionalArguments[1];
+      TaskItem inboundTask = _mockComplete(originalTask, completionDate);
       return Future.value(inboundTask);
     });
     when(taskRepository.addTaskIteration(argThat(isA<TaskItemPreview>()), any)).thenAnswer((invocation) {
@@ -172,7 +175,7 @@ void main() {
 
     var now = DateTime.now();
 
-    handleCompletion(now);
+    handleCompletion();
 
     var originalId = taskItem.id;
     var originalStart = DateUtil.withoutMillis(taskItem.startDate!);
@@ -184,7 +187,7 @@ void main() {
     verify(appState.addNewTaskToList(any));
     expect(returnedTask.id, originalId);
     expect(returnedTask.pendingCompletion, false);
-    expect(returnedTask.completionDate, now);
+    expect(returnedTask.completionDate, isApproximately(now));
 
     var returnedRecurrence = returnedTask.taskRecurrence;
     expect(returnedRecurrence, isNot(null));
@@ -229,7 +232,7 @@ void main() {
 
     var now = DateTime.now();
 
-    handleCompletion(now);
+    handleCompletion();
 
     var originalId = taskItem.id;
 
@@ -240,7 +243,7 @@ void main() {
     verify(appState.addNewTaskToList(any));
     expect(returnedTask.id, originalId);
     expect(returnedTask.pendingCompletion, false);
-    expect(returnedTask.completionDate, now);
+    expect(returnedTask.completionDate, isApproximately(now));
 
     var returnedRecurrence = returnedTask.taskRecurrence;
     expect(returnedRecurrence, isNot(null));
@@ -270,23 +273,25 @@ void main() {
   });
 
   test('completeTask uncomplete recur should not recur', () async {
-    var originalTask = catLitterTask;
+    var taskItem = TaskItemBuilder
+        .withDates()
+        .withRecur(false)
+        .asCompleted()
+        .create();
 
-    var taskHelper = createTaskHelper(taskItems: [originalTask]);
+    var taskHelper = createTaskHelper(taskItems: [taskItem]);
     var mockAppState = taskHelper.appState;
     var notificationScheduler = mockAppState.notificationScheduler;
     expect(notificationScheduler, isNot(null));
 
-    var inboundTask = _mockComplete(originalTask, null);
+    handleCompletion();
 
-    when(taskRepository.completeTask(originalTask, null)).thenAnswer((_) => Future.value(inboundTask));
-
-    var returnedTask = await taskHelper.completeTask(originalTask, false, stateSetter);
-    verify(notificationScheduler.updateNotificationForTask(originalTask));
+    var returnedTask = await taskHelper.completeTask(taskItem, false, stateSetter);
+    verify(notificationScheduler.updateNotificationForTask(taskItem));
     verify(notificationScheduler.updateBadge());
     verifyNever(taskRepository.addTask(any));
 
-    expect(returnedTask, originalTask);
+    expect(returnedTask, taskItem);
     expect(returnedTask.pendingCompletion, false);
     expect(returnedTask.completionDate, null);
   });
