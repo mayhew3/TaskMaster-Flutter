@@ -160,6 +160,8 @@ void main() {
     var notificationScheduler = mockAppState.notificationScheduler;
     expect(notificationScheduler, isNot(null));
 
+    expect(birthdayTask.taskRecurrence, null);
+
     var now = DateTime.now();
     var inboundTask = _mockComplete(birthdayTask, now);
 
@@ -174,6 +176,7 @@ void main() {
     expect(returnedTask.pendingCompletion, false);
     expect(returnedTask.completionDate, now);
     expect(returnedTask.completionDate, now);
+    expect(returnedTask.taskRecurrence, null);
 
   });
 
@@ -197,6 +200,7 @@ void main() {
     expect(returnedTask, originalTask);
     expect(returnedTask.pendingCompletion, false);
     expect(returnedTask.completionDate, null);
+    expect(returnedTask.taskRecurrence, null);
 
   });
 
