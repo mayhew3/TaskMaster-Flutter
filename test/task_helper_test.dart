@@ -12,6 +12,7 @@ import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_item_preview.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
+import 'package:taskmaster/models/task_recurrence_preview.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/notification_scheduler.dart';
 import 'package:taskmaster/task_helper.dart';
@@ -39,7 +40,7 @@ void main() {
 
   List<TaskItem> appTaskItems = [];
   List<Sprint> appSprints = [];
-  List<TaskRecurrence> appTaskRecurrences = [];
+  List<TaskRecurrencePreview> appTaskRecurrences = [];
 
   TaskHelper createTaskHelper({List<TaskItem>? taskItems, List<Sprint>? sprints, List<TaskRecurrence>? taskRecurrences}) {
     when(taskRepository.appState).thenReturn(appState);
