@@ -146,7 +146,7 @@ void main() {
   });
 
   void handleCompletion() {
-    when(taskRepository.completeTask(argThat(isA<TaskItem>()), argThat(isA<DateTime>()))).thenAnswer((invocation) {
+    when(taskRepository.completeTask(argThat(isA<TaskItem>()), argThat(isA<DateTime?>()))).thenAnswer((invocation) {
       TaskItem originalTask = invocation.positionalArguments[0];
       DateTime? completionDate = invocation.positionalArguments[1];
       TaskItem inboundTask = _mockComplete(originalTask, completionDate);
@@ -273,6 +273,8 @@ void main() {
   });
 
   test('completeTask uncomplete recur should not recur', () async {
+    timezoneHelper.configureLocalTimeZone();
+
     var taskItem = TaskItemBuilder
         .withDates()
         .withRecur(false)
