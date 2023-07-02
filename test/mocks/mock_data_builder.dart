@@ -54,9 +54,7 @@ class TaskItemBuilder {
     return taskItem;
   }
 
-  TaskItem create({
-    AppState? appState
-  }) {
+  TaskItem create() {
     TaskItem taskItem = new TaskItem(
       id: id!,
       personId: 1,
@@ -83,10 +81,6 @@ class TaskItemBuilder {
     TaskRecurrence? tmpTaskRecurrence = taskRecurrence;
     if (tmpTaskRecurrence != null) {
       tmpTaskRecurrence.addToTaskItems(taskItem);
-    }
-
-    if (appState != null) {
-      appState.addNewTaskToList(taskItem);
     }
 
     return taskItem;

@@ -43,6 +43,12 @@ void main() {
       return invocation.positionalArguments[0];
     });
 
+    if (taskItems != null) {
+      for (var taskItem in taskItems) {
+        appState.addNewTaskToList(taskItem);
+      }
+    }
+
     var taskHelper = TaskHelper(
         appState: appState,
         repository: taskRepository,
@@ -145,7 +151,7 @@ void main() {
     });
     when(taskRepository.addTaskIteration(argThat(isA<TaskItemPreview>()), any)).thenAnswer((invocation) {
       TaskItemPreview addedTask = invocation.positionalArguments[0];
-      return Future.value(TestMockHelper.mockAddTask(addedTask, maxId++));
+      return Future.value(TestMockHelper.mockAddTask(addedTask, ++maxId));
     });
     when(appState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) => invocation.positionalArguments[0]);
   }
@@ -156,7 +162,7 @@ void main() {
     var originalTask = TaskItemBuilder
         .withDates()
         .withRecur(false)
-        .create(appState: appState);
+        .create();
 
     var taskHelper = createTaskHelper(taskItems: [originalTask]);
     expect(notificationScheduler, isNot(null));
@@ -265,7 +271,7 @@ void main() {
   test('previewSnooze move multiple', () {
     var taskItem = TaskItemBuilder
         .withDates()
-        .create(appState: appState).createEditBlueprint();
+        .create().createEditBlueprint();
 
     var taskHelper = createTaskHelper();
 
@@ -287,7 +293,7 @@ void main() {
   test('previewSnooze add start', () {
     var taskItem = TaskItemBuilder
         .asDefault()
-        .create(appState: appState).createEditBlueprint();
+        .create().createEditBlueprint();
 
     var taskHelper = createTaskHelper();
 
@@ -303,7 +309,7 @@ void main() {
   test('snoozeTask move multiple', () async {
     var taskItem = TaskItemBuilder
         .withDates()
-        .create(appState: appState);
+        .create();
 
     var now = DateTime.now();
 
@@ -345,7 +351,7 @@ void main() {
   test('snooze task add start', () async {
     TaskItem taskItem = TaskItemBuilder
         .asDefault()
-        .create(appState: appState);
+        .create();
 
     var now = DateTime.now();
 
@@ -380,9 +386,9 @@ void main() {
 
   test('addSprintAndTasks', () async {
     List<TaskItem> taskItems = [
-      ((TaskItemBuilder.asDefault()..id=1).create(appState: appState)),
-      ((TaskItemBuilder.asDefault()..id=2).create(appState: appState)),
-      ((TaskItemBuilder.asDefault()..id=3).create(appState: appState)),
+      ((TaskItemBuilder.asDefault()..id=1).create()),
+      ((TaskItemBuilder.asDefault()..id=2).create()),
+      ((TaskItemBuilder.asDefault()..id=3).create()),
     ];
     Sprint sprint = currentSprint;
 
@@ -404,9 +410,9 @@ void main() {
 
   test('addTaskToSprint', () async {
     List<TaskItem> taskItems = [
-      ((TaskItemBuilder.asDefault()..id=1).create(appState: appState)),
-      ((TaskItemBuilder.asDefault()..id=2).create(appState: appState)),
-      ((TaskItemBuilder.asDefault()..id=3).create(appState: appState)),
+      ((TaskItemBuilder.asDefault()..id=1).create()),
+      ((TaskItemBuilder.asDefault()..id=2).create()),
+      ((TaskItemBuilder.asDefault()..id=3).create()),
     ];
     Sprint sprint = currentSprint;
 
