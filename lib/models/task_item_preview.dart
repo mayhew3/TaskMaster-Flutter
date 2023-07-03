@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
-import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/models/task_recurrence_preview.dart';
 
 /// This allows the `TaskItemPreview` class to access private members in
@@ -41,7 +40,7 @@ class TaskItemPreview extends DateHolder {
   final bool offCycle;
 
   @JsonKey(ignore: true)
-  TaskRecurrencePreview? _taskRecurrencePreview;
+  TaskRecurrencePreview? taskRecurrencePreview;
 
   @JsonKey(ignore: true)
   late int tmpId;
@@ -71,7 +70,7 @@ class TaskItemPreview extends DateHolder {
   }
 
   bool isRecurring() {
-    return _taskRecurrencePreview != null;
+    return taskRecurrencePreview != null;
   }
 
   /// `toJson` is the convention for a class to declare support for serialization
@@ -122,8 +121,6 @@ class TaskItemPreview extends DateHolder {
 
     return preview;
   }
-
-  TaskRecurrencePreview? get taskRecurrence => taskRecurrencePreview;
 
   bool isScheduledRecurrence() {
     var recurWaitValue = recurWait;

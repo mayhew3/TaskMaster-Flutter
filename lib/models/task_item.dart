@@ -75,8 +75,6 @@ class TaskItem extends TaskItemPreview {
     return taskRecurrencePreview != null;
   }
 
-  TaskRecurrencePreview? get taskRecurrence
-
   TaskItem createCopy() {
 
     // todo: make more dynamic?
