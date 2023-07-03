@@ -24,6 +24,12 @@ class TaskRecurrence extends TaskRecurrencePreview {
     required String anchorType,
   }) : super(id: id, personId: personId, name: name, recurNumber: recurNumber, recurUnit: recurUnit, recurWait: recurWait, recurIteration: recurIteration, anchorDate: anchorDate, anchorType: anchorType);
 
+  void addToTaskItems(TaskItem taskItem) {
+    taskItems.add(taskItem);
+    taskItem.taskRecurrence = this;
+    sortItems();
+  }
+
   /// A necessary factory constructor for creating a new User instance
   /// from a map. Pass the map to the generated `_$TaskRecurrenceFromJson()` constructor.
   /// The constructor is named after the source class, in this case, User.

@@ -50,6 +50,9 @@ class TaskHelper {
 
   Future<TaskItem> addTaskIteration(TaskItemPreview taskItem, int personId) async {
     TaskItem inboundTask = await repository.addTaskIteration(taskItem, personId);
+    if (inboundTask.taskRecurrence != null) {
+      inboundTask.taskRecurrence!.addToTaskItems(inboundTask);
+    }
     return updateTaskList(inboundTask);
   }
 
@@ -113,11 +116,12 @@ class TaskHelper {
     Duration duration = dateWithTime.difference(anchorDate);
 
     TaskItemPreview nextScheduledTask = taskItem.createPreview(
-        startDate: _addToDate(taskItem.startDate, duration),
-        targetDate: _addToDate(taskItem.targetDate, duration),
-        urgentDate: _addToDate(taskItem.urgentDate, duration),
-        dueDate: _addToDate(taskItem.dueDate, duration),
-        recurIteration: recurIteration + 1,
+      startDate: _addToDate(taskItem.startDate, duration),
+      targetDate: _addToDate(taskItem.targetDate, duration),
+      urgentDate: _addToDate(taskItem.urgentDate, duration),
+      dueDate: _addToDate(taskItem.dueDate, duration),
+      recurIteration: recurIteration + 1,
+      incrementRecurrence: true,
     );
 
     return nextScheduledTask;

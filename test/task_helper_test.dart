@@ -39,7 +39,6 @@ void main() {
   StateSetter stateSetter = (callback) => callback();
 
   List<TaskItem> appTaskItems = [];
-  List<Sprint> appSprints = [];
   List<TaskRecurrencePreview> appTaskRecurrences = [];
 
   TaskHelper createTaskHelper({List<TaskItem>? taskItems, List<Sprint>? sprints, List<TaskRecurrence>? taskRecurrences}) {
@@ -48,18 +47,14 @@ void main() {
     when(appState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) {
       TaskItem taskItem = invocation.positionalArguments[0];
       appTaskItems.add(taskItem);
-      if (taskItem.taskRecurrence != null) {
-        appTaskRecurrences.add(taskItem.taskRecurrence!);
+      if (taskItem.taskRecurrencePreview != null) {
+        appTaskRecurrences.add(taskItem.taskRecurrencePreview!);
       }
       return taskItem;
     });
 
     if (taskItems != null) {
       appTaskItems = taskItems;
-    }
-
-    if (sprints != null) {
-      appSprints = sprints;
     }
 
     if (taskRecurrences != null) {
@@ -140,7 +135,7 @@ void main() {
     var taskRecurrenceBlueprint = TaskRecurrenceBlueprint.fromJson(catLitterRecurrenceJSON);
 
     taskItemBlueprint.taskRecurrenceBlueprint = taskRecurrenceBlueprint;
-    taskItem.taskRecurrence = taskRecurrence;
+    taskItem.taskRecurrencePreview = taskRecurrence;
 
     when(taskRepository.addTask(taskItemBlueprint)).thenAnswer((_) => Future.value(taskItem));
     when(mockAppState.addNewTaskToList(taskItem)).thenReturn(taskItem);
@@ -152,7 +147,7 @@ void main() {
     verify(notificationScheduler.updateBadge());
 
     expect(resultingTaskItem, taskItem);
-    expect(resultingTaskItem.taskRecurrence, taskRecurrence);
+    expect(resultingTaskItem.taskRecurrencePreview, taskRecurrence);
   });
 
   test('completeTask no recur', () async {
@@ -161,7 +156,7 @@ void main() {
     var notificationScheduler = mockAppState.notificationScheduler;
     expect(notificationScheduler, isNot(null));
 
-    expect(birthdayTask.taskRecurrence, null);
+    expect(birthdayTask.taskRecurrencePreview, null);
 
     var now = DateTime.now();
     var inboundTask = _mockComplete(birthdayTask, now);
@@ -177,7 +172,7 @@ void main() {
     expect(returnedTask.pendingCompletion, false);
     expect(returnedTask.completionDate, now);
     expect(returnedTask.completionDate, now);
-    expect(returnedTask.taskRecurrence, null);
+    expect(returnedTask.taskRecurrencePreview, null);
 
   });
 
@@ -201,7 +196,7 @@ void main() {
     expect(returnedTask, originalTask);
     expect(returnedTask.pendingCompletion, false);
     expect(returnedTask.completionDate, null);
-    expect(returnedTask.taskRecurrence, null);
+    expect(returnedTask.taskRecurrencePreview, null);
 
   });
 
@@ -236,12 +231,12 @@ void main() {
     expect(returnedTask.pendingCompletion, false);
     expect(returnedTask.completionDate, isApproximately(now));
 
-    var returnedRecurrence = returnedTask.taskRecurrence;
+    var returnedRecurrence = returnedTask.taskRecurrencePreview;
     expect(returnedRecurrence, isNot(null));
     expect(returnedRecurrence, taskRecurrence);
     expect(returnedRecurrence!.recurIteration, 2);
 
-    TaskItem addedTask = returnedTask.taskRecurrence!.getMostRecentIteration();
+    TaskItem addedTask = returnedTask.taskRecurrencePreview!.getMostRecentIteration();
 
     verify(notificationScheduler.updateNotificationForTask(addedTask));
 
@@ -250,7 +245,7 @@ void main() {
     expect(addedTask.completionDate, null);
     expect(addedTask.pendingCompletion, false);
 
-    var addedItemRecurrence = addedTask.taskRecurrence;
+    var addedItemRecurrence = addedTask.taskRecurrencePreview;
     expect(addedItemRecurrence, isNot(null));
     expect(addedItemRecurrence, returnedRecurrence);
     expect(addedItemRecurrence!.recurIteration, 2);
@@ -276,7 +271,7 @@ void main() {
     var taskHelper = createTaskHelper(taskItems: [taskItem]);
     expect(notificationScheduler, isNot(null));
 
-    var taskRecurrence = taskItem.taskRecurrence;
+    var taskRecurrence = taskItem.taskRecurrencePreview;
     expect(taskRecurrence, isNot(null));
 
     var now = DateTime.now();
@@ -294,11 +289,11 @@ void main() {
     expect(returnedTask.pendingCompletion, false);
     expect(returnedTask.completionDate, isApproximately(now));
 
-    var returnedRecurrence = returnedTask.taskRecurrence;
+    var returnedRecurrence = returnedTask.taskRecurrencePreview;
     expect(returnedRecurrence, isNot(null));
     expect(returnedRecurrence, taskRecurrence);
 
-    TaskItem addedTask = returnedTask.taskRecurrence!.getMostRecentIteration();
+    TaskItem addedTask = returnedTask.taskRecurrencePreview!.getMostRecentIteration();
 
     verify(notificationScheduler.updateNotificationForTask(addedTask));
 
@@ -307,7 +302,7 @@ void main() {
     expect(addedTask.completionDate, null);
     expect(addedTask.pendingCompletion, false);
 
-    var addedItemRecurrence = addedTask.taskRecurrence;
+    var addedItemRecurrence = addedTask.taskRecurrencePreview;
     expect(addedItemRecurrence, isNot(null));
     expect(addedItemRecurrence, returnedRecurrence);
 

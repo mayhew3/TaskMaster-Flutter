@@ -1,6 +1,7 @@
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/models/task_item_preview.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 
 /// This allows the `TaskRecurrencePreview` class to access private members in
@@ -40,12 +41,6 @@ class TaskRecurrencePreview {
     required this.anchorType,
   });
 
-  void addToTaskItems(TaskItem taskItem) {
-    taskItems.add(taskItem);
-    taskItem.taskRecurrence = this;
-    sortItems();
-  }
-
   void sortItems() {
     taskItems.sort((t1, t2) => t1.recurIteration!.compareTo(t2.recurIteration!));
   }
@@ -69,7 +64,16 @@ class TaskRecurrencePreview {
   }
 
   TaskRecurrencePreview createEditPreview() {
-    TaskRecurrencePreview preview = TaskRecurrencePreview(id: id, personId: personId, name: name, recurNumber: recurNumber, recurUnit: recurUnit, recurWait: recurWait, recurIteration: recurIteration, anchorDate: anchorDate, anchorType: anchorType);
+    TaskRecurrencePreview preview = TaskRecurrencePreview(
+        id: id,
+        personId: personId,
+        name: name,
+        recurNumber: recurNumber,
+        recurUnit: recurUnit,
+        recurWait: recurWait,
+        recurIteration: recurIteration,
+        anchorDate: anchorDate,
+        anchorType: anchorType);
 
     return preview;
   }

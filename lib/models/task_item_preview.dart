@@ -41,7 +41,7 @@ class TaskItemPreview extends DateHolder {
   final bool offCycle;
 
   @JsonKey(ignore: true)
-  TaskRecurrencePreview? taskRecurrence;
+  TaskRecurrencePreview? _taskRecurrencePreview;
 
   @JsonKey(ignore: true)
   late int tmpId;
@@ -71,7 +71,7 @@ class TaskItemPreview extends DateHolder {
   }
 
   bool isRecurring() {
-    return taskRecurrence != null;
+    return _taskRecurrencePreview != null;
   }
 
   /// `toJson` is the convention for a class to declare support for serialization
@@ -85,6 +85,7 @@ class TaskItemPreview extends DateHolder {
     DateTime? urgentDate,
     DateTime? dueDate,
     int? recurIteration,
+    bool incrementRecurrence = false,
   }) {
 
     // todo: make more dynamic?
@@ -110,13 +111,19 @@ class TaskItemPreview extends DateHolder {
         offCycle: offCycle
     );
 
-    var taskRecurrenceBlueprint = taskRecurrence;
+    var taskRecurrenceBlueprint = taskRecurrencePreview;
     if (taskRecurrenceBlueprint != null) {
-      preview.taskRecurrence = taskRecurrenceBlueprint;
+      var recurrencePreview = taskRecurrenceBlueprint.createEditPreview();
+      if (incrementRecurrence) {
+        recurrencePreview.recurIteration++;
+      }
+      preview.taskRecurrencePreview = recurrencePreview;
     }
 
     return preview;
   }
+
+  TaskRecurrencePreview? get taskRecurrence => taskRecurrencePreview;
 
   bool isScheduledRecurrence() {
     var recurWaitValue = recurWait;

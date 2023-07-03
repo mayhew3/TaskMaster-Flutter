@@ -103,8 +103,21 @@ class TestMockHelper {
       recurIteration: taskItemPreview.recurIteration,
     );
 
-    var taskRecurrence = taskItemPreview.taskRecurrence;
-    if (taskRecurrence != null) {
+    var taskRecurrencePreview = taskItemPreview.taskRecurrencePreview;
+
+    if (taskRecurrencePreview != null) {
+
+      var taskRecurrence = new TaskRecurrence(
+          id: id,
+          personId: taskRecurrencePreview.personId,
+          name: taskRecurrencePreview.name,
+          recurNumber: taskRecurrencePreview.recurNumber,
+          recurUnit: taskRecurrencePreview.recurUnit,
+          recurWait: taskRecurrencePreview.recurWait,
+          recurIteration: taskRecurrencePreview.recurIteration,
+          anchorDate: taskRecurrencePreview.anchorDate,
+          anchorType: taskRecurrencePreview.anchorType);
+
       taskRecurrence.addToTaskItems(taskItem);
     }
 
@@ -135,7 +148,7 @@ class TestMockHelper {
       recurIteration: blueprint.recurIteration,
     );
 
-    taskItem.taskRecurrence = original.taskRecurrence;
+    taskItem.taskRecurrencePreview = original.taskRecurrencePreview;
 
     return taskItem;
   }
