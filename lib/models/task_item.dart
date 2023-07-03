@@ -4,6 +4,7 @@ import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_item_preview.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
+import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 import 'package:taskmaster/models/task_recurrence_preview.dart';
 
 /// This allows the `Sprint` class to access private members in
@@ -102,12 +103,12 @@ class TaskItem extends TaskItemPreview {
         recurIteration: recurIteration
     );
 
-    fields.taskRecurrencePreview = taskRecurrencePreview;
+    fields.taskRecurrence = taskRecurrence;
 
     return fields;
   }
 
-  TaskItemBlueprint createEditBlueprint() {
+  TaskItemBlueprint createCreateBlueprint() {
     TaskItemBlueprint blueprint = TaskItemBlueprint();
 
     blueprint.name = name;
@@ -127,6 +128,8 @@ class TaskItem extends TaskItemPreview {
     blueprint.recurWait = recurWait;
     blueprint.recurrenceId = recurrenceId;
     blueprint.recurIteration = recurIteration;
+
+    blueprint.taskRecurrenceBlueprint = TaskRecurrenceBlueprint();
 
     return blueprint;
   }

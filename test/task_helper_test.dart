@@ -71,7 +71,7 @@ void main() {
   }
 
   TaskItem _mockComplete(TaskItem taskItem, DateTime? completionDate) {
-    var blueprint = taskItem.createEditBlueprint();
+    var blueprint = taskItem.createCreateBlueprint();
     blueprint.completionDate = completionDate;
     return TestMockHelper.mockEditTask(taskItem, blueprint);
   }
@@ -361,7 +361,7 @@ void main() {
 
   test('updateTask', () async {
     var taskItem = birthdayTask.createCopy();
-    var blueprint = taskItem.createEditBlueprint();
+    var blueprint = taskItem.createCreateBlueprint();
 
     var taskHelper = createTaskHelper(taskItems: [taskItem]);
     var mockAppState = taskHelper.appState;
@@ -389,7 +389,7 @@ void main() {
   test('previewSnooze move multiple', () {
     var taskItem = TaskItemBuilder
         .withDates()
-        .create().createEditBlueprint();
+        .create().createCreateBlueprint();
 
     var taskHelper = createTaskHelper();
 
@@ -411,7 +411,7 @@ void main() {
   test('previewSnooze add start', () {
     var taskItem = TaskItemBuilder
         .asDefault()
-        .create().createEditBlueprint();
+        .create().createCreateBlueprint();
 
     var taskHelper = createTaskHelper();
 
@@ -438,7 +438,7 @@ void main() {
 
     var originalTarget = taskItem.targetDate;
 
-    var blueprint = taskItem.createEditBlueprint();
+    var blueprint = taskItem.createCreateBlueprint();
 
     when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((_) => Future.value(TestMockHelper.mockEditTask(taskItem, blueprint)));
 
@@ -480,7 +480,7 @@ void main() {
 
     var originalStart = taskItem.startDate;
 
-    var blueprint = taskItem.createEditBlueprint();
+    var blueprint = taskItem.createCreateBlueprint();
 
     when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((_) => Future.value(TestMockHelper.mockEditTask(taskItem, blueprint)));
 

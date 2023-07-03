@@ -54,7 +54,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
   @override
   void initState() {
     super.initState();
-    blueprint = widget.taskItem.createEditBlueprint();
+    blueprint = widget.taskItem.createCreateBlueprint();
     TaskDateTypes.allTypes.forEach((dateType) {
       var dateFieldOfType = dateType.dateFieldGetter(blueprint);
       if (dateFieldOfType != null) {
