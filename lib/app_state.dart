@@ -162,7 +162,15 @@ class AppState {
     _taskItems.remove(taskItem);
   }
 
-  // todo: need to replace the task item in active sprint as well
+  void replaceTaskRecurrence(TaskRecurrence oldRecurrence, TaskRecurrence newRecurrence) {
+    for (TaskItem taskItem in oldRecurrence.taskItems) {
+      newRecurrence.addToTaskItems(taskItem);
+    }
+
+    var indexOf = _taskRecurrences.indexOf(oldRecurrence);
+    _taskRecurrences[indexOf] = newRecurrence;
+  }
+
   void replaceTaskItem(TaskItem oldTaskItem, TaskItem newTaskItem) {
     var indexOf = _taskItems.indexOf(oldTaskItem);
     _taskItems[indexOf] = newTaskItem;
@@ -173,6 +181,13 @@ class AppState {
       var sprintIndexOf = sprintItems.indexOf(oldTaskItem);
       if (sprintIndexOf > -1) {
         sprintItems[sprintIndexOf] = newTaskItem;
+      }
+    }
+
+    for (var recurrence in _taskRecurrences) {
+      var recurIndex = recurrence.taskItems.indexOf(oldTaskItem);
+      if (recurIndex >= 0) {
+        recurrence.taskItems[recurIndex] = newTaskItem;
       }
     }
   }

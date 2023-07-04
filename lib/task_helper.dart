@@ -7,6 +7,8 @@ import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_item_preview.dart';
+import 'package:taskmaster/models/task_recurrence.dart';
+import 'package:taskmaster/models/task_recurrence_preview.dart';
 import 'package:taskmaster/task_repository.dart';
 
 import 'app_state.dart';
@@ -43,20 +45,30 @@ class TaskHelper {
     await appState.syncAllNotifications();
   }
 
-  Future<TaskItem> addTask(TaskItemBlueprint taskItem) async {
+  Future<TaskItem> addTask(TaskItemBlueprint taskItem, StateSetter stateSetter) async {
     TaskItem inboundTask = await repository.addTask(taskItem);
-    return updateTaskList(inboundTask);
+    return updateTaskList(inboundTask, stateSetter);
   }
 
-  Future<TaskItem> addTaskIteration(TaskItemPreview taskItem, int personId) async {
+  Future<TaskItem> addTaskIteration(TaskItemPreview taskItem, TaskRecurrence? existingRecurrence, int personId, StateSetter stateSetter) async {
+    await maybeUpdateRecurrence(existingRecurrence, taskItem.taskRecurrencePreview, stateSetter);
     TaskItem inboundTask = await repository.addTaskIteration(taskItem, personId);
     if (inboundTask.taskRecurrence != null) {
       inboundTask.taskRecurrence!.addToTaskItems(inboundTask);
     }
-    return updateTaskList(inboundTask);
+    return updateTaskList(inboundTask, stateSetter);
   }
 
-  TaskItem updateTaskList(TaskItem committedTask) {
+  Future<void> maybeUpdateRecurrence(TaskRecurrence? existingRecurrence, TaskRecurrencePreview? recurrencePreview, StateSetter stateSetter) async {
+    if (recurrencePreview != null && existingRecurrence != null) {
+      TaskRecurrence inboundRecurrence = await repository.updateTaskRecurrence(recurrencePreview);
+      stateSetter(() {
+        appState.replaceTaskRecurrence(existingRecurrence, inboundRecurrence);
+      });
+    }
+  }
+
+  TaskItem updateTaskList(TaskItem committedTask, StateSetter stateSetter) {
     stateSetter(() {
       var addedTask = appState.addNewTaskToList(committedTask);
       appState.notificationScheduler.updateNotificationForTask(addedTask);
@@ -152,7 +164,7 @@ class TaskHelper {
     appState.notificationScheduler.updateBadge();
 
     if (nextScheduledTask != null) {
-      await addTaskIteration(nextScheduledTask, personId);
+      await addTaskIteration(nextScheduledTask, taskItem.taskRecurrence, personId, stateSetter);
     }
 
     return inboundTask;

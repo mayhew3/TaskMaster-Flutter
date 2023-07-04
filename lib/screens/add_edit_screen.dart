@@ -507,7 +507,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                     refresher(updatedItem);
                   }
                 } else // add mode {
-                  await widget.taskHelper.addTask(blueprint);
+                  await widget.taskHelper.addTask(blueprint, (callback) => setState(() => callback()));
               }
 
               Navigator.pop(context);

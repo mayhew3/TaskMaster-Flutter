@@ -6,22 +6,23 @@
 import 'dart:async' as _i14;
 
 import 'package:flutter/material.dart' as _i15;
-import 'package:google_sign_in/google_sign_in.dart' as _i12;
+import 'package:google_sign_in/google_sign_in.dart' as _i13;
 import 'package:http/http.dart' as _i7;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:taskmaster/app_state.dart' as _i6;
 import 'package:taskmaster/auth.dart' as _i2;
 import 'package:taskmaster/models/snooze.dart' as _i8;
 import 'package:taskmaster/models/sprint.dart' as _i9;
-import 'package:taskmaster/models/task_date_type.dart' as _i18;
+import 'package:taskmaster/models/task_date_type.dart' as _i19;
 import 'package:taskmaster/models/task_item.dart' as _i5;
 import 'package:taskmaster/models/task_item_blueprint.dart' as _i17;
-import 'package:taskmaster/models/task_item_preview.dart' as _i11;
-import 'package:taskmaster/models/task_recurrence.dart' as _i13;
+import 'package:taskmaster/models/task_item_preview.dart' as _i12;
+import 'package:taskmaster/models/task_recurrence.dart' as _i10;
+import 'package:taskmaster/models/task_recurrence_preview.dart' as _i18;
 import 'package:taskmaster/nav_helper.dart' as _i4;
 import 'package:taskmaster/notification_scheduler.dart' as _i3;
 import 'package:taskmaster/task_helper.dart' as _i16;
-import 'package:taskmaster/task_repository.dart' as _i10;
+import 'package:taskmaster/task_repository.dart' as _i11;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -126,9 +127,9 @@ class _FakeSprint_8 extends _i1.SmartFake implements _i9.Sprint {
         );
 }
 
-class _FakeTaskRepository_9 extends _i1.SmartFake
-    implements _i10.TaskRepository {
-  _FakeTaskRepository_9(
+class _FakeTaskRecurrence_9 extends _i1.SmartFake
+    implements _i10.TaskRecurrence {
+  _FakeTaskRecurrence_9(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -137,9 +138,20 @@ class _FakeTaskRepository_9 extends _i1.SmartFake
         );
 }
 
-class _FakeTaskItemPreview_10 extends _i1.SmartFake
-    implements _i11.TaskItemPreview {
-  _FakeTaskItemPreview_10(
+class _FakeTaskRepository_10 extends _i1.SmartFake
+    implements _i11.TaskRepository {
+  _FakeTaskRepository_10(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeTaskItemPreview_11 extends _i1.SmartFake
+    implements _i12.TaskItemPreview {
+  _FakeTaskItemPreview_11(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -179,7 +191,7 @@ class MockAppState extends _i1.Mock implements _i6.AppState {
         ),
       ) as _i2.TaskMasterAuth);
   @override
-  set currentUser(_i12.GoogleSignInAccount? _currentUser) => super.noSuchMethod(
+  set currentUser(_i13.GoogleSignInAccount? _currentUser) => super.noSuchMethod(
         Invocation.setter(
           #currentUser,
           _currentUser,
@@ -286,7 +298,7 @@ class MockAppState extends _i1.Mock implements _i6.AppState {
   void updateTasksAndSprints(
     List<_i5.TaskItem>? taskItems,
     List<_i9.Sprint>? sprints,
-    List<_i13.TaskRecurrence>? taskRecurrences,
+    List<_i10.TaskRecurrence>? taskRecurrences,
   ) =>
       super.noSuchMethod(
         Invocation.method(
@@ -428,6 +440,21 @@ class MockAppState extends _i1.Mock implements _i6.AppState {
         returnValueForMissingStub: null,
       );
   @override
+  void replaceTaskRecurrence(
+    _i10.TaskRecurrence? oldRecurrence,
+    _i10.TaskRecurrence? newRecurrence,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #replaceTaskRecurrence,
+          [
+            oldRecurrence,
+            newRecurrence,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   void replaceTaskItem(
     _i5.TaskItem? oldTaskItem,
     _i5.TaskItem? newTaskItem,
@@ -464,7 +491,7 @@ class MockAppState extends _i1.Mock implements _i6.AppState {
 /// A class which mocks [TaskRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockTaskRepository extends _i1.Mock implements _i10.TaskRepository {
+class MockTaskRepository extends _i1.Mock implements _i11.TaskRepository {
   @override
   _i6.AppState get appState => (super.noSuchMethod(
         Invocation.getter(#appState),
@@ -595,7 +622,7 @@ class MockTaskRepository extends _i1.Mock implements _i10.TaskRepository {
       ) as _i14.Future<_i5.TaskItem>);
   @override
   _i14.Future<_i5.TaskItem> addTaskIteration(
-    _i11.TaskItemPreview? taskItemPreview,
+    _i12.TaskItemPreview? taskItemPreview,
     int? personId,
   ) =>
       (super.noSuchMethod(
@@ -757,6 +784,31 @@ class MockTaskRepository extends _i1.Mock implements _i10.TaskRepository {
         )),
       ) as _i14.Future<_i5.TaskItem>);
   @override
+  _i14.Future<_i10.TaskRecurrence> updateTaskRecurrence(
+          _i18.TaskRecurrencePreview? taskRecurrencePreview) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateTaskRecurrence,
+          [taskRecurrencePreview],
+        ),
+        returnValue:
+            _i14.Future<_i10.TaskRecurrence>.value(_FakeTaskRecurrence_9(
+          this,
+          Invocation.method(
+            #updateTaskRecurrence,
+            [taskRecurrencePreview],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i14.Future<_i10.TaskRecurrence>.value(_FakeTaskRecurrence_9(
+          this,
+          Invocation.method(
+            #updateTaskRecurrence,
+            [taskRecurrencePreview],
+          ),
+        )),
+      ) as _i14.Future<_i10.TaskRecurrence>);
+  @override
   _i14.Future<void> deleteTask(_i5.TaskItem? taskItem) => (super.noSuchMethod(
         Invocation.method(
           #deleteTask,
@@ -784,17 +836,17 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
         ),
       ) as _i6.AppState);
   @override
-  _i10.TaskRepository get repository => (super.noSuchMethod(
+  _i11.TaskRepository get repository => (super.noSuchMethod(
         Invocation.getter(#repository),
-        returnValue: _FakeTaskRepository_9(
+        returnValue: _FakeTaskRepository_10(
           this,
           Invocation.getter(#repository),
         ),
-        returnValueForMissingStub: _FakeTaskRepository_9(
+        returnValueForMissingStub: _FakeTaskRepository_10(
           this,
           Invocation.getter(#repository),
         ),
-      ) as _i10.TaskRepository);
+      ) as _i11.TaskRepository);
   @override
   _i2.TaskMasterAuth get auth => (super.noSuchMethod(
         Invocation.getter(#auth),
@@ -843,17 +895,26 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
         returnValueForMissingStub: _i14.Future<void>.value(),
       ) as _i14.Future<void>);
   @override
-  _i14.Future<_i5.TaskItem> addTask(_i17.TaskItemBlueprint? taskItem) =>
+  _i14.Future<_i5.TaskItem> addTask(
+    _i17.TaskItemBlueprint? taskItem,
+    _i15.StateSetter? stateSetter,
+  ) =>
       (super.noSuchMethod(
         Invocation.method(
           #addTask,
-          [taskItem],
+          [
+            taskItem,
+            stateSetter,
+          ],
         ),
         returnValue: _i14.Future<_i5.TaskItem>.value(_FakeTaskItem_3(
           this,
           Invocation.method(
             #addTask,
-            [taskItem],
+            [
+              taskItem,
+              stateSetter,
+            ],
           ),
         )),
         returnValueForMissingStub:
@@ -861,21 +922,28 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
           this,
           Invocation.method(
             #addTask,
-            [taskItem],
+            [
+              taskItem,
+              stateSetter,
+            ],
           ),
         )),
       ) as _i14.Future<_i5.TaskItem>);
   @override
   _i14.Future<_i5.TaskItem> addTaskIteration(
-    _i11.TaskItemPreview? taskItem,
+    _i12.TaskItemPreview? taskItem,
+    _i10.TaskRecurrence? existingRecurrence,
     int? personId,
+    _i15.StateSetter? stateSetter,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
           #addTaskIteration,
           [
             taskItem,
+            existingRecurrence,
             personId,
+            stateSetter,
           ],
         ),
         returnValue: _i14.Future<_i5.TaskItem>.value(_FakeTaskItem_3(
@@ -884,7 +952,9 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
             #addTaskIteration,
             [
               taskItem,
+              existingRecurrence,
               personId,
+              stateSetter,
             ],
           ),
         )),
@@ -895,35 +965,67 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
             #addTaskIteration,
             [
               taskItem,
+              existingRecurrence,
               personId,
+              stateSetter,
             ],
           ),
         )),
       ) as _i14.Future<_i5.TaskItem>);
   @override
-  _i5.TaskItem updateTaskList(_i5.TaskItem? committedTask) =>
+  _i14.Future<void> maybeUpdateRecurrence(
+    _i10.TaskRecurrence? existingRecurrence,
+    _i18.TaskRecurrencePreview? recurrencePreview,
+    _i15.StateSetter? stateSetter,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #maybeUpdateRecurrence,
+          [
+            existingRecurrence,
+            recurrencePreview,
+            stateSetter,
+          ],
+        ),
+        returnValue: _i14.Future<void>.value(),
+        returnValueForMissingStub: _i14.Future<void>.value(),
+      ) as _i14.Future<void>);
+  @override
+  _i5.TaskItem updateTaskList(
+    _i5.TaskItem? committedTask,
+    _i15.StateSetter? stateSetter,
+  ) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateTaskList,
-          [committedTask],
+          [
+            committedTask,
+            stateSetter,
+          ],
         ),
         returnValue: _FakeTaskItem_3(
           this,
           Invocation.method(
             #updateTaskList,
-            [committedTask],
+            [
+              committedTask,
+              stateSetter,
+            ],
           ),
         ),
         returnValueForMissingStub: _FakeTaskItem_3(
           this,
           Invocation.method(
             #updateTaskList,
-            [committedTask],
+            [
+              committedTask,
+              stateSetter,
+            ],
           ),
         ),
       ) as _i5.TaskItem);
   @override
-  _i11.TaskItemPreview? maybeCreateNextIteration(
+  _i12.TaskItemPreview? maybeCreateNextIteration(
     _i5.TaskItem? taskItem,
     bool? completed,
     DateTime? completionDate,
@@ -938,10 +1040,10 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
           ],
         ),
         returnValueForMissingStub: null,
-      ) as _i11.TaskItemPreview?);
+      ) as _i12.TaskItemPreview?);
   @override
-  _i11.TaskItemPreview createNextIteration(
-    _i11.TaskItemPreview? taskItem,
+  _i12.TaskItemPreview createNextIteration(
+    _i12.TaskItemPreview? taskItem,
     DateTime? completionDate,
   ) =>
       (super.noSuchMethod(
@@ -952,7 +1054,7 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
             completionDate,
           ],
         ),
-        returnValue: _FakeTaskItemPreview_10(
+        returnValue: _FakeTaskItemPreview_11(
           this,
           Invocation.method(
             #createNextIteration,
@@ -962,7 +1064,7 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
             ],
           ),
         ),
-        returnValueForMissingStub: _FakeTaskItemPreview_10(
+        returnValueForMissingStub: _FakeTaskItemPreview_11(
           this,
           Invocation.method(
             #createNextIteration,
@@ -972,7 +1074,7 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
             ],
           ),
         ),
-      ) as _i11.TaskItemPreview);
+      ) as _i12.TaskItemPreview);
   @override
   _i14.Future<_i5.TaskItem> completeTask(
     _i5.TaskItem? taskItem,
@@ -1072,7 +1174,7 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
     _i17.TaskItemBlueprint? taskItemEdit,
     int? numUnits,
     String? unitSize,
-    _i18.TaskDateType? dateType,
+    _i19.TaskDateType? dateType,
   ) =>
       super.noSuchMethod(
         Invocation.method(
@@ -1092,7 +1194,7 @@ class MockTaskHelper extends _i1.Mock implements _i16.TaskHelper {
     _i17.TaskItemBlueprint? taskItemEdit,
     int? numUnits,
     String? unitSize,
-    _i18.TaskDateType? dateType,
+    _i19.TaskDateType? dateType,
     bool? offCycle,
     _i15.StateSetter? stateSetter,
   ) =>

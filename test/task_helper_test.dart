@@ -41,7 +41,14 @@ void main() {
   List<TaskItem> appTaskItems = [];
   List<TaskRecurrencePreview> appTaskRecurrences = [];
 
+  TaskItem _mockComplete(TaskItem taskItem, DateTime? completionDate) {
+    var blueprint = taskItem.createCreateBlueprint();
+    blueprint.completionDate = completionDate;
+    return TestMockHelper.mockEditTask(taskItem, blueprint);
+  }
+
   TaskHelper createTaskHelper({List<TaskItem>? taskItems, List<Sprint>? sprints, List<TaskRecurrence>? taskRecurrences}) {
+
     when(taskRepository.appState).thenReturn(appState);
     when(appState.notificationScheduler).thenReturn(notificationScheduler);
     when(appState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) {
@@ -52,6 +59,30 @@ void main() {
         appTaskRecurrences.add(recurrence);
       }
       return taskItem;
+    });
+
+    when(taskRepository.completeTask(argThat(isA<TaskItem>()), argThat(isA<DateTime?>()))).thenAnswer((invocation) {
+      TaskItem originalTask = invocation.positionalArguments[0];
+      DateTime? completionDate = invocation.positionalArguments[1];
+      TaskItem inboundTask = _mockComplete(originalTask, completionDate);
+      return Future.value(inboundTask);
+    });
+    when(taskRepository.updateTaskRecurrence(argThat(isA<TaskRecurrencePreview>()))).thenAnswer((invocation) {
+      TaskRecurrencePreview original = invocation.positionalArguments[0];
+      return Future.value(TaskRecurrence(
+          id: original.id,
+          personId: original.personId,
+          name: original.name,
+          recurNumber: original.recurNumber,
+          recurUnit: original.recurUnit,
+          recurWait: original.recurWait,
+          recurIteration: original.recurIteration,
+          anchorDate: original.anchorDate,
+          anchorType: original.anchorType));
+    });
+    when(taskRepository.addTaskIteration(argThat(isA<TaskItemPreview>()), any)).thenAnswer((invocation) {
+      TaskItemPreview addedTask = invocation.positionalArguments[0];
+      return Future.value(TestMockHelper.mockAddTask(addedTask, appTaskItems.length + 1));
     });
 
     if (taskItems != null) {
@@ -69,26 +100,6 @@ void main() {
         stateSetter: stateSetter);
     taskHelper.navHelper = navHelper;
     return taskHelper;
-  }
-
-  TaskItem _mockComplete(TaskItem taskItem, DateTime? completionDate) {
-    var blueprint = taskItem.createCreateBlueprint();
-    blueprint.completionDate = completionDate;
-    return TestMockHelper.mockEditTask(taskItem, blueprint);
-  }
-
-  void handleCompletion() {
-    when(taskRepository.completeTask(argThat(isA<TaskItem>()), argThat(isA<DateTime?>()))).thenAnswer((invocation) {
-      TaskItem originalTask = invocation.positionalArguments[0];
-      DateTime? completionDate = invocation.positionalArguments[1];
-      TaskItem inboundTask = _mockComplete(originalTask, completionDate);
-      return Future.value(inboundTask);
-    });
-    when(taskRepository.addTaskIteration(argThat(isA<TaskItemPreview>()), any)).thenAnswer((invocation) {
-      TaskItemPreview addedTask = invocation.positionalArguments[0];
-      return Future.value(TestMockHelper.mockAddTask(addedTask, appTaskItems.length + 1));
-    });
-    when(appState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) => invocation.positionalArguments[0]);
   }
 
   test('reloadTasks', () async {
@@ -117,7 +128,7 @@ void main() {
     when(taskRepository.addTask(taskItemBlueprint)).thenAnswer((_) => Future.value(taskItem));
     when(mockAppState.addNewTaskToList(taskItem)).thenReturn(taskItem);
 
-    await taskHelper.addTask(taskItemBlueprint);
+    await taskHelper.addTask(taskItemBlueprint, (fn) => fn());
     verify(taskRepository.addTask(taskItemBlueprint));
     verify(mockAppState.addNewTaskToList(taskItem));
     verify(notificationScheduler.updateNotificationForTask(birthdayTask));
@@ -141,7 +152,7 @@ void main() {
     when(taskRepository.addTask(taskItemBlueprint)).thenAnswer((_) => Future.value(taskItem));
     when(mockAppState.addNewTaskToList(taskItem)).thenReturn(taskItem);
 
-    TaskItem resultingTaskItem = await taskHelper.addTask(taskItemBlueprint);
+    TaskItem resultingTaskItem = await taskHelper.addTask(taskItemBlueprint, (fn) => fn());
     verify(taskRepository.addTask(taskItemBlueprint));
     verify(mockAppState.addNewTaskToList(taskItem));
     verify(notificationScheduler.updateNotificationForTask(catLitterTask));
@@ -218,8 +229,6 @@ void main() {
 
     var now = DateTime.now();
 
-    handleCompletion();
-
     var originalId = taskItem.id;
     var originalStart = DateUtil.withoutMillis(taskItem.startDate!);
 
@@ -235,7 +244,8 @@ void main() {
     var returnedRecurrence = returnedTask.getExistingRecurrence();
     expect(returnedRecurrence, isNot(null));
     expect(returnedRecurrence!.id, taskRecurrence.id);
-    expect(returnedRecurrence.recurIteration, 1);
+    expect(returnedRecurrence.taskItems.length, 2);
+    expect(returnedRecurrence.recurIteration, 2);
 
     TaskItem addedTask = returnedRecurrence.getMostRecentIteration();
 
@@ -276,8 +286,6 @@ void main() {
     expect(taskRecurrence, isNot(null));
 
     var now = DateTime.now();
-
-    handleCompletion();
 
     var originalId = taskItem.id;
 
@@ -330,8 +338,6 @@ void main() {
     var mockAppState = taskHelper.appState;
     var notificationScheduler = mockAppState.notificationScheduler;
     expect(notificationScheduler, isNot(null));
-
-    handleCompletion();
 
     var returnedTask = await taskHelper.completeTask(taskItem, false, stateSetter);
     verify(notificationScheduler.updateNotificationForTask(taskItem));

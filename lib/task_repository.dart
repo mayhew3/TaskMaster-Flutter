@@ -12,6 +12,7 @@ import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_item_preview.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
+import 'package:taskmaster/models/task_recurrence_preview.dart';
 
 class TaskRepository {
   AppState appState;
@@ -197,6 +198,19 @@ class TaskRepository {
     return _addOrUpdateJSON(payload, 'update');
   }
 
+  Future<TaskRecurrence> updateTaskRecurrence(TaskRecurrencePreview taskRecurrencePreview) async {
+    if (!appState.isAuthenticated()) {
+      throw Exception("Cannot update recurrence before being signed in.");
+    }
+
+    var taskRecurrenceObj = taskRecurrencePreview.toJson();
+
+    var payload = {
+      "taskRecurrence": taskRecurrenceObj
+    };
+    return _updateRecurrenceJSON(payload);
+  }
+
   Future<void> deleteTask(TaskItem taskItem) async {
     if (!appState.isAuthenticated()) {
       throw Exception("Cannot delete task before being signed in.");
@@ -244,6 +258,33 @@ class TaskRepository {
       }
     } else {
       throw Exception('Failed to $addOrUpdate task. Talk to Mayhew.');
+    }
+  }
+
+  Future<TaskRecurrence> _updateRecurrenceJSON(Map<String, Object> payload) async {
+    var body = utf8.encode(json.encode(payload));
+
+    var idToken = await appState.getIdToken();
+
+    var uri = getUri('/api/taskRecurrences');
+    final response = await client.post(uri,
+        headers: {HttpHeaders.authorizationHeader: idToken,
+          "Content-Type": "application/json"},
+        body: body
+    );
+
+    if (response.statusCode == 200) {
+      try {
+        var jsonObj = json.decode(response.body);
+        TaskRecurrence inboundTaskRecurrence = TaskRecurrence.fromJson(jsonObj);
+        return inboundTaskRecurrence;
+      } catch(exception, stackTrace) {
+        print(exception);
+        print(stackTrace);
+        throw Exception('Error parsing update task recurrence from the server. Talk to Mayhew.');
+      }
+    } else {
+      throw Exception('Failed to update task recurrence. Talk to Mayhew.');
     }
   }
 

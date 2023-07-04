@@ -7,24 +7,25 @@ import 'dart:async' as _i18;
 
 import 'package:flutter/material.dart' as _i5;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
-    as _i14;
-import 'package:google_sign_in/google_sign_in.dart' as _i16;
+    as _i15;
+import 'package:google_sign_in/google_sign_in.dart' as _i17;
 import 'package:http/http.dart' as _i10;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:taskmaster/app_state.dart' as _i2;
 import 'package:taskmaster/auth.dart' as _i6;
-import 'package:taskmaster/flutter_badger_wrapper.dart' as _i15;
+import 'package:taskmaster/flutter_badger_wrapper.dart' as _i16;
 import 'package:taskmaster/models/snooze.dart' as _i11;
 import 'package:taskmaster/models/sprint.dart' as _i12;
 import 'package:taskmaster/models/task_item.dart' as _i9;
 import 'package:taskmaster/models/task_item_blueprint.dart' as _i19;
 import 'package:taskmaster/models/task_item_preview.dart' as _i20;
-import 'package:taskmaster/models/task_recurrence.dart' as _i17;
+import 'package:taskmaster/models/task_recurrence.dart' as _i13;
+import 'package:taskmaster/models/task_recurrence_preview.dart' as _i21;
 import 'package:taskmaster/nav_helper.dart' as _i8;
 import 'package:taskmaster/notification_scheduler.dart' as _i7;
 import 'package:taskmaster/task_helper.dart' as _i4;
 import 'package:taskmaster/task_repository.dart' as _i3;
-import 'package:taskmaster/timezone_helper.dart' as _i13;
+import 'package:taskmaster/timezone_helper.dart' as _i14;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -160,9 +161,9 @@ class _FakeSprint_11 extends _i1.SmartFake implements _i12.Sprint {
         );
 }
 
-class _FakeTimezoneHelper_12 extends _i1.SmartFake
-    implements _i13.TimezoneHelper {
-  _FakeTimezoneHelper_12(
+class _FakeTaskRecurrence_12 extends _i1.SmartFake
+    implements _i13.TaskRecurrence {
+  _FakeTaskRecurrence_12(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -171,9 +172,9 @@ class _FakeTimezoneHelper_12 extends _i1.SmartFake
         );
 }
 
-class _FakeFlutterLocalNotificationsPlugin_13 extends _i1.SmartFake
-    implements _i14.FlutterLocalNotificationsPlugin {
-  _FakeFlutterLocalNotificationsPlugin_13(
+class _FakeTimezoneHelper_13 extends _i1.SmartFake
+    implements _i14.TimezoneHelper {
+  _FakeTimezoneHelper_13(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -182,9 +183,20 @@ class _FakeFlutterLocalNotificationsPlugin_13 extends _i1.SmartFake
         );
 }
 
-class _FakeFlutterBadgerWrapper_14 extends _i1.SmartFake
-    implements _i15.FlutterBadgerWrapper {
-  _FakeFlutterBadgerWrapper_14(
+class _FakeFlutterLocalNotificationsPlugin_14 extends _i1.SmartFake
+    implements _i15.FlutterLocalNotificationsPlugin {
+  _FakeFlutterLocalNotificationsPlugin_14(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeFlutterBadgerWrapper_15 extends _i1.SmartFake
+    implements _i16.FlutterBadgerWrapper {
+  _FakeFlutterBadgerWrapper_15(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -318,7 +330,7 @@ class MockAppState extends _i1.Mock implements _i2.AppState {
         ),
       ) as _i6.TaskMasterAuth);
   @override
-  set currentUser(_i16.GoogleSignInAccount? _currentUser) => super.noSuchMethod(
+  set currentUser(_i17.GoogleSignInAccount? _currentUser) => super.noSuchMethod(
         Invocation.setter(
           #currentUser,
           _currentUser,
@@ -425,7 +437,7 @@ class MockAppState extends _i1.Mock implements _i2.AppState {
   void updateTasksAndSprints(
     List<_i9.TaskItem>? taskItems,
     List<_i12.Sprint>? sprints,
-    List<_i17.TaskRecurrence>? taskRecurrences,
+    List<_i13.TaskRecurrence>? taskRecurrences,
   ) =>
       super.noSuchMethod(
         Invocation.method(
@@ -563,6 +575,21 @@ class MockAppState extends _i1.Mock implements _i2.AppState {
         Invocation.method(
           #deleteTaskFromList,
           [taskItem],
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  void replaceTaskRecurrence(
+    _i13.TaskRecurrence? oldRecurrence,
+    _i13.TaskRecurrence? newRecurrence,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #replaceTaskRecurrence,
+          [
+            oldRecurrence,
+            newRecurrence,
+          ],
         ),
         returnValueForMissingStub: null,
       );
@@ -900,6 +927,31 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
         )),
       ) as _i18.Future<_i9.TaskItem>);
   @override
+  _i18.Future<_i13.TaskRecurrence> updateTaskRecurrence(
+          _i21.TaskRecurrencePreview? taskRecurrencePreview) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateTaskRecurrence,
+          [taskRecurrencePreview],
+        ),
+        returnValue:
+            _i18.Future<_i13.TaskRecurrence>.value(_FakeTaskRecurrence_12(
+          this,
+          Invocation.method(
+            #updateTaskRecurrence,
+            [taskRecurrencePreview],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i18.Future<_i13.TaskRecurrence>.value(_FakeTaskRecurrence_12(
+          this,
+          Invocation.method(
+            #updateTaskRecurrence,
+            [taskRecurrencePreview],
+          ),
+        )),
+      ) as _i18.Future<_i13.TaskRecurrence>);
+  @override
   _i18.Future<void> deleteTask(_i9.TaskItem? taskItem) => (super.noSuchMethod(
         Invocation.method(
           #deleteTask,
@@ -940,17 +992,17 @@ class MockNotificationScheduler extends _i1.Mock
         ),
       ) as _i4.TaskHelper);
   @override
-  _i13.TimezoneHelper get timezoneHelper => (super.noSuchMethod(
+  _i14.TimezoneHelper get timezoneHelper => (super.noSuchMethod(
         Invocation.getter(#timezoneHelper),
-        returnValue: _FakeTimezoneHelper_12(
+        returnValue: _FakeTimezoneHelper_13(
           this,
           Invocation.getter(#timezoneHelper),
         ),
-        returnValueForMissingStub: _FakeTimezoneHelper_12(
+        returnValueForMissingStub: _FakeTimezoneHelper_13(
           this,
           Invocation.getter(#timezoneHelper),
         ),
-      ) as _i13.TimezoneHelper);
+      ) as _i14.TimezoneHelper);
   @override
   _i5.BuildContext get context => (super.noSuchMethod(
         Invocation.getter(#context),
@@ -999,30 +1051,30 @@ class MockNotificationScheduler extends _i1.Mock
         returnValueForMissingStub: null,
       );
   @override
-  _i14.FlutterLocalNotificationsPlugin get flutterLocalNotificationsPlugin =>
+  _i15.FlutterLocalNotificationsPlugin get flutterLocalNotificationsPlugin =>
       (super.noSuchMethod(
         Invocation.getter(#flutterLocalNotificationsPlugin),
-        returnValue: _FakeFlutterLocalNotificationsPlugin_13(
+        returnValue: _FakeFlutterLocalNotificationsPlugin_14(
           this,
           Invocation.getter(#flutterLocalNotificationsPlugin),
         ),
-        returnValueForMissingStub: _FakeFlutterLocalNotificationsPlugin_13(
+        returnValueForMissingStub: _FakeFlutterLocalNotificationsPlugin_14(
           this,
           Invocation.getter(#flutterLocalNotificationsPlugin),
         ),
-      ) as _i14.FlutterLocalNotificationsPlugin);
+      ) as _i15.FlutterLocalNotificationsPlugin);
   @override
-  _i15.FlutterBadgerWrapper get flutterBadgerWrapper => (super.noSuchMethod(
+  _i16.FlutterBadgerWrapper get flutterBadgerWrapper => (super.noSuchMethod(
         Invocation.getter(#flutterBadgerWrapper),
-        returnValue: _FakeFlutterBadgerWrapper_14(
+        returnValue: _FakeFlutterBadgerWrapper_15(
           this,
           Invocation.getter(#flutterBadgerWrapper),
         ),
-        returnValueForMissingStub: _FakeFlutterBadgerWrapper_14(
+        returnValueForMissingStub: _FakeFlutterBadgerWrapper_15(
           this,
           Invocation.getter(#flutterBadgerWrapper),
         ),
-      ) as _i15.FlutterBadgerWrapper);
+      ) as _i16.FlutterBadgerWrapper);
   @override
   void updateHomeScreenContext(_i5.BuildContext? context) => super.noSuchMethod(
         Invocation.method(

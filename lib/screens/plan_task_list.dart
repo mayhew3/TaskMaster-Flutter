@@ -315,11 +315,13 @@ class PlanTaskListState extends State<PlanTaskList> {
 
   Future<void> createSelectedIterations() async {
     print('${tempIterations.length} temp items created.');
+
+    // todo: need to save the recurrences to hand in to addTaskIteration()
     var toAdd = tempIterations.where((TaskItemPreview taskItem) => !(taskItem is TaskItem));
     print('${toAdd.length} checked temp items kept.');
 
     for (var taskItem in toAdd) {
-      TaskItem addedTask = await widget.taskHelper.addTaskIteration(taskItem, widget.appState.personId);
+      TaskItem addedTask = await widget.taskHelper.addTaskIteration(taskItem, null, widget.appState.personId, (callback) => setState(() => callback()));
       print('Adding (Recurrence ID ${taskItem.recurrenceId}, TaskItem ID ${taskItem.recurIteration})');
       sprintQueued.add(addedTask);
     }

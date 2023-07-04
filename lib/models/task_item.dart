@@ -24,8 +24,8 @@ class TaskItem extends TaskItemPreview {
   @JsonKey(ignore: true)
   bool pendingCompletion = false;
 
+  @JsonKey(ignore: true)
   TaskRecurrence? _taskRecurrence;
-
   TaskRecurrence? get taskRecurrence => _taskRecurrence;
 
   List<SprintAssignment>? sprintAssignments;
