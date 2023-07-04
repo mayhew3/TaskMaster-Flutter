@@ -110,5 +110,40 @@ void main() {
     expect(sprintWithId, null);
   });
 
+  test('replaceTaskItem', () {
+    fail('Not implemented');
+  });
+
+  test('replaceTaskItem updates active sprint', () {
+    fail('Not implemented');
+  });
+
+  test('replaceTaskItem updates recurrence', () {
+    fail('Not implemented');
+  });
+
+  test('replaceTaskRecurrence', () {
+    fail('Not implemented');
+  });
+
+  test('syncAllNotifications', () {
+    fail('Not implemented');
+  });
+
+  test('updateNotificationScheduler', () {
+    fail('Not implemented');
+  });
+
+  test('updateTasksAndSprints', () {
+    fail('Not implemented');
+  });
+
+  test('linkTasksToSprints', () {
+    fail('Not implemented');
+  });
+
+  test('linkTasksToRecurrences', () {
+    fail('Not implemented');
+  });
 
 }
