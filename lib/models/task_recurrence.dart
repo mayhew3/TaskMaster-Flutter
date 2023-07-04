@@ -26,7 +26,7 @@ class TaskRecurrence extends TaskRecurrencePreview {
 
   void addToTaskItems(TaskItem taskItem) {
     taskItems.add(taskItem);
-    taskItem.taskRecurrence = this;
+    taskItem.setRecurrence(this);
     sortItems();
   }
 

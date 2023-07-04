@@ -47,8 +47,9 @@ void main() {
     when(appState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) {
       TaskItem taskItem = invocation.positionalArguments[0];
       appTaskItems.add(taskItem);
-      if (taskItem.taskRecurrencePreview != null) {
-        appTaskRecurrences.add(taskItem.taskRecurrencePreview!);
+      var recurrence = taskItem.getExistingRecurrence();
+      if (recurrence != null) {
+        appTaskRecurrences.add(recurrence);
       }
       return taskItem;
     });
@@ -85,7 +86,7 @@ void main() {
     });
     when(taskRepository.addTaskIteration(argThat(isA<TaskItemPreview>()), any)).thenAnswer((invocation) {
       TaskItemPreview addedTask = invocation.positionalArguments[0];
-      return Future.value(TestMockHelper.mockAddTask(addedTask, appTaskItems.length));
+      return Future.value(TestMockHelper.mockAddTask(addedTask, appTaskItems.length + 1));
     });
     when(appState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) => invocation.positionalArguments[0]);
   }
@@ -231,12 +232,12 @@ void main() {
     expect(returnedTask.pendingCompletion, false);
     expect(returnedTask.completionDate, isApproximately(now));
 
-    var returnedRecurrence = returnedTask.taskRecurrencePreview;
+    var returnedRecurrence = returnedTask.getExistingRecurrence();
     expect(returnedRecurrence, isNot(null));
-    expect(returnedRecurrence, taskRecurrence);
-    expect(returnedRecurrence!.recurIteration, 2);
+    expect(returnedRecurrence!.id, taskRecurrence.id);
+    expect(returnedRecurrence.recurIteration, 1);
 
-    TaskItem addedTask = returnedTask.taskRecurrencePreview!.getMostRecentIteration();
+    TaskItem addedTask = returnedRecurrence.getMostRecentIteration();
 
     verify(notificationScheduler.updateNotificationForTask(addedTask));
 

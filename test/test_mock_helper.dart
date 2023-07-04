@@ -103,7 +103,7 @@ class TestMockHelper {
       recurIteration: taskItemPreview.recurIteration,
     );
 
-    var taskRecurrencePreview = taskItemPreview.taskRecurrencePreview;
+    var taskRecurrencePreview = taskItemPreview.getExistingRecurrence();
 
     if (taskRecurrencePreview != null) {
 
@@ -148,7 +148,21 @@ class TestMockHelper {
       recurIteration: blueprint.recurIteration,
     );
 
-    taskItem.taskRecurrencePreview = original.taskRecurrencePreview;
+    var recurrenceBlueprint = blueprint.taskRecurrenceBlueprint;
+    var recurrence = original.getExistingRecurrence();
+    if (recurrenceBlueprint != null && recurrence != null) {
+      var recurrenceCopy = new TaskRecurrence(
+          id: recurrence.id,
+          personId: recurrence.personId,
+          name: recurrenceBlueprint.name ?? recurrence.name,
+          recurNumber: recurrenceBlueprint.recurNumber ?? recurrence.recurNumber,
+          recurUnit: recurrenceBlueprint.recurUnit ?? recurrence.name,
+          recurWait: recurrenceBlueprint.recurWait ?? recurrence.recurWait,
+          recurIteration: recurrenceBlueprint.recurIteration ?? recurrence.recurIteration,
+          anchorDate: recurrenceBlueprint.anchorDate ?? recurrence.anchorDate,
+          anchorType: recurrenceBlueprint.anchorType ?? recurrence.anchorType);
+      recurrenceCopy.addToTaskItems(taskItem);
+    }
 
     return taskItem;
   }

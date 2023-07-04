@@ -38,14 +38,9 @@ TaskItem _$TaskItemFromJson(Map<String, dynamic> json) => TaskItem(
       recurrenceId: json['recurrence_id'] as int?,
       recurIteration: json['recur_iteration'] as int?,
       offCycle: json['off_cycle'] as bool? ?? false,
-    )
-      ..taskRecurrence = json['task_recurrence'] == null
-          ? null
-          : TaskRecurrence.fromJson(
-              json['task_recurrence'] as Map<String, dynamic>)
-      ..sprintAssignments = (json['sprint_assignments'] as List<dynamic>?)
-          ?.map((e) => SprintAssignment.fromJson(e as Map<String, dynamic>))
-          .toList();
+    )..sprintAssignments = (json['sprint_assignments'] as List<dynamic>?)
+        ?.map((e) => SprintAssignment.fromJson(e as Map<String, dynamic>))
+        .toList();
 
 Map<String, dynamic> _$TaskItemToJson(TaskItem instance) {
   final val = <String, dynamic>{
@@ -78,7 +73,6 @@ Map<String, dynamic> _$TaskItemToJson(TaskItem instance) {
   val['off_cycle'] = instance.offCycle;
   val['id'] = instance.id;
   val['person_id'] = instance.personId;
-  writeNotNull('task_recurrence', instance.taskRecurrence);
   writeNotNull('sprint_assignments', instance.sprintAssignments);
   return val;
 }

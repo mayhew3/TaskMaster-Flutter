@@ -24,7 +24,9 @@ class TaskItem extends TaskItemPreview {
   @JsonKey(ignore: true)
   bool pendingCompletion = false;
 
-  TaskRecurrence? taskRecurrence;
+  TaskRecurrence? _taskRecurrence;
+
+  TaskRecurrence? get taskRecurrence => _taskRecurrence;
 
   List<SprintAssignment>? sprintAssignments;
 
@@ -76,6 +78,14 @@ class TaskItem extends TaskItemPreview {
     return taskRecurrencePreview != null;
   }
 
+  TaskRecurrencePreview? getExistingRecurrence() {
+    return this.taskRecurrencePreview ?? this.taskRecurrence;
+  }
+
+  void setRecurrence(TaskRecurrence taskRecurrence) {
+    this._taskRecurrence = taskRecurrence;
+  }
+
   TaskItem createCopy() {
 
     // todo: make more dynamic?
@@ -103,7 +113,9 @@ class TaskItem extends TaskItemPreview {
         recurIteration: recurIteration
     );
 
-    fields.taskRecurrence = taskRecurrence;
+    if (taskRecurrence != null) {
+      taskRecurrence!.addToTaskItems(fields);
+    }
 
     return fields;
   }

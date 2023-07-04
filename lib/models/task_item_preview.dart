@@ -73,6 +73,10 @@ class TaskItemPreview extends DateHolder {
     return taskRecurrencePreview != null;
   }
 
+  TaskRecurrencePreview? getExistingRecurrence() {
+    return this.taskRecurrencePreview;
+  }
+
   /// `toJson` is the convention for a class to declare support for serialization
   /// to JSON. The implementation simply calls the private, generated
   /// helper method `_$TaskItemFormToJson`.
@@ -110,9 +114,9 @@ class TaskItemPreview extends DateHolder {
         offCycle: offCycle
     );
 
-    var taskRecurrenceBlueprint = taskRecurrencePreview;
-    if (taskRecurrenceBlueprint != null) {
-      var recurrencePreview = taskRecurrenceBlueprint.createEditPreview();
+    var recurrence = this.getExistingRecurrence();
+    if (recurrence != null) {
+      var recurrencePreview = recurrence.createEditPreview();
       if (incrementRecurrence) {
         recurrencePreview.recurIteration++;
       }
