@@ -116,6 +116,7 @@ class AppState {
   void updateNotificationScheduler(BuildContext context,
       TaskHelper taskHelper) {
 
+    // todo: extract into method parameter
     notificationScheduler = NotificationScheduler(
       context: context,
       appState: this,

@@ -28,18 +28,16 @@ import 'task_helper_test.mocks.dart';
 import 'test_mock_helper.dart';
 
 
-@GenerateNiceMocks([MockSpec<NavHelper>(), MockSpec<AppState>(), MockSpec<TaskRepository>(), MockSpec<NotificationScheduler>()])
+@GenerateNiceMocks([MockSpec<NavHelper>(), MockSpec<TaskRepository>(), MockSpec<NotificationScheduler>()])
 void main() {
 
   MockTaskRepository taskRepository = new MockTaskRepository();
   MockNavHelper navHelper = MockNavHelper();
   MockTimezoneHelper timezoneHelper = MockTimezoneHelper();
-  MockAppState appState = MockAppState();
+  MockTaskMasterAuth auth = MockTaskMasterAuth();
+  AppState appState = new AppState(auth: auth);
   MockNotificationScheduler notificationScheduler = new MockNotificationScheduler();
   StateSetter stateSetter = (callback) => callback();
-
-  List<TaskItem> appTaskItems = [];
-  List<TaskRecurrencePreview> appTaskRecurrences = [];
 
   TaskItem _mockComplete(TaskItem taskItem, DateTime? completionDate) {
     var blueprint = taskItem.createCreateBlueprint();
@@ -49,30 +47,9 @@ void main() {
 
   TaskHelper createTaskHelper({List<TaskItem>? taskItems, List<Sprint>? sprints}) {
 
+    appState.updateNavHelper(navHelper);
+
     when(taskRepository.appState).thenReturn(appState);
-
-    when(appState.notificationScheduler).thenReturn(notificationScheduler);
-    when(appState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) {
-      TaskItem taskItem = invocation.positionalArguments[0];
-      appTaskItems.add(taskItem);
-      var recurrence = taskItem.getExistingRecurrence();
-      if (recurrence != null) {
-        appTaskRecurrences.add(recurrence);
-      }
-      return taskItem;
-    });
-
-    when(appState.replaceTaskRecurrence(argThat(isA<TaskRecurrence>()), argThat(isA<TaskRecurrence>()))).thenAnswer((invocation) {
-      TaskRecurrence oldRecurrence = invocation.positionalArguments[0];
-      TaskRecurrence newRecurrence = invocation.positionalArguments[1];
-
-      for (TaskItem taskItem in oldRecurrence.taskItems) {
-        newRecurrence.addToTaskItems(taskItem);
-      }
-
-      var indexOf = appTaskRecurrences.indexOf(oldRecurrence);
-      appTaskRecurrences[indexOf] = newRecurrence;
-    });
 
     when(taskRepository.completeTask(argThat(isA<TaskItem>()), argThat(isA<DateTime?>()))).thenAnswer((invocation) {
       TaskItem originalTask = invocation.positionalArguments[0];
@@ -95,27 +72,13 @@ void main() {
     });
     when(taskRepository.addTaskIteration(argThat(isA<TaskItemPreview>()), any)).thenAnswer((invocation) {
       TaskItemPreview addedTask = invocation.positionalArguments[0];
-      return Future.value(TestMockHelper.mockAddTask(addedTask, appTaskItems.length + 1));
+      return Future.value(TestMockHelper.mockAddTask(addedTask, appState.taskItems.length + 1));
     });
-
-    if (taskItems != null) {
-      appTaskItems = taskItems;
-      for (var taskItem in taskItems) {
-        var taskRecurrence = taskItem.taskRecurrence;
-        if (taskRecurrence != null) {
-          var matching = appTaskRecurrences.where((recurrence) => recurrence.id == taskRecurrence.id);
-          // ignore: unnecessary_null_comparison
-          if (matching != null) {
-            appTaskRecurrences.add(taskRecurrence);
-          }
-        }
-      }
-    }
 
     var taskHelper = TaskHelper(
         appState: appState,
         repository: taskRepository,
-        auth: MockTaskMasterAuth(),
+        auth: auth,
         stateSetter: stateSetter);
     taskHelper.navHelper = navHelper;
     return taskHelper;
@@ -255,7 +218,6 @@ void main() {
     verify(notificationScheduler.updateNotificationForTask(returnedTask));
     verify(notificationScheduler.updateBadge());
     verify(taskRepository.addTaskIteration(any, any));
-    verify(appState.addNewTaskToList(any));
     expect(returnedTask.id, originalId);
     expect(returnedTask.pendingCompletion, false);
     expect(returnedTask.completionDate, isApproximately(now));
@@ -312,7 +274,6 @@ void main() {
     verify(notificationScheduler.updateNotificationForTask(returnedTask));
     verify(notificationScheduler.updateBadge());
     verify(taskRepository.addTaskIteration(any, any));
-    verify(appState.addNewTaskToList(any));
     expect(returnedTask.id, originalId);
     expect(returnedTask.pendingCompletion, false);
     expect(returnedTask.completionDate, isApproximately(now));
