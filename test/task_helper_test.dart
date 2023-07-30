@@ -47,9 +47,10 @@ void main() {
     return TestMockHelper.mockEditTask(taskItem, blueprint);
   }
 
-  TaskHelper createTaskHelper({List<TaskItem>? taskItems, List<Sprint>? sprints, List<TaskRecurrence>? taskRecurrences}) {
+  TaskHelper createTaskHelper({List<TaskItem>? taskItems, List<Sprint>? sprints}) {
 
     when(taskRepository.appState).thenReturn(appState);
+
     when(appState.notificationScheduler).thenReturn(notificationScheduler);
     when(appState.addNewTaskToList(argThat(isA<TaskItem>()))).thenAnswer((invocation) {
       TaskItem taskItem = invocation.positionalArguments[0];
@@ -59,6 +60,18 @@ void main() {
         appTaskRecurrences.add(recurrence);
       }
       return taskItem;
+    });
+
+    when(appState.replaceTaskRecurrence(argThat(isA<TaskRecurrence>()), argThat(isA<TaskRecurrence>()))).thenAnswer((invocation) {
+      TaskRecurrence oldRecurrence = invocation.positionalArguments[0];
+      TaskRecurrence newRecurrence = invocation.positionalArguments[1];
+
+      for (TaskItem taskItem in oldRecurrence.taskItems) {
+        newRecurrence.addToTaskItems(taskItem);
+      }
+
+      var indexOf = appTaskRecurrences.indexOf(oldRecurrence);
+      appTaskRecurrences[indexOf] = newRecurrence;
     });
 
     when(taskRepository.completeTask(argThat(isA<TaskItem>()), argThat(isA<DateTime?>()))).thenAnswer((invocation) {
@@ -87,10 +100,16 @@ void main() {
 
     if (taskItems != null) {
       appTaskItems = taskItems;
-    }
-
-    if (taskRecurrences != null) {
-      appTaskRecurrences = taskRecurrences;
+      for (var taskItem in taskItems) {
+        var taskRecurrence = taskItem.taskRecurrence;
+        if (taskRecurrence != null) {
+          var matching = appTaskRecurrences.where((recurrence) => recurrence.id == taskRecurrence.id);
+          // ignore: unnecessary_null_comparison
+          if (matching != null) {
+            appTaskRecurrences.add(taskRecurrence);
+          }
+        }
+      }
     }
 
     var taskHelper = TaskHelper(
