@@ -1,15 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:taskmaster/auth.dart';
-import 'package:taskmaster/flutter_badger_wrapper.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/notification_scheduler.dart';
-import 'package:taskmaster/task_helper.dart';
-import 'package:taskmaster/timezone_helper.dart';
 
 class AppState {
   bool isLoading;
@@ -113,19 +108,8 @@ class AppState {
     return matching.isEmpty ? null : matching.first;
   }
 
-  void updateNotificationScheduler(BuildContext context,
-      TaskHelper taskHelper) {
-
-    // todo: extract into method parameter
-    notificationScheduler = NotificationScheduler(
-      context: context,
-      appState: this,
-      taskHelper: taskHelper,
-      flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
-      flutterBadgerWrapper: FlutterBadgerWrapper(),
-      timezoneHelper: TimezoneHelper(),
-    );
-
+  void updateNotificationScheduler(NotificationScheduler notificationScheduler) {
+    this.notificationScheduler = notificationScheduler;
   }
 
   Future<void> syncAllNotifications() async {

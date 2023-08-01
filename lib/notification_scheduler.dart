@@ -14,7 +14,7 @@ import 'models/sprint.dart';
 
 class NotificationScheduler {
 
-  final AppState appState;
+  late final AppState appState;
   final TaskHelper taskHelper;
   final TimezoneHelper timezoneHelper;
 
@@ -27,11 +27,10 @@ class NotificationScheduler {
 
   NotificationScheduler({
     required this.context,
-    required this.appState,
     required this.flutterLocalNotificationsPlugin,
     required this.flutterBadgerWrapper,
     required this.taskHelper,
-    required this.timezoneHelper,
+    required this.timezoneHelper
   }) {
     timezoneHelper.configureLocalTimeZone();
 
@@ -48,7 +47,11 @@ class NotificationScheduler {
   }
 
   void updateHomeScreenContext(BuildContext context) {
-    homeScreenContext = context;
+    this.homeScreenContext = context;
+  }
+
+  void updateAppState(AppState appState) {
+    this.appState = appState;
   }
 
   void updateBadge() {

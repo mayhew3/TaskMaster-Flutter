@@ -84,12 +84,12 @@ void main() {
 
     var notificationScheduler = new NotificationScheduler(
       context: new MockBuildContext(),
-      appState: appState,
       taskHelper: taskHelper,
       flutterLocalNotificationsPlugin: plugin,
       flutterBadgerWrapper: flutterBadgerWrapper,
       timezoneHelper: timezoneHelper,
     );
+    notificationScheduler.appState = appState;
     List<Future<void>> futures = [];
     taskItems.forEach((taskItem) =>
       futures.add(notificationScheduler.updateNotificationForTask(taskItem))

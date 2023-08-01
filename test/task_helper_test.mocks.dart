@@ -614,6 +614,14 @@ class MockNotificationScheduler extends _i1.Mock
         ),
       ) as _i2.AppState);
   @override
+  set appState(_i2.AppState? _appState) => super.noSuchMethod(
+        Invocation.setter(
+          #appState,
+          _appState,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   _i4.TaskHelper get taskHelper => (super.noSuchMethod(
         Invocation.getter(#taskHelper),
         returnValue: _FakeTaskHelper_2(
@@ -714,6 +722,14 @@ class MockNotificationScheduler extends _i1.Mock
         Invocation.method(
           #updateHomeScreenContext,
           [context],
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  void updateAppState(_i2.AppState? appState) => super.noSuchMethod(
+        Invocation.method(
+          #updateAppState,
+          [appState],
         ),
         returnValueForMissingStub: null,
       );

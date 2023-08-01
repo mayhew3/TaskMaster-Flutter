@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:taskmaster/app_state.dart';
@@ -8,6 +9,10 @@ import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/screens/loading.dart';
 import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/task_repository.dart';
+import 'package:taskmaster/timezone_helper.dart';
+
+import 'flutter_badger_wrapper.dart';
+import 'notification_scheduler.dart';
 
 class TaskMasterApp extends StatefulWidget {
   @override
@@ -53,10 +58,20 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   @override
   void initState() {
     super.initState();
-    appState.updateNotificationScheduler(
-        context,
-        taskHelper);
+    createAppStateAndNotificationScheduler();
     maybeKickOffSignIn();
+  }
+
+  void createAppStateAndNotificationScheduler() {
+    var notificationScheduler = NotificationScheduler(
+      context: context,
+      taskHelper: taskHelper,
+      flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
+      flutterBadgerWrapper: FlutterBadgerWrapper(),
+      timezoneHelper: TimezoneHelper(),
+    );
+    appState.updateNotificationScheduler(notificationScheduler);
+    notificationScheduler.updateAppState(appState);
   }
 
   void loadMainTaskUI() {
