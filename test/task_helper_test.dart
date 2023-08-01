@@ -48,6 +48,9 @@ void main() {
   TaskHelper createTaskHelper({List<TaskItem>? taskItems, List<Sprint>? sprints}) {
 
     appState.updateNavHelper(navHelper);
+    appState.updateNotificationScheduler(notificationScheduler);
+
+    appState.updateTasksAndSprints(taskItems ?? [], sprints ?? [], []);
 
     when(taskRepository.appState).thenReturn(appState);
 
@@ -94,9 +97,10 @@ void main() {
     verify(navHelper.goToLoadingScreen('Reloading tasks...'));
 
     verify(taskRepository.loadTasks(stateSetter));
-    verify(mockAppState.finishedLoading());
     verify(notificationScheduler.updateBadge());
     verify(navHelper.goToHomeScreen());
+
+    expect(mockAppState.isLoading, false);
   });
 
   test('addTask', () async {
@@ -108,13 +112,13 @@ void main() {
     var taskItemBlueprint = TaskItemBlueprint.fromJson(birthdayJSON);
 
     when(taskRepository.addTask(taskItemBlueprint)).thenAnswer((_) => Future.value(taskItem));
-    when(mockAppState.addNewTaskToList(taskItem)).thenReturn(taskItem);
 
     await taskHelper.addTask(taskItemBlueprint, (fn) => fn());
     verify(taskRepository.addTask(taskItemBlueprint));
-    verify(mockAppState.addNewTaskToList(taskItem));
     verify(notificationScheduler.updateNotificationForTask(birthdayTask));
     verify(notificationScheduler.updateBadge());
+
+    expect(mockAppState.taskItems, [catLitterTask, taskItem]);
   });
 
   test('addTask with recurrence', () async {
