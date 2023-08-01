@@ -113,12 +113,12 @@ void main() {
 
     when(taskRepository.addTask(taskItemBlueprint)).thenAnswer((_) => Future.value(taskItem));
 
-    await taskHelper.addTask(taskItemBlueprint, (fn) => fn());
+    var resultingTaskItem = await taskHelper.addTask(taskItemBlueprint, (fn) => fn());
     verify(taskRepository.addTask(taskItemBlueprint));
     verify(notificationScheduler.updateNotificationForTask(birthdayTask));
     verify(notificationScheduler.updateBadge());
 
-    expect(mockAppState.taskItems, [catLitterTask, taskItem]);
+    expect(mockAppState.taskItems, [catLitterTask, resultingTaskItem]);
   });
 
   test('addTask with recurrence', () async {
@@ -136,13 +136,13 @@ void main() {
     taskItem.taskRecurrencePreview = taskRecurrence;
 
     when(taskRepository.addTask(taskItemBlueprint)).thenAnswer((_) => Future.value(taskItem));
-    when(mockAppState.addNewTaskToList(taskItem)).thenReturn(taskItem);
 
     TaskItem resultingTaskItem = await taskHelper.addTask(taskItemBlueprint, (fn) => fn());
     verify(taskRepository.addTask(taskItemBlueprint));
-    verify(mockAppState.addNewTaskToList(taskItem));
     verify(notificationScheduler.updateNotificationForTask(catLitterTask));
     verify(notificationScheduler.updateBadge());
+
+    expect(appState.taskItems, [birthdayTask, resultingTaskItem]);
 
     expect(resultingTaskItem, taskItem);
     expect(resultingTaskItem.taskRecurrencePreview, taskRecurrence);
