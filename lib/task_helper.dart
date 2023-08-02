@@ -163,6 +163,8 @@ class TaskHelper {
     });
     appState.notificationScheduler.updateBadge();
 
+    // todo: something's going wrong with the recurrence here. we have two recurrences,
+    // todo: and we need to make sure we're updating the right one.
     if (nextScheduledTask != null) {
       await addTaskIteration(nextScheduledTask, taskItem.taskRecurrence, personId, stateSetter);
     }

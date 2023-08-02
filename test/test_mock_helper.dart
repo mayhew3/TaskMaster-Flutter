@@ -108,7 +108,7 @@ class TestMockHelper {
     if (taskRecurrencePreview != null) {
 
       var taskRecurrence = new TaskRecurrence(
-          id: id,
+          id: taskRecurrencePreview.id,
           personId: taskRecurrencePreview.personId,
           name: taskRecurrencePreview.name,
           recurNumber: taskRecurrencePreview.recurNumber,
