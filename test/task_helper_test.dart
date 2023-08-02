@@ -89,8 +89,7 @@ void main() {
 
   test('reloadTasks', () async {
     var taskHelper = createTaskHelper();
-    var mockAppState = taskHelper.appState;
-    var notificationScheduler = mockAppState.notificationScheduler;
+    var notificationScheduler = appState.notificationScheduler;
     expect(notificationScheduler, isNot(null));
 
     await taskHelper.reloadTasks();
@@ -100,13 +99,12 @@ void main() {
     verify(notificationScheduler.updateBadge());
     verify(navHelper.goToHomeScreen());
 
-    expect(mockAppState.isLoading, false);
+    expect(appState.isLoading, false);
   });
 
   test('addTask', () async {
     var taskHelper = createTaskHelper(taskItems: [catLitterTask]);
-    var mockAppState = taskHelper.appState;
-    var notificationScheduler = mockAppState.notificationScheduler;
+    var notificationScheduler = appState.notificationScheduler;
     expect(notificationScheduler, isNot(null));
     var taskItem = TaskItem.fromJson(birthdayJSON);
     var taskItemBlueprint = TaskItemBlueprint.fromJson(birthdayJSON);
@@ -118,13 +116,12 @@ void main() {
     verify(notificationScheduler.updateNotificationForTask(birthdayTask));
     verify(notificationScheduler.updateBadge());
 
-    expect(mockAppState.taskItems, [catLitterTask, resultingTaskItem]);
+    expect(appState.taskItems, [catLitterTask, resultingTaskItem]);
   });
 
   test('addTask with recurrence', () async {
     var taskHelper = createTaskHelper(taskItems: [birthdayTask]);
-    var mockAppState = taskHelper.appState;
-    var notificationScheduler = mockAppState.notificationScheduler;
+    var notificationScheduler = appState.notificationScheduler;
     expect(notificationScheduler, isNot(null));
     var taskItem = TaskItem.fromJson(catLitterJSON);
     var taskItemBlueprint = TaskItemBlueprint.fromJson(catLitterJSON);
@@ -337,16 +334,15 @@ void main() {
     var originalTask = catLitterTask;
 
     var taskHelper = createTaskHelper(taskItems: [originalTask]);
-    var mockAppState = taskHelper.appState;
-    var notificationScheduler = mockAppState.notificationScheduler;
+    var notificationScheduler = appState.notificationScheduler;
     expect(notificationScheduler, isNot(null));
 
     await taskHelper.deleteTask(originalTask, stateSetter);
     verify(notificationScheduler.cancelNotificationsForTaskId(originalTask.id));
-    verify(mockAppState.deleteTaskFromList(originalTask));
     verify(notificationScheduler.updateBadge());
     verify(taskRepository.deleteTask(originalTask));
 
+    expect(appState.taskItems, []);
   });
 
 
@@ -502,8 +498,7 @@ void main() {
     Sprint sprint = currentSprint;
 
     TaskHelper taskHelper = createTaskHelper(taskItems: taskItems, sprints: [pastSprint]);
-    AppState mockAppState = taskHelper.appState;
-    var notificationScheduler = mockAppState.notificationScheduler;
+    var notificationScheduler = appState.notificationScheduler;
     expect(notificationScheduler, isNot(null));
 
     when(taskRepository.addSprint(sprint)).thenAnswer((_) => Future.value(Sprint.fromJson(sprint.toJson())));
@@ -512,9 +507,9 @@ void main() {
 
     verify(taskRepository.addSprint(sprint));
     verify(taskRepository.addTasksToSprint(taskItems, returnedSprint));
-    verify(mockAppState.sprints.add(sprint));
-    expect(returnedSprint.sprintNumber, 6);
 
+    expect(appState.sprints, [pastSprint, returnedSprint]);
+    expect(returnedSprint.sprintNumber, 6);
   });
 
   test('addTaskToSprint', () async {
@@ -533,8 +528,8 @@ void main() {
 
     verifyNever(taskRepository.addSprint(sprint));
     verify(taskRepository.addTasksToSprint(taskItems, returnedSprint));
-    verifyNever(appState.sprints.add(sprint));
 
+    expect(appState.sprints, [pastSprint]);
   });
 
 }
