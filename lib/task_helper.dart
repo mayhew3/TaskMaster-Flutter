@@ -50,13 +50,26 @@ class TaskHelper {
     return updateTaskList(inboundTask, stateSetter);
   }
 
-  Future<TaskItem> addTaskIteration(TaskItemPreview taskItem, TaskRecurrence? existingRecurrence, int personId, StateSetter stateSetter) async {
-    await maybeUpdateRecurrence(existingRecurrence, taskItem.taskRecurrencePreview, stateSetter);
-    TaskItem inboundTask = await repository.addTaskIteration(taskItem, personId);
-    if (inboundTask.taskRecurrence != null) {
-      inboundTask.taskRecurrence!.addToTaskItems(inboundTask);
+  Future<TaskItem> addTaskIteration(TaskItemPreview taskItemPreview, TaskRecurrence? existingRecurrence, int personId, StateSetter stateSetter) async {
+    await maybeUpdateRecurrence(existingRecurrence, taskItemPreview.taskRecurrencePreview, stateSetter);
+    TaskItem inboundTask = await repository.addTaskIteration(taskItemPreview, personId);
+    var newRecurrence = inboundTask.taskRecurrence;
+    if (newRecurrence != null) {
+      copyTaskItemsToRecurrence(existingRecurrence, newRecurrence, inboundTask);
     }
     return updateTaskList(inboundTask, stateSetter);
+  }
+
+  void copyTaskItemsToRecurrence(TaskRecurrence? existingRecurrence, TaskRecurrence newRecurrence, TaskItem newTaskItem) {
+    if (existingRecurrence != null) {
+      for (var taskItem in existingRecurrence.taskItems) {
+        var existing = appState.findTaskItemWithId(taskItem.id);
+        if (existing != null) {
+          newRecurrence.addToTaskItems(taskItem);
+        }
+      }
+    }
+    newRecurrence.addToTaskItems(newTaskItem);
   }
 
   Future<void> maybeUpdateRecurrence(TaskRecurrence? existingRecurrence, TaskRecurrencePreview? recurrencePreview, StateSetter stateSetter) async {
@@ -163,8 +176,6 @@ class TaskHelper {
     });
     appState.notificationScheduler.updateBadge();
 
-    // todo: something's going wrong with the recurrence here. we have two recurrences,
-    // todo: and we need to make sure we're updating the right one.
     if (nextScheduledTask != null) {
       await addTaskIteration(nextScheduledTask, taskItem.taskRecurrence, personId, stateSetter);
     }

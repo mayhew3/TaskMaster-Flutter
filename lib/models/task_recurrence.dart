@@ -25,9 +25,15 @@ class TaskRecurrence extends TaskRecurrencePreview {
   }) : super(id: id, personId: personId, name: name, recurNumber: recurNumber, recurUnit: recurUnit, recurWait: recurWait, recurIteration: recurIteration, anchorDate: anchorDate, anchorType: anchorType);
 
   void addToTaskItems(TaskItem taskItem) {
-    taskItems.add(taskItem);
-    taskItem.setRecurrence(this);
-    sortItems();
+    if (!hasTask(taskItem)) {
+      taskItems.add(taskItem);
+      taskItem.setRecurrence(this);
+      sortItems();
+    }
+  }
+
+  bool hasTask(TaskItem taskItem) {
+    return taskItems.any((t) => t.id == taskItem.id);
   }
 
   /// A necessary factory constructor for creating a new User instance

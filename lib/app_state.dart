@@ -149,7 +149,10 @@ class AppState {
 
   void replaceTaskRecurrence(TaskRecurrence oldRecurrence, TaskRecurrence newRecurrence) {
     for (TaskItem taskItem in oldRecurrence.taskItems) {
-      newRecurrence.addToTaskItems(taskItem);
+      var existing = taskItems.where((t) => t.id == taskItem.id).singleOrNull;
+      if (existing != null) {
+        newRecurrence.addToTaskItems(existing);
+      }
     }
 
     var indexOf = _taskRecurrences.indexOf(oldRecurrence);

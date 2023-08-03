@@ -231,14 +231,14 @@ void main() {
 
     TaskItem addedTask = returnedRecurrence.getMostRecentIteration();
 
-    // verify(notificationScheduler.updateNotificationForTask(addedTask));
+    verify(notificationScheduler.updateNotificationForTask(addedTask));
 
     expect(addedTask, isNot(null), reason: 'Expect new task to be created based on recur.');
-    // expect(addedTask, isNot(returnedTask));
+    expect(addedTask.id, isNot(returnedTask.id));
     expect(addedTask.completionDate, null);
     expect(addedTask.pendingCompletion, false);
 
-    var addedItemRecurrence = addedTask.taskRecurrencePreview;
+    var addedItemRecurrence = addedTask.taskRecurrence;
     expect(addedItemRecurrence, isNot(null));
     expect(addedItemRecurrence, returnedRecurrence);
     expect(addedItemRecurrence!.recurIteration, 2);
