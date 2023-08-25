@@ -116,34 +116,6 @@ void main() {
     });
 
 
-    test('addTaskIteration', () {
-      fail('Not implemented');
-    });
-
-    test('addSnooze', () {
-      fail('Not implemented');
-    });
-
-    test('addSprint', () {
-      fail('Not implemented');
-    });
-
-    test('addTasksToSprint', () {
-      fail('Not implemented');
-    });
-
-    test('completeTask', () {
-      fail('Not implemented');
-    });
-
-    test('updateTaskRecurrence', () {
-      fail('Not implemented');
-    });
-
-    test('deleteTask', () {
-      fail('Not implemented');
-    });
-
   });
 
 
