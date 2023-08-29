@@ -200,6 +200,9 @@ class SnoozeDialogState extends State<SnoozeDialog> {
 
                 var typeWithLabel = TaskDateTypes.getTypeWithLabel(taskDateType);
                 if (typeWithLabel != null && numUnits != null) {
+                  if (blueprint.taskRecurrenceBlueprint?.recurNumber == null) {
+                    blueprint.taskRecurrenceBlueprint = null;
+                  }
                   await widget.taskHelper.snoozeTask(widget.taskItem,
                       blueprint, numUnits!, unitName, typeWithLabel, false, widget.stateSetter);
                 }
