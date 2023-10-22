@@ -61,7 +61,11 @@ class AppState {
 
   Future<String> getIdToken() async {
     try {
-      return await auth.getIdToken();
+      var idToken = await auth.getIdToken();
+      if (idToken == null) {
+        throw new Exception("Null id token found.");
+      }
+      return idToken;
     } catch (err) {
       print("Error getting ID token. Redirecting to signin screen.");
       this.navHelper.goToSignInScreen();

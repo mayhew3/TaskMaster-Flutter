@@ -32,7 +32,7 @@ class TaskMasterAuth {
     await _googleSignIn.disconnect();
   }
 
-  Future<String> getIdToken() async {
+  Future<String?> getIdToken() async {
     return await _firebaseUser!.user!.getIdToken();
   }
 
@@ -66,7 +66,7 @@ class TaskMasterAuth {
         accessToken: authentication.accessToken,
       );
       _firebaseUser = await FirebaseAuth.instance.signInWithCredential(credential);
-      String idToken = await _firebaseUser!.user!.getIdToken();
+      String? idToken = await _firebaseUser!.user!.getIdToken();
       updateIdToken(idToken);
       updateCurrentUser(account);
       print("Login success!");
