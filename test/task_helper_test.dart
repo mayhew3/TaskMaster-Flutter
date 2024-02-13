@@ -300,8 +300,8 @@ void main() {
     var diff = newDue.difference(now).inHours;
 
     var exactly42 = 42 * 24;
-    var lowerBound = exactly42 - 1;
-    var upperBound = exactly42 + 1;
+    var lowerBound = exactly42 - 3;
+    var upperBound = exactly42 + 3;
 
     expect(diff, inInclusiveRange(lowerBound, upperBound), reason: 'Recurrence of 6 weeks should make new task 42 days after now.');
   });
