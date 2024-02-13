@@ -112,6 +112,11 @@ class AppState {
     return matching.isEmpty ? null : matching.first;
   }
 
+  TaskRecurrence? findRecurrenceWithId(int recurrenceId) {
+    var matching = _taskRecurrences.where((taskRecurrence) => taskRecurrence.id == recurrenceId);
+    return matching.isEmpty ? null : matching.first;
+  }
+
   void updateNotificationScheduler(NotificationScheduler notificationScheduler) {
     this.notificationScheduler = notificationScheduler;
   }

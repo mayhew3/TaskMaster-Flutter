@@ -3,6 +3,7 @@ import 'package:mockito/mockito.dart';
 import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/nav_helper.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
@@ -10,6 +11,7 @@ import 'package:test/test.dart';
 import 'app_state_test.mocks.dart';
 import 'mocks/mock_data.dart';
 import 'mocks/mock_data_builder.dart';
+import 'mocks/mock_recurrence_builder.dart';
 import 'mocks/mock_task_master_auth.dart';
 
 @GenerateNiceMocks([MockSpec<NavHelper>(), MockSpec<TaskRepository>()])
@@ -29,7 +31,6 @@ void main() {
     when(navHelper.appState).thenReturn(appState);
     when(navHelper.taskRepository).thenReturn(mockTaskRepository);
     appState.updateNavHelper(navHelper);
-    appState.updateTasksAndSprints(taskItems ?? allTasks, sprints ?? allSprints, [onlyRecurrence]);
     return appState;
   }
 
@@ -114,6 +115,7 @@ void main() {
 
   test('replaceTaskItem', () {
     var appState = createAppState();
+    appState.updateTasksAndSprints(allTasks, allSprints, [onlyRecurrence]);
 
     var oldTaskItem = catLitterTask;
     var newId = 756;
@@ -133,7 +135,20 @@ void main() {
   });
 
   test('replaceTaskRecurrence', () {
-    fail('Not implemented');
+    var appState = createAppState();
+    appState.updateTasksAndSprints(allTasks, allSprints, [onlyRecurrence]);
+
+    TaskRecurrence secondRecurrence = (TaskRecurrenceBuilder.asPreCommit()..id = 2).create();
+
+    expect(onlyRecurrence.taskItems.length, 2, reason: 'SANITY: Expect 2 task items on original recurrence.');
+    expect(secondRecurrence.taskItems.length, 0, reason: 'SANITY: Expect no task items yet on new recurrence.');
+
+    appState.replaceTaskRecurrence(onlyRecurrence, secondRecurrence);
+
+    expect(appState.findRecurrenceWithId(onlyRecurrence.id), null);
+    expect(appState.findRecurrenceWithId(secondRecurrence.id), secondRecurrence);
+
+    expect(secondRecurrence.taskItems.length, 2, reason: 'Expect both items to be copied from original recurrence.');
   });
 
   test('syncAllNotifications', () {
