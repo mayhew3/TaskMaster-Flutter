@@ -452,7 +452,10 @@ void main() {
 
   });
 
-
+  test('snooze task with recur wait false', () {
+    fail('To implement.');
+  });
+  
   test('snooze task add start', () async {
     TaskItem taskItem = TaskItemBuilder
         .asDefault()
