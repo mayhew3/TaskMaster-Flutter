@@ -9,6 +9,7 @@ import 'package:test/test.dart';
 
 import 'app_state_test.mocks.dart';
 import 'mocks/mock_data.dart';
+import 'mocks/mock_data_builder.dart';
 import 'mocks/mock_task_master_auth.dart';
 
 @GenerateNiceMocks([MockSpec<NavHelper>(), MockSpec<TaskRepository>()])
@@ -28,6 +29,7 @@ void main() {
     when(navHelper.appState).thenReturn(appState);
     when(navHelper.taskRepository).thenReturn(mockTaskRepository);
     appState.updateNavHelper(navHelper);
+    appState.updateTasksAndSprints(taskItems ?? allTasks, sprints ?? allSprints, [onlyRecurrence]);
     return appState;
   }
 
@@ -111,15 +113,23 @@ void main() {
   });
 
   test('replaceTaskItem', () {
-    fail('Not implemented');
-  });
+    var appState = createAppState();
 
-  test('replaceTaskItem updates active sprint', () {
-    fail('Not implemented');
-  });
+    var oldTaskItem = catLitterTask;
+    var newId = 756;
+    var newTaskItem = (TaskItemBuilder.asDefault()..id=newId).create();
 
-  test('replaceTaskItem updates recurrence', () {
-    fail('Not implemented');
+    expect(oldTaskItem.taskRecurrence, isNot(null), reason: 'SANITY: Test data should be task with a recurrence.');
+
+    var oldId = oldTaskItem.id;
+    appState.replaceTaskItem(oldTaskItem, newTaskItem);
+
+    expect(appState.findTaskItemWithId(oldId), null);
+    expect(appState.findTaskItemWithId(newId), newTaskItem);
+
+    var activeSprint = appState.getActiveSprint()!;
+    expect(activeSprint.taskItems.indexOf(oldTaskItem), -1);
+    expect(activeSprint.taskItems.indexOf(newTaskItem), 0);
   });
 
   test('replaceTaskRecurrence', () {

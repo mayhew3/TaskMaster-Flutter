@@ -1,6 +1,9 @@
 
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/models/task_recurrence.dart';
+
+import 'mock_recurrence_builder.dart';
 
 
 final DateTime pastSprintStart = DateTime.now().subtract(Duration(days: 10));
@@ -234,3 +237,4 @@ TaskItem burnTask = TaskItem.fromJson(burnJSON);
 
 List<TaskItem> allTasks = [catLitterTask, birthdayTask, futureTask, pastTask, burnTask];
 
+TaskRecurrence onlyRecurrence = TaskRecurrenceBuilder.asDefault().create();
