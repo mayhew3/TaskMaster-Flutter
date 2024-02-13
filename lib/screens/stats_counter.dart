@@ -1,6 +1,4 @@
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/typedefs.dart';
@@ -35,28 +33,28 @@ class StatsCounter extends StatelessWidget {
                 padding: EdgeInsets.only(bottom: 8.0),
                 child: Text(
                   'Completed Tasks',
-                  style: Theme.of(context).textTheme.headline6,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
               Padding(
                 padding: EdgeInsets.only(bottom: 24.0),
                 child: Text(
                   '$numCompleted',
-                  style: Theme.of(context).textTheme.subtitle1,
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
               Padding(
                 padding: EdgeInsets.only(bottom: 8.0),
                 child: Text(
                   'Active Tasks',
-                  style: Theme.of(context).textTheme.headline6,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
               Padding(
                 padding: EdgeInsets.only(bottom: 24.0),
                 child: Text(
                   "$numActive",
-                  style: Theme.of(context).textTheme.subtitle1,
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
               )
             ],

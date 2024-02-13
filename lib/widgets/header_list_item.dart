@@ -18,7 +18,7 @@ class HeadingItem extends StatelessWidget {
       ),
       child:  Text(
         heading.toUpperCase(),
-        style: Theme.of(context).textTheme.caption,
+        style: Theme.of(context).textTheme.bodySmall,
       ),
     );
   }

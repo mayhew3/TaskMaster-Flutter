@@ -1,5 +1,4 @@
 
-import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_recurrence.dart';

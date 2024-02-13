@@ -120,7 +120,32 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       brightness: Brightness.dark,
       primaryColor: TaskColors.menuColor,
       canvasColor: TaskColors.backgroundColor,
-      toggleableActiveColor: TaskColors.highlight,
+      checkboxTheme: CheckboxThemeData(
+        fillColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+          if (states.contains(MaterialState.disabled)) { return TaskColors.highlight; }
+          if (states.contains(MaterialState.selected)) { return TaskColors.highlight; }
+          return TaskColors.highlight;
+        }),
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+          if (states.contains(MaterialState.disabled)) { return TaskColors.highlight; }
+          if (states.contains(MaterialState.selected)) { return TaskColors.highlight; }
+          return TaskColors.highlight;
+        }),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+          if (states.contains(MaterialState.disabled)) { return TaskColors.highlight; }
+          if (states.contains(MaterialState.selected)) { return TaskColors.highlight; }
+          return TaskColors.highlight;
+        }),
+        trackColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+          if (states.contains(MaterialState.disabled)) { return TaskColors.highlight; }
+          if (states.contains(MaterialState.selected)) { return TaskColors.highlight; }
+          return TaskColors.highlight;
+        }),
+      ),
     );
 
     return MaterialApp(

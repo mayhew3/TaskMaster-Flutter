@@ -1,6 +1,4 @@
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/models/task_colors.dart';
 
@@ -79,7 +77,7 @@ class ReadOnlyTaskField extends StatelessWidget {
               SizedBox(
                 width: 70.0,
                 child: Text(headerName,
-                  style: Theme.of(context).textTheme.caption,),
+                  style: Theme.of(context).textTheme.bodySmall,),
               ),
               Expanded(
                 child: Column(

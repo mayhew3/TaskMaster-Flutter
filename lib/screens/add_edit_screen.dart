@@ -385,7 +385,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                                     child: Padding(
                                       padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
                                       child: Text('Repeat',
-                                        style: Theme.of(context).textTheme.subtitle1,),
+                                        style: Theme.of(context).textTheme.titleMedium,),
                                     ),
                                   ),
                                   Column(

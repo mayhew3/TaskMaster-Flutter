@@ -169,8 +169,8 @@ class DetailScreenState extends State<DetailScreen> {
                 Expanded(
                   child: Padding(
                       padding: EdgeInsets.all(16.0),
-                      child: Text(taskItem.name!,
-                        style: Theme.of(context).textTheme.headline5,
+                      child: Text(taskItem.name,
+                        style: Theme.of(context).textTheme.headlineSmall,
                       )
                   ),
                 ),

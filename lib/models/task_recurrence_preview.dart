@@ -1,7 +1,6 @@
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/models/task_item_preview.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 
 /// This allows the `TaskRecurrencePreview` class to access private members in

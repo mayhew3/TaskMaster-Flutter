@@ -1,5 +1,4 @@
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/models/task_colors.dart';
 
@@ -26,9 +25,9 @@ class ReadOnlyTaskFieldSmall extends StatelessWidget {
             child: Column(
               children: <Widget>[
                 Text(headerName,
-                  style: Theme.of(context).textTheme.caption,),
+                  style: Theme.of(context).textTheme.bodySmall,),
                 Text(textToShow,
-                  style: Theme.of(context).textTheme.subtitle1,),
+                  style: Theme.of(context).textTheme.titleMedium,),
               ],
             ),
           ),
