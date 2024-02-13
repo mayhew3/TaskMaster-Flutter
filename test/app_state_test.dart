@@ -35,6 +35,14 @@ void main() {
     return appState;
   }
 
+  resetAppState(AppState appState, Iterable<TaskRecurrence> recurrences) {
+    for (var taskItem in appState.taskItems) {
+      for (var recurrence in recurrences) {
+        recurrence.removeFromTaskItems(taskItem);
+      }
+    }
+  }
+
   test('Should be constructed', () {
     var appState = createAppState();
     expect(appState.title, 'TaskMaster 3000');
@@ -123,6 +131,8 @@ void main() {
     appState.updateTasksAndSprints(allTasks, allSprints, [onlyRecurrence]);
 
     expect(catLitterTask.taskRecurrence, isNot(null), reason: 'updateTasksAndSprints should attach taskRecurrence to matching tasks.');
+
+    resetAppState(appState, [onlyRecurrence]);
   });
 
   test('replaceTaskItem', () {
@@ -131,7 +141,14 @@ void main() {
 
     var oldTaskItem = catLitterTask;
     var newId = 756;
-    var newTaskItem = (TaskItemBuilder.asDefault()..id=newId).create();
+    var newTaskItem = (TaskItemBuilder.asDefault()
+      ..id = newId
+      ..recurNumber = 6
+      ..recurUnit = 'Weeks'
+      ..recurWait = false
+      ..recurIteration = 1
+      ..recurrenceId = 1
+    ).create();
 
     var oldId = oldTaskItem.id;
     appState.replaceTaskItem(oldTaskItem, newTaskItem);
@@ -142,6 +159,8 @@ void main() {
     var activeSprint = appState.getActiveSprint()!;
     expect(activeSprint.taskItems.indexOf(oldTaskItem), -1);
     expect(activeSprint.taskItems.indexOf(newTaskItem), 0);
+
+    resetAppState(appState, [onlyRecurrence]);
   });
 
   test('replaceTaskRecurrence', () {
@@ -159,6 +178,8 @@ void main() {
     expect(appState.findRecurrenceWithId(secondRecurrence.id), secondRecurrence);
 
     expect(secondRecurrence.taskItems.length, 2, reason: 'Expect both items to be copied from original recurrence.');
+
+    resetAppState(appState, [onlyRecurrence, secondRecurrence]);
   });
 
   test('syncAllNotifications', () async {
@@ -174,10 +195,6 @@ void main() {
 
     verify(scheduler.cancelAllNotifications());
     verify(scheduler.syncNotificationForTasksAndSprint(appState.taskItems, activeSprint));
-  });
-
-  test('updateNotificationScheduler', () {
-    fail('Not implemented');
   });
 
 }

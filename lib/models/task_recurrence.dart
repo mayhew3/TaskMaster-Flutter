@@ -27,6 +27,15 @@ class TaskRecurrence extends TaskRecurrencePreview {
     if (!hasTask(taskItem)) {
       taskItems.add(taskItem);
       taskItem.setRecurrence(this);
+      var nulls = taskItems.where((t) => t.recurIteration == null);
+      sortItems();
+    }
+  }
+
+  void removeFromTaskItems(TaskItem taskItem) {
+    if (hasTask(taskItem)) {
+      taskItems.remove(taskItem);
+      taskItem.clearRecurrence();
       sortItems();
     }
   }

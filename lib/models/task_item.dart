@@ -82,6 +82,10 @@ class TaskItem extends TaskItemPreview {
     return this.taskRecurrencePreview ?? this.taskRecurrence;
   }
 
+  void clearRecurrence() {
+    this._taskRecurrence = null;
+  }
+
   void setRecurrence(TaskRecurrence taskRecurrence) {
     this._taskRecurrence = taskRecurrence;
   }
