@@ -5,6 +5,7 @@ import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/nav_helper.dart';
+import 'package:taskmaster/notification_scheduler.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
@@ -14,7 +15,7 @@ import 'mocks/mock_data_builder.dart';
 import 'mocks/mock_recurrence_builder.dart';
 import 'mocks/mock_task_master_auth.dart';
 
-@GenerateNiceMocks([MockSpec<NavHelper>(), MockSpec<TaskRepository>()])
+@GenerateNiceMocks([MockSpec<NavHelper>(), MockSpec<TaskRepository>(), MockSpec<NotificationScheduler>()])
 void main() {
 
   AppState createAppState({
@@ -113,6 +114,17 @@ void main() {
     expect(sprintWithId, null);
   });
 
+  test('updateTasksAndSprints', () {
+    var appState = createAppState();
+
+    expect(catLitterTask.recurrenceId, 1, reason: 'Task data should have recurrence_id.');
+    expect(catLitterTask.taskRecurrence, null, reason: 'Task data has recurrence_id but no attached object yet.');
+
+    appState.updateTasksAndSprints(allTasks, allSprints, [onlyRecurrence]);
+
+    expect(catLitterTask.taskRecurrence, isNot(null), reason: 'updateTasksAndSprints should attach taskRecurrence to matching tasks.');
+  });
+
   test('replaceTaskItem', () {
     var appState = createAppState();
     appState.updateTasksAndSprints(allTasks, allSprints, [onlyRecurrence]);
@@ -120,8 +132,6 @@ void main() {
     var oldTaskItem = catLitterTask;
     var newId = 756;
     var newTaskItem = (TaskItemBuilder.asDefault()..id=newId).create();
-
-    expect(oldTaskItem.taskRecurrence, isNot(null), reason: 'SANITY: Test data should be task with a recurrence.');
 
     var oldId = oldTaskItem.id;
     appState.replaceTaskItem(oldTaskItem, newTaskItem);
@@ -151,23 +161,22 @@ void main() {
     expect(secondRecurrence.taskItems.length, 2, reason: 'Expect both items to be copied from original recurrence.');
   });
 
-  test('syncAllNotifications', () {
-    fail('Not implemented');
+  test('syncAllNotifications', () async {
+    var appState = createAppState();
+    appState.updateTasksAndSprints(allTasks, allSprints, [onlyRecurrence]);
+
+    NotificationScheduler scheduler = MockNotificationScheduler();
+    appState.updateNotificationScheduler(scheduler);
+
+    var activeSprint = appState.getActiveSprint();
+
+    await appState.syncAllNotifications();
+
+    verify(scheduler.cancelAllNotifications());
+    verify(scheduler.syncNotificationForTasksAndSprint(appState.taskItems, activeSprint));
   });
 
   test('updateNotificationScheduler', () {
-    fail('Not implemented');
-  });
-
-  test('updateTasksAndSprints', () {
-    fail('Not implemented');
-  });
-
-  test('linkTasksToSprints', () {
-    fail('Not implemented');
-  });
-
-  test('linkTasksToRecurrences', () {
     fail('Not implemented');
   });
 

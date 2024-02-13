@@ -187,6 +187,7 @@ class MockNavHelper extends _i1.Mock implements _i14.NavHelper {
           Invocation.getter(#appState),
         ),
       ) as _i2.AppState);
+
   @override
   _i3.TaskRepository get taskRepository => (super.noSuchMethod(
         Invocation.getter(#taskRepository),
@@ -199,6 +200,7 @@ class MockNavHelper extends _i1.Mock implements _i14.NavHelper {
           Invocation.getter(#taskRepository),
         ),
       ) as _i3.TaskRepository);
+
   @override
   _i4.TaskHelper get taskHelper => (super.noSuchMethod(
         Invocation.getter(#taskHelper),
@@ -211,6 +213,7 @@ class MockNavHelper extends _i1.Mock implements _i14.NavHelper {
           Invocation.getter(#taskHelper),
         ),
       ) as _i4.TaskHelper);
+
   @override
   _i5.BuildContext get context => (super.noSuchMethod(
         Invocation.getter(#context),
@@ -223,6 +226,7 @@ class MockNavHelper extends _i1.Mock implements _i14.NavHelper {
           Invocation.getter(#context),
         ),
       ) as _i5.BuildContext);
+
   @override
   set context(_i5.BuildContext? _context) => super.noSuchMethod(
         Invocation.setter(
@@ -231,6 +235,7 @@ class MockNavHelper extends _i1.Mock implements _i14.NavHelper {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void updateContext(_i5.BuildContext? context) => super.noSuchMethod(
         Invocation.method(
@@ -239,6 +244,7 @@ class MockNavHelper extends _i1.Mock implements _i14.NavHelper {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void goToLoadingScreen(String? msg) => super.noSuchMethod(
         Invocation.method(
@@ -247,6 +253,7 @@ class MockNavHelper extends _i1.Mock implements _i14.NavHelper {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void goToSignInScreen() => super.noSuchMethod(
         Invocation.method(
@@ -255,6 +262,7 @@ class MockNavHelper extends _i1.Mock implements _i14.NavHelper {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void goToHomeScreen() => super.noSuchMethod(
         Invocation.method(
@@ -281,6 +289,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           Invocation.getter(#appState),
         ),
       ) as _i2.AppState);
+
   @override
   set appState(_i2.AppState? _appState) => super.noSuchMethod(
         Invocation.setter(
@@ -289,6 +298,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   _i6.Client get client => (super.noSuchMethod(
         Invocation.getter(#client),
@@ -301,6 +311,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           Invocation.getter(#client),
         ),
       ) as _i6.Client);
+
   @override
   set client(_i6.Client? _client) => super.noSuchMethod(
         Invocation.setter(
@@ -309,6 +320,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   Uri getUriWithParameters(
     String? path,
@@ -343,6 +355,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           ),
         ),
       ) as Uri);
+
   @override
   Uri getUri(String? path) => (super.noSuchMethod(
         Invocation.method(
@@ -364,6 +377,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           ),
         ),
       ) as Uri);
+
   @override
   _i15.Future<void> loadTasks(_i5.StateSetter? stateSetter) =>
       (super.noSuchMethod(
@@ -374,6 +388,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
         returnValue: _i15.Future<void>.value(),
         returnValueForMissingStub: _i15.Future<void>.value(),
       ) as _i15.Future<void>);
+
   @override
   _i15.Future<_i7.TaskItem> addTask(_i16.TaskItemBlueprint? taskItemForm) =>
       (super.noSuchMethod(
@@ -397,6 +412,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           ),
         )),
       ) as _i15.Future<_i7.TaskItem>);
+
   @override
   _i15.Future<_i7.TaskItem> addTaskIteration(
     _i17.TaskItemPreview? taskItemPreview,
@@ -432,6 +448,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           ),
         )),
       ) as _i15.Future<_i7.TaskItem>);
+
   @override
   _i15.Future<_i8.Snooze> addSnooze(_i8.Snooze? snooze) => (super.noSuchMethod(
         Invocation.method(
@@ -453,6 +470,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           ),
         )),
       ) as _i15.Future<_i8.Snooze>);
+
   @override
   _i15.Future<_i9.Sprint> addSprint(_i9.Sprint? sprint) => (super.noSuchMethod(
         Invocation.method(
@@ -474,6 +492,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           ),
         )),
       ) as _i15.Future<_i9.Sprint>);
+
   @override
   _i15.Future<void> addTasksToSprint(
     List<_i7.TaskItem>? taskItems,
@@ -490,6 +509,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
         returnValue: _i15.Future<void>.value(),
         returnValueForMissingStub: _i15.Future<void>.value(),
       ) as _i15.Future<void>);
+
   @override
   _i15.Future<_i7.TaskItem> completeTask(
     _i7.TaskItem? taskItem,
@@ -525,6 +545,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           ),
         )),
       ) as _i15.Future<_i7.TaskItem>);
+
   @override
   _i15.Future<_i7.TaskItem> updateTask(
     _i7.TaskItem? taskItem,
@@ -560,6 +581,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           ),
         )),
       ) as _i15.Future<_i7.TaskItem>);
+
   @override
   _i15.Future<_i10.TaskRecurrence> updateTaskRecurrence(
           _i18.TaskRecurrencePreview? taskRecurrencePreview) =>
@@ -585,6 +607,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
           ),
         )),
       ) as _i15.Future<_i10.TaskRecurrence>);
+
   @override
   _i15.Future<void> deleteTask(_i7.TaskItem? taskItem) => (super.noSuchMethod(
         Invocation.method(
@@ -613,6 +636,7 @@ class MockNotificationScheduler extends _i1.Mock
           Invocation.getter(#appState),
         ),
       ) as _i2.AppState);
+
   @override
   set appState(_i2.AppState? _appState) => super.noSuchMethod(
         Invocation.setter(
@@ -621,6 +645,7 @@ class MockNotificationScheduler extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   _i4.TaskHelper get taskHelper => (super.noSuchMethod(
         Invocation.getter(#taskHelper),
@@ -633,6 +658,7 @@ class MockNotificationScheduler extends _i1.Mock
           Invocation.getter(#taskHelper),
         ),
       ) as _i4.TaskHelper);
+
   @override
   _i11.TimezoneHelper get timezoneHelper => (super.noSuchMethod(
         Invocation.getter(#timezoneHelper),
@@ -645,6 +671,7 @@ class MockNotificationScheduler extends _i1.Mock
           Invocation.getter(#timezoneHelper),
         ),
       ) as _i11.TimezoneHelper);
+
   @override
   _i5.BuildContext get context => (super.noSuchMethod(
         Invocation.getter(#context),
@@ -657,6 +684,7 @@ class MockNotificationScheduler extends _i1.Mock
           Invocation.getter(#context),
         ),
       ) as _i5.BuildContext);
+
   @override
   _i5.BuildContext get homeScreenContext => (super.noSuchMethod(
         Invocation.getter(#homeScreenContext),
@@ -669,6 +697,7 @@ class MockNotificationScheduler extends _i1.Mock
           Invocation.getter(#homeScreenContext),
         ),
       ) as _i5.BuildContext);
+
   @override
   set homeScreenContext(_i5.BuildContext? _homeScreenContext) =>
       super.noSuchMethod(
@@ -678,12 +707,14 @@ class MockNotificationScheduler extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   int get nextId => (super.noSuchMethod(
         Invocation.getter(#nextId),
         returnValue: 0,
         returnValueForMissingStub: 0,
       ) as int);
+
   @override
   set nextId(int? _nextId) => super.noSuchMethod(
         Invocation.setter(
@@ -692,6 +723,7 @@ class MockNotificationScheduler extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   _i12.FlutterLocalNotificationsPlugin get flutterLocalNotificationsPlugin =>
       (super.noSuchMethod(
@@ -705,6 +737,7 @@ class MockNotificationScheduler extends _i1.Mock
           Invocation.getter(#flutterLocalNotificationsPlugin),
         ),
       ) as _i12.FlutterLocalNotificationsPlugin);
+
   @override
   _i13.FlutterBadgerWrapper get flutterBadgerWrapper => (super.noSuchMethod(
         Invocation.getter(#flutterBadgerWrapper),
@@ -717,6 +750,7 @@ class MockNotificationScheduler extends _i1.Mock
           Invocation.getter(#flutterBadgerWrapper),
         ),
       ) as _i13.FlutterBadgerWrapper);
+
   @override
   void updateHomeScreenContext(_i5.BuildContext? context) => super.noSuchMethod(
         Invocation.method(
@@ -725,6 +759,7 @@ class MockNotificationScheduler extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void updateAppState(_i2.AppState? appState) => super.noSuchMethod(
         Invocation.method(
@@ -733,6 +768,7 @@ class MockNotificationScheduler extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void updateBadge() => super.noSuchMethod(
         Invocation.method(
@@ -741,6 +777,7 @@ class MockNotificationScheduler extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   _i15.Future<void> cancelAllNotifications() => (super.noSuchMethod(
         Invocation.method(
@@ -750,6 +787,7 @@ class MockNotificationScheduler extends _i1.Mock
         returnValue: _i15.Future<void>.value(),
         returnValueForMissingStub: _i15.Future<void>.value(),
       ) as _i15.Future<void>);
+
   @override
   _i15.Future<void> cancelNotificationsForTaskId(int? taskId) =>
       (super.noSuchMethod(
@@ -760,6 +798,7 @@ class MockNotificationScheduler extends _i1.Mock
         returnValue: _i15.Future<void>.value(),
         returnValueForMissingStub: _i15.Future<void>.value(),
       ) as _i15.Future<void>);
+
   @override
   _i15.Future<void> syncNotificationForTasksAndSprint(
     List<_i7.TaskItem>? taskItems,
@@ -776,6 +815,7 @@ class MockNotificationScheduler extends _i1.Mock
         returnValue: _i15.Future<void>.value(),
         returnValueForMissingStub: _i15.Future<void>.value(),
       ) as _i15.Future<void>);
+
   @override
   _i15.Future<void> updateNotificationForTask(_i7.TaskItem? taskItem) =>
       (super.noSuchMethod(

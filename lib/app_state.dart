@@ -15,7 +15,7 @@ class AppState {
   GoogleSignInAccount? currentUser;
   bool tokenRetrieved = false;
   late int personId;
-  late NotificationScheduler notificationScheduler;
+  late NotificationScheduler _notificationScheduler;
   late String title;
   late NavHelper navHelper;
 
@@ -37,7 +37,7 @@ class AppState {
     this._taskItems = taskItems;
     this._taskRecurrences = taskRecurrences;
     linkTasksToSprints();
-    linkTasksToRecurrences();
+    _linkTasksToRecurrences();
   }
 
   void linkTasksToSprints() {
@@ -55,7 +55,7 @@ class AppState {
     }
   }
 
-  void linkTasksToRecurrences() {
+  void _linkTasksToRecurrences() {
     for (var taskItem in _taskItems) {
       if (taskItem.recurrenceId != null) {
         Iterable<TaskRecurrence> taskRecurrences = this._taskRecurrences.where((taskRecurrence) => taskRecurrence.id == taskItem.recurrenceId);
@@ -117,13 +117,15 @@ class AppState {
     return matching.isEmpty ? null : matching.first;
   }
 
+  NotificationScheduler get notificationScheduler => _notificationScheduler;
+
   void updateNotificationScheduler(NotificationScheduler notificationScheduler) {
-    this.notificationScheduler = notificationScheduler;
+    this._notificationScheduler = notificationScheduler;
   }
 
   Future<void> syncAllNotifications() async {
-    await notificationScheduler.cancelAllNotifications();
-    await notificationScheduler.syncNotificationForTasksAndSprint(_taskItems, getActiveSprint());
+    await _notificationScheduler.cancelAllNotifications();
+    await _notificationScheduler.syncNotificationForTasksAndSprint(_taskItems, getActiveSprint());
   }
 
   Sprint? getActiveSprint() {

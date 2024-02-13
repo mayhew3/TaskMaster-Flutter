@@ -87,6 +87,7 @@ class MockClient extends _i1.Mock implements _i2.Client {
           ),
         )),
       ) as _i4.Future<_i2.Response>);
+
   @override
   _i4.Future<_i2.Response> get(
     Uri? url, {
@@ -116,6 +117,7 @@ class MockClient extends _i1.Mock implements _i2.Client {
           ),
         )),
       ) as _i4.Future<_i2.Response>);
+
   @override
   _i4.Future<_i2.Response> post(
     Uri? url, {
@@ -159,6 +161,7 @@ class MockClient extends _i1.Mock implements _i2.Client {
           ),
         )),
       ) as _i4.Future<_i2.Response>);
+
   @override
   _i4.Future<_i2.Response> put(
     Uri? url, {
@@ -202,6 +205,7 @@ class MockClient extends _i1.Mock implements _i2.Client {
           ),
         )),
       ) as _i4.Future<_i2.Response>);
+
   @override
   _i4.Future<_i2.Response> patch(
     Uri? url, {
@@ -245,6 +249,7 @@ class MockClient extends _i1.Mock implements _i2.Client {
           ),
         )),
       ) as _i4.Future<_i2.Response>);
+
   @override
   _i4.Future<_i2.Response> delete(
     Uri? url, {
@@ -288,6 +293,7 @@ class MockClient extends _i1.Mock implements _i2.Client {
           ),
         )),
       ) as _i4.Future<_i2.Response>);
+
   @override
   _i4.Future<String> read(
     Uri? url, {
@@ -302,6 +308,7 @@ class MockClient extends _i1.Mock implements _i2.Client {
         returnValue: _i4.Future<String>.value(''),
         returnValueForMissingStub: _i4.Future<String>.value(''),
       ) as _i4.Future<String>);
+
   @override
   _i4.Future<_i6.Uint8List> readBytes(
     Uri? url, {
@@ -317,6 +324,7 @@ class MockClient extends _i1.Mock implements _i2.Client {
         returnValueForMissingStub:
             _i4.Future<_i6.Uint8List>.value(_i6.Uint8List(0)),
       ) as _i4.Future<_i6.Uint8List>);
+
   @override
   _i4.Future<_i2.StreamedResponse> send(_i2.BaseRequest? request) =>
       (super.noSuchMethod(
@@ -341,6 +349,7 @@ class MockClient extends _i1.Mock implements _i2.Client {
           ),
         )),
       ) as _i4.Future<_i2.StreamedResponse>);
+
   @override
   void close() => super.noSuchMethod(
         Invocation.method(
@@ -363,12 +372,14 @@ class MockGoogleSignInAccount extends _i1.Mock
         returnValue: '',
         returnValueForMissingStub: '',
       ) as String);
+
   @override
   String get id => (super.noSuchMethod(
         Invocation.getter(#id),
         returnValue: '',
         returnValueForMissingStub: '',
       ) as String);
+
   @override
   _i4.Future<_i3.GoogleSignInAuthentication> get authentication =>
       (super.noSuchMethod(
@@ -385,6 +396,7 @@ class MockGoogleSignInAccount extends _i1.Mock
           Invocation.getter(#authentication),
         )),
       ) as _i4.Future<_i3.GoogleSignInAuthentication>);
+
   @override
   _i4.Future<Map<String, String>> get authHeaders => (super.noSuchMethod(
         Invocation.getter(#authHeaders),
@@ -392,6 +404,7 @@ class MockGoogleSignInAccount extends _i1.Mock
         returnValueForMissingStub:
             _i4.Future<Map<String, String>>.value(<String, String>{}),
       ) as _i4.Future<Map<String, String>>);
+
   @override
   _i4.Future<void> clearAuthCache() => (super.noSuchMethod(
         Invocation.method(
