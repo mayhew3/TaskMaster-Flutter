@@ -200,7 +200,7 @@ void main() {
 
     var taskItem = TaskItemBuilder
         .withDates()
-        .withRecur(false)
+        .withRecur(recurWait: false)
         .create();
 
     var taskHelper = createTaskHelper(taskItems: [taskItem], sprints: [currentSprint], recurrences: [taskItem.taskRecurrence!]);
@@ -209,11 +209,13 @@ void main() {
     var taskRecurrence = taskItem.taskRecurrence;
     expect(taskRecurrence, isNot(null));
     expect(taskRecurrence!.recurIteration, 1);
+    expect(taskRecurrence.anchorType, 'Due');
 
     var now = DateTime.now();
 
     var originalId = taskItem.id;
-    var originalStart = DateUtil.withoutMillis(taskItem.startDate!);
+    var originalDue = DateUtil.withoutMillis(taskItem.dueDate!);
+    var originalAnchor = DateUtil.withoutMillis(taskRecurrence.anchorDate);
 
     var returnedTask = await taskHelper.completeTask(taskItem, true, stateSetter);
     verify(notificationScheduler.updateNotificationForTask(returnedTask));
@@ -243,14 +245,17 @@ void main() {
     expect(addedItemRecurrence, returnedRecurrence);
     expect(addedItemRecurrence!.recurIteration, 2);
 
-    var newStart = DateUtil.withoutMillis(addedTask.startDate!);
-    var diff = newStart.difference(originalStart).inHours;
+    var newDue = DateUtil.withoutMillis(addedTask.dueDate!);
+    var diff = newDue.difference(originalDue).inHours;
+    var newAnchor = DateUtil.withoutMillis(addedTask.taskRecurrence!.anchorDate);
+    var anchorDiff = newAnchor.difference(originalAnchor).inHours;
 
     var exactly42 = 42 * 24;
     var lowerBound = exactly42 - 1;
     var upperBound = exactly42 + 1;
 
     expect(diff, inInclusiveRange(lowerBound, upperBound), reason: 'Recurrence of 6 weeks should make new task 42 days after original.');
+    expect(anchorDiff, inInclusiveRange(lowerBound, upperBound), reason: 'Recurrence of 6 weeks should make new task 42 days after original.');
   });
 
   test('completeTask recur completed', () async {
@@ -258,7 +263,7 @@ void main() {
 
     var taskItem = TaskItemBuilder
         .withDates()
-        .withRecur(true)
+        .withRecur(recurWait: true)
         .create();
 
     var taskHelper = createTaskHelper(taskItems: [taskItem], sprints: [currentSprint], recurrences: [taskItem.taskRecurrence!]);
@@ -311,7 +316,7 @@ void main() {
 
     var taskItem = TaskItemBuilder
         .withDates()
-        .withRecur(false)
+        .withRecur(recurWait: false)
         .asCompleted()
         .create();
 
@@ -373,7 +378,7 @@ void main() {
     expect(returnedItem.targetDate, changedTarget.toLocal());
   });
 
-  test('previewSnooze move multiple', () {
+  test('previewSnooze moves target and due dates', () {
     var taskItem = TaskItemBuilder
         .withDates()
         .create().createCreateBlueprint();
@@ -395,7 +400,7 @@ void main() {
   });
 
 
-  test('previewSnooze add start', () {
+  test('previewSnooze on task without a start date adds a start date', () {
     var taskItem = TaskItemBuilder
         .asDefault()
         .create().createCreateBlueprint();
@@ -411,7 +416,7 @@ void main() {
 
   });
 
-  test('snoozeTask move multiple', () async {
+  test('snoozeTask moves target and due dates', () async {
     var taskItem = TaskItemBuilder
         .withDates()
         .create();
@@ -424,6 +429,8 @@ void main() {
     expect(notificationScheduler, isNot(null));
 
     var originalTarget = taskItem.targetDate;
+    var originalAnchorDate = taskItem.getAnchorDate();
+    expect(originalAnchorDate, taskItem.dueDate, reason: 'SANITY: Expect original anchor date to be due date, because there is no start date.');
 
     var blueprint = taskItem.createCreateBlueprint();
 
@@ -439,6 +446,7 @@ void main() {
     expect(snooze.snoozeAnchor, 'Target');
     expect(snooze.previousAnchor, originalTarget);
     expect(snooze.newAnchor, returnedItem.targetDate);
+    expect(returnedItem.getAnchorDate(), returnedItem.dueDate, reason: 'Expect anchor date to be new due date.');
 
     var newTarget = DateUtil.withoutMillis(returnedItem.targetDate!);
     var diffTarget = newTarget.difference(DateUtil.withoutMillis(now)).inDays;
@@ -452,11 +460,56 @@ void main() {
 
   });
 
-  test('snooze task with recur wait false', () {
+  test('snooze task with recur wait false, move remaining', () async {
     fail('To implement.');
   });
-  
-  test('snooze task add start', () async {
+
+  test('snooze task with recur wait false one-off (resume schedule)', () async {
+    var taskItem = TaskItemBuilder
+        .withDates()
+        .withRecur(recurWait: false)
+        .create();
+
+    var now = DateTime.now();
+
+    var taskHelper = createTaskHelper();
+    var mockAppState = taskHelper.appState;
+    var notificationScheduler = mockAppState.notificationScheduler;
+    expect(notificationScheduler, isNot(null));
+
+    var originalTarget = taskItem.targetDate;
+    var originalAnchorDate = taskItem.getAnchorDate();
+    expect(originalAnchorDate, taskItem.dueDate, reason: 'SANITY: Expect original anchor date to be due date, because there is no start date.');
+
+    var blueprint = taskItem.createCreateBlueprint();
+
+    when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((_) => Future.value(TestMockHelper.mockEditTask(taskItem, blueprint)));
+
+    var returnedItem = await taskHelper.snoozeTask(taskItem, blueprint, 6, 'Days', TaskDateTypes.target, true, (_) => {});
+
+    Snooze snooze = verify(taskRepository.addSnooze(captureThat(isA<Snooze>()))).captured.single;
+
+    expect(snooze.taskId, returnedItem.id);
+    expect(snooze.snoozeNumber, 6);
+    expect(snooze.snoozeUnits, 'Days');
+    expect(snooze.snoozeAnchor, 'Target');
+    expect(snooze.previousAnchor, originalTarget);
+    expect(snooze.newAnchor, returnedItem.targetDate);
+    expect(returnedItem.getAnchorDate(), returnedItem.dueDate, reason: 'Expect anchor date to be new due date.');
+
+    var newTarget = DateUtil.withoutMillis(returnedItem.targetDate!);
+    var diffTarget = newTarget.difference(DateUtil.withoutMillis(now)).inDays;
+
+    expect(diffTarget, 6, reason: 'Expect Target date to be in 6 days.');
+
+    var newDue = DateUtil.withoutMillis(returnedItem.dueDate!);
+    var diffDue = newDue.difference(DateUtil.withoutMillis(now)).inDays;
+
+    expect(diffDue, 13, reason: 'Expect Due date to be 13 days from now.');
+
+  });
+
+  test('snooze task without a start date adds a start date', () async {
     TaskItem taskItem = TaskItemBuilder
         .asDefault()
         .create();
@@ -474,6 +527,8 @@ void main() {
 
     when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((_) => Future.value(TestMockHelper.mockEditTask(taskItem, blueprint)));
 
+    expect(taskItem.startDate, null, reason: 'SANITY: Original task should have no start date.');
+
     var returnedItem = await taskHelper.snoozeTask(taskItem, blueprint, 4, 'Days', TaskDateTypes.start, false, (_) => {});
 
     Snooze snooze = verify(taskRepository.addSnooze(captureThat(isA<Snooze>()))).captured.single;
@@ -484,6 +539,8 @@ void main() {
     expect(snooze.snoozeAnchor, 'Start');
     expect(snooze.previousAnchor, originalStart);
     expect(snooze.newAnchor, returnedItem.startDate);
+
+    expect(returnedItem.startDate, isNot(null), reason: 'Snooze to start date should add start date');
 
     var newStart = DateUtil.withoutMillis(returnedItem.startDate!);
     var diffDue = newStart.difference(DateUtil.withoutMillis(now)).inDays;

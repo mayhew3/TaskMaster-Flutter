@@ -1,9 +1,11 @@
 
+import 'package:taskmaster/models/task_date_holder.dart';
+import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
 
-class TaskItemBuilder {
+class TaskItemBuilder extends DateHolder {
   int? id;
   late String name;
   late String description;
@@ -117,23 +119,25 @@ class TaskItemBuilder {
     return this;
   }
 
-  TaskItemBuilder withRecur(bool recurWait) {
-    taskRecurrence = new TaskRecurrence(
-        id: 1,
-        personId: 1,
-        name: name,
-        recurNumber: 6,
-        recurUnit: 'Weeks',
-        recurWait: recurWait,
-        recurIteration: 1,
-        anchorDate: DateTime.now(),
-        anchorType: 'target');
+  TaskItemBuilder withRecur({bool recurWait = true}) {
     recurrenceId = 1;
     recurNumber = 6;
     recurIteration = 1;
     recurUnit = 'Weeks';
     this.recurWait = recurWait;
 
+    taskRecurrence = new TaskRecurrence(
+        id: 1,
+        personId: 1,
+        name: name,
+        recurNumber: recurNumber!,
+        recurUnit: recurUnit!,
+        recurWait: recurWait,
+        recurIteration: recurIteration!,
+        anchorDate: getAnchorDate()!,
+        anchorType: getAnchorDateType()!.label);
+
     return this;
   }
+
 }

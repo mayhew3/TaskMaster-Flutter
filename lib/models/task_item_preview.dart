@@ -119,6 +119,7 @@ class TaskItemPreview extends DateHolder {
       var recurrencePreview = recurrence.createEditPreview();
       if (incrementRecurrence) {
         recurrencePreview.recurIteration++;
+        recurrencePreview.anchorDate = preview.getAnchorDate()!;
       }
       preview.taskRecurrencePreview = recurrencePreview;
     }
