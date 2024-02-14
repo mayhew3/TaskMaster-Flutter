@@ -195,7 +195,7 @@ void main() {
 
   });
 
-  test('completeTask recur schedule', () async {
+  test('completeTask recur schedule (recurWait is false)', () async {
     timezoneHelper.configureLocalTimeZone();
 
     var taskItem = TaskItemBuilder
@@ -255,10 +255,10 @@ void main() {
     var upperBound = exactly42 + 1;
 
     expect(diff, inInclusiveRange(lowerBound, upperBound), reason: 'Recurrence of 6 weeks should make new task 42 days after original.');
-    expect(anchorDiff, inInclusiveRange(lowerBound, upperBound), reason: 'Recurrence of 6 weeks should make new task 42 days after original.');
+    expect(anchorDiff, inInclusiveRange(lowerBound, upperBound), reason: 'Recurrence of 6 weeks should increment recurrence anchor date to 42 days after original.');
   });
 
-  test('completeTask recur completed', () async {
+  test('completeTask recur completed (recurWait is true)', () async {
     timezoneHelper.configureLocalTimeZone();
 
     var taskItem = TaskItemBuilder
@@ -299,16 +299,20 @@ void main() {
 
     var addedItemRecurrence = addedTask.taskRecurrence;
     expect(addedItemRecurrence, isNot(null));
-    expect(addedItemRecurrence, returnedRecurrence);
+    expect(addedItemRecurrence!, returnedRecurrence);
+    expect(addedItemRecurrence.recurIteration, 2);
+    expect(addedItemRecurrence.anchorDate, addedTask.dueDate);
 
     var newDue = DateUtil.withoutMillis(addedTask.dueDate!);
     var diff = newDue.difference(now).inHours;
+    var anchorDiff = addedItemRecurrence.anchorDate.difference(now).inHours;
 
     var exactly42 = 42 * 24;
     var lowerBound = exactly42 - 3;
     var upperBound = exactly42 + 3;
 
     expect(diff, inInclusiveRange(lowerBound, upperBound), reason: 'Recurrence of 6 weeks should make new task 42 days after now.');
+    expect(anchorDiff, inInclusiveRange(lowerBound, upperBound), reason: 'Recurrence of 6 weeks should increment recurrence to task 42 days after now.');
   });
 
   test('completeTask uncomplete recur should not recur', () async {
@@ -317,22 +321,27 @@ void main() {
     var taskItem = TaskItemBuilder
         .withDates()
         .withRecur(recurWait: false)
-        .asCompleted()
         .create();
 
-    var taskHelper = createTaskHelper(taskItems: [taskItem]);
+    var taskHelper = createTaskHelper(taskItems: [taskItem], sprints: [currentSprint], recurrences: [taskItem.taskRecurrence!]);
     var mockAppState = taskHelper.appState;
     var notificationScheduler = mockAppState.notificationScheduler;
     expect(notificationScheduler, isNot(null));
 
-    var returnedTask = await taskHelper.completeTask(taskItem, false, stateSetter);
-    verify(notificationScheduler.updateNotificationForTask(taskItem));
+    var completedTask = await taskHelper.completeTask(taskItem, true, stateSetter);
+    expect(completedTask.taskRecurrence!.recurIteration, 2);
+
+    var returnedTask = await taskHelper.completeTask(completedTask, false, stateSetter);
+    verify(notificationScheduler.updateNotificationForTask(completedTask));
     verify(notificationScheduler.updateBadge());
     verifyNever(taskRepository.addTask(any));
 
     expect(returnedTask, taskItem);
     expect(returnedTask.pendingCompletion, false);
     expect(returnedTask.completionDate, null);
+
+    expect(returnedTask.taskRecurrence!.recurIteration, 1);
+    expect(returnedTask.taskRecurrence!.anchorDate, completedTask.dueDate);
   });
 
   test('deleteTask', () async {

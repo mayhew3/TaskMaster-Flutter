@@ -77,6 +77,18 @@ class TaskRecurrencePreview {
     return preview;
   }
 
+  void revertToTaskItem(TaskItem taskItem) {
+    var taskIteration = taskItem.recurIteration;
+    if (taskIteration != null) {
+      recurIteration = taskIteration;
+    }
+
+    var taskAnchor = taskItem.getAnchorDate();
+    if (taskAnchor != null) {
+      anchorDate = taskAnchor;
+    }
+  }
+
   /// A necessary factory constructor for creating a new User instance
   /// from a map. Pass the map to the generated `_$TaskRecurrenceFromJson()` constructor.
   /// The constructor is named after the source class, in this case, User.

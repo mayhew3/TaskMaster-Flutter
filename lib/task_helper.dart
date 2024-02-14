@@ -173,6 +173,10 @@ class TaskHelper {
     stateSetter(() {
       appState.replaceTaskItem(taskItem, inboundTask);
       appState.notificationScheduler.updateNotificationForTask(inboundTask);
+      var taskRecurrence = taskItem.taskRecurrence;
+      if (!completed && taskRecurrence != null) {
+        taskRecurrence.revertToTaskItem(inboundTask);
+      }
     });
     appState.notificationScheduler.updateBadge();
 
