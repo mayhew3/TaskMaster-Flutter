@@ -28,7 +28,7 @@ class UpdateTaskItemAction {
 }
 
 class DeleteTaskItemAction {
-  final String id;
+  final int id;
 
   DeleteTaskItemAction(this.id);
 
