@@ -1,15 +1,11 @@
 import 'package:meta/meta.dart';
-import 'package:taskmaster/models/task_item.dart';
 
-import '../models/app_tab.dart';
-import '../models/sprint.dart';
-import '../models/task_recurrence.dart';
-import '../models/visibility_filter.dart';
+import '../models/models.dart';
 
 @immutable
 class ReduxAppState {
   final bool isLoading;
-  final List<TaskItem> taskItems;
+  final List<ReduxTaskItem> taskItems;
   final List<Sprint> sprints;
   final List<TaskRecurrence> taskRecurrences;
   final AppTab activeTab;
@@ -30,7 +26,7 @@ class ReduxAppState {
 
   ReduxAppState copyWith({
     bool? isLoading,
-    List<TaskItem>? todos,
+    List<ReduxTaskItem>? todos,
     List<Sprint>? sprints,
     List<TaskRecurrence>? taskRecurrences,
     AppTab? activeTab,
