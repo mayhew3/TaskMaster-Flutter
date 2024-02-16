@@ -57,6 +57,54 @@ class TaskItem {
     this.offCycle = false
   });
 
+  TaskItem copyWith({
+    int? id,
+    int? personId,
+    String? name,
+    String? description,
+    String? project,
+    String? context,
+    int? urgency,
+    int? priority,
+    int? duration,
+    int? gamePoints,
+    DateTime? startDate,
+    DateTime? targetDate,
+    DateTime? urgentDate,
+    DateTime? dueDate,
+    DateTime? completionDate,
+    int? recurNumber,
+    String? recurUnit,
+    bool? recurWait,
+    int? recurrenceId,
+    int? recurIteration,
+    bool? offCycle,
+  }) {
+    return TaskItem(
+      id: id ?? this.id,
+      personId: personId ?? this.personId,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      project: project ?? this.project,
+      context: context ?? this.context,
+      urgency: urgency ?? this.urgency,
+      priority: priority ?? this.priority,
+      duration: duration ?? this.duration,
+      gamePoints: gamePoints ?? this.gamePoints,
+      startDate: startDate ?? this.startDate,
+      targetDate: targetDate ?? this.targetDate,
+      urgentDate: urgentDate ?? this.urgentDate,
+      dueDate: dueDate ?? this.dueDate,
+      completionDate: completionDate ?? this.completionDate,
+      recurNumber: recurNumber ?? this.recurNumber,
+      recurUnit: recurUnit ?? this.recurUnit,
+      recurWait: recurWait ?? this.recurWait,
+      recurrenceId: recurrenceId ?? this.recurrenceId,
+      recurIteration: recurIteration ?? this.recurIteration,
+      offCycle: offCycle ?? this.offCycle,
+    );
+  }
+
   @override
   int get hashCode =>
       id.hashCode;
@@ -70,7 +118,7 @@ class TaskItem {
 
   @override
   String toString() {
-    return 'ReduxTaskItem{'
+    return 'TaskItem{'
         'id: $id, '
         'name: $name, '
         'personId: $personId, '
