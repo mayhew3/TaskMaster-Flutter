@@ -5,7 +5,7 @@ import '../models/models.dart';
 @immutable
 class ReduxAppState {
   final bool isLoading;
-  final List<ReduxTaskItem> taskItems;
+  final List<TaskItem> taskItems;
   final List<Sprint> sprints;
   final List<TaskRecurrence> taskRecurrences;
   final AppTab activeTab;
@@ -26,7 +26,7 @@ class ReduxAppState {
 
   ReduxAppState copyWith({
     bool? isLoading,
-    List<ReduxTaskItem>? todos,
+    List<TaskItem>? todos,
     List<Sprint>? sprints,
     List<TaskRecurrence>? taskRecurrences,
     AppTab? activeTab,

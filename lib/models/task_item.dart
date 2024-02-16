@@ -1,184 +1,61 @@
-import 'package:json_annotation/json_annotation.dart';
-import 'package:taskmaster/models/sprint.dart';
-import 'package:taskmaster/models/sprint_assignment.dart';
-import 'package:taskmaster/models/task_item_blueprint.dart';
-import 'package:taskmaster/models/task_item_preview.dart';
-import 'package:taskmaster/models/task_recurrence.dart';
-import 'package:taskmaster/models/task_recurrence_blueprint.dart';
-import 'package:taskmaster/models/task_recurrence_preview.dart';
+import 'package:meta/meta.dart';
 
-/// This allows the `Sprint` class to access private members in
-/// the generated file. The value for this is *.g.dart, where
-/// the star denotes the source file name.
-part 'task_item.g.dart';
-
-@JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
-class TaskItem extends TaskItemPreview {
+@immutable
+class TaskItem {
 
   final int id;
   final int personId;
 
-  @JsonKey(ignore: true)
-  List<Sprint> sprints = [];
+  final String name;
 
-  @JsonKey(ignore: true)
-  bool pendingCompletion = false;
+  final String? description;
+  final String? project;
+  final String? context;
 
-  @JsonKey(ignore: true)
-  TaskRecurrence? _taskRecurrence;
-  TaskRecurrence? get taskRecurrence => _taskRecurrence;
+  final int? urgency;
+  final int? priority;
+  final int? duration;
 
-  List<SprintAssignment>? sprintAssignments;
+  final int? gamePoints;
+
+  final DateTime? startDate;
+  final DateTime? targetDate;
+  final DateTime? dueDate;
+  final DateTime? urgentDate;
+  final DateTime? completionDate;
+
+  final int? recurNumber;
+  final String? recurUnit;
+  final bool? recurWait;
+
+  final int? recurrenceId;
+  final int? recurIteration;
+
+  final bool offCycle;
 
   TaskItem({
     required this.id,
     required this.personId,
-    required String name,
-    String? description,
-    String? project,
-    String? context,
-    int? urgency,
-    int? priority,
-    int? duration,
-    int? gamePoints,
-    DateTime? startDate,
-    DateTime? targetDate,
-    DateTime? urgentDate,
-    DateTime? dueDate,
-    DateTime? completionDate,
-    int? recurNumber,
-    String? recurUnit,
-    bool? recurWait,
-    int? recurrenceId,
-    int? recurIteration,
-    bool offCycle = false
-  }): super(
-    name: name,
-    description: description,
-    project: project,
-    context: context,
-    urgency: urgency,
-    priority: priority,
-    duration: duration,
-    gamePoints: gamePoints,
-    startDate: startDate,
-    targetDate: targetDate,
-    urgentDate: urgentDate,
-    dueDate: dueDate,
-    completionDate: completionDate,
-    recurNumber: recurNumber,
-    recurUnit: recurUnit,
-    recurWait: recurWait,
-    recurrenceId: recurrenceId,
-    recurIteration: recurIteration,
-    offCycle: offCycle,
-  );
-
-  bool isRecurring() {
-    return taskRecurrencePreview != null;
-  }
-
-  TaskRecurrencePreview? getExistingRecurrence() {
-    return this.taskRecurrencePreview ?? this.taskRecurrence;
-  }
-
-  void clearRecurrence() {
-    this._taskRecurrence = null;
-  }
-
-  void setRecurrence(TaskRecurrence taskRecurrence) {
-    this._taskRecurrence = taskRecurrence;
-  }
-
-  TaskItem createCopy() {
-
-    // todo: make more dynamic?
-    var fields = new TaskItem(
-        id: id,
-        personId: personId,
-        name: name,
-        offCycle: offCycle,
-        description: description,
-        project: project,
-        context: context,
-        urgency: urgency,
-        priority: priority,
-        duration: duration,
-        gamePoints: gamePoints,
-        startDate: startDate,
-        targetDate: targetDate,
-        urgentDate: urgentDate,
-        dueDate: dueDate,
-        completionDate: completionDate,
-        recurNumber: recurNumber,
-        recurUnit: recurUnit,
-        recurWait: recurWait,
-        recurrenceId: recurrenceId,
-        recurIteration: recurIteration
-    );
-
-    if (taskRecurrence != null) {
-      taskRecurrence!.addToTaskItems(fields);
-    }
-
-    return fields;
-  }
-
-  TaskItemBlueprint createCreateBlueprint() {
-    TaskItemBlueprint blueprint = TaskItemBlueprint();
-
-    blueprint.name = name;
-    blueprint.description = description;
-    blueprint.project = project;
-    blueprint.context = context;
-    blueprint.urgency = urgency;
-    blueprint.priority = priority;
-    blueprint.duration = duration;
-    blueprint.startDate = startDate;
-    blueprint.targetDate = targetDate;
-    blueprint.dueDate = dueDate;
-    blueprint.urgentDate = urgentDate;
-    blueprint.gamePoints = gamePoints;
-    blueprint.recurNumber = recurNumber;
-    blueprint.recurUnit = recurUnit;
-    blueprint.recurWait = recurWait;
-    blueprint.recurrenceId = recurrenceId;
-    blueprint.recurIteration = recurIteration;
-
-    blueprint.taskRecurrenceBlueprint = TaskRecurrenceBlueprint();
-
-    return blueprint;
-  }
-
-  /// A necessary factory constructor for creating a new User instance
-  /// from a map. Pass the map to the generated `_$UserFromJson()` constructor.
-  /// The constructor is named after the source class, in this case, User.
-  factory TaskItem.fromJson(Map<String, dynamic> json) => _$TaskItemFromJson(json);
-
-  /// `toJson` is the convention for a class to declare support for serialization
-  /// to JSON. The implementation simply calls the private, generated
-  /// helper method `_$UserToJson`.
-  Map<String, dynamic> toJson() => _$TaskItemToJson(this);
-
-  @override
-  bool isCompleted() {
-    return completionDate != null;
-  }
-
-  DateTime? getFinishedCompletionDate() {
-    return pendingCompletion ? null : completionDate;
-  }
-
-  void addToSprints(Sprint sprint) {
-    if (!sprints.contains(sprint)) {
-      sprints.add(sprint);
-    }
-  }
-
-  bool isInActiveSprint() {
-    var matching = sprints.where((sprint) => sprint.isActive());
-    return matching.isNotEmpty;
-  }
+    required this.name,
+    this.description,
+    this.project,
+    this.context,
+    this.urgency,
+    this.priority,
+    this.duration,
+    this.gamePoints,
+    this.startDate,
+    this.targetDate,
+    this.urgentDate,
+    this.dueDate,
+    this.completionDate,
+    this.recurNumber,
+    this.recurUnit,
+    this.recurWait,
+    this.recurrenceId,
+    this.recurIteration,
+    this.offCycle = false
+  });
 
   @override
   int get hashCode =>
@@ -193,7 +70,7 @@ class TaskItem extends TaskItemPreview {
 
   @override
   String toString() {
-    return 'TaskItem{'
+    return 'ReduxTaskItem{'
         'id: $id, '
         'name: $name, '
         'personId: $personId, '
