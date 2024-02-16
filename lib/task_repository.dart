@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:taskmaster/app_state.dart';
+import 'package:taskmaster/models/data_payload.dart';
 import 'package:taskmaster/models/snooze.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
@@ -101,12 +102,80 @@ class TaskRepository {
     }
   }
 
+  Future<DataPayload> loadTasksRedux() async {
+    if (!appState.isAuthenticated()) {
+      throw Exception("Cannot load tasks before being signed in.");
+    }
+
+    var queryParameters = {
+      'email': appState.currentUser!.email
+    };
+
+    var uri = getUriWithParameters('/api/tasks', queryParameters);
+
+    String idToken = await appState.getIdToken();
+
+    final response = await this.client.get(uri,
+      headers: {HttpHeaders.authorizationHeader: idToken,
+                HttpHeaders.contentTypeHeader: 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      try {
+        var jsonObj = json.decode(response.body);
+
+        appState.personId = jsonObj['person_id'];
+
+        List<Sprint> sprints = [];
+        for (var sprintJson in jsonObj['sprints']) {
+          var sprint = Sprint.fromJson(sprintJson);
+          sprints.add(sprint);
+        }
+
+        List<TaskRecurrence> taskRecurrences = [];
+        for (var taskJson in jsonObj['taskRecurrences']) {
+          var taskRecurrence = TaskRecurrence.fromJson(taskJson);
+          taskRecurrences.add(taskRecurrence);
+        }
+
+        List<TaskItem> taskItems = [];
+        for (var taskJson in jsonObj['tasks']) {
+          var taskItem = TaskItem.fromJson(taskJson);
+          taskItems.add(taskItem);
+        }
+
+        return DataPayload(taskItems: taskItems, sprints: sprints, taskRecurrences: taskRecurrences);
+
+      } catch(exception, stackTrace) {
+        print(exception);
+        print(stackTrace);
+        throw Exception('Error retrieving task data from the server. Talk to Mayhew.');
+      }
+    } else {
+      throw Exception('Failed to load task list. Talk to Mayhew.');
+    }
+  }
+
   Future<TaskItem> addTask(TaskItemBlueprint taskItemForm) async {
     if (!appState.isAuthenticated()) {
       throw Exception("Cannot add task before being signed in.");
     }
 
     var taskObj = taskItemForm.toJson();
+    taskObj['person_id'] = appState.personId;
+
+    var payload = {
+      "task": taskObj
+    };
+    return _addOrUpdateJSON(payload, 'add');
+  }
+
+  Future<TaskItem> addTaskRedux(TaskItem taskItem) async {
+    if (!appState.isAuthenticated()) {
+      throw Exception("Cannot add task before being signed in.");
+    }
+
+    var taskObj = taskItem.toJson();
     taskObj['person_id'] = appState.personId;
 
     var payload = {

@@ -1,6 +1,13 @@
 import 'package:meta/meta.dart';
+import 'package:json_annotation/json_annotation.dart';
+
+/// This allows the `Sprint` class to access private members in
+/// the generated file. The value for this is *.g.dart, where
+/// the star denotes the source file name.
+part 'task_item.g.dart';
 
 @immutable
+@JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
 class TaskItem {
 
   final int id;
@@ -104,6 +111,16 @@ class TaskItem {
       offCycle: offCycle ?? this.offCycle,
     );
   }
+
+  /// A necessary factory constructor for creating a new User instance
+  /// from a map. Pass the map to the generated `_$UserFromJson()` constructor.
+  /// The constructor is named after the source class, in this case, User.
+  factory TaskItem.fromJson(Map<String, dynamic> json) => _$TaskItemFromJson(json);
+
+  /// `toJson` is the convention for a class to declare support for serialization
+  /// to JSON. The implementation simply calls the private, generated
+  /// helper method `_$UserToJson`.
+  Map<String, dynamic> toJson() => _$TaskItemToJson(this);
 
   @override
   int get hashCode =>

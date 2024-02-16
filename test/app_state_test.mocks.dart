@@ -12,15 +12,16 @@ import 'package:http/http.dart' as _i6;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:taskmaster/app_state.dart' as _i2;
 import 'package:taskmaster/flutter_badger_wrapper.dart' as _i13;
+import 'package:taskmaster/models/data_payload.dart' as _i16;
 import 'package:taskmaster/models/snooze.dart' as _i8;
 import 'package:taskmaster/models/sprint.dart' as _i9;
 import 'package:taskmaster/models/task_item.dart' as _i7;
-import 'package:taskmaster/models/task_item_blueprint.dart' as _i16;
-import 'package:taskmaster/models/task_item_preview.dart' as _i17;
+import 'package:taskmaster/models/task_item_blueprint.dart' as _i17;
+import 'package:taskmaster/models/task_item_preview.dart' as _i18;
 import 'package:taskmaster/models/task_recurrence.dart' as _i10;
-import 'package:taskmaster/models/task_recurrence_preview.dart' as _i18;
+import 'package:taskmaster/models/task_recurrence_preview.dart' as _i19;
 import 'package:taskmaster/nav_helper.dart' as _i14;
-import 'package:taskmaster/notification_scheduler.dart' as _i19;
+import 'package:taskmaster/notification_scheduler.dart' as _i20;
 import 'package:taskmaster/task_helper.dart' as _i4;
 import 'package:taskmaster/task_repository.dart' as _i3;
 import 'package:taskmaster/timezone_helper.dart' as _i11;
@@ -390,7 +391,19 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
       ) as _i15.Future<void>);
 
   @override
-  _i15.Future<_i7.TaskItem> addTask(_i16.TaskItemBlueprint? taskItemForm) =>
+  _i15.Future<List<_i16.DataPayload>> loadTasksRedux() => (super.noSuchMethod(
+        Invocation.method(
+          #loadTasksRedux,
+          [],
+        ),
+        returnValue:
+            _i15.Future<List<_i16.DataPayload>>.value(<_i16.DataPayload>[]),
+        returnValueForMissingStub:
+            _i15.Future<List<_i16.DataPayload>>.value(<_i16.DataPayload>[]),
+      ) as _i15.Future<List<_i16.DataPayload>>);
+
+  @override
+  _i15.Future<_i7.TaskItem> addTask(_i17.TaskItemBlueprint? taskItemForm) =>
       (super.noSuchMethod(
         Invocation.method(
           #addTask,
@@ -415,7 +428,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
 
   @override
   _i15.Future<_i7.TaskItem> addTaskIteration(
-    _i17.TaskItemPreview? taskItemPreview,
+    _i18.TaskItemPreview? taskItemPreview,
     int? personId,
   ) =>
       (super.noSuchMethod(
@@ -549,7 +562,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
   @override
   _i15.Future<_i7.TaskItem> updateTask(
     _i7.TaskItem? taskItem,
-    _i16.TaskItemBlueprint? taskItemForm,
+    _i17.TaskItemBlueprint? taskItemForm,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -584,7 +597,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
 
   @override
   _i15.Future<_i10.TaskRecurrence> updateTaskRecurrence(
-          _i18.TaskRecurrencePreview? taskRecurrencePreview) =>
+          _i19.TaskRecurrencePreview? taskRecurrencePreview) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateTaskRecurrence,
@@ -623,7 +636,7 @@ class MockTaskRepository extends _i1.Mock implements _i3.TaskRepository {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockNotificationScheduler extends _i1.Mock
-    implements _i19.NotificationScheduler {
+    implements _i20.NotificationScheduler {
   @override
   _i2.AppState get appState => (super.noSuchMethod(
         Invocation.getter(#appState),
