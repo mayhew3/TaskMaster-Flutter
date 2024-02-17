@@ -5,7 +5,9 @@ import 'package:redux/redux.dart';
 import '../../models/models.dart';
 
 import '../actions/actions.dart';
+import '../presentation/task_item_list.dart';
 import '../redux_app_state.dart';
+import '../selectors/selectors.dart';
 
 class FilteredTaskItems extends StatelessWidget {
   FilteredTaskItems({Key? key}) : super(key: key);
@@ -45,7 +47,7 @@ class _ViewModel {
     return _ViewModel(
       taskItems: filteredTaskItemsSelector(
         taskItemsSelector(store.state),
-        activeFilterSelector(store.state),
+        taskFilterSelector(store.state),
       ),
       loading: store.state.isLoading,
       onCheckboxChanged: (taskItem, complete) {
