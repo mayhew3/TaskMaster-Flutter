@@ -1,21 +1,25 @@
+// Copyright 2018 The Flutter Architecture Sample Authors. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found
+// in the LICENSE file.
+
 import 'package:flutter/material.dart';
-import 'package:taskmaster/models/top_nav_item.dart';
+import 'package:taskmaster/redux/containers/filtered_task_items.dart';
 import '../../models/models.dart';
-import '../redux/containers/active_tab.dart';
+
+import '../../keys.dart';
+import '../containers/active_tab.dart';
+import '../containers/tab_selector.dart';
 
 class HomeScreen extends StatefulWidget {
   final void Function() onInit;
 
-  HomeScreen({required this.onInit}) : super(key: Key('__homeScreen__'));
+  HomeScreen({required this.onInit}) : super(key: TaskMasterKeys.homeScreen);
 
   @override
   HomeScreenState createState() => HomeScreenState();
 }
 
 class HomeScreenState extends State<HomeScreen> {
-  late TopNavItem activeTab;
-  List<TopNavItem> navItems = [];
-
   @override
   void initState() {
     widget.onInit();
@@ -32,15 +36,7 @@ class HomeScreenState extends State<HomeScreen> {
             actions: [
             ],
           ),
-          body: activeTab == AppTab.tasks ? FilteredTodos() : Stats(),
-          floatingActionButton: FloatingActionButton(
-            key: ArchSampleKeys.addTodoFab,
-            onPressed: () {
-              Navigator.pushNamed(context, ArchSampleRoutes.addTodo);
-            },
-            child: Icon(Icons.add),
-            tooltip: ArchSampleLocalizations.of(context).addTodo,
-          ),
+          body: activeTab == AppTab.tasks ? FilteredTaskItems() : FilteredTaskItems(),
           bottomNavigationBar: TabSelector(),
         );
       },

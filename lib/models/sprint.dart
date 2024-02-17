@@ -23,9 +23,6 @@ class Sprint {
 
   int? sprintNumber;
 
-  @JsonKey(ignore: true)
-  List<TaskItem> taskItems = [];
-
   Sprint({
     required this.startDate,
     required this.endDate,
@@ -34,22 +31,6 @@ class Sprint {
     required this.unitName,
     required this.personId
   });
-
-  bool isActive() {
-    var now = DateTime.now();
-    return this.startDate.isBefore(now) &&
-        this.endDate.isAfter(now);
-  }
-
-  void addToTasks(TaskItem taskItem) {
-    if (!taskItems.contains(taskItem)) {
-      taskItems.add(taskItem);
-    }
-  }
-
-  void removeFromTasks(TaskItem taskItem) {
-    taskItems.remove(taskItem);
-  }
 
   /// A necessary factory constructor for creating a new User instance
   /// from a map. Pass the map to the generated `_$UserFromJson()` constructor.

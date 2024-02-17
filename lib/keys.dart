@@ -28,4 +28,9 @@ class TaskMasterKeys {
   static final detailsTaskItemItemTask = Key('DetailsTaskItem__Task');
   static final detailsTaskItemItemNote = Key('DetailsTaskItem__Note');
 
+  // Tabs
+  static const tabs = Key('__tabs__');
+  static const taskItemTab = Key('__taskItemTab__');
+  static const statsTab = Key('__statsTab__');
+
 }
