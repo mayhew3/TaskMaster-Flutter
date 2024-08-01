@@ -54,8 +54,8 @@ class _ViewModel {
       onDelete: () => store.dispatch(DeleteTaskItemAction(taskItem.id)),
       toggleCompleted: (isComplete) {
         store.dispatch(UpdateTaskItemAction(
-          taskItem.id,
-          taskItem.copyWith(completionDate: taskItem.completionDate == null ? DateTime.now() : null),
+            taskItem.id,
+            taskItem.rebuild((t) => t..completionDate = t.completionDate == null ? DateTime.now() : null)
         ));
       },
     );

@@ -53,7 +53,7 @@ class _ViewModel {
       onCheckboxChanged: (taskItem, complete) {
         store.dispatch(UpdateTaskItemAction(
           taskItem.id,
-          taskItem.copyWith(completionDate: taskItem.completionDate == null ? DateTime.now() : null),
+          taskItem.rebuild((t) => t..completionDate = t.completionDate == null ? DateTime.now() : null)
         ));
       },
       onRemove: (taskItem) {
