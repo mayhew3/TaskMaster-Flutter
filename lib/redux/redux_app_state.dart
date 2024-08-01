@@ -1,74 +1,43 @@
-import 'package:meta/meta.dart';
+import 'package:built_value/built_value.dart';
+import 'package:built_collection/built_collection.dart';
 
 import '../models/models.dart';
 
-@immutable
-class ReduxAppState {
-  final bool isLoading;
-  final List<TaskItem> taskItems;
-  final List<Sprint> sprints;
-  final List<TaskRecurrence> taskRecurrences;
-  final AppTab activeTab;
-  final VisibilityFilter sprintListFilter;
-  final VisibilityFilter taskListFilter;
+part 'redux_app_state.g.dart';
 
+abstract class ReduxAppState implements Built<ReduxAppState, ReduxAppStateBuilder> {
+  bool get isLoading;
+  BuiltList<TaskItem> get taskItems;
+  BuiltList<Sprint> get sprints;
+  BuiltList<TaskRecurrence> get taskRecurrences;
+  AppTab get activeTab;
+  VisibilityFilter get sprintListFilter;
+  VisibilityFilter get taskListFilter;
+
+/*
   ReduxAppState({
     this.isLoading = false,
     this.taskItems = const [],
     this.sprints = const [],
     this.taskRecurrences = const [],
     this.activeTab = AppTab.plan,
-    this.sprintListFilter = const VisibilityFilter(showScheduled: true, showCompleted: true, showActiveSprint: true),
-    this.taskListFilter = const VisibilityFilter(),
+    this.sprintListFilter = const VisibilityFilter.init(showScheduled: true, showCompleted: true, showActiveSprint: true),
+    this.taskListFilter = const VisibilityFilter.init(),
   });
+*/
 
-  factory ReduxAppState.loading() => ReduxAppState(isLoading: true);
+  // factory ReduxAppState.loading() => ReduxAppState(isLoading: true);
 
-  ReduxAppState copyWith({
-    bool? isLoading,
-    List<TaskItem>? todos,
-    List<Sprint>? sprints,
-    List<TaskRecurrence>? taskRecurrences,
-    AppTab? activeTab,
-    VisibilityFilter? sprintListFilter,
-    VisibilityFilter? taskListFilter,
-  }) {
-    return ReduxAppState(
-      isLoading: isLoading ?? this.isLoading,
-      taskItems: todos ?? this.taskItems,
-      sprints: sprints ?? this.sprints,
-      taskRecurrences: taskRecurrences ?? this.taskRecurrences,
-      activeTab: activeTab ?? this.activeTab,
-      sprintListFilter: sprintListFilter ?? this.sprintListFilter,
-      taskListFilter: taskListFilter ?? this.taskListFilter,
-    );
-  }
+  ReduxAppState._();
+  factory ReduxAppState([Function(ReduxAppStateBuilder) updates]) = _$ReduxAppState;
 
-  @override
-  int get hashCode =>
-      isLoading.hashCode ^
-      taskItems.hashCode ^
-      sprints.hashCode ^
-      taskRecurrences.hashCode ^
-      activeTab.hashCode^
-      sprintListFilter.hashCode ^
-      taskListFilter.hashCode ;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-          other is ReduxAppState &&
-              runtimeType == other.runtimeType &&
-              isLoading == other.isLoading &&
-              taskItems == other.taskItems &&
-              sprints == other.sprints &&
-              taskRecurrences == other.taskRecurrences &&
-              activeTab == other.activeTab &&
-              sprintListFilter == other.sprintListFilter &&
-              taskListFilter == other.taskListFilter;
-
-  @override
-  String toString() {
-    return 'AppState{isLoading: $isLoading, taskItems: $taskItems, sprints: $sprints, recurrences: $taskRecurrences, activeTab: $activeTab, sprintListFilter: $sprintListFilter, taskListFilter: $taskListFilter}';
-  }
+  factory ReduxAppState.init({bool loading = false}) => ReduxAppState((appState) => appState
+    ..isLoading = loading
+    ..taskItems = ListBuilder()
+    ..sprints = ListBuilder()
+    ..taskRecurrences = ListBuilder()
+    ..activeTab = AppTab.plan
+    ..sprintListFilter = VisibilityFilter.init(showScheduled: true, showCompleted: true, showActiveSprint: true).toBuilder()
+    ..taskListFilter = VisibilityFilter.init().toBuilder()
+  );
 }

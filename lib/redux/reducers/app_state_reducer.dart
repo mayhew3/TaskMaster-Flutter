@@ -1,8 +1,11 @@
+import 'package:redux/redux.dart';
+
 import '../redux_app_state.dart';
 import 'loading_reducer.dart';
 import 'tabs_reducer.dart';
 import 'task_reducer.dart';
 import 'visibility_reducer.dart';
+/*
 
 // We create the State reducer by combining many smaller reducers into one!
 ReduxAppState appReducer(ReduxAppState state, action) {
@@ -14,3 +17,9 @@ ReduxAppState appReducer(ReduxAppState state, action) {
     activeTab: tabsReducer(state.activeTab, action),
   );
 }
+*/
+
+final appReducer = combineReducers<ReduxAppState>([
+  ...loadingReducer,
+  ...tabsReducer,
+]);

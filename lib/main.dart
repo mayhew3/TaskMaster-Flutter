@@ -13,7 +13,7 @@ Future<void> main() async {
   runApp(TaskMasterApp(
     store: Store<ReduxAppState>(
       appReducer,
-      initialState: ReduxAppState.loading(),
+      initialState: ReduxAppState.init(loading: true),
       middleware: createStoreTaskItemsMiddleware(TaskRepository(client: http.Client())),
     ),
   ));

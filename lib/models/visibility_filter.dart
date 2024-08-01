@@ -1,31 +1,21 @@
+import 'package:built_value/built_value.dart';
 
-class VisibilityFilter {
-  final bool showScheduled;
-  final bool showCompleted;
-  final bool showActiveSprint;
+part 'visibility_filter.g.dart';
 
-  const VisibilityFilter({
-    this.showScheduled = false,
-    this.showCompleted = false,
-    this.showActiveSprint = false
-  });
+abstract class VisibilityFilter implements Built<VisibilityFilter, VisibilityFilterBuilder> {
+  bool get showScheduled;
+  bool get showCompleted;
+  bool get showActiveSprint;
 
-  @override
-  int get hashCode =>
-      showScheduled.hashCode ^
-      showCompleted.hashCode ^
-      showActiveSprint.hashCode;
+  VisibilityFilter._();
+  factory VisibilityFilter([Function(VisibilityFilterBuilder) updates]) = _$VisibilityFilter;
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-          other is VisibilityFilter &&
-              showScheduled == other.showScheduled &&
-              showCompleted == other.showCompleted &&
-              showActiveSprint == other.showActiveSprint;
-
-  @override
-  String toString() {
-    return 'VisibilityFilter{showScheduled: $showScheduled, showCompleted: $showCompleted, showActiveSprint: $showActiveSprint}';
-  }
+  factory VisibilityFilter.init({
+    bool showScheduled = false,
+    bool showCompleted = false,
+    bool showActiveSprint = false}) => VisibilityFilter((a) => a
+    ..showScheduled = showScheduled
+    ..showCompleted = showCompleted
+    ..showActiveSprint = showActiveSprint
+  );
 }

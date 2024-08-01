@@ -1,11 +1,12 @@
 import 'package:redux/redux.dart';
+import 'package:taskmaster/redux/redux_app_state.dart';
 import '../actions/actions.dart';
 
-final loadingReducer = combineReducers<bool>([
-  TypedReducer<bool, TaskItemsLoadedAction>(_setLoaded),
-  TypedReducer<bool, TaskItemsNotLoadedAction>(_setLoaded),
-]);
+final loadingReducer = <ReduxAppState Function(ReduxAppState, dynamic)>[
+  TypedReducer<ReduxAppState, TaskItemsLoadedAction>(_setLoaded),
+  TypedReducer<ReduxAppState, TaskItemsNotLoadedAction>(_setLoaded),
+];
 
-bool _setLoaded(bool state, action) {
-  return false;
+ReduxAppState _setLoaded(ReduxAppState state, action) {
+  return state.rebuild((p0) => p0..isLoading = false);
 }

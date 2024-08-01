@@ -3,14 +3,15 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i7;
+import 'dart:async' as _i8;
 
-import 'package:http/http.dart' as _i4;
+import 'package:built_collection/built_collection.dart' as _i2;
+import 'package:http/http.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:taskmaster/models/data_payload.dart' as _i5;
-import 'package:taskmaster/models/models.dart' as _i2;
-import 'package:taskmaster/redux/redux_app_state.dart' as _i3;
-import 'package:taskmaster/task_repository.dart' as _i6;
+import 'package:taskmaster/models/data_payload.dart' as _i6;
+import 'package:taskmaster/models/models.dart' as _i3;
+import 'package:taskmaster/redux/redux_app_state.dart' as _i4;
+import 'package:taskmaster/task_repository.dart' as _i7;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -23,9 +24,8 @@ import 'package:taskmaster/task_repository.dart' as _i6;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-class _FakeVisibilityFilter_0 extends _i1.SmartFake
-    implements _i2.VisibilityFilter {
-  _FakeVisibilityFilter_0(
+class _FakeBuiltList_0<E> extends _i1.SmartFake implements _i2.BuiltList<E> {
+  _FakeBuiltList_0(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -34,8 +34,9 @@ class _FakeVisibilityFilter_0 extends _i1.SmartFake
         );
 }
 
-class _FakeReduxAppState_1 extends _i1.SmartFake implements _i3.ReduxAppState {
-  _FakeReduxAppState_1(
+class _FakeVisibilityFilter_1 extends _i1.SmartFake
+    implements _i3.VisibilityFilter {
+  _FakeVisibilityFilter_1(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -44,8 +45,8 @@ class _FakeReduxAppState_1 extends _i1.SmartFake implements _i3.ReduxAppState {
         );
 }
 
-class _FakeClient_2 extends _i1.SmartFake implements _i4.Client {
-  _FakeClient_2(
+class _FakeReduxAppState_2 extends _i1.SmartFake implements _i4.ReduxAppState {
+  _FakeReduxAppState_2(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -54,8 +55,9 @@ class _FakeClient_2 extends _i1.SmartFake implements _i4.Client {
         );
 }
 
-class _FakeUri_3 extends _i1.SmartFake implements Uri {
-  _FakeUri_3(
+class _FakeReduxAppStateBuilder_3 extends _i1.SmartFake
+    implements _i4.ReduxAppStateBuilder {
+  _FakeReduxAppStateBuilder_3(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -64,8 +66,8 @@ class _FakeUri_3 extends _i1.SmartFake implements Uri {
         );
 }
 
-class _FakeDataPayload_4 extends _i1.SmartFake implements _i5.DataPayload {
-  _FakeDataPayload_4(
+class _FakeClient_4 extends _i1.SmartFake implements _i5.Client {
+  _FakeClient_4(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -74,8 +76,28 @@ class _FakeDataPayload_4 extends _i1.SmartFake implements _i5.DataPayload {
         );
 }
 
-class _FakeTaskItem_5 extends _i1.SmartFake implements _i2.TaskItem {
-  _FakeTaskItem_5(
+class _FakeUri_5 extends _i1.SmartFake implements Uri {
+  _FakeUri_5(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeDataPayload_6 extends _i1.SmartFake implements _i6.DataPayload {
+  _FakeDataPayload_6(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeTaskItem_7 extends _i1.SmartFake implements _i3.TaskItem {
+  _FakeTaskItem_7(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -87,8 +109,7 @@ class _FakeTaskItem_5 extends _i1.SmartFake implements _i2.TaskItem {
 /// A class which mocks [ReduxAppState].
 ///
 /// See the documentation for Mockito's code generation for more information.
-// ignore: must_be_immutable
-class MockReduxAppState extends _i1.Mock implements _i3.ReduxAppState {
+class MockReduxAppState extends _i1.Mock implements _i4.ReduxAppState {
   @override
   bool get isLoading => (super.noSuchMethod(
         Invocation.getter(#isLoading),
@@ -97,137 +118,143 @@ class MockReduxAppState extends _i1.Mock implements _i3.ReduxAppState {
       ) as bool);
 
   @override
-  List<_i2.TaskItem> get taskItems => (super.noSuchMethod(
+  _i2.BuiltList<_i3.TaskItem> get taskItems => (super.noSuchMethod(
         Invocation.getter(#taskItems),
-        returnValue: <_i2.TaskItem>[],
-        returnValueForMissingStub: <_i2.TaskItem>[],
-      ) as List<_i2.TaskItem>);
+        returnValue: _FakeBuiltList_0<_i3.TaskItem>(
+          this,
+          Invocation.getter(#taskItems),
+        ),
+        returnValueForMissingStub: _FakeBuiltList_0<_i3.TaskItem>(
+          this,
+          Invocation.getter(#taskItems),
+        ),
+      ) as _i2.BuiltList<_i3.TaskItem>);
 
   @override
-  List<_i2.Sprint> get sprints => (super.noSuchMethod(
+  _i2.BuiltList<_i3.Sprint> get sprints => (super.noSuchMethod(
         Invocation.getter(#sprints),
-        returnValue: <_i2.Sprint>[],
-        returnValueForMissingStub: <_i2.Sprint>[],
-      ) as List<_i2.Sprint>);
+        returnValue: _FakeBuiltList_0<_i3.Sprint>(
+          this,
+          Invocation.getter(#sprints),
+        ),
+        returnValueForMissingStub: _FakeBuiltList_0<_i3.Sprint>(
+          this,
+          Invocation.getter(#sprints),
+        ),
+      ) as _i2.BuiltList<_i3.Sprint>);
 
   @override
-  List<_i2.TaskRecurrence> get taskRecurrences => (super.noSuchMethod(
+  _i2.BuiltList<_i3.TaskRecurrence> get taskRecurrences => (super.noSuchMethod(
         Invocation.getter(#taskRecurrences),
-        returnValue: <_i2.TaskRecurrence>[],
-        returnValueForMissingStub: <_i2.TaskRecurrence>[],
-      ) as List<_i2.TaskRecurrence>);
+        returnValue: _FakeBuiltList_0<_i3.TaskRecurrence>(
+          this,
+          Invocation.getter(#taskRecurrences),
+        ),
+        returnValueForMissingStub: _FakeBuiltList_0<_i3.TaskRecurrence>(
+          this,
+          Invocation.getter(#taskRecurrences),
+        ),
+      ) as _i2.BuiltList<_i3.TaskRecurrence>);
 
   @override
-  _i2.AppTab get activeTab => (super.noSuchMethod(
+  _i3.AppTab get activeTab => (super.noSuchMethod(
         Invocation.getter(#activeTab),
-        returnValue: _i2.AppTab.plan,
-        returnValueForMissingStub: _i2.AppTab.plan,
-      ) as _i2.AppTab);
+        returnValue: _i3.AppTab.plan,
+        returnValueForMissingStub: _i3.AppTab.plan,
+      ) as _i3.AppTab);
 
   @override
-  _i2.VisibilityFilter get sprintListFilter => (super.noSuchMethod(
+  _i3.VisibilityFilter get sprintListFilter => (super.noSuchMethod(
         Invocation.getter(#sprintListFilter),
-        returnValue: _FakeVisibilityFilter_0(
+        returnValue: _FakeVisibilityFilter_1(
           this,
           Invocation.getter(#sprintListFilter),
         ),
-        returnValueForMissingStub: _FakeVisibilityFilter_0(
+        returnValueForMissingStub: _FakeVisibilityFilter_1(
           this,
           Invocation.getter(#sprintListFilter),
         ),
-      ) as _i2.VisibilityFilter);
+      ) as _i3.VisibilityFilter);
 
   @override
-  _i2.VisibilityFilter get taskListFilter => (super.noSuchMethod(
+  _i3.VisibilityFilter get taskListFilter => (super.noSuchMethod(
         Invocation.getter(#taskListFilter),
-        returnValue: _FakeVisibilityFilter_0(
+        returnValue: _FakeVisibilityFilter_1(
           this,
           Invocation.getter(#taskListFilter),
         ),
-        returnValueForMissingStub: _FakeVisibilityFilter_0(
+        returnValueForMissingStub: _FakeVisibilityFilter_1(
           this,
           Invocation.getter(#taskListFilter),
         ),
-      ) as _i2.VisibilityFilter);
+      ) as _i3.VisibilityFilter);
 
   @override
-  _i3.ReduxAppState copyWith({
-    bool? isLoading,
-    List<_i2.TaskItem>? todos,
-    List<_i2.Sprint>? sprints,
-    List<_i2.TaskRecurrence>? taskRecurrences,
-    _i2.AppTab? activeTab,
-    _i2.VisibilityFilter? sprintListFilter,
-    _i2.VisibilityFilter? taskListFilter,
-  }) =>
+  _i4.ReduxAppState rebuild(
+          dynamic Function(_i4.ReduxAppStateBuilder)? updates) =>
       (super.noSuchMethod(
         Invocation.method(
-          #copyWith,
+          #rebuild,
+          [updates],
+        ),
+        returnValue: _FakeReduxAppState_2(
+          this,
+          Invocation.method(
+            #rebuild,
+            [updates],
+          ),
+        ),
+        returnValueForMissingStub: _FakeReduxAppState_2(
+          this,
+          Invocation.method(
+            #rebuild,
+            [updates],
+          ),
+        ),
+      ) as _i4.ReduxAppState);
+
+  @override
+  _i4.ReduxAppStateBuilder toBuilder() => (super.noSuchMethod(
+        Invocation.method(
+          #toBuilder,
           [],
-          {
-            #isLoading: isLoading,
-            #todos: todos,
-            #sprints: sprints,
-            #taskRecurrences: taskRecurrences,
-            #activeTab: activeTab,
-            #sprintListFilter: sprintListFilter,
-            #taskListFilter: taskListFilter,
-          },
         ),
-        returnValue: _FakeReduxAppState_1(
+        returnValue: _FakeReduxAppStateBuilder_3(
           this,
           Invocation.method(
-            #copyWith,
+            #toBuilder,
             [],
-            {
-              #isLoading: isLoading,
-              #todos: todos,
-              #sprints: sprints,
-              #taskRecurrences: taskRecurrences,
-              #activeTab: activeTab,
-              #sprintListFilter: sprintListFilter,
-              #taskListFilter: taskListFilter,
-            },
           ),
         ),
-        returnValueForMissingStub: _FakeReduxAppState_1(
+        returnValueForMissingStub: _FakeReduxAppStateBuilder_3(
           this,
           Invocation.method(
-            #copyWith,
+            #toBuilder,
             [],
-            {
-              #isLoading: isLoading,
-              #todos: todos,
-              #sprints: sprints,
-              #taskRecurrences: taskRecurrences,
-              #activeTab: activeTab,
-              #sprintListFilter: sprintListFilter,
-              #taskListFilter: taskListFilter,
-            },
           ),
         ),
-      ) as _i3.ReduxAppState);
+      ) as _i4.ReduxAppStateBuilder);
 }
 
 /// A class which mocks [TaskRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockTaskRepository extends _i1.Mock implements _i6.TaskRepository {
+class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
   @override
-  _i4.Client get client => (super.noSuchMethod(
+  _i5.Client get client => (super.noSuchMethod(
         Invocation.getter(#client),
-        returnValue: _FakeClient_2(
+        returnValue: _FakeClient_4(
           this,
           Invocation.getter(#client),
         ),
-        returnValueForMissingStub: _FakeClient_2(
+        returnValueForMissingStub: _FakeClient_4(
           this,
           Invocation.getter(#client),
         ),
-      ) as _i4.Client);
+      ) as _i5.Client);
 
   @override
-  set client(_i4.Client? _client) => super.noSuchMethod(
+  set client(_i5.Client? _client) => super.noSuchMethod(
         Invocation.setter(
           #client,
           _client,
@@ -248,7 +275,7 @@ class MockTaskRepository extends _i1.Mock implements _i6.TaskRepository {
             queryParameters,
           ],
         ),
-        returnValue: _FakeUri_3(
+        returnValue: _FakeUri_5(
           this,
           Invocation.method(
             #getUriWithParameters,
@@ -258,7 +285,7 @@ class MockTaskRepository extends _i1.Mock implements _i6.TaskRepository {
             ],
           ),
         ),
-        returnValueForMissingStub: _FakeUri_3(
+        returnValueForMissingStub: _FakeUri_5(
           this,
           Invocation.method(
             #getUriWithParameters,
@@ -276,14 +303,14 @@ class MockTaskRepository extends _i1.Mock implements _i6.TaskRepository {
           #getUri,
           [path],
         ),
-        returnValue: _FakeUri_3(
+        returnValue: _FakeUri_5(
           this,
           Invocation.method(
             #getUri,
             [path],
           ),
         ),
-        returnValueForMissingStub: _FakeUri_3(
+        returnValueForMissingStub: _FakeUri_5(
           this,
           Invocation.method(
             #getUri,
@@ -293,12 +320,12 @@ class MockTaskRepository extends _i1.Mock implements _i6.TaskRepository {
       ) as Uri);
 
   @override
-  _i7.Future<_i5.DataPayload> loadTasksRedux() => (super.noSuchMethod(
+  _i8.Future<_i6.DataPayload> loadTasksRedux() => (super.noSuchMethod(
         Invocation.method(
           #loadTasksRedux,
           [],
         ),
-        returnValue: _i7.Future<_i5.DataPayload>.value(_FakeDataPayload_4(
+        returnValue: _i8.Future<_i6.DataPayload>.value(_FakeDataPayload_6(
           this,
           Invocation.method(
             #loadTasksRedux,
@@ -306,23 +333,23 @@ class MockTaskRepository extends _i1.Mock implements _i6.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i7.Future<_i5.DataPayload>.value(_FakeDataPayload_4(
+            _i8.Future<_i6.DataPayload>.value(_FakeDataPayload_6(
           this,
           Invocation.method(
             #loadTasksRedux,
             [],
           ),
         )),
-      ) as _i7.Future<_i5.DataPayload>);
+      ) as _i8.Future<_i6.DataPayload>);
 
   @override
-  _i7.Future<_i2.TaskItem> addTaskRedux(_i2.TaskItem? taskItem) =>
+  _i8.Future<_i3.TaskItem> addTaskRedux(_i3.TaskItem? taskItem) =>
       (super.noSuchMethod(
         Invocation.method(
           #addTaskRedux,
           [taskItem],
         ),
-        returnValue: _i7.Future<_i2.TaskItem>.value(_FakeTaskItem_5(
+        returnValue: _i8.Future<_i3.TaskItem>.value(_FakeTaskItem_7(
           this,
           Invocation.method(
             #addTaskRedux,
@@ -330,12 +357,12 @@ class MockTaskRepository extends _i1.Mock implements _i6.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i7.Future<_i2.TaskItem>.value(_FakeTaskItem_5(
+            _i8.Future<_i3.TaskItem>.value(_FakeTaskItem_7(
           this,
           Invocation.method(
             #addTaskRedux,
             [taskItem],
           ),
         )),
-      ) as _i7.Future<_i2.TaskItem>);
+      ) as _i8.Future<_i3.TaskItem>);
 }

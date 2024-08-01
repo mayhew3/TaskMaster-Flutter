@@ -1,34 +1,37 @@
+import 'package:built_collection/built_collection.dart';
 import 'package:redux/redux.dart';
 
 import '../../models/models.dart';
 import '../actions/actions.dart';
+import '../redux_app_state.dart';
 
-final taskItemsReducer = combineReducers<List<TaskItem>>([
-  TypedReducer<List<TaskItem>, AddTaskItemAction>(_addTaskItem),
-  TypedReducer<List<TaskItem>, DeleteTaskItemAction>(_deleteTaskItem),
-  TypedReducer<List<TaskItem>, UpdateTaskItemAction>(_updateTaskItem),
-  TypedReducer<List<TaskItem>, TaskItemsLoadedAction>(_setLoadedTaskItems),
-  TypedReducer<List<TaskItem>, TaskItemsNotLoadedAction>(_setNoTaskItems),
-]);
+final taskItemsReducer = <ReduxAppState Function(ReduxAppState, dynamic)>[
+  TypedReducer<ReduxAppState, AddTaskItemAction>(_addTaskItem),
+  TypedReducer<ReduxAppState, DeleteTaskItemAction>(_deleteTaskItem),
+  TypedReducer<ReduxAppState, UpdateTaskItemAction>(_updateTaskItem),
+  TypedReducer<ReduxAppState, TaskItemsLoadedAction>(_setLoadedTaskItems),
+  TypedReducer<ReduxAppState, TaskItemsNotLoadedAction>(_setNoTaskItems),
+];
 
-List<TaskItem> _addTaskItem(List<TaskItem> taskItems, AddTaskItemAction action) {
-  return List.from(taskItems)..add(action.taskItem);
+ReduxAppState _addTaskItem(ReduxAppState state, AddTaskItemAction action) {
+  var updatedList = state.taskItems.rebuild((tasks) => tasks.add(action.taskItem));
+  return state.rebuild((s) => s..taskItems = ListBuilder(updatedList));
 }
 
-List<TaskItem> _deleteTaskItem(List<TaskItem> taskItems, DeleteTaskItemAction action) {
+ReduxAppState _deleteTaskItem(ReduxAppState state, DeleteTaskItemAction action) {
   return taskItems.where((taskItem) => taskItem.id != action.id).toList();
 }
 
-List<TaskItem> _updateTaskItem(List<TaskItem> taskItems, UpdateTaskItemAction action) {
+ReduxAppState _updateTaskItem(ReduxAppState state, UpdateTaskItemAction action) {
   return taskItems
       .map((taskItem) => taskItem.id == action.id ? action.updatedTaskItem : taskItem)
       .toList();
 }
 
-List<TaskItem> _setLoadedTaskItems(List<TaskItem> taskItems, TaskItemsLoadedAction action) {
-  return action.taskItems;
+ReduxAppState _setLoadedTaskItems(ReduxAppState state, TaskItemsLoadedAction action) {
+  return state.rebuild((s) => s..taskItems = ListBuilder(action.taskItems));
 }
 
-List<TaskItem> _setNoTaskItems(List<TaskItem> taskItems, TaskItemsNotLoadedAction action) {
-  return [];
+ReduxAppState _setNoTaskItems(ReduxAppState state, TaskItemsNotLoadedAction action) {
+  return state.rebuild((s) => s..taskItems = ListBuilder());
 }
