@@ -1,24 +1,21 @@
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
-import 'package:taskmaster/nav_helper.dart';
-import 'package:taskmaster/notification_scheduler.dart';
+import 'package:taskmaster/redux/redux_app_state.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
-import 'app_state_test.mocks.dart';
 import 'mocks/mock_data.dart';
 import 'mocks/mock_data_builder.dart';
 import 'mocks/mock_recurrence_builder.dart';
 import 'mocks/mock_task_master_auth.dart';
 
-@GenerateNiceMocks([MockSpec<NavHelper>(), MockSpec<TaskRepository>(), MockSpec<NotificationScheduler>()])
+@GenerateNiceMocks([MockSpec<TaskRepository>()])
 void main() {
 
-  AppState createAppState({
+  ReduxAppState createAppState({
     List<TaskItem>? taskItems,
     List<Sprint>? sprints
   }) {

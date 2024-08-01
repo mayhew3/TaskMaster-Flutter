@@ -8,6 +8,8 @@ import 'package:taskmaster/models/data_payload.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
+import 'package:taskmaster/models/serializers.dart';
+import 'package:built_value/standard_json_plugin.dart';
 
 class TaskRepository {
   http.Client client;
@@ -39,6 +41,8 @@ class TaskRepository {
   }
 
   Future<DataPayload> loadTasksRedux() async {
+    final standardSerializers =
+      (serializers.toBuilder()..addPlugin(StandardJsonPlugin())).build();
 
     var queryParameters = {
       'email': "scorpy@gmail.com"
@@ -56,7 +60,7 @@ class TaskRepository {
 
         List<Sprint> sprints = [];
         for (var sprintJson in jsonObj['sprints']) {
-          var sprint = Sprint.fromJson(sprintJson);
+          var sprint = standardSerializers.deserializeWith(Sprint.serializer, sprintJson)!;
           sprints.add(sprint);
         }
 

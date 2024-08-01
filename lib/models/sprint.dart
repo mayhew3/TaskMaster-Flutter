@@ -1,44 +1,31 @@
-import 'package:json_annotation/json_annotation.dart';
-import 'package:taskmaster/models/task_item.dart';
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
 
 /// This allows the `Sprint` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
 /// the star denotes the source file name.
 part 'sprint.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
-class Sprint {
+abstract class Sprint implements Built<Sprint, SprintBuilder> {
+  static Serializer<Sprint> get serializer => _$sprintSerializer;
 
-  int? id;
-  DateTime? dateAdded;
+  int? get id;
 
-  DateTime startDate;
-  DateTime endDate;
-  DateTime? closeDate;
+  DateTime? get dateAdded;
 
-  int numUnits;
-  String unitName;
+  DateTime get startDate;
+  DateTime get endDate;
 
-  int personId;
+  DateTime? get closeDate;
 
-  int? sprintNumber;
+  int get numUnits;
+  String get unitName;
 
-  Sprint({
-    required this.startDate,
-    required this.endDate,
-    this.closeDate,
-    required this.numUnits,
-    required this.unitName,
-    required this.personId
-  });
+  int get personId;
 
-  /// A necessary factory constructor for creating a new User instance
-  /// from a map. Pass the map to the generated `_$UserFromJson()` constructor.
-  /// The constructor is named after the source class, in this case, User.
-  factory Sprint.fromJson(Map<String, dynamic> json) => _$SprintFromJson(json);
+  int? get sprintNumber;
 
-  /// `toJson` is the convention for a class to declare support for serialization
-  /// to JSON. The implementation simply calls the private, generated
-  /// helper method `_$UserToJson`.
-  Map<String, dynamic> toJson() => _$SprintToJson(this);
+  Sprint._();
+
+  factory Sprint([void Function(SprintBuilder) updates]) = _$Sprint;
 }

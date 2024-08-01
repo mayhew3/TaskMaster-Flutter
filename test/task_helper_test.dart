@@ -28,7 +28,7 @@ import 'task_helper_test.mocks.dart';
 import 'test_mock_helper.dart';
 
 
-@GenerateNiceMocks([MockSpec<NavHelper>(), MockSpec<TaskRepository>(), MockSpec<NotificationScheduler>()])
+@GenerateNiceMocks([MockSpec<TaskRepository>()])
 void main() {
 
   MockTaskRepository taskRepository = new MockTaskRepository();

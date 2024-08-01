@@ -4,6 +4,7 @@ import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/flutter_badger_wrapper.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/notification_scheduler.dart';
+import 'package:taskmaster/redux/redux_app_state.dart';
 import 'package:taskmaster/task_helper.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
@@ -25,7 +26,7 @@ class MockAppBadger extends Fake implements FlutterBadgerWrapper {
   }
 }
 
-@GenerateNiceMocks([MockSpec<AppState>(), MockSpec<TaskRepository>(), MockSpec<TaskHelper>()])
+@GenerateNiceMocks([MockSpec<ReduxAppState>(), MockSpec<TaskRepository>()])
 void main() {
 
   late MockFlutterLocalNotificationsPlugin plugin;
