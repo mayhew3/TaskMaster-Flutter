@@ -1,44 +1,30 @@
 
-import 'package:json_annotation/json_annotation.dart';
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
 
 /// This allows the `TaskRecurrence` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
 /// the star denotes the source file name.
 part 'task_recurrence.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
-class TaskRecurrence {
+abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBuilder> {
+  static Serializer<TaskRecurrence> get serializer => _$taskRecurrenceSerializer;
 
-  int id;
-  int personId;
+  int get id;
+  int get personId;
 
-  String name;
+  String get name;
 
-  int recurNumber;
-  String recurUnit;
-  bool recurWait;
+  int get recurNumber;
+  String get recurUnit;
+  bool get recurWait;
 
-  int recurIteration;
+  int get recurIteration;
 
-  DateTime anchorDate;
-  String anchorType;
+  DateTime get anchorDate;
+  String get anchorType;
 
-  TaskRecurrence({
-    required this.id,
-    required this.personId,
-    required this.name,
-    required this.recurNumber,
-    required this.recurUnit,
-    required this.recurWait,
-    required this.recurIteration,
-    required this.anchorDate,
-    required this.anchorType,
-  });
+  TaskRecurrence._();
 
-  /// A necessary factory constructor for creating a new User instance
-  /// from a map. Pass the map to the generated `_$TaskRecurrenceFromJson()` constructor.
-  /// The constructor is named after the source class, in this case, User.
-  factory TaskRecurrence.fromJson(Map<String, dynamic> json) => _$TaskRecurrenceFromJson(json);
-
-  Map<String, dynamic> toJson() => _$TaskRecurrenceToJson(this);
+  factory TaskRecurrence([Function(TaskRecurrenceBuilder) updates]) = _$TaskRecurrence;
 }
