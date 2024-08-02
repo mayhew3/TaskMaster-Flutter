@@ -6,105 +6,6 @@ part of 'task_recurrence.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializer<TaskRecurrence> _$taskRecurrenceSerializer =
-    new _$TaskRecurrenceSerializer();
-
-class _$TaskRecurrenceSerializer
-    implements StructuredSerializer<TaskRecurrence> {
-  @override
-  final Iterable<Type> types = const [TaskRecurrence, _$TaskRecurrence];
-  @override
-  final String wireName = 'TaskRecurrence';
-
-  @override
-  Iterable<Object?> serialize(Serializers serializers, TaskRecurrence object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object?>[
-      'id',
-      serializers.serialize(object.id, specifiedType: const FullType(int)),
-      'personId',
-      serializers.serialize(object.personId,
-          specifiedType: const FullType(int)),
-      'name',
-      serializers.serialize(object.name, specifiedType: const FullType(String)),
-      'recurNumber',
-      serializers.serialize(object.recurNumber,
-          specifiedType: const FullType(int)),
-      'recurUnit',
-      serializers.serialize(object.recurUnit,
-          specifiedType: const FullType(String)),
-      'recurWait',
-      serializers.serialize(object.recurWait,
-          specifiedType: const FullType(bool)),
-      'recurIteration',
-      serializers.serialize(object.recurIteration,
-          specifiedType: const FullType(int)),
-      'anchorDate',
-      serializers.serialize(object.anchorDate,
-          specifiedType: const FullType(DateTime)),
-      'anchorType',
-      serializers.serialize(object.anchorType,
-          specifiedType: const FullType(String)),
-    ];
-
-    return result;
-  }
-
-  @override
-  TaskRecurrence deserialize(
-      Serializers serializers, Iterable<Object?> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new TaskRecurrenceBuilder();
-
-    final iterator = serialized.iterator;
-    while (iterator.moveNext()) {
-      final key = iterator.current! as String;
-      iterator.moveNext();
-      final Object? value = iterator.current;
-      switch (key) {
-        case 'id':
-          result.id = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
-          break;
-        case 'personId':
-          result.personId = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
-          break;
-        case 'name':
-          result.name = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
-          break;
-        case 'recurNumber':
-          result.recurNumber = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
-          break;
-        case 'recurUnit':
-          result.recurUnit = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
-          break;
-        case 'recurWait':
-          result.recurWait = serializers.deserialize(value,
-              specifiedType: const FullType(bool))! as bool;
-          break;
-        case 'recurIteration':
-          result.recurIteration = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
-          break;
-        case 'anchorDate':
-          result.anchorDate = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime))! as DateTime;
-          break;
-        case 'anchorType':
-          result.anchorType = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
-          break;
-      }
-    }
-
-    return result.build();
-  }
-}
-
 class _$TaskRecurrence extends TaskRecurrence {
   @override
   final int id;
@@ -313,3 +214,13 @@ class TaskRecurrenceBuilder
 }
 
 // ignore_for_file: deprecated_member_use_from_same_package,type=lint
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+TaskRecurrence _$TaskRecurrenceFromJson(Map<String, dynamic> json) =>
+    TaskRecurrence();
+
+Map<String, dynamic> _$TaskRecurrenceToJson(TaskRecurrence instance) =>
+    <String, dynamic>{};
