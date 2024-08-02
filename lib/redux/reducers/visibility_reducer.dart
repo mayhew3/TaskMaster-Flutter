@@ -1,21 +1,22 @@
 import 'package:redux/redux.dart';
+
 import '../actions/actions.dart';
-import '../../models/models.dart';
+import '../redux_app_state.dart';
 
-final sprintVisibilityReducer = combineReducers<VisibilityFilter>([
-  TypedReducer<VisibilityFilter, UpdateSprintFilterAction>(_sprintFilterReducer),
-]);
+final sprintVisibilityReducer = <ReduxAppState Function(ReduxAppState, dynamic)>[
+  TypedReducer<ReduxAppState, UpdateSprintFilterAction>(_sprintFilterReducer),
+];
 
-VisibilityFilter _sprintFilterReducer(
-    VisibilityFilter activeFilter, UpdateSprintFilterAction action) {
-  return action.newFilter;
+ReduxAppState _sprintFilterReducer(
+    ReduxAppState state, UpdateSprintFilterAction action) {
+  return state.rebuild((s) => s..sprintListFilter = action.newFilter.toBuilder());
 }
 
-final taskVisibilityReducer = combineReducers<VisibilityFilter>([
-  TypedReducer<VisibilityFilter, UpdateTaskFilterAction>(_taskFilterReducer),
-]);
+final taskVisibilityReducer = <ReduxAppState Function(ReduxAppState, dynamic)>[
+  TypedReducer<ReduxAppState, UpdateTaskFilterAction>(_taskFilterReducer),
+];
 
-VisibilityFilter _taskFilterReducer(
-    VisibilityFilter activeFilter, UpdateTaskFilterAction action) {
-  return action.newFilter;
+ReduxAppState _taskFilterReducer(
+    ReduxAppState state, UpdateTaskFilterAction action) {
+  return state.rebuild((s) => s..taskListFilter = action.newFilter.toBuilder());
 }

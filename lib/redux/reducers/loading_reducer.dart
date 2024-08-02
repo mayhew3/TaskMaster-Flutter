@@ -8,5 +8,5 @@ final loadingReducer = <ReduxAppState Function(ReduxAppState, dynamic)>[
 ];
 
 ReduxAppState _setLoaded(ReduxAppState state, action) {
-  return state.rebuild((p0) => p0..isLoading = false);
+  return state.rebuild((s) => s..isLoading = false);
 }

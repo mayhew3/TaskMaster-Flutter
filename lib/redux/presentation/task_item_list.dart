@@ -1,4 +1,5 @@
 
+import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:taskmaster/redux/presentation/task_item_item.dart';
 import '../../keys.dart';
@@ -8,7 +9,7 @@ import '../containers/task_item_details.dart';
 import 'loading_indicator.dart';
 
 class TaskItemList extends StatelessWidget {
-  final List<TaskItem> taskItems;
+  final BuiltList<TaskItem> taskItems;
   final Function(TaskItem, bool) onCheckboxChanged;
   final Function(TaskItem) onRemove;
   final Function(TaskItem) onUndoRemove;

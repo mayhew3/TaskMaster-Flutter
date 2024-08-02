@@ -1,4 +1,5 @@
 
+import 'package:built_collection/built_collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
@@ -29,7 +30,7 @@ class FilteredTaskItems extends StatelessWidget {
 }
 
 class _ViewModel {
-  final List<TaskItem> taskItems;
+  final BuiltList<TaskItem> taskItems;
   final bool loading;
   final Function(TaskItem, bool) onCheckboxChanged;
   final Function(TaskItem) onRemove;

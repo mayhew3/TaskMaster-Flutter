@@ -23,9 +23,9 @@ ReduxAppState _deleteTaskItem(ReduxAppState state, DeleteTaskItemAction action) 
 }
 
 ReduxAppState _updateTaskItem(ReduxAppState state, UpdateTaskItemAction action) {
-  return taskItems
-      .map((taskItem) => taskItem.id == action.id ? action.updatedTaskItem : taskItem)
-      .toList();
+  var listBuilder = state.taskItems.toBuilder()
+    ..map((taskItem) => taskItem.id == action.id ? action.updatedTaskItem : taskItem);
+  return state.rebuild((s) => s..taskItems = listBuilder);
 }
 
 ReduxAppState _setLoadedTaskItems(ReduxAppState state, TaskItemsLoadedAction action) {

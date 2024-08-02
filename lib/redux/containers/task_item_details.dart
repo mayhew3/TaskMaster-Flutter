@@ -20,7 +20,7 @@ class TaskItemDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StoreConnector<ReduxAppState, _ViewModel>(
-      ignoreChange: (state) => taskItemSelector(state.taskItems.asList(), id) != null,
+      ignoreChange: (state) => taskItemSelector(state.taskItems, id) != null,
       converter: (Store<ReduxAppState> store) {
         return _ViewModel.from(store, id);
       },
