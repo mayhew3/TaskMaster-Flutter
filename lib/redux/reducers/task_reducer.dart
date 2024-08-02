@@ -1,7 +1,6 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:redux/redux.dart';
 
-import '../../models/models.dart';
 import '../actions/actions.dart';
 import '../redux_app_state.dart';
 
@@ -14,12 +13,13 @@ final taskItemsReducer = <ReduxAppState Function(ReduxAppState, dynamic)>[
 ];
 
 ReduxAppState _addTaskItem(ReduxAppState state, AddTaskItemAction action) {
-  var updatedList = state.taskItems.rebuild((tasks) => tasks.add(action.taskItem));
-  return state.rebuild((s) => s..taskItems = ListBuilder(updatedList));
+  var listBuilder = state.taskItems.toBuilder()..add(action.taskItem);
+  return state.rebuild((s) => s..taskItems = listBuilder);
 }
 
 ReduxAppState _deleteTaskItem(ReduxAppState state, DeleteTaskItemAction action) {
-  return taskItems.where((taskItem) => taskItem.id != action.id).toList();
+  var listBuilder = state.taskItems.toBuilder()..removeWhere((taskItem) => taskItem.id == action.id);
+  return state.rebuild((s) => s..taskItems = listBuilder);
 }
 
 ReduxAppState _updateTaskItem(ReduxAppState state, UpdateTaskItemAction action) {
