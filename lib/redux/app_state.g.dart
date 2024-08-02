@@ -1,12 +1,12 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'redux_app_state.dart';
+part of 'app_state.dart';
 
 // **************************************************************************
 // BuiltValueGenerator
 // **************************************************************************
 
-class _$ReduxAppState extends ReduxAppState {
+class _$AppState extends AppState {
   @override
   final bool isLoading;
   @override
@@ -22,10 +22,10 @@ class _$ReduxAppState extends ReduxAppState {
   @override
   final VisibilityFilter taskListFilter;
 
-  factory _$ReduxAppState([void Function(ReduxAppStateBuilder)? updates]) =>
-      (new ReduxAppStateBuilder()..update(updates))._build();
+  factory _$AppState([void Function(AppStateBuilder)? updates]) =>
+      (new AppStateBuilder()..update(updates))._build();
 
-  _$ReduxAppState._(
+  _$AppState._(
       {required this.isLoading,
       required this.taskItems,
       required this.sprints,
@@ -34,32 +34,29 @@ class _$ReduxAppState extends ReduxAppState {
       required this.sprintListFilter,
       required this.taskListFilter})
       : super._() {
+    BuiltValueNullFieldError.checkNotNull(isLoading, r'AppState', 'isLoading');
+    BuiltValueNullFieldError.checkNotNull(taskItems, r'AppState', 'taskItems');
+    BuiltValueNullFieldError.checkNotNull(sprints, r'AppState', 'sprints');
     BuiltValueNullFieldError.checkNotNull(
-        isLoading, r'ReduxAppState', 'isLoading');
+        taskRecurrences, r'AppState', 'taskRecurrences');
+    BuiltValueNullFieldError.checkNotNull(activeTab, r'AppState', 'activeTab');
     BuiltValueNullFieldError.checkNotNull(
-        taskItems, r'ReduxAppState', 'taskItems');
-    BuiltValueNullFieldError.checkNotNull(sprints, r'ReduxAppState', 'sprints');
+        sprintListFilter, r'AppState', 'sprintListFilter');
     BuiltValueNullFieldError.checkNotNull(
-        taskRecurrences, r'ReduxAppState', 'taskRecurrences');
-    BuiltValueNullFieldError.checkNotNull(
-        activeTab, r'ReduxAppState', 'activeTab');
-    BuiltValueNullFieldError.checkNotNull(
-        sprintListFilter, r'ReduxAppState', 'sprintListFilter');
-    BuiltValueNullFieldError.checkNotNull(
-        taskListFilter, r'ReduxAppState', 'taskListFilter');
+        taskListFilter, r'AppState', 'taskListFilter');
   }
 
   @override
-  ReduxAppState rebuild(void Function(ReduxAppStateBuilder) updates) =>
+  AppState rebuild(void Function(AppStateBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  ReduxAppStateBuilder toBuilder() => new ReduxAppStateBuilder()..replace(this);
+  AppStateBuilder toBuilder() => new AppStateBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is ReduxAppState &&
+    return other is AppState &&
         isLoading == other.isLoading &&
         taskItems == other.taskItems &&
         sprints == other.sprints &&
@@ -85,7 +82,7 @@ class _$ReduxAppState extends ReduxAppState {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'ReduxAppState')
+    return (newBuiltValueToStringHelper(r'AppState')
           ..add('isLoading', isLoading)
           ..add('taskItems', taskItems)
           ..add('sprints', sprints)
@@ -97,9 +94,8 @@ class _$ReduxAppState extends ReduxAppState {
   }
 }
 
-class ReduxAppStateBuilder
-    implements Builder<ReduxAppState, ReduxAppStateBuilder> {
-  _$ReduxAppState? _$v;
+class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
+  _$AppState? _$v;
 
   bool? _isLoading;
   bool? get isLoading => _$this._isLoading;
@@ -138,9 +134,9 @@ class ReduxAppStateBuilder
   set taskListFilter(VisibilityFilterBuilder? taskListFilter) =>
       _$this._taskListFilter = taskListFilter;
 
-  ReduxAppStateBuilder();
+  AppStateBuilder();
 
-  ReduxAppStateBuilder get _$this {
+  AppStateBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
       _isLoading = $v.isLoading;
@@ -156,31 +152,31 @@ class ReduxAppStateBuilder
   }
 
   @override
-  void replace(ReduxAppState other) {
+  void replace(AppState other) {
     ArgumentError.checkNotNull(other, 'other');
-    _$v = other as _$ReduxAppState;
+    _$v = other as _$AppState;
   }
 
   @override
-  void update(void Function(ReduxAppStateBuilder)? updates) {
+  void update(void Function(AppStateBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  ReduxAppState build() => _build();
+  AppState build() => _build();
 
-  _$ReduxAppState _build() {
-    _$ReduxAppState _$result;
+  _$AppState _build() {
+    _$AppState _$result;
     try {
       _$result = _$v ??
-          new _$ReduxAppState._(
+          new _$AppState._(
               isLoading: BuiltValueNullFieldError.checkNotNull(
-                  isLoading, r'ReduxAppState', 'isLoading'),
+                  isLoading, r'AppState', 'isLoading'),
               taskItems: taskItems.build(),
               sprints: sprints.build(),
               taskRecurrences: taskRecurrences.build(),
               activeTab: BuiltValueNullFieldError.checkNotNull(
-                  activeTab, r'ReduxAppState', 'activeTab'),
+                  activeTab, r'AppState', 'activeTab'),
               sprintListFilter: sprintListFilter.build(),
               taskListFilter: taskListFilter.build());
     } catch (_) {
@@ -199,7 +195,7 @@ class ReduxAppStateBuilder
         taskListFilter.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
-            r'ReduxAppState', _$failedField, e.toString());
+            r'AppState', _$failedField, e.toString());
       }
       rethrow;
     }

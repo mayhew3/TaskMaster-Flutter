@@ -9,7 +9,6 @@ import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/models/serializers.dart';
-import 'package:built_value/standard_json_plugin.dart';
 
 class TaskRepository {
   http.Client client;
@@ -89,9 +88,6 @@ class TaskRepository {
   Future<TaskItem> addTaskRedux(TaskItem taskItem) async {
 
     var taskObj = serializers.serializeWith(TaskItem.serializer, taskItem)!;
-
-    // todo: change server-side to handle personId?
-    // taskObj['person_id'] = 1;
 
     var payload = {
       "task": taskObj

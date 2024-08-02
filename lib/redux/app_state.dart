@@ -3,9 +3,9 @@ import 'package:built_collection/built_collection.dart';
 
 import '../models/models.dart';
 
-part 'redux_app_state.g.dart';
+part 'app_state.g.dart';
 
-abstract class ReduxAppState implements Built<ReduxAppState, ReduxAppStateBuilder> {
+abstract class AppState implements Built<AppState, AppStateBuilder> {
   bool get isLoading;
   BuiltList<TaskItem> get taskItems;
   BuiltList<Sprint> get sprints;
@@ -28,10 +28,10 @@ abstract class ReduxAppState implements Built<ReduxAppState, ReduxAppStateBuilde
 
   // factory ReduxAppState.loading() => ReduxAppState(isLoading: true);
 
-  ReduxAppState._();
-  factory ReduxAppState([Function(ReduxAppStateBuilder) updates]) = _$ReduxAppState;
+  AppState._();
+  factory AppState([Function(AppStateBuilder) updates]) = _$AppState;
 
-  factory ReduxAppState.init({bool loading = false}) => ReduxAppState((appState) => appState
+  factory AppState.init({bool loading = false}) => AppState((appState) => appState
     ..isLoading = loading
     ..taskItems = ListBuilder()
     ..sprints = ListBuilder()

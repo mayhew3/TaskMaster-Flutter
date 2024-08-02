@@ -8,7 +8,7 @@ import 'package:redux/redux.dart';
 import 'package:taskmaster/redux/selectors/selectors.dart';
 
 import '../presentation/details_screen.dart';
-import '../redux_app_state.dart';
+import '../app_state.dart';
 import '../actions/actions.dart';
 import '../../models/models.dart';
 
@@ -19,9 +19,9 @@ class TaskItemDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<ReduxAppState, _ViewModel>(
+    return StoreConnector<AppState, _ViewModel>(
       ignoreChange: (state) => taskItemSelector(state.taskItems, id) != null,
-      converter: (Store<ReduxAppState> store) {
+      converter: (Store<AppState> store) {
         return _ViewModel.from(store, id);
       },
       builder: (context, vm) {
@@ -46,7 +46,7 @@ class _ViewModel {
     required this.toggleCompleted,
   });
 
-  factory _ViewModel.from(Store<ReduxAppState> store, int id) {
+  factory _ViewModel.from(Store<AppState> store, int id) {
     final taskItem = taskItemSelector(taskItemsSelector(store.state), id)!;
 
     return _ViewModel(

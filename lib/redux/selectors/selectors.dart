@@ -1,17 +1,17 @@
 import 'package:built_collection/built_collection.dart';
-import 'package:taskmaster/redux/redux_app_state.dart';
+import 'package:taskmaster/redux/app_state.dart';
 
 import '../../models/models.dart';
 
-bool isLoadingSelector(ReduxAppState state) => state.isLoading;
-BuiltList<TaskItem> taskItemsSelector(ReduxAppState state) => state.taskItems;
-BuiltList<Sprint> sprintsSelector(ReduxAppState state) => state.sprints;
-BuiltList<TaskRecurrence> recurrencesSelector(ReduxAppState state) => state.taskRecurrences;
-AppTab activeTabSelector(ReduxAppState state) => state.activeTab;
-VisibilityFilter sprintFilterSelector(ReduxAppState state) => state.sprintListFilter;
-VisibilityFilter taskFilterSelector(ReduxAppState state) => state.taskListFilter;
+bool isLoadingSelector(AppState state) => state.isLoading;
+BuiltList<TaskItem> taskItemsSelector(AppState state) => state.taskItems;
+BuiltList<Sprint> sprintsSelector(AppState state) => state.sprints;
+BuiltList<TaskRecurrence> recurrencesSelector(AppState state) => state.taskRecurrences;
+AppTab activeTabSelector(AppState state) => state.activeTab;
+VisibilityFilter sprintFilterSelector(AppState state) => state.sprintListFilter;
+VisibilityFilter taskFilterSelector(AppState state) => state.taskListFilter;
 
-BuiltList<TaskItem> tasksForRecurrenceSelector(ReduxAppState state, TaskRecurrence taskRecurrence) {
+BuiltList<TaskItem> tasksForRecurrenceSelector(AppState state, TaskRecurrence taskRecurrence) {
   return ListBuilder<TaskItem>(state.taskItems.where((taskItem) {
     return taskItem.recurrenceId == taskRecurrence.id;
   })).build();

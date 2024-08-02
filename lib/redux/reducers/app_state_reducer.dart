@@ -1,12 +1,12 @@
 import 'package:redux/redux.dart';
 
-import '../redux_app_state.dart';
+import '../app_state.dart';
 import 'loading_reducer.dart';
 import 'tabs_reducer.dart';
 import 'task_reducer.dart';
 import 'visibility_reducer.dart';
 
-final appReducer = combineReducers<ReduxAppState>([
+final appReducer = combineReducers<AppState>([
   ...loadingReducer,
   ...tabsReducer,
   ...taskItemsReducer,

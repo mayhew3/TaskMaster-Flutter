@@ -3,12 +3,12 @@ import 'package:redux/redux.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/redux/presentation/home_screen.dart';
-import 'package:taskmaster/redux/redux_app_state.dart';
+import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/actions/actions.dart';
 import 'package:taskmaster/routes.dart';
 
 class TaskMasterApp extends StatelessWidget {
-  final Store<ReduxAppState> store;
+  final Store<AppState> store;
 
   const TaskMasterApp({
     Key? key,
@@ -76,7 +76,7 @@ class TaskMasterApp extends StatelessWidget {
           TaskMasterRoutes.home: (context) {
             return HomeScreen(
               onInit: () {
-                StoreProvider.of<ReduxAppState>(context).dispatch(LoadTaskItemsAction());
+                StoreProvider.of<AppState>(context).dispatch(LoadTaskItemsAction());
               },
             );
           }

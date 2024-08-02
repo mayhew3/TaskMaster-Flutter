@@ -7,7 +7,7 @@ import '../../models/models.dart';
 
 import '../actions/actions.dart';
 import '../presentation/task_item_list.dart';
-import '../redux_app_state.dart';
+import '../app_state.dart';
 import '../selectors/selectors.dart';
 
 class FilteredTaskItems extends StatelessWidget {
@@ -15,7 +15,7 @@ class FilteredTaskItems extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<ReduxAppState, _ViewModel>(
+    return StoreConnector<AppState, _ViewModel>(
       converter: _ViewModel.fromStore,
       builder: (context, vm) {
         return TaskItemList(
@@ -44,7 +44,7 @@ class _ViewModel {
     required this.onUndoRemove,
   });
 
-  static _ViewModel fromStore(Store<ReduxAppState> store) {
+  static _ViewModel fromStore(Store<AppState> store) {
     return _ViewModel(
       taskItems: filteredTaskItemsSelector(
         taskItemsSelector(store.state),

@@ -1,19 +1,19 @@
 import 'package:redux/redux.dart';
-import 'package:taskmaster/redux/redux_app_state.dart';
+import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/task_repository.dart';
 
 import '../actions/actions.dart';
 
-List<Middleware<ReduxAppState>> createStoreTaskItemsMiddleware(TaskRepository repository) {
+List<Middleware<AppState>> createStoreTaskItemsMiddleware(TaskRepository repository) {
   return [
-    TypedMiddleware<ReduxAppState, LoadTaskItemsAction>(_createLoadTaskItems(repository)),
-    TypedMiddleware<ReduxAppState, AddTaskItemAction>(_createNewTaskItem(repository))
+    TypedMiddleware<AppState, LoadTaskItemsAction>(_createLoadTaskItems(repository)),
+    TypedMiddleware<AppState, AddTaskItemAction>(_createNewTaskItem(repository))
   ];
 }
 
 
-Middleware<ReduxAppState> _createLoadTaskItems(TaskRepository repository) {
-  return (Store<ReduxAppState> store, action, NextDispatcher next) {
+Middleware<AppState> _createLoadTaskItems(TaskRepository repository) {
+  return (Store<AppState> store, action, NextDispatcher next) {
     repository.loadTasksRedux().then(
           (dataPayload) {
         store.dispatch(
@@ -29,11 +29,11 @@ Middleware<ReduxAppState> _createLoadTaskItems(TaskRepository repository) {
 }
 
 void Function(
-    Store<ReduxAppState>,
+    Store<AppState>,
     AddTaskItemAction action,
     NextDispatcher next,
     ) _createNewTaskItem(TaskRepository repository) {
-  return (Store<ReduxAppState> store, AddTaskItemAction action, NextDispatcher next) async {
+  return (Store<AppState> store, AddTaskItemAction action, NextDispatcher next) async {
     next(action);
     await repository.addTaskRedux(action.taskItem);
   };

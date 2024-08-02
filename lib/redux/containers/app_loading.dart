@@ -6,7 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 
-import '../redux_app_state.dart';
+import '../app_state.dart';
 import '../selectors/selectors.dart';
 
 class AppLoading extends StatelessWidget {
@@ -16,9 +16,9 @@ class AppLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<ReduxAppState, bool>(
+    return StoreConnector<AppState, bool>(
       distinct: true,
-      converter: (Store<ReduxAppState> store) => isLoadingSelector(store.state),
+      converter: (Store<AppState> store) => isLoadingSelector(store.state),
       builder: builder,
     );
   }

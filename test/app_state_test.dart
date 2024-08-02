@@ -3,7 +3,7 @@ import 'package:mockito/mockito.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
-import 'package:taskmaster/redux/redux_app_state.dart';
+import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
@@ -15,7 +15,7 @@ import 'mocks/mock_task_master_auth.dart';
 @GenerateNiceMocks([MockSpec<TaskRepository>()])
 void main() {
 
-  ReduxAppState createAppState({
+  AppState createAppState({
     List<TaskItem>? taskItems,
     List<Sprint>? sprints
   }) {

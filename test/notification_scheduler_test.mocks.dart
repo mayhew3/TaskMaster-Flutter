@@ -10,7 +10,7 @@ import 'package:http/http.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:taskmaster/models/data_payload.dart' as _i6;
 import 'package:taskmaster/models/models.dart' as _i3;
-import 'package:taskmaster/redux/redux_app_state.dart' as _i4;
+import 'package:taskmaster/redux/app_state.dart' as _i4;
 import 'package:taskmaster/task_repository.dart' as _i7;
 
 // ignore_for_file: type=lint
@@ -45,8 +45,8 @@ class _FakeVisibilityFilter_1 extends _i1.SmartFake
         );
 }
 
-class _FakeReduxAppState_2 extends _i1.SmartFake implements _i4.ReduxAppState {
-  _FakeReduxAppState_2(
+class _FakeAppState_2 extends _i1.SmartFake implements _i4.AppState {
+  _FakeAppState_2(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -55,9 +55,9 @@ class _FakeReduxAppState_2 extends _i1.SmartFake implements _i4.ReduxAppState {
         );
 }
 
-class _FakeReduxAppStateBuilder_3 extends _i1.SmartFake
-    implements _i4.ReduxAppStateBuilder {
-  _FakeReduxAppStateBuilder_3(
+class _FakeAppStateBuilder_3 extends _i1.SmartFake
+    implements _i4.AppStateBuilder {
+  _FakeAppStateBuilder_3(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -106,10 +106,10 @@ class _FakeTaskItem_7 extends _i1.SmartFake implements _i3.TaskItem {
         );
 }
 
-/// A class which mocks [ReduxAppState].
+/// A class which mocks [AppState].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockReduxAppState extends _i1.Mock implements _i4.ReduxAppState {
+class MockAppState extends _i1.Mock implements _i4.AppState {
   @override
   bool get isLoading => (super.noSuchMethod(
         Invocation.getter(#isLoading),
@@ -190,50 +190,49 @@ class MockReduxAppState extends _i1.Mock implements _i4.ReduxAppState {
       ) as _i3.VisibilityFilter);
 
   @override
-  _i4.ReduxAppState rebuild(
-          dynamic Function(_i4.ReduxAppStateBuilder)? updates) =>
+  _i4.AppState rebuild(dynamic Function(_i4.AppStateBuilder)? updates) =>
       (super.noSuchMethod(
         Invocation.method(
           #rebuild,
           [updates],
         ),
-        returnValue: _FakeReduxAppState_2(
+        returnValue: _FakeAppState_2(
           this,
           Invocation.method(
             #rebuild,
             [updates],
           ),
         ),
-        returnValueForMissingStub: _FakeReduxAppState_2(
+        returnValueForMissingStub: _FakeAppState_2(
           this,
           Invocation.method(
             #rebuild,
             [updates],
           ),
         ),
-      ) as _i4.ReduxAppState);
+      ) as _i4.AppState);
 
   @override
-  _i4.ReduxAppStateBuilder toBuilder() => (super.noSuchMethod(
+  _i4.AppStateBuilder toBuilder() => (super.noSuchMethod(
         Invocation.method(
           #toBuilder,
           [],
         ),
-        returnValue: _FakeReduxAppStateBuilder_3(
+        returnValue: _FakeAppStateBuilder_3(
           this,
           Invocation.method(
             #toBuilder,
             [],
           ),
         ),
-        returnValueForMissingStub: _FakeReduxAppStateBuilder_3(
+        returnValueForMissingStub: _FakeAppStateBuilder_3(
           this,
           Invocation.method(
             #toBuilder,
             [],
           ),
         ),
-      ) as _i4.ReduxAppStateBuilder);
+      ) as _i4.AppStateBuilder);
 }
 
 /// A class which mocks [TaskRepository].
