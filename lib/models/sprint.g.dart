@@ -6,6 +6,118 @@ part of 'sprint.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
+Serializer<Sprint> _$sprintSerializer = new _$SprintSerializer();
+
+class _$SprintSerializer implements StructuredSerializer<Sprint> {
+  @override
+  final Iterable<Type> types = const [Sprint, _$Sprint];
+  @override
+  final String wireName = 'Sprint';
+
+  @override
+  Iterable<Object?> serialize(Serializers serializers, Sprint object,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = <Object?>[
+      'startDate',
+      serializers.serialize(object.startDate,
+          specifiedType: const FullType(DateTime)),
+      'endDate',
+      serializers.serialize(object.endDate,
+          specifiedType: const FullType(DateTime)),
+      'numUnits',
+      serializers.serialize(object.numUnits,
+          specifiedType: const FullType(int)),
+      'unitName',
+      serializers.serialize(object.unitName,
+          specifiedType: const FullType(String)),
+      'personId',
+      serializers.serialize(object.personId,
+          specifiedType: const FullType(int)),
+    ];
+    Object? value;
+    value = object.id;
+    if (value != null) {
+      result
+        ..add('id')
+        ..add(serializers.serialize(value, specifiedType: const FullType(int)));
+    }
+    value = object.dateAdded;
+    if (value != null) {
+      result
+        ..add('dateAdded')
+        ..add(serializers.serialize(value,
+            specifiedType: const FullType(DateTime)));
+    }
+    value = object.closeDate;
+    if (value != null) {
+      result
+        ..add('closeDate')
+        ..add(serializers.serialize(value,
+            specifiedType: const FullType(DateTime)));
+    }
+    value = object.sprintNumber;
+    if (value != null) {
+      result
+        ..add('sprintNumber')
+        ..add(serializers.serialize(value, specifiedType: const FullType(int)));
+    }
+    return result;
+  }
+
+  @override
+  Sprint deserialize(Serializers serializers, Iterable<Object?> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = new SprintBuilder();
+
+    final iterator = serialized.iterator;
+    while (iterator.moveNext()) {
+      final key = iterator.current! as String;
+      iterator.moveNext();
+      final Object? value = iterator.current;
+      switch (key) {
+        case 'id':
+          result.id = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int?;
+          break;
+        case 'dateAdded':
+          result.dateAdded = serializers.deserialize(value,
+              specifiedType: const FullType(DateTime)) as DateTime?;
+          break;
+        case 'startDate':
+          result.startDate = serializers.deserialize(value,
+              specifiedType: const FullType(DateTime))! as DateTime;
+          break;
+        case 'endDate':
+          result.endDate = serializers.deserialize(value,
+              specifiedType: const FullType(DateTime))! as DateTime;
+          break;
+        case 'closeDate':
+          result.closeDate = serializers.deserialize(value,
+              specifiedType: const FullType(DateTime)) as DateTime?;
+          break;
+        case 'numUnits':
+          result.numUnits = serializers.deserialize(value,
+              specifiedType: const FullType(int))! as int;
+          break;
+        case 'unitName':
+          result.unitName = serializers.deserialize(value,
+              specifiedType: const FullType(String))! as String;
+          break;
+        case 'personId':
+          result.personId = serializers.deserialize(value,
+              specifiedType: const FullType(int))! as int;
+          break;
+        case 'sprintNumber':
+          result.sprintNumber = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int?;
+          break;
+      }
+    }
+
+    return result.build();
+  }
+}
+
 class _$Sprint extends Sprint {
   @override
   final int? id;
@@ -196,11 +308,3 @@ class SprintBuilder implements Builder<Sprint, SprintBuilder> {
 }
 
 // ignore_for_file: deprecated_member_use_from_same_package,type=lint
-
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-Sprint _$SprintFromJson(Map<String, dynamic> json) => Sprint();
-
-Map<String, dynamic> _$SprintToJson(Sprint instance) => <String, dynamic>{};

@@ -8,6 +8,8 @@ import 'package:taskmaster/models/data_payload.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
+import 'package:taskmaster/models/serializers.dart';
+import 'package:built_value/standard_json_plugin.dart';
 
 class TaskRepository {
   http.Client client;
@@ -39,6 +41,8 @@ class TaskRepository {
   }
 
   Future<DataPayload> loadTasksRedux() async {
+    final standardSerializers =
+      (serializers.toBuilder()..addPlugin(StandardJsonPlugin())).build();
 
     var queryParameters = {
       'email': "scorpy@gmail.com"
@@ -56,19 +60,19 @@ class TaskRepository {
 
         List<Sprint> sprints = [];
         for (var sprintJson in jsonObj['sprints']) {
-          var sprint = Sprint.fromJson(sprintJson);
+          var sprint = standardSerializers.deserializeWith(Sprint.serializer, sprintJson)!;
           sprints.add(sprint);
         }
 
         List<TaskRecurrence> taskRecurrences = [];
-        for (var taskJson in jsonObj['taskRecurrences']) {
-          var taskRecurrence = TaskRecurrence.fromJson(taskJson);
+        for (var recurrenceJson in jsonObj['taskRecurrences']) {
+          var taskRecurrence = standardSerializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson)!;
           taskRecurrences.add(taskRecurrence);
         }
 
         List<TaskItem> taskItems = [];
         for (var taskJson in jsonObj['tasks']) {
-          var taskItem = TaskItem.fromJson(taskJson);
+          var taskItem = standardSerializers.deserializeWith(TaskItem.serializer, taskJson)!;
           taskItems.add(taskItem);
         }
 
@@ -85,9 +89,13 @@ class TaskRepository {
   }
 
   Future<TaskItem> addTaskRedux(TaskItem taskItem) async {
+    final standardSerializers =
+    (serializers.toBuilder()..addPlugin(StandardJsonPlugin())).build();
 
-    var taskObj = taskItem.toJson();
-    taskObj['person_id'] = 1;
+    var taskObj = standardSerializers.serializeWith(TaskItem.serializer, taskItem)!;
+
+    // todo: change server-side to handle personId?
+    // taskObj['person_id'] = 1;
 
     var payload = {
       "task": taskObj
@@ -105,6 +113,10 @@ class TaskRepository {
   }
 
   Future<TaskItem> _addOrUpdateJSON(Map<String, Object> payload, String addOrUpdate) async {
+
+    final standardSerializers =
+    (serializers.toBuilder()..addPlugin(StandardJsonPlugin())).build();
+
     var body = utf8.encode(json.encode(payload));
 
     var uri = getUri('/api/tasks');
@@ -116,7 +128,7 @@ class TaskRepository {
     if (response.statusCode == 200) {
       try {
         var jsonObj = json.decode(response.body);
-        TaskItem inboundTask = TaskItem.fromJson(jsonObj);
+        TaskItem inboundTask = standardSerializers.deserializeWith(TaskItem.serializer, jsonObj)!;
         return inboundTask;
       } catch(exception, stackTrace) {
         print(exception);
