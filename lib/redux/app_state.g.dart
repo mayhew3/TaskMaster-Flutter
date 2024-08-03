@@ -21,6 +21,12 @@ class _$AppState extends AppState {
   final VisibilityFilter sprintListFilter;
   @override
   final VisibilityFilter taskListFilter;
+  @override
+  final UserCredential? firebaseUser;
+  @override
+  final GoogleSignInAccount? currentUser;
+  @override
+  final bool tokenRetrieved;
 
   factory _$AppState([void Function(AppStateBuilder)? updates]) =>
       (new AppStateBuilder()..update(updates))._build();
@@ -32,7 +38,10 @@ class _$AppState extends AppState {
       required this.taskRecurrences,
       required this.activeTab,
       required this.sprintListFilter,
-      required this.taskListFilter})
+      required this.taskListFilter,
+      this.firebaseUser,
+      this.currentUser,
+      required this.tokenRetrieved})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(isLoading, r'AppState', 'isLoading');
     BuiltValueNullFieldError.checkNotNull(taskItems, r'AppState', 'taskItems');
@@ -44,6 +53,8 @@ class _$AppState extends AppState {
         sprintListFilter, r'AppState', 'sprintListFilter');
     BuiltValueNullFieldError.checkNotNull(
         taskListFilter, r'AppState', 'taskListFilter');
+    BuiltValueNullFieldError.checkNotNull(
+        tokenRetrieved, r'AppState', 'tokenRetrieved');
   }
 
   @override
@@ -63,7 +74,10 @@ class _$AppState extends AppState {
         taskRecurrences == other.taskRecurrences &&
         activeTab == other.activeTab &&
         sprintListFilter == other.sprintListFilter &&
-        taskListFilter == other.taskListFilter;
+        taskListFilter == other.taskListFilter &&
+        firebaseUser == other.firebaseUser &&
+        currentUser == other.currentUser &&
+        tokenRetrieved == other.tokenRetrieved;
   }
 
   @override
@@ -76,6 +90,9 @@ class _$AppState extends AppState {
     _$hash = $jc(_$hash, activeTab.hashCode);
     _$hash = $jc(_$hash, sprintListFilter.hashCode);
     _$hash = $jc(_$hash, taskListFilter.hashCode);
+    _$hash = $jc(_$hash, firebaseUser.hashCode);
+    _$hash = $jc(_$hash, currentUser.hashCode);
+    _$hash = $jc(_$hash, tokenRetrieved.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -89,7 +106,10 @@ class _$AppState extends AppState {
           ..add('taskRecurrences', taskRecurrences)
           ..add('activeTab', activeTab)
           ..add('sprintListFilter', sprintListFilter)
-          ..add('taskListFilter', taskListFilter))
+          ..add('taskListFilter', taskListFilter)
+          ..add('firebaseUser', firebaseUser)
+          ..add('currentUser', currentUser)
+          ..add('tokenRetrieved', tokenRetrieved))
         .toString();
   }
 }
@@ -134,6 +154,21 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   set taskListFilter(VisibilityFilterBuilder? taskListFilter) =>
       _$this._taskListFilter = taskListFilter;
 
+  UserCredential? _firebaseUser;
+  UserCredential? get firebaseUser => _$this._firebaseUser;
+  set firebaseUser(UserCredential? firebaseUser) =>
+      _$this._firebaseUser = firebaseUser;
+
+  GoogleSignInAccount? _currentUser;
+  GoogleSignInAccount? get currentUser => _$this._currentUser;
+  set currentUser(GoogleSignInAccount? currentUser) =>
+      _$this._currentUser = currentUser;
+
+  bool? _tokenRetrieved;
+  bool? get tokenRetrieved => _$this._tokenRetrieved;
+  set tokenRetrieved(bool? tokenRetrieved) =>
+      _$this._tokenRetrieved = tokenRetrieved;
+
   AppStateBuilder();
 
   AppStateBuilder get _$this {
@@ -146,6 +181,9 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _activeTab = $v.activeTab;
       _sprintListFilter = $v.sprintListFilter.toBuilder();
       _taskListFilter = $v.taskListFilter.toBuilder();
+      _firebaseUser = $v.firebaseUser;
+      _currentUser = $v.currentUser;
+      _tokenRetrieved = $v.tokenRetrieved;
       _$v = null;
     }
     return this;
@@ -178,7 +216,11 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               activeTab: BuiltValueNullFieldError.checkNotNull(
                   activeTab, r'AppState', 'activeTab'),
               sprintListFilter: sprintListFilter.build(),
-              taskListFilter: taskListFilter.build());
+              taskListFilter: taskListFilter.build(),
+              firebaseUser: firebaseUser,
+              currentUser: currentUser,
+              tokenRetrieved: BuiltValueNullFieldError.checkNotNull(
+                  tokenRetrieved, r'AppState', 'tokenRetrieved'));
     } catch (_) {
       late String _$failedField;
       try {

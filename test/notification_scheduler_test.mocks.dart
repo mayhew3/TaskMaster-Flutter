@@ -3,7 +3,7 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i8;
+import 'dart:async' as _i7;
 
 import 'package:built_collection/built_collection.dart' as _i2;
 import 'package:http/http.dart' as _i5;
@@ -11,7 +11,7 @@ import 'package:mockito/mockito.dart' as _i1;
 import 'package:taskmaster/models/data_payload.dart' as _i6;
 import 'package:taskmaster/models/models.dart' as _i3;
 import 'package:taskmaster/redux/app_state.dart' as _i4;
-import 'package:taskmaster/task_repository.dart' as _i7;
+import 'package:taskmaster/task_repository.dart' as _i8;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -190,6 +190,23 @@ class MockAppState extends _i1.Mock implements _i4.AppState {
       ) as _i3.VisibilityFilter);
 
   @override
+  bool get tokenRetrieved => (super.noSuchMethod(
+        Invocation.getter(#tokenRetrieved),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  _i7.Future<String?> getIdToken() => (super.noSuchMethod(
+        Invocation.method(
+          #getIdToken,
+          [],
+        ),
+        returnValue: _i7.Future<String?>.value(),
+        returnValueForMissingStub: _i7.Future<String?>.value(),
+      ) as _i7.Future<String?>);
+
+  @override
   _i4.AppState rebuild(dynamic Function(_i4.AppStateBuilder)? updates) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -238,7 +255,7 @@ class MockAppState extends _i1.Mock implements _i4.AppState {
 /// A class which mocks [TaskRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
+class MockTaskRepository extends _i1.Mock implements _i8.TaskRepository {
   @override
   _i5.Client get client => (super.noSuchMethod(
         Invocation.getter(#client),
@@ -319,12 +336,12 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
       ) as Uri);
 
   @override
-  _i8.Future<_i6.DataPayload> loadTasksRedux() => (super.noSuchMethod(
+  _i7.Future<_i6.DataPayload> loadTasksRedux() => (super.noSuchMethod(
         Invocation.method(
           #loadTasksRedux,
           [],
         ),
-        returnValue: _i8.Future<_i6.DataPayload>.value(_FakeDataPayload_6(
+        returnValue: _i7.Future<_i6.DataPayload>.value(_FakeDataPayload_6(
           this,
           Invocation.method(
             #loadTasksRedux,
@@ -332,23 +349,23 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i8.Future<_i6.DataPayload>.value(_FakeDataPayload_6(
+            _i7.Future<_i6.DataPayload>.value(_FakeDataPayload_6(
           this,
           Invocation.method(
             #loadTasksRedux,
             [],
           ),
         )),
-      ) as _i8.Future<_i6.DataPayload>);
+      ) as _i7.Future<_i6.DataPayload>);
 
   @override
-  _i8.Future<_i3.TaskItem> addTaskRedux(_i3.TaskItem? taskItem) =>
+  _i7.Future<_i3.TaskItem> addTaskRedux(_i3.TaskItem? taskItem) =>
       (super.noSuchMethod(
         Invocation.method(
           #addTaskRedux,
           [taskItem],
         ),
-        returnValue: _i8.Future<_i3.TaskItem>.value(_FakeTaskItem_7(
+        returnValue: _i7.Future<_i3.TaskItem>.value(_FakeTaskItem_7(
           this,
           Invocation.method(
             #addTaskRedux,
@@ -356,12 +373,12 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i8.Future<_i3.TaskItem>.value(_FakeTaskItem_7(
+            _i7.Future<_i3.TaskItem>.value(_FakeTaskItem_7(
           this,
           Invocation.method(
             #addTaskRedux,
             [taskItem],
           ),
         )),
-      ) as _i8.Future<_i3.TaskItem>);
+      ) as _i7.Future<_i3.TaskItem>);
 }

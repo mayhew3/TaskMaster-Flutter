@@ -1,5 +1,7 @@
 import 'package:built_value/built_value.dart';
 import 'package:built_collection/built_collection.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../models/models.dart';
 
@@ -14,19 +16,14 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   VisibilityFilter get sprintListFilter;
   VisibilityFilter get taskListFilter;
 
-/*
-  ReduxAppState({
-    this.isLoading = false,
-    this.taskItems = const [],
-    this.sprints = const [],
-    this.taskRecurrences = const [],
-    this.activeTab = AppTab.plan,
-    this.sprintListFilter = const VisibilityFilter.init(showScheduled: true, showCompleted: true, showActiveSprint: true),
-    this.taskListFilter = const VisibilityFilter.init(),
-  });
-*/
+  // auth
+  UserCredential? get firebaseUser;
+  GoogleSignInAccount? get currentUser;
+  bool get tokenRetrieved;
 
-  // factory ReduxAppState.loading() => ReduxAppState(isLoading: true);
+  Future<String?> getIdToken() async {
+    return await firebaseUser?.user?.getIdToken();
+  }
 
   AppState._();
   factory AppState([Function(AppStateBuilder) updates]) = _$AppState;
@@ -39,5 +36,6 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
     ..activeTab = AppTab.plan
     ..sprintListFilter = VisibilityFilter.init(showScheduled: true, showCompleted: true, showActiveSprint: true).toBuilder()
     ..taskListFilter = VisibilityFilter.init().toBuilder()
+    ..tokenRetrieved = false
   );
 }
