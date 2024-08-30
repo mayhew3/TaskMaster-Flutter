@@ -9,7 +9,9 @@ import '../actions/auth_actions.dart';
 import '../app_state.dart';
 
 List<Middleware<AppState>> createAuthenticationMiddleware() {
-  return [];
+  return [
+    TypedMiddleware<AppState, TryToSilentlySignIn>(_tryToSilentlySignIn())
+  ];
 }
 
 void Function(

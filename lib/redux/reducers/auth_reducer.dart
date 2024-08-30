@@ -12,10 +12,17 @@ final authReducers = <AppState Function(AppState, dynamic)>[
 
 AppState _onAuthenticated(AppState state, OnAuthenticated action) {
   return state.rebuild((a) => {
-
+    a..firebaseUser = action.userCredential
+      ..currentUser = action.account
+      ..tokenRetrieved = action.idToken != null
   });
 }
 
 AppState _onLogout(AppState state, OnLogoutSuccess action) {
-  return state.clear();
+  return state.rebuild((a) => {
+    a..firebaseUser = null
+      ..currentUser = null
+      ..tokenRetrieved = false
+      ..googleSignIn?.disconnect()
+  });
 }

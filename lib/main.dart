@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/app.dart';
+import 'package:taskmaster/redux/middleware/auth_middleware.dart';
 import 'package:taskmaster/redux/middleware/store_task_items_middleware.dart';
 import 'package:taskmaster/redux/reducers/app_state_reducer.dart';
 import 'package:taskmaster/redux/app_state.dart';
@@ -12,9 +13,10 @@ Future<void> main() async {
 
   runApp(TaskMasterApp(
     store: Store<AppState>(
-      appReducer,
-      initialState: AppState.init(loading: true),
-      middleware: createStoreTaskItemsMiddleware(TaskRepository(client: http.Client())),
+        appReducer,
+        initialState: AppState.init(loading: true),
+        middleware: createStoreTaskItemsMiddleware(TaskRepository(client: http.Client()))
+          ..addAll(createAuthenticationMiddleware())
     ),
   ));
 }
