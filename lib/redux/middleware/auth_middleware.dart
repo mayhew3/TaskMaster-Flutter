@@ -27,11 +27,13 @@ void Function(
     store.state.googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) async {
       if (account == null) {
         store.dispatch(OnLogoutSuccess());
+        await navigatorKey.currentState?.pushReplacementNamed(TaskMasterRoutes.login);
       } else {
         var authentication = await account.authentication;
 
         if (authentication.idToken == null) {
           store.dispatch(OnLoginFail("No idToken returned."));
+          await navigatorKey.currentState?.pushReplacementNamed(TaskMasterRoutes.login);
         }
 
         final AuthCredential credential = GoogleAuthProvider.credential(
@@ -43,7 +45,7 @@ void Function(
         String? idToken = await firebaseUser.user!.getIdToken();
         store.dispatch(OnAuthenticated(account, firebaseUser, idToken));
         await navigatorKey.currentState?.pushReplacementNamed(TaskMasterRoutes.home);
-        action.completer.complete();
+        // action.completer.complete(); // enable if needed later
       }
     });
   };

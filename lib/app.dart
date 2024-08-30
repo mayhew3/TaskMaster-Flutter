@@ -5,6 +5,7 @@ import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/redux/presentation/home_screen.dart';
 import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/actions/actions.dart';
+import 'package:taskmaster/redux/presentation/sign_in.dart';
 import 'package:taskmaster/routes.dart';
 
 class TaskMasterApp extends StatelessWidget {
@@ -79,6 +80,9 @@ class TaskMasterApp extends StatelessWidget {
                 StoreProvider.of<AppState>(context).dispatch(LoadTaskItemsAction());
               },
             );
+          },
+          TaskMasterRoutes.login: (context) {
+            return SignInScreen();
           }
         },
       ),

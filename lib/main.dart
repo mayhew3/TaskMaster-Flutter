@@ -17,7 +17,7 @@ Future<void> main() async {
         appReducer,
         initialState: AppState.init(loading: true),
         middleware: createStoreTaskItemsMiddleware(TaskRepository(client: http.Client()))
-          ..addAll(createAuthenticationMiddleware())
+          ..addAll(createAuthenticationMiddleware(_navigatorKey))
     ),
   ));
 }
