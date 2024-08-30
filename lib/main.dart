@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final _navigatorKey = GlobalKey<NavigatorState>();
 
   runApp(TaskMasterApp(
     store: Store<AppState>(
