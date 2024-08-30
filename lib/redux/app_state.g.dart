@@ -22,6 +22,8 @@ class _$AppState extends AppState {
   @override
   final VisibilityFilter taskListFilter;
   @override
+  final GoogleSignIn googleSignIn;
+  @override
   final UserCredential? firebaseUser;
   @override
   final GoogleSignInAccount? currentUser;
@@ -39,6 +41,7 @@ class _$AppState extends AppState {
       required this.activeTab,
       required this.sprintListFilter,
       required this.taskListFilter,
+      required this.googleSignIn,
       this.firebaseUser,
       this.currentUser,
       required this.tokenRetrieved})
@@ -53,6 +56,8 @@ class _$AppState extends AppState {
         sprintListFilter, r'AppState', 'sprintListFilter');
     BuiltValueNullFieldError.checkNotNull(
         taskListFilter, r'AppState', 'taskListFilter');
+    BuiltValueNullFieldError.checkNotNull(
+        googleSignIn, r'AppState', 'googleSignIn');
     BuiltValueNullFieldError.checkNotNull(
         tokenRetrieved, r'AppState', 'tokenRetrieved');
   }
@@ -75,6 +80,7 @@ class _$AppState extends AppState {
         activeTab == other.activeTab &&
         sprintListFilter == other.sprintListFilter &&
         taskListFilter == other.taskListFilter &&
+        googleSignIn == other.googleSignIn &&
         firebaseUser == other.firebaseUser &&
         currentUser == other.currentUser &&
         tokenRetrieved == other.tokenRetrieved;
@@ -90,6 +96,7 @@ class _$AppState extends AppState {
     _$hash = $jc(_$hash, activeTab.hashCode);
     _$hash = $jc(_$hash, sprintListFilter.hashCode);
     _$hash = $jc(_$hash, taskListFilter.hashCode);
+    _$hash = $jc(_$hash, googleSignIn.hashCode);
     _$hash = $jc(_$hash, firebaseUser.hashCode);
     _$hash = $jc(_$hash, currentUser.hashCode);
     _$hash = $jc(_$hash, tokenRetrieved.hashCode);
@@ -107,6 +114,7 @@ class _$AppState extends AppState {
           ..add('activeTab', activeTab)
           ..add('sprintListFilter', sprintListFilter)
           ..add('taskListFilter', taskListFilter)
+          ..add('googleSignIn', googleSignIn)
           ..add('firebaseUser', firebaseUser)
           ..add('currentUser', currentUser)
           ..add('tokenRetrieved', tokenRetrieved))
@@ -154,6 +162,11 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   set taskListFilter(VisibilityFilterBuilder? taskListFilter) =>
       _$this._taskListFilter = taskListFilter;
 
+  GoogleSignIn? _googleSignIn;
+  GoogleSignIn? get googleSignIn => _$this._googleSignIn;
+  set googleSignIn(GoogleSignIn? googleSignIn) =>
+      _$this._googleSignIn = googleSignIn;
+
   UserCredential? _firebaseUser;
   UserCredential? get firebaseUser => _$this._firebaseUser;
   set firebaseUser(UserCredential? firebaseUser) =>
@@ -181,6 +194,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _activeTab = $v.activeTab;
       _sprintListFilter = $v.sprintListFilter.toBuilder();
       _taskListFilter = $v.taskListFilter.toBuilder();
+      _googleSignIn = $v.googleSignIn;
       _firebaseUser = $v.firebaseUser;
       _currentUser = $v.currentUser;
       _tokenRetrieved = $v.tokenRetrieved;
@@ -217,6 +231,8 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
                   activeTab, r'AppState', 'activeTab'),
               sprintListFilter: sprintListFilter.build(),
               taskListFilter: taskListFilter.build(),
+              googleSignIn: BuiltValueNullFieldError.checkNotNull(
+                  googleSignIn, r'AppState', 'googleSignIn'),
               firebaseUser: firebaseUser,
               currentUser: currentUser,
               tokenRetrieved: BuiltValueNullFieldError.checkNotNull(

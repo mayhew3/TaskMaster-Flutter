@@ -3,15 +3,16 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i7;
+import 'dart:async' as _i8;
 
 import 'package:built_collection/built_collection.dart' as _i2;
-import 'package:http/http.dart' as _i5;
+import 'package:google_sign_in/google_sign_in.dart' as _i4;
+import 'package:http/http.dart' as _i6;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:taskmaster/models/data_payload.dart' as _i6;
+import 'package:taskmaster/models/data_payload.dart' as _i7;
 import 'package:taskmaster/models/models.dart' as _i3;
-import 'package:taskmaster/redux/app_state.dart' as _i4;
-import 'package:taskmaster/task_repository.dart' as _i8;
+import 'package:taskmaster/redux/app_state.dart' as _i5;
+import 'package:taskmaster/task_repository.dart' as _i9;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -45,8 +46,8 @@ class _FakeVisibilityFilter_1 extends _i1.SmartFake
         );
 }
 
-class _FakeAppState_2 extends _i1.SmartFake implements _i4.AppState {
-  _FakeAppState_2(
+class _FakeGoogleSignIn_2 extends _i1.SmartFake implements _i4.GoogleSignIn {
+  _FakeGoogleSignIn_2(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -55,9 +56,8 @@ class _FakeAppState_2 extends _i1.SmartFake implements _i4.AppState {
         );
 }
 
-class _FakeAppStateBuilder_3 extends _i1.SmartFake
-    implements _i4.AppStateBuilder {
-  _FakeAppStateBuilder_3(
+class _FakeAppState_3 extends _i1.SmartFake implements _i5.AppState {
+  _FakeAppState_3(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -66,8 +66,9 @@ class _FakeAppStateBuilder_3 extends _i1.SmartFake
         );
 }
 
-class _FakeClient_4 extends _i1.SmartFake implements _i5.Client {
-  _FakeClient_4(
+class _FakeAppStateBuilder_4 extends _i1.SmartFake
+    implements _i5.AppStateBuilder {
+  _FakeAppStateBuilder_4(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -76,8 +77,8 @@ class _FakeClient_4 extends _i1.SmartFake implements _i5.Client {
         );
 }
 
-class _FakeUri_5 extends _i1.SmartFake implements Uri {
-  _FakeUri_5(
+class _FakeClient_5 extends _i1.SmartFake implements _i6.Client {
+  _FakeClient_5(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -86,8 +87,8 @@ class _FakeUri_5 extends _i1.SmartFake implements Uri {
         );
 }
 
-class _FakeDataPayload_6 extends _i1.SmartFake implements _i6.DataPayload {
-  _FakeDataPayload_6(
+class _FakeUri_6 extends _i1.SmartFake implements Uri {
+  _FakeUri_6(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -96,8 +97,18 @@ class _FakeDataPayload_6 extends _i1.SmartFake implements _i6.DataPayload {
         );
 }
 
-class _FakeTaskItem_7 extends _i1.SmartFake implements _i3.TaskItem {
-  _FakeTaskItem_7(
+class _FakeDataPayload_7 extends _i1.SmartFake implements _i7.DataPayload {
+  _FakeDataPayload_7(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeTaskItem_8 extends _i1.SmartFake implements _i3.TaskItem {
+  _FakeTaskItem_8(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -109,7 +120,7 @@ class _FakeTaskItem_7 extends _i1.SmartFake implements _i3.TaskItem {
 /// A class which mocks [AppState].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockAppState extends _i1.Mock implements _i4.AppState {
+class MockAppState extends _i1.Mock implements _i5.AppState {
   @override
   bool get isLoading => (super.noSuchMethod(
         Invocation.getter(#isLoading),
@@ -190,6 +201,19 @@ class MockAppState extends _i1.Mock implements _i4.AppState {
       ) as _i3.VisibilityFilter);
 
   @override
+  _i4.GoogleSignIn get googleSignIn => (super.noSuchMethod(
+        Invocation.getter(#googleSignIn),
+        returnValue: _FakeGoogleSignIn_2(
+          this,
+          Invocation.getter(#googleSignIn),
+        ),
+        returnValueForMissingStub: _FakeGoogleSignIn_2(
+          this,
+          Invocation.getter(#googleSignIn),
+        ),
+      ) as _i4.GoogleSignIn);
+
+  @override
   bool get tokenRetrieved => (super.noSuchMethod(
         Invocation.getter(#tokenRetrieved),
         returnValue: false,
@@ -197,80 +221,80 @@ class MockAppState extends _i1.Mock implements _i4.AppState {
       ) as bool);
 
   @override
-  _i7.Future<String?> getIdToken() => (super.noSuchMethod(
+  _i8.Future<String?> getIdToken() => (super.noSuchMethod(
         Invocation.method(
           #getIdToken,
           [],
         ),
-        returnValue: _i7.Future<String?>.value(),
-        returnValueForMissingStub: _i7.Future<String?>.value(),
-      ) as _i7.Future<String?>);
+        returnValue: _i8.Future<String?>.value(),
+        returnValueForMissingStub: _i8.Future<String?>.value(),
+      ) as _i8.Future<String?>);
 
   @override
-  _i4.AppState rebuild(dynamic Function(_i4.AppStateBuilder)? updates) =>
+  _i5.AppState rebuild(dynamic Function(_i5.AppStateBuilder)? updates) =>
       (super.noSuchMethod(
         Invocation.method(
           #rebuild,
           [updates],
         ),
-        returnValue: _FakeAppState_2(
+        returnValue: _FakeAppState_3(
           this,
           Invocation.method(
             #rebuild,
             [updates],
           ),
         ),
-        returnValueForMissingStub: _FakeAppState_2(
+        returnValueForMissingStub: _FakeAppState_3(
           this,
           Invocation.method(
             #rebuild,
             [updates],
           ),
         ),
-      ) as _i4.AppState);
+      ) as _i5.AppState);
 
   @override
-  _i4.AppStateBuilder toBuilder() => (super.noSuchMethod(
+  _i5.AppStateBuilder toBuilder() => (super.noSuchMethod(
         Invocation.method(
           #toBuilder,
           [],
         ),
-        returnValue: _FakeAppStateBuilder_3(
+        returnValue: _FakeAppStateBuilder_4(
           this,
           Invocation.method(
             #toBuilder,
             [],
           ),
         ),
-        returnValueForMissingStub: _FakeAppStateBuilder_3(
+        returnValueForMissingStub: _FakeAppStateBuilder_4(
           this,
           Invocation.method(
             #toBuilder,
             [],
           ),
         ),
-      ) as _i4.AppStateBuilder);
+      ) as _i5.AppStateBuilder);
 }
 
 /// A class which mocks [TaskRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockTaskRepository extends _i1.Mock implements _i8.TaskRepository {
+class MockTaskRepository extends _i1.Mock implements _i9.TaskRepository {
   @override
-  _i5.Client get client => (super.noSuchMethod(
+  _i6.Client get client => (super.noSuchMethod(
         Invocation.getter(#client),
-        returnValue: _FakeClient_4(
+        returnValue: _FakeClient_5(
           this,
           Invocation.getter(#client),
         ),
-        returnValueForMissingStub: _FakeClient_4(
+        returnValueForMissingStub: _FakeClient_5(
           this,
           Invocation.getter(#client),
         ),
-      ) as _i5.Client);
+      ) as _i6.Client);
 
   @override
-  set client(_i5.Client? _client) => super.noSuchMethod(
+  set client(_i6.Client? _client) => super.noSuchMethod(
         Invocation.setter(
           #client,
           _client,
@@ -291,7 +315,7 @@ class MockTaskRepository extends _i1.Mock implements _i8.TaskRepository {
             queryParameters,
           ],
         ),
-        returnValue: _FakeUri_5(
+        returnValue: _FakeUri_6(
           this,
           Invocation.method(
             #getUriWithParameters,
@@ -301,7 +325,7 @@ class MockTaskRepository extends _i1.Mock implements _i8.TaskRepository {
             ],
           ),
         ),
-        returnValueForMissingStub: _FakeUri_5(
+        returnValueForMissingStub: _FakeUri_6(
           this,
           Invocation.method(
             #getUriWithParameters,
@@ -319,14 +343,14 @@ class MockTaskRepository extends _i1.Mock implements _i8.TaskRepository {
           #getUri,
           [path],
         ),
-        returnValue: _FakeUri_5(
+        returnValue: _FakeUri_6(
           this,
           Invocation.method(
             #getUri,
             [path],
           ),
         ),
-        returnValueForMissingStub: _FakeUri_5(
+        returnValueForMissingStub: _FakeUri_6(
           this,
           Invocation.method(
             #getUri,
@@ -336,12 +360,12 @@ class MockTaskRepository extends _i1.Mock implements _i8.TaskRepository {
       ) as Uri);
 
   @override
-  _i7.Future<_i6.DataPayload> loadTasksRedux() => (super.noSuchMethod(
+  _i8.Future<_i7.DataPayload> loadTasksRedux() => (super.noSuchMethod(
         Invocation.method(
           #loadTasksRedux,
           [],
         ),
-        returnValue: _i7.Future<_i6.DataPayload>.value(_FakeDataPayload_6(
+        returnValue: _i8.Future<_i7.DataPayload>.value(_FakeDataPayload_7(
           this,
           Invocation.method(
             #loadTasksRedux,
@@ -349,23 +373,23 @@ class MockTaskRepository extends _i1.Mock implements _i8.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i7.Future<_i6.DataPayload>.value(_FakeDataPayload_6(
+            _i8.Future<_i7.DataPayload>.value(_FakeDataPayload_7(
           this,
           Invocation.method(
             #loadTasksRedux,
             [],
           ),
         )),
-      ) as _i7.Future<_i6.DataPayload>);
+      ) as _i8.Future<_i7.DataPayload>);
 
   @override
-  _i7.Future<_i3.TaskItem> addTaskRedux(_i3.TaskItem? taskItem) =>
+  _i8.Future<_i3.TaskItem> addTaskRedux(_i3.TaskItem? taskItem) =>
       (super.noSuchMethod(
         Invocation.method(
           #addTaskRedux,
           [taskItem],
         ),
-        returnValue: _i7.Future<_i3.TaskItem>.value(_FakeTaskItem_7(
+        returnValue: _i8.Future<_i3.TaskItem>.value(_FakeTaskItem_8(
           this,
           Invocation.method(
             #addTaskRedux,
@@ -373,12 +397,12 @@ class MockTaskRepository extends _i1.Mock implements _i8.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i7.Future<_i3.TaskItem>.value(_FakeTaskItem_7(
+            _i8.Future<_i3.TaskItem>.value(_FakeTaskItem_8(
           this,
           Invocation.method(
             #addTaskRedux,
             [taskItem],
           ),
         )),
-      ) as _i7.Future<_i3.TaskItem>);
+      ) as _i8.Future<_i3.TaskItem>);
 }

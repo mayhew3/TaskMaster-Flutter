@@ -1,6 +1,7 @@
 import 'package:built_value/built_value.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../models/models.dart';
@@ -17,6 +18,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   VisibilityFilter get taskListFilter;
 
   // auth
+  GoogleSignIn get googleSignIn;
   UserCredential? get firebaseUser;
   GoogleSignInAccount? get currentUser;
   bool get tokenRetrieved;
@@ -37,5 +39,11 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
     ..sprintListFilter = VisibilityFilter.init(showScheduled: true, showCompleted: true, showActiveSprint: true).toBuilder()
     ..taskListFilter = VisibilityFilter.init().toBuilder()
     ..tokenRetrieved = false
+    ..googleSignIn = GoogleSignIn(
+        scopes: [
+          'email',
+        ]
+    )
   );
+
 }
