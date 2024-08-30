@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:taskmaster/redux/containers/filtered_task_items.dart';
+import 'package:taskmaster/redux/presentation/task_main_menu.dart';
 import '../../models/models.dart';
 
 import '../../keys.dart';
@@ -38,6 +39,7 @@ class HomeScreenState extends State<HomeScreen> {
           ),
           body: activeTab == AppTab.tasks ? FilteredTaskItems() : FilteredTaskItems(),
           bottomNavigationBar: TabSelector(),
+          drawer: TaskMainMenu(),
         );
       },
     );

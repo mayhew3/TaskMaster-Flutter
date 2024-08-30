@@ -34,7 +34,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
         appReducer,
         initialState: AppState.init(loading: true),
         middleware: createStoreTaskItemsMiddleware(TaskRepository(client: http.Client()))
-          ..addAll(createAuthenticationMiddleware(_navigatorKey))
+          ..addAll(createAuthenticationMiddleware(_navigatorKey, this.context))
     );
     maybeKickOffSignIn();
   }

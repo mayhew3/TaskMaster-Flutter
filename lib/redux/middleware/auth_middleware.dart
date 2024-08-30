@@ -5,14 +5,18 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:redux/redux.dart';
+import 'package:taskmaster/redux/presentation/sign_in.dart';
 import 'package:taskmaster/routes.dart';
 
 import '../actions/auth_actions.dart';
 import '../app_state.dart';
 
-List<Middleware<AppState>> createAuthenticationMiddleware(GlobalKey<NavigatorState> navigatorKey,) {
+List<Middleware<AppState>> createAuthenticationMiddleware(
+    GlobalKey<NavigatorState> navigatorKey,
+    BuildContext context,
+    ) {
   return [
-    TypedMiddleware<AppState, TryToSilentlySignIn>(_tryToSilentlySignIn(navigatorKey)),
+    TypedMiddleware<AppState, TryToSilentlySignIn>(_tryToSilentlySignIn(navigatorKey, context)),
     TypedMiddleware<AppState, LogIn>(_manualLogin(navigatorKey)),
     TypedMiddleware<AppState, LogOutAction>(_manualLogout(navigatorKey)),
   ];
@@ -33,6 +37,7 @@ void Function(
   };
 }
 
+// todo: add sign out / sign in to UI
 void Function(
     Store<AppState> store,
     dynamic action,
@@ -52,20 +57,20 @@ void Function(
     Store<AppState> store,
     dynamic action,
     NextDispatcher next,
-    ) _tryToSilentlySignIn(GlobalKey<NavigatorState> navigatorKey,) {
+    ) _tryToSilentlySignIn(GlobalKey<NavigatorState> navigatorKey, BuildContext context,) {
   return (store, action, next) async {
     next(action);
     await Firebase.initializeApp();
     store.state.googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) async {
       if (account == null) {
         store.dispatch(OnLogoutSuccess());
-        await navigatorKey.currentState?.pushReplacementNamed(TaskMasterRoutes.login);
+        await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.login);
       } else {
         var authentication = await account.authentication;
 
         if (authentication.idToken == null) {
           store.dispatch(OnLoginFail("No idToken returned."));
-          await navigatorKey.currentState?.pushReplacementNamed(TaskMasterRoutes.login);
+          await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.login);
         }
 
         final AuthCredential credential = GoogleAuthProvider.credential(
@@ -76,10 +81,16 @@ void Function(
         var firebaseUser = await FirebaseAuth.instance.signInWithCredential(credential);
         String? idToken = await firebaseUser.user!.getIdToken();
         store.dispatch(OnAuthenticated(account, firebaseUser, idToken));
-        await navigatorKey.currentState?.pushReplacementNamed(TaskMasterRoutes.home);
+        await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.home);
         // action.completer.complete(); // enable if needed later
       }
     });
-    store.state.googleSignIn.signInSilently();
+    var account = await store.state.googleSignIn.signInSilently();
+    if (account == null) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const SignInScreen())
+      );
+    }
   };
 }

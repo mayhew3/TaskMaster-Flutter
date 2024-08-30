@@ -8,6 +8,7 @@ import '../app_state.dart';
 final authReducers = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, OnAuthenticated>(_onAuthenticated),
   TypedReducer<AppState, OnLogoutSuccess>(_onLogout),
+  TypedReducer<AppState, OnLogoutFail>(_onLogoutFail),
 ];
 
 AppState _onAuthenticated(AppState state, OnAuthenticated action) {
@@ -25,4 +26,9 @@ AppState _onLogout(AppState state, OnLogoutSuccess action) {
       ..tokenRetrieved = false
       ..googleSignIn?.disconnect()
   });
+}
+
+AppState _onLogoutFail(AppState state, OnLogoutFail action) {
+  print('Failed to disconnect: ' + action.error);
+  return state;
 }
