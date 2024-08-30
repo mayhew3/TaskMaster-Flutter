@@ -26,6 +26,7 @@ void Function(
     NextDispatcher next,
     ) _manualLogin(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {
+    print("_manualLogin!");
     next(action);
     try {
       await store.state.googleSignIn.signIn();
@@ -41,6 +42,7 @@ void Function(
     NextDispatcher next,
     ) _manualLogout(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {
+    print("_manualLogout!");
     next(action);
     try {
       await store.state.googleSignIn.disconnect();
@@ -58,11 +60,15 @@ void Function(
   return (store, action, next) async {
     next(action);
     await Firebase.initializeApp();
+    print("_tryToSilentlySignIn called.");
     store.state.googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) async {
+      print("onCurrentUserChanged.");
       if (account == null) {
+        print("onCurrentUserChanged: account null.");
         store.dispatch(OnLogoutSuccess());
         await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.login);
       } else {
+        print("onCurrentUserChanged: account exists!");
         var authentication = await account.authentication;
 
         if (authentication.idToken == null) {

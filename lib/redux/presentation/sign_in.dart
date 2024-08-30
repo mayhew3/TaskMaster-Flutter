@@ -22,7 +22,9 @@ class SignInScreen extends StatelessWidget {
             const Text("You are not currently signed in."),
             ElevatedButton(
               child: const Text('SIGN IN'),
-              onPressed: StoreProvider.of<AppState>(context).dispatch(LogIn()),
+              onPressed: () {
+                StoreProvider.of<AppState>(context).dispatch(LogIn());
+              },
             ),
           ],
         ),

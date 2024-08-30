@@ -104,6 +104,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
                 )
             )
         ),
+        initialRoute: TaskMasterRoutes.login,
         routes: {
           TaskMasterRoutes.login: (context) {
             return SignInScreen();
@@ -111,7 +112,12 @@ class TaskMasterAppState extends State<TaskMasterApp> {
           TaskMasterRoutes.home: (context) {
             return HomeScreen(
               onInit: () {
-                StoreProvider.of<AppState>(context).dispatch(LoadTaskItemsAction());
+                print("Home Screen: onInit()");
+                var store = StoreProvider.of<AppState>(context);
+                if (store.state.isAuthenticated()) {
+                  print("Home Screen: onInit(), authenticated");
+                  store.dispatch(LoadTaskItemsAction());
+                }
               },
             );
           },
