@@ -6,6 +6,9 @@ import '../app_state.dart';
 
 class SignInScreen extends StatelessWidget {
 
+  const SignInScreen({
+    Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
