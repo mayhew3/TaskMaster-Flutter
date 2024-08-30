@@ -5,7 +5,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:redux/redux.dart';
-import 'package:taskmaster/redux/presentation/sign_in.dart';
 import 'package:taskmaster/routes.dart';
 
 import '../actions/auth_actions.dart';
@@ -13,10 +12,9 @@ import '../app_state.dart';
 
 List<Middleware<AppState>> createAuthenticationMiddleware(
     GlobalKey<NavigatorState> navigatorKey,
-    BuildContext context,
     ) {
   return [
-    TypedMiddleware<AppState, TryToSilentlySignIn>(_tryToSilentlySignIn(navigatorKey, context)),
+    TypedMiddleware<AppState, TryToSilentlySignIn>(_tryToSilentlySignIn(navigatorKey)),
     TypedMiddleware<AppState, LogIn>(_manualLogin(navigatorKey)),
     TypedMiddleware<AppState, LogOutAction>(_manualLogout(navigatorKey)),
   ];
@@ -37,7 +35,6 @@ void Function(
   };
 }
 
-// todo: add sign out / sign in to UI
 void Function(
     Store<AppState> store,
     dynamic action,
@@ -57,7 +54,7 @@ void Function(
     Store<AppState> store,
     dynamic action,
     NextDispatcher next,
-    ) _tryToSilentlySignIn(GlobalKey<NavigatorState> navigatorKey, BuildContext context,) {
+    ) _tryToSilentlySignIn(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {
     next(action);
     await Firebase.initializeApp();
@@ -87,10 +84,7 @@ void Function(
     });
     var account = await store.state.googleSignIn.signInSilently();
     if (account == null) {
-      Navigator.of(context).popUntil((route) => route.isFirst);
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const SignInScreen())
-      );
+      await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.login);
     }
   };
 }

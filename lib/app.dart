@@ -34,7 +34,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
         appReducer,
         initialState: AppState.init(loading: true),
         middleware: createStoreTaskItemsMiddleware(TaskRepository(client: http.Client()))
-          ..addAll(createAuthenticationMiddleware(_navigatorKey, this.context))
+          ..addAll(createAuthenticationMiddleware(_navigatorKey))
     );
     maybeKickOffSignIn();
   }
@@ -84,6 +84,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       store: store,
       child: MaterialApp(
         title: "TaskMaster 3000",
+        navigatorKey: _navigatorKey,
         theme: theme.copyWith(
             colorScheme: theme.colorScheme.copyWith(
               primary: TaskColors.backgroundColor,
@@ -104,6 +105,9 @@ class TaskMasterAppState extends State<TaskMasterApp> {
             )
         ),
         routes: {
+          TaskMasterRoutes.login: (context) {
+            return SignInScreen();
+          },
           TaskMasterRoutes.home: (context) {
             return HomeScreen(
               onInit: () {
@@ -111,9 +115,6 @@ class TaskMasterAppState extends State<TaskMasterApp> {
               },
             );
           },
-          TaskMasterRoutes.login: (context) {
-            return SignInScreen();
-          }
         },
       ),
     );
