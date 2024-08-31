@@ -231,6 +231,16 @@ class MockAppState extends _i1.Mock implements _i5.AppState {
       ) as _i8.Future<String?>);
 
   @override
+  bool isAuthenticated() => (super.noSuchMethod(
+        Invocation.method(
+          #isAuthenticated,
+          [],
+        ),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
   _i5.AppState rebuild(dynamic Function(_i5.AppStateBuilder)? updates) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -360,16 +370,17 @@ class MockTaskRepository extends _i1.Mock implements _i9.TaskRepository {
       ) as Uri);
 
   @override
-  _i8.Future<_i7.DataPayload> loadTasksRedux() => (super.noSuchMethod(
+  _i8.Future<_i7.DataPayload> loadTasksRedux(String? email) =>
+      (super.noSuchMethod(
         Invocation.method(
           #loadTasksRedux,
-          [],
+          [email],
         ),
         returnValue: _i8.Future<_i7.DataPayload>.value(_FakeDataPayload_7(
           this,
           Invocation.method(
             #loadTasksRedux,
-            [],
+            [email],
           ),
         )),
         returnValueForMissingStub:
@@ -377,7 +388,7 @@ class MockTaskRepository extends _i1.Mock implements _i9.TaskRepository {
           this,
           Invocation.method(
             #loadTasksRedux,
-            [],
+            [email],
           ),
         )),
       ) as _i8.Future<_i7.DataPayload>);

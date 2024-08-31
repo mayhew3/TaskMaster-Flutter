@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/redux/presentation/delayed_checkbox.dart';
+
+import 'models/task_date_holder.dart';
 
 
 typedef UserUpdater(GoogleSignInAccount? account);
@@ -16,3 +19,7 @@ typedef void MyStateSetter(StateCallback stateCallback);
 typedef BottomNavigationBar BottomNavigationBarGetter();
 
 typedef List<TaskItem> TaskListGetter();
+
+typedef Future<CheckState> CheckCycleWaiter(CheckState startingState);
+
+typedef DateTime? DateFieldGetter(DateHolder dateHolder);

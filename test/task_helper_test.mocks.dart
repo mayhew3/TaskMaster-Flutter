@@ -146,16 +146,17 @@ class MockTaskRepository extends _i1.Mock implements _i5.TaskRepository {
       ) as Uri);
 
   @override
-  _i6.Future<_i3.DataPayload> loadTasksRedux() => (super.noSuchMethod(
+  _i6.Future<_i3.DataPayload> loadTasksRedux(String? email) =>
+      (super.noSuchMethod(
         Invocation.method(
           #loadTasksRedux,
-          [],
+          [email],
         ),
         returnValue: _i6.Future<_i3.DataPayload>.value(_FakeDataPayload_2(
           this,
           Invocation.method(
             #loadTasksRedux,
-            [],
+            [email],
           ),
         )),
         returnValueForMissingStub:
@@ -163,7 +164,7 @@ class MockTaskRepository extends _i1.Mock implements _i5.TaskRepository {
           this,
           Invocation.method(
             #loadTasksRedux,
-            [],
+            [email],
           ),
         )),
       ) as _i6.Future<_i3.DataPayload>);

@@ -1,13 +1,14 @@
 
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+import 'package:taskmaster/models/task_date_holder.dart';
 
 /// This allows the `TaskItem` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
 /// the star denotes the source file name.
 part 'task_item.g.dart';
 
-abstract class TaskItem implements Built<TaskItem, TaskItemBuilder> {
+abstract class TaskItem implements Built<TaskItem, TaskItemBuilder>, DateHolder {
   static Serializer<TaskItem> get serializer => _$taskItemSerializer;
 
   int get id;
@@ -31,6 +32,8 @@ abstract class TaskItem implements Built<TaskItem, TaskItemBuilder> {
   DateTime? get urgentDate;
   DateTime? get completionDate;
 
+  bool get pendingCompletion;
+
   int? get recurNumber;
   String? get recurUnit;
   bool? get recurWait;
@@ -42,4 +45,8 @@ abstract class TaskItem implements Built<TaskItem, TaskItemBuilder> {
 
   TaskItem._();
   factory TaskItem([Function(TaskItemBuilder) updates]) = _$TaskItem;
+
+  bool isCompleted() {
+    return this.completionDate != null;
+  }
 }

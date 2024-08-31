@@ -25,6 +25,9 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
           specifiedType: const FullType(int)),
       'name',
       serializers.serialize(object.name, specifiedType: const FullType(String)),
+      'pendingCompletion',
+      serializers.serialize(object.pendingCompletion,
+          specifiedType: const FullType(bool)),
       'offCycle',
       serializers.serialize(object.offCycle,
           specifiedType: const FullType(bool)),
@@ -216,6 +219,10 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
           result.completionDate = serializers.deserialize(value,
               specifiedType: const FullType(DateTime)) as DateTime?;
           break;
+        case 'pendingCompletion':
+          result.pendingCompletion = serializers.deserialize(value,
+              specifiedType: const FullType(bool))! as bool;
+          break;
         case 'recurNumber':
           result.recurNumber = serializers.deserialize(value,
               specifiedType: const FullType(int)) as int?;
@@ -279,6 +286,8 @@ class _$TaskItem extends TaskItem {
   @override
   final DateTime? completionDate;
   @override
+  final bool pendingCompletion;
+  @override
   final int? recurNumber;
   @override
   final String? recurUnit;
@@ -310,6 +319,7 @@ class _$TaskItem extends TaskItem {
       this.dueDate,
       this.urgentDate,
       this.completionDate,
+      required this.pendingCompletion,
       this.recurNumber,
       this.recurUnit,
       this.recurWait,
@@ -320,6 +330,8 @@ class _$TaskItem extends TaskItem {
     BuiltValueNullFieldError.checkNotNull(id, r'TaskItem', 'id');
     BuiltValueNullFieldError.checkNotNull(personId, r'TaskItem', 'personId');
     BuiltValueNullFieldError.checkNotNull(name, r'TaskItem', 'name');
+    BuiltValueNullFieldError.checkNotNull(
+        pendingCompletion, r'TaskItem', 'pendingCompletion');
     BuiltValueNullFieldError.checkNotNull(offCycle, r'TaskItem', 'offCycle');
   }
 
@@ -349,6 +361,7 @@ class _$TaskItem extends TaskItem {
         dueDate == other.dueDate &&
         urgentDate == other.urgentDate &&
         completionDate == other.completionDate &&
+        pendingCompletion == other.pendingCompletion &&
         recurNumber == other.recurNumber &&
         recurUnit == other.recurUnit &&
         recurWait == other.recurWait &&
@@ -375,6 +388,7 @@ class _$TaskItem extends TaskItem {
     _$hash = $jc(_$hash, dueDate.hashCode);
     _$hash = $jc(_$hash, urgentDate.hashCode);
     _$hash = $jc(_$hash, completionDate.hashCode);
+    _$hash = $jc(_$hash, pendingCompletion.hashCode);
     _$hash = $jc(_$hash, recurNumber.hashCode);
     _$hash = $jc(_$hash, recurUnit.hashCode);
     _$hash = $jc(_$hash, recurWait.hashCode);
@@ -403,6 +417,7 @@ class _$TaskItem extends TaskItem {
           ..add('dueDate', dueDate)
           ..add('urgentDate', urgentDate)
           ..add('completionDate', completionDate)
+          ..add('pendingCompletion', pendingCompletion)
           ..add('recurNumber', recurNumber)
           ..add('recurUnit', recurUnit)
           ..add('recurWait', recurWait)
@@ -477,6 +492,11 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   set completionDate(DateTime? completionDate) =>
       _$this._completionDate = completionDate;
 
+  bool? _pendingCompletion;
+  bool? get pendingCompletion => _$this._pendingCompletion;
+  set pendingCompletion(bool? pendingCompletion) =>
+      _$this._pendingCompletion = pendingCompletion;
+
   int? _recurNumber;
   int? get recurNumber => _$this._recurNumber;
   set recurNumber(int? recurNumber) => _$this._recurNumber = recurNumber;
@@ -522,6 +542,7 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
       _dueDate = $v.dueDate;
       _urgentDate = $v.urgentDate;
       _completionDate = $v.completionDate;
+      _pendingCompletion = $v.pendingCompletion;
       _recurNumber = $v.recurNumber;
       _recurUnit = $v.recurUnit;
       _recurWait = $v.recurWait;
@@ -567,6 +588,8 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
             dueDate: dueDate,
             urgentDate: urgentDate,
             completionDate: completionDate,
+            pendingCompletion: BuiltValueNullFieldError.checkNotNull(
+                pendingCompletion, r'TaskItem', 'pendingCompletion'),
             recurNumber: recurNumber,
             recurUnit: recurUnit,
             recurWait: recurWait,
