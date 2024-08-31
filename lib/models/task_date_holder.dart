@@ -54,6 +54,10 @@ mixin DateHolder {
     return hasPassed(targetDate);
   }
 
+  bool isCompleted() {
+    return this.completionDate != null;
+  }
+
   DateTime? getLastDateBefore(TaskDateType taskDateType) {
     var allDates = <DateTime?>[startDate, targetDate, urgentDate, dueDate];
     Iterable<DateTime> pastDates = allDates.whereType<DateTime>().where((dateTime) => hasPassed(dateTime));

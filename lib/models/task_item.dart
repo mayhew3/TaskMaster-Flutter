@@ -32,9 +32,6 @@ abstract class TaskItem with DateHolder implements Built<TaskItem, TaskItemBuild
   DateTime? get urgentDate;
   DateTime? get completionDate;
 
-  @BuiltValueField(serialize: false)
-  bool get pendingCompletion;
-
   int? get recurNumber;
   String? get recurUnit;
   bool? get recurWait;
@@ -44,6 +41,10 @@ abstract class TaskItem with DateHolder implements Built<TaskItem, TaskItemBuild
 
   bool get offCycle;
 
+  // internal fields
+  @BuiltValueField(serialize: false)
+  bool get pendingCompletion;
+
   TaskItem._();
   factory TaskItem([Function(TaskItemBuilder) updates]) = _$TaskItem;
 
@@ -52,7 +53,4 @@ abstract class TaskItem with DateHolder implements Built<TaskItem, TaskItemBuild
       b
         ..pendingCompletion = false;
 
-  bool isCompleted() {
-    return this.completionDate != null;
-  }
 }
