@@ -2,7 +2,7 @@ import 'package:taskmaster/models/task_date_type.dart';
 
 import '../date_util.dart';
 
-abstract class DateHolder {
+mixin DateHolder {
 
   DateTime? get startDate;
   DateTime? get targetDate;

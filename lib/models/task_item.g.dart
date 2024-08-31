@@ -25,9 +25,6 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
           specifiedType: const FullType(int)),
       'name',
       serializers.serialize(object.name, specifiedType: const FullType(String)),
-      'pendingCompletion',
-      serializers.serialize(object.pendingCompletion,
-          specifiedType: const FullType(bool)),
       'offCycle',
       serializers.serialize(object.offCycle,
           specifiedType: const FullType(bool)),
@@ -218,10 +215,6 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
         case 'completionDate':
           result.completionDate = serializers.deserialize(value,
               specifiedType: const FullType(DateTime)) as DateTime?;
-          break;
-        case 'pendingCompletion':
-          result.pendingCompletion = serializers.deserialize(value,
-              specifiedType: const FullType(bool))! as bool;
           break;
         case 'recurNumber':
           result.recurNumber = serializers.deserialize(value,
@@ -522,7 +515,9 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   bool? get offCycle => _$this._offCycle;
   set offCycle(bool? offCycle) => _$this._offCycle = offCycle;
 
-  TaskItemBuilder();
+  TaskItemBuilder() {
+    TaskItem._setDefaults(this);
+  }
 
   TaskItemBuilder get _$this {
     final $v = _$v;

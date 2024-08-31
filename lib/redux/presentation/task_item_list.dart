@@ -1,7 +1,9 @@
 
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
-import 'package:taskmaster/redux/presentation/task_item_item.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:taskmaster/redux/app_state.dart';
+import 'package:taskmaster/redux/presentation/task_item_list_viewmodel.dart';
 
 import '../../keys.dart';
 import '../../models/models.dart';
@@ -9,42 +11,41 @@ import '../../models/task_colors.dart';
 import '../containers/app_loading.dart';
 import '../containers/task_item_details.dart';
 import 'editable_task_item.dart';
+import 'header_list_item.dart';
 import 'loading_indicator.dart';
 
 class TaskItemList extends StatelessWidget {
-  final BuiltList<TaskItem> taskItems;
-  final Function(TaskItem, bool) onCheckboxChanged;
-  final Function(TaskItem) onRemove;
-  final Function(TaskItem) onUndoRemove;
+  // final BuiltList<TaskItem> taskItems;
+  // final Function(TaskItem, bool) onCheckboxChanged;
+  // final Function(TaskItem) onRemove;
+  // final Function(TaskItem) onUndoRemove;
+  final String? subHeader;
+  final String? subSubHeader;
 
   TaskItemList({
     Key? key,
-    required this.taskItems,
-    required this.onCheckboxChanged,
-    required this.onRemove,
-    required this.onUndoRemove,
+    this.subHeader,
+    this.subSubHeader,
+    // required this.taskItems,
+    // required this.onCheckboxChanged,
+    // required this.onRemove,
+    // required this.onUndoRemove,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return AppLoading(builder: (context, loading) {
-      return loading
-          ? LoadingIndicator(key: TaskMasterKeys.tasksLoading)
-          : _buildListView();
-    });
-  }
-
-  ListView _buildListView() {
-    return ListView.builder(
-      key: TaskMasterKeys.taskList,
-      itemCount: taskItems.length,
-      itemBuilder: (BuildContext context, int index) {
-        final taskItem = taskItems[index];
-
-        return TaskItemItem(
-          taskItem: taskItem,
-        );
-      },
+    return StoreConnector<AppState, TaskItemListViewModel>(
+        builder: (context, viewModel) {
+          return Container(
+            padding: EdgeInsets.only(top: 7.0),
+            child: AppLoading(builder: (context, loading) {
+              return loading
+                  ? LoadingIndicator(key: TaskMasterKeys.tasksLoading)
+                  : _buildListView(context, viewModel);
+            }),
+          );
+        },
+        converter: TaskItemListViewModel.fromStore
     );
   }
 
@@ -102,6 +103,8 @@ class TaskItemList extends StatelessWidget {
     subList.forEach((task) => superList.remove(task));
     return subList;
   }
+
+/*
 
   Card _createSummaryWidget(Sprint sprint, BuildContext context) {
     var startDate = sprint.startDate;
@@ -179,6 +182,7 @@ class TaskItemList extends StatelessWidget {
       ),
     );
   }
+*/
 
   Card _createNoTasksFoundCard() {
     return Card(
@@ -219,23 +223,26 @@ class TaskItemList extends StatelessWidget {
     );
   }
 
-  List<TaskItem> getFilteredTasks(List<TaskItem> taskItems) {
-    var activeSprint = widget.appState.getActiveSprint();
-    List<TaskItem> filtered = taskItems.where((taskItem) {
-      bool passesScheduleFilter = showScheduled || !taskItem.isScheduled();
-      bool passesCompletedFilter = showCompleted || !(taskItem.isCompleted() && !recentlyCompleted.contains(taskItem));
-      bool passesActiveFilter = showActive || !(taskItem.sprints.contains(activeSprint));
-      return passesScheduleFilter && passesCompletedFilter && passesActiveFilter;
-    }).toList();
-    return filtered;
+  List<TaskItem> getFilteredTasks(BuiltList<TaskItem> taskItems) {
+    // var activeSprint = widget.appState.getActiveSprint();
+    // List<TaskItem> filtered = taskItems.where((taskItem) {
+    //   bool passesScheduleFilter = showScheduled || !taskItem.isScheduled();
+    //   bool passesCompletedFilter = showCompleted || !(taskItem.isCompleted() && !recentlyCompleted.contains(taskItem));
+    //   bool passesActiveFilter = showActive || !(taskItem.sprints.contains(activeSprint));
+    //   return passesScheduleFilter && passesCompletedFilter && passesActiveFilter;
+    // }).toList();
+
+    return taskItems.where((t) => !t.isCompleted() && !t.isScheduled()).toList();
   }
 
-  ListView _buildListView(BuildContext context) {
-    widget.appState.notificationScheduler.updateHomeScreenContext(context);
-    final List<TaskItem> allTasks = widget.taskListGetter();
+  ListView _buildListView(BuildContext context, TaskItemListViewModel viewModel) {
+    // widget.appState.notificationScheduler.updateHomeScreenContext(context);
+    final BuiltList<TaskItem> allTasks = viewModel.taskItems;
     final List<TaskItem> otherTasks = getFilteredTasks(allTasks);
 
-    final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted() && !recentlyCompleted.contains(taskItem));
+    final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted()
+        // && !recentlyCompleted.contains(taskItem)
+    );
     final List<TaskItem> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isPastDue());
     final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgent());
 
@@ -248,12 +255,14 @@ class TaskItemList extends StatelessWidget {
 
     List<StatelessWidget> tiles = [];
 
+/*
     if (widget.sprint == null) {
       var activeSprint = widget.appState.getActiveSprint();
       if (activeSprint != null) {
         tiles.add(_createSummaryWidget(activeSprint, context));
       }
     }
+*/
 
     if (dueTasks.isNotEmpty) {
       tiles.add(HeadingItem('Past Due'));
@@ -288,13 +297,15 @@ class TaskItemList extends StatelessWidget {
       completedTasks.forEach((task) => _addTaskTile(taskItem: task, context: context, tiles: tiles));
     }
 
-    if (!hasTiles) {
+    if (tiles.isEmpty) {
       tiles.add(_createNoTasksFoundCard());
     }
 
+/*
     if (widget.sprint != null) {
       tiles.add(_createAddMoreButton());
     }
+*/
 
     return ListView.builder(
         padding: const EdgeInsets.only(bottom: kFloatingActionButtonMargin + 54),
@@ -312,9 +323,9 @@ class TaskItemList extends StatelessWidget {
     );
   }
 
-  Widget getTaskListBody(BuildContext context) {
+  Widget getTaskListBody(BuildContext context, TaskItemListViewModel viewModel) {
     List<Widget> elements = [];
-    var subHeader = widget.subHeader;
+    var subHeader = this.subHeader;
     if (subHeader != null) {
       elements.add(
           Container(
@@ -326,7 +337,7 @@ class TaskItemList extends StatelessWidget {
           )
       );
     }
-    var subSubHeader = widget.subSubHeader;
+    var subSubHeader = this.subSubHeader;
     if (subSubHeader != null) {
       elements.add(
           Container(
@@ -338,21 +349,12 @@ class TaskItemList extends StatelessWidget {
           )
       );
     }
-    ListView listView = _buildListView(context);
+    ListView listView = _buildListView(context, viewModel);
     Widget expanded = Expanded(child: listView);
     elements.add(expanded);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: elements,
-    );
-  }
-
-  Widget getBody() {
-    return Builder(
-      builder: (context) => Container(
-          padding: EdgeInsets.only(top: 7.0),
-          child: widget.appState.isLoading ? getLoadingBody() : getTaskListBody(context)
-      ),
     );
   }
 

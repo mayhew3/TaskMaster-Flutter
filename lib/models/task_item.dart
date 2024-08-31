@@ -8,7 +8,7 @@ import 'package:taskmaster/models/task_date_holder.dart';
 /// the star denotes the source file name.
 part 'task_item.g.dart';
 
-abstract class TaskItem implements Built<TaskItem, TaskItemBuilder>, DateHolder {
+abstract class TaskItem with DateHolder implements Built<TaskItem, TaskItemBuilder> {
   static Serializer<TaskItem> get serializer => _$taskItemSerializer;
 
   int get id;
@@ -32,6 +32,7 @@ abstract class TaskItem implements Built<TaskItem, TaskItemBuilder>, DateHolder 
   DateTime? get urgentDate;
   DateTime? get completionDate;
 
+  @BuiltValueField(serialize: false)
   bool get pendingCompletion;
 
   int? get recurNumber;
@@ -45,6 +46,11 @@ abstract class TaskItem implements Built<TaskItem, TaskItemBuilder>, DateHolder 
 
   TaskItem._();
   factory TaskItem([Function(TaskItemBuilder) updates]) = _$TaskItem;
+
+  @BuiltValueHook(initializeBuilder: true)
+  static void _setDefaults(TaskItemBuilder b) =>
+      b
+        ..pendingCompletion = false;
 
   bool isCompleted() {
     return this.completionDate != null;
