@@ -3,6 +3,9 @@
 // in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:taskmaster/models/task_colors.dart';
+
+import '../../keys.dart';
 
 class LoadingIndicator extends StatelessWidget {
   LoadingIndicator({Key? key}) : super(key: key);
@@ -10,7 +13,16 @@ class LoadingIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: CircularProgressIndicator(),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            CircularProgressIndicator(
+              key: TaskMasterKeys.tasksLoading,
+              color: TaskColors.highlight,
+            ),
+            const Text("Loading tasks..."),
+          ],
+        )
     );
   }
 }

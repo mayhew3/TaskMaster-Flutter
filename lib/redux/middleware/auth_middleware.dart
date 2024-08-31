@@ -30,6 +30,7 @@ void Function(
     next(action);
     try {
       await store.state.googleSignIn.signIn();
+      await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.splash);
     } catch (error) {
       store.dispatch(OnLoginFail(error));
     }

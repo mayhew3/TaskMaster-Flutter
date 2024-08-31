@@ -4,6 +4,7 @@ class TaskMasterKeys {
   // Home Screens
   static final homeScreen = const Key('__homeScreen__');
   static const snackbar = Key('__snackbar__');
+  static final signingIn = const Key('__signingIn__');
 
   // Tasks
   static final taskList = const Key('__taskItemList__');
