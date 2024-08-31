@@ -11,10 +11,11 @@ List<Middleware<AppState>> createStoreTaskItemsMiddleware(TaskRepository reposit
   ];
 }
 
-
 Middleware<AppState> _createLoadTaskItems(TaskRepository repository) {
   return (Store<AppState> store, action, NextDispatcher next) {
-    repository.loadTasksRedux().then(
+    var email = store.state.currentUser!.email;
+    print("Fetching tasks for " + email);
+    repository.loadTasksRedux(email).then(
           (dataPayload) {
         store.dispatch(
           TaskItemsLoadedAction(

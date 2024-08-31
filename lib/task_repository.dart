@@ -39,10 +39,10 @@ class TaskRepository {
     return getUriWithParameters(path, null);
   }
 
-  Future<DataPayload> loadTasksRedux() async {
+  Future<DataPayload> loadTasksRedux(String email) async {
 
     var queryParameters = {
-      'email': "scorpy@gmail.com"
+      'email': email
     };
 
     var uri = getUriWithParameters('/api/tasks', queryParameters);
