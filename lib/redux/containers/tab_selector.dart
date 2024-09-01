@@ -29,11 +29,11 @@ class TabSelector extends StatelessWidget {
                 tab == AppTab.tasks ? Icons.list : Icons.show_chart,
                 key: tab == AppTab.tasks
                     ? TaskMasterKeys.taskItemTab
-                    : TaskMasterKeys.statsTab,
+                    : tab == AppTab.plan ? TaskMasterKeys.planTab : TaskMasterKeys.statsTab,
               ),
               label: tab == AppTab.stats
                   ? "Stats"
-                  : "Tasks",
+                  : tab == AppTab.plan ? "Plan" : "Tasks",
             );
           }).toList(),
         );

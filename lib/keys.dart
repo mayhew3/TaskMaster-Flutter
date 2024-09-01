@@ -31,6 +31,7 @@ class TaskMasterKeys {
 
   // Tabs
   static const tabs = Key('__tabs__');
+  static const planTab = Key('__planTab__');
   static const taskItemTab = Key('__taskItemTab__');
   static const statsTab = Key('__statsTab__');
 

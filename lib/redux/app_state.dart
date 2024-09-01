@@ -40,7 +40,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
     ..taskItems = ListBuilder()
     ..sprints = ListBuilder()
     ..taskRecurrences = ListBuilder()
-    ..activeTab = AppTab.plan
+    ..activeTab = AppTab.tasks
     ..sprintListFilter = VisibilityFilter.init(showScheduled: true, showCompleted: true, showActiveSprint: true).toBuilder()
     ..taskListFilter = VisibilityFilter.init().toBuilder()
     ..tokenRetrieved = false
