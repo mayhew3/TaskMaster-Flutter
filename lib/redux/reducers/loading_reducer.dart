@@ -7,6 +7,7 @@ final loadingReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, TaskItemsLoadedAction>(_setLoadSucceeded),
   TypedReducer<AppState, TaskItemsNotLoadedAction>(_setLoadFailed),
   TypedReducer<AppState, LogOutAction>(_setLogoutStarted),
+  TypedReducer<AppState, LoadTaskItemsAction>(_setLoadStarted),
 ];
 
 AppState _setLoadSucceeded(AppState state, action) {
@@ -20,6 +21,11 @@ AppState _setLoadFailed(AppState state, action) {
     ..isLoading = false);
 }
 AppState _setLogoutStarted(AppState state, LogOutAction action) {
+  return state.rebuild((s) => s
+    ..loadFailed = false
+    ..isLoading = true);
+}
+AppState _setLoadStarted(AppState state, LoadTaskItemsAction action) {
   return state.rebuild((s) => s
     ..loadFailed = false
     ..isLoading = true);
