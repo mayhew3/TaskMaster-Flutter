@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
 
 import '../../keys.dart';
 import '../../models/task_colors.dart';
-import '../actions/auth_actions.dart';
-import '../app_state.dart';
 
 class SplashScreen extends StatelessWidget {
+  final String message;
 
   const SplashScreen({
+    required this.message,
     Key? key}) : super(key: key);
 
   @override
@@ -25,7 +24,7 @@ class SplashScreen extends StatelessWidget {
                   key: TaskMasterKeys.signingIn,
                   color: TaskColors.highlight,
                 ),
-                const Text("Signing in..."),
+                Text(message),
               ],
             )
         )

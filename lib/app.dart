@@ -108,7 +108,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
         initialRoute: TaskMasterRoutes.splash,
         routes: {
           TaskMasterRoutes.splash: (context) {
-            return SplashScreen();
+            return SplashScreen(message: "Signing in...");
           },
           TaskMasterRoutes.login: (context) {
             return SignInScreen();
