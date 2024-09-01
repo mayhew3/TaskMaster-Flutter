@@ -1,5 +1,6 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:redux/redux.dart';
+import 'package:taskmaster/redux/actions/auth_actions.dart';
 
 import '../actions/actions.dart';
 import '../app_state.dart';
@@ -10,6 +11,7 @@ final taskItemsReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, UpdateTaskItemAction>(_updateTaskItem),
   TypedReducer<AppState, TaskItemsLoadedAction>(_setLoadedTaskItems),
   TypedReducer<AppState, TaskItemsNotLoadedAction>(_setNoTaskItems),
+  TypedReducer<AppState, LogOutAction>(_setNoTaskItems),
 ];
 
 AppState _addTaskItem(AppState state, AddTaskItemAction action) {
@@ -32,6 +34,6 @@ AppState _setLoadedTaskItems(AppState state, TaskItemsLoadedAction action) {
   return state.rebuild((s) => s..taskItems = ListBuilder(action.taskItems));
 }
 
-AppState _setNoTaskItems(AppState state, TaskItemsNotLoadedAction action) {
+AppState _setNoTaskItems(AppState state, dynamic action) {
   return state.rebuild((s) => s..taskItems = ListBuilder());
 }
