@@ -5,8 +5,10 @@ import '../actions/auth_actions.dart';
 import '../app_state.dart';
 
 class SignInScreen extends StatelessWidget {
+  final String? errorMessage;
 
   const SignInScreen({
+    this.errorMessage,
     Key? key}) : super(key: key);
 
   @override
@@ -19,7 +21,7 @@ class SignInScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
-            const Text("You are not currently signed in."),
+            Text(errorMessage == null ? "You are not currently signed in." : errorMessage!),
             ElevatedButton(
               child: const Text('SIGN IN'),
               onPressed: () {

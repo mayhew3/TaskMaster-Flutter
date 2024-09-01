@@ -8,7 +8,6 @@ import 'package:taskmaster/redux/presentation/task_item_list_viewmodel.dart';
 import '../../keys.dart';
 import '../../models/models.dart';
 import '../../models/task_colors.dart';
-import '../containers/app_loading.dart';
 import '../containers/task_item_details.dart';
 import 'editable_task_item.dart';
 import 'header_list_item.dart';
@@ -38,11 +37,31 @@ class TaskItemList extends StatelessWidget {
         builder: (context, viewModel) {
           return Container(
             padding: EdgeInsets.only(top: 7.0),
-            child: AppLoading(builder: (context, loading) {
-              return loading
-                  ? LoadingIndicator(key: TaskMasterKeys.tasksLoading)
-                  : _buildListView(context, viewModel);
-            }),
+            child: Builder(
+              builder: (context) {
+                if (viewModel.isLoading) {
+                  return LoadingIndicator(key: TaskMasterKeys.tasksLoading);
+                } else if (viewModel.loadFailed) {
+                  return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: <Widget>[
+                          const Text(
+                              "Could not load tasks from server. Please try again."),
+                          ElevatedButton(
+                            child: const Text('RETRY'),
+                            onPressed: () {
+                              // StoreProvider.of<AppState>(context).dispatch(LogIn());
+                            },
+                          ),
+                        ],
+                      )
+                  );
+                } else {
+                  return _buildListView(context, viewModel);
+                }
+              },
+            ),
           );
         },
         converter: TaskItemListViewModel.fromStore

@@ -10,6 +10,8 @@ part 'task_item_list_viewmodel.g.dart';
 
 abstract class TaskItemListViewModel implements Built<TaskItemListViewModel, TaskItemListViewModelBuilder> {
   BuiltList<TaskItem> get taskItems;
+  bool get isLoading;
+  bool get loadFailed;
   // Function(TaskItem, bool) onCheckboxChanged;
   // Function(TaskItem) onRemove;
   // Function(TaskItem) onUndoRemove;
@@ -21,6 +23,8 @@ abstract class TaskItemListViewModel implements Built<TaskItemListViewModel, Tas
   static TaskItemListViewModel fromStore(Store<AppState> store) {
     return TaskItemListViewModel((c) => c
       ..taskItems = ListBuilder(store.state.taskItems)
+      ..isLoading = store.state.isLoading
+      ..loadFailed = store.state.loadFailed
     );
   }
 }

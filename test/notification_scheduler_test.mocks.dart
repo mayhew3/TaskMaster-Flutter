@@ -129,6 +129,13 @@ class MockAppState extends _i1.Mock implements _i5.AppState {
       ) as bool);
 
   @override
+  bool get loadFailed => (super.noSuchMethod(
+        Invocation.getter(#loadFailed),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
   _i2.BuiltList<_i3.TaskItem> get taskItems => (super.noSuchMethod(
         Invocation.getter(#taskItems),
         returnValue: _FakeBuiltList_0<_i3.TaskItem>(

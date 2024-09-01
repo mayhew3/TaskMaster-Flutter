@@ -4,6 +4,7 @@ import 'package:taskmaster/redux/app_state.dart';
 import '../../models/models.dart';
 
 bool isLoadingSelector(AppState state) => state.isLoading;
+bool loadFailedSelector(AppState state) => state.loadFailed;
 BuiltList<TaskItem> taskItemsSelector(AppState state) => state.taskItems;
 BuiltList<Sprint> sprintsSelector(AppState state) => state.sprints;
 BuiltList<TaskRecurrence> recurrencesSelector(AppState state) => state.taskRecurrences;

@@ -10,6 +10,8 @@ class _$AppState extends AppState {
   @override
   final bool isLoading;
   @override
+  final bool loadFailed;
+  @override
   final BuiltList<TaskItem> taskItems;
   @override
   final BuiltList<Sprint> sprints;
@@ -35,6 +37,7 @@ class _$AppState extends AppState {
 
   _$AppState._(
       {required this.isLoading,
+      required this.loadFailed,
       required this.taskItems,
       required this.sprints,
       required this.taskRecurrences,
@@ -47,6 +50,8 @@ class _$AppState extends AppState {
       required this.tokenRetrieved})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(isLoading, r'AppState', 'isLoading');
+    BuiltValueNullFieldError.checkNotNull(
+        loadFailed, r'AppState', 'loadFailed');
     BuiltValueNullFieldError.checkNotNull(taskItems, r'AppState', 'taskItems');
     BuiltValueNullFieldError.checkNotNull(sprints, r'AppState', 'sprints');
     BuiltValueNullFieldError.checkNotNull(
@@ -74,6 +79,7 @@ class _$AppState extends AppState {
     if (identical(other, this)) return true;
     return other is AppState &&
         isLoading == other.isLoading &&
+        loadFailed == other.loadFailed &&
         taskItems == other.taskItems &&
         sprints == other.sprints &&
         taskRecurrences == other.taskRecurrences &&
@@ -90,6 +96,7 @@ class _$AppState extends AppState {
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, isLoading.hashCode);
+    _$hash = $jc(_$hash, loadFailed.hashCode);
     _$hash = $jc(_$hash, taskItems.hashCode);
     _$hash = $jc(_$hash, sprints.hashCode);
     _$hash = $jc(_$hash, taskRecurrences.hashCode);
@@ -108,6 +115,7 @@ class _$AppState extends AppState {
   String toString() {
     return (newBuiltValueToStringHelper(r'AppState')
           ..add('isLoading', isLoading)
+          ..add('loadFailed', loadFailed)
           ..add('taskItems', taskItems)
           ..add('sprints', sprints)
           ..add('taskRecurrences', taskRecurrences)
@@ -128,6 +136,10 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   bool? _isLoading;
   bool? get isLoading => _$this._isLoading;
   set isLoading(bool? isLoading) => _$this._isLoading = isLoading;
+
+  bool? _loadFailed;
+  bool? get loadFailed => _$this._loadFailed;
+  set loadFailed(bool? loadFailed) => _$this._loadFailed = loadFailed;
 
   ListBuilder<TaskItem>? _taskItems;
   ListBuilder<TaskItem> get taskItems =>
@@ -188,6 +200,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
     final $v = _$v;
     if ($v != null) {
       _isLoading = $v.isLoading;
+      _loadFailed = $v.loadFailed;
       _taskItems = $v.taskItems.toBuilder();
       _sprints = $v.sprints.toBuilder();
       _taskRecurrences = $v.taskRecurrences.toBuilder();
@@ -224,6 +237,8 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
           new _$AppState._(
               isLoading: BuiltValueNullFieldError.checkNotNull(
                   isLoading, r'AppState', 'isLoading'),
+              loadFailed: BuiltValueNullFieldError.checkNotNull(
+                  loadFailed, r'AppState', 'loadFailed'),
               taskItems: taskItems.build(),
               sprints: sprints.build(),
               taskRecurrences: taskRecurrences.build(),

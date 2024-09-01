@@ -279,8 +279,6 @@ class _$TaskItem extends TaskItem {
   @override
   final DateTime? completionDate;
   @override
-  final bool pendingCompletion;
-  @override
   final int? recurNumber;
   @override
   final String? recurUnit;
@@ -292,6 +290,8 @@ class _$TaskItem extends TaskItem {
   final int? recurIteration;
   @override
   final bool offCycle;
+  @override
+  final bool pendingCompletion;
 
   factory _$TaskItem([void Function(TaskItemBuilder)? updates]) =>
       (new TaskItemBuilder()..update(updates))._build();
@@ -312,20 +312,20 @@ class _$TaskItem extends TaskItem {
       this.dueDate,
       this.urgentDate,
       this.completionDate,
-      required this.pendingCompletion,
       this.recurNumber,
       this.recurUnit,
       this.recurWait,
       this.recurrenceId,
       this.recurIteration,
-      required this.offCycle})
+      required this.offCycle,
+      required this.pendingCompletion})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(id, r'TaskItem', 'id');
     BuiltValueNullFieldError.checkNotNull(personId, r'TaskItem', 'personId');
     BuiltValueNullFieldError.checkNotNull(name, r'TaskItem', 'name');
+    BuiltValueNullFieldError.checkNotNull(offCycle, r'TaskItem', 'offCycle');
     BuiltValueNullFieldError.checkNotNull(
         pendingCompletion, r'TaskItem', 'pendingCompletion');
-    BuiltValueNullFieldError.checkNotNull(offCycle, r'TaskItem', 'offCycle');
   }
 
   @override
@@ -354,13 +354,13 @@ class _$TaskItem extends TaskItem {
         dueDate == other.dueDate &&
         urgentDate == other.urgentDate &&
         completionDate == other.completionDate &&
-        pendingCompletion == other.pendingCompletion &&
         recurNumber == other.recurNumber &&
         recurUnit == other.recurUnit &&
         recurWait == other.recurWait &&
         recurrenceId == other.recurrenceId &&
         recurIteration == other.recurIteration &&
-        offCycle == other.offCycle;
+        offCycle == other.offCycle &&
+        pendingCompletion == other.pendingCompletion;
   }
 
   @override
@@ -381,13 +381,13 @@ class _$TaskItem extends TaskItem {
     _$hash = $jc(_$hash, dueDate.hashCode);
     _$hash = $jc(_$hash, urgentDate.hashCode);
     _$hash = $jc(_$hash, completionDate.hashCode);
-    _$hash = $jc(_$hash, pendingCompletion.hashCode);
     _$hash = $jc(_$hash, recurNumber.hashCode);
     _$hash = $jc(_$hash, recurUnit.hashCode);
     _$hash = $jc(_$hash, recurWait.hashCode);
     _$hash = $jc(_$hash, recurrenceId.hashCode);
     _$hash = $jc(_$hash, recurIteration.hashCode);
     _$hash = $jc(_$hash, offCycle.hashCode);
+    _$hash = $jc(_$hash, pendingCompletion.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -410,13 +410,13 @@ class _$TaskItem extends TaskItem {
           ..add('dueDate', dueDate)
           ..add('urgentDate', urgentDate)
           ..add('completionDate', completionDate)
-          ..add('pendingCompletion', pendingCompletion)
           ..add('recurNumber', recurNumber)
           ..add('recurUnit', recurUnit)
           ..add('recurWait', recurWait)
           ..add('recurrenceId', recurrenceId)
           ..add('recurIteration', recurIteration)
-          ..add('offCycle', offCycle))
+          ..add('offCycle', offCycle)
+          ..add('pendingCompletion', pendingCompletion))
         .toString();
   }
 }
@@ -485,11 +485,6 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   set completionDate(DateTime? completionDate) =>
       _$this._completionDate = completionDate;
 
-  bool? _pendingCompletion;
-  bool? get pendingCompletion => _$this._pendingCompletion;
-  set pendingCompletion(bool? pendingCompletion) =>
-      _$this._pendingCompletion = pendingCompletion;
-
   int? _recurNumber;
   int? get recurNumber => _$this._recurNumber;
   set recurNumber(int? recurNumber) => _$this._recurNumber = recurNumber;
@@ -515,6 +510,11 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   bool? get offCycle => _$this._offCycle;
   set offCycle(bool? offCycle) => _$this._offCycle = offCycle;
 
+  bool? _pendingCompletion;
+  bool? get pendingCompletion => _$this._pendingCompletion;
+  set pendingCompletion(bool? pendingCompletion) =>
+      _$this._pendingCompletion = pendingCompletion;
+
   TaskItemBuilder() {
     TaskItem._setDefaults(this);
   }
@@ -537,13 +537,13 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
       _dueDate = $v.dueDate;
       _urgentDate = $v.urgentDate;
       _completionDate = $v.completionDate;
-      _pendingCompletion = $v.pendingCompletion;
       _recurNumber = $v.recurNumber;
       _recurUnit = $v.recurUnit;
       _recurWait = $v.recurWait;
       _recurrenceId = $v.recurrenceId;
       _recurIteration = $v.recurIteration;
       _offCycle = $v.offCycle;
+      _pendingCompletion = $v.pendingCompletion;
       _$v = null;
     }
     return this;
@@ -583,15 +583,15 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
             dueDate: dueDate,
             urgentDate: urgentDate,
             completionDate: completionDate,
-            pendingCompletion: BuiltValueNullFieldError.checkNotNull(
-                pendingCompletion, r'TaskItem', 'pendingCompletion'),
             recurNumber: recurNumber,
             recurUnit: recurUnit,
             recurWait: recurWait,
             recurrenceId: recurrenceId,
             recurIteration: recurIteration,
             offCycle: BuiltValueNullFieldError.checkNotNull(
-                offCycle, r'TaskItem', 'offCycle'));
+                offCycle, r'TaskItem', 'offCycle'),
+            pendingCompletion: BuiltValueNullFieldError.checkNotNull(
+                pendingCompletion, r'TaskItem', 'pendingCompletion'));
     replace(_$result);
     return _$result;
   }

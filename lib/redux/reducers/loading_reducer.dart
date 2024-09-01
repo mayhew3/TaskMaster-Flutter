@@ -3,10 +3,17 @@ import 'package:taskmaster/redux/app_state.dart';
 import '../actions/actions.dart';
 
 final loadingReducer = <AppState Function(AppState, dynamic)>[
-  TypedReducer<AppState, TaskItemsLoadedAction>(_setLoaded),
-  TypedReducer<AppState, TaskItemsNotLoadedAction>(_setLoaded),
+  TypedReducer<AppState, TaskItemsLoadedAction>(_setLoadSucceeded),
+  TypedReducer<AppState, TaskItemsNotLoadedAction>(_setLoadFailed),
 ];
 
-AppState _setLoaded(AppState state, action) {
-  return state.rebuild((s) => s..isLoading = false);
+AppState _setLoadSucceeded(AppState state, action) {
+  return state.rebuild((s) => s
+    ..loadFailed = false
+    ..isLoading = false);
+}
+AppState _setLoadFailed(AppState state, action) {
+  return state.rebuild((s) => s
+    ..loadFailed = true
+    ..isLoading = false);
 }

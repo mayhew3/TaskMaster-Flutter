@@ -9,6 +9,7 @@ part 'app_state.g.dart';
 
 abstract class AppState implements Built<AppState, AppStateBuilder> {
   bool get isLoading;
+  bool get loadFailed;
   BuiltList<TaskItem> get taskItems;
   BuiltList<Sprint> get sprints;
   BuiltList<TaskRecurrence> get taskRecurrences;
@@ -35,6 +36,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
 
   factory AppState.init({bool loading = false}) => AppState((appState) => appState
     ..isLoading = loading
+    ..loadFailed = false
     ..taskItems = ListBuilder()
     ..sprints = ListBuilder()
     ..taskRecurrences = ListBuilder()
