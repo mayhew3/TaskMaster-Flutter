@@ -38,6 +38,10 @@ class TaskMasterAppState extends State<TaskMasterApp> {
           ..addAll(createAuthenticationMiddleware(_navigatorKey))
     );
     maybeKickOffSignIn();
+    configureTimezoneHelper();
+  }
+
+  void configureTimezoneHelper() {
     store.dispatch(InitTimezoneHelper());
   }
 
