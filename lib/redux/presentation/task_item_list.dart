@@ -15,7 +15,7 @@ import 'header_list_item.dart';
 import 'loading_indicator.dart';
 
 class TaskItemList extends StatelessWidget {
-  // final BuiltList<TaskItem> taskItems;
+  final BuiltList<TaskItem> taskItems;
   // final Function(TaskItem, bool) onCheckboxChanged;
   // final Function(TaskItem) onRemove;
   // final Function(TaskItem) onUndoRemove;
@@ -26,7 +26,7 @@ class TaskItemList extends StatelessWidget {
     Key? key,
     this.subHeader,
     this.subSubHeader,
-    // required this.taskItems,
+    required this.taskItems,
     // required this.onCheckboxChanged,
     // required this.onRemove,
     // required this.onUndoRemove,
@@ -257,8 +257,7 @@ class TaskItemList extends StatelessWidget {
 
   ListView _buildListView(BuildContext context, TaskItemListViewModel viewModel) {
     // widget.appState.notificationScheduler.updateHomeScreenContext(context);
-    final BuiltList<TaskItem> allTasks = viewModel.taskItems;
-    final List<TaskItem> otherTasks = getFilteredTasks(allTasks);
+    List<TaskItem> otherTasks = taskItems.toList();
 
     final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted()
         // && !recentlyCompleted.contains(taskItem)
@@ -266,7 +265,7 @@ class TaskItemList extends StatelessWidget {
     final List<TaskItem> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isPastDue());
     final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgent());
 
-    List<TaskItem> targetTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isTarget());
+    final List<TaskItem> targetTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isTarget());
 
     final List<TaskItem> scheduledTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isScheduled());
 
