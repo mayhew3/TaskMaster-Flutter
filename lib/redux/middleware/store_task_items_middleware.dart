@@ -81,7 +81,8 @@ Future<void> Function(
     if (idToken == null) {
       throw new Exception("Cannot load tasks without id token.");
     }
-    var completed = action.taskItem.rebuild((t) => t..completionDate = action.complete ? DateTime.timestamp() : null);
+    var completed = action.taskItem.rebuild((t) => t
+      ..completionDate = action.complete ? DateTime.timestamp() : null);
     var updated = await repository.updateTask(completed, idToken);
     store.dispatch(TaskItemCompleted(updated, action.complete));
   };

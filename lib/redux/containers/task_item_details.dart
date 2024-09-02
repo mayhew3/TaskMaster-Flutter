@@ -52,13 +52,7 @@ class _ViewModel {
     return _ViewModel(
       taskItem: taskItem,
       onDelete: () => store.dispatch(DeleteTaskItemAction(taskItem.id)),
-      toggleCompleted: (isComplete) {
-        store.dispatch(UpdateTaskItemAction(
-            taskItem.rebuild((t) => t
-              ..pendingCompletion = true
-              ..completionDate = t.completionDate == null ? DateTime.timestamp() : null)
-        ));
-      },
+      toggleCompleted: (isComplete) => store.dispatch(CompleteTaskItemAction(taskItem, isComplete!)),
     );
   }
 }
