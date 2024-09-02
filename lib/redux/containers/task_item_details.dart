@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/redux/selectors/selectors.dart';
+import 'package:taskmaster/timezone_helper.dart';
 import 'package:taskmaster/typedefs.dart';
 
 import '../presentation/delayed_checkbox.dart';
@@ -21,17 +22,32 @@ class TaskItemDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Future<TimezoneHelper> createLocal = TimezoneHelper.createLocal();
     return StoreConnector<AppState, _ViewModel>(
       ignoreChange: (state) => taskItemSelector(state.taskItems, id) != null,
       converter: (Store<AppState> store) {
         return _ViewModel.from(store, id);
       },
       builder: (context, vm) {
-        return DetailsScreen(
-          taskItem: vm.taskItem,
-          onDelete: vm.onDelete,
-          toggleCompleted: vm.toggleCompleted,
-        );
+        return FutureBuilder(future: createLocal,
+            builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return DetailsScreen(
+              taskItem: vm.taskItem,
+              onDelete: vm.onDelete,
+              toggleCompleted: vm.toggleCompleted,
+              timezoneHelper: snapshot.data!,
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: const Text("Error setting time zone"),
+            );
+          } else {
+            return Center(
+              child: const Text("Loading timezone..."),
+            );
+          }
+        });
       },
     );
   }

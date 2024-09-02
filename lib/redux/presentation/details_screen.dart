@@ -21,16 +21,15 @@ class DetailsScreen extends StatelessWidget {
   final TaskItem taskItem;
   final Function onDelete;
   final CheckCycleWaiter toggleCompleted;
-  final TimezoneHelper timezoneHelper = TimezoneHelper();
+  final TimezoneHelper timezoneHelper;
 
   DetailsScreen({
     Key? key,
     required this.taskItem,
     required this.onDelete,
     required this.toggleCompleted,
-  }) : super(key: key ?? TaskMasterKeys.taskItemDetailsScreen) {
-    timezoneHelper.configureLocalTimeZone();
-  }
+    required this.timezoneHelper,
+  }) : super(key: key ?? TaskMasterKeys.taskItemDetailsScreen);
 
   @override
   Widget build(BuildContext context) {

@@ -8,15 +8,20 @@ import '../models/models.dart';
 part 'app_state.g.dart';
 
 abstract class AppState implements Built<AppState, AppStateBuilder> {
-  bool get isLoading;
-  bool get loadFailed;
+  // core data
   BuiltList<TaskItem> get taskItems;
   BuiltList<Sprint> get sprints;
   BuiltList<TaskRecurrence> get taskRecurrences;
+
+  // task item state
+  bool get isLoading;
+  bool get loadFailed;
+  BuiltList<TaskItem> get recentlyCompleted;
+
+  // ui
   AppTab get activeTab;
   VisibilityFilter get sprintListFilter;
   VisibilityFilter get taskListFilter;
-  BuiltList<TaskItem> get recentlyCompleted;
 
   // auth
   GoogleSignIn get googleSignIn;
@@ -35,7 +40,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   AppState._();
   factory AppState([Function(AppStateBuilder) updates]) = _$AppState;
 
-  factory AppState.init({bool loading = false}) => AppState((appState) => appState
+  factory AppState.init({bool loading = false}) => AppState((appState) async => appState
     ..isLoading = loading
     ..loadFailed = false
     ..taskItems = ListBuilder()

@@ -4,6 +4,13 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 
 class TimezoneHelper {
+
+  static Future<TimezoneHelper> createLocal() async {
+    var timezoneHelper = TimezoneHelper();
+    await timezoneHelper.configureLocalTimeZone();
+    return timezoneHelper;
+  }
+
   Future<void> configureLocalTimeZone() async {
     tz.initializeTimeZones();
     String timezone = await FlutterNativeTimezone.getLocalTimezone();

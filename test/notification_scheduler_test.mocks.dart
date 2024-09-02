@@ -122,20 +122,6 @@ class _FakeTaskItem_8 extends _i1.SmartFake implements _i3.TaskItem {
 /// See the documentation for Mockito's code generation for more information.
 class MockAppState extends _i1.Mock implements _i5.AppState {
   @override
-  bool get isLoading => (super.noSuchMethod(
-        Invocation.getter(#isLoading),
-        returnValue: false,
-        returnValueForMissingStub: false,
-      ) as bool);
-
-  @override
-  bool get loadFailed => (super.noSuchMethod(
-        Invocation.getter(#loadFailed),
-        returnValue: false,
-        returnValueForMissingStub: false,
-      ) as bool);
-
-  @override
   _i2.BuiltList<_i3.TaskItem> get taskItems => (super.noSuchMethod(
         Invocation.getter(#taskItems),
         returnValue: _FakeBuiltList_0<_i3.TaskItem>(
@@ -175,6 +161,33 @@ class MockAppState extends _i1.Mock implements _i5.AppState {
       ) as _i2.BuiltList<_i3.TaskRecurrence>);
 
   @override
+  bool get isLoading => (super.noSuchMethod(
+        Invocation.getter(#isLoading),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  bool get loadFailed => (super.noSuchMethod(
+        Invocation.getter(#loadFailed),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  _i2.BuiltList<_i3.TaskItem> get recentlyCompleted => (super.noSuchMethod(
+        Invocation.getter(#recentlyCompleted),
+        returnValue: _FakeBuiltList_0<_i3.TaskItem>(
+          this,
+          Invocation.getter(#recentlyCompleted),
+        ),
+        returnValueForMissingStub: _FakeBuiltList_0<_i3.TaskItem>(
+          this,
+          Invocation.getter(#recentlyCompleted),
+        ),
+      ) as _i2.BuiltList<_i3.TaskItem>);
+
+  @override
   _i3.AppTab get activeTab => (super.noSuchMethod(
         Invocation.getter(#activeTab),
         returnValue: _i3.AppTab.plan,
@@ -206,19 +219,6 @@ class MockAppState extends _i1.Mock implements _i5.AppState {
           Invocation.getter(#taskListFilter),
         ),
       ) as _i3.VisibilityFilter);
-
-  @override
-  _i2.BuiltList<_i3.TaskItem> get recentlyCompleted => (super.noSuchMethod(
-        Invocation.getter(#recentlyCompleted),
-        returnValue: _FakeBuiltList_0<_i3.TaskItem>(
-          this,
-          Invocation.getter(#recentlyCompleted),
-        ),
-        returnValueForMissingStub: _FakeBuiltList_0<_i3.TaskItem>(
-          this,
-          Invocation.getter(#recentlyCompleted),
-        ),
-      ) as _i2.BuiltList<_i3.TaskItem>);
 
   @override
   _i4.GoogleSignIn get googleSignIn => (super.noSuchMethod(

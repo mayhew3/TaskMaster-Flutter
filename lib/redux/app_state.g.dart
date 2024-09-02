@@ -8,23 +8,23 @@ part of 'app_state.dart';
 
 class _$AppState extends AppState {
   @override
-  final bool isLoading;
-  @override
-  final bool loadFailed;
-  @override
   final BuiltList<TaskItem> taskItems;
   @override
   final BuiltList<Sprint> sprints;
   @override
   final BuiltList<TaskRecurrence> taskRecurrences;
   @override
+  final bool isLoading;
+  @override
+  final bool loadFailed;
+  @override
+  final BuiltList<TaskItem> recentlyCompleted;
+  @override
   final AppTab activeTab;
   @override
   final VisibilityFilter sprintListFilter;
   @override
   final VisibilityFilter taskListFilter;
-  @override
-  final BuiltList<TaskItem> recentlyCompleted;
   @override
   final GoogleSignIn googleSignIn;
   @override
@@ -38,34 +38,34 @@ class _$AppState extends AppState {
       (new AppStateBuilder()..update(updates))._build();
 
   _$AppState._(
-      {required this.isLoading,
-      required this.loadFailed,
-      required this.taskItems,
+      {required this.taskItems,
       required this.sprints,
       required this.taskRecurrences,
+      required this.isLoading,
+      required this.loadFailed,
+      required this.recentlyCompleted,
       required this.activeTab,
       required this.sprintListFilter,
       required this.taskListFilter,
-      required this.recentlyCompleted,
       required this.googleSignIn,
       this.firebaseUser,
       this.currentUser,
       required this.tokenRetrieved})
       : super._() {
-    BuiltValueNullFieldError.checkNotNull(isLoading, r'AppState', 'isLoading');
-    BuiltValueNullFieldError.checkNotNull(
-        loadFailed, r'AppState', 'loadFailed');
     BuiltValueNullFieldError.checkNotNull(taskItems, r'AppState', 'taskItems');
     BuiltValueNullFieldError.checkNotNull(sprints, r'AppState', 'sprints');
     BuiltValueNullFieldError.checkNotNull(
         taskRecurrences, r'AppState', 'taskRecurrences');
+    BuiltValueNullFieldError.checkNotNull(isLoading, r'AppState', 'isLoading');
+    BuiltValueNullFieldError.checkNotNull(
+        loadFailed, r'AppState', 'loadFailed');
+    BuiltValueNullFieldError.checkNotNull(
+        recentlyCompleted, r'AppState', 'recentlyCompleted');
     BuiltValueNullFieldError.checkNotNull(activeTab, r'AppState', 'activeTab');
     BuiltValueNullFieldError.checkNotNull(
         sprintListFilter, r'AppState', 'sprintListFilter');
     BuiltValueNullFieldError.checkNotNull(
         taskListFilter, r'AppState', 'taskListFilter');
-    BuiltValueNullFieldError.checkNotNull(
-        recentlyCompleted, r'AppState', 'recentlyCompleted');
     BuiltValueNullFieldError.checkNotNull(
         googleSignIn, r'AppState', 'googleSignIn');
     BuiltValueNullFieldError.checkNotNull(
@@ -83,15 +83,15 @@ class _$AppState extends AppState {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is AppState &&
-        isLoading == other.isLoading &&
-        loadFailed == other.loadFailed &&
         taskItems == other.taskItems &&
         sprints == other.sprints &&
         taskRecurrences == other.taskRecurrences &&
+        isLoading == other.isLoading &&
+        loadFailed == other.loadFailed &&
+        recentlyCompleted == other.recentlyCompleted &&
         activeTab == other.activeTab &&
         sprintListFilter == other.sprintListFilter &&
         taskListFilter == other.taskListFilter &&
-        recentlyCompleted == other.recentlyCompleted &&
         googleSignIn == other.googleSignIn &&
         firebaseUser == other.firebaseUser &&
         currentUser == other.currentUser &&
@@ -101,15 +101,15 @@ class _$AppState extends AppState {
   @override
   int get hashCode {
     var _$hash = 0;
-    _$hash = $jc(_$hash, isLoading.hashCode);
-    _$hash = $jc(_$hash, loadFailed.hashCode);
     _$hash = $jc(_$hash, taskItems.hashCode);
     _$hash = $jc(_$hash, sprints.hashCode);
     _$hash = $jc(_$hash, taskRecurrences.hashCode);
+    _$hash = $jc(_$hash, isLoading.hashCode);
+    _$hash = $jc(_$hash, loadFailed.hashCode);
+    _$hash = $jc(_$hash, recentlyCompleted.hashCode);
     _$hash = $jc(_$hash, activeTab.hashCode);
     _$hash = $jc(_$hash, sprintListFilter.hashCode);
     _$hash = $jc(_$hash, taskListFilter.hashCode);
-    _$hash = $jc(_$hash, recentlyCompleted.hashCode);
     _$hash = $jc(_$hash, googleSignIn.hashCode);
     _$hash = $jc(_$hash, firebaseUser.hashCode);
     _$hash = $jc(_$hash, currentUser.hashCode);
@@ -121,15 +121,15 @@ class _$AppState extends AppState {
   @override
   String toString() {
     return (newBuiltValueToStringHelper(r'AppState')
-          ..add('isLoading', isLoading)
-          ..add('loadFailed', loadFailed)
           ..add('taskItems', taskItems)
           ..add('sprints', sprints)
           ..add('taskRecurrences', taskRecurrences)
+          ..add('isLoading', isLoading)
+          ..add('loadFailed', loadFailed)
+          ..add('recentlyCompleted', recentlyCompleted)
           ..add('activeTab', activeTab)
           ..add('sprintListFilter', sprintListFilter)
           ..add('taskListFilter', taskListFilter)
-          ..add('recentlyCompleted', recentlyCompleted)
           ..add('googleSignIn', googleSignIn)
           ..add('firebaseUser', firebaseUser)
           ..add('currentUser', currentUser)
@@ -140,14 +140,6 @@ class _$AppState extends AppState {
 
 class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   _$AppState? _$v;
-
-  bool? _isLoading;
-  bool? get isLoading => _$this._isLoading;
-  set isLoading(bool? isLoading) => _$this._isLoading = isLoading;
-
-  bool? _loadFailed;
-  bool? get loadFailed => _$this._loadFailed;
-  set loadFailed(bool? loadFailed) => _$this._loadFailed = loadFailed;
 
   ListBuilder<TaskItem>? _taskItems;
   ListBuilder<TaskItem> get taskItems =>
@@ -166,6 +158,20 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   set taskRecurrences(ListBuilder<TaskRecurrence>? taskRecurrences) =>
       _$this._taskRecurrences = taskRecurrences;
 
+  bool? _isLoading;
+  bool? get isLoading => _$this._isLoading;
+  set isLoading(bool? isLoading) => _$this._isLoading = isLoading;
+
+  bool? _loadFailed;
+  bool? get loadFailed => _$this._loadFailed;
+  set loadFailed(bool? loadFailed) => _$this._loadFailed = loadFailed;
+
+  ListBuilder<TaskItem>? _recentlyCompleted;
+  ListBuilder<TaskItem> get recentlyCompleted =>
+      _$this._recentlyCompleted ??= new ListBuilder<TaskItem>();
+  set recentlyCompleted(ListBuilder<TaskItem>? recentlyCompleted) =>
+      _$this._recentlyCompleted = recentlyCompleted;
+
   AppTab? _activeTab;
   AppTab? get activeTab => _$this._activeTab;
   set activeTab(AppTab? activeTab) => _$this._activeTab = activeTab;
@@ -181,12 +187,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _$this._taskListFilter ??= new VisibilityFilterBuilder();
   set taskListFilter(VisibilityFilterBuilder? taskListFilter) =>
       _$this._taskListFilter = taskListFilter;
-
-  ListBuilder<TaskItem>? _recentlyCompleted;
-  ListBuilder<TaskItem> get recentlyCompleted =>
-      _$this._recentlyCompleted ??= new ListBuilder<TaskItem>();
-  set recentlyCompleted(ListBuilder<TaskItem>? recentlyCompleted) =>
-      _$this._recentlyCompleted = recentlyCompleted;
 
   GoogleSignIn? _googleSignIn;
   GoogleSignIn? get googleSignIn => _$this._googleSignIn;
@@ -213,15 +213,15 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   AppStateBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
-      _isLoading = $v.isLoading;
-      _loadFailed = $v.loadFailed;
       _taskItems = $v.taskItems.toBuilder();
       _sprints = $v.sprints.toBuilder();
       _taskRecurrences = $v.taskRecurrences.toBuilder();
+      _isLoading = $v.isLoading;
+      _loadFailed = $v.loadFailed;
+      _recentlyCompleted = $v.recentlyCompleted.toBuilder();
       _activeTab = $v.activeTab;
       _sprintListFilter = $v.sprintListFilter.toBuilder();
       _taskListFilter = $v.taskListFilter.toBuilder();
-      _recentlyCompleted = $v.recentlyCompleted.toBuilder();
       _googleSignIn = $v.googleSignIn;
       _firebaseUser = $v.firebaseUser;
       _currentUser = $v.currentUser;
@@ -250,18 +250,18 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
     try {
       _$result = _$v ??
           new _$AppState._(
+              taskItems: taskItems.build(),
+              sprints: sprints.build(),
+              taskRecurrences: taskRecurrences.build(),
               isLoading: BuiltValueNullFieldError.checkNotNull(
                   isLoading, r'AppState', 'isLoading'),
               loadFailed: BuiltValueNullFieldError.checkNotNull(
                   loadFailed, r'AppState', 'loadFailed'),
-              taskItems: taskItems.build(),
-              sprints: sprints.build(),
-              taskRecurrences: taskRecurrences.build(),
+              recentlyCompleted: recentlyCompleted.build(),
               activeTab: BuiltValueNullFieldError.checkNotNull(
                   activeTab, r'AppState', 'activeTab'),
               sprintListFilter: sprintListFilter.build(),
               taskListFilter: taskListFilter.build(),
-              recentlyCompleted: recentlyCompleted.build(),
               googleSignIn: BuiltValueNullFieldError.checkNotNull(
                   googleSignIn, r'AppState', 'googleSignIn'),
               firebaseUser: firebaseUser,
@@ -278,12 +278,13 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
         _$failedField = 'taskRecurrences';
         taskRecurrences.build();
 
+        _$failedField = 'recentlyCompleted';
+        recentlyCompleted.build();
+
         _$failedField = 'sprintListFilter';
         sprintListFilter.build();
         _$failedField = 'taskListFilter';
         taskListFilter.build();
-        _$failedField = 'recentlyCompleted';
-        recentlyCompleted.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             r'AppState', _$failedField, e.toString());
