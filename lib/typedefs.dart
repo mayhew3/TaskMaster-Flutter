@@ -20,6 +20,6 @@ typedef BottomNavigationBar BottomNavigationBarGetter();
 
 typedef List<TaskItem> TaskListGetter();
 
-typedef Future<CheckState> CheckCycleWaiter(CheckState startingState);
+typedef void CheckCycleWaiter(CheckState startingState);
 
 typedef DateTime? DateFieldGetter(DateHolder dateHolder);

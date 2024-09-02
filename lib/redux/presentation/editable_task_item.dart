@@ -5,12 +5,13 @@ import 'package:taskmaster/models/task_date_type.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../../models/task_item.dart';
+import '../../typedefs.dart';
 import 'delayed_checkbox.dart';
 
 class EditableTaskItemWidget extends StatelessWidget {
   final TaskItem taskItem;
   // final GestureTapCallback? onTap;
-  // final CheckCycleWaiter? onTaskCompleteToggle;
+  final CheckCycleWaiter? onTaskCompleteToggle;
   // final CheckCycleWaiter? onTaskAssignmentToggle;
   // final ConfirmDismissCallback? onDismissed;
   // final GestureLongPressCallback? onLongPress;
@@ -28,6 +29,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     required this.addMode,
     this.endDate,
     required this.highlightSprint,
+    this.onTaskCompleteToggle,
   }) : super(key: key);
 
   bool hasPassed(DateTime? dateTime) {
@@ -127,16 +129,15 @@ class EditableTaskItemWidget extends StatelessWidget {
       var tmpTaskItem = taskItem;
       var completed = tmpTaskItem.completionDate != null;
 
-      // var pending = tmpTaskItem.pendingCompletion;
+      var pending = tmpTaskItem.pendingCompletion;
 
 
       print("Checkbox: " + tmpTaskItem.name + ", " + completed.toString());
 
       return DelayedCheckbox(
         taskName: taskItem.name,
-        initialState: completed ? CheckState.checked : CheckState.inactive,
-        // checkCycleWaiter: onTaskCompleteToggle!,
-        checkCycleWaiter: (startingState) => Future.value(null),
+        initialState: completed ? CheckState.checked : pending ? CheckState.pending : CheckState.inactive,
+        checkCycleWaiter: onTaskCompleteToggle!,
       );
     // }
   }

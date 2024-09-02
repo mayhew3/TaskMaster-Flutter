@@ -39,7 +39,7 @@ class TaskRepository {
     return getUriWithParameters(path, null);
   }
 
-  Future<DataPayload> loadTasksRedux(String email) async {
+  Future<DataPayload> loadTasksRedux(String email, String idToken) async {
 
     var queryParameters = {
       'email': email
@@ -48,7 +48,8 @@ class TaskRepository {
     var uri = getUriWithParameters('/api/tasks', queryParameters);
 
     final response = await this.client.get(uri,
-      headers: {HttpHeaders.contentTypeHeader: 'application/json'},
+      headers: {HttpHeaders.authorizationHeader: idToken,
+                HttpHeaders.contentTypeHeader: 'application/json'},
     );
 
     if (response.statusCode == 200) {
@@ -85,14 +86,23 @@ class TaskRepository {
     }
   }
 
-  Future<TaskItem> addTaskRedux(TaskItem taskItem) async {
+  Future<TaskItem> addTaskRedux(TaskItem taskItem, String idToken) async {
 
     var taskObj = serializers.serializeWith(TaskItem.serializer, taskItem)!;
 
     var payload = {
       "task": taskObj
     };
-    return _addOrUpdateJSON(payload, 'add');
+    return _addOrUpdateJSON(payload, 'add', idToken);
+  }
+
+  Future<TaskItem> updateTask(TaskItem taskItem, String idToken) async {
+    var taskObj = serializers.serializeWith(TaskItem.serializer, taskItem)!;
+
+    var payload = {
+      "task": taskObj
+    };
+    return _addOrUpdateJSON(payload, 'update', idToken);
   }
 
   String? formatForJson(DateTime? dateTime) {
@@ -104,13 +114,13 @@ class TaskRepository {
     }
   }
 
-  Future<TaskItem> _addOrUpdateJSON(Map<String, Object> payload, String addOrUpdate) async {
-
+  Future<TaskItem> _addOrUpdateJSON(Map<String, Object> payload, String addOrUpdate, String idToken) async {
     var body = utf8.encode(json.encode(payload));
 
     var uri = getUri('/api/tasks');
     final response = await client.post(uri,
-        headers: {"Content-Type": "application/json"},
+        headers: {HttpHeaders.authorizationHeader: idToken,
+          "Content-Type": "application/json"},
         body: body
     );
 

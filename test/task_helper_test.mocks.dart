@@ -192,4 +192,28 @@ class MockTaskRepository extends _i1.Mock implements _i5.TaskRepository {
           ),
         )),
       ) as _i6.Future<_i4.TaskItem>);
+
+  @override
+  _i6.Future<_i4.TaskItem> updateTask(_i4.TaskItem? taskItem) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateTask,
+          [taskItem],
+        ),
+        returnValue: _i6.Future<_i4.TaskItem>.value(_FakeTaskItem_3(
+          this,
+          Invocation.method(
+            #updateTask,
+            [taskItem],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i6.Future<_i4.TaskItem>.value(_FakeTaskItem_3(
+          this,
+          Invocation.method(
+            #updateTask,
+            [taskItem],
+          ),
+        )),
+      ) as _i6.Future<_i4.TaskItem>);
 }

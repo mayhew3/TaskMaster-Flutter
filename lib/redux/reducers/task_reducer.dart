@@ -26,7 +26,7 @@ AppState _deleteTaskItem(AppState state, DeleteTaskItemAction action) {
 
 AppState _updateTaskItem(AppState state, UpdateTaskItemAction action) {
   var listBuilder = state.taskItems.toBuilder()
-    ..map((taskItem) => taskItem.id == action.id ? action.updatedTaskItem : taskItem);
+    ..map((taskItem) => taskItem.id == action.updatedTaskItem.id ? action.updatedTaskItem : taskItem);
   return state.rebuild((s) => s..taskItems = listBuilder);
 }
 

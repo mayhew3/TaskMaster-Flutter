@@ -13,6 +13,8 @@ class _$TaskItemListViewModel extends TaskItemListViewModel {
   final bool isLoading;
   @override
   final bool loadFailed;
+  @override
+  final void Function(TaskItem, CheckState) onCheckboxClicked;
 
   factory _$TaskItemListViewModel(
           [void Function(TaskItemListViewModelBuilder)? updates]) =>
@@ -21,7 +23,8 @@ class _$TaskItemListViewModel extends TaskItemListViewModel {
   _$TaskItemListViewModel._(
       {required this.taskItems,
       required this.isLoading,
-      required this.loadFailed})
+      required this.loadFailed,
+      required this.onCheckboxClicked})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(
         taskItems, r'TaskItemListViewModel', 'taskItems');
@@ -29,6 +32,8 @@ class _$TaskItemListViewModel extends TaskItemListViewModel {
         isLoading, r'TaskItemListViewModel', 'isLoading');
     BuiltValueNullFieldError.checkNotNull(
         loadFailed, r'TaskItemListViewModel', 'loadFailed');
+    BuiltValueNullFieldError.checkNotNull(
+        onCheckboxClicked, r'TaskItemListViewModel', 'onCheckboxClicked');
   }
 
   @override
@@ -43,10 +48,12 @@ class _$TaskItemListViewModel extends TaskItemListViewModel {
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
+    final dynamic _$dynamicOther = other;
     return other is TaskItemListViewModel &&
         taskItems == other.taskItems &&
         isLoading == other.isLoading &&
-        loadFailed == other.loadFailed;
+        loadFailed == other.loadFailed &&
+        onCheckboxClicked == _$dynamicOther.onCheckboxClicked;
   }
 
   @override
@@ -55,6 +62,7 @@ class _$TaskItemListViewModel extends TaskItemListViewModel {
     _$hash = $jc(_$hash, taskItems.hashCode);
     _$hash = $jc(_$hash, isLoading.hashCode);
     _$hash = $jc(_$hash, loadFailed.hashCode);
+    _$hash = $jc(_$hash, onCheckboxClicked.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -64,7 +72,8 @@ class _$TaskItemListViewModel extends TaskItemListViewModel {
     return (newBuiltValueToStringHelper(r'TaskItemListViewModel')
           ..add('taskItems', taskItems)
           ..add('isLoading', isLoading)
-          ..add('loadFailed', loadFailed))
+          ..add('loadFailed', loadFailed)
+          ..add('onCheckboxClicked', onCheckboxClicked))
         .toString();
   }
 }
@@ -87,6 +96,13 @@ class TaskItemListViewModelBuilder
   bool? get loadFailed => _$this._loadFailed;
   set loadFailed(bool? loadFailed) => _$this._loadFailed = loadFailed;
 
+  void Function(TaskItem, CheckState)? _onCheckboxClicked;
+  void Function(TaskItem, CheckState)? get onCheckboxClicked =>
+      _$this._onCheckboxClicked;
+  set onCheckboxClicked(
+          void Function(TaskItem, CheckState)? onCheckboxClicked) =>
+      _$this._onCheckboxClicked = onCheckboxClicked;
+
   TaskItemListViewModelBuilder();
 
   TaskItemListViewModelBuilder get _$this {
@@ -95,6 +111,7 @@ class TaskItemListViewModelBuilder
       _taskItems = $v.taskItems.toBuilder();
       _isLoading = $v.isLoading;
       _loadFailed = $v.loadFailed;
+      _onCheckboxClicked = $v.onCheckboxClicked;
       _$v = null;
     }
     return this;
@@ -123,7 +140,11 @@ class TaskItemListViewModelBuilder
               isLoading: BuiltValueNullFieldError.checkNotNull(
                   isLoading, r'TaskItemListViewModel', 'isLoading'),
               loadFailed: BuiltValueNullFieldError.checkNotNull(
-                  loadFailed, r'TaskItemListViewModel', 'loadFailed'));
+                  loadFailed, r'TaskItemListViewModel', 'loadFailed'),
+              onCheckboxClicked: BuiltValueNullFieldError.checkNotNull(
+                  onCheckboxClicked,
+                  r'TaskItemListViewModel',
+                  'onCheckboxClicked'));
     } catch (_) {
       late String _$failedField;
       try {

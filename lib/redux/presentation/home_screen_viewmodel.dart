@@ -1,5 +1,5 @@
 
-// ignore: prefer_double_quotes
+
 import 'package:built_value/built_value.dart';
 import 'package:redux/redux.dart';
 

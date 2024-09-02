@@ -16,7 +16,6 @@ import 'loading_indicator.dart';
 
 class TaskItemList extends StatelessWidget {
   final BuiltList<TaskItem> taskItems;
-  // final Function(TaskItem, bool) onCheckboxChanged;
   // final Function(TaskItem) onRemove;
   // final Function(TaskItem) onUndoRemove;
   final String? subHeader;
@@ -27,7 +26,6 @@ class TaskItemList extends StatelessWidget {
     this.subHeader,
     this.subSubHeader,
     required this.taskItems,
-    // required this.onCheckboxChanged,
     // required this.onRemove,
     // required this.onUndoRemove,
   }) : super(key: key);
@@ -69,7 +67,12 @@ class TaskItemList extends StatelessWidget {
     );
   }
 
-  void _addTaskTile({required TaskItem taskItem, required BuildContext context, required List<StatelessWidget> tiles}) {
+  void _addTaskTile({
+    required TaskItem taskItem,
+    required BuildContext context,
+    required List<StatelessWidget> tiles,
+    required TaskItemListViewModel viewModel
+  }) {
     /*var snoozeDialog = (TaskItem taskItem) {
       HapticFeedback.mediumImpact();
       showDialog<void>(context: context, builder: (context) => SnoozeDialog(
@@ -98,10 +101,7 @@ class TaskItemList extends StatelessWidget {
       // },
       // onLongPress: () => snoozeDialog(taskItem),
       // onForcePress: (ForcePressDetails forcePressDetails) => snoozeDialog(taskItem),
-      // onTaskCompleteToggle: (checkState) async {
-      //   var updatedItem = await toggleAndUpdateCompleted(taskItem, CheckState.inactive == checkState);
-      //   return updatedItem.isCompleted() ? CheckState.checked : CheckState.inactive;
-      // },
+      onTaskCompleteToggle: (checkState) => viewModel.onCheckboxClicked(taskItem, checkState),
       // onDismissed: (direction) async {
       //   if (direction == DismissDirection.endToStart) {
       //     try {
@@ -285,22 +285,22 @@ class TaskItemList extends StatelessWidget {
 
     if (dueTasks.isNotEmpty) {
       tiles.add(HeadingItem('Past Due'));
-      dueTasks.forEach((task) => _addTaskTile(taskItem: task, context: context, tiles: tiles));
+      dueTasks.forEach((task) => _addTaskTile(taskItem: task, context: context, tiles: tiles, viewModel: viewModel));
     }
 
     if (urgentTasks.isNotEmpty) {
       tiles.add(HeadingItem('Urgent'));
-      urgentTasks.forEach((task) => _addTaskTile(taskItem: task, context: context, tiles: tiles));
+      urgentTasks.forEach((task) => _addTaskTile(taskItem: task, context: context, tiles: tiles, viewModel: viewModel));
     }
 
     if (targetTasks.isNotEmpty) {
       tiles.add(HeadingItem('Target'));
-      targetTasks.forEach((task) => _addTaskTile(taskItem: task, context: context, tiles: tiles));
+      targetTasks.forEach((task) => _addTaskTile(taskItem: task, context: context, tiles: tiles, viewModel: viewModel));
     }
 
     if (otherTasks.isNotEmpty) {
       tiles.add(HeadingItem('Tasks'));
-      otherTasks.forEach((task) => _addTaskTile(taskItem: task, context: context, tiles: tiles));
+      otherTasks.forEach((task) => _addTaskTile(taskItem: task, context: context, tiles: tiles, viewModel: viewModel));
     }
 
     if (scheduledTasks.isNotEmpty) {
@@ -308,12 +308,12 @@ class TaskItemList extends StatelessWidget {
       scheduledTasks.sort((t1, t2) {
         return t1.startDate!.compareTo(t2.startDate!);
       });
-      scheduledTasks.forEach((task) => _addTaskTile(taskItem: task, context: context, tiles: tiles));
+      scheduledTasks.forEach((task) => _addTaskTile(taskItem: task, context: context, tiles: tiles, viewModel: viewModel));
     }
 
     if (completedTasks.isNotEmpty) {
       tiles.add(HeadingItem('Completed'));
-      completedTasks.forEach((task) => _addTaskTile(taskItem: task, context: context, tiles: tiles));
+      completedTasks.forEach((task) => _addTaskTile(taskItem: task, context: context, tiles: tiles, viewModel: viewModel));
     }
 
     if (tiles.isEmpty) {

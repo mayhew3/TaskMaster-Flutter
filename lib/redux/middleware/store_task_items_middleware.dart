@@ -7,15 +7,24 @@ import '../actions/actions.dart';
 List<Middleware<AppState>> createStoreTaskItemsMiddleware(TaskRepository repository) {
   return [
     TypedMiddleware<AppState, LoadTaskItemsAction>(_createLoadTaskItems(repository)),
-    TypedMiddleware<AppState, AddTaskItemAction>(_createNewTaskItem(repository))
+    TypedMiddleware<AppState, AddTaskItemAction>(_createNewTaskItem(repository)),
+    TypedMiddleware<AppState, UpdateTaskItemAction>(_updateTaskItem(repository)),
   ];
 }
 
-Middleware<AppState> _createLoadTaskItems(TaskRepository repository) {
-  return (Store<AppState> store, action, NextDispatcher next) {
+Future<void> Function(
+    Store<AppState>,
+    LoadTaskItemsAction action,
+    NextDispatcher next,
+    ) _createLoadTaskItems(TaskRepository repository) {
+  return (Store<AppState> store, LoadTaskItemsAction action, NextDispatcher next) async {
     var email = store.state.currentUser!.email;
     print("Fetching tasks for " + email);
-    repository.loadTasksRedux(email).then(
+    var idToken = await store.state.getIdToken();
+    if (idToken == null) {
+      throw new Exception("Cannot load tasks without id token.");
+    }
+    repository.loadTasksRedux(email, idToken).then(
           (dataPayload) {
         store.dispatch(
           TaskItemsLoadedAction(
@@ -29,13 +38,34 @@ Middleware<AppState> _createLoadTaskItems(TaskRepository repository) {
   };
 }
 
-void Function(
+Future<void> Function(
     Store<AppState>,
     AddTaskItemAction action,
     NextDispatcher next,
     ) _createNewTaskItem(TaskRepository repository) {
   return (Store<AppState> store, AddTaskItemAction action, NextDispatcher next) async {
     next(action);
-    await repository.addTaskRedux(action.taskItem);
+    var idToken = await store.state.getIdToken();
+    if (idToken == null) {
+      throw new Exception("Cannot load tasks without id token.");
+    }
+    await repository.addTaskRedux(action.taskItem, idToken);
   };
 }
+
+
+Future<void> Function(
+    Store<AppState>,
+    UpdateTaskItemAction action,
+    NextDispatcher next,
+    ) _updateTaskItem(TaskRepository repository) {
+  return (Store<AppState> store, UpdateTaskItemAction action, NextDispatcher next) async {
+    next(action);
+    var idToken = await store.state.getIdToken();
+    if (idToken == null) {
+      throw new Exception("Cannot load tasks without id token.");
+    }
+    await repository.updateTask(action.updatedTaskItem, idToken);
+  };
+}
+

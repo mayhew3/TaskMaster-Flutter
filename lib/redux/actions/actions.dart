@@ -16,14 +16,13 @@ class TaskItemsLoadedAction {
 }
 
 class UpdateTaskItemAction {
-  final int id;
   final TaskItem updatedTaskItem;
 
-  UpdateTaskItemAction(this.id, this.updatedTaskItem);
+  UpdateTaskItemAction(this.updatedTaskItem);
 
   @override
   String toString() {
-    return 'UpdateTaskItemAction{id: $id, updatedTaskItem: $updatedTaskItem}';
+    return 'UpdateTaskItemAction{updatedTaskItem: $updatedTaskItem}';
   }
 }
 
