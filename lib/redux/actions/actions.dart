@@ -106,3 +106,5 @@ class UpdateTabAction {
     return 'UpdateTabAction{newTab: $newTab}';
   }
 }
+
+class InitTimezoneHelper {}

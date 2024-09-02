@@ -33,6 +33,8 @@ class _$AppState extends AppState {
   final GoogleSignInAccount? currentUser;
   @override
   final bool tokenRetrieved;
+  @override
+  final TimezoneHelper timezoneHelper;
 
   factory _$AppState([void Function(AppStateBuilder)? updates]) =>
       (new AppStateBuilder()..update(updates))._build();
@@ -50,7 +52,8 @@ class _$AppState extends AppState {
       required this.googleSignIn,
       this.firebaseUser,
       this.currentUser,
-      required this.tokenRetrieved})
+      required this.tokenRetrieved,
+      required this.timezoneHelper})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(taskItems, r'AppState', 'taskItems');
     BuiltValueNullFieldError.checkNotNull(sprints, r'AppState', 'sprints');
@@ -70,6 +73,8 @@ class _$AppState extends AppState {
         googleSignIn, r'AppState', 'googleSignIn');
     BuiltValueNullFieldError.checkNotNull(
         tokenRetrieved, r'AppState', 'tokenRetrieved');
+    BuiltValueNullFieldError.checkNotNull(
+        timezoneHelper, r'AppState', 'timezoneHelper');
   }
 
   @override
@@ -95,7 +100,8 @@ class _$AppState extends AppState {
         googleSignIn == other.googleSignIn &&
         firebaseUser == other.firebaseUser &&
         currentUser == other.currentUser &&
-        tokenRetrieved == other.tokenRetrieved;
+        tokenRetrieved == other.tokenRetrieved &&
+        timezoneHelper == other.timezoneHelper;
   }
 
   @override
@@ -114,6 +120,7 @@ class _$AppState extends AppState {
     _$hash = $jc(_$hash, firebaseUser.hashCode);
     _$hash = $jc(_$hash, currentUser.hashCode);
     _$hash = $jc(_$hash, tokenRetrieved.hashCode);
+    _$hash = $jc(_$hash, timezoneHelper.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -133,7 +140,8 @@ class _$AppState extends AppState {
           ..add('googleSignIn', googleSignIn)
           ..add('firebaseUser', firebaseUser)
           ..add('currentUser', currentUser)
-          ..add('tokenRetrieved', tokenRetrieved))
+          ..add('tokenRetrieved', tokenRetrieved)
+          ..add('timezoneHelper', timezoneHelper))
         .toString();
   }
 }
@@ -208,6 +216,11 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   set tokenRetrieved(bool? tokenRetrieved) =>
       _$this._tokenRetrieved = tokenRetrieved;
 
+  TimezoneHelper? _timezoneHelper;
+  TimezoneHelper? get timezoneHelper => _$this._timezoneHelper;
+  set timezoneHelper(TimezoneHelper? timezoneHelper) =>
+      _$this._timezoneHelper = timezoneHelper;
+
   AppStateBuilder();
 
   AppStateBuilder get _$this {
@@ -226,6 +239,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _firebaseUser = $v.firebaseUser;
       _currentUser = $v.currentUser;
       _tokenRetrieved = $v.tokenRetrieved;
+      _timezoneHelper = $v.timezoneHelper;
       _$v = null;
     }
     return this;
@@ -267,7 +281,9 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               firebaseUser: firebaseUser,
               currentUser: currentUser,
               tokenRetrieved: BuiltValueNullFieldError.checkNotNull(
-                  tokenRetrieved, r'AppState', 'tokenRetrieved'));
+                  tokenRetrieved, r'AppState', 'tokenRetrieved'),
+              timezoneHelper: BuiltValueNullFieldError.checkNotNull(
+                  timezoneHelper, r'AppState', 'timezoneHelper'));
     } catch (_) {
       late String _$failedField;
       try {

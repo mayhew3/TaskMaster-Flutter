@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:redux/redux.dart';
+import 'package:taskmaster/redux/actions/actions.dart';
 import 'package:taskmaster/routes.dart';
 
 import '../actions/auth_actions.dart';
@@ -17,12 +18,13 @@ List<Middleware<AppState>> createAuthenticationMiddleware(
     TypedMiddleware<AppState, TryToSilentlySignIn>(_tryToSilentlySignIn(navigatorKey)),
     TypedMiddleware<AppState, LogIn>(_manualLogin(navigatorKey)),
     TypedMiddleware<AppState, LogOutAction>(_manualLogout(navigatorKey)),
+    TypedMiddleware<AppState, InitTimezoneHelper>(_initTimezoneHelper(navigatorKey)),
   ];
 }
 
 void Function(
     Store<AppState> store,
-    dynamic action,
+    LogIn action,
     NextDispatcher next,
     ) _manualLogin(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {
@@ -39,7 +41,7 @@ void Function(
 
 void Function(
     Store<AppState> store,
-    dynamic action,
+    LogOutAction action,
     NextDispatcher next,
     ) _manualLogout(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {
@@ -56,6 +58,22 @@ void Function(
 void Function(
     Store<AppState> store,
     dynamic action,
+    NextDispatcher next,
+    ) _initTimezoneHelper(GlobalKey<NavigatorState> navigatorKey,) {
+  return (store, action, next) async {
+    print("_initTimezoneHelper!");
+    next(action);
+    await store.state.timezoneHelper.configureLocalTimeZone();
+    if (store.state.appIsReady()) {
+      await navigatorKey.currentState!.pushReplacementNamed(
+          TaskMasterRoutes.home);
+    }
+  };
+}
+
+void Function(
+    Store<AppState> store,
+    TryToSilentlySignIn action,
     NextDispatcher next,
     ) _tryToSilentlySignIn(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {
@@ -85,7 +103,10 @@ void Function(
         var firebaseUser = await FirebaseAuth.instance.signInWithCredential(credential);
         String? idToken = await firebaseUser.user!.getIdToken();
         store.dispatch(OnAuthenticated(account, firebaseUser, idToken));
-        await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.home);
+        if (store.state.appIsReady()) {
+          await navigatorKey.currentState!.pushReplacementNamed(
+              TaskMasterRoutes.home);
+        }
         // action.completer.complete(); // enable if needed later
       }
     });

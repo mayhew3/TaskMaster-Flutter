@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../models/models.dart';
+import '../timezone_helper.dart';
 
 part 'app_state.g.dart';
 
@@ -37,6 +38,9 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
     return currentUser != null && tokenRetrieved;
   }
 
+  // date-time
+  TimezoneHelper get timezoneHelper;
+
   AppState._();
   factory AppState([Function(AppStateBuilder) updates]) = _$AppState;
 
@@ -56,6 +60,10 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
           'email',
         ]
     )
+    ..timezoneHelper = TimezoneHelper()
   );
 
+  bool appIsReady() {
+    return isAuthenticated() && timezoneHelper.timezoneInitialized;
+  }
 }
