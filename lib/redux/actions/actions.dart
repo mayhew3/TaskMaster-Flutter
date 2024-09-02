@@ -32,6 +32,20 @@ class TaskItemUpdated {
   TaskItemUpdated(this.updatedTaskItem);
 }
 
+class CompleteTaskItemAction {
+  final TaskItem taskItem;
+  final bool complete;
+
+  CompleteTaskItemAction(this.taskItem, this.complete);
+}
+
+class TaskItemCompleted {
+  final TaskItem taskItem;
+  final bool complete;
+
+  TaskItemCompleted(this.taskItem, this.complete);
+}
+
 class DeleteTaskItemAction {
   final int id;
 
@@ -53,6 +67,8 @@ class AddTaskItemAction {
     return 'AddTaskItemAction{taskItem: $taskItem}';
   }
 }
+
+class ClearRecentlyCompleted {}
 
 class UpdateSprintFilterAction {
   final VisibilityFilter newFilter;

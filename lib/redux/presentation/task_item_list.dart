@@ -57,7 +57,10 @@ class TaskItemList extends StatelessWidget {
                       )
                   );
                 } else {
-                  return _buildListView(context, viewModel);
+                  return WillPopScope(
+                      child: _buildListView(context, viewModel),
+                      onWillPop: () => StoreProvider.of<AppState>(context).dispatch(ClearRecentlyCompleted())
+                  );
                 }
               },
             ),
@@ -260,7 +263,7 @@ class TaskItemList extends StatelessWidget {
     List<TaskItem> otherTasks = taskItems.toList();
 
     final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted()
-        // && !recentlyCompleted.contains(taskItem)
+        && !viewModel.recentlyCompleted.contains(taskItem)
     );
     final List<TaskItem> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isPastDue());
     final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgent());

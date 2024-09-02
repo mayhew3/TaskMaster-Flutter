@@ -31,117 +31,100 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
     ];
     Object? value;
     value = object.description;
-    if (value != null) {
-      result
-        ..add('description')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
-    }
+
+    result
+      ..add('description')
+      ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)));
     value = object.project;
-    if (value != null) {
-      result
-        ..add('project')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
-    }
+
+    result
+      ..add('project')
+      ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)));
     value = object.context;
-    if (value != null) {
-      result
-        ..add('context')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
-    }
+
+    result
+      ..add('context')
+      ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)));
     value = object.urgency;
-    if (value != null) {
-      result
-        ..add('urgency')
-        ..add(serializers.serialize(value, specifiedType: const FullType(int)));
-    }
+
+    result
+      ..add('urgency')
+      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
     value = object.priority;
-    if (value != null) {
-      result
-        ..add('priority')
-        ..add(serializers.serialize(value, specifiedType: const FullType(int)));
-    }
+
+    result
+      ..add('priority')
+      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
     value = object.duration;
-    if (value != null) {
-      result
-        ..add('duration')
-        ..add(serializers.serialize(value, specifiedType: const FullType(int)));
-    }
+
+    result
+      ..add('duration')
+      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
     value = object.gamePoints;
-    if (value != null) {
-      result
-        ..add('gamePoints')
-        ..add(serializers.serialize(value, specifiedType: const FullType(int)));
-    }
+
+    result
+      ..add('gamePoints')
+      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
     value = object.startDate;
-    if (value != null) {
-      result
-        ..add('startDate')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(DateTime)));
-    }
+
+    result
+      ..add('startDate')
+      ..add(serializers.serialize(value,
+          specifiedType: const FullType(DateTime)));
     value = object.targetDate;
-    if (value != null) {
-      result
-        ..add('targetDate')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(DateTime)));
-    }
+
+    result
+      ..add('targetDate')
+      ..add(serializers.serialize(value,
+          specifiedType: const FullType(DateTime)));
     value = object.dueDate;
-    if (value != null) {
-      result
-        ..add('dueDate')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(DateTime)));
-    }
+
+    result
+      ..add('dueDate')
+      ..add(serializers.serialize(value,
+          specifiedType: const FullType(DateTime)));
     value = object.urgentDate;
-    if (value != null) {
-      result
-        ..add('urgentDate')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(DateTime)));
-    }
+
+    result
+      ..add('urgentDate')
+      ..add(serializers.serialize(value,
+          specifiedType: const FullType(DateTime)));
     value = object.completionDate;
-    if (value != null) {
-      result
-        ..add('completionDate')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(DateTime)));
-    }
+
+    result
+      ..add('completionDate')
+      ..add(serializers.serialize(value,
+          specifiedType: const FullType(DateTime)));
     value = object.recurNumber;
-    if (value != null) {
-      result
-        ..add('recurNumber')
-        ..add(serializers.serialize(value, specifiedType: const FullType(int)));
-    }
+
+    result
+      ..add('recurNumber')
+      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
     value = object.recurUnit;
-    if (value != null) {
-      result
-        ..add('recurUnit')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
-    }
+
+    result
+      ..add('recurUnit')
+      ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)));
     value = object.recurWait;
-    if (value != null) {
-      result
-        ..add('recurWait')
-        ..add(
-            serializers.serialize(value, specifiedType: const FullType(bool)));
-    }
+
+    result
+      ..add('recurWait')
+      ..add(serializers.serialize(value, specifiedType: const FullType(bool)));
     value = object.recurrenceId;
-    if (value != null) {
-      result
-        ..add('recurrenceId')
-        ..add(serializers.serialize(value, specifiedType: const FullType(int)));
-    }
+
+    result
+      ..add('recurrenceId')
+      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
     value = object.recurIteration;
-    if (value != null) {
-      result
-        ..add('recurIteration')
-        ..add(serializers.serialize(value, specifiedType: const FullType(int)));
-    }
+
+    result
+      ..add('recurIteration')
+      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
+
     return result;
   }
 

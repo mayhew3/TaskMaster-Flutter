@@ -23,20 +23,21 @@ abstract class FilteredTaskItemsViewModel implements Built<FilteredTaskItemsView
 
   static FilteredTaskItemsViewModel fromStore(Store<AppState> store) {
     return FilteredTaskItemsViewModel((c) => c
-      ..taskItems = filterTaskItems(store.state.taskItems, store.state.taskListFilter)
+      ..taskItems = filterTaskItems(store.state.taskItems, store.state.recentlyCompleted, store.state.taskListFilter)
       ..loading = store.state.isLoading
     );
   }
 
-  static ListBuilder<TaskItem> filterTaskItems(BuiltList<TaskItem> taskItems, VisibilityFilter visibilityFilter) {
+  static ListBuilder<TaskItem> filterTaskItems(BuiltList<TaskItem> taskItems, BuiltList<TaskItem> recentlyCompleted, VisibilityFilter visibilityFilter) {
     var filteredTasks = taskItems.where((taskItem) {
       var startDate = taskItem.startDate;
 
       var completedPredicate = taskItem.completionDate == null || visibilityFilter.showCompleted;
       var scheduledPredicate = startDate == null || startDate.isBefore(DateTime.now()) || visibilityFilter.showScheduled;
+      var isRecentlyCompleted = recentlyCompleted.map((t) => t.id).contains(taskItem.id);
       // todo: active predicate, when sprint getter is complete
 
-      return completedPredicate && scheduledPredicate;
+      return (completedPredicate && scheduledPredicate) || isRecentlyCompleted;
     });
     return ListBuilder<TaskItem>(filteredTasks);
   }

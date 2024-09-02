@@ -36,31 +36,28 @@ class _$SprintSerializer implements StructuredSerializer<Sprint> {
     ];
     Object? value;
     value = object.id;
-    if (value != null) {
-      result
-        ..add('id')
-        ..add(serializers.serialize(value, specifiedType: const FullType(int)));
-    }
+
+    result
+      ..add('id')
+      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
     value = object.dateAdded;
-    if (value != null) {
-      result
-        ..add('dateAdded')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(DateTime)));
-    }
+
+    result
+      ..add('dateAdded')
+      ..add(serializers.serialize(value,
+          specifiedType: const FullType(DateTime)));
     value = object.closeDate;
-    if (value != null) {
-      result
-        ..add('closeDate')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(DateTime)));
-    }
+
+    result
+      ..add('closeDate')
+      ..add(serializers.serialize(value,
+          specifiedType: const FullType(DateTime)));
     value = object.sprintNumber;
-    if (value != null) {
-      result
-        ..add('sprintNumber')
-        ..add(serializers.serialize(value, specifiedType: const FullType(int)));
-    }
+
+    result
+      ..add('sprintNumber')
+      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
+
     return result;
   }
 

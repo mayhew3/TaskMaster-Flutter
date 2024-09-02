@@ -9,6 +9,7 @@ List<Middleware<AppState>> createStoreTaskItemsMiddleware(TaskRepository reposit
     TypedMiddleware<AppState, LoadTaskItemsAction>(_createLoadTaskItems(repository)),
     TypedMiddleware<AppState, AddTaskItemAction>(_createNewTaskItem(repository)),
     TypedMiddleware<AppState, UpdateTaskItemAction>(_updateTaskItem(repository)),
+    TypedMiddleware<AppState, CompleteTaskItemAction>(_completeTaskItem(repository)),
   ];
 }
 
@@ -66,6 +67,23 @@ Future<void> Function(
     }
     var updated = await repository.updateTask(action.updatedTaskItem, idToken);
     store.dispatch(TaskItemUpdated(updated));
+  };
+}
+
+Future<void> Function(
+    Store<AppState>,
+    CompleteTaskItemAction action,
+    NextDispatcher next,
+    ) _completeTaskItem(TaskRepository repository) {
+  return (Store<AppState> store, CompleteTaskItemAction action, NextDispatcher next) async {
+    next(action);
+    var idToken = await store.state.getIdToken();
+    if (idToken == null) {
+      throw new Exception("Cannot load tasks without id token.");
+    }
+    var completed = action.taskItem.rebuild((t) => t..completionDate = action.complete ? DateTime.timestamp() : null);
+    var updated = await repository.updateTask(completed, idToken);
+    store.dispatch(TaskItemCompleted(updated, action.complete));
   };
 }
 

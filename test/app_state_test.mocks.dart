@@ -146,17 +146,26 @@ class MockTaskRepository extends _i1.Mock implements _i5.TaskRepository {
       ) as Uri);
 
   @override
-  _i6.Future<_i3.DataPayload> loadTasksRedux(String? email) =>
+  _i6.Future<_i3.DataPayload> loadTasksRedux(
+    String? email,
+    String? idToken,
+  ) =>
       (super.noSuchMethod(
         Invocation.method(
           #loadTasksRedux,
-          [email],
+          [
+            email,
+            idToken,
+          ],
         ),
         returnValue: _i6.Future<_i3.DataPayload>.value(_FakeDataPayload_2(
           this,
           Invocation.method(
             #loadTasksRedux,
-            [email],
+            [
+              email,
+              idToken,
+            ],
           ),
         )),
         returnValueForMissingStub:
@@ -164,23 +173,35 @@ class MockTaskRepository extends _i1.Mock implements _i5.TaskRepository {
           this,
           Invocation.method(
             #loadTasksRedux,
-            [email],
+            [
+              email,
+              idToken,
+            ],
           ),
         )),
       ) as _i6.Future<_i3.DataPayload>);
 
   @override
-  _i6.Future<_i4.TaskItem> addTaskRedux(_i4.TaskItem? taskItem) =>
+  _i6.Future<_i4.TaskItem> addTaskRedux(
+    _i4.TaskItem? taskItem,
+    String? idToken,
+  ) =>
       (super.noSuchMethod(
         Invocation.method(
           #addTaskRedux,
-          [taskItem],
+          [
+            taskItem,
+            idToken,
+          ],
         ),
         returnValue: _i6.Future<_i4.TaskItem>.value(_FakeTaskItem_3(
           this,
           Invocation.method(
             #addTaskRedux,
-            [taskItem],
+            [
+              taskItem,
+              idToken,
+            ],
           ),
         )),
         returnValueForMissingStub:
@@ -188,23 +209,35 @@ class MockTaskRepository extends _i1.Mock implements _i5.TaskRepository {
           this,
           Invocation.method(
             #addTaskRedux,
-            [taskItem],
+            [
+              taskItem,
+              idToken,
+            ],
           ),
         )),
       ) as _i6.Future<_i4.TaskItem>);
 
   @override
-  _i6.Future<_i4.TaskItem> updateTask(_i4.TaskItem? taskItem) =>
+  _i6.Future<_i4.TaskItem> updateTask(
+    _i4.TaskItem? taskItem,
+    String? idToken,
+  ) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateTask,
-          [taskItem],
+          [
+            taskItem,
+            idToken,
+          ],
         ),
         returnValue: _i6.Future<_i4.TaskItem>.value(_FakeTaskItem_3(
           this,
           Invocation.method(
             #updateTask,
-            [taskItem],
+            [
+              taskItem,
+              idToken,
+            ],
           ),
         )),
         returnValueForMissingStub:
@@ -212,7 +245,10 @@ class MockTaskRepository extends _i1.Mock implements _i5.TaskRepository {
           this,
           Invocation.method(
             #updateTask,
-            [taskItem],
+            [
+              taskItem,
+              idToken,
+            ],
           ),
         )),
       ) as _i6.Future<_i4.TaskItem>);

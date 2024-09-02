@@ -8,6 +8,7 @@ import 'package:built_value/serializer.dart';
 part 'task_recurrence.g.dart';
 
 abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBuilder> {
+  @BuiltValueSerializer(serializeNulls: true)
   static Serializer<TaskRecurrence> get serializer => _$taskRecurrenceSerializer;
 
   int get id;

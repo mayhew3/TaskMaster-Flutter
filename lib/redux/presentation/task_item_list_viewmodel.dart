@@ -11,6 +11,7 @@ part 'task_item_list_viewmodel.g.dart';
 
 abstract class TaskItemListViewModel implements Built<TaskItemListViewModel, TaskItemListViewModelBuilder> {
   BuiltList<TaskItem> get taskItems;
+  BuiltList<TaskItem> get recentlyCompleted;
   bool get isLoading;
   bool get loadFailed;
   void Function(TaskItem, CheckState) get onCheckboxClicked;
@@ -24,16 +25,13 @@ abstract class TaskItemListViewModel implements Built<TaskItemListViewModel, Tas
   static TaskItemListViewModel fromStore(Store<AppState> store) {
     return TaskItemListViewModel((c) => c
       ..taskItems = ListBuilder(store.state.taskItems)
+      ..recentlyCompleted = ListBuilder(store.state.recentlyCompleted)
       ..isLoading = store.state.isLoading
       ..loadFailed = store.state.loadFailed
       ..onCheckboxClicked = (taskItem, checkState) {
         if (checkState != CheckState.pending) {
-          store.dispatch(UpdateTaskItemAction(
-              taskItem.rebuild((t) =>
-              t..completionDate = CheckState.inactive == checkState
-                  ? DateTime.timestamp()
-                  : null)
-          ));
+          store.dispatch(CompleteTaskItemAction(
+              taskItem, CheckState.inactive == checkState));
         }
       }
     );

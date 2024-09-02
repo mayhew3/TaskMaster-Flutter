@@ -7,6 +7,7 @@ import 'package:built_value/serializer.dart';
 part 'sprint.g.dart';
 
 abstract class Sprint implements Built<Sprint, SprintBuilder> {
+  @BuiltValueSerializer(serializeNulls: true)
   static Serializer<Sprint> get serializer => _$sprintSerializer;
 
   int? get id;

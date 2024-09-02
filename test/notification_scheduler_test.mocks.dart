@@ -208,6 +208,19 @@ class MockAppState extends _i1.Mock implements _i5.AppState {
       ) as _i3.VisibilityFilter);
 
   @override
+  _i2.BuiltList<_i3.TaskItem> get recentlyCompleted => (super.noSuchMethod(
+        Invocation.getter(#recentlyCompleted),
+        returnValue: _FakeBuiltList_0<_i3.TaskItem>(
+          this,
+          Invocation.getter(#recentlyCompleted),
+        ),
+        returnValueForMissingStub: _FakeBuiltList_0<_i3.TaskItem>(
+          this,
+          Invocation.getter(#recentlyCompleted),
+        ),
+      ) as _i2.BuiltList<_i3.TaskItem>);
+
+  @override
   _i4.GoogleSignIn get googleSignIn => (super.noSuchMethod(
         Invocation.getter(#googleSignIn),
         returnValue: _FakeGoogleSignIn_2(
@@ -377,17 +390,26 @@ class MockTaskRepository extends _i1.Mock implements _i9.TaskRepository {
       ) as Uri);
 
   @override
-  _i8.Future<_i7.DataPayload> loadTasksRedux(String? email) =>
+  _i8.Future<_i7.DataPayload> loadTasksRedux(
+    String? email,
+    String? idToken,
+  ) =>
       (super.noSuchMethod(
         Invocation.method(
           #loadTasksRedux,
-          [email],
+          [
+            email,
+            idToken,
+          ],
         ),
         returnValue: _i8.Future<_i7.DataPayload>.value(_FakeDataPayload_7(
           this,
           Invocation.method(
             #loadTasksRedux,
-            [email],
+            [
+              email,
+              idToken,
+            ],
           ),
         )),
         returnValueForMissingStub:
@@ -395,23 +417,35 @@ class MockTaskRepository extends _i1.Mock implements _i9.TaskRepository {
           this,
           Invocation.method(
             #loadTasksRedux,
-            [email],
+            [
+              email,
+              idToken,
+            ],
           ),
         )),
       ) as _i8.Future<_i7.DataPayload>);
 
   @override
-  _i8.Future<_i3.TaskItem> addTaskRedux(_i3.TaskItem? taskItem) =>
+  _i8.Future<_i3.TaskItem> addTaskRedux(
+    _i3.TaskItem? taskItem,
+    String? idToken,
+  ) =>
       (super.noSuchMethod(
         Invocation.method(
           #addTaskRedux,
-          [taskItem],
+          [
+            taskItem,
+            idToken,
+          ],
         ),
         returnValue: _i8.Future<_i3.TaskItem>.value(_FakeTaskItem_8(
           this,
           Invocation.method(
             #addTaskRedux,
-            [taskItem],
+            [
+              taskItem,
+              idToken,
+            ],
           ),
         )),
         returnValueForMissingStub:
@@ -419,23 +453,35 @@ class MockTaskRepository extends _i1.Mock implements _i9.TaskRepository {
           this,
           Invocation.method(
             #addTaskRedux,
-            [taskItem],
+            [
+              taskItem,
+              idToken,
+            ],
           ),
         )),
       ) as _i8.Future<_i3.TaskItem>);
 
   @override
-  _i8.Future<_i3.TaskItem> updateTask(_i3.TaskItem? taskItem) =>
+  _i8.Future<_i3.TaskItem> updateTask(
+    _i3.TaskItem? taskItem,
+    String? idToken,
+  ) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateTask,
-          [taskItem],
+          [
+            taskItem,
+            idToken,
+          ],
         ),
         returnValue: _i8.Future<_i3.TaskItem>.value(_FakeTaskItem_8(
           this,
           Invocation.method(
             #updateTask,
-            [taskItem],
+            [
+              taskItem,
+              idToken,
+            ],
           ),
         )),
         returnValueForMissingStub:
@@ -443,7 +489,10 @@ class MockTaskRepository extends _i1.Mock implements _i9.TaskRepository {
           this,
           Invocation.method(
             #updateTask,
-            [taskItem],
+            [
+              taskItem,
+              idToken,
+            ],
           ),
         )),
       ) as _i8.Future<_i3.TaskItem>);

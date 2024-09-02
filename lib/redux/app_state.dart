@@ -16,6 +16,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   AppTab get activeTab;
   VisibilityFilter get sprintListFilter;
   VisibilityFilter get taskListFilter;
+  BuiltList<TaskItem> get recentlyCompleted;
 
   // auth
   GoogleSignIn get googleSignIn;
@@ -43,6 +44,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
     ..activeTab = AppTab.tasks
     ..sprintListFilter = VisibilityFilter.init(showScheduled: true, showCompleted: true, showActiveSprint: true).toBuilder()
     ..taskListFilter = VisibilityFilter.init().toBuilder()
+    ..recentlyCompleted = ListBuilder()
     ..tokenRetrieved = false
     ..googleSignIn = GoogleSignIn(
         scopes: [

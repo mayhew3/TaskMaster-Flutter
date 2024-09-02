@@ -24,6 +24,8 @@ class _$AppState extends AppState {
   @override
   final VisibilityFilter taskListFilter;
   @override
+  final BuiltList<TaskItem> recentlyCompleted;
+  @override
   final GoogleSignIn googleSignIn;
   @override
   final UserCredential? firebaseUser;
@@ -44,6 +46,7 @@ class _$AppState extends AppState {
       required this.activeTab,
       required this.sprintListFilter,
       required this.taskListFilter,
+      required this.recentlyCompleted,
       required this.googleSignIn,
       this.firebaseUser,
       this.currentUser,
@@ -61,6 +64,8 @@ class _$AppState extends AppState {
         sprintListFilter, r'AppState', 'sprintListFilter');
     BuiltValueNullFieldError.checkNotNull(
         taskListFilter, r'AppState', 'taskListFilter');
+    BuiltValueNullFieldError.checkNotNull(
+        recentlyCompleted, r'AppState', 'recentlyCompleted');
     BuiltValueNullFieldError.checkNotNull(
         googleSignIn, r'AppState', 'googleSignIn');
     BuiltValueNullFieldError.checkNotNull(
@@ -86,6 +91,7 @@ class _$AppState extends AppState {
         activeTab == other.activeTab &&
         sprintListFilter == other.sprintListFilter &&
         taskListFilter == other.taskListFilter &&
+        recentlyCompleted == other.recentlyCompleted &&
         googleSignIn == other.googleSignIn &&
         firebaseUser == other.firebaseUser &&
         currentUser == other.currentUser &&
@@ -103,6 +109,7 @@ class _$AppState extends AppState {
     _$hash = $jc(_$hash, activeTab.hashCode);
     _$hash = $jc(_$hash, sprintListFilter.hashCode);
     _$hash = $jc(_$hash, taskListFilter.hashCode);
+    _$hash = $jc(_$hash, recentlyCompleted.hashCode);
     _$hash = $jc(_$hash, googleSignIn.hashCode);
     _$hash = $jc(_$hash, firebaseUser.hashCode);
     _$hash = $jc(_$hash, currentUser.hashCode);
@@ -122,6 +129,7 @@ class _$AppState extends AppState {
           ..add('activeTab', activeTab)
           ..add('sprintListFilter', sprintListFilter)
           ..add('taskListFilter', taskListFilter)
+          ..add('recentlyCompleted', recentlyCompleted)
           ..add('googleSignIn', googleSignIn)
           ..add('firebaseUser', firebaseUser)
           ..add('currentUser', currentUser)
@@ -174,6 +182,12 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   set taskListFilter(VisibilityFilterBuilder? taskListFilter) =>
       _$this._taskListFilter = taskListFilter;
 
+  ListBuilder<TaskItem>? _recentlyCompleted;
+  ListBuilder<TaskItem> get recentlyCompleted =>
+      _$this._recentlyCompleted ??= new ListBuilder<TaskItem>();
+  set recentlyCompleted(ListBuilder<TaskItem>? recentlyCompleted) =>
+      _$this._recentlyCompleted = recentlyCompleted;
+
   GoogleSignIn? _googleSignIn;
   GoogleSignIn? get googleSignIn => _$this._googleSignIn;
   set googleSignIn(GoogleSignIn? googleSignIn) =>
@@ -207,6 +221,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _activeTab = $v.activeTab;
       _sprintListFilter = $v.sprintListFilter.toBuilder();
       _taskListFilter = $v.taskListFilter.toBuilder();
+      _recentlyCompleted = $v.recentlyCompleted.toBuilder();
       _googleSignIn = $v.googleSignIn;
       _firebaseUser = $v.firebaseUser;
       _currentUser = $v.currentUser;
@@ -246,6 +261,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
                   activeTab, r'AppState', 'activeTab'),
               sprintListFilter: sprintListFilter.build(),
               taskListFilter: taskListFilter.build(),
+              recentlyCompleted: recentlyCompleted.build(),
               googleSignIn: BuiltValueNullFieldError.checkNotNull(
                   googleSignIn, r'AppState', 'googleSignIn'),
               firebaseUser: firebaseUser,
@@ -266,6 +282,8 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
         sprintListFilter.build();
         _$failedField = 'taskListFilter';
         taskListFilter.build();
+        _$failedField = 'recentlyCompleted';
+        recentlyCompleted.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             r'AppState', _$failedField, e.toString());

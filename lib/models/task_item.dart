@@ -9,6 +9,7 @@ import 'package:taskmaster/models/task_date_holder.dart';
 part 'task_item.g.dart';
 
 abstract class TaskItem with DateHolder implements Built<TaskItem, TaskItemBuilder> {
+  @BuiltValueSerializer(serializeNulls: true)
   static Serializer<TaskItem> get serializer => _$taskItemSerializer;
 
   int get id;
