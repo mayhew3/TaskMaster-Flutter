@@ -10,7 +10,7 @@ import 'delayed_checkbox.dart';
 
 class EditableTaskItemWidget extends StatelessWidget {
   final TaskItem taskItem;
-  // final GestureTapCallback? onTap;
+  final GestureTapCallback? onTap;
   final CheckCycleWaiter? onTaskCompleteToggle;
   // final CheckCycleWaiter? onTaskAssignmentToggle;
   // final ConfirmDismissCallback? onDismissed;
@@ -30,6 +30,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     this.endDate,
     required this.highlightSprint,
     this.onTaskCompleteToggle,
+    this.onTap,
   }) : super(key: key);
 
   bool hasPassed(DateTime? dateTime) {
@@ -265,7 +266,7 @@ class EditableTaskItemWidget extends StatelessWidget {
       key: TaskMasterKeys.taskItem(getKey()),
       // confirmDismiss: onDismissed,
       child: GestureDetector(
-        // onTap: onTap,
+        onTap: onTap,
         // onLongPress: onLongPress,
         // onForcePressStart: (ForcePressDetails forcePressDetails) {
         //   print('Force Press detected!');

@@ -6,16 +6,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/redux/selectors/selectors.dart';
+import 'package:taskmaster/typedefs.dart';
 
+import '../presentation/delayed_checkbox.dart';
 import '../presentation/details_screen.dart';
 import '../app_state.dart';
 import '../actions/actions.dart';
 import '../../models/models.dart';
 
-class TaskItemDetails extends StatelessWidget {
+class TaskItemDetailScreen extends StatelessWidget {
   final int id;
 
-  TaskItemDetails({Key? key, required this.id}) : super(key: key);
+  TaskItemDetailScreen({Key? key, required this.id}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +40,7 @@ class TaskItemDetails extends StatelessWidget {
 class _ViewModel {
   final TaskItem taskItem;
   final Function onDelete;
-  final Function(bool?) toggleCompleted;
+  final CheckCycleWaiter toggleCompleted;
 
   _ViewModel({
     required this.taskItem,
@@ -52,7 +54,7 @@ class _ViewModel {
     return _ViewModel(
       taskItem: taskItem,
       onDelete: () => store.dispatch(DeleteTaskItemAction(taskItem.id)),
-      toggleCompleted: (isComplete) => store.dispatch(CompleteTaskItemAction(taskItem, isComplete!)),
+      toggleCompleted: (checkState) => store.dispatch(CompleteTaskItemAction(taskItem, CheckState.inactive == checkState)),
     );
   }
 }

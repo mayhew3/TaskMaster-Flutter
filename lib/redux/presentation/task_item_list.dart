@@ -91,17 +91,15 @@ class TaskItemList extends StatelessWidget {
       // sprint: widget.sprint,
       // highlightSprint: (widget.sprint == null && activeSprint != null && taskItem.sprints.contains(activeSprint)),
       highlightSprint: false,
-      // onTap: () async {
-      //   await Navigator.of(context).push(
-      //     MaterialPageRoute(builder: (_) {
-      //       return DetailScreen(
-      //         taskItem: taskItem,
-      //         taskHelper: widget.taskHelper,
-      //       );
-      //     }),
-      //   );
-      //   setState(() {});
-      // },
+      onTap: () async {
+        await Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) {
+            return TaskItemDetailScreen(
+              id: taskItem.id,
+            );
+          }),
+        );
+      },
       // onLongPress: () => snoozeDialog(taskItem),
       // onForcePress: (ForcePressDetails forcePressDetails) => snoozeDialog(taskItem),
       onTaskCompleteToggle: (checkState) => viewModel.onCheckboxClicked(taskItem, checkState),

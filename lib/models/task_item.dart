@@ -54,4 +54,8 @@ abstract class TaskItem with DateHolder implements Built<TaskItem, TaskItemBuild
       b
         ..pendingCompletion = false;
 
+  DateTime? getFinishedCompletionDate() {
+    return pendingCompletion ? null : completionDate;
+  }
+
 }
