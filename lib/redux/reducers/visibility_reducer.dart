@@ -14,9 +14,19 @@ AppState _sprintFilterReducer(
 
 final taskVisibilityReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, UpdateTaskFilterAction>(_taskFilterReducer),
+  TypedReducer<AppState, ToggleTaskListShowScheduled>(_toggleTaskListShowScheduled),
+  TypedReducer<AppState, ToggleTaskListShowCompleted>(_toggleTaskListShowCompleted),
 ];
 
 AppState _taskFilterReducer(
     AppState state, UpdateTaskFilterAction action) {
   return state.rebuild((s) => s..taskListFilter = action.newFilter.toBuilder());
+}
+
+AppState _toggleTaskListShowScheduled(AppState state, ToggleTaskListShowScheduled action) {
+  return state.rebuild((s) => s..taskListFilter.showScheduled = !s.taskListFilter.showScheduled!);
+}
+
+AppState _toggleTaskListShowCompleted(AppState state, ToggleTaskListShowCompleted action) {
+  return state.rebuild((s) => s..taskListFilter.showCompleted = !s.taskListFilter.showCompleted!);
 }

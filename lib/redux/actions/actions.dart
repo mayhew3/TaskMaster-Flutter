@@ -71,6 +71,10 @@ class UpdateTaskFilterAction {
   }
 }
 
+class ToggleTaskListShowCompleted {}
+
+class ToggleTaskListShowScheduled {}
+
 class UpdateTabAction {
   final AppTab newTab;
 
