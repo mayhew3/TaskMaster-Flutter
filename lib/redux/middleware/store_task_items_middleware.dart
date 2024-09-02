@@ -18,23 +18,22 @@ Future<void> Function(
     NextDispatcher next,
     ) _createLoadTaskItems(TaskRepository repository) {
   return (Store<AppState> store, LoadTaskItemsAction action, NextDispatcher next) async {
+    next(action);
+
     var email = store.state.currentUser!.email;
     print("Fetching tasks for " + email);
     var idToken = await store.state.getIdToken();
     if (idToken == null) {
       throw new Exception("Cannot load tasks without id token.");
     }
-    repository.loadTasksRedux(email, idToken).then(
-          (dataPayload) {
-        store.dispatch(
-          TaskItemsLoadedAction(
-            dataPayload.taskItems,
-          ),
-        );
-      },
-    ).catchError((_) => store.dispatch(TaskItemsNotLoadedAction()));
 
-    next(action);
+    try {
+      var dataPayload = await repository.loadTasksRedux(email, idToken);
+      store.dispatch(TaskItemsLoadedAction(dataPayload.taskItems));
+    } catch (e) {
+      store.dispatch(TaskItemsNotLoadedAction());
+    }
+
   };
 }
 
@@ -65,7 +64,8 @@ Future<void> Function(
     if (idToken == null) {
       throw new Exception("Cannot load tasks without id token.");
     }
-    await repository.updateTask(action.updatedTaskItem, idToken);
+    var updated = await repository.updateTask(action.updatedTaskItem, idToken);
+    store.dispatch(TaskItemUpdated(updated));
   };
 }
 

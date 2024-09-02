@@ -26,6 +26,12 @@ class UpdateTaskItemAction {
   }
 }
 
+class TaskItemUpdated {
+  final TaskItem updatedTaskItem;
+
+  TaskItemUpdated(this.updatedTaskItem);
+}
+
 class DeleteTaskItemAction {
   final int id;
 

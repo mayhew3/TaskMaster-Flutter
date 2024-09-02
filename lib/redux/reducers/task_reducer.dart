@@ -9,6 +9,7 @@ final taskItemsReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, AddTaskItemAction>(_addTaskItem),
   TypedReducer<AppState, DeleteTaskItemAction>(_deleteTaskItem),
   TypedReducer<AppState, UpdateTaskItemAction>(_updateTaskItem),
+  TypedReducer<AppState, TaskItemUpdated>(_onUpdateTaskItem),
   TypedReducer<AppState, TaskItemsLoadedAction>(_setLoadedTaskItems),
   TypedReducer<AppState, TaskItemsNotLoadedAction>(_setNoTaskItems),
   TypedReducer<AppState, LogOutAction>(_setNoTaskItems),
@@ -26,7 +27,13 @@ AppState _deleteTaskItem(AppState state, DeleteTaskItemAction action) {
 
 AppState _updateTaskItem(AppState state, UpdateTaskItemAction action) {
   var listBuilder = state.taskItems.toBuilder()
-    ..map((taskItem) => taskItem.id == action.updatedTaskItem.id ? action.updatedTaskItem : taskItem);
+    ..map((taskItem) => taskItem.id == action.updatedTaskItem.id ? taskItem.rebuild((t) => t..pendingCompletion = true) : taskItem);
+  return state.rebuild((s) => s..taskItems = listBuilder);
+}
+
+AppState _onUpdateTaskItem(AppState state, TaskItemUpdated action) {
+  var listBuilder = state.taskItems.toBuilder()
+    ..map((taskItem) => taskItem.id == action.updatedTaskItem.id ? action.updatedTaskItem.rebuild((t) => t..pendingCompletion = false) : taskItem);
   return state.rebuild((s) => s..taskItems = listBuilder);
 }
 
