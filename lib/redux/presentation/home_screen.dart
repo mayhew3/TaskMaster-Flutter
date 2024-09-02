@@ -42,14 +42,12 @@ class HomeScreenState extends State<HomeScreen> {
                 FilterButton(
                   scheduledGetter: () => viewModel.showScheduled,
                   completedGetter: () => viewModel.showCompleted,
-                  toggleScheduled: StoreProvider.of(context).dispatch(ToggleTaskListShowScheduled()),
-                  toggleCompleted: StoreProvider.of(context).dispatch(ToggleTaskListShowCompleted()),
+                  toggleScheduled: () => StoreProvider.of<AppState>(context).dispatch(ToggleTaskListShowScheduled()),
+                  toggleCompleted: () => StoreProvider.of<AppState>(context).dispatch(ToggleTaskListShowCompleted()),
                 ),
                 IconButton(
                   icon: Icon(Icons.refresh),
-                  onPressed: () {
-                    StoreProvider.of<AppState>(context).dispatch(LoadTaskItemsAction());
-                  },
+                  onPressed: () => StoreProvider.of<AppState>(context).dispatch(LoadTaskItemsAction())
                 ),
               ],
             ),
