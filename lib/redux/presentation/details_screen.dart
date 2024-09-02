@@ -50,7 +50,7 @@ class DetailsScreen extends StatelessWidget {
         ],
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(8.0),
         child: ListView(
           children: <Widget>[
             Row(
