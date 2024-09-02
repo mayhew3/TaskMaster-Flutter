@@ -18,7 +18,7 @@ class DateUtil {
     if (dateTime == null) {
       return 'N/A';
     }
-    int thisYear = DateTime.now().year;
+    int thisYear = DateTime.timestamp().year;
     var localTime = timezoneHelper.getLocalTime(dateTime);
 
     DateFormat dateFormat = localTime.year == thisYear ?
@@ -35,7 +35,7 @@ class DateUtil {
     if (dateTime == null) {
       return 'N/A';
     }
-    int thisYear = DateTime.now().year;
+    int thisYear = DateTime.timestamp().year;
     var localTime = timezoneHelper.getLocalTime(dateTime);
 
     DateFormat dateFormat = localTime.year == thisYear ?

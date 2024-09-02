@@ -95,7 +95,7 @@ class TaskDateType {
     if (listThresholdInDays < 0) {
       return true;
     } else {
-      DateTime inXDays = DateTime.now().add(Duration(days: this.listThresholdInDays));
+      DateTime inXDays = DateTime.timestamp().add(Duration(days: this.listThresholdInDays));
       return dateFieldValue.isBefore(inXDays);
     }
   }

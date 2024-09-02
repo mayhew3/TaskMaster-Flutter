@@ -33,7 +33,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   }) : super(key: key);
 
   bool hasPassed(DateTime? dateTime) {
-    // var now = addMode ? this.endDate! : DateTime.now();
+    // var now = addMode ? this.endDate! : DateTime.timestamp();
     return dateTime == null ? false : dateTime.isBefore(DateTime.now());
   }
 
@@ -102,13 +102,13 @@ class EditableTaskItemWidget extends StatelessWidget {
   }
 
   bool dueInThreshold(int thresholdDays) {
-    DateTime inXDays = DateTime.now().add(Duration(days: thresholdDays));
+    DateTime inXDays = DateTime.timestamp().add(Duration(days: thresholdDays));
     var dueDate = taskItem.dueDate;
     return dueDate != null && dueDate.isBefore(inXDays);
   }
 
   bool dateInFutureThreshold(TaskDateType taskDateType, int thresholdDays) {
-    DateTime inXDays = DateTime.now().add(Duration(days: thresholdDays));
+    DateTime inXDays = DateTime.timestamp().add(Duration(days: thresholdDays));
     var dateField = taskDateType.dateFieldGetter(taskItem);
     var dateValue = dateField;
     return dateValue != null &&

@@ -129,7 +129,7 @@ class TaskItemList extends StatelessWidget {
   Card _createSummaryWidget(Sprint sprint, BuildContext context) {
     var startDate = sprint.startDate;
     var endDate = sprint.endDate;
-    var currentDay = DateTime.now().difference(startDate).inDays + 1;
+    var currentDay = DateTime.timestamp().difference(startDate).inDays + 1;
     var totalDays = endDate.difference(startDate).inDays;
     var sprintStr = "Active Sprint - Day " + currentDay.toString() + " of " + totalDays.toString();
 

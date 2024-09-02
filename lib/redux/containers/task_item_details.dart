@@ -56,7 +56,7 @@ class _ViewModel {
         store.dispatch(UpdateTaskItemAction(
             taskItem.rebuild((t) => t
               ..pendingCompletion = true
-              ..completionDate = t.completionDate == null ? DateTime.now() : null)
+              ..completionDate = t.completionDate == null ? DateTime.timestamp() : null)
         ));
       },
     );
