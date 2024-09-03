@@ -75,11 +75,11 @@ Future<void> Function(
       ..priority = b.priority
       ..duration = b.duration
       ..gamePoints = b.gamePoints
-      ..startDate = b.startDate
-      ..targetDate = b.targetDate
-      ..dueDate = b.dueDate
-      ..urgentDate = b.urgentDate
-      ..completionDate = b.completionDate
+      ..startDate = b.startDate?.toUtc()
+      ..targetDate = b.targetDate?.toUtc()
+      ..dueDate = b.dueDate?.toUtc()
+      ..urgentDate = b.urgentDate?.toUtc()
+      ..completionDate = b.completionDate?.toUtc()
       ..recurNumber = b.recurNumber
       ..recurUnit = b.recurUnit
       ..recurWait = b.recurWait

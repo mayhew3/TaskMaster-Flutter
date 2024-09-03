@@ -22,7 +22,7 @@ class TaskItemDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, _ViewModel>(
-      ignoreChange: (state) => taskItemSelector(state.taskItems, id) != null,
+      // ignoreChange: (state) => taskItemSelector(state.taskItems, id) != null,
       converter: (Store<AppState> store) {
         return _ViewModel.from(store, id);
       },
