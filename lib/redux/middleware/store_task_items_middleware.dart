@@ -65,7 +65,28 @@ Future<void> Function(
     if (idToken == null) {
       throw new Exception("Cannot load tasks without id token.");
     }
-    var updated = await repository.updateTask(action.taskItem, idToken);
+    var b = action.blueprint;
+    var toUpdate = action.taskItem.rebuild((t) => t
+      ..name = b.name
+      ..description = b.description
+      ..project = b.project
+      ..context = b.context
+      ..urgency = b.urgency
+      ..priority = b.priority
+      ..duration = b.duration
+      ..gamePoints = b.gamePoints
+      ..startDate = b.startDate
+      ..targetDate = b.targetDate
+      ..dueDate = b.dueDate
+      ..urgentDate = b.urgentDate
+      ..completionDate = b.completionDate
+      ..recurNumber = b.recurNumber
+      ..recurUnit = b.recurUnit
+      ..recurWait = b.recurWait
+      ..recurrenceId = b.recurrenceId
+      ..recurIteration = b.recurIteration
+    );
+    var updated = await repository.updateTask(toUpdate, idToken);
     store.dispatch(TaskItemUpdated(updated));
   };
 }
