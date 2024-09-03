@@ -65,7 +65,7 @@ Future<void> Function(
     if (idToken == null) {
       throw new Exception("Cannot load tasks without id token.");
     }
-    var updated = await repository.updateTask(action.updatedTaskItem, idToken);
+    var updated = await repository.updateTask(action.taskItem, idToken);
     store.dispatch(TaskItemUpdated(updated));
   };
 }

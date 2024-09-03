@@ -10,7 +10,7 @@ class TaskDateTypes {
     label: 'Start',
     textColor: TaskColors.startText,
     dateFieldGetter: (taskItem) => taskItem.startDate,
-    // dateFieldSetter: (taskItem, newDate) => taskItem.startDate = newDate,
+    dateFieldSetter: (taskItem, newDate) => taskItem.startDate = newDate,
     listThresholdInDays: -1,
   );
 
@@ -18,7 +18,7 @@ class TaskDateTypes {
     label: 'Target',
     textColor: TaskColors.targetText,
     dateFieldGetter: (taskItem) => taskItem.targetDate,
-    // dateFieldSetter: (taskItem, newDate) => taskItem.targetDate = newDate,
+    dateFieldSetter: (taskItem, newDate) => taskItem.targetDate = newDate,
     listThresholdInDays: 10,
   );
 
@@ -26,7 +26,7 @@ class TaskDateTypes {
     label: 'Urgent',
     textColor: TaskColors.urgentText,
     dateFieldGetter: (taskItem) => taskItem.urgentDate,
-    // dateFieldSetter: (taskItem, newDate) => taskItem.urgentDate = newDate,
+    dateFieldSetter: (taskItem, newDate) => taskItem.urgentDate = newDate,
     listThresholdInDays: 10,
   );
 
@@ -34,7 +34,7 @@ class TaskDateTypes {
     label: 'Due',
     textColor: TaskColors.dueText,
     dateFieldGetter: (taskItem) => taskItem.dueDate,
-    // dateFieldSetter: (taskItem, newDate) => taskItem.dueDate = newDate,
+    dateFieldSetter: (taskItem, newDate) => taskItem.dueDate = newDate,
     listThresholdInDays: 10,
   );
 
@@ -42,7 +42,7 @@ class TaskDateTypes {
     label: 'Completed',
     textColor: TaskColors.completedText,
     dateFieldGetter: (taskItem) => taskItem is TaskItem ? taskItem.completionDate : null,
-    // dateFieldSetter: (taskItem, newDate) => taskItem is TaskItem ? taskItem.completionDate = newDate : {},
+    dateFieldSetter: (taskItem, newDate) => taskItem is TaskItem ? taskItem.completionDate = newDate : {},
     listThresholdInDays: -1,
   );
 
@@ -74,14 +74,14 @@ class TaskDateType {
   final String label;
   final Color textColor;
   final DateFieldGetter dateFieldGetter;
-  // final DateFieldSetter dateFieldSetter;
+  final DateFieldSetter dateFieldSetter;
   final int listThresholdInDays;
 
   TaskDateType({
     required this.label,
     required this.textColor,
     required this.dateFieldGetter,
-    // required this.dateFieldSetter,
+    required this.dateFieldSetter,
     required this.listThresholdInDays,
   });
 

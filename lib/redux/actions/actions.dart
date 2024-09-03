@@ -1,3 +1,5 @@
+import 'package:taskmaster/models/task_item_blueprint.dart';
+
 import '../../models/models.dart';
 
 class LoadTaskItemsAction {}
@@ -16,13 +18,14 @@ class TaskItemsLoadedAction {
 }
 
 class UpdateTaskItemAction {
-  final TaskItem updatedTaskItem;
+  final TaskItem taskItem;
+  final TaskItemBlueprint blueprint;
 
-  UpdateTaskItemAction(this.updatedTaskItem);
+  UpdateTaskItemAction({required this.taskItem, required this.blueprint});
 
   @override
   String toString() {
-    return 'UpdateTaskItemAction{updatedTaskItem: $updatedTaskItem}';
+    return 'UpdateTaskItemAction{updatedTaskItem: $taskItem}';
   }
 }
 

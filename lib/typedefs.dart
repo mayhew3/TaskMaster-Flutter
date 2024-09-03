@@ -4,6 +4,7 @@ import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/redux/presentation/delayed_checkbox.dart';
 
 import 'models/task_date_holder.dart';
+import 'models/task_item_blueprint.dart';
 
 
 typedef UserUpdater(GoogleSignInAccount? account);
@@ -23,3 +24,4 @@ typedef List<TaskItem> TaskListGetter();
 typedef void CheckCycleWaiter(CheckState startingState);
 
 typedef DateTime? DateFieldGetter(DateHolder dateHolder);
+typedef void DateFieldSetter(TaskItemBlueprint blueprint, DateTime? newDate);

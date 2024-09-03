@@ -3,6 +3,7 @@
 // in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:taskmaster/redux/presentation/add_edit_screen.dart';
 import 'package:taskmaster/redux/presentation/readonly_task_field.dart';
 import 'package:taskmaster/redux/presentation/readonly_task_field_small.dart';
 import 'package:taskmaster/timezone_helper.dart';
@@ -152,7 +153,18 @@ class DetailsScreen extends StatelessWidget {
         key: TaskMasterKeys.editTaskItemFab,
         tooltip: "Edit Task Item",
         child: Icon(Icons.edit),
-        onPressed: () {},
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) {
+                return AddEditScreen(
+                  taskItem: taskItem,
+                  timezoneHelper: timezoneHelper,
+                );
+              },
+            ),
+          );
+        },
       ),
     );
   }

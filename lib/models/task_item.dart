@@ -2,6 +2,7 @@
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
+import 'package:taskmaster/models/task_item_blueprint.dart';
 
 /// This allows the `TaskItem` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
@@ -56,6 +57,32 @@ abstract class TaskItem with DateHolder implements Built<TaskItem, TaskItemBuild
 
   DateTime? getFinishedCompletionDate() {
     return pendingCompletion ? null : completionDate;
+  }
+
+  TaskItemBlueprint createCreateBlueprint() {
+    TaskItemBlueprint blueprint = TaskItemBlueprint();
+
+    blueprint.name = name;
+    blueprint.description = description;
+    blueprint.project = project;
+    blueprint.context = context;
+    blueprint.urgency = urgency;
+    blueprint.priority = priority;
+    blueprint.duration = duration;
+    blueprint.startDate = startDate;
+    blueprint.targetDate = targetDate;
+    blueprint.dueDate = dueDate;
+    blueprint.urgentDate = urgentDate;
+    blueprint.gamePoints = gamePoints;
+    blueprint.recurNumber = recurNumber;
+    blueprint.recurUnit = recurUnit;
+    blueprint.recurWait = recurWait;
+    blueprint.recurrenceId = recurrenceId;
+    blueprint.recurIteration = recurIteration;
+
+    // blueprint.taskRecurrenceBlueprint = TaskRecurrenceBlueprint();
+
+    return blueprint;
   }
 
 }
