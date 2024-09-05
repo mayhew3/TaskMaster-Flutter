@@ -19,6 +19,7 @@ List<Middleware<AppState>> createAuthenticationMiddleware(
     TypedMiddleware<AppState, LogIn>(_manualLogin(navigatorKey)),
     TypedMiddleware<AppState, LogOutAction>(_manualLogout(navigatorKey)),
     TypedMiddleware<AppState, InitTimezoneHelper>(_initTimezoneHelper(navigatorKey)),
+    TypedMiddleware<AppState, OnPersonVerified>(_onPersonVerified(navigatorKey)),
   ];
 }
 
@@ -57,7 +58,7 @@ void Function(
 
 void Function(
     Store<AppState> store,
-    dynamic action,
+    InitTimezoneHelper action,
     NextDispatcher next,
     ) _initTimezoneHelper(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {
@@ -102,17 +103,33 @@ void Function(
 
         var firebaseUser = await FirebaseAuth.instance.signInWithCredential(credential);
         String? idToken = await firebaseUser.user!.getIdToken();
+
         store.dispatch(OnAuthenticated(account, firebaseUser, idToken));
+        store.dispatch(VerifyPerson(account.email));
         if (store.state.appIsReady()) {
           await navigatorKey.currentState!.pushReplacementNamed(
               TaskMasterRoutes.home);
         }
-        // action.completer.complete(); // enable if needed later
       }
     });
     var account = await store.state.googleSignIn.signInSilently();
     if (account == null) {
       await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.login);
+    }
+  };
+}
+
+void Function(
+    Store<AppState> store,
+    OnPersonVerified action,
+    NextDispatcher next,
+    ) _onPersonVerified(GlobalKey<NavigatorState> navigatorKey,) {
+  return (store, action, next) async {
+    next(action);
+
+    if (store.state.appIsReady()) {
+      await navigatorKey.currentState!.pushReplacementNamed(
+          TaskMasterRoutes.home);
     }
   };
 }

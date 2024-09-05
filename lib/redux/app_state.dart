@@ -25,7 +25,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   VisibilityFilter get taskListFilter;
 
   // auth
-  int get personId;
+  int? get personId;
   GoogleSignIn get googleSignIn;
   UserCredential? get firebaseUser;
   GoogleSignInAccount? get currentUser;
@@ -62,10 +62,9 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
         ]
     )
     ..timezoneHelper = TimezoneHelper()
-    ..personId = 4 // todo: replace with real personId (this is commander.boffo)
   );
 
   bool appIsReady() {
-    return isAuthenticated() && timezoneHelper.timezoneInitialized;
+    return isAuthenticated() && personId != null && timezoneHelper.timezoneInitialized;
   }
 }

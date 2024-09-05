@@ -40,10 +40,39 @@ class TaskRepository {
     return getUriWithParameters(path, null);
   }
 
-  Future<DataPayload> loadTasks(String email, String idToken) async {
+  Future<int?> getPersonId(String email, String idToken) async {
 
     var queryParameters = {
       'email': email
+    };
+
+    var uri = getUriWithParameters('/api/persons', queryParameters);
+
+    final response = await this.client.get(uri,
+      headers: {HttpHeaders.authorizationHeader: idToken,
+        HttpHeaders.contentTypeHeader: 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      try {
+        var jsonObj = json.decode(response.body);
+
+        return jsonObj['person']?['id'];
+
+      } catch(exception, stackTrace) {
+        print(exception);
+        print(stackTrace);
+        throw Exception('Error retrieving person data from the server. Talk to Mayhew.');
+      }
+    } else {
+      throw Exception('Failed to fetch person. Talk to Mayhew.');
+    }
+  }
+
+  Future<DataPayload> loadTasks(int personId, String idToken) async {
+
+    var queryParameters = {
+      'person_id': personId.toString()
     };
 
     var uri = getUriWithParameters('/api/tasks', queryParameters);

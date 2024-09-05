@@ -147,24 +147,41 @@ class MockTaskRepository extends _i1.Mock implements _i5.TaskRepository {
       ) as Uri);
 
   @override
-  _i6.Future<_i3.DataPayload> loadTasks(
+  _i6.Future<int?> getPersonId(
     String? email,
     String? idToken,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
-          #loadTasksRedux,
+          #getPersonId,
           [
             email,
+            idToken,
+          ],
+        ),
+        returnValue: _i6.Future<int?>.value(),
+        returnValueForMissingStub: _i6.Future<int?>.value(),
+      ) as _i6.Future<int?>);
+
+  @override
+  _i6.Future<_i3.DataPayload> loadTasks(
+    int? personId,
+    String? idToken,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #loadTasks,
+          [
+            personId,
             idToken,
           ],
         ),
         returnValue: _i6.Future<_i3.DataPayload>.value(_FakeDataPayload_2(
           this,
           Invocation.method(
-            #loadTasksRedux,
+            #loadTasks,
             [
-              email,
+              personId,
               idToken,
             ],
           ),
@@ -173,9 +190,9 @@ class MockTaskRepository extends _i1.Mock implements _i5.TaskRepository {
             _i6.Future<_i3.DataPayload>.value(_FakeDataPayload_2(
           this,
           Invocation.method(
-            #loadTasksRedux,
+            #loadTasks,
             [
-              email,
+              personId,
               idToken,
             ],
           ),
@@ -190,7 +207,7 @@ class MockTaskRepository extends _i1.Mock implements _i5.TaskRepository {
   ) =>
       (super.noSuchMethod(
         Invocation.method(
-          #addTaskRedux,
+          #addTask,
           [
             blueprint,
             idToken,
@@ -200,7 +217,7 @@ class MockTaskRepository extends _i1.Mock implements _i5.TaskRepository {
         returnValue: _i6.Future<_i4.TaskItem>.value(_FakeTaskItem_3(
           this,
           Invocation.method(
-            #addTaskRedux,
+            #addTask,
             [
               blueprint,
               idToken,
@@ -212,7 +229,7 @@ class MockTaskRepository extends _i1.Mock implements _i5.TaskRepository {
             _i6.Future<_i4.TaskItem>.value(_FakeTaskItem_3(
           this,
           Invocation.method(
-            #addTaskRedux,
+            #addTask,
             [
               blueprint,
               idToken,

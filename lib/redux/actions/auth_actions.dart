@@ -51,3 +51,17 @@ class OnLogoutFail {
     return "OnLogoutFail{There was an error logging out: $error}";
   }
 }
+
+class VerifyPerson {
+  final String email;
+
+  VerifyPerson(this.email);
+}
+
+class OnPersonVerified {
+  final int personId;
+
+  OnPersonVerified(this.personId);
+}
+
+class OnPersonRejected {}

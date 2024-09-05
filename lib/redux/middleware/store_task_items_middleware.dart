@@ -1,6 +1,7 @@
 import 'package:redux/redux.dart';
 import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
+import 'package:taskmaster/redux/actions/auth_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/task_repository.dart';
 
@@ -8,6 +9,7 @@ import '../actions/actions.dart';
 
 List<Middleware<AppState>> createStoreTaskItemsMiddleware(TaskRepository repository) {
   return [
+    TypedMiddleware<AppState, VerifyPerson>(_verifyPerson(repository)),
     TypedMiddleware<AppState, LoadTaskItemsAction>(_createLoadTaskItems(repository)),
     TypedMiddleware<AppState, AddTaskItemAction>(_createNewTaskItem(repository)),
     TypedMiddleware<AppState, UpdateTaskItemAction>(_updateTaskItem(repository)),
@@ -17,23 +19,59 @@ List<Middleware<AppState>> createStoreTaskItemsMiddleware(TaskRepository reposit
 
 Future<void> Function(
     Store<AppState>,
-    LoadTaskItemsAction action,
+    VerifyPerson action,
     NextDispatcher next,
-    ) _createLoadTaskItems(TaskRepository repository) {
-  return (Store<AppState> store, LoadTaskItemsAction action, NextDispatcher next) async {
+    ) _verifyPerson(TaskRepository repository) {
+  return (Store<AppState> store, VerifyPerson action, NextDispatcher next) async {
     next(action);
 
     var email = store.state.currentUser!.email;
-    print("Fetching tasks for " + email);
+    print("Verify person account for " + email + "...");
     var idToken = await store.state.getIdToken();
     if (idToken == null) {
       throw new Exception("Cannot load tasks without id token.");
     }
 
     try {
-      var dataPayload = await repository.loadTasks(email, idToken);
+      var personId = await repository.getPersonId(email, idToken);
+      if (personId == null) {
+        store.dispatch(OnPersonRejected());
+      } else {
+        store.dispatch(OnPersonVerified(personId));
+      }
+    } catch (e) {
+      print("Error fetching person for email: $e");
+      store.dispatch(OnPersonRejected());
+    }
+
+  };
+}
+
+
+Future<void> Function(
+    Store<AppState>,
+    LoadTaskItemsAction action,
+    NextDispatcher next,
+    ) _createLoadTaskItems(TaskRepository repository) {
+  return (Store<AppState> store, LoadTaskItemsAction action, NextDispatcher next) async {
+    next(action);
+
+    var personId = store.state.personId;
+    if (personId == null) {
+      throw new Exception("Cannot load tasks without person id.");
+    }
+
+    var idToken = await store.state.getIdToken();
+    if (idToken == null) {
+      throw new Exception("Cannot load tasks without id token.");
+    }
+
+    print("Fetching tasks for person_id $personId...");
+    try {
+      var dataPayload = await repository.loadTasks(personId, idToken);
       store.dispatch(TaskItemsLoadedAction(dataPayload.taskItems));
     } catch (e) {
+      print("Error fetching task list: $e");
       store.dispatch(TaskItemsNotLoadedAction());
     }
 
@@ -47,11 +85,17 @@ Future<void> Function(
     ) _createNewTaskItem(TaskRepository repository) {
   return (Store<AppState> store, AddTaskItemAction action, NextDispatcher next) async {
     next(action);
+
+    var personId = store.state.personId;
+    if (personId == null) {
+      throw new Exception("Cannot load tasks without person id.");
+    }
+
     var idToken = await store.state.getIdToken();
     if (idToken == null) {
       throw new Exception("Cannot load tasks without id token.");
     }
-    var taskItem = await repository.addTask(action.blueprint, idToken, store.state.personId);
+    var taskItem = await repository.addTask(action.blueprint, idToken, personId);
     store.dispatch(TaskItemAdded(taskItem: taskItem));
   };
 }

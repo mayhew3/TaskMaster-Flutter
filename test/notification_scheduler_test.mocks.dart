@@ -234,13 +234,6 @@ class MockAppState extends _i1.Mock implements _i6.AppState {
       ) as _i3.VisibilityFilter);
 
   @override
-  int get personId => (super.noSuchMethod(
-        Invocation.getter(#personId),
-        returnValue: 0,
-        returnValueForMissingStub: 0,
-      ) as int);
-
-  @override
   _i4.GoogleSignIn get googleSignIn => (super.noSuchMethod(
         Invocation.getter(#googleSignIn),
         returnValue: _FakeGoogleSignIn_2(
@@ -433,24 +426,41 @@ class MockTaskRepository extends _i1.Mock implements _i10.TaskRepository {
       ) as Uri);
 
   @override
-  _i9.Future<_i8.DataPayload> loadTasks(
+  _i9.Future<int?> getPersonId(
     String? email,
     String? idToken,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
-          #loadTasksRedux,
+          #getPersonId,
           [
             email,
+            idToken,
+          ],
+        ),
+        returnValue: _i9.Future<int?>.value(),
+        returnValueForMissingStub: _i9.Future<int?>.value(),
+      ) as _i9.Future<int?>);
+
+  @override
+  _i9.Future<_i8.DataPayload> loadTasks(
+    int? personId,
+    String? idToken,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #loadTasks,
+          [
+            personId,
             idToken,
           ],
         ),
         returnValue: _i9.Future<_i8.DataPayload>.value(_FakeDataPayload_8(
           this,
           Invocation.method(
-            #loadTasksRedux,
+            #loadTasks,
             [
-              email,
+              personId,
               idToken,
             ],
           ),
@@ -459,9 +469,9 @@ class MockTaskRepository extends _i1.Mock implements _i10.TaskRepository {
             _i9.Future<_i8.DataPayload>.value(_FakeDataPayload_8(
           this,
           Invocation.method(
-            #loadTasksRedux,
+            #loadTasks,
             [
-              email,
+              personId,
               idToken,
             ],
           ),
@@ -476,7 +486,7 @@ class MockTaskRepository extends _i1.Mock implements _i10.TaskRepository {
   ) =>
       (super.noSuchMethod(
         Invocation.method(
-          #addTaskRedux,
+          #addTask,
           [
             blueprint,
             idToken,
@@ -486,7 +496,7 @@ class MockTaskRepository extends _i1.Mock implements _i10.TaskRepository {
         returnValue: _i9.Future<_i3.TaskItem>.value(_FakeTaskItem_9(
           this,
           Invocation.method(
-            #addTaskRedux,
+            #addTask,
             [
               blueprint,
               idToken,
@@ -498,7 +508,7 @@ class MockTaskRepository extends _i1.Mock implements _i10.TaskRepository {
             _i9.Future<_i3.TaskItem>.value(_FakeTaskItem_9(
           this,
           Invocation.method(
-            #addTaskRedux,
+            #addTask,
             [
               blueprint,
               idToken,

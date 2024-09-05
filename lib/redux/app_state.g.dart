@@ -26,7 +26,7 @@ class _$AppState extends AppState {
   @override
   final VisibilityFilter taskListFilter;
   @override
-  final int personId;
+  final int? personId;
   @override
   final GoogleSignIn googleSignIn;
   @override
@@ -51,7 +51,7 @@ class _$AppState extends AppState {
       required this.activeTab,
       required this.sprintListFilter,
       required this.taskListFilter,
-      required this.personId,
+      this.personId,
       required this.googleSignIn,
       this.firebaseUser,
       this.currentUser,
@@ -72,7 +72,6 @@ class _$AppState extends AppState {
         sprintListFilter, r'AppState', 'sprintListFilter');
     BuiltValueNullFieldError.checkNotNull(
         taskListFilter, r'AppState', 'taskListFilter');
-    BuiltValueNullFieldError.checkNotNull(personId, r'AppState', 'personId');
     BuiltValueNullFieldError.checkNotNull(
         googleSignIn, r'AppState', 'googleSignIn');
     BuiltValueNullFieldError.checkNotNull(
@@ -288,8 +287,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
                   activeTab, r'AppState', 'activeTab'),
               sprintListFilter: sprintListFilter.build(),
               taskListFilter: taskListFilter.build(),
-              personId: BuiltValueNullFieldError.checkNotNull(
-                  personId, r'AppState', 'personId'),
+              personId: personId,
               googleSignIn: BuiltValueNullFieldError.checkNotNull(
                   googleSignIn, r'AppState', 'googleSignIn'),
               firebaseUser: firebaseUser,
