@@ -31,7 +31,7 @@ Future<void> Function(
     }
 
     try {
-      var dataPayload = await repository.loadTasksRedux(email, idToken);
+      var dataPayload = await repository.loadTasks(email, idToken);
       store.dispatch(TaskItemsLoadedAction(dataPayload.taskItems));
     } catch (e) {
       store.dispatch(TaskItemsNotLoadedAction());
@@ -51,7 +51,7 @@ Future<void> Function(
     if (idToken == null) {
       throw new Exception("Cannot load tasks without id token.");
     }
-    var taskItem = await repository.addTaskRedux(action.blueprint, idToken, store.state.personId);
+    var taskItem = await repository.addTask(action.blueprint, idToken, store.state.personId);
     store.dispatch(TaskItemAdded(taskItem: taskItem));
   };
 }

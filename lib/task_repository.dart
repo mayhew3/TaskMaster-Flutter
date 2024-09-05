@@ -40,7 +40,7 @@ class TaskRepository {
     return getUriWithParameters(path, null);
   }
 
-  Future<DataPayload> loadTasksRedux(String email, String idToken) async {
+  Future<DataPayload> loadTasks(String email, String idToken) async {
 
     var queryParameters = {
       'email': email
@@ -87,7 +87,7 @@ class TaskRepository {
     }
   }
 
-  Future<TaskItem> addTaskRedux(TaskItemBlueprint blueprint, String idToken, int personId) async {
+  Future<TaskItem> addTask(TaskItemBlueprint blueprint, String idToken, int personId) async {
 
     var taskObj = blueprint.toJson();
 

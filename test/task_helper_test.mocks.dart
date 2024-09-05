@@ -147,7 +147,7 @@ class MockTaskRepository extends _i1.Mock implements _i5.TaskRepository {
       ) as Uri);
 
   @override
-  _i6.Future<_i3.DataPayload> loadTasksRedux(
+  _i6.Future<_i3.DataPayload> loadTasks(
     String? email,
     String? idToken,
   ) =>
@@ -183,7 +183,7 @@ class MockTaskRepository extends _i1.Mock implements _i5.TaskRepository {
       ) as _i6.Future<_i3.DataPayload>);
 
   @override
-  _i6.Future<_i4.TaskItem> addTaskRedux(
+  _i6.Future<_i4.TaskItem> addTask(
     _i7.TaskItemBlueprint? blueprint,
     String? idToken,
     int? personId,
