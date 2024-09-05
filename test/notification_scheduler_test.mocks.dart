@@ -11,6 +11,7 @@ import 'package:http/http.dart' as _i7;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:taskmaster/models/data_payload.dart' as _i8;
 import 'package:taskmaster/models/models.dart' as _i3;
+import 'package:taskmaster/models/task_item_blueprint.dart' as _i11;
 import 'package:taskmaster/redux/app_state.dart' as _i6;
 import 'package:taskmaster/task_repository.dart' as _i10;
 import 'package:taskmaster/timezone_helper.dart' as _i5;
@@ -233,6 +234,13 @@ class MockAppState extends _i1.Mock implements _i6.AppState {
       ) as _i3.VisibilityFilter);
 
   @override
+  int get personId => (super.noSuchMethod(
+        Invocation.getter(#personId),
+        returnValue: 0,
+        returnValueForMissingStub: 0,
+      ) as int);
+
+  @override
   _i4.GoogleSignIn get googleSignIn => (super.noSuchMethod(
         Invocation.getter(#googleSignIn),
         returnValue: _FakeGoogleSignIn_2(
@@ -279,6 +287,16 @@ class MockAppState extends _i1.Mock implements _i6.AppState {
   bool isAuthenticated() => (super.noSuchMethod(
         Invocation.method(
           #isAuthenticated,
+          [],
+        ),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  bool appIsReady() => (super.noSuchMethod(
+        Invocation.method(
+          #appIsReady,
           [],
         ),
         returnValue: false,
@@ -452,15 +470,17 @@ class MockTaskRepository extends _i1.Mock implements _i10.TaskRepository {
 
   @override
   _i9.Future<_i3.TaskItem> addTaskRedux(
-    _i3.TaskItem? taskItem,
+    _i11.TaskItemBlueprint? blueprint,
     String? idToken,
+    int? personId,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
           #addTaskRedux,
           [
-            taskItem,
+            blueprint,
             idToken,
+            personId,
           ],
         ),
         returnValue: _i9.Future<_i3.TaskItem>.value(_FakeTaskItem_9(
@@ -468,8 +488,9 @@ class MockTaskRepository extends _i1.Mock implements _i10.TaskRepository {
           Invocation.method(
             #addTaskRedux,
             [
-              taskItem,
+              blueprint,
               idToken,
+              personId,
             ],
           ),
         )),
@@ -479,8 +500,9 @@ class MockTaskRepository extends _i1.Mock implements _i10.TaskRepository {
           Invocation.method(
             #addTaskRedux,
             [
-              taskItem,
+              blueprint,
               idToken,
+              personId,
             ],
           ),
         )),

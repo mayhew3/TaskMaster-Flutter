@@ -501,9 +501,8 @@ class AddEditScreenState extends State<AddEditScreen> {
 
                 if (editMode()) {
                   StoreProvider.of<AppState>(context).dispatch(UpdateTaskItemAction(taskItem: taskItem!, blueprint: blueprint));
-                  // var updatedItem = await widget.taskHelper.updateTask(taskItem!, blueprint, (callback) => setState(() => callback()));
                 } else { // add mode
-                  throw new Exception("Add unsupported.");
+                  StoreProvider.of<AppState>(context).dispatch(AddTaskItemAction(blueprint: blueprint));
                   // await widget.taskHelper.addTask(blueprint, (callback) => setState(() => callback()));
                 }
               }

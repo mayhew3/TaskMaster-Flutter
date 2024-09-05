@@ -13,6 +13,8 @@ class _$HomeScreenViewModel extends HomeScreenViewModel {
   final bool showScheduled;
   @override
   final AppTab activeTab;
+  @override
+  final TimezoneHelper timezoneHelper;
 
   factory _$HomeScreenViewModel(
           [void Function(HomeScreenViewModelBuilder)? updates]) =>
@@ -21,7 +23,8 @@ class _$HomeScreenViewModel extends HomeScreenViewModel {
   _$HomeScreenViewModel._(
       {required this.showCompleted,
       required this.showScheduled,
-      required this.activeTab})
+      required this.activeTab,
+      required this.timezoneHelper})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(
         showCompleted, r'HomeScreenViewModel', 'showCompleted');
@@ -29,6 +32,8 @@ class _$HomeScreenViewModel extends HomeScreenViewModel {
         showScheduled, r'HomeScreenViewModel', 'showScheduled');
     BuiltValueNullFieldError.checkNotNull(
         activeTab, r'HomeScreenViewModel', 'activeTab');
+    BuiltValueNullFieldError.checkNotNull(
+        timezoneHelper, r'HomeScreenViewModel', 'timezoneHelper');
   }
 
   @override
@@ -46,7 +51,8 @@ class _$HomeScreenViewModel extends HomeScreenViewModel {
     return other is HomeScreenViewModel &&
         showCompleted == other.showCompleted &&
         showScheduled == other.showScheduled &&
-        activeTab == other.activeTab;
+        activeTab == other.activeTab &&
+        timezoneHelper == other.timezoneHelper;
   }
 
   @override
@@ -55,6 +61,7 @@ class _$HomeScreenViewModel extends HomeScreenViewModel {
     _$hash = $jc(_$hash, showCompleted.hashCode);
     _$hash = $jc(_$hash, showScheduled.hashCode);
     _$hash = $jc(_$hash, activeTab.hashCode);
+    _$hash = $jc(_$hash, timezoneHelper.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -64,7 +71,8 @@ class _$HomeScreenViewModel extends HomeScreenViewModel {
     return (newBuiltValueToStringHelper(r'HomeScreenViewModel')
           ..add('showCompleted', showCompleted)
           ..add('showScheduled', showScheduled)
-          ..add('activeTab', activeTab))
+          ..add('activeTab', activeTab)
+          ..add('timezoneHelper', timezoneHelper))
         .toString();
   }
 }
@@ -87,6 +95,11 @@ class HomeScreenViewModelBuilder
   AppTab? get activeTab => _$this._activeTab;
   set activeTab(AppTab? activeTab) => _$this._activeTab = activeTab;
 
+  TimezoneHelper? _timezoneHelper;
+  TimezoneHelper? get timezoneHelper => _$this._timezoneHelper;
+  set timezoneHelper(TimezoneHelper? timezoneHelper) =>
+      _$this._timezoneHelper = timezoneHelper;
+
   HomeScreenViewModelBuilder();
 
   HomeScreenViewModelBuilder get _$this {
@@ -95,6 +108,7 @@ class HomeScreenViewModelBuilder
       _showCompleted = $v.showCompleted;
       _showScheduled = $v.showScheduled;
       _activeTab = $v.activeTab;
+      _timezoneHelper = $v.timezoneHelper;
       _$v = null;
     }
     return this;
@@ -122,7 +136,9 @@ class HomeScreenViewModelBuilder
             showScheduled: BuiltValueNullFieldError.checkNotNull(
                 showScheduled, r'HomeScreenViewModel', 'showScheduled'),
             activeTab: BuiltValueNullFieldError.checkNotNull(
-                activeTab, r'HomeScreenViewModel', 'activeTab'));
+                activeTab, r'HomeScreenViewModel', 'activeTab'),
+            timezoneHelper: BuiltValueNullFieldError.checkNotNull(
+                timezoneHelper, r'HomeScreenViewModel', 'timezoneHelper'));
     replace(_$result);
     return _$result;
   }

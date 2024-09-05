@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:taskmaster/models/data_payload.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/models/serializers.dart';
 
@@ -86,10 +87,11 @@ class TaskRepository {
     }
   }
 
-  Future<TaskItem> addTaskRedux(TaskItem taskItem, String idToken) async {
+  Future<TaskItem> addTaskRedux(TaskItemBlueprint blueprint, String idToken, int personId) async {
 
-    var taskObj = serializers.serializeWith(TaskItem.serializer, taskItem)!;
+    var taskObj = blueprint.toJson();
 
+    taskObj['person_id'] = personId;
     var payload = {
       "task": taskObj
     };

@@ -1,4 +1,6 @@
 import 'package:redux/redux.dart';
+import 'package:taskmaster/models/models.dart';
+import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/task_repository.dart';
 
@@ -49,10 +51,10 @@ Future<void> Function(
     if (idToken == null) {
       throw new Exception("Cannot load tasks without id token.");
     }
-    await repository.addTaskRedux(action.taskItem, idToken);
+    var taskItem = await repository.addTaskRedux(action.blueprint, idToken, store.state.personId);
+    store.dispatch(TaskItemAdded(taskItem: taskItem));
   };
 }
-
 
 Future<void> Function(
     Store<AppState>,
@@ -66,26 +68,7 @@ Future<void> Function(
       throw new Exception("Cannot load tasks without id token.");
     }
     var b = action.blueprint;
-    var toUpdate = action.taskItem.rebuild((t) => t
-      ..name = b.name
-      ..description = b.description
-      ..project = b.project
-      ..context = b.context
-      ..urgency = b.urgency
-      ..priority = b.priority
-      ..duration = b.duration
-      ..gamePoints = b.gamePoints
-      ..startDate = b.startDate?.toUtc()
-      ..targetDate = b.targetDate?.toUtc()
-      ..dueDate = b.dueDate?.toUtc()
-      ..urgentDate = b.urgentDate?.toUtc()
-      ..completionDate = b.completionDate?.toUtc()
-      ..recurNumber = b.recurNumber
-      ..recurUnit = b.recurUnit
-      ..recurWait = b.recurWait
-      ..recurrenceId = b.recurrenceId
-      ..recurIteration = b.recurIteration
-    );
+    var toUpdate = action.taskItem.rebuild((t) => _fromBlueprint(t, b));
     var updated = await repository.updateTask(toUpdate, idToken);
     store.dispatch(TaskItemUpdated(updated));
   };
@@ -107,5 +90,30 @@ Future<void> Function(
     var updated = await repository.updateTask(completed, idToken);
     store.dispatch(TaskItemCompleted(updated, action.complete));
   };
+}
+
+
+// helper methods
+
+TaskItemBuilder _fromBlueprint(TaskItemBuilder t, TaskItemBlueprint b) {
+  return t
+    ..name = b.name
+    ..description = b.description
+    ..project = b.project
+    ..context = b.context
+    ..urgency = b.urgency
+    ..priority = b.priority
+    ..duration = b.duration
+    ..gamePoints = b.gamePoints
+    ..startDate = b.startDate?.toUtc()
+    ..targetDate = b.targetDate?.toUtc()
+    ..dueDate = b.dueDate?.toUtc()
+    ..urgentDate = b.urgentDate?.toUtc()
+    ..completionDate = b.completionDate?.toUtc()
+    ..recurNumber = b.recurNumber
+    ..recurUnit = b.recurUnit
+    ..recurWait = b.recurWait
+    ..recurrenceId = b.recurrenceId
+    ..recurIteration = b.recurIteration;
 }
 

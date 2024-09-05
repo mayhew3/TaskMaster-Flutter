@@ -1,8 +1,15 @@
 import 'dart:math';
 
+import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 
+/// This allows the `TaskItemBlueprint` class to access private members in
+/// the generated file. The value for this is *.g.dart, where
+/// the star denotes the source file name.
+part 'task_item_blueprint.g.dart';
+
+@JsonSerializable(fieldRename: FieldRename.snake)
 class TaskItemBlueprint with DateHolder {
 
   String? name;
@@ -29,11 +36,17 @@ class TaskItemBlueprint with DateHolder {
   int? recurrenceId;
   int? recurIteration;
 
+  @JsonKey(includeToJson: false)
   late int tmpId;
 
   TaskItemBlueprint() {
     tmpId = new Random().nextInt(60000);
   }
+
+  /// `toJson` is the convention for a class to declare support for serialization
+  /// to JSON. The implementation simply calls the private, generated
+  /// helper method `_$TaskItemFormToJson`.
+  Map<String, dynamic> toJson() => _$TaskItemBlueprintToJson(this);
 
   bool isScheduledRecurrence() {
     var recurWaitValue = recurWait;

@@ -6,7 +6,7 @@ import '../actions/actions.dart';
 import '../app_state.dart';
 
 final taskItemsReducer = <AppState Function(AppState, dynamic)>[
-  TypedReducer<AppState, AddTaskItemAction>(_addTaskItem),
+  TypedReducer<AppState, TaskItemAdded>(_taskItemAdded),
   TypedReducer<AppState, DeleteTaskItemAction>(_deleteTaskItem),
   TypedReducer<AppState, TaskItemUpdated>(_onUpdateTaskItem),
   TypedReducer<AppState, CompleteTaskItemAction>(_completeTaskItem),
@@ -17,7 +17,7 @@ final taskItemsReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, ClearRecentlyCompleted>(_clearRecentlyCompleted),
 ];
 
-AppState _addTaskItem(AppState state, AddTaskItemAction action) {
+AppState _taskItemAdded(AppState state, TaskItemAdded action) {
   var listBuilder = state.taskItems.toBuilder()..add(action.taskItem);
   return state.rebuild((s) => s..taskItems = listBuilder);
 }

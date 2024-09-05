@@ -9,6 +9,7 @@ import 'package:http/http.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:taskmaster/models/data_payload.dart' as _i3;
 import 'package:taskmaster/models/task_item.dart' as _i4;
+import 'package:taskmaster/models/task_item_blueprint.dart' as _i7;
 import 'package:taskmaster/task_repository.dart' as _i5;
 
 // ignore_for_file: type=lint
@@ -183,15 +184,17 @@ class MockTaskRepository extends _i1.Mock implements _i5.TaskRepository {
 
   @override
   _i6.Future<_i4.TaskItem> addTaskRedux(
-    _i4.TaskItem? taskItem,
+    _i7.TaskItemBlueprint? blueprint,
     String? idToken,
+    int? personId,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
           #addTaskRedux,
           [
-            taskItem,
+            blueprint,
             idToken,
+            personId,
           ],
         ),
         returnValue: _i6.Future<_i4.TaskItem>.value(_FakeTaskItem_3(
@@ -199,8 +202,9 @@ class MockTaskRepository extends _i1.Mock implements _i5.TaskRepository {
           Invocation.method(
             #addTaskRedux,
             [
-              taskItem,
+              blueprint,
               idToken,
+              personId,
             ],
           ),
         )),
@@ -210,8 +214,9 @@ class MockTaskRepository extends _i1.Mock implements _i5.TaskRepository {
           Invocation.method(
             #addTaskRedux,
             [
-              taskItem,
+              blueprint,
               idToken,
+              personId,
             ],
           ),
         )),

@@ -25,7 +25,7 @@ class UpdateTaskItemAction {
 
   @override
   String toString() {
-    return 'UpdateTaskItemAction{updatedTaskItem: $taskItem}';
+    return 'UpdateTaskItemAction{taskItem: $taskItem, blueprint: $blueprint}';
   }
 }
 
@@ -61,13 +61,24 @@ class DeleteTaskItemAction {
 }
 
 class AddTaskItemAction {
-  final TaskItem taskItem;
+  final TaskItemBlueprint blueprint;
 
-  AddTaskItemAction(this.taskItem);
+  AddTaskItemAction({required this.blueprint});
 
   @override
   String toString() {
-    return 'AddTaskItemAction{taskItem: $taskItem}';
+    return 'AddTaskItemAction{blueprint: $blueprint}';
+  }
+}
+
+class TaskItemAdded {
+  final TaskItem taskItem;
+
+  TaskItemAdded({required this.taskItem});
+
+  @override
+  String toString() {
+    return 'TaskItemAdded{taskItem: $taskItem}';
   }
 }
 
