@@ -20,6 +20,7 @@ List<Middleware<AppState>> createAuthenticationMiddleware(
     TypedMiddleware<AppState, LogOutAction>(_manualLogout(navigatorKey)),
     TypedMiddleware<AppState, InitTimezoneHelper>(_initTimezoneHelper(navigatorKey)),
     TypedMiddleware<AppState, OnPersonVerified>(_onPersonVerified(navigatorKey)),
+    TypedMiddleware<AppState, OnPersonRejected>(_onPersonRejected(navigatorKey)),
   ];
 }
 
@@ -69,6 +70,18 @@ void Function(
       await navigatorKey.currentState!.pushReplacementNamed(
           TaskMasterRoutes.home);
     }
+  };
+}
+
+void Function(
+    Store<AppState> store,
+    OnPersonRejected action,
+    NextDispatcher next,
+    ) _onPersonRejected(GlobalKey<NavigatorState> navigatorKey,) {
+  return (store, action, next) async {
+    print("_onPersonRejected!");
+    next(action);
+    await store.state.googleSignIn.disconnect();
   };
 }
 
