@@ -7,6 +7,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 
 import '../../keys.dart';
+import '../actions/actions.dart';
 import '../app_state.dart';
 import '../../models/models.dart';
 
@@ -55,7 +56,7 @@ class _ViewModel {
     return _ViewModel(
       activeTab: store.state.activeTab,
       onTabSelected: (index) {
-        // store.dispatch(UpdateTabAction((AppTab.values[index])));
+        store.dispatch(UpdateTabAction((AppTab.values[index])));
       },
     );
   }

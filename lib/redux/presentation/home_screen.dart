@@ -7,6 +7,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:taskmaster/redux/containers/filtered_task_items.dart';
 import 'package:taskmaster/redux/presentation/add_edit_screen.dart';
 import 'package:taskmaster/redux/presentation/home_screen_viewmodel.dart';
+import 'package:taskmaster/redux/presentation/stats_counter.dart';
 import 'package:taskmaster/redux/presentation/task_main_menu.dart';
 import 'package:taskmaster/timezone_helper.dart';
 
@@ -53,7 +54,10 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            body: viewModel.activeTab == AppTab.tasks ? FilteredTaskItems() : FilteredTaskItems(),
+            body:
+              (viewModel.activeTab == AppTab.tasks) ? FilteredTaskItems() :
+              (viewModel.activeTab == AppTab.stats) ? StatsCounter() :
+                FilteredTaskItems(),
             bottomNavigationBar: TabSelector(),
             drawer: TaskMainMenu(),
             floatingActionButton: FloatingActionButton(
