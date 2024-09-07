@@ -17,7 +17,6 @@ class FilteredTaskItems extends StatelessWidget {
       builder: (context, vm) {
         return TaskItemList(
           taskItems: vm.taskItems,
-          // onCheckboxChanged: vm.onCheckboxChanged,
           // onRemove: vm.onRemove,
           // onUndoRemove: vm.onUndoRemove,
         );

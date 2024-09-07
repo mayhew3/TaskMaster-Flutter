@@ -24,17 +24,25 @@ int numActiveSelector(BuiltList<TaskItem> taskItems) =>
 int numCompletedSelector(BuiltList<TaskItem> taskItems) =>
     taskItems.fold(0, (sum, taskItem) => taskItem.completionDate != null ? ++sum : sum);
 
-BuiltList<TaskItem> filteredTaskItemsSelector(BuiltList<TaskItem> taskItems, VisibilityFilter visibilityFilter) {
+ListBuilder<TaskItem> filteredTaskItemsSelector(BuiltList<TaskItem> taskItems, BuiltList<TaskItem> recentlyCompleted, Sprint? sprint, VisibilityFilter visibilityFilter) {
   var filteredTasks = taskItems.where((taskItem) {
     var startDate = taskItem.startDate;
 
     var completedPredicate = taskItem.completionDate == null || visibilityFilter.showCompleted;
     var scheduledPredicate = startDate == null || startDate.isBefore(DateTime.now()) || visibilityFilter.showScheduled;
-    // todo: active predicate, when sprint getter is complete
+    var isRecentlyCompleted = recentlyCompleted.map((t) => t.id).contains(taskItem.id);
 
-    return completedPredicate && scheduledPredicate;
+    var withoutSprint = (completedPredicate && scheduledPredicate) || isRecentlyCompleted;
+
+    if (sprint != null) {
+      var taskItemsForSprint = taskItemsForSprintSelector(taskItems, sprint);
+      var sprintPredicate = taskItemsForSprint.map((t) => t.id).contains(taskItem.id);
+      return withoutSprint && sprintPredicate;
+    } else {
+      return withoutSprint;
+    }
   });
-  return ListBuilder<TaskItem>(filteredTasks).build();
+  return ListBuilder<TaskItem>(filteredTasks);
 }
 
 TaskItem? taskItemSelector(BuiltList<TaskItem> taskItems, int id) {
@@ -43,4 +51,17 @@ TaskItem? taskItemSelector(BuiltList<TaskItem> taskItems, int id) {
   } catch (e) {
     return null;
   }
+}
+
+Sprint? activeSprintSelector(BuiltList<Sprint> sprints) {
+  DateTime now = DateTime.timestamp();
+  Iterable<Sprint> matching = sprints.where((sprint) =>
+  sprint.startDate.isBefore(now) &&
+      sprint.endDate.isAfter(now) &&
+      sprint.closeDate == null);
+  return matching.isEmpty ? null : matching.first;
+}
+
+BuiltList<TaskItem> taskItemsForSprintSelector(BuiltList<TaskItem> taskItems, Sprint sprint) {
+  return taskItems.where((t) => t.sprintAssignments.where((sa) => sa.sprintId == sprint.id).isNotEmpty).toBuiltList();
 }
