@@ -59,7 +59,10 @@ class TaskItemList extends StatelessWidget {
                 } else {
                   return WillPopScope(
                       child: _buildListView(context, viewModel),
-                      onWillPop: () => StoreProvider.of<AppState>(context).dispatch(ClearRecentlyCompleted())
+                      onWillPop: () {
+                        print("onWillPop hit!");
+                        return StoreProvider.of<AppState>(context).dispatch(ClearRecentlyCompleted());
+                      }
                   );
                 }
               },

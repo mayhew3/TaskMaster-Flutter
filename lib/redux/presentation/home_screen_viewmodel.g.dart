@@ -12,7 +12,7 @@ class _$HomeScreenViewModel extends HomeScreenViewModel {
   @override
   final bool showScheduled;
   @override
-  final AppTab activeTab;
+  final TopNavItem activeTab;
   @override
   final TimezoneHelper timezoneHelper;
 
@@ -91,9 +91,10 @@ class HomeScreenViewModelBuilder
   set showScheduled(bool? showScheduled) =>
       _$this._showScheduled = showScheduled;
 
-  AppTab? _activeTab;
-  AppTab? get activeTab => _$this._activeTab;
-  set activeTab(AppTab? activeTab) => _$this._activeTab = activeTab;
+  TopNavItemBuilder? _activeTab;
+  TopNavItemBuilder get activeTab =>
+      _$this._activeTab ??= new TopNavItemBuilder();
+  set activeTab(TopNavItemBuilder? activeTab) => _$this._activeTab = activeTab;
 
   TimezoneHelper? _timezoneHelper;
   TimezoneHelper? get timezoneHelper => _$this._timezoneHelper;
@@ -107,7 +108,7 @@ class HomeScreenViewModelBuilder
     if ($v != null) {
       _showCompleted = $v.showCompleted;
       _showScheduled = $v.showScheduled;
-      _activeTab = $v.activeTab;
+      _activeTab = $v.activeTab.toBuilder();
       _timezoneHelper = $v.timezoneHelper;
       _$v = null;
     }
@@ -129,16 +130,28 @@ class HomeScreenViewModelBuilder
   HomeScreenViewModel build() => _build();
 
   _$HomeScreenViewModel _build() {
-    final _$result = _$v ??
-        new _$HomeScreenViewModel._(
-            showCompleted: BuiltValueNullFieldError.checkNotNull(
-                showCompleted, r'HomeScreenViewModel', 'showCompleted'),
-            showScheduled: BuiltValueNullFieldError.checkNotNull(
-                showScheduled, r'HomeScreenViewModel', 'showScheduled'),
-            activeTab: BuiltValueNullFieldError.checkNotNull(
-                activeTab, r'HomeScreenViewModel', 'activeTab'),
-            timezoneHelper: BuiltValueNullFieldError.checkNotNull(
-                timezoneHelper, r'HomeScreenViewModel', 'timezoneHelper'));
+    _$HomeScreenViewModel _$result;
+    try {
+      _$result = _$v ??
+          new _$HomeScreenViewModel._(
+              showCompleted: BuiltValueNullFieldError.checkNotNull(
+                  showCompleted, r'HomeScreenViewModel', 'showCompleted'),
+              showScheduled: BuiltValueNullFieldError.checkNotNull(
+                  showScheduled, r'HomeScreenViewModel', 'showScheduled'),
+              activeTab: activeTab.build(),
+              timezoneHelper: BuiltValueNullFieldError.checkNotNull(
+                  timezoneHelper, r'HomeScreenViewModel', 'timezoneHelper'));
+    } catch (_) {
+      late String _$failedField;
+      try {
+        _$failedField = 'activeTab';
+        activeTab.build();
+      } catch (e) {
+        throw new BuiltValueNestedFieldError(
+            r'HomeScreenViewModel', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

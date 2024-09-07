@@ -8,5 +8,5 @@ final tabsReducer = <AppState Function(AppState, dynamic)>[
 ];
 
 AppState _activeTabReducer(AppState state, UpdateTabAction action) {
-  return state.rebuild((s) => s..activeTab = action.newTab);
+  return state.rebuild((s) => s..activeTab = action.newTab.toBuilder());
 }

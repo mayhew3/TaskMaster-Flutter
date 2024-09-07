@@ -54,10 +54,7 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            body:
-              (viewModel.activeTab == AppTab.tasks) ? FilteredTaskItems() :
-              (viewModel.activeTab == AppTab.stats) ? StatsCounter() :
-                SprintTaskItems(),
+            body: viewModel.activeTab.widgetGetter(),
             bottomNavigationBar: TabSelector(),
             drawer: TaskMainMenu(),
             floatingActionButton: FloatingActionButton(

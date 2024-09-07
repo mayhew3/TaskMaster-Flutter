@@ -20,7 +20,9 @@ class _$AppState extends AppState {
   @override
   final BuiltList<TaskItem> recentlyCompleted;
   @override
-  final AppTab activeTab;
+  final TopNavItem activeTab;
+  @override
+  final BuiltList<TopNavItem> allNavItems;
   @override
   final VisibilityFilter sprintListFilter;
   @override
@@ -49,6 +51,7 @@ class _$AppState extends AppState {
       required this.loadFailed,
       required this.recentlyCompleted,
       required this.activeTab,
+      required this.allNavItems,
       required this.sprintListFilter,
       required this.taskListFilter,
       this.personId,
@@ -68,6 +71,8 @@ class _$AppState extends AppState {
     BuiltValueNullFieldError.checkNotNull(
         recentlyCompleted, r'AppState', 'recentlyCompleted');
     BuiltValueNullFieldError.checkNotNull(activeTab, r'AppState', 'activeTab');
+    BuiltValueNullFieldError.checkNotNull(
+        allNavItems, r'AppState', 'allNavItems');
     BuiltValueNullFieldError.checkNotNull(
         sprintListFilter, r'AppState', 'sprintListFilter');
     BuiltValueNullFieldError.checkNotNull(
@@ -98,6 +103,7 @@ class _$AppState extends AppState {
         loadFailed == other.loadFailed &&
         recentlyCompleted == other.recentlyCompleted &&
         activeTab == other.activeTab &&
+        allNavItems == other.allNavItems &&
         sprintListFilter == other.sprintListFilter &&
         taskListFilter == other.taskListFilter &&
         personId == other.personId &&
@@ -118,6 +124,7 @@ class _$AppState extends AppState {
     _$hash = $jc(_$hash, loadFailed.hashCode);
     _$hash = $jc(_$hash, recentlyCompleted.hashCode);
     _$hash = $jc(_$hash, activeTab.hashCode);
+    _$hash = $jc(_$hash, allNavItems.hashCode);
     _$hash = $jc(_$hash, sprintListFilter.hashCode);
     _$hash = $jc(_$hash, taskListFilter.hashCode);
     _$hash = $jc(_$hash, personId.hashCode);
@@ -140,6 +147,7 @@ class _$AppState extends AppState {
           ..add('loadFailed', loadFailed)
           ..add('recentlyCompleted', recentlyCompleted)
           ..add('activeTab', activeTab)
+          ..add('allNavItems', allNavItems)
           ..add('sprintListFilter', sprintListFilter)
           ..add('taskListFilter', taskListFilter)
           ..add('personId', personId)
@@ -186,9 +194,16 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   set recentlyCompleted(ListBuilder<TaskItem>? recentlyCompleted) =>
       _$this._recentlyCompleted = recentlyCompleted;
 
-  AppTab? _activeTab;
-  AppTab? get activeTab => _$this._activeTab;
-  set activeTab(AppTab? activeTab) => _$this._activeTab = activeTab;
+  TopNavItemBuilder? _activeTab;
+  TopNavItemBuilder get activeTab =>
+      _$this._activeTab ??= new TopNavItemBuilder();
+  set activeTab(TopNavItemBuilder? activeTab) => _$this._activeTab = activeTab;
+
+  ListBuilder<TopNavItem>? _allNavItems;
+  ListBuilder<TopNavItem> get allNavItems =>
+      _$this._allNavItems ??= new ListBuilder<TopNavItem>();
+  set allNavItems(ListBuilder<TopNavItem>? allNavItems) =>
+      _$this._allNavItems = allNavItems;
 
   VisibilityFilterBuilder? _sprintListFilter;
   VisibilityFilterBuilder get sprintListFilter =>
@@ -242,7 +257,8 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _isLoading = $v.isLoading;
       _loadFailed = $v.loadFailed;
       _recentlyCompleted = $v.recentlyCompleted.toBuilder();
-      _activeTab = $v.activeTab;
+      _activeTab = $v.activeTab.toBuilder();
+      _allNavItems = $v.allNavItems.toBuilder();
       _sprintListFilter = $v.sprintListFilter.toBuilder();
       _taskListFilter = $v.taskListFilter.toBuilder();
       _personId = $v.personId;
@@ -283,8 +299,8 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               loadFailed: BuiltValueNullFieldError.checkNotNull(
                   loadFailed, r'AppState', 'loadFailed'),
               recentlyCompleted: recentlyCompleted.build(),
-              activeTab: BuiltValueNullFieldError.checkNotNull(
-                  activeTab, r'AppState', 'activeTab'),
+              activeTab: activeTab.build(),
+              allNavItems: allNavItems.build(),
               sprintListFilter: sprintListFilter.build(),
               taskListFilter: taskListFilter.build(),
               personId: personId,
@@ -308,7 +324,10 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
 
         _$failedField = 'recentlyCompleted';
         recentlyCompleted.build();
-
+        _$failedField = 'activeTab';
+        activeTab.build();
+        _$failedField = 'allNavItems';
+        allNavItems.build();
         _$failedField = 'sprintListFilter';
         sprintListFilter.build();
         _$failedField = 'taskListFilter';

@@ -4,72 +4,32 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:redux/redux.dart';
+import 'package:taskmaster/redux/containers/tab_selector_viewmodel.dart';
 
 import '../../keys.dart';
-import '../actions/actions.dart';
 import '../app_state.dart';
-import '../../models/models.dart';
 
 class TabSelector extends StatelessWidget {
   TabSelector({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<AppState, _ViewModel>(
+    return StoreConnector<AppState, TabSelectorViewModel>(
       distinct: true,
-      converter: _ViewModel.fromStore,
+      converter: TabSelectorViewModel.fromStore,
       builder: (context, vm) {
         return BottomNavigationBar(
           key: TaskMasterKeys.tabs,
-          currentIndex: AppTab.values.indexOf(vm.activeTab),
+          currentIndex: vm.allTabs.indexOf(vm.activeTab),
           onTap: vm.onTabSelected,
-          items: AppTab.values.map((tab) {
+          items: vm.allTabs.map((tab) {
             return BottomNavigationBarItem(
-              icon: Icon(
-                (tab == AppTab.tasks) ? Icons.list :
-                (tab == AppTab.stats) ? Icons.show_chart :
-                  Icons.assignment,
-                key: tab == AppTab.tasks
-                    ? TaskMasterKeys.taskItemTab
-                    : tab == AppTab.plan ? TaskMasterKeys.planTab : TaskMasterKeys.statsTab,
-              ),
-              label: tab == AppTab.stats
-                  ? "Stats"
-                  : tab == AppTab.plan ? "Plan" : "Tasks",
+              icon: Icon(tab.icon),
+              label: tab.label,
             );
           }).toList(),
         );
       },
     );
   }
-}
-
-class _ViewModel {
-  final AppTab activeTab;
-  final Function(int) onTabSelected;
-
-  _ViewModel({
-    required this.activeTab,
-    required this.onTabSelected,
-  });
-
-  static _ViewModel fromStore(Store<AppState> store) {
-    return _ViewModel(
-      activeTab: store.state.activeTab,
-      onTabSelected: (index) {
-        store.dispatch(UpdateTabAction((AppTab.values[index])));
-      },
-    );
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is _ViewModel &&
-          runtimeType == other.runtimeType &&
-          activeTab == other.activeTab;
-
-  @override
-  int get hashCode => activeTab.hashCode;
 }

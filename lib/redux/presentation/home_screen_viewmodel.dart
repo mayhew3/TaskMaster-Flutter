@@ -2,8 +2,8 @@
 
 import 'package:built_value/built_value.dart';
 import 'package:redux/redux.dart';
+import 'package:taskmaster/models/top_nav_item.dart';
 
-import '../../models/app_tab.dart';
 import '../../timezone_helper.dart';
 import '../app_state.dart';
 
@@ -13,7 +13,7 @@ abstract class HomeScreenViewModel implements Built<HomeScreenViewModel, HomeScr
 
   bool get showCompleted;
   bool get showScheduled;
-  AppTab get activeTab;
+  TopNavItem get activeTab;
   TimezoneHelper get timezoneHelper;
 
   HomeScreenViewModel._();
@@ -24,7 +24,7 @@ abstract class HomeScreenViewModel implements Built<HomeScreenViewModel, HomeScr
     return HomeScreenViewModel((c) => c
       ..showCompleted = store.state.taskListFilter.showCompleted
       ..showScheduled = store.state.taskListFilter.showScheduled
-      ..activeTab = store.state.activeTab
+      ..activeTab = store.state.activeTab.toBuilder()
       ..timezoneHelper = store.state.timezoneHelper
     );
   }

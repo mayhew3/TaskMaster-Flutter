@@ -1,4 +1,5 @@
 import 'package:taskmaster/models/task_item_blueprint.dart';
+import 'package:taskmaster/models/top_nav_item.dart';
 
 import '../../models/data_payload.dart';
 import '../../models/models.dart';
@@ -112,7 +113,7 @@ class ToggleTaskListShowCompleted {}
 class ToggleTaskListShowScheduled {}
 
 class UpdateTabAction {
-  final AppTab newTab;
+  final TopNavItem newTab;
 
   UpdateTabAction(this.newTab);
 

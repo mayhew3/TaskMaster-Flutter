@@ -8,7 +8,6 @@ bool loadFailedSelector(AppState state) => state.loadFailed;
 BuiltList<TaskItem> taskItemsSelector(AppState state) => state.taskItems;
 BuiltList<Sprint> sprintsSelector(AppState state) => state.sprints;
 BuiltList<TaskRecurrence> recurrencesSelector(AppState state) => state.taskRecurrences;
-AppTab activeTabSelector(AppState state) => state.activeTab;
 VisibilityFilter sprintFilterSelector(AppState state) => state.sprintListFilter;
 VisibilityFilter taskFilterSelector(AppState state) => state.taskListFilter;
 
