@@ -33,7 +33,10 @@ AppState _deleteTaskItem(AppState state, DeleteTaskItemAction action) {
 
 AppState _onUpdateTaskItem(AppState state, TaskItemUpdated action) {
   var listBuilder = state.taskItems.toBuilder()
-    ..map((taskItem) => taskItem.id == action.updatedTaskItem.id ? action.updatedTaskItem.rebuild((t) => t..pendingCompletion = false) : taskItem);
+    ..map((taskItem) => taskItem.id == action.updatedTaskItem.id ? action.updatedTaskItem.rebuild((t) => t
+      ..pendingCompletion = false
+      ..sprintAssignments = taskItem.sprintAssignments.toBuilder()
+    ) : taskItem);
   return state.rebuild((s) => s..taskItems = listBuilder);
 }
 
@@ -47,9 +50,9 @@ AppState _completeTaskItem(AppState state, CompleteTaskItemAction action) {
 
 AppState _onCompleteTaskItem(AppState state, TaskItemCompleted action) {
   var listBuilder = state.taskItems.toBuilder()
-    ..map((taskItem) => taskItem.id == action.taskItem.id ? action.taskItem.rebuild((t) => t
+    ..map((taskItem) => taskItem.id == action.taskItem.id ? taskItem.rebuild((t) => t
       ..pendingCompletion = false
-      ..sprintAssignments = taskItem.sprintAssignments.toBuilder()
+      ..completionDate = action.taskItem.completionDate
     ) : taskItem);
   var recentListBuilder = state.recentlyCompleted.toBuilder()..add(listBuilder.build().where((t) => t.id == action.taskItem.id).first);
   return state.rebuild((s) => s
