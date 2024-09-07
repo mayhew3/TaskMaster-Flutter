@@ -5,8 +5,6 @@ import 'package:redux/redux.dart';
 import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/redux/selectors/selectors.dart';
 
-import '../../models/task_item.dart';
-import '../../models/visibility_filter.dart';
 import '../app_state.dart';
 
 // ignore: prefer_double_quotes

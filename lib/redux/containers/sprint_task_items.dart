@@ -5,7 +5,6 @@ import 'package:taskmaster/redux/containers/sprint_task_items_viewmodel.dart';
 
 import '../app_state.dart';
 import '../presentation/task_item_list.dart';
-import 'filtered_task_items_viewmodel.dart';
 
 
 class SprintTaskItems extends StatelessWidget {

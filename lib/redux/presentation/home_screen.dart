@@ -10,7 +10,6 @@ import 'package:taskmaster/redux/presentation/add_edit_screen.dart';
 import 'package:taskmaster/redux/presentation/home_screen_viewmodel.dart';
 import 'package:taskmaster/redux/presentation/stats_counter.dart';
 import 'package:taskmaster/redux/presentation/task_main_menu.dart';
-import 'package:taskmaster/timezone_helper.dart';
 
 import '../../keys.dart';
 import '../../models/models.dart';
