@@ -69,7 +69,7 @@ Future<void> Function(
     print("Fetching tasks for person_id $personId...");
     try {
       var dataPayload = await repository.loadTasks(personId, idToken);
-      store.dispatch(TaskItemsLoadedAction(dataPayload.taskItems));
+      store.dispatch(TaskItemsLoadedAction(dataPayload: dataPayload));
     } catch (e) {
       print("Error fetching task list: $e");
       store.dispatch(TaskItemsNotLoadedAction());

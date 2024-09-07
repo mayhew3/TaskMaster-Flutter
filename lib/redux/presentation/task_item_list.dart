@@ -88,7 +88,7 @@ class TaskItemList extends StatelessWidget {
       taskItem: taskItem,
       // stateSetter: (callback) => setState(() => callback()),
       addMode: false,
-      // sprint: widget.sprint,
+      sprint: viewModel.activeSprint,
       // highlightSprint: (widget.sprint == null && activeSprint != null && taskItem.sprints.contains(activeSprint)),
       highlightSprint: false,
       onTap: () async {
@@ -242,18 +242,6 @@ class TaskItemList extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  List<TaskItem> getFilteredTasks(BuiltList<TaskItem> taskItems) {
-    // var activeSprint = widget.appState.getActiveSprint();
-    // List<TaskItem> filtered = taskItems.where((taskItem) {
-    //   bool passesScheduleFilter = showScheduled || !taskItem.isScheduled();
-    //   bool passesCompletedFilter = showCompleted || !(taskItem.isCompleted() && !recentlyCompleted.contains(taskItem));
-    //   bool passesActiveFilter = showActive || !(taskItem.sprints.contains(activeSprint));
-    //   return passesScheduleFilter && passesCompletedFilter && passesActiveFilter;
-    // }).toList();
-
-    return taskItems.where((t) => !t.isCompleted() && !t.isScheduled()).toList();
   }
 
   ListView _buildListView(BuildContext context, TaskItemListViewModel viewModel) {

@@ -56,7 +56,11 @@ AppState _onCompleteTaskItem(AppState state, TaskItemCompleted action) {
 }
 
 AppState _setLoadedTaskItems(AppState state, TaskItemsLoadedAction action) {
-  return state.rebuild((s) => s..taskItems = ListBuilder(action.taskItems));
+  return state.rebuild((s) => s
+    ..taskItems = ListBuilder(action.dataPayload.taskItems)
+    ..sprints = ListBuilder(action.dataPayload.sprints)
+    ..taskRecurrences = ListBuilder(action.dataPayload.taskRecurrences)
+  );
 }
 
 AppState _setNoTaskItems(AppState state, dynamic action) {

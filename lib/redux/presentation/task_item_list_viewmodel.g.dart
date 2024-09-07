@@ -12,6 +12,8 @@ class _$TaskItemListViewModel extends TaskItemListViewModel {
   @override
   final BuiltList<TaskItem> recentlyCompleted;
   @override
+  final Sprint? activeSprint;
+  @override
   final bool isLoading;
   @override
   final bool loadFailed;
@@ -25,6 +27,7 @@ class _$TaskItemListViewModel extends TaskItemListViewModel {
   _$TaskItemListViewModel._(
       {required this.taskItems,
       required this.recentlyCompleted,
+      this.activeSprint,
       required this.isLoading,
       required this.loadFailed,
       required this.onCheckboxClicked})
@@ -57,6 +60,7 @@ class _$TaskItemListViewModel extends TaskItemListViewModel {
     return other is TaskItemListViewModel &&
         taskItems == other.taskItems &&
         recentlyCompleted == other.recentlyCompleted &&
+        activeSprint == other.activeSprint &&
         isLoading == other.isLoading &&
         loadFailed == other.loadFailed &&
         onCheckboxClicked == _$dynamicOther.onCheckboxClicked;
@@ -67,6 +71,7 @@ class _$TaskItemListViewModel extends TaskItemListViewModel {
     var _$hash = 0;
     _$hash = $jc(_$hash, taskItems.hashCode);
     _$hash = $jc(_$hash, recentlyCompleted.hashCode);
+    _$hash = $jc(_$hash, activeSprint.hashCode);
     _$hash = $jc(_$hash, isLoading.hashCode);
     _$hash = $jc(_$hash, loadFailed.hashCode);
     _$hash = $jc(_$hash, onCheckboxClicked.hashCode);
@@ -79,6 +84,7 @@ class _$TaskItemListViewModel extends TaskItemListViewModel {
     return (newBuiltValueToStringHelper(r'TaskItemListViewModel')
           ..add('taskItems', taskItems)
           ..add('recentlyCompleted', recentlyCompleted)
+          ..add('activeSprint', activeSprint)
           ..add('isLoading', isLoading)
           ..add('loadFailed', loadFailed)
           ..add('onCheckboxClicked', onCheckboxClicked))
@@ -102,6 +108,12 @@ class TaskItemListViewModelBuilder
   set recentlyCompleted(ListBuilder<TaskItem>? recentlyCompleted) =>
       _$this._recentlyCompleted = recentlyCompleted;
 
+  SprintBuilder? _activeSprint;
+  SprintBuilder get activeSprint =>
+      _$this._activeSprint ??= new SprintBuilder();
+  set activeSprint(SprintBuilder? activeSprint) =>
+      _$this._activeSprint = activeSprint;
+
   bool? _isLoading;
   bool? get isLoading => _$this._isLoading;
   set isLoading(bool? isLoading) => _$this._isLoading = isLoading;
@@ -124,6 +136,7 @@ class TaskItemListViewModelBuilder
     if ($v != null) {
       _taskItems = $v.taskItems.toBuilder();
       _recentlyCompleted = $v.recentlyCompleted.toBuilder();
+      _activeSprint = $v.activeSprint?.toBuilder();
       _isLoading = $v.isLoading;
       _loadFailed = $v.loadFailed;
       _onCheckboxClicked = $v.onCheckboxClicked;
@@ -153,6 +166,7 @@ class TaskItemListViewModelBuilder
           new _$TaskItemListViewModel._(
               taskItems: taskItems.build(),
               recentlyCompleted: recentlyCompleted.build(),
+              activeSprint: _activeSprint?.build(),
               isLoading: BuiltValueNullFieldError.checkNotNull(
                   isLoading, r'TaskItemListViewModel', 'isLoading'),
               loadFailed: BuiltValueNullFieldError.checkNotNull(
@@ -168,6 +182,8 @@ class TaskItemListViewModelBuilder
         taskItems.build();
         _$failedField = 'recentlyCompleted';
         recentlyCompleted.build();
+        _$failedField = 'activeSprint';
+        _activeSprint?.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             r'TaskItemListViewModel', _$failedField, e.toString());

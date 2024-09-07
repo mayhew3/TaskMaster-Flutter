@@ -27,7 +27,9 @@ class TabSelector extends StatelessWidget {
           items: AppTab.values.map((tab) {
             return BottomNavigationBarItem(
               icon: Icon(
-                tab == AppTab.tasks ? Icons.list : Icons.show_chart,
+                (tab == AppTab.tasks) ? Icons.list :
+                (tab == AppTab.stats) ? Icons.show_chart :
+                  Icons.assignment,
                 key: tab == AppTab.tasks
                     ? TaskMasterKeys.taskItemTab
                     : tab == AppTab.plan ? TaskMasterKeys.planTab : TaskMasterKeys.statsTab,

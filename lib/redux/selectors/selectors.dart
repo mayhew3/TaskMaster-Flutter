@@ -59,7 +59,7 @@ Sprint? activeSprintSelector(BuiltList<Sprint> sprints) {
   sprint.startDate.isBefore(now) &&
       sprint.endDate.isAfter(now) &&
       sprint.closeDate == null);
-  return matching.isEmpty ? null : matching.first;
+  return matching.isEmpty ? null : matching.last;
 }
 
 BuiltList<TaskItem> taskItemsForSprintSelector(BuiltList<TaskItem> taskItems, Sprint sprint) {

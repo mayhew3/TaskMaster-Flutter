@@ -4,6 +4,7 @@ import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
+import '../../models/sprint.dart';
 import '../../models/task_item.dart';
 import '../../typedefs.dart';
 import 'delayed_checkbox.dart';
@@ -20,7 +21,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   // final MyStateSetter stateSetter;
   final DateTime? endDate;
   // final CheckState? initialCheckState;
-  // final Sprint? sprint;
+  final Sprint? sprint;
   final bool highlightSprint;
 
   EditableTaskItemWidget({
@@ -28,6 +29,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     required this.taskItem,
     required this.addMode,
     this.endDate,
+    this.sprint,
     required this.highlightSprint,
     this.onTaskCompleteToggle,
     this.onTap,

@@ -1,5 +1,6 @@
 import 'package:taskmaster/models/task_item_blueprint.dart';
 
+import '../../models/data_payload.dart';
 import '../../models/models.dart';
 
 class LoadTaskItemsAction {}
@@ -7,13 +8,13 @@ class LoadTaskItemsAction {}
 class TaskItemsNotLoadedAction {}
 
 class TaskItemsLoadedAction {
-  final List<TaskItem> taskItems;
+  final DataPayload dataPayload;
 
-  TaskItemsLoadedAction(this.taskItems);
+  TaskItemsLoadedAction({required this.dataPayload});
 
   @override
   String toString() {
-    return 'TaskItemsLoadedAction{taskItems: $taskItems}';
+    return 'TaskItemsLoadedAction{dataPayload: $dataPayload}';
   }
 }
 

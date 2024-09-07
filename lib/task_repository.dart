@@ -128,7 +128,9 @@ class TaskRepository {
   }
 
   Future<TaskItem> updateTask(TaskItem taskItem, String idToken) async {
-    var taskObj = serializers.serializeWith(TaskItem.serializer, taskItem)!;
+    var taskObj = serializers.serializeWith(TaskItem.serializer, taskItem)! as Map;
+
+    taskObj.removeWhere((key, value) => key == "sprintAssignments");
 
     var payload = {
       "task": taskObj
