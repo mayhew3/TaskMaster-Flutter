@@ -1,7 +1,9 @@
 
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 import 'package:taskmaster/models/models.dart';
+import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 
@@ -43,6 +45,8 @@ abstract class TaskItem with DateHolder implements Built<TaskItem, TaskItemBuild
   int? get recurIteration;
 
   bool get offCycle;
+
+  BuiltList<SprintAssignment> get sprintAssignments;
 
   // internal fields
   @BuiltValueField(serialize: false)

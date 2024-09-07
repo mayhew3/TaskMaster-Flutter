@@ -28,6 +28,10 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
       'offCycle',
       serializers.serialize(object.offCycle,
           specifiedType: const FullType(bool)),
+      'sprintAssignments',
+      serializers.serialize(object.sprintAssignments,
+          specifiedType: const FullType(
+              BuiltList, const [const FullType(SprintAssignment)])),
     ];
     Object? value;
     value = object.description;
@@ -223,6 +227,12 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
           result.offCycle = serializers.deserialize(value,
               specifiedType: const FullType(bool))! as bool;
           break;
+        case 'sprintAssignments':
+          result.sprintAssignments.replace(serializers.deserialize(value,
+                  specifiedType: const FullType(
+                      BuiltList, const [const FullType(SprintAssignment)]))!
+              as BuiltList<Object?>);
+          break;
       }
     }
 
@@ -274,6 +284,8 @@ class _$TaskItem extends TaskItem {
   @override
   final bool offCycle;
   @override
+  final BuiltList<SprintAssignment> sprintAssignments;
+  @override
   final bool pendingCompletion;
 
   factory _$TaskItem([void Function(TaskItemBuilder)? updates]) =>
@@ -301,12 +313,15 @@ class _$TaskItem extends TaskItem {
       this.recurrenceId,
       this.recurIteration,
       required this.offCycle,
+      required this.sprintAssignments,
       required this.pendingCompletion})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(id, r'TaskItem', 'id');
     BuiltValueNullFieldError.checkNotNull(personId, r'TaskItem', 'personId');
     BuiltValueNullFieldError.checkNotNull(name, r'TaskItem', 'name');
     BuiltValueNullFieldError.checkNotNull(offCycle, r'TaskItem', 'offCycle');
+    BuiltValueNullFieldError.checkNotNull(
+        sprintAssignments, r'TaskItem', 'sprintAssignments');
     BuiltValueNullFieldError.checkNotNull(
         pendingCompletion, r'TaskItem', 'pendingCompletion');
   }
@@ -343,6 +358,7 @@ class _$TaskItem extends TaskItem {
         recurrenceId == other.recurrenceId &&
         recurIteration == other.recurIteration &&
         offCycle == other.offCycle &&
+        sprintAssignments == other.sprintAssignments &&
         pendingCompletion == other.pendingCompletion;
   }
 
@@ -370,6 +386,7 @@ class _$TaskItem extends TaskItem {
     _$hash = $jc(_$hash, recurrenceId.hashCode);
     _$hash = $jc(_$hash, recurIteration.hashCode);
     _$hash = $jc(_$hash, offCycle.hashCode);
+    _$hash = $jc(_$hash, sprintAssignments.hashCode);
     _$hash = $jc(_$hash, pendingCompletion.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -399,6 +416,7 @@ class _$TaskItem extends TaskItem {
           ..add('recurrenceId', recurrenceId)
           ..add('recurIteration', recurIteration)
           ..add('offCycle', offCycle)
+          ..add('sprintAssignments', sprintAssignments)
           ..add('pendingCompletion', pendingCompletion))
         .toString();
   }
@@ -493,6 +511,12 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   bool? get offCycle => _$this._offCycle;
   set offCycle(bool? offCycle) => _$this._offCycle = offCycle;
 
+  ListBuilder<SprintAssignment>? _sprintAssignments;
+  ListBuilder<SprintAssignment> get sprintAssignments =>
+      _$this._sprintAssignments ??= new ListBuilder<SprintAssignment>();
+  set sprintAssignments(ListBuilder<SprintAssignment>? sprintAssignments) =>
+      _$this._sprintAssignments = sprintAssignments;
+
   bool? _pendingCompletion;
   bool? get pendingCompletion => _$this._pendingCompletion;
   set pendingCompletion(bool? pendingCompletion) =>
@@ -526,6 +550,7 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
       _recurrenceId = $v.recurrenceId;
       _recurIteration = $v.recurIteration;
       _offCycle = $v.offCycle;
+      _sprintAssignments = $v.sprintAssignments.toBuilder();
       _pendingCompletion = $v.pendingCompletion;
       _$v = null;
     }
@@ -547,34 +572,48 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   TaskItem build() => _build();
 
   _$TaskItem _build() {
-    final _$result = _$v ??
-        new _$TaskItem._(
-            id: BuiltValueNullFieldError.checkNotNull(id, r'TaskItem', 'id'),
-            personId: BuiltValueNullFieldError.checkNotNull(
-                personId, r'TaskItem', 'personId'),
-            name: BuiltValueNullFieldError.checkNotNull(
-                name, r'TaskItem', 'name'),
-            description: description,
-            project: project,
-            context: context,
-            urgency: urgency,
-            priority: priority,
-            duration: duration,
-            gamePoints: gamePoints,
-            startDate: startDate,
-            targetDate: targetDate,
-            dueDate: dueDate,
-            urgentDate: urgentDate,
-            completionDate: completionDate,
-            recurNumber: recurNumber,
-            recurUnit: recurUnit,
-            recurWait: recurWait,
-            recurrenceId: recurrenceId,
-            recurIteration: recurIteration,
-            offCycle: BuiltValueNullFieldError.checkNotNull(
-                offCycle, r'TaskItem', 'offCycle'),
-            pendingCompletion: BuiltValueNullFieldError.checkNotNull(
-                pendingCompletion, r'TaskItem', 'pendingCompletion'));
+    _$TaskItem _$result;
+    try {
+      _$result = _$v ??
+          new _$TaskItem._(
+              id: BuiltValueNullFieldError.checkNotNull(id, r'TaskItem', 'id'),
+              personId: BuiltValueNullFieldError.checkNotNull(
+                  personId, r'TaskItem', 'personId'),
+              name: BuiltValueNullFieldError.checkNotNull(
+                  name, r'TaskItem', 'name'),
+              description: description,
+              project: project,
+              context: context,
+              urgency: urgency,
+              priority: priority,
+              duration: duration,
+              gamePoints: gamePoints,
+              startDate: startDate,
+              targetDate: targetDate,
+              dueDate: dueDate,
+              urgentDate: urgentDate,
+              completionDate: completionDate,
+              recurNumber: recurNumber,
+              recurUnit: recurUnit,
+              recurWait: recurWait,
+              recurrenceId: recurrenceId,
+              recurIteration: recurIteration,
+              offCycle: BuiltValueNullFieldError.checkNotNull(
+                  offCycle, r'TaskItem', 'offCycle'),
+              sprintAssignments: sprintAssignments.build(),
+              pendingCompletion: BuiltValueNullFieldError.checkNotNull(
+                  pendingCompletion, r'TaskItem', 'pendingCompletion'));
+    } catch (_) {
+      late String _$failedField;
+      try {
+        _$failedField = 'sprintAssignments';
+        sprintAssignments.build();
+      } catch (e) {
+        throw new BuiltValueNestedFieldError(
+            r'TaskItem', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }
