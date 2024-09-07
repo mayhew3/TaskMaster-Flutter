@@ -125,7 +125,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
                 var store = StoreProvider.of<AppState>(context);
                 if (store.state.isAuthenticated()) {
                   print("Home Screen: onInit(), authenticated");
-                  store.dispatch(LoadTaskItemsAction());
+                  store.dispatch(LoadDataAction());
                 }
               },
             );

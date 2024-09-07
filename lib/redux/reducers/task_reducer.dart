@@ -11,9 +11,9 @@ final taskItemsReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, TaskItemUpdated>(_onUpdateTaskItem),
   TypedReducer<AppState, CompleteTaskItemAction>(_completeTaskItem),
   TypedReducer<AppState, TaskItemCompleted>(_onCompleteTaskItem),
-  TypedReducer<AppState, TaskItemsLoadedAction>(_setLoadedTaskItems),
-  TypedReducer<AppState, TaskItemsNotLoadedAction>(_setNoTaskItems),
-  TypedReducer<AppState, LogOutAction>(_setNoTaskItems),
+  TypedReducer<AppState, DataLoadedAction>(_onDataLoaded),
+  TypedReducer<AppState, DataNotLoadedAction>(_onDataUnloaded),
+  TypedReducer<AppState, LogOutAction>(_onDataUnloaded),
   TypedReducer<AppState, ClearRecentlyCompleted>(_clearRecentlyCompleted),
 ];
 
@@ -46,16 +46,19 @@ AppState _completeTaskItem(AppState state, CompleteTaskItemAction action) {
 }
 
 AppState _onCompleteTaskItem(AppState state, TaskItemCompleted action) {
-  var recentListBuilder = state.recentlyCompleted.toBuilder()..add(action.taskItem);
   var listBuilder = state.taskItems.toBuilder()
-    ..map((taskItem) => taskItem.id == action.taskItem.id ? action.taskItem.rebuild((t) => t..pendingCompletion = false) : taskItem);
+    ..map((taskItem) => taskItem.id == action.taskItem.id ? action.taskItem.rebuild((t) => t
+      ..pendingCompletion = false
+      ..sprintAssignments = taskItem.sprintAssignments.toBuilder()
+    ) : taskItem);
+  var recentListBuilder = state.recentlyCompleted.toBuilder()..add(listBuilder.build().where((t) => t.id == action.taskItem.id).first);
   return state.rebuild((s) => s
     ..taskItems = listBuilder
     ..recentlyCompleted = recentListBuilder
   );
 }
 
-AppState _setLoadedTaskItems(AppState state, TaskItemsLoadedAction action) {
+AppState _onDataLoaded(AppState state, DataLoadedAction action) {
   return state.rebuild((s) => s
     ..taskItems = ListBuilder(action.dataPayload.taskItems)
     ..sprints = ListBuilder(action.dataPayload.sprints)
@@ -63,6 +66,11 @@ AppState _setLoadedTaskItems(AppState state, TaskItemsLoadedAction action) {
   );
 }
 
-AppState _setNoTaskItems(AppState state, dynamic action) {
-  return state.rebuild((s) => s..taskItems = ListBuilder());
+AppState _onDataUnloaded(AppState state, dynamic action) {
+  return state.rebuild((s) => s
+    ..taskItems = ListBuilder()
+    ..sprints = ListBuilder()
+    ..taskRecurrences = ListBuilder()
+    ..recentlyCompleted = ListBuilder()
+  );
 }

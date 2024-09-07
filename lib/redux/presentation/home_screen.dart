@@ -51,7 +51,7 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
                 IconButton(
                   icon: Icon(Icons.refresh),
-                  onPressed: () => StoreProvider.of<AppState>(context).dispatch(LoadTaskItemsAction())
+                  onPressed: () => StoreProvider.of<AppState>(context).dispatch(LoadDataAction())
                 ),
               ],
             ),

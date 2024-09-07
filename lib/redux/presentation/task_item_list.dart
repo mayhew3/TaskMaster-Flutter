@@ -50,7 +50,7 @@ class TaskItemList extends StatelessWidget {
                           ElevatedButton(
                             child: const Text('RETRY'),
                             onPressed: () {
-                              StoreProvider.of<AppState>(context).dispatch(LoadTaskItemsAction());
+                              StoreProvider.of<AppState>(context).dispatch(LoadDataAction());
                             },
                           ),
                         ],

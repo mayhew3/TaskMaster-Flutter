@@ -5,9 +5,9 @@ import '../actions/actions.dart';
 
 final loadingReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, LogOutAction>(_setLogoutStarted),
-  TypedReducer<AppState, LoadTaskItemsAction>(_setLoadStarted),
-  TypedReducer<AppState, TaskItemsNotLoadedAction>(_setLoadFailed),
-  TypedReducer<AppState, TaskItemsLoadedAction>(_setLoadSucceeded),
+  TypedReducer<AppState, LoadDataAction>(_setLoadStarted),
+  TypedReducer<AppState, DataNotLoadedAction>(_setLoadFailed),
+  TypedReducer<AppState, DataLoadedAction>(_setLoadSucceeded),
 ];
 
 AppState _setLogoutStarted(AppState state, LogOutAction action) {
@@ -15,7 +15,7 @@ AppState _setLogoutStarted(AppState state, LogOutAction action) {
     ..loadFailed = false
     ..isLoading = true);
 }
-AppState _setLoadStarted(AppState state, LoadTaskItemsAction action) {
+AppState _setLoadStarted(AppState state, LoadDataAction action) {
   return state.rebuild((s) => s
     ..loadFailed = false
     ..isLoading = true);

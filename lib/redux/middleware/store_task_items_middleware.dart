@@ -10,7 +10,7 @@ import '../actions/actions.dart';
 List<Middleware<AppState>> createStoreTaskItemsMiddleware(TaskRepository repository) {
   return [
     TypedMiddleware<AppState, VerifyPerson>(_verifyPerson(repository)),
-    TypedMiddleware<AppState, LoadTaskItemsAction>(_createLoadTaskItems(repository)),
+    TypedMiddleware<AppState, LoadDataAction>(_createLoadData(repository)),
     TypedMiddleware<AppState, AddTaskItemAction>(_createNewTaskItem(repository)),
     TypedMiddleware<AppState, UpdateTaskItemAction>(_updateTaskItem(repository)),
     TypedMiddleware<AppState, CompleteTaskItemAction>(_completeTaskItem(repository)),
@@ -50,10 +50,10 @@ Future<void> Function(
 
 Future<void> Function(
     Store<AppState>,
-    LoadTaskItemsAction action,
+    LoadDataAction action,
     NextDispatcher next,
-    ) _createLoadTaskItems(TaskRepository repository) {
-  return (Store<AppState> store, LoadTaskItemsAction action, NextDispatcher next) async {
+    ) _createLoadData(TaskRepository repository) {
+  return (Store<AppState> store, LoadDataAction action, NextDispatcher next) async {
     next(action);
 
     var personId = store.state.personId;
@@ -69,10 +69,10 @@ Future<void> Function(
     print("Fetching tasks for person_id $personId...");
     try {
       var dataPayload = await repository.loadTasks(personId, idToken);
-      store.dispatch(TaskItemsLoadedAction(dataPayload: dataPayload));
+      store.dispatch(DataLoadedAction(dataPayload: dataPayload));
     } catch (e) {
       print("Error fetching task list: $e");
-      store.dispatch(TaskItemsNotLoadedAction());
+      store.dispatch(DataNotLoadedAction());
     }
 
   };
