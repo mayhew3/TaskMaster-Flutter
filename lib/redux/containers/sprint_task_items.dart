@@ -6,7 +6,6 @@ import 'package:taskmaster/typedefs.dart';
 
 import '../actions/actions.dart';
 import '../app_state.dart';
-import '../presentation/add_edit_screen.dart';
 import '../presentation/filter_button.dart';
 import '../presentation/task_item_list.dart';
 import '../presentation/task_main_menu.dart';
@@ -47,14 +46,6 @@ class SprintTaskItems extends StatelessWidget {
             // onUndoRemove: vm.onUndoRemove,
           ),
           drawer: TaskMainMenu(),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () async {
-              await Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => AddEditScreen(timezoneHelper: viewModel.timezoneHelper))
-              );
-            },
-            child: Icon(Icons.add),
-          ),
           bottomNavigationBar: this.bottomNavigationBarGetter(),
         );
       },
