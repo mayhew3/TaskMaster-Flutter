@@ -27,4 +27,4 @@ typedef void CheckCycleWaiter(CheckState startingState);
 typedef DateTime? DateFieldGetter(DateHolder dateHolder);
 typedef void DateFieldSetter(TaskItemBlueprint blueprint, DateTime? newDate);
 
-typedef Widget WidgetGetter(BottomNavigationBarGetter tabSelector);
+typedef Widget WidgetGetter();

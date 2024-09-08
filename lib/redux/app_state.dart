@@ -56,15 +56,15 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
       TopNavItem.init(
           label: 'Plan',
           icon: Icons.assignment,
-          widgetGetter: (bnbg) => SprintTaskItems(bottomNavigationBarGetter: bnbg)),
+          widgetGetter: () => SprintTaskItems()),
       TopNavItem.init(
           label: 'Tasks',
           icon: Icons.list,
-          widgetGetter: (bnbg) => FilteredTaskItems(bottomNavigationBarGetter: bnbg)),
+          widgetGetter: () => FilteredTaskItems()),
       TopNavItem.init(
           label: 'Stats',
           icon: Icons.show_chart,
-          widgetGetter: (bnbg) => StatsCounter(bottomNavigationBarGetter: bnbg)),
+          widgetGetter: () => StatsCounter()),
     ];
     return appState
       ..isLoading = loading

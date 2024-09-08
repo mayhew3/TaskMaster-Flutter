@@ -1,8 +1,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:taskmaster/redux/containers/tab_selector.dart';
 
-import '../../typedefs.dart';
 import '../actions/actions.dart';
 import '../app_state.dart';
 import '../presentation/add_edit_screen.dart';
@@ -13,11 +13,9 @@ import 'filtered_task_items_viewmodel.dart';
 
 
 class FilteredTaskItems extends StatelessWidget {
-  final BottomNavigationBarGetter bottomNavigationBarGetter;
 
   FilteredTaskItems({
     Key? key,
-    required this.bottomNavigationBarGetter,
   }) : super(key: key);
 
   @override
@@ -55,7 +53,7 @@ class FilteredTaskItems extends StatelessWidget {
             },
             child: Icon(Icons.add),
           ),
-          bottomNavigationBar: this.bottomNavigationBarGetter(),
+          bottomNavigationBar: TabSelector(),
         );
       },
     );

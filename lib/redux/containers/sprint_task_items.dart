@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:taskmaster/redux/containers/sprint_task_items_viewmodel.dart';
-import 'package:taskmaster/typedefs.dart';
+import 'package:taskmaster/redux/containers/tab_selector.dart';
 
 import '../actions/actions.dart';
 import '../app_state.dart';
@@ -12,11 +12,9 @@ import '../presentation/task_main_menu.dart';
 
 
 class SprintTaskItems extends StatelessWidget {
-  final BottomNavigationBarGetter bottomNavigationBarGetter;
 
   SprintTaskItems({
     Key? key,
-    required this.bottomNavigationBarGetter,
   }) : super(key: key);
 
   @override
@@ -46,7 +44,7 @@ class SprintTaskItems extends StatelessWidget {
             // onUndoRemove: vm.onUndoRemove,
           ),
           drawer: TaskMainMenu(),
-          bottomNavigationBar: this.bottomNavigationBarGetter(),
+          bottomNavigationBar: TabSelector(),
         );
       },
     );

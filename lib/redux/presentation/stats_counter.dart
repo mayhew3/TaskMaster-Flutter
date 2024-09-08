@@ -2,17 +2,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:taskmaster/redux/app_state.dart';
+import 'package:taskmaster/redux/containers/tab_selector.dart';
 import 'package:taskmaster/redux/presentation/stats_counter_viewmodel.dart';
 import 'package:taskmaster/redux/presentation/task_main_menu.dart';
 
-import '../../typedefs.dart';
-
 class StatsCounter extends StatelessWidget {
-  final BottomNavigationBarGetter bottomNavigationBarGetter;
 
   StatsCounter({
     Key? key,
-    required this.bottomNavigationBarGetter,
   }) : super(key: key);
 
   @override
@@ -71,7 +68,7 @@ class StatsCounter extends StatelessWidget {
               ),
             ),
             drawer: TaskMainMenu(),
-            bottomNavigationBar: bottomNavigationBarGetter(),
+            bottomNavigationBar: TabSelector(),
           );
         },
         converter: StatsCounterViewModel.fromStore);

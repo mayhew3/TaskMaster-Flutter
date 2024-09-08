@@ -8,7 +8,6 @@ import 'package:taskmaster/redux/presentation/home_screen_viewmodel.dart';
 
 import '../../keys.dart';
 import '../app_state.dart';
-import '../containers/tab_selector.dart';
 
 class HomeScreen extends StatefulWidget {
   final void Function() onInit;
@@ -30,7 +29,7 @@ class HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, HomeScreenViewModel>(
         builder: (context, viewModel) {
-          return viewModel.activeTab.widgetGetter(() => TabSelector());
+          return viewModel.activeTab.widgetGetter();
         },
         converter: HomeScreenViewModel.fromStore
     );
