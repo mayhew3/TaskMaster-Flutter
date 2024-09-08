@@ -13,18 +13,35 @@ class _$SprintTaskItemsViewModel extends SprintTaskItemsViewModel {
   final BuiltList<TaskItem> taskItems;
   @override
   final bool loading;
+  @override
+  final bool showCompleted;
+  @override
+  final bool showScheduled;
+  @override
+  final TimezoneHelper timezoneHelper;
 
   factory _$SprintTaskItemsViewModel(
           [void Function(SprintTaskItemsViewModelBuilder)? updates]) =>
       (new SprintTaskItemsViewModelBuilder()..update(updates))._build();
 
   _$SprintTaskItemsViewModel._(
-      {this.activeSprint, required this.taskItems, required this.loading})
+      {this.activeSprint,
+      required this.taskItems,
+      required this.loading,
+      required this.showCompleted,
+      required this.showScheduled,
+      required this.timezoneHelper})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(
         taskItems, r'SprintTaskItemsViewModel', 'taskItems');
     BuiltValueNullFieldError.checkNotNull(
         loading, r'SprintTaskItemsViewModel', 'loading');
+    BuiltValueNullFieldError.checkNotNull(
+        showCompleted, r'SprintTaskItemsViewModel', 'showCompleted');
+    BuiltValueNullFieldError.checkNotNull(
+        showScheduled, r'SprintTaskItemsViewModel', 'showScheduled');
+    BuiltValueNullFieldError.checkNotNull(
+        timezoneHelper, r'SprintTaskItemsViewModel', 'timezoneHelper');
   }
 
   @override
@@ -42,7 +59,10 @@ class _$SprintTaskItemsViewModel extends SprintTaskItemsViewModel {
     return other is SprintTaskItemsViewModel &&
         activeSprint == other.activeSprint &&
         taskItems == other.taskItems &&
-        loading == other.loading;
+        loading == other.loading &&
+        showCompleted == other.showCompleted &&
+        showScheduled == other.showScheduled &&
+        timezoneHelper == other.timezoneHelper;
   }
 
   @override
@@ -51,6 +71,9 @@ class _$SprintTaskItemsViewModel extends SprintTaskItemsViewModel {
     _$hash = $jc(_$hash, activeSprint.hashCode);
     _$hash = $jc(_$hash, taskItems.hashCode);
     _$hash = $jc(_$hash, loading.hashCode);
+    _$hash = $jc(_$hash, showCompleted.hashCode);
+    _$hash = $jc(_$hash, showScheduled.hashCode);
+    _$hash = $jc(_$hash, timezoneHelper.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -60,7 +83,10 @@ class _$SprintTaskItemsViewModel extends SprintTaskItemsViewModel {
     return (newBuiltValueToStringHelper(r'SprintTaskItemsViewModel')
           ..add('activeSprint', activeSprint)
           ..add('taskItems', taskItems)
-          ..add('loading', loading))
+          ..add('loading', loading)
+          ..add('showCompleted', showCompleted)
+          ..add('showScheduled', showScheduled)
+          ..add('timezoneHelper', timezoneHelper))
         .toString();
   }
 }
@@ -86,6 +112,21 @@ class SprintTaskItemsViewModelBuilder
   bool? get loading => _$this._loading;
   set loading(bool? loading) => _$this._loading = loading;
 
+  bool? _showCompleted;
+  bool? get showCompleted => _$this._showCompleted;
+  set showCompleted(bool? showCompleted) =>
+      _$this._showCompleted = showCompleted;
+
+  bool? _showScheduled;
+  bool? get showScheduled => _$this._showScheduled;
+  set showScheduled(bool? showScheduled) =>
+      _$this._showScheduled = showScheduled;
+
+  TimezoneHelper? _timezoneHelper;
+  TimezoneHelper? get timezoneHelper => _$this._timezoneHelper;
+  set timezoneHelper(TimezoneHelper? timezoneHelper) =>
+      _$this._timezoneHelper = timezoneHelper;
+
   SprintTaskItemsViewModelBuilder();
 
   SprintTaskItemsViewModelBuilder get _$this {
@@ -94,6 +135,9 @@ class SprintTaskItemsViewModelBuilder
       _activeSprint = $v.activeSprint?.toBuilder();
       _taskItems = $v.taskItems.toBuilder();
       _loading = $v.loading;
+      _showCompleted = $v.showCompleted;
+      _showScheduled = $v.showScheduled;
+      _timezoneHelper = $v.timezoneHelper;
       _$v = null;
     }
     return this;
@@ -121,7 +165,15 @@ class SprintTaskItemsViewModelBuilder
               activeSprint: _activeSprint?.build(),
               taskItems: taskItems.build(),
               loading: BuiltValueNullFieldError.checkNotNull(
-                  loading, r'SprintTaskItemsViewModel', 'loading'));
+                  loading, r'SprintTaskItemsViewModel', 'loading'),
+              showCompleted: BuiltValueNullFieldError.checkNotNull(
+                  showCompleted, r'SprintTaskItemsViewModel', 'showCompleted'),
+              showScheduled: BuiltValueNullFieldError.checkNotNull(
+                  showScheduled, r'SprintTaskItemsViewModel', 'showScheduled'),
+              timezoneHelper: BuiltValueNullFieldError.checkNotNull(
+                  timezoneHelper,
+                  r'SprintTaskItemsViewModel',
+                  'timezoneHelper'));
     } catch (_) {
       late String _$failedField;
       try {

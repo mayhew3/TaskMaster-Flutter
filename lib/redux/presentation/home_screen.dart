@@ -4,19 +4,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:taskmaster/redux/containers/filtered_task_items.dart';
-import 'package:taskmaster/redux/containers/sprint_task_items.dart';
-import 'package:taskmaster/redux/presentation/add_edit_screen.dart';
 import 'package:taskmaster/redux/presentation/home_screen_viewmodel.dart';
-import 'package:taskmaster/redux/presentation/stats_counter.dart';
-import 'package:taskmaster/redux/presentation/task_main_menu.dart';
 
 import '../../keys.dart';
-import '../../models/models.dart';
-import '../actions/actions.dart';
 import '../app_state.dart';
 import '../containers/tab_selector.dart';
-import 'filter_button.dart';
 
 class HomeScreen extends StatefulWidget {
   final void Function() onInit;
@@ -38,34 +30,7 @@ class HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, HomeScreenViewModel>(
         builder: (context, viewModel) {
-          return Scaffold(
-            appBar: AppBar(
-              title: Text("TaskMaster 3000"),
-              actions: [
-                FilterButton(
-                  scheduledGetter: () => viewModel.showScheduled,
-                  completedGetter: () => viewModel.showCompleted,
-                  toggleScheduled: () => StoreProvider.of<AppState>(context).dispatch(ToggleTaskListShowScheduled()),
-                  toggleCompleted: () => StoreProvider.of<AppState>(context).dispatch(ToggleTaskListShowCompleted()),
-                ),
-                IconButton(
-                  icon: Icon(Icons.refresh),
-                  onPressed: () => StoreProvider.of<AppState>(context).dispatch(LoadDataAction())
-                ),
-              ],
-            ),
-            body: viewModel.activeTab.widgetGetter(),
-            bottomNavigationBar: TabSelector(),
-            drawer: TaskMainMenu(),
-            floatingActionButton: FloatingActionButton(
-              onPressed: () async {
-                await Navigator.push(context,
-                MaterialPageRoute(builder: (_) => AddEditScreen(timezoneHelper: viewModel.timezoneHelper))
-                );
-              },
-              child: Icon(Icons.add),
-            ),
-          );
+          return viewModel.activeTab.widgetGetter(() => TabSelector());
         },
         converter: HomeScreenViewModel.fromStore
     );

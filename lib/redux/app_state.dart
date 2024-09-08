@@ -56,15 +56,15 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
       TopNavItem.init(
           label: 'Plan',
           icon: Icons.assignment,
-          widgetGetter: () => SprintTaskItems()),
+          widgetGetter: (bnbg) => SprintTaskItems(bottomNavigationBarGetter: bnbg)),
       TopNavItem.init(
           label: 'Tasks',
           icon: Icons.list,
-          widgetGetter: () => FilteredTaskItems()),
+          widgetGetter: (bnbg) => FilteredTaskItems(bottomNavigationBarGetter: bnbg)),
       TopNavItem.init(
           label: 'Stats',
           icon: Icons.show_chart,
-          widgetGetter: () => StatsCounter()),
+          widgetGetter: (bnbg) => StatsCounter(bottomNavigationBarGetter: bnbg)),
     ];
     return appState
       ..isLoading = loading
@@ -73,17 +73,11 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
       ..sprints = ListBuilder()
       ..taskRecurrences = ListBuilder()
       ..activeTab = allNavItems[0].toBuilder()
-      ..sprintListFilter = VisibilityFilter.init(
-          showScheduled: true, showCompleted: true, showActiveSprint: true)
-          .toBuilder()
+      ..sprintListFilter = VisibilityFilter.init(showScheduled: true, showCompleted: true, showActiveSprint: true).toBuilder()
       ..taskListFilter = VisibilityFilter.init().toBuilder()
       ..recentlyCompleted = ListBuilder()
       ..tokenRetrieved = false
-      ..googleSignIn = GoogleSignIn(
-          scopes: [
-            'email',
-          ]
-      )
+      ..googleSignIn = GoogleSignIn(scopes: ['email'])
       ..timezoneHelper = TimezoneHelper()
       ..allNavItems = ListBuilder(allNavItems);
   }

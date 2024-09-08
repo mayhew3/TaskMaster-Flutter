@@ -11,18 +11,34 @@ class _$FilteredTaskItemsViewModel extends FilteredTaskItemsViewModel {
   final BuiltList<TaskItem> taskItems;
   @override
   final bool loading;
+  @override
+  final bool showCompleted;
+  @override
+  final bool showScheduled;
+  @override
+  final TimezoneHelper timezoneHelper;
 
   factory _$FilteredTaskItemsViewModel(
           [void Function(FilteredTaskItemsViewModelBuilder)? updates]) =>
       (new FilteredTaskItemsViewModelBuilder()..update(updates))._build();
 
   _$FilteredTaskItemsViewModel._(
-      {required this.taskItems, required this.loading})
+      {required this.taskItems,
+      required this.loading,
+      required this.showCompleted,
+      required this.showScheduled,
+      required this.timezoneHelper})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(
         taskItems, r'FilteredTaskItemsViewModel', 'taskItems');
     BuiltValueNullFieldError.checkNotNull(
         loading, r'FilteredTaskItemsViewModel', 'loading');
+    BuiltValueNullFieldError.checkNotNull(
+        showCompleted, r'FilteredTaskItemsViewModel', 'showCompleted');
+    BuiltValueNullFieldError.checkNotNull(
+        showScheduled, r'FilteredTaskItemsViewModel', 'showScheduled');
+    BuiltValueNullFieldError.checkNotNull(
+        timezoneHelper, r'FilteredTaskItemsViewModel', 'timezoneHelper');
   }
 
   @override
@@ -39,7 +55,10 @@ class _$FilteredTaskItemsViewModel extends FilteredTaskItemsViewModel {
     if (identical(other, this)) return true;
     return other is FilteredTaskItemsViewModel &&
         taskItems == other.taskItems &&
-        loading == other.loading;
+        loading == other.loading &&
+        showCompleted == other.showCompleted &&
+        showScheduled == other.showScheduled &&
+        timezoneHelper == other.timezoneHelper;
   }
 
   @override
@@ -47,6 +66,9 @@ class _$FilteredTaskItemsViewModel extends FilteredTaskItemsViewModel {
     var _$hash = 0;
     _$hash = $jc(_$hash, taskItems.hashCode);
     _$hash = $jc(_$hash, loading.hashCode);
+    _$hash = $jc(_$hash, showCompleted.hashCode);
+    _$hash = $jc(_$hash, showScheduled.hashCode);
+    _$hash = $jc(_$hash, timezoneHelper.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -55,7 +77,10 @@ class _$FilteredTaskItemsViewModel extends FilteredTaskItemsViewModel {
   String toString() {
     return (newBuiltValueToStringHelper(r'FilteredTaskItemsViewModel')
           ..add('taskItems', taskItems)
-          ..add('loading', loading))
+          ..add('loading', loading)
+          ..add('showCompleted', showCompleted)
+          ..add('showScheduled', showScheduled)
+          ..add('timezoneHelper', timezoneHelper))
         .toString();
   }
 }
@@ -75,6 +100,21 @@ class FilteredTaskItemsViewModelBuilder
   bool? get loading => _$this._loading;
   set loading(bool? loading) => _$this._loading = loading;
 
+  bool? _showCompleted;
+  bool? get showCompleted => _$this._showCompleted;
+  set showCompleted(bool? showCompleted) =>
+      _$this._showCompleted = showCompleted;
+
+  bool? _showScheduled;
+  bool? get showScheduled => _$this._showScheduled;
+  set showScheduled(bool? showScheduled) =>
+      _$this._showScheduled = showScheduled;
+
+  TimezoneHelper? _timezoneHelper;
+  TimezoneHelper? get timezoneHelper => _$this._timezoneHelper;
+  set timezoneHelper(TimezoneHelper? timezoneHelper) =>
+      _$this._timezoneHelper = timezoneHelper;
+
   FilteredTaskItemsViewModelBuilder();
 
   FilteredTaskItemsViewModelBuilder get _$this {
@@ -82,6 +122,9 @@ class FilteredTaskItemsViewModelBuilder
     if ($v != null) {
       _taskItems = $v.taskItems.toBuilder();
       _loading = $v.loading;
+      _showCompleted = $v.showCompleted;
+      _showScheduled = $v.showScheduled;
+      _timezoneHelper = $v.timezoneHelper;
       _$v = null;
     }
     return this;
@@ -108,7 +151,19 @@ class FilteredTaskItemsViewModelBuilder
           new _$FilteredTaskItemsViewModel._(
               taskItems: taskItems.build(),
               loading: BuiltValueNullFieldError.checkNotNull(
-                  loading, r'FilteredTaskItemsViewModel', 'loading'));
+                  loading, r'FilteredTaskItemsViewModel', 'loading'),
+              showCompleted: BuiltValueNullFieldError.checkNotNull(
+                  showCompleted,
+                  r'FilteredTaskItemsViewModel',
+                  'showCompleted'),
+              showScheduled: BuiltValueNullFieldError.checkNotNull(
+                  showScheduled,
+                  r'FilteredTaskItemsViewModel',
+                  'showScheduled'),
+              timezoneHelper: BuiltValueNullFieldError.checkNotNull(
+                  timezoneHelper,
+                  r'FilteredTaskItemsViewModel',
+                  'timezoneHelper'));
     } catch (_) {
       late String _$failedField;
       try {
