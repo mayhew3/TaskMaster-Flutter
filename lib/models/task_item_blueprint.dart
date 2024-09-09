@@ -36,6 +36,8 @@ class TaskItemBlueprint with DateHolder {
   int? recurrenceId;
   int? recurIteration;
 
+  int? personId;
+
   @JsonKey(includeToJson: false)
   late int tmpId;
 

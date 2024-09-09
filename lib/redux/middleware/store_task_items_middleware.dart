@@ -95,7 +95,9 @@ Future<void> Function(
     if (idToken == null) {
       throw new Exception("Cannot load tasks without id token.");
     }
-    var taskItem = await repository.addTask(action.blueprint, idToken, personId);
+
+    action.blueprint.personId = personId;
+    var taskItem = await repository.addTask(action.blueprint, idToken);
     store.dispatch(TaskItemAdded(taskItem: taskItem));
   };
 }

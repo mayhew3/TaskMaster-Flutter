@@ -61,6 +61,14 @@ Sprint? activeSprintSelector(BuiltList<Sprint> sprints) {
   return matching.isEmpty ? null : matching.last;
 }
 
+Sprint? lastCompletedSprintSelector(BuiltList<Sprint> sprints) {
+  List<Sprint> matching = sprints.where((sprint) {
+    return DateTime.now().isAfter(sprint.endDate);
+  }).toList();
+  matching.sort((a, b) => a.endDate.compareTo(b.endDate));
+  return matching.isEmpty ? null : matching.last;
+}
+
 BuiltList<TaskItem> taskItemsForSprintSelector(BuiltList<TaskItem> taskItems, Sprint sprint) {
   return taskItems.where((t) => t.sprintAssignments.where((sa) => sa.sprintId == sprint.id).isNotEmpty).toBuiltList();
 }

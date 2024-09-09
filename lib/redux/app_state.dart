@@ -5,6 +5,7 @@ import 'package:flutter/material.dart' hide Builder;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
 import 'package:taskmaster/redux/containers/filtered_task_items.dart';
+import 'package:taskmaster/redux/containers/planning_home.dart';
 import 'package:taskmaster/redux/containers/sprint_task_items.dart';
 import 'package:taskmaster/redux/presentation/stats_counter.dart';
 
@@ -56,7 +57,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
       TopNavItem.init(
           label: 'Plan',
           icon: Icons.assignment,
-          widgetGetter: () => SprintTaskItems()),
+          widgetGetter: () => PlanningHome()),
       TopNavItem.init(
           label: 'Tasks',
           icon: Icons.list,

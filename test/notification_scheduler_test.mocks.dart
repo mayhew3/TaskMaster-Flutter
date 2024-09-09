@@ -11,6 +11,7 @@ import 'package:http/http.dart' as _i8;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:taskmaster/models/data_payload.dart' as _i9;
 import 'package:taskmaster/models/models.dart' as _i4;
+import 'package:taskmaster/models/sprint_blueprint.dart' as _i13;
 import 'package:taskmaster/models/task_item_blueprint.dart' as _i12;
 import 'package:taskmaster/models/top_nav_item.dart' as _i3;
 import 'package:taskmaster/redux/app_state.dart' as _i7;
@@ -133,6 +134,16 @@ class _FakeDataPayload_9 extends _i1.SmartFake implements _i9.DataPayload {
 
 class _FakeTaskItem_10 extends _i1.SmartFake implements _i4.TaskItem {
   _FakeTaskItem_10(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeSprint_11 extends _i1.SmartFake implements _i4.Sprint {
+  _FakeSprint_11(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -512,7 +523,6 @@ class MockTaskRepository extends _i1.Mock implements _i11.TaskRepository {
   _i10.Future<_i4.TaskItem> addTask(
     _i12.TaskItemBlueprint? blueprint,
     String? idToken,
-    int? personId,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -520,7 +530,6 @@ class MockTaskRepository extends _i1.Mock implements _i11.TaskRepository {
           [
             blueprint,
             idToken,
-            personId,
           ],
         ),
         returnValue: _i10.Future<_i4.TaskItem>.value(_FakeTaskItem_10(
@@ -530,7 +539,6 @@ class MockTaskRepository extends _i1.Mock implements _i11.TaskRepository {
             [
               blueprint,
               idToken,
-              personId,
             ],
           ),
         )),
@@ -542,7 +550,6 @@ class MockTaskRepository extends _i1.Mock implements _i11.TaskRepository {
             [
               blueprint,
               idToken,
-              personId,
             ],
           ),
         )),
@@ -583,4 +590,39 @@ class MockTaskRepository extends _i1.Mock implements _i11.TaskRepository {
           ),
         )),
       ) as _i10.Future<_i4.TaskItem>);
+
+  @override
+  _i10.Future<_i4.Sprint> addSprint(
+    _i13.SprintBlueprint? blueprint,
+    String? idToken,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #addSprint,
+          [
+            blueprint,
+            idToken,
+          ],
+        ),
+        returnValue: _i10.Future<_i4.Sprint>.value(_FakeSprint_11(
+          this,
+          Invocation.method(
+            #addSprint,
+            [
+              blueprint,
+              idToken,
+            ],
+          ),
+        )),
+        returnValueForMissingStub: _i10.Future<_i4.Sprint>.value(_FakeSprint_11(
+          this,
+          Invocation.method(
+            #addSprint,
+            [
+              blueprint,
+              idToken,
+            ],
+          ),
+        )),
+      ) as _i10.Future<_i4.Sprint>);
 }

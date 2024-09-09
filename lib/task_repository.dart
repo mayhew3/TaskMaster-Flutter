@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:taskmaster/models/data_payload.dart';
 import 'package:taskmaster/models/sprint.dart';
+import 'package:taskmaster/models/sprint_blueprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
@@ -116,13 +117,9 @@ class TaskRepository {
     }
   }
 
-  Future<TaskItem> addTask(TaskItemBlueprint blueprint, String idToken, int personId) async {
-
-    var taskObj = blueprint.toJson();
-
-    taskObj['person_id'] = personId;
+  Future<TaskItem> addTask(TaskItemBlueprint blueprint, String idToken) async {
     var payload = {
-      "task": taskObj
+      "task": blueprint.toJson()
     };
     return _addOrUpdateJSON(payload, 'add', idToken);
   }
@@ -144,6 +141,39 @@ class TaskRepository {
     } else {
       var utc = dateTime.toUtc();
       return utc.toIso8601String();
+    }
+  }
+
+  Future<Sprint> addSprint(SprintBlueprint blueprint, String idToken) async {
+    var payload = {
+      "sprint": blueprint.toJson()
+    };
+
+    return await _addSprintJSON(payload, idToken);
+  }
+
+  Future<Sprint> _addSprintJSON(Map<String, Object> payload, String idToken) async {
+    var body = utf8.encode(json.encode(payload));
+
+    var uri = getUri("/api/sprints");
+    final response = await client.post(uri,
+        headers: {HttpHeaders.authorizationHeader: idToken,
+          "Content-Type": "application/json"},
+        body: body
+    );
+
+    if (response.statusCode == 200) {
+      try {
+        var jsonObj = json.decode(response.body);
+        Sprint inboundSprint = serializers.deserializeWith(Sprint.serializer, jsonObj)!;
+        return inboundSprint;
+      } catch(exception, stackTrace) {
+        print(exception);
+        print(stackTrace);
+        throw Exception('Error parsing snooze from the server. Talk to Mayhew.');
+      }
+    } else {
+      throw Exception('Failed to add snooze. Talk to Mayhew.');
     }
   }
 
