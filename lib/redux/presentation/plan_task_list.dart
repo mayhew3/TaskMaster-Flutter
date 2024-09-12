@@ -1,5 +1,8 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:taskmaster/models/sprint_blueprint.dart';
+import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/presentation/plan_task_list_viewmodel.dart';
 import 'package:taskmaster/redux/selectors/selectors.dart';
 import "package:collection/collection.dart";
@@ -41,7 +44,7 @@ class PlanTaskListState extends State<PlanTaskList> {
   void initState() {
     super.initState();
 
-    createTemporaryIterations();
+    // createTemporaryIterations();
   }
 
   void preSelectUrgentAndDueAndPreviousSprint(PlanTaskListViewModel viewModel) {
@@ -62,13 +65,13 @@ class PlanTaskListState extends State<PlanTaskList> {
     return subList;
   }
 
-  EditableTaskItemWidget _createWidget({required TaskItem taskItem}) {
+  EditableTaskItemWidget _createWidget({required TaskItem taskItem, required PlanTaskListViewModel viewModel}) {
     return EditableTaskItemWidget(
       taskItem: taskItem,
       endDate: getEndDate(),
       sprint: null,
       addMode: true,
-      highlightSprint: highlightSprint(taskItem),
+      highlightSprint: highlightSprint(taskItem, viewModel),
       initialCheckState: sprintQueued.contains(taskItem) ? CheckState.checked : CheckState.inactive,
       onTaskAssignmentToggle: (checkState) {
         var alreadyQueued = sprintQueued.contains(taskItem);
@@ -105,18 +108,20 @@ class PlanTaskListState extends State<PlanTaskList> {
     }
   }
 
-  bool highlightSprint(TaskItem taskItem) {
-    return (taskItem is TaskItem) ? taskItem.sprints.contains(lastSprint) : false;
+  bool highlightSprint(TaskItem taskItem, PlanTaskListViewModel viewModel) {
+    return taskItemIsInSprint(taskItem, viewModel.lastSprint);
+    // return (taskItem is TaskItem) ? taskItem.sprints.contains(lastSprint) : false;
   }
 
-  bool wasInEarlierSprint(TaskItem taskItem) {
+  bool wasInEarlierSprint(TaskItem taskItem, PlanTaskListViewModel viewModel) {
     if (taskItem is TaskItem) {
-      var sprints = taskItem.sprints.where((sprint) => sprint != lastSprint);
+      var sprints = sprintsForTaskItemSelector(viewModel.allSprints, taskItem).where((sprint) => sprint != viewModel.lastSprint);
       return sprints.isNotEmpty;
     } else {
       return false;
     }
   }
+/*
 
   void createTemporaryIterations() {
     List<TaskItem> eligibleItems = [];
@@ -144,6 +149,7 @@ class PlanTaskListState extends State<PlanTaskList> {
 
   }
 
+
   void addNextIterations(TaskItem newest, DateTime endDate, List<TaskItem> collector) {
     TaskItem nextIteration = widget.taskHelper.createNextIteration(newest, DateTime.now());
     var willBeUrgentOrDue = nextIteration.isDueBefore(endDate) || nextIteration.isUrgentBefore(endDate);
@@ -158,25 +164,25 @@ class PlanTaskListState extends State<PlanTaskList> {
       addNextIterations(nextIteration, endDate, collector);
     }
   }
-
-  void _addTaskTile({required List<StatelessWidget> tiles, required TaskItem task}) {
-    tiles.add(_createWidget(taskItem: task));
+*/
+  void _addTaskTile({required List<StatelessWidget> tiles, required TaskItem task, required PlanTaskListViewModel viewModel}) {
+    tiles.add(_createWidget(taskItem: task, viewModel: viewModel));
     hasTiles = true;
   }
 
   ListView _buildListView(BuildContext context, PlanTaskListViewModel viewModel) {
-    widget.appState.notificationScheduler.updateHomeScreenContext(context);
+    // widget.appState.notificationScheduler.updateHomeScreenContext(context);
     final List<TaskItem> otherTasks = [];
     otherTasks.addAll(getBaseList(viewModel));
     otherTasks.addAll(tempIterations);
 
     DateTime endDate = getEndDate();
 
-    Sprint? lastCompletedSprint = widget.appState.getLastCompletedSprint();
+    Sprint? lastCompletedSprint = viewModel.lastSprint;
 
     final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted());
-    final List<TaskItem> lastSprintTasks = _moveSublist(otherTasks, (taskItem) => (taskItem is TaskItem) && taskItem.sprints.contains(lastCompletedSprint));
-    final List<TaskItem> otherSprintTasks = _moveSublist(otherTasks, (taskItem) => wasInEarlierSprint(taskItem));
+    final List<TaskItem> lastSprintTasks = _moveSublist(otherTasks, (taskItem) => (taskItem is TaskItem) && taskItemIsInSprint(taskItem, lastCompletedSprint));
+    final List<TaskItem> otherSprintTasks = _moveSublist(otherTasks, (taskItem) => wasInEarlierSprint(taskItem, viewModel));
     final List<TaskItem> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isDueBefore(endDate));
     final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgentBefore(endDate));
     final List<TaskItem> targetTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isTargetBefore(endDate));
@@ -186,42 +192,42 @@ class PlanTaskListState extends State<PlanTaskList> {
 
     if (lastSprintTasks.isNotEmpty) {
       tiles.add(HeadingItem('Last Sprint'));
-      lastSprintTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task));
+      lastSprintTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task, viewModel: viewModel));
     }
 
     if (otherSprintTasks.isNotEmpty) {
       tiles.add(HeadingItem('Older Sprints'));
-      otherSprintTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task));
+      otherSprintTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task, viewModel: viewModel));
     }
 
     if (dueTasks.isNotEmpty) {
       tiles.add(HeadingItem('Due Soon'));
-      dueTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task));
+      dueTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task, viewModel: viewModel));
     }
 
     if (urgentTasks.isNotEmpty) {
       tiles.add(HeadingItem('Urgent Soon'));
-      urgentTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task));
+      urgentTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task, viewModel: viewModel));
     }
 
     if (targetTasks.isNotEmpty) {
       tiles.add(HeadingItem('Target Soon'));
-      targetTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task));
+      targetTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task, viewModel: viewModel));
     }
 
     if (otherTasks.isNotEmpty) {
       tiles.add(HeadingItem('Tasks'));
-      otherTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task));
+      otherTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task, viewModel: viewModel));
     }
 
     if (scheduledTasks.isNotEmpty) {
       tiles.add(HeadingItem('Starting Later'));
-      scheduledTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task));
+      scheduledTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task, viewModel: viewModel));
     }
 
     if (completedTasks.isNotEmpty) {
       tiles.add(HeadingItem('Completed'));
-      completedTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task));
+      completedTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task, viewModel: viewModel));
     }
 
     if (!hasTiles) {
@@ -301,6 +307,7 @@ class PlanTaskListState extends State<PlanTaskList> {
         a.recurrenceId == b.recurrenceId &&
         a.recurIteration == b.recurIteration;
   }
+/*
 
   Future<void> createSelectedIterations() async {
     print('${tempIterations.length} temp items created.');
@@ -318,6 +325,7 @@ class PlanTaskListState extends State<PlanTaskList> {
     sprintQueued.removeWhere((element) => !(element is TaskItem));
     idCheck();
   }
+*/
 
   List<TaskItem> idCheck() {
     var withoutId = sprintQueued.where((TaskItem taskItem) => !(taskItem is TaskItem));
@@ -330,22 +338,25 @@ class PlanTaskListState extends State<PlanTaskList> {
     return sprintQueued.cast<TaskItem>();
   }
 
-  void submit() async {
-    await createSelectedIterations();
+  void submit(BuildContext context, PlanTaskListViewModel viewModel) async {
+    // await createSelectedIterations();
     List<TaskItem> verified = idCheck();
 
     if (widget.sprint == null) {
       DateTime endDate = getEndDate();
-      Sprint sprint = Sprint(
+      SprintBlueprint sprint = SprintBlueprint(
           startDate: widget.startDate!,
           endDate: endDate,
           numUnits: widget.numUnits!,
           unitName: widget.unitName!,
-          personId: widget.appState.personId
+          personId: viewModel.personId
       );
-      await widget.taskHelper.addSprintAndTasks(sprint, verified);
-    } else if (activeSprint != null) {
-      await widget.taskHelper.addTasksToSprint(activeSprint!, verified);
+      StoreProvider.of<AppState>(context).dispatch(CreateSprint(sprint));
+      StoreProvider.of<AppState>(context).dispatch(AddExistingTaskItemsToSprint(sprint));
+      // await widget.taskHelper.addSprintAndTasks(sprint, verified);
+    } else if (viewModel.activeSprint != null) {
+      StoreProvider.of<AppState>(context).dispatch(AddExistingTaskItemsToSprint(viewModel.activeSprint));
+      // await widget.taskHelper.addTasksToSprint(activeSprint!, verified);
     }
 
     Navigator.pop(context, 'Added');
@@ -353,20 +364,26 @@ class PlanTaskListState extends State<PlanTaskList> {
 
   @override
   Widget build(BuildContext context) {
-    return
-      Scaffold(
-        appBar: AppBar(
-          title: Text('Select Tasks'),
-        ),
-        body: _buildListView(context),
-        floatingActionButton: Visibility(
-          visible: sprintQueued.isNotEmpty,
-          child: FloatingActionButton.extended(
-              onPressed: submit,
-              label: Text('Submit')
-          ),
-        ),
-      );
+    return StoreConnector<AppState, PlanTaskListViewModel>(
+        builder: (context, viewModel) {
+          return
+            Scaffold(
+              appBar: AppBar(
+                title: Text('Select Tasks'),
+              ),
+              body: _buildListView(context, viewModel),
+              floatingActionButton: Visibility(
+                visible: sprintQueued.isNotEmpty,
+                child: FloatingActionButton.extended(
+                    onPressed: () => submit(context, viewModel),
+                    label: Text('Submit')
+                ),
+              ),
+            );
+        },
+        converter: PlanTaskListViewModel.fromStore
+    );
+
 
   }
 
