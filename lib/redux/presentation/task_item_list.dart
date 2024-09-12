@@ -83,7 +83,6 @@ class TaskItemList extends StatelessWidget {
     };*/
     var taskCard = EditableTaskItemWidget(
       taskItem: taskItem,
-      // stateSetter: (callback) => setState(() => callback()),
       addMode: false,
       sprint: viewModel.activeSprint,
       // highlightSprint: (widget.sprint == null && activeSprint != null && taskItem.sprints.contains(activeSprint)),

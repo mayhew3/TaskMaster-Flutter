@@ -22,7 +22,7 @@ typedef TabSelector BottomNavigationBarGetter();
 
 typedef List<TaskItem> TaskListGetter();
 
-typedef void CheckCycleWaiter(CheckState startingState);
+typedef CheckState? CheckCycleWaiter(CheckState startingState);
 
 typedef DateTime? DateFieldGetter(DateHolder dateHolder);
 typedef void DateFieldSetter(TaskItemBlueprint blueprint, DateTime? newDate);

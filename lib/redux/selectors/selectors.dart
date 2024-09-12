@@ -69,6 +69,28 @@ Sprint? lastCompletedSprintSelector(BuiltList<Sprint> sprints) {
   return matching.isEmpty ? null : matching.last;
 }
 
+BuiltList<Sprint> sprintsForTaskItemSelector(BuiltList<Sprint> sprints, TaskItem taskItem) {
+  return sprints.where((s) => taskItem.sprintAssignments.where((sa) => sa.sprintId == s.id).isNotEmpty).toBuiltList();
+}
+
 BuiltList<TaskItem> taskItemsForSprintSelector(BuiltList<TaskItem> taskItems, Sprint sprint) {
   return taskItems.where((t) => t.sprintAssignments.where((sa) => sa.sprintId == sprint.id).isNotEmpty).toBuiltList();
+}
+
+BuiltList<TaskItem> taskItemsForPlacingOnNewSprint(BuiltList<TaskItem> allTaskItems, DateTime endDate) {
+  var taskItems = allTaskItems.toList();
+  return taskItems.where((taskItem) {
+    return !taskItem.isScheduledAfter(endDate) && !taskItem.isCompleted();
+  }).toBuiltList();
+}
+
+BuiltList<TaskItem> taskItemsForPlacingOnExistingSprint(BuiltList<TaskItem> allTaskItems, Sprint sprint) {
+  var taskItems = allTaskItems.toList();
+  return taskItems.where((taskItem) {
+    return !taskItem.isScheduledAfter(sprint.endDate) && !taskItem.isCompleted() && taskItemIsInSprint(taskItem, sprint);
+  }).toBuiltList();
+}
+
+bool taskItemIsInSprint(TaskItem taskItem, Sprint? sprint) {
+  return sprint != null && taskItem.sprintAssignments.where((sa) => sa.sprintId == sprint.id).isEmpty;
 }

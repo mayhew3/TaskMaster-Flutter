@@ -13,14 +13,14 @@ class EditableTaskItemWidget extends StatelessWidget {
   final TaskItem taskItem;
   final GestureTapCallback? onTap;
   final CheckCycleWaiter? onTaskCompleteToggle;
-  // final CheckCycleWaiter? onTaskAssignmentToggle;
+  final CheckCycleWaiter? onTaskAssignmentToggle;
   // final ConfirmDismissCallback? onDismissed;
   // final GestureLongPressCallback? onLongPress;
   // final GestureForcePressStartCallback? onForcePress;
   final bool addMode;
   // final MyStateSetter stateSetter;
   final DateTime? endDate;
-  // final CheckState? initialCheckState;
+  final CheckState? initialCheckState;
   final Sprint? sprint;
   final bool highlightSprint;
 
@@ -33,11 +33,13 @@ class EditableTaskItemWidget extends StatelessWidget {
     required this.highlightSprint,
     this.onTaskCompleteToggle,
     this.onTap,
+    this.onTaskAssignmentToggle,
+    this.initialCheckState,
   }) : super(key: key);
 
   bool hasPassed(DateTime? dateTime) {
-    // var now = addMode ? this.endDate! : DateTime.timestamp();
-    return dateTime == null ? false : dateTime.isBefore(DateTime.now());
+    var now = addMode ? this.endDate! : DateTime.timestamp();
+    return dateTime == null ? false : dateTime.isBefore(now);
   }
 
   Color getBackgroundColor() {
@@ -48,7 +50,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     var scheduled = taskItem.isScheduled();
 
     var tmpTaskItem = taskItem;
-    var completed = (tmpTaskItem is TaskItem) && tmpTaskItem.completionDate != null;
+    var completed = tmpTaskItem.completionDate != null;
 
     if (pending) {
       return TaskColors.pendingBackground;
@@ -120,7 +122,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   }
 
   DelayedCheckbox _getCheckbox() {
-   /* if (addMode) {
+    if (addMode) {
       return DelayedCheckbox(
         taskName: taskItem.name,
         initialState: initialCheckState!,
@@ -128,7 +130,7 @@ class EditableTaskItemWidget extends StatelessWidget {
         checkedColor: Colors.green,
         inactiveIcon: Icons.add,
       );
-    } else {*/
+    } else {
       var tmpTaskItem = taskItem;
       var completed = tmpTaskItem.completionDate != null;
 
@@ -142,7 +144,7 @@ class EditableTaskItemWidget extends StatelessWidget {
         initialState: completed ? CheckState.checked : pending ? CheckState.pending : CheckState.inactive,
         checkCycleWaiter: onTaskCompleteToggle!,
       );
-    // }
+    }
   }
 
   Widget _getDateWarnings() {
