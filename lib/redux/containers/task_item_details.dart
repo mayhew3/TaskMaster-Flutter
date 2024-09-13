@@ -11,7 +11,7 @@ import 'package:taskmaster/typedefs.dart';
 import '../presentation/delayed_checkbox.dart';
 import '../presentation/details_screen.dart';
 import '../app_state.dart';
-import '../actions/actions.dart';
+import '../actions/task_item_actions.dart';
 import '../../models/models.dart';
 
 class TaskItemDetailScreen extends StatelessWidget {

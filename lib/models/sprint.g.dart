@@ -18,6 +18,11 @@ class _$SprintSerializer implements StructuredSerializer<Sprint> {
   Iterable<Object?> serialize(Serializers serializers, Sprint object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object?>[
+      'id',
+      serializers.serialize(object.id, specifiedType: const FullType(int)),
+      'dateAdded',
+      serializers.serialize(object.dateAdded,
+          specifiedType: const FullType(DateTime)),
       'startDate',
       serializers.serialize(object.startDate,
           specifiedType: const FullType(DateTime)),
@@ -35,17 +40,6 @@ class _$SprintSerializer implements StructuredSerializer<Sprint> {
           specifiedType: const FullType(int)),
     ];
     Object? value;
-    value = object.id;
-
-    result
-      ..add('id')
-      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
-    value = object.dateAdded;
-
-    result
-      ..add('dateAdded')
-      ..add(serializers.serialize(value,
-          specifiedType: const FullType(DateTime)));
     value = object.closeDate;
 
     result
@@ -74,11 +68,11 @@ class _$SprintSerializer implements StructuredSerializer<Sprint> {
       switch (key) {
         case 'id':
           result.id = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int?;
+              specifiedType: const FullType(int))! as int;
           break;
         case 'dateAdded':
           result.dateAdded = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime)) as DateTime?;
+              specifiedType: const FullType(DateTime))! as DateTime;
           break;
         case 'startDate':
           result.startDate = serializers.deserialize(value,
@@ -117,9 +111,9 @@ class _$SprintSerializer implements StructuredSerializer<Sprint> {
 
 class _$Sprint extends Sprint {
   @override
-  final int? id;
+  final int id;
   @override
-  final DateTime? dateAdded;
+  final DateTime dateAdded;
   @override
   final DateTime startDate;
   @override
@@ -139,8 +133,8 @@ class _$Sprint extends Sprint {
       (new SprintBuilder()..update(updates))._build();
 
   _$Sprint._(
-      {this.id,
-      this.dateAdded,
+      {required this.id,
+      required this.dateAdded,
       required this.startDate,
       required this.endDate,
       this.closeDate,
@@ -149,6 +143,8 @@ class _$Sprint extends Sprint {
       required this.personId,
       this.sprintNumber})
       : super._() {
+    BuiltValueNullFieldError.checkNotNull(id, r'Sprint', 'id');
+    BuiltValueNullFieldError.checkNotNull(dateAdded, r'Sprint', 'dateAdded');
     BuiltValueNullFieldError.checkNotNull(startDate, r'Sprint', 'startDate');
     BuiltValueNullFieldError.checkNotNull(endDate, r'Sprint', 'endDate');
     BuiltValueNullFieldError.checkNotNull(numUnits, r'Sprint', 'numUnits');
@@ -285,8 +281,9 @@ class SprintBuilder implements Builder<Sprint, SprintBuilder> {
   _$Sprint _build() {
     final _$result = _$v ??
         new _$Sprint._(
-            id: id,
-            dateAdded: dateAdded,
+            id: BuiltValueNullFieldError.checkNotNull(id, r'Sprint', 'id'),
+            dateAdded: BuiltValueNullFieldError.checkNotNull(
+                dateAdded, r'Sprint', 'dateAdded'),
             startDate: BuiltValueNullFieldError.checkNotNull(
                 startDate, r'Sprint', 'startDate'),
             endDate: BuiltValueNullFieldError.checkNotNull(

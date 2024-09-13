@@ -4,7 +4,7 @@ import 'package:built_value/built_value.dart';
 import 'package:redux/redux.dart';
 
 import '../../models/top_nav_item.dart';
-import '../actions/actions.dart';
+import '../actions/task_item_actions.dart';
 import '../app_state.dart';
 
 part 'tab_selector_viewmodel.g.dart';

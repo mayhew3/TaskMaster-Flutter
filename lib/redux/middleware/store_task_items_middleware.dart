@@ -5,7 +5,7 @@ import 'package:taskmaster/redux/actions/auth_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/task_repository.dart';
 
-import '../actions/actions.dart';
+import '../actions/task_item_actions.dart';
 
 List<Middleware<AppState>> createStoreTaskItemsMiddleware(TaskRepository repository) {
   return [

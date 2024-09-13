@@ -9,7 +9,7 @@ import 'package:taskmaster/redux/presentation/task_main_menu.dart';
 import '../../date_util.dart';
 import '../../models/sprint.dart';
 import '../../parse_helper.dart';
-import '../actions/actions.dart';
+import '../actions/task_item_actions.dart';
 import '../app_state.dart';
 import '../containers/tab_selector.dart';
 import 'editable_task_field.dart';

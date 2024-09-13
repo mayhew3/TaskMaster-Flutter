@@ -7,7 +7,7 @@ import 'package:taskmaster/redux/middleware/auth_middleware.dart';
 import 'package:taskmaster/redux/middleware/store_task_items_middleware.dart';
 import 'package:taskmaster/redux/presentation/home_screen.dart';
 import 'package:taskmaster/redux/app_state.dart';
-import 'package:taskmaster/redux/actions/actions.dart';
+import 'package:taskmaster/redux/actions/task_item_actions.dart';
 import 'package:taskmaster/redux/presentation/sign_in.dart';
 import 'package:taskmaster/redux/presentation/splash.dart';
 import 'package:taskmaster/redux/reducers/app_state_reducer.dart';

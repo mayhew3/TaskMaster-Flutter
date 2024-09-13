@@ -10,9 +10,9 @@ abstract class Sprint implements Built<Sprint, SprintBuilder> {
   @BuiltValueSerializer(serializeNulls: true)
   static Serializer<Sprint> get serializer => _$sprintSerializer;
 
-  int? get id;
+  int get id;
 
-  DateTime? get dateAdded;
+  DateTime get dateAdded;
 
   DateTime get startDate;
   DateTime get endDate;

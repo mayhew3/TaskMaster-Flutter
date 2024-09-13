@@ -4,7 +4,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:taskmaster/redux/containers/sprint_task_items_viewmodel.dart';
 import 'package:taskmaster/redux/containers/tab_selector.dart';
 
-import '../actions/actions.dart';
+import '../actions/task_item_actions.dart';
 import '../app_state.dart';
 import '../presentation/filter_button.dart';
 import '../presentation/task_item_list.dart';

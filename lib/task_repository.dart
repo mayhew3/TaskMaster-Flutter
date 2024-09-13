@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:taskmaster/models/data_payload.dart';
 import 'package:taskmaster/models/sprint.dart';
+import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/sprint_blueprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
@@ -121,7 +122,7 @@ class TaskRepository {
     var payload = {
       "task": blueprint.toJson()
     };
-    return _addOrUpdateJSON(payload, 'add', idToken);
+    return _addOrUpdateTaskItemJSON(payload, 'add', idToken);
   }
 
   Future<TaskItem> updateTask(TaskItem taskItem, String idToken) async {
@@ -132,7 +133,7 @@ class TaskRepository {
     var payload = {
       "task": taskObj
     };
-    return _addOrUpdateJSON(payload, 'update', idToken);
+    return _addOrUpdateTaskItemJSON(payload, 'update', idToken);
   }
 
   String? formatForJson(DateTime? dateTime) {
@@ -177,7 +178,21 @@ class TaskRepository {
     }
   }
 
-  Future<TaskItem> _addOrUpdateJSON(Map<String, Object> payload, String addOrUpdate, String idToken) async {
+  Future<List<SprintAssignment>> addTasksToSprint(List<TaskItem> taskItems, Sprint sprint, String idToken) async {
+    Set<int> taskIds = new Set<int>();
+    for (TaskItem taskItem in taskItems) {
+      taskIds.add(taskItem.id);
+    }
+
+    Map<String, Object> payload = {
+      'sprint_id': sprint.id,
+      'task_ids': taskIds.toList(),
+    };
+
+    return _addSprintTaskListJSON(payload, idToken);
+  }
+
+  Future<TaskItem> _addOrUpdateTaskItemJSON(Map<String, Object> payload, String addOrUpdate, String idToken) async {
     var body = utf8.encode(json.encode(payload));
 
     var uri = getUri('/api/tasks');
@@ -202,4 +217,32 @@ class TaskRepository {
     }
   }
 
+  Future<List<SprintAssignment>> _addSprintTaskListJSON(Map<String, Object> payload, String idToken) async {
+    var body = utf8.encode(json.encode(payload));
+
+    var uri = getUri("/api/assignments");
+    final response = await client.post(uri,
+        headers: {HttpHeaders.authorizationHeader: idToken,
+          "Content-Type": "application/json"},
+        body: body
+    );
+
+    if (response.statusCode == 200) {
+      try {
+        List<SprintAssignment> sprintAssignments = [];
+        var jsonArray = json.decode(response.body);
+        for (var assignment in jsonArray) {
+          var sprintAssignment = serializers.deserializeWith(SprintAssignment.serializer, assignment);
+          sprintAssignments.add(sprintAssignment!);
+        }
+        return sprintAssignments;
+      } catch(exception, stackTrace) {
+        print(exception);
+        print(stackTrace);
+        throw Exception('Error parsing assignments from the server. Talk to Mayhew.');
+      }
+    } else {
+      throw Exception('Failed to add assignments. Talk to Mayhew.');
+    }
+  }
 }

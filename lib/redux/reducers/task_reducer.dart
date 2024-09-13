@@ -2,7 +2,7 @@ import 'package:built_collection/built_collection.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
 
-import '../actions/actions.dart';
+import '../actions/task_item_actions.dart';
 import '../app_state.dart';
 
 final taskItemsReducer = <AppState Function(AppState, dynamic)>[

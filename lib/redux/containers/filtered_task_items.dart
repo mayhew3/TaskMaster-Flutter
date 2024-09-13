@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:taskmaster/redux/containers/tab_selector.dart';
 
-import '../actions/actions.dart';
+import '../actions/task_item_actions.dart';
 import '../app_state.dart';
 import '../presentation/add_edit_screen.dart';
 import '../presentation/filter_button.dart';

@@ -1,6 +1,6 @@
 import 'package:redux/redux.dart';
 
-import '../actions/actions.dart';
+import '../actions/task_item_actions.dart';
 import '../app_state.dart';
 
 final sprintVisibilityReducer = <AppState Function(AppState, dynamic)>[

@@ -9,6 +9,7 @@ import 'package:http/http.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:taskmaster/models/data_payload.dart' as _i3;
 import 'package:taskmaster/models/sprint.dart' as _i5;
+import 'package:taskmaster/models/sprint_assignment.dart' as _i10;
 import 'package:taskmaster/models/sprint_blueprint.dart' as _i9;
 import 'package:taskmaster/models/task_item.dart' as _i4;
 import 'package:taskmaster/models/task_item_blueprint.dart' as _i8;
@@ -317,4 +318,26 @@ class MockTaskRepository extends _i1.Mock implements _i6.TaskRepository {
           ),
         )),
       ) as _i7.Future<_i5.Sprint>);
+
+  @override
+  _i7.Future<List<_i10.SprintAssignment>> addTasksToSprint(
+    List<_i4.TaskItem>? taskItems,
+    _i5.Sprint? sprint,
+    String? idToken,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #addTasksToSprint,
+          [
+            taskItems,
+            sprint,
+            idToken,
+          ],
+        ),
+        returnValue: _i7.Future<List<_i10.SprintAssignment>>.value(
+            <_i10.SprintAssignment>[]),
+        returnValueForMissingStub:
+            _i7.Future<List<_i10.SprintAssignment>>.value(
+                <_i10.SprintAssignment>[]),
+      ) as _i7.Future<List<_i10.SprintAssignment>>);
 }
