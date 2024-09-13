@@ -3,6 +3,7 @@ import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
+import 'package:taskmaster/redux/selectors/selectors.dart';
 import 'package:taskmaster/task_repository.dart';
 
 import '../actions/task_item_actions.dart';
@@ -10,7 +11,7 @@ import '../actions/task_item_actions.dart';
 List<Middleware<AppState>> createStoreTaskItemsMiddleware(TaskRepository repository) {
   return [
     TypedMiddleware<AppState, VerifyPersonAction>(_verifyPerson(repository)),
-    TypedMiddleware<AppState, LoadDataAction>(_createLoadData(repository)),
+    TypedMiddleware<AppState, LoadDataAction>(_loadData(repository)),
     TypedMiddleware<AppState, AddTaskItemAction>(_createNewTaskItem(repository)),
     TypedMiddleware<AppState, UpdateTaskItemAction>(_updateTaskItem(repository)),
     TypedMiddleware<AppState, CompleteTaskItemAction>(_completeTaskItem(repository)),
@@ -52,23 +53,13 @@ Future<void> Function(
     Store<AppState>,
     LoadDataAction action,
     NextDispatcher next,
-    ) _createLoadData(TaskRepository repository) {
+    ) _loadData(TaskRepository repository) {
   return (Store<AppState> store, LoadDataAction action, NextDispatcher next) async {
     next(action);
-
-    var personId = store.state.personId;
-    if (personId == null) {
-      throw new Exception("Cannot load tasks without person id.");
-    }
-
-    var idToken = await store.state.getIdToken();
-    if (idToken == null) {
-      throw new Exception("Cannot load tasks without id token.");
-    }
-
-    print("Fetching tasks for person_id $personId...");
+    var inputs = await getRequiredInputs(store, "load tasks");
+    print("Fetching tasks for person_id ${inputs.personId}...");
     try {
-      var dataPayload = await repository.loadTasks(personId, idToken);
+      var dataPayload = await repository.loadTasks(inputs.personId, inputs.idToken);
       store.dispatch(DataLoadedAction(dataPayload: dataPayload));
     } catch (e) {
       print("Error fetching task list: $e");
@@ -86,18 +77,10 @@ Future<void> Function(
   return (Store<AppState> store, AddTaskItemAction action, NextDispatcher next) async {
     next(action);
 
-    var personId = store.state.personId;
-    if (personId == null) {
-      throw new Exception("Cannot load tasks without person id.");
-    }
+    var inputs = await getRequiredInputs(store, "create task");
 
-    var idToken = await store.state.getIdToken();
-    if (idToken == null) {
-      throw new Exception("Cannot load tasks without id token.");
-    }
-
-    action.blueprint.personId = personId;
-    var taskItem = await repository.addTask(action.blueprint, idToken);
+    action.blueprint.personId = inputs.personId ;
+    var taskItem = await repository.addTask(action.blueprint, inputs.idToken);
     store.dispatch(TaskItemAddedAction(taskItem: taskItem));
   };
 }
@@ -109,13 +92,10 @@ Future<void> Function(
     ) _updateTaskItem(TaskRepository repository) {
   return (Store<AppState> store, UpdateTaskItemAction action, NextDispatcher next) async {
     next(action);
-    var idToken = await store.state.getIdToken();
-    if (idToken == null) {
-      throw new Exception("Cannot load tasks without id token.");
-    }
+    var inputs = await getRequiredInputs(store, "update task");
     var b = action.blueprint;
     var toUpdate = action.taskItem.rebuild((t) => _fromBlueprint(t, b));
-    var updated = await repository.updateTask(toUpdate, idToken);
+    var updated = await repository.updateTask(toUpdate, inputs.idToken);
     store.dispatch(TaskItemUpdatedAction(updated));
   };
 }
@@ -127,13 +107,10 @@ Future<void> Function(
     ) _completeTaskItem(TaskRepository repository) {
   return (Store<AppState> store, CompleteTaskItemAction action, NextDispatcher next) async {
     next(action);
-    var idToken = await store.state.getIdToken();
-    if (idToken == null) {
-      throw new Exception("Cannot load tasks without id token.");
-    }
+    var inputs = await getRequiredInputs(store, "complete task");
     var completed = action.taskItem.rebuild((t) => t
       ..completionDate = action.complete ? DateTime.timestamp() : null);
-    var updated = await repository.updateTask(completed, idToken);
+    var updated = await repository.updateTask(completed, inputs.idToken);
     store.dispatch(TaskItemCompletedAction(updated, action.complete));
   };
 }

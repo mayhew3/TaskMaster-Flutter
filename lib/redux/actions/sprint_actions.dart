@@ -1,7 +1,8 @@
 import 'package:built_collection/built_collection.dart';
+import 'package:taskmaster/models/models.dart';
+import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/sprint_blueprint.dart';
 
-import '../../models/task_item.dart';
 
 class CreateSprintWithTaskItems {
   final SprintBlueprint sprintBlueprint;
@@ -11,6 +12,18 @@ class CreateSprintWithTaskItems {
 
   @override
   String toString() {
-    return "CreateSprint{sprint: $sprintBlueprint, taskItems: $taskItems";
+    return "CreateSprint{sprintBlueprint: $sprintBlueprint, taskItems: $taskItems";
+  }
+}
+
+class SprintCreatedAction {
+  final Sprint sprint;
+  final List<SprintAssignment> sprintAssignments;
+
+  SprintCreatedAction({required this.sprint, required this.sprintAssignments});
+
+  @override
+  String toString() {
+    return "SprintCreatedAction{sprint: $sprint, sprintAssignments: $sprintAssignments";
   }
 }

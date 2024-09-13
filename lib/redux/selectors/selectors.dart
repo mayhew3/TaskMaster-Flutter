@@ -1,4 +1,5 @@
 import 'package:built_collection/built_collection.dart';
+import 'package:redux/redux.dart';
 import 'package:taskmaster/redux/app_state.dart';
 
 import '../../models/models.dart';
@@ -93,4 +94,19 @@ BuiltList<TaskItem> taskItemsForPlacingOnExistingSprint(BuiltList<TaskItem> allT
 
 bool taskItemIsInSprint(TaskItem taskItem, Sprint? sprint) {
   return sprint != null && taskItem.sprintAssignments.where((sa) => sa.sprintId == sprint.id).isEmpty;
+}
+
+Future<({int personId, String idToken})> getRequiredInputs(Store<AppState> store, String actionDesc) async {
+
+  var personId = store.state.personId;
+  if (personId == null) {
+    throw new Exception("Cannot $actionDesc without person id.");
+  }
+
+  var idToken = await store.state.getIdToken();
+  if (idToken == null) {
+    throw new Exception("Cannot $actionDesc without id token.");
+  }
+
+  return (personId: personId, idToken: idToken);
 }

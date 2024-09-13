@@ -4,6 +4,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
 import 'package:taskmaster/redux/middleware/auth_middleware.dart';
+import 'package:taskmaster/redux/middleware/store_sprint_middleware.dart';
 import 'package:taskmaster/redux/middleware/store_task_items_middleware.dart';
 import 'package:taskmaster/redux/presentation/home_screen.dart';
 import 'package:taskmaster/redux/app_state.dart';
@@ -31,11 +32,13 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   @override
   void initState() {
     super.initState();
+    var taskRepository = TaskRepository(client: http.Client());
     store = Store<AppState>(
         appReducer,
         initialState: AppState.init(loading: true),
-        middleware: createStoreTaskItemsMiddleware(TaskRepository(client: http.Client()))
+        middleware: createStoreTaskItemsMiddleware(taskRepository)
           ..addAll(createAuthenticationMiddleware(_navigatorKey))
+          ..addAll(createStoreSprintsMiddleware(taskRepository))
     );
     maybeKickOffSignIn();
     configureTimezoneHelper();
