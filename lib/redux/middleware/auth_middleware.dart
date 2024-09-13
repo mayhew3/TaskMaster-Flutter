@@ -18,7 +18,7 @@ List<Middleware<AppState>> createAuthenticationMiddleware(
     TypedMiddleware<AppState, TryToSilentlySignIn>(_tryToSilentlySignIn(navigatorKey)),
     TypedMiddleware<AppState, LogIn>(_manualLogin(navigatorKey)),
     TypedMiddleware<AppState, LogOutAction>(_manualLogout(navigatorKey)),
-    TypedMiddleware<AppState, InitTimezoneHelper>(_initTimezoneHelper(navigatorKey)),
+    TypedMiddleware<AppState, InitTimezoneHelperAction>(_initTimezoneHelper(navigatorKey)),
     TypedMiddleware<AppState, OnPersonVerified>(_onPersonVerified(navigatorKey)),
     TypedMiddleware<AppState, OnPersonRejected>(_onPersonRejected(navigatorKey)),
   ];
@@ -59,7 +59,7 @@ void Function(
 
 void Function(
     Store<AppState> store,
-    InitTimezoneHelper action,
+    InitTimezoneHelperAction action,
     NextDispatcher next,
     ) _initTimezoneHelper(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {

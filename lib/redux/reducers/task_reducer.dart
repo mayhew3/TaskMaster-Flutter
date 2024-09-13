@@ -6,23 +6,23 @@ import '../actions/task_item_actions.dart';
 import '../app_state.dart';
 
 final taskItemsReducer = <AppState Function(AppState, dynamic)>[
-  TypedReducer<AppState, TaskItemAdded>(_taskItemAdded),
+  TypedReducer<AppState, TaskItemAddedAction>(_taskItemAdded),
   TypedReducer<AppState, DeleteTaskItemAction>(_deleteTaskItem),
-  TypedReducer<AppState, TaskItemUpdated>(_onUpdateTaskItem),
+  TypedReducer<AppState, TaskItemUpdatedAction>(_onUpdateTaskItem),
   TypedReducer<AppState, CompleteTaskItemAction>(_completeTaskItem),
-  TypedReducer<AppState, TaskItemCompleted>(_onCompleteTaskItem),
+  TypedReducer<AppState, TaskItemCompletedAction>(_onCompleteTaskItem),
   TypedReducer<AppState, DataLoadedAction>(_onDataLoaded),
   TypedReducer<AppState, DataNotLoadedAction>(_onDataUnloaded),
   TypedReducer<AppState, LogOutAction>(_onDataUnloaded),
-  TypedReducer<AppState, ClearRecentlyCompleted>(_clearRecentlyCompleted),
+  TypedReducer<AppState, ClearRecentlyCompletedAction>(_clearRecentlyCompleted),
 ];
 
-AppState _taskItemAdded(AppState state, TaskItemAdded action) {
+AppState _taskItemAdded(AppState state, TaskItemAddedAction action) {
   var listBuilder = state.taskItems.toBuilder()..add(action.taskItem);
   return state.rebuild((s) => s..taskItems = listBuilder);
 }
 
-AppState _clearRecentlyCompleted(AppState state, ClearRecentlyCompleted action) {
+AppState _clearRecentlyCompleted(AppState state, ClearRecentlyCompletedAction action) {
   return state.rebuild((s) => s..recentlyCompleted = ListBuilder());
 }
 
@@ -31,7 +31,7 @@ AppState _deleteTaskItem(AppState state, DeleteTaskItemAction action) {
   return state.rebuild((s) => s..taskItems = listBuilder);
 }
 
-AppState _onUpdateTaskItem(AppState state, TaskItemUpdated action) {
+AppState _onUpdateTaskItem(AppState state, TaskItemUpdatedAction action) {
   var listBuilder = state.taskItems.toBuilder()
     ..map((taskItem) => taskItem.id == action.updatedTaskItem.id ? action.updatedTaskItem.rebuild((t) => t
       ..pendingCompletion = false
@@ -48,7 +48,7 @@ AppState _completeTaskItem(AppState state, CompleteTaskItemAction action) {
   );
 }
 
-AppState _onCompleteTaskItem(AppState state, TaskItemCompleted action) {
+AppState _onCompleteTaskItem(AppState state, TaskItemCompletedAction action) {
   var listBuilder = state.taskItems.toBuilder()
     ..map((taskItem) => taskItem.id == action.taskItem.id ? taskItem.rebuild((t) => t
       ..pendingCompletion = false

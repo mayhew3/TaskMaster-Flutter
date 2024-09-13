@@ -42,7 +42,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   }
 
   void configureTimezoneHelper() {
-    store.dispatch(InitTimezoneHelper());
+    store.dispatch(InitTimezoneHelperAction());
   }
 
   void maybeKickOffSignIn() {

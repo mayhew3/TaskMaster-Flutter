@@ -98,7 +98,7 @@ Future<void> Function(
 
     action.blueprint.personId = personId;
     var taskItem = await repository.addTask(action.blueprint, idToken);
-    store.dispatch(TaskItemAdded(taskItem: taskItem));
+    store.dispatch(TaskItemAddedAction(taskItem: taskItem));
   };
 }
 
@@ -116,7 +116,7 @@ Future<void> Function(
     var b = action.blueprint;
     var toUpdate = action.taskItem.rebuild((t) => _fromBlueprint(t, b));
     var updated = await repository.updateTask(toUpdate, idToken);
-    store.dispatch(TaskItemUpdated(updated));
+    store.dispatch(TaskItemUpdatedAction(updated));
   };
 }
 
@@ -134,7 +134,7 @@ Future<void> Function(
     var completed = action.taskItem.rebuild((t) => t
       ..completionDate = action.complete ? DateTime.timestamp() : null);
     var updated = await repository.updateTask(completed, idToken);
-    store.dispatch(TaskItemCompleted(updated, action.complete));
+    store.dispatch(TaskItemCompletedAction(updated, action.complete));
   };
 }
 

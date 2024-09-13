@@ -31,10 +31,10 @@ class UpdateTaskItemAction {
   }
 }
 
-class TaskItemUpdated {
+class TaskItemUpdatedAction {
   final TaskItem updatedTaskItem;
 
-  TaskItemUpdated(this.updatedTaskItem);
+  TaskItemUpdatedAction(this.updatedTaskItem);
 }
 
 class CompleteTaskItemAction {
@@ -44,11 +44,11 @@ class CompleteTaskItemAction {
   CompleteTaskItemAction(this.taskItem, this.complete);
 }
 
-class TaskItemCompleted {
+class TaskItemCompletedAction {
   final TaskItem taskItem;
   final bool complete;
 
-  TaskItemCompleted(this.taskItem, this.complete);
+  TaskItemCompletedAction(this.taskItem, this.complete);
 }
 
 class DeleteTaskItemAction {
@@ -73,10 +73,10 @@ class AddTaskItemAction {
   }
 }
 
-class TaskItemAdded {
+class TaskItemAddedAction {
   final TaskItem taskItem;
 
-  TaskItemAdded({required this.taskItem});
+  TaskItemAddedAction({required this.taskItem});
 
   @override
   String toString() {
@@ -84,7 +84,7 @@ class TaskItemAdded {
   }
 }
 
-class ClearRecentlyCompleted {}
+class ClearRecentlyCompletedAction {}
 
 class UpdateSprintFilterAction {
   final VisibilityFilter newFilter;
@@ -108,9 +108,9 @@ class UpdateTaskFilterAction {
   }
 }
 
-class ToggleTaskListShowCompleted {}
+class ToggleTaskListShowCompletedAction {}
 
-class ToggleTaskListShowScheduled {}
+class ToggleTaskListShowScheduledAction {}
 
 class UpdateTabAction {
   final TopNavItem newTab;
@@ -123,4 +123,4 @@ class UpdateTabAction {
   }
 }
 
-class InitTimezoneHelper {}
+class InitTimezoneHelperAction {}

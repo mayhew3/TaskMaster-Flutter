@@ -30,8 +30,8 @@ class FilteredTaskItems extends StatelessWidget {
               FilterButton(
                 scheduledGetter: () => viewModel.showScheduled,
                 completedGetter: () => viewModel.showCompleted,
-                toggleScheduled: () => StoreProvider.of<AppState>(context).dispatch(ToggleTaskListShowScheduled()),
-                toggleCompleted: () => StoreProvider.of<AppState>(context).dispatch(ToggleTaskListShowCompleted()),
+                toggleScheduled: () => StoreProvider.of<AppState>(context).dispatch(ToggleTaskListShowScheduledAction()),
+                toggleCompleted: () => StoreProvider.of<AppState>(context).dispatch(ToggleTaskListShowCompletedAction()),
               ),
               IconButton(
                   icon: Icon(Icons.refresh),
