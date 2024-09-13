@@ -1,5 +1,6 @@
 import 'package:redux/redux.dart';
 import 'package:taskmaster/redux/reducers/auth_reducer.dart';
+import 'package:taskmaster/redux/reducers/sprint_reducer.dart';
 
 import '../app_state.dart';
 import 'loading_reducer.dart';
@@ -13,5 +14,6 @@ final appReducer = combineReducers<AppState>([
   ...taskItemsReducer,
   ...sprintVisibilityReducer,
   ...taskVisibilityReducer,
+  ...sprintsReducer,
   ...authReducers,
 ]);
