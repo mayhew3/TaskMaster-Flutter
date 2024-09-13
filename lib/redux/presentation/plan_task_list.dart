@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -351,7 +353,16 @@ class PlanTaskListState extends State<PlanTaskList> {
           unitName: widget.unitName!,
           personId: viewModel.personId
       );
-      StoreProvider.of<AppState>(context).dispatch(CreateSprintWithTaskItems(sprintBlueprint: sprint, taskItems: verified.toBuiltList()));
+      var store = StoreProvider.of<AppState>(context);
+      late StreamSubscription<AppState> subscription;
+      subscription = store.onChange.listen((appState) {
+        var activeSprint = activeSprintSelector(appState.sprints);
+        if (activeSprint != null) {
+          Navigator.pop(context, 'Added');
+          subscription.cancel();
+        }
+      });
+      store.dispatch(CreateSprintWithTaskItems(sprintBlueprint: sprint, taskItems: verified.toBuiltList()));
       // await widget.taskHelper.addSprintAndTasks(sprint, verified);
     } else if (viewModel.activeSprint != null) {
       throw Exception("Edit mode unsupported.");
@@ -359,7 +370,7 @@ class PlanTaskListState extends State<PlanTaskList> {
       // await widget.taskHelper.addTasksToSprint(activeSprint!, verified);
     }
 
-    Navigator.pop(context, 'Added');
+    // Navigator.pop(context, 'Added');
   }
 
   @override
