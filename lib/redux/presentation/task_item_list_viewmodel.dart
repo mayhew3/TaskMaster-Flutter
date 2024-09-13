@@ -17,7 +17,7 @@ abstract class TaskItemListViewModel implements Built<TaskItemListViewModel, Tas
   Sprint? get activeSprint;
   bool get isLoading;
   bool get loadFailed;
-  void Function(TaskItem, CheckState) get onCheckboxClicked;
+  CheckState? Function(TaskItem, CheckState) get onCheckboxClicked;
   // Function(TaskItem) onRemove;
   // Function(TaskItem) onUndoRemove;
 

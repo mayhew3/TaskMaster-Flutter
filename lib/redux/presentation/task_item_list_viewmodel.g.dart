@@ -18,7 +18,7 @@ class _$TaskItemListViewModel extends TaskItemListViewModel {
   @override
   final bool loadFailed;
   @override
-  final void Function(TaskItem, CheckState) onCheckboxClicked;
+  final CheckState? Function(TaskItem, CheckState) onCheckboxClicked;
 
   factory _$TaskItemListViewModel(
           [void Function(TaskItemListViewModelBuilder)? updates]) =>
@@ -122,11 +122,11 @@ class TaskItemListViewModelBuilder
   bool? get loadFailed => _$this._loadFailed;
   set loadFailed(bool? loadFailed) => _$this._loadFailed = loadFailed;
 
-  void Function(TaskItem, CheckState)? _onCheckboxClicked;
-  void Function(TaskItem, CheckState)? get onCheckboxClicked =>
+  CheckState? Function(TaskItem, CheckState)? _onCheckboxClicked;
+  CheckState? Function(TaskItem, CheckState)? get onCheckboxClicked =>
       _$this._onCheckboxClicked;
   set onCheckboxClicked(
-          void Function(TaskItem, CheckState)? onCheckboxClicked) =>
+          CheckState? Function(TaskItem, CheckState)? onCheckboxClicked) =>
       _$this._onCheckboxClicked = onCheckboxClicked;
 
   TaskItemListViewModelBuilder();

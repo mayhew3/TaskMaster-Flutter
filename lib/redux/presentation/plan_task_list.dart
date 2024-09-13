@@ -12,6 +12,7 @@ import '../../keys.dart';
 import '../../models/sprint.dart';
 import '../../models/task_colors.dart';
 import '../../models/task_item.dart';
+import '../actions/sprint_actions.dart';
 import 'delayed_checkbox.dart';
 import 'editable_task_item.dart';
 import 'header_list_item.dart';
@@ -351,11 +352,11 @@ class PlanTaskListState extends State<PlanTaskList> {
           unitName: widget.unitName!,
           personId: viewModel.personId
       );
-      StoreProvider.of<AppState>(context).dispatch(CreateSprint(sprint));
-      StoreProvider.of<AppState>(context).dispatch(AddExistingTaskItemsToSprint(sprint));
+      StoreProvider.of<AppState>(context).dispatch(CreateSprintWithTaskItems(sprintBlueprint: sprint, taskItems: verified.toBuiltList()));
       // await widget.taskHelper.addSprintAndTasks(sprint, verified);
     } else if (viewModel.activeSprint != null) {
-      StoreProvider.of<AppState>(context).dispatch(AddExistingTaskItemsToSprint(viewModel.activeSprint));
+      throw Exception("Edit mode unsupported.");
+      // StoreProvider.of<AppState>(context).dispatch(AddExistingTaskItemsToSprint(viewModel.activeSprint));
       // await widget.taskHelper.addTasksToSprint(activeSprint!, verified);
     }
 
