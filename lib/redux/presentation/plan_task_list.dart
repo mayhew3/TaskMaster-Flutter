@@ -5,7 +5,6 @@ import 'package:taskmaster/models/sprint_blueprint.dart';
 import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/presentation/plan_task_list_viewmodel.dart';
 import 'package:taskmaster/redux/selectors/selectors.dart';
-import "package:collection/collection.dart";
 
 import '../../date_util.dart';
 import '../../keys.dart';

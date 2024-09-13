@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:intl/intl.dart';
 import 'package:taskmaster/redux/presentation/new_sprint_viewmodel.dart';
+import 'package:taskmaster/redux/presentation/plan_task_list.dart';
 import 'package:taskmaster/redux/presentation/task_main_menu.dart';
 
 import '../../date_util.dart';
@@ -99,14 +100,17 @@ class _NewSprintState extends State<NewSprint> {
     sprintStartTimeController.text = viewModel.timezoneHelper.getFormattedLocalTime(base, 'hh:mm a');
   }
 
-  // todo: task item list for selection
   void _openPlanning(BuildContext context) async {
-    /*final result = await Navigator.of(context).push(
+    await Navigator.of(context).push(
         MaterialPageRoute(builder: (context) {
-          return SprintTaskItems();
+          return PlanTaskList(
+            numUnits: numUnits,
+            unitName: unitName,
+            startDate: sprintStart,
+          );
         },
         )
-    );*/
+    );
     /*setState(() {
       if (result == 'Added') {
         _updateSprints();
