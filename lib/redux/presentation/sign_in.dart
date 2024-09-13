@@ -25,7 +25,7 @@ class SignInScreen extends StatelessWidget {
             ElevatedButton(
               child: const Text('SIGN IN'),
               onPressed: () {
-                StoreProvider.of<AppState>(context).dispatch(LogIn());
+                StoreProvider.of<AppState>(context).dispatch(LogInAction());
               },
             ),
           ],

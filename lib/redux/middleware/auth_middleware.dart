@@ -15,18 +15,18 @@ List<Middleware<AppState>> createAuthenticationMiddleware(
     GlobalKey<NavigatorState> navigatorKey,
     ) {
   return [
-    TypedMiddleware<AppState, TryToSilentlySignIn>(_tryToSilentlySignIn(navigatorKey)),
-    TypedMiddleware<AppState, LogIn>(_manualLogin(navigatorKey)),
+    TypedMiddleware<AppState, TryToSilentlySignInAction>(_tryToSilentlySignIn(navigatorKey)),
+    TypedMiddleware<AppState, LogInAction>(_manualLogin(navigatorKey)),
     TypedMiddleware<AppState, LogOutAction>(_manualLogout(navigatorKey)),
     TypedMiddleware<AppState, InitTimezoneHelperAction>(_initTimezoneHelper(navigatorKey)),
-    TypedMiddleware<AppState, OnPersonVerified>(_onPersonVerified(navigatorKey)),
-    TypedMiddleware<AppState, OnPersonRejected>(_onPersonRejected(navigatorKey)),
+    TypedMiddleware<AppState, OnPersonVerifiedAction>(_onPersonVerified(navigatorKey)),
+    TypedMiddleware<AppState, OnPersonRejectedAction>(_onPersonRejected(navigatorKey)),
   ];
 }
 
 void Function(
     Store<AppState> store,
-    LogIn action,
+    LogInAction action,
     NextDispatcher next,
     ) _manualLogin(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {
@@ -36,7 +36,7 @@ void Function(
       await store.state.googleSignIn.signIn();
       await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.splash);
     } catch (error) {
-      store.dispatch(OnLoginFail(error));
+      store.dispatch(OnLoginFailAction(error));
     }
   };
 }
@@ -52,7 +52,7 @@ void Function(
     try {
       await store.state.googleSignIn.disconnect();
     } catch (error) {
-      store.dispatch(OnLogoutFail(error));
+      store.dispatch(OnLogoutFailAction(error));
     }
   };
 }
@@ -75,7 +75,7 @@ void Function(
 
 void Function(
     Store<AppState> store,
-    OnPersonRejected action,
+    OnPersonRejectedAction action,
     NextDispatcher next,
     ) _onPersonRejected(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {
@@ -87,7 +87,7 @@ void Function(
 
 void Function(
     Store<AppState> store,
-    TryToSilentlySignIn action,
+    TryToSilentlySignInAction action,
     NextDispatcher next,
     ) _tryToSilentlySignIn(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {
@@ -98,14 +98,14 @@ void Function(
       print("onCurrentUserChanged.");
       if (account == null) {
         print("onCurrentUserChanged: account null.");
-        store.dispatch(OnLogoutSuccess());
+        store.dispatch(OnLogoutSuccessAction());
         await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.login);
       } else {
         print("onCurrentUserChanged: account exists!");
         var authentication = await account.authentication;
 
         if (authentication.idToken == null) {
-          store.dispatch(OnLoginFail("No idToken returned."));
+          store.dispatch(OnLoginFailAction("No idToken returned."));
           await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.login);
         }
 
@@ -117,8 +117,8 @@ void Function(
         var firebaseUser = await FirebaseAuth.instance.signInWithCredential(credential);
         String? idToken = await firebaseUser.user!.getIdToken();
 
-        store.dispatch(OnAuthenticated(account, firebaseUser, idToken));
-        store.dispatch(VerifyPerson(account.email));
+        store.dispatch(OnAuthenticatedAction(account, firebaseUser, idToken));
+        store.dispatch(VerifyPersonAction(account.email));
         if (store.state.appIsReady()) {
           await navigatorKey.currentState!.pushReplacementNamed(
               TaskMasterRoutes.home);
@@ -134,7 +134,7 @@ void Function(
 
 void Function(
     Store<AppState> store,
-    OnPersonVerified action,
+    OnPersonVerifiedAction action,
     NextDispatcher next,
     ) _onPersonVerified(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {

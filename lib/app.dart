@@ -47,7 +47,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
 
   void maybeKickOffSignIn() {
     if (!store.state.isAuthenticated()) {
-      store.dispatch(TryToSilentlySignIn());
+      store.dispatch(TryToSilentlySignInAction());
     }
   }
 

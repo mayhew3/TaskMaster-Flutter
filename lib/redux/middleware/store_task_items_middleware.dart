@@ -9,7 +9,7 @@ import '../actions/task_item_actions.dart';
 
 List<Middleware<AppState>> createStoreTaskItemsMiddleware(TaskRepository repository) {
   return [
-    TypedMiddleware<AppState, VerifyPerson>(_verifyPerson(repository)),
+    TypedMiddleware<AppState, VerifyPersonAction>(_verifyPerson(repository)),
     TypedMiddleware<AppState, LoadDataAction>(_createLoadData(repository)),
     TypedMiddleware<AppState, AddTaskItemAction>(_createNewTaskItem(repository)),
     TypedMiddleware<AppState, UpdateTaskItemAction>(_updateTaskItem(repository)),
@@ -19,10 +19,10 @@ List<Middleware<AppState>> createStoreTaskItemsMiddleware(TaskRepository reposit
 
 Future<void> Function(
     Store<AppState>,
-    VerifyPerson action,
+    VerifyPersonAction action,
     NextDispatcher next,
     ) _verifyPerson(TaskRepository repository) {
-  return (Store<AppState> store, VerifyPerson action, NextDispatcher next) async {
+  return (Store<AppState> store, VerifyPersonAction action, NextDispatcher next) async {
     next(action);
 
     var email = store.state.currentUser!.email;
@@ -35,13 +35,13 @@ Future<void> Function(
     try {
       var personId = await repository.getPersonId(email, idToken);
       if (personId == null) {
-        store.dispatch(OnPersonRejected());
+        store.dispatch(OnPersonRejectedAction());
       } else {
-        store.dispatch(OnPersonVerified(personId));
+        store.dispatch(OnPersonVerifiedAction(personId));
       }
     } catch (e) {
       print("Error fetching person for email: $e");
-      store.dispatch(OnPersonRejected());
+      store.dispatch(OnPersonRejectedAction());
     }
 
   };

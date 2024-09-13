@@ -2,17 +2,17 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-class TryToSilentlySignIn {
+class TryToSilentlySignInAction {
 }
 
-class LogIn {}
+class LogInAction {}
 
-class OnAuthenticated {
+class OnAuthenticatedAction {
   final GoogleSignInAccount account;
   final UserCredential userCredential;
   final String? idToken;
 
-  OnAuthenticated(this.account, this.userCredential, this.idToken);
+  OnAuthenticatedAction(this.account, this.userCredential, this.idToken);
 
   @override
   String toString() {
@@ -22,8 +22,8 @@ class OnAuthenticated {
 
 class LogOutAction {}
 
-class OnLogoutSuccess {
-  OnLogoutSuccess();
+class OnLogoutSuccessAction {
+  OnLogoutSuccessAction();
 
   @override
   String toString() {
@@ -31,20 +31,21 @@ class OnLogoutSuccess {
   }
 }
 
-class OnLoginFail {
+class OnLoginFailAction {
   final dynamic error;
 
-  OnLoginFail(this.error);
+  OnLoginFailAction(this.error);
 
   @override
   String toString() {
     return "OnLoginFail{There was an error logging in: $error}";
   }
 }
-class OnLogoutFail {
+
+class OnLogoutFailAction {
   final dynamic error;
 
-  OnLogoutFail(this.error);
+  OnLogoutFailAction(this.error);
 
   @override
   String toString() {
@@ -52,16 +53,16 @@ class OnLogoutFail {
   }
 }
 
-class VerifyPerson {
+class VerifyPersonAction {
   final String email;
 
-  VerifyPerson(this.email);
+  VerifyPersonAction(this.email);
 }
 
-class OnPersonVerified {
+class OnPersonVerifiedAction {
   final int personId;
 
-  OnPersonVerified(this.personId);
+  OnPersonVerifiedAction(this.personId);
 }
 
-class OnPersonRejected {}
+class OnPersonRejectedAction {}
