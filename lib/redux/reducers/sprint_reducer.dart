@@ -9,7 +9,7 @@ final sprintsReducer = <AppState Function(AppState, dynamic)>[
 AppState _sprintCreated(AppState state, SprintCreatedAction action) {
   var sprintBuilder = state.sprints.toBuilder()..add(action.sprint);
   var taskItemBuilder = state.taskItems.toBuilder()..map((taskItem) {
-    var sprintAssignment = action.sprintAssignments.where((sa) => sa.taskItemId == taskItem.id).singleOrNull;
+    var sprintAssignment = action.sprintAssignments.where((sa) => sa.taskId == taskItem.id).singleOrNull;
     if (sprintAssignment != null) {
       return taskItem.rebuild((t) => t.sprintAssignments.add(sprintAssignment));
     } else {
