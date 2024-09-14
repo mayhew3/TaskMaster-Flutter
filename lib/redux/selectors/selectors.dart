@@ -110,3 +110,7 @@ Future<({int personId, String idToken})> getRequiredInputs(Store<AppState> store
 
   return (personId: personId, idToken: idToken);
 }
+
+TaskRecurrence? recurrenceForTaskItem(BuiltList<TaskRecurrence> recurrences, TaskItem taskItem) {
+  return recurrences.where((r) => r.id == taskItem.recurrenceId).singleOrNull;
+}

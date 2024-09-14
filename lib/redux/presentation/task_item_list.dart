@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:taskmaster/redux/actions/task_item_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
+import 'package:taskmaster/redux/presentation/details_screen.dart';
 import 'package:taskmaster/redux/presentation/task_item_list_viewmodel.dart';
 
 import '../../keys.dart';
 import '../../models/models.dart';
 import '../../models/task_colors.dart';
-import '../containers/task_item_details.dart';
 import 'editable_task_item.dart';
 import 'header_list_item.dart';
 import 'loading_indicator.dart';
@@ -90,8 +90,8 @@ class TaskItemList extends StatelessWidget {
       onTap: () async {
         await Navigator.of(context).push(
           MaterialPageRoute(builder: (_) {
-            return TaskItemDetailScreen(
-              id: taskItem.id,
+            return DetailsScreen(
+              taskItem: taskItem,
             );
           }),
         );

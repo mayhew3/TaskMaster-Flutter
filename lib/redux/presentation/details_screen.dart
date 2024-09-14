@@ -1,176 +1,180 @@
-// Copyright 2018 The Flutter Architecture Sample Authors. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found
-// in the LICENSE file.
-
 import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:jiffy/jiffy.dart';
+import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/presentation/add_edit_screen.dart';
+import 'package:taskmaster/redux/presentation/details_screen_viewmodel.dart';
 import 'package:taskmaster/redux/presentation/readonly_task_field.dart';
 import 'package:taskmaster/redux/presentation/readonly_task_field_small.dart';
 import 'package:taskmaster/timezone_helper.dart';
-import 'package:taskmaster/typedefs.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 import '../../keys.dart';
 import '../../models/models.dart';
 import '../../models/task_colors.dart';
-import 'package:timeago/timeago.dart' as timeago;
-import 'package:jiffy/jiffy.dart';
-
 import '../../models/task_date_type.dart';
+import '../actions/task_item_actions.dart';
+import '../selectors/selectors.dart';
 import 'delayed_checkbox.dart';
 
 class DetailsScreen extends StatelessWidget {
   final TaskItem taskItem;
-  final Function onDelete;
-  final CheckCycleWaiter toggleCompleted;
-  final TimezoneHelper timezoneHelper;
+  late final TaskRecurrence? taskRecurrence;
 
   DetailsScreen({
     Key? key,
     required this.taskItem,
-    required this.onDelete,
-    required this.toggleCompleted,
-    required this.timezoneHelper,
-  }) : super(key: key ?? TaskMasterKeys.taskItemDetailsScreen);
+  }) : super(key: key ?? TaskMasterKeys.taskItemDetailsScreen) {}
 
   @override
   Widget build(BuildContext context) {
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Task Item Details"),
-        actions: [
-          IconButton(
-            tooltip: "Delete Task Item",
-            key: TaskMasterKeys.deleteTaskItemButton,
-            icon: Icon(Icons.delete),
-            onPressed: () {
-              onDelete();
-              Navigator.pop(context, taskItem);
-            },
-          )
-        ],
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(8.0),
-        child: ListView(
-          children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Text(taskItem.name,
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      )
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(4.0),
-                  child: DelayedCheckbox(
-                    taskName: taskItem.name,
-                    initialState: taskItem.isCompleted() ? CheckState.checked : taskItem.pendingCompletion ? CheckState.pending : CheckState.inactive,
-                    checkCycleWaiter: toggleCompleted,
-                  ),
-                ),
+    return StoreConnector(
+        builder: (context, viewModel) {
+          var recurrences = StoreProvider.of<AppState>(context).state.taskRecurrences;
+          taskRecurrence = recurrenceForTaskItem(recurrences, taskItem);
+          return Scaffold(
+            appBar: AppBar(
+              title: Text("Task Item Details"),
+              actions: [
+                IconButton(
+                  tooltip: "Delete Task Item",
+                  key: TaskMasterKeys.deleteTaskItemButton,
+                  icon: Icon(Icons.delete),
+                  onPressed: () {
+                    StoreProvider.of<AppState>(context).dispatch(DeleteTaskItemAction(taskItem.id));
+                    // todo: wait until action is completed
+                    Navigator.pop(context, taskItem);
+                  },
+                )
               ],
             ),
-            ReadOnlyTaskField(
-              headerName: 'Project',
-              textToShow: taskItem.project,
+            body: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: ListView(
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Text(taskItem.name,
+                              style: Theme.of(context).textTheme.headlineSmall,
+                            )
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(4.0),
+                        child: DelayedCheckbox(
+                          taskName: taskItem.name,
+                          initialState: taskItem.isCompleted() ? CheckState.checked : taskItem.pendingCompletion ? CheckState.pending : CheckState.inactive,
+                          checkCycleWaiter: (checkState) {
+                            StoreProvider.of<AppState>(context).dispatch(CompleteTaskItemAction(taskItem, CheckState.inactive == checkState));
+                            return null;
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  ReadOnlyTaskField(
+                    headerName: 'Project',
+                    textToShow: taskItem.project,
+                  ),
+                  ReadOnlyTaskField(
+                    headerName: 'Context',
+                    textToShow: taskItem.context,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      ReadOnlyTaskFieldSmall(
+                        headerName: 'Priority',
+                        textToShow: formatNumber(taskItem.priority),
+                      ),
+                      ReadOnlyTaskFieldSmall(
+                        headerName: 'Points',
+                        textToShow: formatNumber(taskItem.gamePoints),
+                      ),
+                      ReadOnlyTaskFieldSmall(
+                        headerName: 'Length',
+                        textToShow: formatNumber(taskItem.duration),
+                      ),
+                    ],
+                  ),
+                  ReadOnlyTaskField(
+                    headerName: 'Start',
+                    textToShow: formatDateTime(taskItem.startDate, viewModel.timezoneHelper),
+                    optionalSubText: _getFormattedAgo(taskItem.startDate),
+                    optionalTextColor: getStartTextColor(),
+                    optionalOutlineColor: getStartOutlineColor(),
+                    optionalBackgroundColor: getStartBackgroundColor(),
+                    hasShadow: false,
+                  ),
+                  ReadOnlyTaskField(
+                    headerName: 'Target',
+                    textToShow: formatDateTime(taskItem.targetDate, viewModel.timezoneHelper),
+                    optionalSubText: _getFormattedAgo(taskItem.targetDate),
+                    optionalTextColor: TaskDateTypes.target.textColor,
+                    optionalBackgroundColor: getTargetBackgroundColor(),
+                  ),
+                  ReadOnlyTaskField(
+                    headerName: 'Urgent',
+                    textToShow: formatDateTime(taskItem.urgentDate, viewModel.timezoneHelper),
+                    optionalSubText: _getFormattedAgo(taskItem.urgentDate),
+                    optionalTextColor: TaskDateTypes.urgent.textColor,
+                    optionalBackgroundColor: getUrgentBackgroundColor(),
+                  ),
+                  ReadOnlyTaskField(
+                    headerName: 'Due',
+                    textToShow: formatDateTime(taskItem.dueDate, viewModel.timezoneHelper),
+                    optionalSubText: _getFormattedAgo(taskItem.dueDate),
+                    optionalTextColor: TaskDateTypes.due.textColor,
+                    optionalBackgroundColor: getDueBackgroundColor(),
+                  ),
+                  ReadOnlyTaskField(
+                    headerName: 'Completed',
+                    textToShow: formatDateTime(taskItem.getFinishedCompletionDate(), viewModel.timezoneHelper),
+                    optionalSubText: _getFormattedAgo(taskItem.getFinishedCompletionDate()),
+                    optionalBackgroundColor: getCompletedBackgroundColor(),
+                  ),
+                  ReadOnlyTaskField(
+                    headerName: 'Repeat',
+                    textToShow: getFormattedRecurrence(),
+                  ),
+                  ReadOnlyTaskField(
+                    headerName: 'Notes',
+                    textToShow: taskItem.description,
+                  ),
+                ],
+              ),
             ),
-            ReadOnlyTaskField(
-              headerName: 'Context',
-              textToShow: taskItem.context,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                ReadOnlyTaskFieldSmall(
-                  headerName: 'Priority',
-                  textToShow: formatNumber(taskItem.priority),
-                ),
-                ReadOnlyTaskFieldSmall(
-                  headerName: 'Points',
-                  textToShow: formatNumber(taskItem.gamePoints),
-                ),
-                ReadOnlyTaskFieldSmall(
-                  headerName: 'Length',
-                  textToShow: formatNumber(taskItem.duration),
-                ),
-              ],
-            ),
-            ReadOnlyTaskField(
-              headerName: 'Start',
-              textToShow: formatDateTime(taskItem.startDate),
-              optionalSubText: _getFormattedAgo(taskItem.startDate),
-              optionalTextColor: getStartTextColor(),
-              optionalOutlineColor: getStartOutlineColor(),
-              optionalBackgroundColor: getStartBackgroundColor(),
-              hasShadow: false,
-            ),
-            ReadOnlyTaskField(
-              headerName: 'Target',
-              textToShow: formatDateTime(taskItem.targetDate),
-              optionalSubText: _getFormattedAgo(taskItem.targetDate),
-              optionalTextColor: TaskDateTypes.target.textColor,
-              optionalBackgroundColor: getTargetBackgroundColor(),
-            ),
-            ReadOnlyTaskField(
-              headerName: 'Urgent',
-              textToShow: formatDateTime(taskItem.urgentDate),
-              optionalSubText: _getFormattedAgo(taskItem.urgentDate),
-              optionalTextColor: TaskDateTypes.urgent.textColor,
-              optionalBackgroundColor: getUrgentBackgroundColor(),
-            ),
-            ReadOnlyTaskField(
-              headerName: 'Due',
-              textToShow: formatDateTime(taskItem.dueDate),
-              optionalSubText: _getFormattedAgo(taskItem.dueDate),
-              optionalTextColor: TaskDateTypes.due.textColor,
-              optionalBackgroundColor: getDueBackgroundColor(),
-            ),
-            ReadOnlyTaskField(
-              headerName: 'Completed',
-              textToShow: formatDateTime(taskItem.getFinishedCompletionDate()),
-              optionalSubText: _getFormattedAgo(taskItem.getFinishedCompletionDate()),
-              optionalBackgroundColor: getCompletedBackgroundColor(),
-            ),
-            ReadOnlyTaskField(
-              headerName: 'Repeat',
-              textToShow: taskItem.recurNumber == null ? null :
-              getFormattedRecurrence(taskItem),
-            ),
-            ReadOnlyTaskField(
-              headerName: 'Notes',
-              textToShow: taskItem.description,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        key: TaskMasterKeys.editTaskItemFab,
-        tooltip: "Edit Task Item",
-        child: Icon(Icons.edit),
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) {
-                return AddEditScreen(
-                  taskItem: taskItem,
-                  timezoneHelper: timezoneHelper,
+            floatingActionButton: FloatingActionButton(
+              key: TaskMasterKeys.editTaskItemFab,
+              tooltip: "Edit Task Item",
+              child: Icon(Icons.edit),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return AddEditScreen(
+                        taskItem: taskItem,
+                        timezoneHelper: viewModel.timezoneHelper,
+                      );
+                    },
+                  ),
                 );
               },
             ),
           );
         },
-      ),
+        converter: DetailsScreenViewModel.fromStore
     );
+
   }
 
 
-  String formatDateTime(DateTime? dateTime) {
+  String formatDateTime(DateTime? dateTime, TimezoneHelper timezoneHelper) {
     if (dateTime == null) {
       return '';
     }
@@ -236,21 +240,19 @@ class DetailsScreen extends StatelessWidget {
     return completed ? TaskColors.completedColor : TaskColors.cardColor;
   }
 
-  String getFormattedRecurrence(TaskItem taskItem) {
-    var recurNumber = taskItem.recurNumber;
-    var recurWait = taskItem.recurWait;
-    if (recurNumber == null || recurWait == null) {
+  String getFormattedRecurrence() {
+    var recurrence = this.taskRecurrence;
+    if (recurrence == null) {
       return 'No recurrence.';
     }
-    return 'Every ' + recurNumber.toString() + ' ' + getFormattedRecurUnit(taskItem) + (recurWait ? ' (after completion)' : '');
+    var recurNumber = recurrence.recurNumber;
+    var recurWait = recurrence.recurWait;
+    return 'Every ' + recurNumber.toString() + ' ' + getFormattedRecurUnit(recurrence) + (recurWait ? ' (after completion)' : '');
   }
 
-  String getFormattedRecurUnit(TaskItem taskItem) {
-    String? unit = taskItem.recurUnit;
-    if (unit == null) {
-      return '';
-    }
-    if (taskItem.recurNumber == 1) {
+  String getFormattedRecurUnit(TaskRecurrence taskRecurrence) {
+    String? unit = taskRecurrence.recurUnit;
+    if (taskRecurrence.recurNumber == 1) {
       unit = unit.substring(0, unit.length-1);
     }
     return unit.toLowerCase();

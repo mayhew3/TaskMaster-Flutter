@@ -133,10 +133,6 @@ TaskItemBuilder _fromBlueprint(TaskItemBuilder t, TaskItemBlueprint b) {
     ..dueDate = b.dueDate?.toUtc()
     ..urgentDate = b.urgentDate?.toUtc()
     ..completionDate = b.completionDate?.toUtc()
-    ..recurNumber = b.recurNumber
-    ..recurUnit = b.recurUnit
-    ..recurWait = b.recurWait
-    ..recurrenceId = b.recurrenceId
-    ..recurIteration = b.recurIteration;
+    ..recurrenceId = b.recurrenceId;
 }
 

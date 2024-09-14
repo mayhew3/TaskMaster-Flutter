@@ -36,12 +36,7 @@ abstract class TaskItem with DateHolder implements Built<TaskItem, TaskItemBuild
   DateTime? get urgentDate;
   DateTime? get completionDate;
 
-  int? get recurNumber;
-  String? get recurUnit;
-  bool? get recurWait;
-
   int? get recurrenceId;
-  int? get recurIteration;
 
   bool get offCycle;
 
@@ -78,11 +73,7 @@ abstract class TaskItem with DateHolder implements Built<TaskItem, TaskItemBuild
     blueprint.dueDate = dueDate;
     blueprint.urgentDate = urgentDate;
     blueprint.gamePoints = gamePoints;
-    blueprint.recurNumber = recurNumber;
-    blueprint.recurUnit = recurUnit;
-    blueprint.recurWait = recurWait;
     blueprint.recurrenceId = recurrenceId;
-    blueprint.recurIteration = recurIteration;
 
     // blueprint.taskRecurrenceBlueprint = TaskRecurrenceBlueprint();
 

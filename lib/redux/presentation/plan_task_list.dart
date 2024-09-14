@@ -306,8 +306,9 @@ class PlanTaskListState extends State<PlanTaskList> {
 
   bool tempMatches(TaskItem a, TaskItem b) {
     return a is TaskItem && b is TaskItem &&
-        a.recurrenceId == b.recurrenceId &&
-        a.recurIteration == b.recurIteration;
+        a.recurrenceId == b.recurrenceId
+        // && a.recurIteration == b.recurIteration
+    ;
   }
 /*
 
@@ -334,7 +335,7 @@ class PlanTaskListState extends State<PlanTaskList> {
     if (withoutId.isNotEmpty) {
       print('${withoutId.length} items still remain without an ID!');
       for (var item in withoutId) {
-        print('Item: (${item.recurrenceId}, ${item.recurIteration})');
+        print('Item: (${item.recurrenceId})');
       }
     }
     return sprintQueued.cast<TaskItem>();
