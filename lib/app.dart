@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:redux_logging/redux_logging.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
 import 'package:taskmaster/redux/middleware/auth_middleware.dart';
@@ -39,6 +40,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
         middleware: createStoreTaskItemsMiddleware(taskRepository)
           ..addAll(createAuthenticationMiddleware(_navigatorKey))
           ..addAll(createStoreSprintsMiddleware(taskRepository))
+          ..add(new LoggingMiddleware.printer())
     );
     maybeKickOffSignIn();
     configureTimezoneHelper();
