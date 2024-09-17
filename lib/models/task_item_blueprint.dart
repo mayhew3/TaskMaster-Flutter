@@ -29,12 +29,7 @@ class TaskItemBlueprint with DateHolder {
   DateTime? urgentDate;
   DateTime? completionDate;
 
-  int? recurNumber;
-  String? recurUnit;
-  bool? recurWait;
-
   int? recurrenceId;
-  int? recurIteration;
 
   int? personId;
 
@@ -49,11 +44,6 @@ class TaskItemBlueprint with DateHolder {
   /// to JSON. The implementation simply calls the private, generated
   /// helper method `_$TaskItemFormToJson`.
   Map<String, dynamic> toJson() => _$TaskItemBlueprintToJson(this);
-
-  bool isScheduledRecurrence() {
-    var recurWaitValue = recurWait;
-    return recurWaitValue != null && !recurWaitValue;
-  }
 
   void incrementDateIfExists(TaskDateType taskDateType, Duration duration) {
     var dateTime = taskDateType.dateFieldGetter(this);

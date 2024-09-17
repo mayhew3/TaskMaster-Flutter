@@ -24,7 +24,7 @@ class DetailsScreen extends StatelessWidget {
   DetailsScreen({
     Key? key,
     required this.taskItem,
-  }) : super(key: key ?? TaskMasterKeys.taskItemDetailsScreen) {}
+  }) : super(key: key ?? TaskMasterKeys.taskItemDetailsScreen);
 
   @override
   Widget build(BuildContext context) {

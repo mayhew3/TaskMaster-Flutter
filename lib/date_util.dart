@@ -5,16 +5,14 @@ import 'package:taskmaster/timezone_helper.dart';
 
 class DateUtil {
 
-  static TimezoneHelper timezoneHelper = new TimezoneHelper();
-
-  static bool isSameDay(DateTime dateTime1, DateTime dateTime2) {
+  static bool isSameDay(DateTime dateTime1, DateTime dateTime2, TimezoneHelper timezoneHelper) {
     var dateFormat = DateFormat.MMMd();
     var formattedDate1 = timezoneHelper.getFormattedLocalTimeFromFormat(dateTime1, dateFormat);
     var formattedDate2 = timezoneHelper.getFormattedLocalTimeFromFormat(dateTime2, dateFormat);
     return formattedDate1 == formattedDate2;
   }
 
-  static String formatShortMaybeHidingYear(DateTime? dateTime) {
+  static String formatShortMaybeHidingYear(DateTime? dateTime, TimezoneHelper timezoneHelper) {
     if (dateTime == null) {
       return 'N/A';
     }
@@ -31,7 +29,7 @@ class DateUtil {
     return dateTimes.reduce((a, b) => a.isAfter(b) ? a : b);
   }
 
-  static String formatMediumMaybeHidingYear(DateTime? dateTime) {
+  static String formatMediumMaybeHidingYear(DateTime? dateTime, TimezoneHelper timezoneHelper) {
     if (dateTime == null) {
       return 'N/A';
     }

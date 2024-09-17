@@ -1,4 +1,5 @@
 import 'package:taskmaster/models/task_item_blueprint.dart';
+import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
 
 import '../../models/data_payload.dart';
@@ -64,12 +65,13 @@ class DeleteTaskItemAction {
 
 class AddTaskItemAction {
   final TaskItemBlueprint blueprint;
+  final TaskRecurrenceBlueprint recurrenceBlueprint;
 
-  AddTaskItemAction({required this.blueprint});
+  AddTaskItemAction({required this.blueprint, required this.recurrenceBlueprint});
 
   @override
   String toString() {
-    return 'AddTaskItemAction{blueprint: $blueprint}';
+    return 'AddTaskItemAction{blueprint: $blueprint, recurrenceBlueprint: $recurrenceBlueprint}';
   }
 }
 

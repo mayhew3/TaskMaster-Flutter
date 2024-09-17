@@ -2,8 +2,10 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_date_type.dart';
+import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 import 'package:taskmaster/redux/actions/task_item_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/timezone_helper.dart';
@@ -40,10 +42,12 @@ class AddEditScreenState extends State<AddEditScreen> {
   late bool _hasChanges;
 
   bool _repeatOn = false;
-  bool _initialRepeatOn = false;
+  late final bool _initialRepeatOn;
 
   late TaskItemBlueprint blueprint;
   late TaskItem? taskItem;
+
+  late TaskRecurrenceBlueprint recurrenceBlueprint;
 
   @override
   void initState() {
@@ -55,6 +59,7 @@ class AddEditScreenState extends State<AddEditScreen> {
     // var taskRecurrence = taskItem?.taskRecurrencePreview;
 
     blueprint = taskItem == null ? TaskItemBlueprint() : taskItem!.createCreateBlueprint();
+    recurrenceBlueprint = TaskRecurrenceBlueprint();
     // blueprint.taskRecurrenceBlueprint = taskItem == null || taskRecurrence == null ? TaskRecurrenceBlueprint() : taskRecurrence.createCreationBlueprint();
 
     _initialRepeatOn = taskItem?.recurrenceId != null;
@@ -164,29 +169,15 @@ class AddEditScreenState extends State<AddEditScreen> {
     }
 
     void clearRecurrenceFieldsFromTask() {
-      blueprint.recurUnit = null;
-      blueprint.recurNumber = null;
-      blueprint.recurWait = null;
       blueprint.recurrenceId = null;
-      blueprint.recurIteration = null;
       // blueprint.taskRecurrenceBlueprint = null;
     }
-/*
 
     void updateRecurrenceBlueprint() {
-      var recurrenceBlueprint = blueprint.taskRecurrenceBlueprint;
-
-      if (recurrenceBlueprint != null) {
-        recurrenceBlueprint.name = blueprint.name;
-        recurrenceBlueprint.recurUnit = blueprint.recurUnit;
-        recurrenceBlueprint.recurIteration = blueprint.recurIteration;
-        recurrenceBlueprint.recurNumber = blueprint.recurNumber;
-        recurrenceBlueprint.recurWait = blueprint.recurWait;
-        recurrenceBlueprint.anchorDate = blueprint.getAnchorDate();
-        recurrenceBlueprint.anchorType = blueprint.getAnchorDateType()!.label;
-      }
+      recurrenceBlueprint.name = blueprint.name;
+      recurrenceBlueprint.anchorDate = blueprint.getAnchorDate();
+      recurrenceBlueprint.anchorType = blueprint.getAnchorDateType()!.label;
     }
-*/
 
     bool editMode() {
       return taskItem != null;
@@ -417,9 +408,9 @@ class AddEditScreenState extends State<AddEditScreen> {
                                             SizedBox(
                                               width: 80.0,
                                               child: EditableTaskField(
-                                                initialText: _getInputDisplay(blueprint.recurNumber),
+                                                initialText: _getInputDisplay(recurrenceBlueprint.recurNumber),
                                                 labelText: 'Num',
-                                                fieldSetter: (value) => blueprint.recurNumber = _parseInt(value),
+                                                fieldSetter: (value) => recurrenceBlueprint.recurNumber = _parseInt(value),
                                                 inputType: TextInputType.number,
                                                 validator: (value) {
                                                   if (_repeatOn && value != null && value.isEmpty) {
@@ -433,10 +424,10 @@ class AddEditScreenState extends State<AddEditScreen> {
                                         ),
                                         Expanded(
                                           child: NullableDropdown(
-                                            initialValue: blueprint.recurUnit,
+                                            initialValue: recurrenceBlueprint.recurUnit,
                                             labelText: 'Unit',
                                             possibleValues: possibleRecurUnits,
-                                            valueSetter: (value) => blueprint.recurUnit = value,
+                                            valueSetter: (value) => recurrenceBlueprint.recurUnit = value,
                                             validator: (value) {
                                               if (_repeatOn && value == '(none)') {
                                                 return 'Unit is required for repeat.';
@@ -448,10 +439,10 @@ class AddEditScreenState extends State<AddEditScreen> {
                                       ],
                                     ),
                                     NullableDropdown(
-                                      initialValue: recurWaitToAnchorDate(blueprint.recurWait),
+                                      initialValue: recurWaitToAnchorDate(recurrenceBlueprint.recurWait),
                                       labelText: 'Anchor',
                                       possibleValues: possibleAnchorDates,
-                                      valueSetter: (value) => blueprint.recurWait = anchorDateToRecurWait(value!),
+                                      valueSetter: (value) => recurrenceBlueprint.recurWait = anchorDateToRecurWait(value!),
                                       validator: (value) {
                                         if (_repeatOn && value == '(none)') {
                                           return 'Anchor Date is required for repeat.';
@@ -494,15 +485,15 @@ class AddEditScreenState extends State<AddEditScreen> {
 
                 if (_repeatOn) {
                   if (!_initialRepeatOn) {
-                    blueprint.recurIteration = 1;
+                    recurrenceBlueprint.recurIteration = 1;
                   }
-                  // updateRecurrenceBlueprint();
+                  updateRecurrenceBlueprint();
                 }
 
                 if (editMode()) {
                   StoreProvider.of<AppState>(context).dispatch(UpdateTaskItemAction(taskItem: taskItem!, blueprint: blueprint));
                 } else { // add mode
-                  StoreProvider.of<AppState>(context).dispatch(AddTaskItemAction(blueprint: blueprint));
+                  StoreProvider.of<AppState>(context).dispatch(AddTaskItemAction(blueprint: blueprint, recurrenceBlueprint: recurrenceBlueprint));
                   // await widget.taskHelper.addTask(blueprint, (callback) => setState(() => callback()));
                 }
               }
