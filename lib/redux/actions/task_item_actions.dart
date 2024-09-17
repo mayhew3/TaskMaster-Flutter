@@ -65,20 +65,20 @@ class DeleteTaskItemAction {
 
 class AddTaskItemAction {
   final TaskItemBlueprint blueprint;
-  final TaskRecurrenceBlueprint recurrenceBlueprint;
 
-  AddTaskItemAction({required this.blueprint, required this.recurrenceBlueprint});
+  AddTaskItemAction({required this.blueprint});
 
   @override
   String toString() {
-    return 'AddTaskItemAction{blueprint: $blueprint, recurrenceBlueprint: $recurrenceBlueprint}';
+    return 'AddTaskItemAction{blueprint: $blueprint}';
   }
 }
 
 class TaskItemAddedAction {
   final TaskItem taskItem;
+  final TaskRecurrence? taskRecurrence;
 
-  TaskItemAddedAction({required this.taskItem});
+  TaskItemAddedAction({required this.taskItem, required this.taskRecurrence});
 
   @override
   String toString() {

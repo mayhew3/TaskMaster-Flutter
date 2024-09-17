@@ -79,11 +79,25 @@ Future<void> Function(
 
     var inputs = await getRequiredInputs(store, "create task");
 
-    action.blueprint.personId = inputs.personId ;
-    var taskItem = await repository.addTask(action.blueprint, inputs.idToken);
-    store.dispatch(TaskItemAddedAction(taskItem: taskItem));
+    action.blueprint.personId = inputs.personId;
+
+    // var recurrence = await maybeAddRecurrence(action.recurrenceBlueprint, inputs, repository);
+
+    // action.blueprint.recurrenceId = recurrence?.id;
+    var payload = await repository.addTask(action.blueprint, inputs.idToken);
+    store.dispatch(TaskItemAddedAction(taskItem: payload.taskItem, taskRecurrence: payload.recurrence));
   };
 }
+/*
+
+Future<TaskRecurrence?> maybeAddRecurrence(TaskRecurrenceBlueprint? recurrenceBlueprint, ({String idToken, int personId}) inputs, TaskRepository repository) async {
+  if (recurrenceBlueprint != null) {
+    recurrenceBlueprint.personId = inputs.personId;
+    return await repository.addTaskRecurrence(recurrenceBlueprint, inputs.idToken);
+  }
+  return null;
+}
+*/
 
 Future<void> Function(
     Store<AppState>,
@@ -96,7 +110,7 @@ Future<void> Function(
     var b = action.blueprint;
     var toUpdate = action.taskItem.rebuild((t) => _fromBlueprint(t, b));
     var updated = await repository.updateTask(toUpdate, inputs.idToken);
-    store.dispatch(TaskItemUpdatedAction(updated));
+    store.dispatch(TaskItemUpdatedAction(updated.taskItem));
   };
 }
 
@@ -111,7 +125,7 @@ Future<void> Function(
     var completed = action.taskItem.rebuild((t) => t
       ..completionDate = action.complete ? DateTime.timestamp() : null);
     var updated = await repository.updateTask(completed, inputs.idToken);
-    store.dispatch(TaskItemCompletedAction(updated, action.complete));
+    store.dispatch(TaskItemCompletedAction(updated.taskItem, action.complete));
   };
 }
 
@@ -133,6 +147,7 @@ TaskItemBuilder _fromBlueprint(TaskItemBuilder t, TaskItemBlueprint b) {
     ..dueDate = b.dueDate?.toUtc()
     ..urgentDate = b.urgentDate?.toUtc()
     ..completionDate = b.completionDate?.toUtc()
-    ..recurrenceId = b.recurrenceId;
+    // ..recurrenceId = b.recurrenceId
+  ;
 }
 

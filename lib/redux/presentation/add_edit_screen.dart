@@ -169,14 +169,14 @@ class AddEditScreenState extends State<AddEditScreen> {
     }
 
     void clearRecurrenceFieldsFromTask() {
-      blueprint.recurrenceId = null;
-      // blueprint.taskRecurrenceBlueprint = null;
+      blueprint.recurrenceBlueprint = null;
     }
 
     void updateRecurrenceBlueprint() {
       recurrenceBlueprint.name = blueprint.name;
       recurrenceBlueprint.anchorDate = blueprint.getAnchorDate();
       recurrenceBlueprint.anchorType = blueprint.getAnchorDateType()!.label;
+      blueprint.recurrenceBlueprint = recurrenceBlueprint;
     }
 
     bool editMode() {
@@ -493,7 +493,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                 if (editMode()) {
                   StoreProvider.of<AppState>(context).dispatch(UpdateTaskItemAction(taskItem: taskItem!, blueprint: blueprint));
                 } else { // add mode
-                  StoreProvider.of<AppState>(context).dispatch(AddTaskItemAction(blueprint: blueprint, recurrenceBlueprint: recurrenceBlueprint));
+                  StoreProvider.of<AppState>(context).dispatch(AddTaskItemAction(blueprint: blueprint));
                   // await widget.taskHelper.addTask(blueprint, (callback) => setState(() => callback()));
                 }
               }

@@ -18,8 +18,14 @@ final taskItemsReducer = <AppState Function(AppState, dynamic)>[
 ];
 
 AppState _taskItemAdded(AppState state, TaskItemAddedAction action) {
-  var listBuilder = state.taskItems.toBuilder()..add(action.taskItem);
-  return state.rebuild((s) => s..taskItems = listBuilder);
+  var taskRecurrence = action.taskRecurrence;
+  return state.rebuild((s) {
+    s.taskItems = state.taskItems.toBuilder()..add(action.taskItem);
+    if (taskRecurrence != null) {
+      s.taskRecurrences = state.taskRecurrences.toBuilder()..add(taskRecurrence);
+    }
+    return s;
+  });
 }
 
 AppState _clearRecentlyCompleted(AppState state, ClearRecentlyCompletedAction action) {

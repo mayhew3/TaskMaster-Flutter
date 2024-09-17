@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_date_type.dart';
+import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 
 /// This allows the `TaskItemBlueprint` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
@@ -29,7 +30,8 @@ class TaskItemBlueprint with DateHolder {
   DateTime? urgentDate;
   DateTime? completionDate;
 
-  int? recurrenceId;
+  @JsonKey(includeFromJson: false, includeToJson: true)
+  TaskRecurrenceBlueprint? recurrenceBlueprint;
 
   int? personId;
 
