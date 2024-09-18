@@ -167,6 +167,7 @@ class AddEditScreenState extends State<AddEditScreen> {
 
   void clearRecurrenceFieldsFromTask() {
     taskItemBlueprint.taskRecurrenceBlueprint = null;
+    taskItemBlueprint.recurrenceId = null;
   }
 
   void updateRecurrenceBlueprint() {
@@ -174,6 +175,7 @@ class AddEditScreenState extends State<AddEditScreen> {
     taskRecurrenceBlueprint.anchorDate = taskItemBlueprint.getAnchorDate();
     taskRecurrenceBlueprint.anchorType = taskItemBlueprint.getAnchorDateType()!.label;
     taskItemBlueprint.taskRecurrenceBlueprint = taskRecurrenceBlueprint;
+    taskItemBlueprint.recurrenceId = taskItem?.recurrence?.id;
   }
 
   bool editMode() {
