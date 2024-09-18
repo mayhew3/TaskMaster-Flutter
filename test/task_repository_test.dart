@@ -87,7 +87,7 @@ void main() {
       var taskItems = [
         taskItem
       ];
-      var blueprint = taskItem.createCreateBlueprint();
+      var blueprint = taskItem.createBlueprint();
 
       TaskRepository taskRepository = TestMockHelper.createTaskRepositoryWithoutLoad(taskItems: taskItems);
 

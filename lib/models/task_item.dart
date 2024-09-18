@@ -2,6 +2,7 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
@@ -42,6 +43,8 @@ abstract class TaskItem with DateHolder implements Built<TaskItem, TaskItemBuild
 
   BuiltList<SprintAssignment> get sprintAssignments;
 
+  TaskRecurrence? get taskRecurrence;
+
   // internal fields
   @BuiltValueField(serialize: false)
   bool get pendingCompletion;
@@ -58,7 +61,7 @@ abstract class TaskItem with DateHolder implements Built<TaskItem, TaskItemBuild
     return pendingCompletion ? null : completionDate;
   }
 
-  TaskItemBlueprint createCreateBlueprint() {
+  TaskItemBlueprint createBlueprint() {
     TaskItemBlueprint blueprint = TaskItemBlueprint();
 
     blueprint.name = name;

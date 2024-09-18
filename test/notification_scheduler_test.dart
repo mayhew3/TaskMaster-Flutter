@@ -195,7 +195,7 @@ void main() {
     var scheduler = await _createScheduler([taskItem]);
     expect(plugin.pendings.length, 3);
 
-    var blueprint = taskItem.createCreateBlueprint();
+    var blueprint = taskItem.createBlueprint();
     blueprint.dueDate = DateTime.now().add(Duration(days: 8));
     var edited = TestMockHelper.mockEditTask(taskItem, blueprint);
 
@@ -211,7 +211,7 @@ void main() {
     var scheduler = await _createScheduler([taskItem]);
     expect(plugin.pendings.length, 3);
 
-    var blueprint = taskItem.createCreateBlueprint();
+    var blueprint = taskItem.createBlueprint();
     blueprint.dueDate = DateTime.now().subtract(Duration(days: 8));
     var edited = TestMockHelper.mockEditTask(taskItem, blueprint);
 
@@ -225,7 +225,7 @@ void main() {
     var scheduler = await _createScheduler([taskItem]);
     expect(plugin.pendings.length, 5);
 
-    var blueprint = taskItem.createCreateBlueprint();
+    var blueprint = taskItem.createBlueprint();
     blueprint.dueDate = DateTime.now().add(Duration(days: 12));
     blueprint.urgentDate = DateTime.now().add(Duration(days: 4));
     var edited = TestMockHelper.mockEditTask(taskItem, blueprint);
@@ -282,7 +282,7 @@ void main() {
   });
 
   test('updateBadge excludes completed', () async {
-    var blueprint = pastUrgentDue.createCreateBlueprint();
+    var blueprint = pastUrgentDue.createBlueprint();
     blueprint.completionDate = DateTime.now();
     var edited = TestMockHelper.mockEditTask(pastUrgentDue, blueprint);
 

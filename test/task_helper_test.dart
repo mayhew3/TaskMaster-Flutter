@@ -40,7 +40,7 @@ void main() {
   StateSetter stateSetter = (callback) => callback();
 
   TaskItem _mockComplete(TaskItem taskItem, DateTime? completionDate) {
-    var blueprint = taskItem.createCreateBlueprint();
+    var blueprint = taskItem.createBlueprint();
     blueprint.completionDate = completionDate;
     return TestMockHelper.mockEditTask(taskItem, blueprint);
   }
@@ -362,7 +362,7 @@ void main() {
 
   test('updateTask', () async {
     var taskItem = birthdayTask.createCopy();
-    var blueprint = taskItem.createCreateBlueprint();
+    var blueprint = taskItem.createBlueprint();
 
     var taskHelper = createTaskHelper(taskItems: [taskItem]);
     var mockAppState = taskHelper.appState;
@@ -390,7 +390,7 @@ void main() {
   test('previewSnooze moves target and due dates', () {
     var taskItem = TaskItemBuilder
         .withDates()
-        .create().createCreateBlueprint();
+        .create().createBlueprint();
 
     var taskHelper = createTaskHelper();
 
@@ -412,7 +412,7 @@ void main() {
   test('previewSnooze on task without a start date adds a start date', () {
     var taskItem = TaskItemBuilder
         .asDefault()
-        .create().createCreateBlueprint();
+        .create().createBlueprint();
 
     var taskHelper = createTaskHelper();
 
@@ -441,7 +441,7 @@ void main() {
     var originalAnchorDate = taskItem.getAnchorDate();
     expect(originalAnchorDate, taskItem.dueDate, reason: 'SANITY: Expect original anchor date to be due date, because there is no start date.');
 
-    var blueprint = taskItem.createCreateBlueprint();
+    var blueprint = taskItem.createBlueprint();
 
     when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((_) => Future.value(TestMockHelper.mockEditTask(taskItem, blueprint)));
 
@@ -490,7 +490,7 @@ void main() {
     var originalAnchorDate = taskItem.getAnchorDate();
     expect(originalAnchorDate, taskItem.dueDate, reason: 'SANITY: Expect original anchor date to be due date, because there is no start date.');
 
-    var blueprint = taskItem.createCreateBlueprint();
+    var blueprint = taskItem.createBlueprint();
 
     when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((_) => Future.value(TestMockHelper.mockEditTask(taskItem, blueprint)));
 
@@ -532,7 +532,7 @@ void main() {
 
     var originalStart = taskItem.startDate;
 
-    var blueprint = taskItem.createCreateBlueprint();
+    var blueprint = taskItem.createBlueprint();
 
     when(taskRepository.updateTask(taskItem, blueprint)).thenAnswer((_) => Future.value(TestMockHelper.mockEditTask(taskItem, blueprint)));
 

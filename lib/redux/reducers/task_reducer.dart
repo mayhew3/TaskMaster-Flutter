@@ -68,11 +68,13 @@ AppState _onCompleteTaskItem(AppState state, TaskItemCompletedAction action) {
 }
 
 AppState _onDataLoaded(AppState state, DataLoadedAction action) {
-  return state.rebuild((s) => s
-    ..taskItems = ListBuilder(action.dataPayload.taskItems)
-    ..sprints = ListBuilder(action.dataPayload.sprints)
-    ..taskRecurrences = ListBuilder(action.dataPayload.taskRecurrences)
-  );
+  return state.rebuild((s) {
+    s.taskItems = ListBuilder(action.dataPayload.taskItems.map((taskItem) => taskItem.rebuild((t) => t
+      ..taskRecurrence = action.dataPayload.taskRecurrences.where((r) => r.id == t.recurrenceId).singleOrNull?.toBuilder())));
+    s.sprints = ListBuilder(action.dataPayload.sprints);
+    s.taskRecurrences = ListBuilder(action.dataPayload.taskRecurrences);
+    return s;
+  });
 }
 
 AppState _onDataUnloaded(AppState state, dynamic action) {

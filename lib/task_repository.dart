@@ -126,10 +126,8 @@ class TaskRepository {
     return _addOrUpdateTaskItemJSON(payload, 'add', idToken);
   }
 
-  Future<({TaskItem taskItem, TaskRecurrence? recurrence})> updateTask(TaskItem taskItem, String idToken) async {
-    var taskObj = serializers.serializeWith(TaskItem.serializer, taskItem)! as Map;
-
-    taskObj.removeWhere((key, value) => key == "sprintAssignments");
+  Future<({TaskItem taskItem, TaskRecurrence? recurrence})> updateTask(TaskItemBlueprint taskItemBlueprint, String idToken) async {
+    var taskObj = taskItemBlueprint.toJson();
 
     var payload = {
       "task": taskObj

@@ -49,6 +49,6 @@ Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) =>
       'due_date': instance.dueDate?.toIso8601String(),
       'urgent_date': instance.urgentDate?.toIso8601String(),
       'completion_date': instance.completionDate?.toIso8601String(),
-      'recurrence_blueprint': instance.recurrenceBlueprint,
+      'task_recurrence_blueprint': instance.taskRecurrenceBlueprint,
       'person_id': instance.personId,
     };

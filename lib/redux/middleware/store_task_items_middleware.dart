@@ -1,6 +1,4 @@
 import 'package:redux/redux.dart';
-import 'package:taskmaster/models/models.dart';
-import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/selectors/selectors.dart';
@@ -107,9 +105,7 @@ Future<void> Function(
   return (Store<AppState> store, UpdateTaskItemAction action, NextDispatcher next) async {
     next(action);
     var inputs = await getRequiredInputs(store, "update task");
-    var b = action.blueprint;
-    var toUpdate = action.taskItem.rebuild((t) => _fromBlueprint(t, b));
-    var updated = await repository.updateTask(toUpdate, inputs.idToken);
+    var updated = await repository.updateTask(action.blueprint, inputs.idToken);
     store.dispatch(TaskItemUpdatedAction(updated.taskItem));
   };
 }
@@ -122,32 +118,9 @@ Future<void> Function(
   return (Store<AppState> store, CompleteTaskItemAction action, NextDispatcher next) async {
     next(action);
     var inputs = await getRequiredInputs(store, "complete task");
-    var completed = action.taskItem.rebuild((t) => t
-      ..completionDate = action.complete ? DateTime.timestamp() : null);
-    var updated = await repository.updateTask(completed, inputs.idToken);
+    var blueprint = action.taskItem.createBlueprint()..completionDate = action.complete ? DateTime.timestamp() : null;
+    var updated = await repository.updateTask(blueprint, inputs.idToken);
     store.dispatch(TaskItemCompletedAction(updated.taskItem, action.complete));
   };
-}
-
-
-// helper methods
-
-TaskItemBuilder _fromBlueprint(TaskItemBuilder t, TaskItemBlueprint b) {
-  return t
-    ..name = b.name
-    ..description = b.description
-    ..project = b.project
-    ..context = b.context
-    ..urgency = b.urgency
-    ..priority = b.priority
-    ..duration = b.duration
-    ..gamePoints = b.gamePoints
-    ..startDate = b.startDate?.toUtc()
-    ..targetDate = b.targetDate?.toUtc()
-    ..dueDate = b.dueDate?.toUtc()
-    ..urgentDate = b.urgentDate?.toUtc()
-    ..completionDate = b.completionDate?.toUtc()
-    // ..recurrenceId = b.recurrenceId
-  ;
 }
 

@@ -107,6 +107,12 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
     result
       ..add('recurrenceId')
       ..add(serializers.serialize(value, specifiedType: const FullType(int)));
+    value = object.taskRecurrence;
+
+    result
+      ..add('taskRecurrence')
+      ..add(serializers.serialize(value,
+          specifiedType: const FullType(TaskRecurrence)));
 
     return result;
   }
@@ -196,6 +202,11 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
                       BuiltList, const [const FullType(SprintAssignment)]))!
               as BuiltList<Object?>);
           break;
+        case 'taskRecurrence':
+          result.taskRecurrence.replace(serializers.deserialize(value,
+                  specifiedType: const FullType(TaskRecurrence))!
+              as TaskRecurrence);
+          break;
       }
     }
 
@@ -241,6 +252,8 @@ class _$TaskItem extends TaskItem {
   @override
   final BuiltList<SprintAssignment> sprintAssignments;
   @override
+  final TaskRecurrence? taskRecurrence;
+  @override
   final bool pendingCompletion;
 
   factory _$TaskItem([void Function(TaskItemBuilder)? updates]) =>
@@ -265,6 +278,7 @@ class _$TaskItem extends TaskItem {
       this.recurrenceId,
       required this.offCycle,
       required this.sprintAssignments,
+      this.taskRecurrence,
       required this.pendingCompletion})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(id, r'TaskItem', 'id');
@@ -306,6 +320,7 @@ class _$TaskItem extends TaskItem {
         recurrenceId == other.recurrenceId &&
         offCycle == other.offCycle &&
         sprintAssignments == other.sprintAssignments &&
+        taskRecurrence == other.taskRecurrence &&
         pendingCompletion == other.pendingCompletion;
   }
 
@@ -330,6 +345,7 @@ class _$TaskItem extends TaskItem {
     _$hash = $jc(_$hash, recurrenceId.hashCode);
     _$hash = $jc(_$hash, offCycle.hashCode);
     _$hash = $jc(_$hash, sprintAssignments.hashCode);
+    _$hash = $jc(_$hash, taskRecurrence.hashCode);
     _$hash = $jc(_$hash, pendingCompletion.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -356,6 +372,7 @@ class _$TaskItem extends TaskItem {
           ..add('recurrenceId', recurrenceId)
           ..add('offCycle', offCycle)
           ..add('sprintAssignments', sprintAssignments)
+          ..add('taskRecurrence', taskRecurrence)
           ..add('pendingCompletion', pendingCompletion))
         .toString();
   }
@@ -439,6 +456,12 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   set sprintAssignments(ListBuilder<SprintAssignment>? sprintAssignments) =>
       _$this._sprintAssignments = sprintAssignments;
 
+  TaskRecurrenceBuilder? _taskRecurrence;
+  TaskRecurrenceBuilder get taskRecurrence =>
+      _$this._taskRecurrence ??= new TaskRecurrenceBuilder();
+  set taskRecurrence(TaskRecurrenceBuilder? taskRecurrence) =>
+      _$this._taskRecurrence = taskRecurrence;
+
   bool? _pendingCompletion;
   bool? get pendingCompletion => _$this._pendingCompletion;
   set pendingCompletion(bool? pendingCompletion) =>
@@ -469,6 +492,7 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
       _recurrenceId = $v.recurrenceId;
       _offCycle = $v.offCycle;
       _sprintAssignments = $v.sprintAssignments.toBuilder();
+      _taskRecurrence = $v.taskRecurrence?.toBuilder();
       _pendingCompletion = $v.pendingCompletion;
       _$v = null;
     }
@@ -515,6 +539,7 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
               offCycle: BuiltValueNullFieldError.checkNotNull(
                   offCycle, r'TaskItem', 'offCycle'),
               sprintAssignments: sprintAssignments.build(),
+              taskRecurrence: _taskRecurrence?.build(),
               pendingCompletion: BuiltValueNullFieldError.checkNotNull(
                   pendingCompletion, r'TaskItem', 'pendingCompletion'));
     } catch (_) {
@@ -522,6 +547,8 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
       try {
         _$failedField = 'sprintAssignments';
         sprintAssignments.build();
+        _$failedField = 'taskRecurrence';
+        _taskRecurrence?.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             r'TaskItem', _$failedField, e.toString());

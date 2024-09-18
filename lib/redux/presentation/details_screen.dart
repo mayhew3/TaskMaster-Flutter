@@ -32,6 +32,7 @@ class DetailsScreen extends StatelessWidget {
         builder: (context, viewModel) {
           var recurrences = StoreProvider.of<AppState>(context).state.taskRecurrences;
           taskRecurrence = recurrenceForTaskItem(recurrences, taskItem);
+
           return Scaffold(
             appBar: AppBar(
               title: Text("Task Item Details"),
