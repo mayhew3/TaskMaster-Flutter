@@ -126,11 +126,12 @@ class TaskRepository {
     return _addOrUpdateTaskItemJSON(payload, 'add', idToken);
   }
 
-  Future<({TaskItem taskItem, TaskRecurrence? recurrence})> updateTask(TaskItemBlueprint taskItemBlueprint, String idToken) async {
+  Future<({TaskItem taskItem, TaskRecurrence? recurrence})> updateTask(int taskItemId, TaskItemBlueprint taskItemBlueprint, String idToken) async {
     var taskObj = taskItemBlueprint.toJson();
 
     var payload = {
-      "task": taskObj
+      "task": taskObj,
+      "taskItemId": taskItemId,
     };
     return _addOrUpdateTaskItemJSON(payload, 'update', idToken);
   }

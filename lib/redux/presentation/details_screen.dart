@@ -14,12 +14,10 @@ import '../../models/models.dart';
 import '../../models/task_colors.dart';
 import '../../models/task_date_type.dart';
 import '../actions/task_item_actions.dart';
-import '../selectors/selectors.dart';
 import 'delayed_checkbox.dart';
 
 class DetailsScreen extends StatelessWidget {
   final TaskItem taskItem;
-  late final TaskRecurrence? taskRecurrence;
 
   DetailsScreen({
     Key? key,
@@ -30,9 +28,6 @@ class DetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return StoreConnector(
         builder: (context, viewModel) {
-          var recurrences = StoreProvider.of<AppState>(context).state.taskRecurrences;
-          taskRecurrence = recurrenceForTaskItem(recurrences, taskItem);
-
           return Scaffold(
             appBar: AppBar(
               title: Text("Task Item Details"),
@@ -242,7 +237,7 @@ class DetailsScreen extends StatelessWidget {
   }
 
   String getFormattedRecurrence() {
-    var recurrence = this.taskRecurrence;
+    var recurrence = this.taskItem.taskRecurrence;
     if (recurrence == null) {
       return 'No recurrence.';
     }

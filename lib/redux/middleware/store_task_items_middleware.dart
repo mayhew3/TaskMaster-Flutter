@@ -78,6 +78,7 @@ Future<void> Function(
     var inputs = await getRequiredInputs(store, "create task");
 
     action.blueprint.personId = inputs.personId;
+    action.blueprint.taskRecurrenceBlueprint?.personId = inputs.personId;
 
     // var recurrence = await maybeAddRecurrence(action.recurrenceBlueprint, inputs, repository);
 
@@ -105,7 +106,8 @@ Future<void> Function(
   return (Store<AppState> store, UpdateTaskItemAction action, NextDispatcher next) async {
     next(action);
     var inputs = await getRequiredInputs(store, "update task");
-    var updated = await repository.updateTask(action.blueprint, inputs.idToken);
+    action.blueprint.taskRecurrenceBlueprint?.personId = inputs.personId;
+    var updated = await repository.updateTask(action.taskItem.id, action.blueprint, inputs.idToken);
     store.dispatch(TaskItemUpdatedAction(updated.taskItem));
   };
 }
@@ -119,7 +121,7 @@ Future<void> Function(
     next(action);
     var inputs = await getRequiredInputs(store, "complete task");
     var blueprint = action.taskItem.createBlueprint()..completionDate = action.complete ? DateTime.timestamp() : null;
-    var updated = await repository.updateTask(blueprint, inputs.idToken);
+    var updated = await repository.updateTask(action.taskItem.id, blueprint, inputs.idToken);
     store.dispatch(TaskItemCompletedAction(updated.taskItem, action.complete));
   };
 }

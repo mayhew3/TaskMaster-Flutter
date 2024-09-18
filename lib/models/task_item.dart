@@ -76,6 +76,7 @@ abstract class TaskItem with DateHolder implements Built<TaskItem, TaskItemBuild
     blueprint.dueDate = dueDate;
     blueprint.urgentDate = urgentDate;
     blueprint.gamePoints = gamePoints;
+    blueprint.personId = personId;
     // blueprint.recurrenceId = recurrenceId;
 
     // blueprint.taskRecurrenceBlueprint = TaskRecurrenceBlueprint();
