@@ -59,7 +59,7 @@ class AddEditScreenState extends State<AddEditScreen> {
     // var taskRecurrence = taskItem?.taskRecurrencePreview;
 
     taskItemBlueprint = taskItem == null ? TaskItemBlueprint() : taskItem!.createBlueprint();
-    var existingRecurrence = taskItem?.taskRecurrence;
+    var existingRecurrence = taskItem?.recurrence;
     taskRecurrenceBlueprint = (existingRecurrence == null) ? TaskRecurrenceBlueprint() : existingRecurrence.createBlueprint();
 
     _initialRepeatOn = taskItem?.recurrenceId != null;

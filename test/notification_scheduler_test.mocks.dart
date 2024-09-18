@@ -580,14 +580,16 @@ class MockTaskRepository extends _i1.Mock implements _i11.TaskRepository {
   @override
   _i10.Future<
       ({_i4.TaskRecurrence? recurrence, _i4.TaskItem taskItem})> updateTask(
-    _i4.TaskItem? taskItem,
+    int? taskItemId,
+    _i12.TaskItemBlueprint? taskItemBlueprint,
     String? idToken,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateTask,
           [
-            taskItem,
+            taskItemId,
+            taskItemBlueprint,
             idToken,
           ],
         ),
@@ -599,7 +601,8 @@ class MockTaskRepository extends _i1.Mock implements _i11.TaskRepository {
             Invocation.method(
               #updateTask,
               [
-                taskItem,
+                taskItemId,
+                taskItemBlueprint,
                 idToken,
               ],
             ),
@@ -613,7 +616,8 @@ class MockTaskRepository extends _i1.Mock implements _i11.TaskRepository {
             Invocation.method(
               #updateTask,
               [
-                taskItem,
+                taskItemId,
+                taskItemBlueprint,
                 idToken,
               ],
             ),

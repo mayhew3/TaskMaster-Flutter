@@ -43,7 +43,7 @@ abstract class TaskItem with DateHolder implements Built<TaskItem, TaskItemBuild
 
   BuiltList<SprintAssignment> get sprintAssignments;
 
-  TaskRecurrence? get taskRecurrence;
+  TaskRecurrence? get recurrence;
 
   // internal fields
   @BuiltValueField(serialize: false)

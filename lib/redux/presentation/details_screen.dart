@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:jiffy/jiffy.dart';
+import 'package:redux/redux.dart';
 import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/presentation/add_edit_screen.dart';
 import 'package:taskmaster/redux/presentation/details_screen_viewmodel.dart';
@@ -17,17 +18,18 @@ import '../actions/task_item_actions.dart';
 import 'delayed_checkbox.dart';
 
 class DetailsScreen extends StatelessWidget {
-  final TaskItem taskItem;
+  final int taskItemId;
 
   DetailsScreen({
     Key? key,
-    required this.taskItem,
+    required this.taskItemId,
   }) : super(key: key ?? TaskMasterKeys.taskItemDetailsScreen);
 
   @override
   Widget build(BuildContext context) {
     return StoreConnector(
         builder: (context, viewModel) {
+          var taskItem = viewModel.taskItem;
           return Scaffold(
             appBar: AppBar(
               title: Text("Task Item Details"),
@@ -102,9 +104,9 @@ class DetailsScreen extends StatelessWidget {
                     headerName: 'Start',
                     textToShow: formatDateTime(taskItem.startDate, viewModel.timezoneHelper),
                     optionalSubText: _getFormattedAgo(taskItem.startDate),
-                    optionalTextColor: getStartTextColor(),
-                    optionalOutlineColor: getStartOutlineColor(),
-                    optionalBackgroundColor: getStartBackgroundColor(),
+                    optionalTextColor: getStartTextColor(taskItem),
+                    optionalOutlineColor: getStartOutlineColor(taskItem),
+                    optionalBackgroundColor: getStartBackgroundColor(taskItem),
                     hasShadow: false,
                   ),
                   ReadOnlyTaskField(
@@ -112,31 +114,31 @@ class DetailsScreen extends StatelessWidget {
                     textToShow: formatDateTime(taskItem.targetDate, viewModel.timezoneHelper),
                     optionalSubText: _getFormattedAgo(taskItem.targetDate),
                     optionalTextColor: TaskDateTypes.target.textColor,
-                    optionalBackgroundColor: getTargetBackgroundColor(),
+                    optionalBackgroundColor: getTargetBackgroundColor(taskItem),
                   ),
                   ReadOnlyTaskField(
                     headerName: 'Urgent',
                     textToShow: formatDateTime(taskItem.urgentDate, viewModel.timezoneHelper),
                     optionalSubText: _getFormattedAgo(taskItem.urgentDate),
                     optionalTextColor: TaskDateTypes.urgent.textColor,
-                    optionalBackgroundColor: getUrgentBackgroundColor(),
+                    optionalBackgroundColor: getUrgentBackgroundColor(taskItem),
                   ),
                   ReadOnlyTaskField(
                     headerName: 'Due',
                     textToShow: formatDateTime(taskItem.dueDate, viewModel.timezoneHelper),
                     optionalSubText: _getFormattedAgo(taskItem.dueDate),
                     optionalTextColor: TaskDateTypes.due.textColor,
-                    optionalBackgroundColor: getDueBackgroundColor(),
+                    optionalBackgroundColor: getDueBackgroundColor(taskItem),
                   ),
                   ReadOnlyTaskField(
                     headerName: 'Completed',
                     textToShow: formatDateTime(taskItem.getFinishedCompletionDate(), viewModel.timezoneHelper),
                     optionalSubText: _getFormattedAgo(taskItem.getFinishedCompletionDate()),
-                    optionalBackgroundColor: getCompletedBackgroundColor(),
+                    optionalBackgroundColor: getCompletedBackgroundColor(taskItem),
                   ),
                   ReadOnlyTaskField(
                     headerName: 'Repeat',
-                    textToShow: getFormattedRecurrence(),
+                    textToShow: getFormattedRecurrence(taskItem),
                   ),
                   ReadOnlyTaskField(
                     headerName: 'Notes',
@@ -164,7 +166,9 @@ class DetailsScreen extends StatelessWidget {
             ),
           );
         },
-        converter: DetailsScreenViewModel.fromStore
+        converter: (Store<AppState> store) {
+          return DetailsScreenViewModel.fromStore(store, this.taskItemId);
+        },
     );
 
   }
@@ -201,43 +205,43 @@ class DetailsScreen extends StatelessWidget {
     return dateTime != null && dateTime.isBefore(DateTime.timestamp());
   }
 
-  Color getStartTextColor() {
+  Color getStartTextColor(TaskItem taskItem) {
     var start = hasPassed(taskItem.startDate);
     return start ? Colors.white : TaskColors.scheduledText;
   }
 
-  Color? getStartOutlineColor() {
+  Color? getStartOutlineColor(TaskItem taskItem) {
     var start = hasPassed(taskItem.startDate);
     return start ? null : TaskColors.scheduledOutline;
   }
 
-  Color getStartBackgroundColor() {
+  Color getStartBackgroundColor(TaskItem taskItem) {
     var start = hasPassed(taskItem.startDate);
     return start ? TaskColors.cardColor : TaskColors.scheduledColor;
   }
 
-  Color getTargetBackgroundColor() {
+  Color getTargetBackgroundColor(TaskItem taskItem) {
     var target = hasPassed(taskItem.targetDate);
     return target ? TaskColors.targetColor : TaskColors.cardColor;
   }
 
-  Color getUrgentBackgroundColor() {
+  Color getUrgentBackgroundColor(TaskItem taskItem) {
     var urgent = hasPassed(taskItem.urgentDate);
     return urgent ? TaskColors.urgentColor : TaskColors.cardColor;
   }
 
-  Color getDueBackgroundColor() {
+  Color getDueBackgroundColor(TaskItem taskItem) {
     var due = hasPassed(taskItem.dueDate);
     return due ? TaskColors.dueColor : TaskColors.cardColor;
   }
 
-  Color getCompletedBackgroundColor() {
+  Color getCompletedBackgroundColor(TaskItem taskItem) {
     var completed = hasPassed(taskItem.completionDate);
     return completed ? TaskColors.completedColor : TaskColors.cardColor;
   }
 
-  String getFormattedRecurrence() {
-    var recurrence = this.taskItem.taskRecurrence;
+  String getFormattedRecurrence(TaskItem taskItem) {
+    var recurrence = taskItem.recurrence;
     if (recurrence == null) {
       return 'No recurrence.';
     }

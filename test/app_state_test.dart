@@ -123,11 +123,11 @@ void main() {
     var appState = createAppState();
 
     expect(catLitterTask.recurrenceId, 1, reason: 'Task data should have recurrence_id.');
-    expect(catLitterTask.taskRecurrence, null, reason: 'Task data has recurrence_id but no attached object yet.');
+    expect(catLitterTask.recurrence, null, reason: 'Task data has recurrence_id but no attached object yet.');
 
     appState.updateTasksAndSprints(allTasks, allSprints, [onlyRecurrence]);
 
-    expect(catLitterTask.taskRecurrence, isNot(null), reason: 'updateTasksAndSprints should attach taskRecurrence to matching tasks.');
+    expect(catLitterTask.recurrence, isNot(null), reason: 'updateTasksAndSprints should attach taskRecurrence to matching tasks.');
 
     resetAppState(appState, [onlyRecurrence]);
   });

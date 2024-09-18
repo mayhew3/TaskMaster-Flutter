@@ -91,7 +91,7 @@ class TaskItemList extends StatelessWidget {
         await Navigator.of(context).push(
           MaterialPageRoute(builder: (_) {
             return DetailsScreen(
-              taskItem: taskItem,
+              taskItemId: taskItem.id,
             );
           }),
         );

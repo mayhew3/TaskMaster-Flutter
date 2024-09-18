@@ -8,13 +8,19 @@ part of 'details_screen_viewmodel.dart';
 
 class _$DetailsScreenViewModel extends DetailsScreenViewModel {
   @override
+  final TaskItem taskItem;
+  @override
   final TimezoneHelper timezoneHelper;
 
   factory _$DetailsScreenViewModel(
           [void Function(DetailsScreenViewModelBuilder)? updates]) =>
       (new DetailsScreenViewModelBuilder()..update(updates))._build();
 
-  _$DetailsScreenViewModel._({required this.timezoneHelper}) : super._() {
+  _$DetailsScreenViewModel._(
+      {required this.taskItem, required this.timezoneHelper})
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(
+        taskItem, r'DetailsScreenViewModel', 'taskItem');
     BuiltValueNullFieldError.checkNotNull(
         timezoneHelper, r'DetailsScreenViewModel', 'timezoneHelper');
   }
@@ -32,12 +38,14 @@ class _$DetailsScreenViewModel extends DetailsScreenViewModel {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is DetailsScreenViewModel &&
+        taskItem == other.taskItem &&
         timezoneHelper == other.timezoneHelper;
   }
 
   @override
   int get hashCode {
     var _$hash = 0;
+    _$hash = $jc(_$hash, taskItem.hashCode);
     _$hash = $jc(_$hash, timezoneHelper.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -46,6 +54,7 @@ class _$DetailsScreenViewModel extends DetailsScreenViewModel {
   @override
   String toString() {
     return (newBuiltValueToStringHelper(r'DetailsScreenViewModel')
+          ..add('taskItem', taskItem)
           ..add('timezoneHelper', timezoneHelper))
         .toString();
   }
@@ -54,6 +63,10 @@ class _$DetailsScreenViewModel extends DetailsScreenViewModel {
 class DetailsScreenViewModelBuilder
     implements Builder<DetailsScreenViewModel, DetailsScreenViewModelBuilder> {
   _$DetailsScreenViewModel? _$v;
+
+  TaskItemBuilder? _taskItem;
+  TaskItemBuilder get taskItem => _$this._taskItem ??= new TaskItemBuilder();
+  set taskItem(TaskItemBuilder? taskItem) => _$this._taskItem = taskItem;
 
   TimezoneHelper? _timezoneHelper;
   TimezoneHelper? get timezoneHelper => _$this._timezoneHelper;
@@ -65,6 +78,7 @@ class DetailsScreenViewModelBuilder
   DetailsScreenViewModelBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
+      _taskItem = $v.taskItem.toBuilder();
       _timezoneHelper = $v.timezoneHelper;
       _$v = null;
     }
@@ -86,10 +100,24 @@ class DetailsScreenViewModelBuilder
   DetailsScreenViewModel build() => _build();
 
   _$DetailsScreenViewModel _build() {
-    final _$result = _$v ??
-        new _$DetailsScreenViewModel._(
-            timezoneHelper: BuiltValueNullFieldError.checkNotNull(
-                timezoneHelper, r'DetailsScreenViewModel', 'timezoneHelper'));
+    _$DetailsScreenViewModel _$result;
+    try {
+      _$result = _$v ??
+          new _$DetailsScreenViewModel._(
+              taskItem: taskItem.build(),
+              timezoneHelper: BuiltValueNullFieldError.checkNotNull(
+                  timezoneHelper, r'DetailsScreenViewModel', 'timezoneHelper'));
+    } catch (_) {
+      late String _$failedField;
+      try {
+        _$failedField = 'taskItem';
+        taskItem.build();
+      } catch (e) {
+        throw new BuiltValueNestedFieldError(
+            r'DetailsScreenViewModel', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }
