@@ -1,5 +1,6 @@
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 
@@ -37,25 +38,13 @@ class TaskRecurrenceBlueprint {
         'name: $name';
   }
 
-  void syncToTaskItem(TaskItem taskItem) {
-    var taskIteration = taskItem.recurIteration;
+  void syncToTaskItem(DateHolder dateHolder) {
+    var taskIteration = dateHolder.recurIteration;
     if (taskIteration != null) {
       recurIteration = taskIteration;
     }
 
-    var taskAnchor = taskItem.getAnchorDate();
-    if (taskAnchor != null) {
-      anchorDate = taskAnchor;
-    }
-  }
-
-  void syncToTaskItemBlueprint(TaskItemBlueprint taskItemBlueprint) {
-    var taskIteration = taskItemBlueprint.recurIteration;
-    if (taskIteration != null) {
-      recurIteration = taskIteration;
-    }
-
-    var taskAnchor = taskItemBlueprint.getAnchorDate();
+    var taskAnchor = dateHolder.getAnchorDate();
     if (taskAnchor != null) {
       anchorDate = taskAnchor;
     }

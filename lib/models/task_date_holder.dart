@@ -10,6 +10,8 @@ mixin DateHolder {
   DateTime? get urgentDate;
   DateTime? get completionDate;
 
+  int? get recurIteration;
+
   bool hasPassed(DateTime? dateTime) {
     return dateTime != null && dateTime.isBefore(DateTime.now());
   }

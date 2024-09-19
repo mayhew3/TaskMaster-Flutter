@@ -253,7 +253,7 @@ TaskRecurrenceBlueprint syncBlueprintToMostRecentTaskItem(TaskItem updatedTaskIt
   if (taskItemBlueprint == null) {
     recurrenceBlueprint.syncToTaskItem(updatedTaskItem);
   } else {
-    recurrenceBlueprint.syncToTaskItemBlueprint(taskItemBlueprint);
+    recurrenceBlueprint.syncToTaskItem(taskItemBlueprint);
   }
   return recurrenceBlueprint;
 }
