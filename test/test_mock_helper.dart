@@ -148,7 +148,7 @@ class TestMockHelper {
       recurIteration: blueprint.recurIteration,
     );
 
-    var recurrenceBlueprint = blueprint.taskRecurrenceBlueprint;
+    var recurrenceBlueprint = blueprint.recurrenceBlueprint;
     var recurrence = original.getExistingRecurrence();
     if (recurrenceBlueprint != null && recurrence != null) {
       var recurrenceCopy = new TaskRecurrence(

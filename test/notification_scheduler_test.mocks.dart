@@ -699,6 +699,47 @@ class MockTaskRepository extends _i1.Mock implements _i11.TaskRepository {
       ) as _i10.Future<_i4.TaskRecurrence>);
 
   @override
+  _i10.Future<_i4.TaskRecurrence> updateTaskRecurrence(
+    int? taskRecurrenceId,
+    _i14.TaskRecurrenceBlueprint? blueprint,
+    String? idToken,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateTaskRecurrence,
+          [
+            taskRecurrenceId,
+            blueprint,
+            idToken,
+          ],
+        ),
+        returnValue:
+            _i10.Future<_i4.TaskRecurrence>.value(_FakeTaskRecurrence_12(
+          this,
+          Invocation.method(
+            #updateTaskRecurrence,
+            [
+              taskRecurrenceId,
+              blueprint,
+              idToken,
+            ],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i10.Future<_i4.TaskRecurrence>.value(_FakeTaskRecurrence_12(
+          this,
+          Invocation.method(
+            #updateTaskRecurrence,
+            [
+              taskRecurrenceId,
+              blueprint,
+              idToken,
+            ],
+          ),
+        )),
+      ) as _i10.Future<_i4.TaskRecurrence>);
+
+  @override
   _i10.Future<List<_i15.SprintAssignment>> addTasksToSprint(
     List<_i4.TaskItem>? taskItems,
     _i4.Sprint? sprint,

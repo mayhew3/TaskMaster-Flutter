@@ -166,15 +166,23 @@ class AddEditScreenState extends State<AddEditScreen> {
   }
 
   void clearRecurrenceFieldsFromTask() {
-    taskItemBlueprint.taskRecurrenceBlueprint = null;
+    taskItemBlueprint.recurUnit = null;
+    taskItemBlueprint.recurNumber = null;
+    taskItemBlueprint.recurWait = null;
+    taskItemBlueprint.recurIteration = null;
+    taskItemBlueprint.recurrenceBlueprint = null;
     taskItemBlueprint.recurrenceId = null;
   }
 
   void updateRecurrenceBlueprint() {
+    taskRecurrenceBlueprint.recurIteration = taskItemBlueprint.recurIteration;
+    taskRecurrenceBlueprint.recurNumber = taskItemBlueprint.recurNumber;
+    taskRecurrenceBlueprint.recurWait = taskItemBlueprint.recurWait;
+    taskRecurrenceBlueprint.recurUnit = taskItemBlueprint.recurUnit;
     taskRecurrenceBlueprint.name = taskItemBlueprint.name;
     taskRecurrenceBlueprint.anchorDate = taskItemBlueprint.getAnchorDate();
     taskRecurrenceBlueprint.anchorType = taskItemBlueprint.getAnchorDateType()!.label;
-    taskItemBlueprint.taskRecurrenceBlueprint = taskRecurrenceBlueprint;
+    taskItemBlueprint.recurrenceBlueprint = taskRecurrenceBlueprint;
     taskItemBlueprint.recurrenceId = taskItem?.recurrence?.id;
   }
 
@@ -410,9 +418,9 @@ class AddEditScreenState extends State<AddEditScreen> {
                                             SizedBox(
                                               width: 80.0,
                                               child: EditableTaskField(
-                                                initialText: _getInputDisplay(taskRecurrenceBlueprint.recurNumber),
+                                                initialText: _getInputDisplay(taskItemBlueprint.recurNumber),
                                                 labelText: 'Num',
-                                                fieldSetter: (value) => taskRecurrenceBlueprint.recurNumber = _parseInt(value),
+                                                fieldSetter: (value) => taskItemBlueprint.recurNumber = _parseInt(value),
                                                 inputType: TextInputType.number,
                                                 validator: (value) {
                                                   if (_repeatOn && value != null && value.isEmpty) {
@@ -426,10 +434,10 @@ class AddEditScreenState extends State<AddEditScreen> {
                                         ),
                                         Expanded(
                                           child: NullableDropdown(
-                                            initialValue: taskRecurrenceBlueprint.recurUnit,
+                                            initialValue: taskItemBlueprint.recurUnit,
                                             labelText: 'Unit',
                                             possibleValues: possibleRecurUnits,
-                                            valueSetter: (value) => taskRecurrenceBlueprint.recurUnit = value,
+                                            valueSetter: (value) => taskItemBlueprint.recurUnit = value,
                                             validator: (value) {
                                               if (_repeatOn && value == '(none)') {
                                                 return 'Unit is required for repeat.';
@@ -441,10 +449,10 @@ class AddEditScreenState extends State<AddEditScreen> {
                                       ],
                                     ),
                                     NullableDropdown(
-                                      initialValue: recurWaitToAnchorDate(taskRecurrenceBlueprint.recurWait),
+                                      initialValue: recurWaitToAnchorDate(taskItemBlueprint.recurWait),
                                       labelText: 'Anchor',
                                       possibleValues: possibleAnchorDates,
-                                      valueSetter: (value) => taskRecurrenceBlueprint.recurWait = anchorDateToRecurWait(value!),
+                                      valueSetter: (value) => taskItemBlueprint.recurWait = anchorDateToRecurWait(value!),
                                       validator: (value) {
                                         if (_repeatOn && value == '(none)') {
                                           return 'Anchor Date is required for repeat.';
@@ -487,7 +495,7 @@ class AddEditScreenState extends State<AddEditScreen> {
 
                 if (_repeatOn) {
                   if (!_initialRepeatOn) {
-                    taskRecurrenceBlueprint.recurIteration = 1;
+                    taskItemBlueprint.recurIteration = 1;
                   }
                   updateRecurrenceBlueprint();
                 }

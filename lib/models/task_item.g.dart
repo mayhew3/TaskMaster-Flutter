@@ -102,6 +102,22 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
       ..add('completionDate')
       ..add(serializers.serialize(value,
           specifiedType: const FullType(DateTime)));
+    value = object.recurNumber;
+
+    result
+      ..add('recurNumber')
+      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
+    value = object.recurUnit;
+
+    result
+      ..add('recurUnit')
+      ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)));
+    value = object.recurWait;
+
+    result
+      ..add('recurWait')
+      ..add(serializers.serialize(value, specifiedType: const FullType(bool)));
     value = object.recurrenceId;
 
     result
@@ -193,6 +209,18 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
           result.completionDate = serializers.deserialize(value,
               specifiedType: const FullType(DateTime)) as DateTime?;
           break;
+        case 'recurNumber':
+          result.recurNumber = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int?;
+          break;
+        case 'recurUnit':
+          result.recurUnit = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String?;
+          break;
+        case 'recurWait':
+          result.recurWait = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool?;
+          break;
         case 'recurrenceId':
           result.recurrenceId = serializers.deserialize(value,
               specifiedType: const FullType(int)) as int?;
@@ -255,6 +283,12 @@ class _$TaskItem extends TaskItem {
   @override
   final DateTime? completionDate;
   @override
+  final int? recurNumber;
+  @override
+  final String? recurUnit;
+  @override
+  final bool? recurWait;
+  @override
   final int? recurrenceId;
   @override
   final int? recurIteration;
@@ -286,6 +320,9 @@ class _$TaskItem extends TaskItem {
       this.dueDate,
       this.urgentDate,
       this.completionDate,
+      this.recurNumber,
+      this.recurUnit,
+      this.recurWait,
       this.recurrenceId,
       this.recurIteration,
       required this.offCycle,
@@ -329,6 +366,9 @@ class _$TaskItem extends TaskItem {
         dueDate == other.dueDate &&
         urgentDate == other.urgentDate &&
         completionDate == other.completionDate &&
+        recurNumber == other.recurNumber &&
+        recurUnit == other.recurUnit &&
+        recurWait == other.recurWait &&
         recurrenceId == other.recurrenceId &&
         recurIteration == other.recurIteration &&
         offCycle == other.offCycle &&
@@ -355,6 +395,9 @@ class _$TaskItem extends TaskItem {
     _$hash = $jc(_$hash, dueDate.hashCode);
     _$hash = $jc(_$hash, urgentDate.hashCode);
     _$hash = $jc(_$hash, completionDate.hashCode);
+    _$hash = $jc(_$hash, recurNumber.hashCode);
+    _$hash = $jc(_$hash, recurUnit.hashCode);
+    _$hash = $jc(_$hash, recurWait.hashCode);
     _$hash = $jc(_$hash, recurrenceId.hashCode);
     _$hash = $jc(_$hash, recurIteration.hashCode);
     _$hash = $jc(_$hash, offCycle.hashCode);
@@ -383,6 +426,9 @@ class _$TaskItem extends TaskItem {
           ..add('dueDate', dueDate)
           ..add('urgentDate', urgentDate)
           ..add('completionDate', completionDate)
+          ..add('recurNumber', recurNumber)
+          ..add('recurUnit', recurUnit)
+          ..add('recurWait', recurWait)
           ..add('recurrenceId', recurrenceId)
           ..add('recurIteration', recurIteration)
           ..add('offCycle', offCycle)
@@ -457,6 +503,18 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   set completionDate(DateTime? completionDate) =>
       _$this._completionDate = completionDate;
 
+  int? _recurNumber;
+  int? get recurNumber => _$this._recurNumber;
+  set recurNumber(int? recurNumber) => _$this._recurNumber = recurNumber;
+
+  String? _recurUnit;
+  String? get recurUnit => _$this._recurUnit;
+  set recurUnit(String? recurUnit) => _$this._recurUnit = recurUnit;
+
+  bool? _recurWait;
+  bool? get recurWait => _$this._recurWait;
+  set recurWait(bool? recurWait) => _$this._recurWait = recurWait;
+
   int? _recurrenceId;
   int? get recurrenceId => _$this._recurrenceId;
   set recurrenceId(int? recurrenceId) => _$this._recurrenceId = recurrenceId;
@@ -509,6 +567,9 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
       _dueDate = $v.dueDate;
       _urgentDate = $v.urgentDate;
       _completionDate = $v.completionDate;
+      _recurNumber = $v.recurNumber;
+      _recurUnit = $v.recurUnit;
+      _recurWait = $v.recurWait;
       _recurrenceId = $v.recurrenceId;
       _recurIteration = $v.recurIteration;
       _offCycle = $v.offCycle;
@@ -556,6 +617,9 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
               dueDate: dueDate,
               urgentDate: urgentDate,
               completionDate: completionDate,
+              recurNumber: recurNumber,
+              recurUnit: recurUnit,
+              recurWait: recurWait,
               recurrenceId: recurrenceId,
               recurIteration: recurIteration,
               offCycle: BuiltValueNullFieldError.checkNotNull(

@@ -31,6 +31,9 @@ TaskItemBlueprint _$TaskItemBlueprintFromJson(Map<String, dynamic> json) =>
       ..completionDate = json['completion_date'] == null
           ? null
           : DateTime.parse(json['completion_date'] as String)
+      ..recurNumber = (json['recur_number'] as num?)?.toInt()
+      ..recurUnit = json['recur_unit'] as String?
+      ..recurWait = json['recur_wait'] as bool?
       ..recurrenceId = (json['recurrence_id'] as num?)?.toInt()
       ..recurIteration = (json['recur_iteration'] as num?)?.toInt()
       ..personId = (json['person_id'] as num?)?.toInt()
@@ -51,8 +54,11 @@ Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) =>
       'due_date': instance.dueDate?.toIso8601String(),
       'urgent_date': instance.urgentDate?.toIso8601String(),
       'completion_date': instance.completionDate?.toIso8601String(),
+      'recur_number': instance.recurNumber,
+      'recur_unit': instance.recurUnit,
+      'recur_wait': instance.recurWait,
       'recurrence_id': instance.recurrenceId,
       'recur_iteration': instance.recurIteration,
-      'task_recurrence_blueprint': instance.taskRecurrenceBlueprint,
+      'recurrence_blueprint': instance.recurrenceBlueprint,
       'person_id': instance.personId,
     };

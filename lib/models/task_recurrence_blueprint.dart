@@ -1,8 +1,6 @@
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
-import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/models/task_item_blueprint.dart';
 
 part 'task_recurrence_blueprint.g.dart';
 

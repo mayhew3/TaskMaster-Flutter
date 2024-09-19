@@ -129,7 +129,7 @@ void main() {
     var taskRecurrence = TaskRecurrence.fromJson(catLitterRecurrenceJSON);
     var taskRecurrenceBlueprint = TaskRecurrenceBlueprint.fromJson(catLitterRecurrenceJSON);
 
-    taskItemBlueprint.taskRecurrenceBlueprint = taskRecurrenceBlueprint;
+    taskItemBlueprint.recurrenceBlueprint = taskRecurrenceBlueprint;
     taskItem.taskRecurrencePreview = taskRecurrence;
 
     when(taskRepository.addTask(taskItemBlueprint)).thenAnswer((_) => Future.value(taskItem));
