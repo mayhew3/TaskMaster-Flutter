@@ -208,6 +208,39 @@ class TaskRepository {
   }
 
 
+  Future<TaskRecurrence> updateTaskRecurrence(int taskRecurrenceId, TaskRecurrenceBlueprint blueprint, String idToken) async {
+    var payload = {
+      "taskRecurrence": blueprint.toJson(),
+      "taskRecurrenceId": taskRecurrenceId,
+    };
+
+    return await (Map<String, Object> payload, String idToken) async {
+      var body = utf8.encode(json.encode(payload));
+
+      var uri = getUri("/api/taskRecurrences");
+      final response = await client.post(uri,
+          headers: {HttpHeaders.authorizationHeader: idToken,
+            "Content-Type": "application/json"},
+          body: body
+      );
+
+      if (response.statusCode == 200) {
+        try {
+          var jsonObj = json.decode(response.body);
+          TaskRecurrence inboundTaskRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, jsonObj)!;
+          return inboundTaskRecurrence;
+        } catch(exception, stackTrace) {
+          print(exception);
+          print(stackTrace);
+          throw Exception('Error parsing task recurrence from the server. Talk to Mayhew.');
+        }
+      } else {
+        throw Exception('Failed to update task recurrence. Talk to Mayhew.');
+      }
+    }(payload, idToken);
+  }
+
+
   Future<List<SprintAssignment>> addTasksToSprint(List<TaskItem> taskItems, Sprint sprint, String idToken) async {
     Set<int> taskIds = new Set<int>();
     for (TaskItem taskItem in taskItems) {

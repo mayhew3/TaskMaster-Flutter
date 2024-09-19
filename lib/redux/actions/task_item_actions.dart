@@ -51,6 +51,15 @@ class TaskItemCompletedAction {
   TaskItemCompletedAction(this.taskItem, this.complete);
 }
 
+class RecurringTaskItemCompletedAction {
+  final TaskItem completedTaskItem;
+  final TaskItem addedTaskItem;
+  final TaskRecurrence recurrence;
+  final bool complete;
+
+  RecurringTaskItemCompletedAction(this.completedTaskItem, this.addedTaskItem, this.recurrence, this.complete);
+}
+
 class DeleteTaskItemAction {
   final int id;
 

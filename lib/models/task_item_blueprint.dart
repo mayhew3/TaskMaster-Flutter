@@ -31,6 +31,7 @@ class TaskItemBlueprint with DateHolder {
   DateTime? completionDate;
 
   int? recurrenceId;
+  int? recurIteration;
 
   @JsonKey(includeFromJson: false, includeToJson: true)
   TaskRecurrenceBlueprint? taskRecurrenceBlueprint;
