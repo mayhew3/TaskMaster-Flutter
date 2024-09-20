@@ -44,10 +44,10 @@ class DateUtil {
 
   static DateTime adjustToDate(DateTime dateTime, int recurNumber, String recurUnit) {
     switch (recurUnit) {
-      case 'Days': return Jiffy(dateTime).add(days: recurNumber).dateTime;
-      case 'Weeks': return Jiffy(dateTime).add(weeks: recurNumber).dateTime;
-      case 'Months': return Jiffy(dateTime).add(months: recurNumber).dateTime;
-      case 'Years': return Jiffy(dateTime).add(years: recurNumber).dateTime;
+      case 'Days': return Jiffy.parseFromDateTime(dateTime).add(days: recurNumber).dateTime;
+      case 'Weeks': return Jiffy.parseFromDateTime(dateTime).add(weeks: recurNumber).dateTime;
+      case 'Months': return Jiffy.parseFromDateTime(dateTime).add(months: recurNumber).dateTime;
+      case 'Years': return Jiffy.parseFromDateTime(dateTime).add(years: recurNumber).dateTime;
       default: throw new Exception('Unknown recur_unit: ' + recurUnit);
     }
   }
@@ -57,11 +57,11 @@ class DateUtil {
   }
 
   static DateTime withoutMillis(DateTime originalDate) {
-    return Jiffy(originalDate).startOf(Units.SECOND).dateTime;
+    return Jiffy.parseFromDateTime(originalDate).startOf(Unit.second).dateTime;
   }
 
   static DateTime withoutSeconds(DateTime originalDate) {
-    return Jiffy(originalDate).startOf(Units.MINUTE).dateTime;
+    return Jiffy.parseFromDateTime(originalDate).startOf(Unit.minute).dateTime;
   }
 
 }

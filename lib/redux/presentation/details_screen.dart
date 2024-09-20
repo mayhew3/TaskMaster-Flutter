@@ -179,11 +179,11 @@ class DetailsScreen extends StatelessWidget {
       return '';
     }
     var localTime = timezoneHelper.getLocalTime(dateTime);
-    var jiffy = Jiffy(localTime);
-    var isToday = jiffy.yMMMd == Jiffy().yMMMd;
-    var isThisYear = jiffy.year == Jiffy().year;
-    var jiffyTime = jiffy.format("h:mm a");
-    var jiffyDate = isThisYear ? jiffy.format("MMMM do") : jiffy.format("MMMM do, yyyy");
+    var jiffy = Jiffy.parseFromDateTime(localTime);
+    var isToday = jiffy.yMMMd == Jiffy.now().yMMMd;
+    var isThisYear = jiffy.year == Jiffy.now().year;
+    var jiffyTime = jiffy.format(pattern: "h:mm a");
+    var jiffyDate = isThisYear ? jiffy.format(pattern: "MMMM do") : jiffy.format(pattern: "MMMM do, yyyy");
     var formattedDate = isToday ?
     jiffyTime + ' today' :
     jiffyDate;
