@@ -29,7 +29,7 @@ class TaskRepository {
     }
     switch(serverEnv) {
       case 'local':
-        return Uri.http('localhost:3000', path, queryParameters);
+        return Uri.http('10.0.2.2:3000', path, queryParameters);
       case 'staging':
         return Uri.https('taskmaster-staging.herokuapp.com', path, queryParameters);
       case 'heroku':
