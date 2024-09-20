@@ -10,7 +10,7 @@ final taskItemsReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, DeleteTaskItemAction>(_deleteTaskItem),
   TypedReducer<AppState, TaskItemUpdatedAction>(_taskItemUpdated),
   TypedReducer<AppState, CompleteTaskItemAction>(_completeTaskItem),
-  TypedReducer<AppState, RecurringTaskItemCompletedAction>(_completeRecurringTaskItem),
+  TypedReducer<AppState, RecurringTaskItemCompletedAction>(_onCompleteRecurringTaskItem),
   TypedReducer<AppState, TaskItemCompletedAction>(_onCompleteTaskItem),
   TypedReducer<AppState, DataLoadedAction>(_onDataLoaded),
   TypedReducer<AppState, DataNotLoadedAction>(_onDataUnloaded),
@@ -56,16 +56,22 @@ AppState _completeTaskItem(AppState state, CompleteTaskItemAction action) {
   );
 }
 
-AppState _completeRecurringTaskItem(AppState state, RecurringTaskItemCompletedAction action) {
+AppState _onCompleteRecurringTaskItem(AppState state, RecurringTaskItemCompletedAction action) {
   var taskItemListBuilder = state.taskItems.toBuilder()
-    ..map((taskItem) => taskItem.id == action.completedTaskItem.id ? action.completedTaskItem.rebuild((t) => t..pendingCompletion = true) : taskItem)
-    ..add(action.addedTaskItem)
+    ..map((taskItem) => taskItem.id == action.completedTaskItem.id ?
+    action.completedTaskItem.rebuild((t) => t
+      ..pendingCompletion = false
+      ..recurrence = action.recurrence.toBuilder()) :
+    taskItem)
+    ..add(action.addedTaskItem.rebuild((t) => t.recurrence = action.recurrence.toBuilder()))
   ;
+  var recentListBuilder = state.recentlyCompleted.toBuilder()..add(taskItemListBuilder.build().where((t) => t.id == action.completedTaskItem.id).first);
   var recurrenceBuilder = state.taskRecurrences.toBuilder()
     ..map((recurrence) => recurrence.id == action.recurrence.id ? action.recurrence : recurrence);
   return state.rebuild((s) => s
     ..taskItems = taskItemListBuilder
     ..taskRecurrences = recurrenceBuilder
+    ..recentlyCompleted = recentListBuilder
   );
 }
 
