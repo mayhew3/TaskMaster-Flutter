@@ -24,9 +24,8 @@ Future<void> Function(
     var inputs = await getRequiredInputs(store, "create sprint");
 
     try {
-      var sprint = await repository.addSprint(action.sprintBlueprint, inputs.idToken);
-      var sprintAssignments = await repository.addTasksToSprint(action.taskItems.toList(), sprint, inputs.idToken);
-      store.dispatch(SprintCreatedAction(sprint: sprint, sprintAssignments: sprintAssignments));
+      var payload = await repository.addSprintWithTaskItems(action.sprintBlueprint, action.taskItems, action.taskItemRecurPreviews, inputs.idToken);
+      store.dispatch(SprintCreatedAction(sprint: payload.sprint, addedTasks: payload.addedTasks, sprintAssignments: payload.sprintAssignments));
     } catch (e) {
       print("Error creating new sprint: $e");
     }

@@ -8,7 +8,6 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:taskmaster/helpers/recurrence_helper.dart';
 import 'package:taskmaster/models/sprint_blueprint.dart';
 import 'package:taskmaster/models/sprint_display_task.dart';
-import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/presentation/plan_task_item.dart';
 import 'package:taskmaster/redux/presentation/plan_task_list_viewmodel.dart';
@@ -22,7 +21,6 @@ import '../../models/task_item.dart';
 import '../../models/task_item_recur_preview.dart';
 import '../actions/sprint_actions.dart';
 import 'delayed_checkbox.dart';
-import 'editable_task_item.dart';
 import 'header_list_item.dart';
 
 class PlanTaskList extends StatefulWidget {
@@ -44,19 +42,15 @@ class PlanTaskList extends StatefulWidget {
 
 class PlanTaskListState extends State<PlanTaskList> {
 
+  // three queues for the selected task items
   List<TaskItem> taskItemQueue = [];
-  List<TaskItemRecurPreview> tempIterations = [];
-
+  List<TaskItemRecurPreview> taskItemRecurPreviewQueue = [];
   List<SprintDisplayTask> sprintDisplayTaskQueue = [];
 
+  // ALL preview items to be displayed (existing task item list is dynamically created)
+  List<TaskItemRecurPreview> tempIterations = [];
+
   bool hasTiles = false;
-
-  @override
-  void initState() {
-    super.initState();
-
-    // createTemporaryIterations();
-  }
 
   void preSelectUrgentAndDueAndPreviousSprint(PlanTaskListViewModel viewModel) {
     BuiltList<TaskItem> baseList = getBaseList(viewModel);
@@ -68,7 +62,6 @@ class PlanTaskListState extends State<PlanTaskList> {
         taskItemIsInSprint(taskItem, viewModel.lastSprint)
     );
     taskItemQueue.addAll(dueOrUrgentTasks);
-    sprintDisplayTaskQueue.addAll(dueOrUrgentTasks);
   }
 
   List<SprintDisplayTask> _moveSublist(List<SprintDisplayTask> superList, bool Function(SprintDisplayTask) condition) {
@@ -91,7 +84,7 @@ class PlanTaskListState extends State<PlanTaskList> {
             if (taskItem is TaskItem) {
               taskItemQueue.remove(taskItem);
             } else if (taskItem is TaskItemRecurPreview) {
-              tempIterations.remove(taskItem);
+              taskItemRecurPreviewQueue.remove(taskItem);
             }
             taskItemQueue.remove(taskItem);
           });
@@ -101,7 +94,7 @@ class PlanTaskListState extends State<PlanTaskList> {
             if (taskItem is TaskItem) {
               taskItemQueue.add(taskItem);
             } else if (taskItem is TaskItemRecurPreview) {
-              tempIterations.add(taskItem);
+              taskItemRecurPreviewQueue.add(taskItem);
             }
             sprintDisplayTaskQueue.add(taskItem);
           });
@@ -179,7 +172,7 @@ class PlanTaskListState extends State<PlanTaskList> {
 
     if (willBeUrgentOrDue || willBeTargetOrStart) {
       if (willBeUrgentOrDue) {
-        sprintDisplayTaskQueue.add(nextIteration);
+        taskItemRecurPreviewQueue.add(nextIteration);
       }
       tempIterations.add(nextIteration);
       collector.add(nextIteration);
@@ -309,62 +302,7 @@ class PlanTaskListState extends State<PlanTaskList> {
     widget.sprint!.endDate;
   }
 
-  TaskItem? findMatching(TaskItem taskItem) {
-    return taskItemQueue.firstWhere((TaskItem other) {
-      return matchesId(taskItem, other) || tempMatches(taskItem, other);
-    });
-  }
-
-  bool isChecked(TaskItem taskItem) {
-    var matching = findMatching(taskItem);
-    return matching != null;
-  }
-
-  bool matchesId(TaskItem a, TaskItem b) {
-    return a is TaskItem && b is TaskItem && a.id == b.id;
-  }
-
-  bool tempMatches(TaskItem a, TaskItem b) {
-    return a is TaskItem && b is TaskItem &&
-        a.recurrenceId == b.recurrenceId
-        // && a.recurIteration == b.recurIteration
-    ;
-  }
-/*
-
-  Future<void> createSelectedIterations() async {
-    print('${tempIterations.length} temp items created.');
-
-    // todo: need to save the recurrences to hand in to addTaskIteration()
-    var toAdd = tempIterations.where((TaskItem taskItem) => !(taskItem is TaskItem));
-    print('${toAdd.length} checked temp items kept.');
-
-    for (var taskItem in toAdd) {
-      TaskItem addedTask = await widget.taskHelper.addTaskIteration(taskItem, null, widget.appState.personId, (callback) => setState(() => callback()));
-      print('Adding (Recurrence ID ${taskItem.recurrenceId}, TaskItem ID ${taskItem.recurIteration})');
-      sprintQueued.add(addedTask);
-    }
-
-    sprintQueued.removeWhere((element) => !(element is TaskItem));
-    idCheck();
-  }
-*/
-
-  List<TaskItem> idCheck() {
-    var withoutId = taskItemQueue.where((TaskItem taskItem) => !(taskItem is TaskItem));
-    if (withoutId.isNotEmpty) {
-      print('${withoutId.length} items still remain without an ID!');
-      for (var item in withoutId) {
-        print('Item: (${item.recurrenceId})');
-      }
-    }
-    return taskItemQueue.cast<TaskItem>();
-  }
-
   void submit(BuildContext context, PlanTaskListViewModel viewModel) async {
-    // await createSelectedIterations();
-    List<TaskItem> verified = idCheck();
-
     if (widget.sprint == null) {
       DateTime endDate = getEndDate();
       SprintBlueprint sprint = SprintBlueprint(
@@ -383,7 +321,7 @@ class PlanTaskListState extends State<PlanTaskList> {
           subscription.cancel();
         }
       });
-      store.dispatch(CreateSprintWithTaskItems(sprintBlueprint: sprint, taskItems: verified.toBuiltList()));
+      store.dispatch(CreateSprintWithTaskItems(sprintBlueprint: sprint, taskItems: taskItemQueue.toBuiltList(), taskItemRecurPreviews: taskItemRecurPreviewQueue.toBuiltList()));
       // await widget.taskHelper.addSprintAndTasks(sprint, verified);
     } else if (viewModel.activeSprint != null) {
       throw Exception("Edit mode unsupported.");
@@ -398,6 +336,7 @@ class PlanTaskListState extends State<PlanTaskList> {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, PlanTaskListViewModel>(
         builder: (context, viewModel) {
+          createTemporaryIterations(viewModel);
           return
             Scaffold(
               appBar: AppBar(

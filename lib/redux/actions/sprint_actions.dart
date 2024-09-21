@@ -3,12 +3,15 @@ import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/sprint_blueprint.dart';
 
+import '../../models/task_item_recur_preview.dart';
+
 
 class CreateSprintWithTaskItems {
   final SprintBlueprint sprintBlueprint;
   final BuiltList<TaskItem> taskItems;
+  final BuiltList<TaskItemRecurPreview> taskItemRecurPreviews;
 
-  CreateSprintWithTaskItems({required this.sprintBlueprint, required this.taskItems});
+  CreateSprintWithTaskItems({required this.sprintBlueprint, required this.taskItems, required this.taskItemRecurPreviews});
 
   @override
   String toString() {
@@ -18,9 +21,10 @@ class CreateSprintWithTaskItems {
 
 class SprintCreatedAction {
   final Sprint sprint;
-  final List<SprintAssignment> sprintAssignments;
+  final BuiltList<TaskItem> addedTasks;
+  final BuiltList<SprintAssignment> sprintAssignments;
 
-  SprintCreatedAction({required this.sprint, required this.sprintAssignments});
+  SprintCreatedAction({required this.sprint, required this.addedTasks, required this.sprintAssignments});
 
   @override
   String toString() {

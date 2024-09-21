@@ -15,7 +15,12 @@ AppState _sprintCreated(AppState state, SprintCreatedAction action) {
     } else {
       return taskItem;
     }
-  });
+  })
+  ..addAll(action.addedTasks.rebuild((list) =>
+      list.map((t) => t.rebuild((taskItem) =>
+        taskItem..recurrence = state.taskRecurrences.where((r) =>
+          r.id == t.recurrenceId).singleOrNull?.toBuilder()))))
+  ;
   return state.rebuild((s) => s
     ..sprints = sprintBuilder
     ..taskItems = taskItemBuilder

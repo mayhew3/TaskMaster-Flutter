@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
 
+import 'package:built_collection/built_collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:taskmaster/models/data_payload.dart';
 import 'package:taskmaster/models/sprint.dart';
@@ -181,6 +182,47 @@ class TaskRepository {
         }
       } else {
         throw Exception('Failed to add snooze. Talk to Mayhew.');
+      }
+    }(payload, idToken);
+  }
+
+  Future<({Sprint sprint, BuiltList<TaskItem> addedTasks, BuiltList<SprintAssignment> sprintAssignments})> addSprintWithTaskItems(SprintBlueprint blueprint, BuiltList<TaskItem> existingItems, BuiltList<TaskItemRecurPreview> newItems, String idToken) async {
+    var payload = {
+      "sprint": blueprint.toJson(),
+      "task_ids": existingItems.map((t) => t.id),
+      "taskItems": newItems.map((t) => serializers.serializeWith(TaskItemRecurPreview.serializer, t))
+    };
+
+    return await (Map<String, Object> payload, String idToken) async {
+      var body = utf8.encode(json.encode(payload));
+
+      var uri = getUri("/api/sprintsAndTasks");
+      final response = await client.post(uri,
+          headers: {HttpHeaders.authorizationHeader: idToken,
+            "Content-Type": "application/json"},
+          body: body
+      );
+
+      if (response.statusCode == 200) {
+        try {
+          var jsonObj = json.decode(response.body);
+
+          var sprintObj = jsonObj['sprint'];
+          var taskItemsObj = jsonObj['added_tasks'] as List<dynamic>;
+          var sprintAssignmentsObj = jsonObj['sprint_assignments'] as List<dynamic>;
+
+          Sprint inboundSprint = serializers.deserializeWith(Sprint.serializer, sprintObj)!;
+          BuiltList<TaskItem> taskItems = taskItemsObj.map((obj) => (serializers.deserializeWith(TaskItem.serializer, obj))!).toBuiltList();
+          BuiltList<SprintAssignment> sprintAssignments = sprintAssignmentsObj.map((obj) => (serializers.deserializeWith(SprintAssignment.serializer, obj))!).toBuiltList();
+
+          return (sprint: inboundSprint, addedTasks: taskItems, sprintAssignments: sprintAssignments);
+        } catch(exception, stackTrace) {
+          print(exception);
+          print(stackTrace);
+          throw Exception('Error parsing sprint and tasks from the server. Talk to Mayhew.');
+        }
+      } else {
+        throw Exception('Failed to add sprint and tasks. Talk to Mayhew.');
       }
     }(payload, idToken);
   }

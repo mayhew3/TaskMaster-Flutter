@@ -128,6 +128,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
       ..recurrenceId = recurrenceId
       ..recurIteration = this.recurIteration! + 1
       ..recurrence = recurrence!.toBuilder()
+      ..offCycle = offCycle
     );
   }
 }
