@@ -1,0 +1,76 @@
+
+import 'dart:math';
+
+import 'package:built_collection/built_collection.dart';
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
+import 'package:taskmaster/models/models.dart';
+import 'package:taskmaster/models/sprint_assignment.dart';
+import 'package:taskmaster/models/sprint_display_task.dart';
+
+/// This allows the `TaskItemRecurPreview` class to access private members in
+/// the generated file. The value for this is *.g.dart, where
+/// the star denotes the source file name.
+part 'task_item_recur_preview.g.dart';
+
+abstract class TaskItemRecurPreview with SprintDisplayTask implements Built<TaskItemRecurPreview, TaskItemRecurPreviewBuilder> {
+  @BuiltValueSerializer(serializeNulls: true)
+  static Serializer<TaskItemRecurPreview> get serializer => _$taskItemRecurPreviewSerializer;
+
+  int get id;
+  int get personId;
+
+  String get name;
+
+  String? get description;
+  String? get project;
+  String? get context;
+
+  int? get urgency;
+  int? get priority;
+  int? get duration;
+
+  int? get gamePoints;
+
+  DateTime? get startDate;
+  DateTime? get targetDate;
+  DateTime? get dueDate;
+  DateTime? get urgentDate;
+  DateTime? get completionDate;
+
+  int? get recurNumber;
+  String? get recurUnit;
+  bool? get recurWait;
+
+  int? get recurrenceId;
+  int? get recurIteration;
+
+  bool get offCycle;
+
+  BuiltList<SprintAssignment> get sprintAssignments;
+
+  TaskRecurrence? get recurrence;
+
+  TaskItemRecurPreview._();
+  factory TaskItemRecurPreview([Function(TaskItemRecurPreviewBuilder) updates]) = _$TaskItemRecurPreview;
+
+  @BuiltValueHook(initializeBuilder: true)
+  static void _setDefaults(TaskItemRecurPreviewBuilder b) =>
+      b
+        ..id = 0 - new Random().nextInt(60000);
+
+  TaskItemRecurPreview createNextRecurPreview({
+    required DateTime? startDate,
+    required DateTime? targetDate,
+    required DateTime? urgentDate,
+    required DateTime? dueDate,
+  }) {
+    return this.rebuild((t) => t
+      ..startDate = startDate
+      ..targetDate = targetDate
+      ..urgentDate = urgentDate
+      ..dueDate = dueDate
+      ..recurIteration = t.recurIteration! + 1
+    );
+  }
+}

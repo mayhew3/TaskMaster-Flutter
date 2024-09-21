@@ -3,6 +3,7 @@ import 'package:redux/redux.dart';
 import 'package:taskmaster/redux/app_state.dart';
 
 import '../../models/models.dart';
+import '../../models/sprint_display_task.dart';
 
 bool isLoadingSelector(AppState state) => state.isLoading;
 bool loadFailedSelector(AppState state) => state.loadFailed;
@@ -92,7 +93,7 @@ BuiltList<TaskItem> taskItemsForPlacingOnExistingSprint(BuiltList<TaskItem> allT
   }).toBuiltList();
 }
 
-bool taskItemIsInSprint(TaskItem taskItem, Sprint? sprint) {
+bool taskItemIsInSprint(SprintDisplayTask taskItem, Sprint? sprint) {
   return sprint != null && taskItem.sprintAssignments.where((sa) => sa.sprintId == sprint.id).isEmpty;
 }
 

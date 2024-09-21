@@ -1,6 +1,7 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:redux/redux.dart';
+import 'package:taskmaster/helpers/recurrence_helper.dart';
 import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
@@ -136,7 +137,7 @@ Future<void> Function(
     TaskItemBlueprint? nextScheduledTask;
 
     if (recurrence != null && completionDate != null && !hasNextIterationAlready(taskItem, store.state.taskItems)) {
-      nextScheduledTask = createNextIteration(taskItem, completionDate);
+      nextScheduledTask = RecurrenceHelper.createNextIteration(taskItem, completionDate);
     }
 
     var updated = await repository.updateTask(taskItem.id, blueprint, inputs.idToken);
@@ -166,89 +167,6 @@ bool hasNextIterationAlready(TaskItem taskItem, BuiltList<TaskItem> allTaskItems
   return nextInLine.isNotEmpty;
 }
 
-TaskItemBlueprint createNextIteration(TaskItem taskItem, DateTime completionDate) {
-  var recurrence = taskItem.recurrence;
-
-  if (recurrence != null) {
-    var recurIteration = taskItem.recurIteration;
-
-    if (recurIteration == null) {
-      throw new Exception(
-          'Recurrence has a value, so recur_iteration should be non-null!');
-    }
-
-    var recurNumber = recurrence.recurNumber;
-    var recurUnit = recurrence.recurUnit;
-    var recurWait = recurrence.recurWait;
-
-    DateTime? anchorDate = taskItem.getAnchorDate();
-    if (anchorDate == null) {
-      throw new Exception('Recur_number exists without anchor date!');
-    }
-    DateTime nextAnchorDate;
-
-    if (recurWait) {
-      nextAnchorDate = _getAdjustedDate(completionDate, recurNumber, recurUnit);
-    } else {
-      nextAnchorDate = _getAdjustedDate(anchorDate, recurNumber, recurUnit);
-    }
-
-    DateTime dateWithTime = _getClosestDateForTime(anchorDate, nextAnchorDate);
-    Duration duration = dateWithTime.difference(anchorDate);
-
-    TaskItemBlueprint nextScheduledTask = taskItem.createBlueprint();
-
-    nextScheduledTask.startDate = _addToDate(taskItem.startDate, duration);
-    nextScheduledTask.targetDate = _addToDate(taskItem.targetDate, duration);
-    nextScheduledTask.urgentDate = _addToDate(taskItem.urgentDate, duration);
-    nextScheduledTask.dueDate = _addToDate(taskItem.dueDate, duration);
-    nextScheduledTask.recurIteration = recurIteration + 1;
-
-    return nextScheduledTask;
-  } else {
-    throw Exception("No recurrence on task item!");
-  }
-}
-
-
-DateTime? _addToDate(DateTime? previousDate, Duration duration) {
-  return previousDate?.add(duration);
-}
-
-DateTime _getAdjustedDate(DateTime dateTime, int recurNumber, String recurUnit) {
-  return DateUtil.adjustToDate(dateTime, recurNumber, recurUnit);
-}
-
-DateTime _applyTimeToDate(DateTime dateWithTime, DateTime targetDate) {
-  var jiffy = Jiffy.parseFromMap({
-    Unit.year: targetDate.year,
-    Unit.month: targetDate.month,
-    Unit.day: targetDate.day,
-    Unit.hour: dateWithTime.hour,
-    Unit.minute: dateWithTime.minute,
-    Unit.second: dateWithTime.second},
-    isUtc: true,
-  );
-  return jiffy.dateTime;
-}
-
-DateTime _getClosestDateForTime(DateTime dateWithTime, DateTime targetDate) {
-  DateTime prev = _applyTimeToDate(dateWithTime, Jiffy.parseFromDateTime(targetDate).subtract(days:1).dateTime);
-  DateTime current = _applyTimeToDate(dateWithTime, targetDate);
-  DateTime next = _applyTimeToDate(dateWithTime, Jiffy.parseFromDateTime(targetDate).add(days:1).dateTime);
-
-  var prevDiff = prev.difference(targetDate).abs();
-  var currDiff = current.difference(targetDate).abs();
-  var nextDiff = next.difference(targetDate).abs();
-
-  if (prevDiff < currDiff && prevDiff < nextDiff) {
-    return prev;
-  } else if (currDiff < nextDiff) {
-    return current;
-  } else {
-    return next;
-  }
-}
 
 TaskRecurrenceBlueprint syncBlueprintToMostRecentTaskItem(TaskItem updatedTaskItem, TaskItemBlueprint? taskItemBlueprint, TaskRecurrence originalRecurrence) {
   var recurrenceBlueprint = originalRecurrence.createBlueprint();

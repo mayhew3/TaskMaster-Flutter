@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
+import 'package:taskmaster/models/sprint_display_task.dart';
 import 'package:taskmaster/models/task_colors.dart';
-import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/typedefs.dart';
 
@@ -85,7 +85,7 @@ class TaskDateType {
     required this.listThresholdInDays,
   });
 
-  bool inListBeforeDisplayThreshold(DateHolder dateHolder) {
+  bool inListBeforeDisplayThreshold(SprintDisplayTask dateHolder) {
     DateTime? dateFieldValue = this.dateFieldGetter(dateHolder);
     if (dateFieldValue == null ||
         dateFieldValue.isBefore(DateTime.now())) {
@@ -100,7 +100,7 @@ class TaskDateType {
     }
   }
 
-  bool inListAfterDisplayThreshold(DateHolder dateHolder) {
+  bool inListAfterDisplayThreshold(SprintDisplayTask dateHolder) {
     DateTime? dateFieldValue = this.dateFieldGetter(dateHolder);
     if (dateFieldValue == null ||
         dateFieldValue.isAfter(DateTime.now())) {

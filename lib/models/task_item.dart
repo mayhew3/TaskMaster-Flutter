@@ -1,18 +1,22 @@
 
+import 'dart:math';
+
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/sprint_assignment.dart';
+import 'package:taskmaster/models/sprint_display_task.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
+import 'package:taskmaster/models/task_item_recur_preview.dart';
 
 /// This allows the `TaskItem` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
 /// the star denotes the source file name.
 part 'task_item.g.dart';
 
-abstract class TaskItem with DateHolder implements Built<TaskItem, TaskItemBuilder> {
+abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<TaskItem, TaskItemBuilder> {
   @BuiltValueSerializer(serializeNulls: true)
   static Serializer<TaskItem> get serializer => _$taskItemSerializer;
 
@@ -93,4 +97,37 @@ abstract class TaskItem with DateHolder implements Built<TaskItem, TaskItemBuild
     return blueprint;
   }
 
+  bool isPreview() {
+    return false;
+  }
+
+  TaskItemRecurPreview createNextRecurPreview({
+    required DateTime? startDate,
+    required DateTime? targetDate,
+    required DateTime? urgentDate,
+    required DateTime? dueDate,
+  }) {
+    return TaskItemRecurPreview((b) => b
+      ..id = 0 - new Random().nextInt(60000)
+      ..name = name
+      ..description = description
+      ..project = project
+      ..context = context
+      ..urgency = urgency
+      ..priority = priority
+      ..duration = duration
+      ..startDate = startDate
+      ..targetDate = targetDate
+      ..urgentDate = urgentDate
+      ..dueDate = dueDate
+      ..gamePoints = gamePoints
+      ..personId = personId
+      ..recurNumber = recurNumber
+      ..recurUnit = recurUnit
+      ..recurWait = recurWait
+      ..recurrenceId = recurrenceId
+      ..recurIteration = this.recurIteration! + 1
+      ..recurrence = recurrence!.toBuilder()
+    );
+  }
 }

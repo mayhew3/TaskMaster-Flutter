@@ -1,10 +1,16 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:built_collection/built_collection.dart';
+import "package:collection/collection.dart";
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:taskmaster/helpers/recurrence_helper.dart';
 import 'package:taskmaster/models/sprint_blueprint.dart';
+import 'package:taskmaster/models/sprint_display_task.dart';
+import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/redux/app_state.dart';
+import 'package:taskmaster/redux/presentation/plan_task_item.dart';
 import 'package:taskmaster/redux/presentation/plan_task_list_viewmodel.dart';
 import 'package:taskmaster/redux/selectors/selectors.dart';
 
@@ -13,6 +19,7 @@ import '../../keys.dart';
 import '../../models/sprint.dart';
 import '../../models/task_colors.dart';
 import '../../models/task_item.dart';
+import '../../models/task_item_recur_preview.dart';
 import '../actions/sprint_actions.dart';
 import 'delayed_checkbox.dart';
 import 'editable_task_item.dart';
@@ -37,8 +44,10 @@ class PlanTaskList extends StatefulWidget {
 
 class PlanTaskListState extends State<PlanTaskList> {
 
-  List<TaskItem> sprintQueued = [];
-  List<TaskItem> tempIterations = [];
+  List<TaskItem> taskItemQueue = [];
+  List<TaskItemRecurPreview> tempIterations = [];
+
+  List<SprintDisplayTask> sprintDisplayTaskQueue = [];
 
   bool hasTiles = false;
 
@@ -58,33 +67,43 @@ class PlanTaskListState extends State<PlanTaskList> {
         taskItem.isUrgentBefore(endDate) ||
         taskItemIsInSprint(taskItem, viewModel.lastSprint)
     );
-    sprintQueued.addAll(dueOrUrgentTasks);
+    taskItemQueue.addAll(dueOrUrgentTasks);
+    sprintDisplayTaskQueue.addAll(dueOrUrgentTasks);
   }
 
-  List<TaskItem> _moveSublist(List<TaskItem> superList, bool Function(TaskItem) condition) {
-    List<TaskItem> subList = superList.where(condition).toList(growable: false);
+  List<SprintDisplayTask> _moveSublist(List<SprintDisplayTask> superList, bool Function(SprintDisplayTask) condition) {
+    List<SprintDisplayTask> subList = superList.where(condition).toList(growable: false);
     subList.forEach((task) => superList.remove(task));
     return subList;
   }
 
-  EditableTaskItemWidget _createWidget({required TaskItem taskItem, required PlanTaskListViewModel viewModel}) {
-    return EditableTaskItemWidget(
-      taskItem: taskItem,
+  PlanTaskItemWidget _createWidget({required SprintDisplayTask taskItem, required PlanTaskListViewModel viewModel}) {
+    return PlanTaskItemWidget(
+      sprintDisplayTask: taskItem,
       endDate: getEndDate(),
       sprint: null,
-      addMode: true,
       highlightSprint: highlightSprint(taskItem, viewModel),
-      initialCheckState: sprintQueued.contains(taskItem) ? CheckState.checked : CheckState.inactive,
+      initialCheckState: taskItemQueue.contains(taskItem) ? CheckState.checked : CheckState.inactive,
       onTaskAssignmentToggle: (checkState) {
-        var alreadyQueued = sprintQueued.contains(taskItem);
+        var alreadyQueued = taskItemQueue.contains(taskItem);
         if (alreadyQueued) {
           setState(() {
-            sprintQueued.remove(taskItem);
+            if (taskItem is TaskItem) {
+              taskItemQueue.remove(taskItem);
+            } else if (taskItem is TaskItemRecurPreview) {
+              tempIterations.remove(taskItem);
+            }
+            taskItemQueue.remove(taskItem);
           });
           return CheckState.inactive;
         } else {
           setState(() {
-            sprintQueued.add(taskItem);
+            if (taskItem is TaskItem) {
+              taskItemQueue.add(taskItem);
+            } else if (taskItem is TaskItemRecurPreview) {
+              tempIterations.add(taskItem);
+            }
+            sprintDisplayTaskQueue.add(taskItem);
           });
           return CheckState.checked;
         }
@@ -110,12 +129,12 @@ class PlanTaskListState extends State<PlanTaskList> {
     }
   }
 
-  bool highlightSprint(TaskItem taskItem, PlanTaskListViewModel viewModel) {
+  bool highlightSprint(SprintDisplayTask taskItem, PlanTaskListViewModel viewModel) {
     return taskItemIsInSprint(taskItem, viewModel.lastSprint);
     // return (taskItem is TaskItem) ? taskItem.sprints.contains(lastSprint) : false;
   }
 
-  bool wasInEarlierSprint(TaskItem taskItem, PlanTaskListViewModel viewModel) {
+  bool wasInEarlierSprint(SprintDisplayTask taskItem, PlanTaskListViewModel viewModel) {
     if (taskItem is TaskItem) {
       var sprints = sprintsForTaskItemSelector(viewModel.allSprints, taskItem).where((sprint) => sprint != viewModel.lastSprint);
       return sprints.isNotEmpty;
@@ -123,13 +142,13 @@ class PlanTaskListState extends State<PlanTaskList> {
       return false;
     }
   }
-/*
 
-  void createTemporaryIterations() {
+  void createTemporaryIterations(PlanTaskListViewModel viewModel) {
     List<TaskItem> eligibleItems = [];
-    eligibleItems.addAll(getBaseList());
-    if (widget.sprint != null) {
-      eligibleItems.addAll(widget.sprint!.taskItems);
+    eligibleItems.addAll(getBaseList(viewModel));
+    var sprint = widget.sprint;
+    if (sprint != null) {
+      eligibleItems.addAll(taskItemsForSprintSelector(viewModel.allTaskItems, sprint));
     }
     DateTime endDate = getEndDate();
     Set<int> recurIDs = new HashSet();
@@ -144,37 +163,38 @@ class PlanTaskListState extends State<PlanTaskList> {
       Iterable<TaskItem> recurItems = eligibleItems.where((var taskItem) => taskItem.recurrenceId == recurID);
       List<TaskItem> sortedItems = recurItems.sorted((TaskItem t1, TaskItem t2) => t1.recurIteration!.compareTo(t2.recurIteration!));
       TaskItem newest = sortedItems.last;
+      List<TaskItemRecurPreview> futureIterations = [];
       if (newest.recurWait == false) {
-        addNextIterations(newest, endDate, eligibleItems);
+        addNextIterations(newest, endDate, futureIterations);
       }
     }
 
   }
 
 
-  void addNextIterations(TaskItem newest, DateTime endDate, List<TaskItem> collector) {
-    TaskItem nextIteration = widget.taskHelper.createNextIteration(newest, DateTime.now());
+  void addNextIterations(SprintDisplayTask newest, DateTime endDate, List<TaskItemRecurPreview> collector) {
+    TaskItemRecurPreview nextIteration = RecurrenceHelper.createNextIteration(newest, DateTime.now());
     var willBeUrgentOrDue = nextIteration.isDueBefore(endDate) || nextIteration.isUrgentBefore(endDate);
     var willBeTargetOrStart = nextIteration.isTargetBefore(endDate) || nextIteration.isScheduledBefore(endDate);
 
     if (willBeUrgentOrDue || willBeTargetOrStart) {
       if (willBeUrgentOrDue) {
-        sprintQueued.add(nextIteration);
+        sprintDisplayTaskQueue.add(nextIteration);
       }
       tempIterations.add(nextIteration);
       collector.add(nextIteration);
       addNextIterations(nextIteration, endDate, collector);
     }
   }
-*/
-  void _addTaskTile({required List<StatelessWidget> tiles, required TaskItem task, required PlanTaskListViewModel viewModel}) {
+
+  void _addTaskTile({required List<StatelessWidget> tiles, required SprintDisplayTask task, required PlanTaskListViewModel viewModel}) {
     tiles.add(_createWidget(taskItem: task, viewModel: viewModel));
     hasTiles = true;
   }
 
   ListView _buildListView(BuildContext context, PlanTaskListViewModel viewModel) {
     // widget.appState.notificationScheduler.updateHomeScreenContext(context);
-    final List<TaskItem> otherTasks = [];
+    final List<SprintDisplayTask> otherTasks = [];
     otherTasks.addAll(getBaseList(viewModel));
     otherTasks.addAll(tempIterations);
 
@@ -182,13 +202,13 @@ class PlanTaskListState extends State<PlanTaskList> {
 
     Sprint? lastCompletedSprint = viewModel.lastSprint;
 
-    final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted());
-    final List<TaskItem> lastSprintTasks = _moveSublist(otherTasks, (taskItem) => (taskItem is TaskItem) && taskItemIsInSprint(taskItem, lastCompletedSprint));
-    final List<TaskItem> otherSprintTasks = _moveSublist(otherTasks, (taskItem) => wasInEarlierSprint(taskItem, viewModel));
-    final List<TaskItem> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isDueBefore(endDate));
-    final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgentBefore(endDate));
-    final List<TaskItem> targetTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isTargetBefore(endDate));
-    final List<TaskItem> scheduledTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isScheduledAfter(endDate));
+    final List<SprintDisplayTask> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted());
+    final List<SprintDisplayTask> lastSprintTasks = _moveSublist(otherTasks, (taskItem) => (taskItem is TaskItem) && taskItemIsInSprint(taskItem, lastCompletedSprint));
+    final List<SprintDisplayTask> otherSprintTasks = _moveSublist(otherTasks, (taskItem) => wasInEarlierSprint(taskItem, viewModel));
+    final List<SprintDisplayTask> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isDueBefore(endDate));
+    final List<SprintDisplayTask> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgentBefore(endDate));
+    final List<SprintDisplayTask> targetTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isTargetBefore(endDate));
+    final List<SprintDisplayTask> scheduledTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isScheduledAfter(endDate));
 
     List<StatelessWidget> tiles = [];
 
@@ -290,7 +310,7 @@ class PlanTaskListState extends State<PlanTaskList> {
   }
 
   TaskItem? findMatching(TaskItem taskItem) {
-    return sprintQueued.firstWhere((TaskItem other) {
+    return taskItemQueue.firstWhere((TaskItem other) {
       return matchesId(taskItem, other) || tempMatches(taskItem, other);
     });
   }
@@ -331,14 +351,14 @@ class PlanTaskListState extends State<PlanTaskList> {
 */
 
   List<TaskItem> idCheck() {
-    var withoutId = sprintQueued.where((TaskItem taskItem) => !(taskItem is TaskItem));
+    var withoutId = taskItemQueue.where((TaskItem taskItem) => !(taskItem is TaskItem));
     if (withoutId.isNotEmpty) {
       print('${withoutId.length} items still remain without an ID!');
       for (var item in withoutId) {
         print('Item: (${item.recurrenceId})');
       }
     }
-    return sprintQueued.cast<TaskItem>();
+    return taskItemQueue.cast<TaskItem>();
   }
 
   void submit(BuildContext context, PlanTaskListViewModel viewModel) async {
@@ -385,7 +405,7 @@ class PlanTaskListState extends State<PlanTaskList> {
               ),
               body: _buildListView(context, viewModel),
               floatingActionButton: Visibility(
-                visible: sprintQueued.isNotEmpty,
+                visible: taskItemQueue.isNotEmpty,
                 child: FloatingActionButton.extended(
                     onPressed: () => submit(context, viewModel),
                     label: Text('Submit')
