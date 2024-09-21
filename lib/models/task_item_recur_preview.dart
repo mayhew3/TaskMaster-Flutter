@@ -7,16 +7,18 @@ import 'package:built_value/serializer.dart';
 import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/sprint_display_task.dart';
+import 'package:taskmaster/models/task_date_holder.dart';
 
 /// This allows the `TaskItemRecurPreview` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
 /// the star denotes the source file name.
 part 'task_item_recur_preview.g.dart';
 
-abstract class TaskItemRecurPreview with SprintDisplayTask implements Built<TaskItemRecurPreview, TaskItemRecurPreviewBuilder> {
+abstract class TaskItemRecurPreview with DateHolder, SprintDisplayTask implements Built<TaskItemRecurPreview, TaskItemRecurPreviewBuilder> {
   @BuiltValueSerializer(serializeNulls: true)
   static Serializer<TaskItemRecurPreview> get serializer => _$taskItemRecurPreviewSerializer;
 
+  @BuiltValueField(serialize: false)
   int get id;
   int get personId;
 
@@ -73,4 +75,9 @@ abstract class TaskItemRecurPreview with SprintDisplayTask implements Built<Task
       ..recurIteration = t.recurIteration! + 1
     );
   }
+
+  bool isPreview() {
+    return true;
+  }
+
 }

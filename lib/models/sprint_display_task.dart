@@ -1,4 +1,6 @@
+import 'package:built_collection/built_collection.dart';
 import 'package:taskmaster/models/models.dart';
+import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_item_recur_preview.dart';
 
@@ -16,6 +18,8 @@ mixin SprintDisplayTask implements DateHolder {
 
   TaskRecurrence? get recurrence;
   int? get recurIteration;
+
+  BuiltList<SprintAssignment> get sprintAssignments;
 
   DateTime? getAnchorDate();
   bool isScheduled();

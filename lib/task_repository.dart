@@ -10,6 +10,7 @@ import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/sprint_blueprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
+import 'package:taskmaster/models/task_item_recur_preview.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/models/serializers.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
@@ -124,6 +125,14 @@ class TaskRepository {
       "task": blueprint.toJson()
     };
     return _addOrUpdateTaskItemJSON(payload, 'add', idToken);
+  }
+
+  Future<({TaskItem taskItem, TaskRecurrence? recurrence})> addRecurTask(TaskItemRecurPreview blueprint, String idToken) async {
+    var taskObj = serializers.serializeWith(TaskItemRecurPreview.serializer, blueprint);
+    var payload = {
+      "task": taskObj
+    };
+    return _addOrUpdateTaskItemJSON(payload, 'add recur', idToken);
   }
 
   Future<({TaskItem taskItem, TaskRecurrence? recurrence})> updateTask(int taskItemId, TaskItemBlueprint taskItemBlueprint, String idToken) async {
@@ -280,7 +289,7 @@ class TaskRepository {
     }
   }
 
-  Future<({TaskItem taskItem, TaskRecurrence? recurrence})> _addOrUpdateTaskItemJSON(Map<String, Object> payload, String addOrUpdate, String idToken) async {
+  Future<({TaskItem taskItem, TaskRecurrence? recurrence})> _addOrUpdateTaskItemJSON(Map<String, Object?> payload, String addOrUpdate, String idToken) async {
     var body = utf8.encode(json.encode(payload));
 
     var uri = getUri('/api/tasks');

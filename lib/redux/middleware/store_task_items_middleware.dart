@@ -1,16 +1,14 @@
 import 'package:built_collection/built_collection.dart';
-import 'package:jiffy/jiffy.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/helpers/recurrence_helper.dart';
 import 'package:taskmaster/models/models.dart';
-import 'package:taskmaster/models/task_item_blueprint.dart';
+import 'package:taskmaster/models/task_item_recur_preview.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/selectors/selectors.dart';
 import 'package:taskmaster/task_repository.dart';
 
-import '../../date_util.dart';
 import '../actions/task_item_actions.dart';
 
 List<Middleware<AppState>> createStoreTaskItemsMiddleware(TaskRepository repository) {
@@ -134,7 +132,7 @@ Future<void> Function(
     var blueprint = taskItem.createBlueprint()..completionDate = completionDate;
     var recurrence = taskItem.recurrence;
 
-    TaskItemBlueprint? nextScheduledTask;
+    TaskItemRecurPreview? nextScheduledTask;
 
     if (recurrence != null && completionDate != null && !hasNextIterationAlready(taskItem, store.state.taskItems)) {
       nextScheduledTask = RecurrenceHelper.createNextIteration(taskItem, completionDate);
@@ -145,7 +143,7 @@ Future<void> Function(
     if (recurrence != null && nextScheduledTask != null) {
       var recurrenceBlueprint = syncBlueprintToMostRecentTaskItem(updated.taskItem, nextScheduledTask, recurrence);
       var updatedRecurrence = await repository.updateTaskRecurrence(recurrence.id, recurrenceBlueprint, inputs.idToken);
-      var addedTaskItem = (await repository.addTask(nextScheduledTask, inputs.idToken)).taskItem;
+      var addedTaskItem = (await repository.addRecurTask(nextScheduledTask, inputs.idToken)).taskItem;
       store.dispatch(RecurringTaskItemCompletedAction(updated.taskItem, addedTaskItem, updatedRecurrence, action.complete));
     } else {
       store.dispatch(TaskItemCompletedAction(updated.taskItem, action.complete));
@@ -168,7 +166,7 @@ bool hasNextIterationAlready(TaskItem taskItem, BuiltList<TaskItem> allTaskItems
 }
 
 
-TaskRecurrenceBlueprint syncBlueprintToMostRecentTaskItem(TaskItem updatedTaskItem, TaskItemBlueprint? taskItemBlueprint, TaskRecurrence originalRecurrence) {
+TaskRecurrenceBlueprint syncBlueprintToMostRecentTaskItem(TaskItem updatedTaskItem, TaskItemRecurPreview? taskItemBlueprint, TaskRecurrence originalRecurrence) {
   var recurrenceBlueprint = originalRecurrence.createBlueprint();
   if (taskItemBlueprint == null) {
     recurrenceBlueprint.syncToTaskItem(updatedTaskItem);
