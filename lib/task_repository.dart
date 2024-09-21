@@ -187,10 +187,11 @@ class TaskRepository {
   }
 
   Future<({Sprint sprint, BuiltList<TaskItem> addedTasks, BuiltList<SprintAssignment> sprintAssignments})> addSprintWithTaskItems(SprintBlueprint blueprint, BuiltList<TaskItem> existingItems, BuiltList<TaskItemRecurPreview> newItems, String idToken) async {
+    var list = newItems.map((t) => serializers.serializeWith(TaskItemRecurPreview.serializer, t)).toList();
     var payload = {
       "sprint": blueprint.toJson(),
-      "task_ids": existingItems.map((t) => t.id),
-      "taskItems": newItems.map((t) => serializers.serializeWith(TaskItemRecurPreview.serializer, t))
+      "task_ids": existingItems.map((t) => t.id).toList(),
+      "taskItems": list
     };
 
     return await (Map<String, Object> payload, String idToken) async {
@@ -208,8 +209,8 @@ class TaskRepository {
           var jsonObj = json.decode(response.body);
 
           var sprintObj = jsonObj['sprint'];
-          var taskItemsObj = jsonObj['added_tasks'] as List<dynamic>;
-          var sprintAssignmentsObj = jsonObj['sprint_assignments'] as List<dynamic>;
+          var taskItemsObj = jsonObj['addedTasks'] as List<dynamic>;
+          var sprintAssignmentsObj = jsonObj['sprintAssignments'] as List<dynamic>;
 
           Sprint inboundSprint = serializers.deserializeWith(Sprint.serializer, sprintObj)!;
           BuiltList<TaskItem> taskItems = taskItemsObj.map((obj) => (serializers.deserializeWith(TaskItem.serializer, obj))!).toBuiltList();

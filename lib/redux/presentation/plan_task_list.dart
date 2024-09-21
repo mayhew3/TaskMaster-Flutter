@@ -5,6 +5,7 @@ import 'package:built_collection/built_collection.dart';
 import "package:collection/collection.dart";
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:redux/src/store.dart';
 import 'package:taskmaster/helpers/recurrence_helper.dart';
 import 'package:taskmaster/models/sprint_blueprint.dart';
 import 'package:taskmaster/models/sprint_display_task.dart';
@@ -42,6 +43,8 @@ class PlanTaskList extends StatefulWidget {
 
 class PlanTaskListState extends State<PlanTaskList> {
 
+  bool initialized = false;
+
   // three queues for the selected task items
   List<TaskItem> taskItemQueue = [];
   List<TaskItemRecurPreview> taskItemRecurPreviewQueue = [];
@@ -57,11 +60,12 @@ class PlanTaskListState extends State<PlanTaskList> {
     DateTime endDate = getEndDate();
 
     final Iterable<TaskItem> dueOrUrgentTasks = baseList.where((taskItem) =>
-        taskItem.isDueBefore(endDate) ||
+    taskItem.isDueBefore(endDate) ||
         taskItem.isUrgentBefore(endDate) ||
         taskItemIsInSprint(taskItem, viewModel.lastSprint)
     );
     taskItemQueue.addAll(dueOrUrgentTasks);
+    sprintDisplayTaskQueue.addAll(dueOrUrgentTasks);
   }
 
   List<SprintDisplayTask> _moveSublist(List<SprintDisplayTask> superList, bool Function(SprintDisplayTask) condition) {
@@ -76,9 +80,9 @@ class PlanTaskListState extends State<PlanTaskList> {
       endDate: getEndDate(),
       sprint: null,
       highlightSprint: highlightSprint(taskItem, viewModel),
-      initialCheckState: taskItemQueue.contains(taskItem) ? CheckState.checked : CheckState.inactive,
+      initialCheckState: sprintDisplayTaskQueue.contains(taskItem) ? CheckState.checked : CheckState.inactive,
       onTaskAssignmentToggle: (checkState) {
-        var alreadyQueued = taskItemQueue.contains(taskItem);
+        var alreadyQueued = sprintDisplayTaskQueue.contains(taskItem);
         if (alreadyQueued) {
           setState(() {
             if (taskItem is TaskItem) {
@@ -86,7 +90,7 @@ class PlanTaskListState extends State<PlanTaskList> {
             } else if (taskItem is TaskItemRecurPreview) {
               taskItemRecurPreviewQueue.remove(taskItem);
             }
-            taskItemQueue.remove(taskItem);
+            sprintDisplayTaskQueue.remove(taskItem);
           });
           return CheckState.inactive;
         } else {
@@ -173,6 +177,7 @@ class PlanTaskListState extends State<PlanTaskList> {
     if (willBeUrgentOrDue || willBeTargetOrStart) {
       if (willBeUrgentOrDue) {
         taskItemRecurPreviewQueue.add(nextIteration);
+        sprintDisplayTaskQueue.add(nextIteration);
       }
       tempIterations.add(nextIteration);
       collector.add(nextIteration);
@@ -313,14 +318,7 @@ class PlanTaskListState extends State<PlanTaskList> {
           personId: viewModel.personId
       );
       var store = StoreProvider.of<AppState>(context);
-      late StreamSubscription<AppState> subscription;
-      subscription = store.onChange.listen((appState) {
-        var activeSprint = activeSprintSelector(appState.sprints);
-        if (activeSprint != null) {
-          Navigator.pop(context, 'Added');
-          subscription.cancel();
-        }
-      });
+      waitForCompletionThenPopWindow(store, context);
       store.dispatch(CreateSprintWithTaskItems(sprintBlueprint: sprint, taskItems: taskItemQueue.toBuiltList(), taskItemRecurPreviews: taskItemRecurPreviewQueue.toBuiltList()));
       // await widget.taskHelper.addSprintAndTasks(sprint, verified);
     } else if (viewModel.activeSprint != null) {
@@ -332,11 +330,26 @@ class PlanTaskListState extends State<PlanTaskList> {
     // Navigator.pop(context, 'Added');
   }
 
+  void waitForCompletionThenPopWindow(Store<AppState> store, BuildContext context) {
+    late StreamSubscription<AppState> subscription;
+    subscription = store.onChange.listen((appState) {
+      var activeSprint = activeSprintSelector(appState.sprints);
+      if (activeSprint != null) {
+        Navigator.pop(context, 'Added');
+        subscription.cancel();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, PlanTaskListViewModel>(
         builder: (context, viewModel) {
-          createTemporaryIterations(viewModel);
+          if (!initialized) {
+            preSelectUrgentAndDueAndPreviousSprint(viewModel);
+            createTemporaryIterations(viewModel);
+            initialized = true;
+          }
           return
             Scaffold(
               appBar: AppBar(
@@ -344,7 +357,7 @@ class PlanTaskListState extends State<PlanTaskList> {
               ),
               body: _buildListView(context, viewModel),
               floatingActionButton: Visibility(
-                visible: taskItemQueue.isNotEmpty,
+                visible: sprintDisplayTaskQueue.isNotEmpty,
                 child: FloatingActionButton.extended(
                     onPressed: () => submit(context, viewModel),
                     label: Text('Submit')

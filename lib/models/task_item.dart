@@ -109,6 +109,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   }) {
     return TaskItemRecurPreview((b) => b
       ..id = 0 - new Random().nextInt(60000)
+      ..personId = personId
       ..name = name
       ..description = description
       ..project = project

@@ -10,7 +10,11 @@ Serializers _$serializers = (new Serializers().toBuilder()
       ..add(Sprint.serializer)
       ..add(SprintAssignment.serializer)
       ..add(TaskItem.serializer)
+      ..add(TaskItemRecurPreview.serializer)
       ..add(TaskRecurrence.serializer)
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(SprintAssignment)]),
+          () => new ListBuilder<SprintAssignment>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(SprintAssignment)]),
           () => new ListBuilder<SprintAssignment>()))

@@ -3,20 +3,21 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i8;
+import 'dart:async' as _i9;
 
+import 'package:built_collection/built_collection.dart' as _i6;
 import 'package:http/http.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:taskmaster/models/data_payload.dart' as _i3;
 import 'package:taskmaster/models/sprint.dart' as _i5;
 import 'package:taskmaster/models/sprint_assignment.dart' as _i13;
-import 'package:taskmaster/models/sprint_blueprint.dart' as _i11;
+import 'package:taskmaster/models/sprint_blueprint.dart' as _i12;
 import 'package:taskmaster/models/task_item.dart' as _i4;
-import 'package:taskmaster/models/task_item_blueprint.dart' as _i9;
-import 'package:taskmaster/models/task_item_recur_preview.dart' as _i10;
-import 'package:taskmaster/models/task_recurrence.dart' as _i6;
-import 'package:taskmaster/models/task_recurrence_blueprint.dart' as _i12;
-import 'package:taskmaster/task_repository.dart' as _i7;
+import 'package:taskmaster/models/task_item_blueprint.dart' as _i10;
+import 'package:taskmaster/models/task_item_recur_preview.dart' as _i11;
+import 'package:taskmaster/models/task_recurrence.dart' as _i7;
+import 'package:taskmaster/models/task_recurrence_blueprint.dart' as _i14;
+import 'package:taskmaster/task_repository.dart' as _i8;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -79,9 +80,19 @@ class _FakeSprint_4 extends _i1.SmartFake implements _i5.Sprint {
         );
 }
 
-class _FakeTaskRecurrence_5 extends _i1.SmartFake
-    implements _i6.TaskRecurrence {
-  _FakeTaskRecurrence_5(
+class _FakeBuiltList_5<E> extends _i1.SmartFake implements _i6.BuiltList<E> {
+  _FakeBuiltList_5(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeTaskRecurrence_6 extends _i1.SmartFake
+    implements _i7.TaskRecurrence {
+  _FakeTaskRecurrence_6(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -93,7 +104,7 @@ class _FakeTaskRecurrence_5 extends _i1.SmartFake
 /// A class which mocks [TaskRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
+class MockTaskRepository extends _i1.Mock implements _i8.TaskRepository {
   @override
   _i2.Client get client => (super.noSuchMethod(
         Invocation.getter(#client),
@@ -174,7 +185,7 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
       ) as Uri);
 
   @override
-  _i8.Future<int?> getPersonId(
+  _i9.Future<int?> getPersonId(
     String? email,
     String? idToken,
   ) =>
@@ -186,12 +197,12 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i8.Future<int?>.value(),
-        returnValueForMissingStub: _i8.Future<int?>.value(),
-      ) as _i8.Future<int?>);
+        returnValue: _i9.Future<int?>.value(),
+        returnValueForMissingStub: _i9.Future<int?>.value(),
+      ) as _i9.Future<int?>);
 
   @override
-  _i8.Future<_i3.DataPayload> loadTasks(
+  _i9.Future<_i3.DataPayload> loadTasks(
     int? personId,
     String? idToken,
   ) =>
@@ -203,7 +214,7 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i8.Future<_i3.DataPayload>.value(_FakeDataPayload_2(
+        returnValue: _i9.Future<_i3.DataPayload>.value(_FakeDataPayload_2(
           this,
           Invocation.method(
             #loadTasks,
@@ -214,7 +225,7 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i8.Future<_i3.DataPayload>.value(_FakeDataPayload_2(
+            _i9.Future<_i3.DataPayload>.value(_FakeDataPayload_2(
           this,
           Invocation.method(
             #loadTasks,
@@ -224,11 +235,11 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
             ],
           ),
         )),
-      ) as _i8.Future<_i3.DataPayload>);
+      ) as _i9.Future<_i3.DataPayload>);
 
   @override
-  _i8.Future<({_i6.TaskRecurrence? recurrence, _i4.TaskItem taskItem})> addTask(
-    _i9.TaskItemBlueprint? blueprint,
+  _i9.Future<({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})> addTask(
+    _i10.TaskItemBlueprint? blueprint,
     String? idToken,
   ) =>
       (super.noSuchMethod(
@@ -239,8 +250,8 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i8.Future<
-            ({_i6.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>.value((
+        returnValue: _i9.Future<
+            ({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>.value((
           recurrence: null,
           taskItem: _FakeTaskItem_3(
             this,
@@ -253,8 +264,8 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
             ),
           )
         )),
-        returnValueForMissingStub: _i8.Future<
-            ({_i6.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>.value((
+        returnValueForMissingStub: _i9.Future<
+            ({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>.value((
           recurrence: null,
           taskItem: _FakeTaskItem_3(
             this,
@@ -267,13 +278,13 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
             ),
           )
         )),
-      ) as _i8
-          .Future<({_i6.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>);
+      ) as _i9
+          .Future<({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>);
 
   @override
-  _i8.Future<
-      ({_i6.TaskRecurrence? recurrence, _i4.TaskItem taskItem})> addRecurTask(
-    _i10.TaskItemRecurPreview? blueprint,
+  _i9.Future<
+      ({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})> addRecurTask(
+    _i11.TaskItemRecurPreview? blueprint,
     String? idToken,
   ) =>
       (super.noSuchMethod(
@@ -284,8 +295,8 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i8.Future<
-            ({_i6.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>.value((
+        returnValue: _i9.Future<
+            ({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>.value((
           recurrence: null,
           taskItem: _FakeTaskItem_3(
             this,
@@ -298,8 +309,8 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
             ),
           )
         )),
-        returnValueForMissingStub: _i8.Future<
-            ({_i6.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>.value((
+        returnValueForMissingStub: _i9.Future<
+            ({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>.value((
           recurrence: null,
           taskItem: _FakeTaskItem_3(
             this,
@@ -312,14 +323,14 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
             ),
           )
         )),
-      ) as _i8
-          .Future<({_i6.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>);
+      ) as _i9
+          .Future<({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>);
 
   @override
-  _i8.Future<
-      ({_i6.TaskRecurrence? recurrence, _i4.TaskItem taskItem})> updateTask(
+  _i9.Future<
+      ({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})> updateTask(
     int? taskItemId,
-    _i9.TaskItemBlueprint? taskItemBlueprint,
+    _i10.TaskItemBlueprint? taskItemBlueprint,
     String? idToken,
   ) =>
       (super.noSuchMethod(
@@ -331,8 +342,8 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i8.Future<
-            ({_i6.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>.value((
+        returnValue: _i9.Future<
+            ({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>.value((
           recurrence: null,
           taskItem: _FakeTaskItem_3(
             this,
@@ -346,8 +357,8 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
             ),
           )
         )),
-        returnValueForMissingStub: _i8.Future<
-            ({_i6.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>.value((
+        returnValueForMissingStub: _i9.Future<
+            ({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>.value((
           recurrence: null,
           taskItem: _FakeTaskItem_3(
             this,
@@ -361,12 +372,12 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
             ),
           )
         )),
-      ) as _i8
-          .Future<({_i6.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>);
+      ) as _i9
+          .Future<({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>);
 
   @override
-  _i8.Future<_i5.Sprint> addSprint(
-    _i11.SprintBlueprint? blueprint,
+  _i9.Future<_i5.Sprint> addSprint(
+    _i12.SprintBlueprint? blueprint,
     String? idToken,
   ) =>
       (super.noSuchMethod(
@@ -377,7 +388,7 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i8.Future<_i5.Sprint>.value(_FakeSprint_4(
+        returnValue: _i9.Future<_i5.Sprint>.value(_FakeSprint_4(
           this,
           Invocation.method(
             #addSprint,
@@ -387,7 +398,7 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
             ],
           ),
         )),
-        returnValueForMissingStub: _i8.Future<_i5.Sprint>.value(_FakeSprint_4(
+        returnValueForMissingStub: _i9.Future<_i5.Sprint>.value(_FakeSprint_4(
           this,
           Invocation.method(
             #addSprint,
@@ -397,11 +408,126 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
             ],
           ),
         )),
-      ) as _i8.Future<_i5.Sprint>);
+      ) as _i9.Future<_i5.Sprint>);
 
   @override
-  _i8.Future<_i6.TaskRecurrence> addTaskRecurrence(
-    _i12.TaskRecurrenceBlueprint? blueprint,
+  _i9.Future<
+      ({
+        _i6.BuiltList<_i4.TaskItem> addedTasks,
+        _i5.Sprint sprint,
+        _i6.BuiltList<_i13.SprintAssignment> sprintAssignments
+      })> addSprintWithTaskItems(
+    _i12.SprintBlueprint? blueprint,
+    _i6.BuiltList<_i4.TaskItem>? existingItems,
+    _i6.BuiltList<_i11.TaskItemRecurPreview>? newItems,
+    String? idToken,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #addSprintWithTaskItems,
+          [
+            blueprint,
+            existingItems,
+            newItems,
+            idToken,
+          ],
+        ),
+        returnValue: _i9.Future<
+            ({
+              _i6.BuiltList<_i4.TaskItem> addedTasks,
+              _i5.Sprint sprint,
+              _i6.BuiltList<_i13.SprintAssignment> sprintAssignments
+            })>.value((
+          addedTasks: _FakeBuiltList_5<_i4.TaskItem>(
+            this,
+            Invocation.method(
+              #addSprintWithTaskItems,
+              [
+                blueprint,
+                existingItems,
+                newItems,
+                idToken,
+              ],
+            ),
+          ),
+          sprint: _FakeSprint_4(
+            this,
+            Invocation.method(
+              #addSprintWithTaskItems,
+              [
+                blueprint,
+                existingItems,
+                newItems,
+                idToken,
+              ],
+            ),
+          ),
+          sprintAssignments: _FakeBuiltList_5<_i13.SprintAssignment>(
+            this,
+            Invocation.method(
+              #addSprintWithTaskItems,
+              [
+                blueprint,
+                existingItems,
+                newItems,
+                idToken,
+              ],
+            ),
+          )
+        )),
+        returnValueForMissingStub: _i9.Future<
+            ({
+              _i6.BuiltList<_i4.TaskItem> addedTasks,
+              _i5.Sprint sprint,
+              _i6.BuiltList<_i13.SprintAssignment> sprintAssignments
+            })>.value((
+          addedTasks: _FakeBuiltList_5<_i4.TaskItem>(
+            this,
+            Invocation.method(
+              #addSprintWithTaskItems,
+              [
+                blueprint,
+                existingItems,
+                newItems,
+                idToken,
+              ],
+            ),
+          ),
+          sprint: _FakeSprint_4(
+            this,
+            Invocation.method(
+              #addSprintWithTaskItems,
+              [
+                blueprint,
+                existingItems,
+                newItems,
+                idToken,
+              ],
+            ),
+          ),
+          sprintAssignments: _FakeBuiltList_5<_i13.SprintAssignment>(
+            this,
+            Invocation.method(
+              #addSprintWithTaskItems,
+              [
+                blueprint,
+                existingItems,
+                newItems,
+                idToken,
+              ],
+            ),
+          )
+        )),
+      ) as _i9.Future<
+          ({
+            _i6.BuiltList<_i4.TaskItem> addedTasks,
+            _i5.Sprint sprint,
+            _i6.BuiltList<_i13.SprintAssignment> sprintAssignments
+          })>);
+
+  @override
+  _i9.Future<_i7.TaskRecurrence> addTaskRecurrence(
+    _i14.TaskRecurrenceBlueprint? blueprint,
     String? idToken,
   ) =>
       (super.noSuchMethod(
@@ -412,7 +538,7 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i8.Future<_i6.TaskRecurrence>.value(_FakeTaskRecurrence_5(
+        returnValue: _i9.Future<_i7.TaskRecurrence>.value(_FakeTaskRecurrence_6(
           this,
           Invocation.method(
             #addTaskRecurrence,
@@ -423,7 +549,7 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i8.Future<_i6.TaskRecurrence>.value(_FakeTaskRecurrence_5(
+            _i9.Future<_i7.TaskRecurrence>.value(_FakeTaskRecurrence_6(
           this,
           Invocation.method(
             #addTaskRecurrence,
@@ -433,12 +559,12 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
             ],
           ),
         )),
-      ) as _i8.Future<_i6.TaskRecurrence>);
+      ) as _i9.Future<_i7.TaskRecurrence>);
 
   @override
-  _i8.Future<_i6.TaskRecurrence> updateTaskRecurrence(
+  _i9.Future<_i7.TaskRecurrence> updateTaskRecurrence(
     int? taskRecurrenceId,
-    _i12.TaskRecurrenceBlueprint? blueprint,
+    _i14.TaskRecurrenceBlueprint? blueprint,
     String? idToken,
   ) =>
       (super.noSuchMethod(
@@ -450,7 +576,7 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i8.Future<_i6.TaskRecurrence>.value(_FakeTaskRecurrence_5(
+        returnValue: _i9.Future<_i7.TaskRecurrence>.value(_FakeTaskRecurrence_6(
           this,
           Invocation.method(
             #updateTaskRecurrence,
@@ -462,7 +588,7 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i8.Future<_i6.TaskRecurrence>.value(_FakeTaskRecurrence_5(
+            _i9.Future<_i7.TaskRecurrence>.value(_FakeTaskRecurrence_6(
           this,
           Invocation.method(
             #updateTaskRecurrence,
@@ -473,10 +599,10 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
             ],
           ),
         )),
-      ) as _i8.Future<_i6.TaskRecurrence>);
+      ) as _i9.Future<_i7.TaskRecurrence>);
 
   @override
-  _i8.Future<List<_i13.SprintAssignment>> addTasksToSprint(
+  _i9.Future<List<_i13.SprintAssignment>> addTasksToSprint(
     List<_i4.TaskItem>? taskItems,
     _i5.Sprint? sprint,
     String? idToken,
@@ -490,10 +616,10 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i8.Future<List<_i13.SprintAssignment>>.value(
+        returnValue: _i9.Future<List<_i13.SprintAssignment>>.value(
             <_i13.SprintAssignment>[]),
         returnValueForMissingStub:
-            _i8.Future<List<_i13.SprintAssignment>>.value(
+            _i9.Future<List<_i13.SprintAssignment>>.value(
                 <_i13.SprintAssignment>[]),
-      ) as _i8.Future<List<_i13.SprintAssignment>>);
+      ) as _i9.Future<List<_i13.SprintAssignment>>);
 }
