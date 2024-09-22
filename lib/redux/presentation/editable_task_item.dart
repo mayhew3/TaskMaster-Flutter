@@ -13,13 +13,10 @@ class EditableTaskItemWidget extends StatelessWidget {
   final TaskItem taskItem;
   final GestureTapCallback? onTap;
   final CheckCycleWaiter? onTaskCompleteToggle;
-  final CheckCycleWaiter? onTaskAssignmentToggle;
   // final ConfirmDismissCallback? onDismissed;
   final GestureLongPressCallback? onLongPress;
   final GestureForcePressStartCallback? onForcePress;
-  final bool addMode;
   // final MyStateSetter stateSetter;
-  final DateTime? endDate;
   final CheckState? initialCheckState;
   final Sprint? sprint;
   final bool highlightSprint;
@@ -27,21 +24,17 @@ class EditableTaskItemWidget extends StatelessWidget {
   EditableTaskItemWidget({
     Key? key,
     required this.taskItem,
-    required this.addMode,
-    this.endDate,
     this.sprint,
     required this.highlightSprint,
     this.onTaskCompleteToggle,
     this.onTap,
-    this.onTaskAssignmentToggle,
     this.initialCheckState,
     this.onLongPress,
     this.onForcePress,
   }) : super(key: key);
 
   bool hasPassed(DateTime? dateTime) {
-    var now = addMode ? this.endDate! : DateTime.timestamp();
-    return dateTime == null ? false : dateTime.isBefore(now);
+    return dateTime == null ? false : dateTime.isBefore(DateTime.timestamp());
   }
 
   Color getBackgroundColor() {
@@ -124,79 +117,46 @@ class EditableTaskItemWidget extends StatelessWidget {
   }
 
   DelayedCheckbox _getCheckbox() {
-    if (addMode) {
-      return DelayedCheckbox(
-        taskName: taskItem.name,
-        initialState: initialCheckState!,
-        checkCycleWaiter: onTaskAssignmentToggle!,
-        checkedColor: Colors.green,
-        inactiveIcon: Icons.add,
-      );
-    } else {
-      var tmpTaskItem = taskItem;
-      var completed = tmpTaskItem.completionDate != null;
+    var tmpTaskItem = taskItem;
+    var completed = tmpTaskItem.completionDate != null;
 
-      var pending = tmpTaskItem.pendingCompletion;
+    var pending = tmpTaskItem.pendingCompletion;
 
+    print("Checkbox: " + tmpTaskItem.name + ", " + completed.toString());
 
-      print("Checkbox: " + tmpTaskItem.name + ", " + completed.toString());
-
-      return DelayedCheckbox(
-        taskName: taskItem.name,
-        initialState: completed ? CheckState.checked : pending ? CheckState.pending : CheckState.inactive,
-        checkCycleWaiter: onTaskCompleteToggle!,
-      );
-    }
+    return DelayedCheckbox(
+      taskName: taskItem.name,
+      initialState: completed ? CheckState.checked : pending ? CheckState.pending : CheckState.inactive,
+      checkCycleWaiter: onTaskCompleteToggle!,
+    );
   }
 
   Widget _getDateWarnings() {
     List<Widget> dateWarnings = [];
 
-    if (addMode) {
-      var reversed = [
-        TaskDateTypes.due,
-        TaskDateTypes.urgent,
-        TaskDateTypes.target,
-        TaskDateTypes.start,
-      ];
+    if (taskItem.isCompleted() && !taskItem.pendingCompletion) {
+      dateWarnings.add(_getDateFromNow(TaskDateTypes.completed));
+    }
 
-      for (TaskDateType taskDateType in reversed) {
-        var dateValue = taskDateType.dateFieldGetter(taskItem);
-        if (!taskItem.isCompleted() &&
-            hasPassed(dateValue) &&
-            dateValue != null &&
-            dateValue.isAfter(DateTime.now()) &&
-            dateWarnings.length < 1) {
-          dateWarnings.add(_getDateFromNow(taskDateType));
-        }
+    for (TaskDateType taskDateType in TaskDateTypes.allTypes) {
+      if (!taskItem.isCompleted() &&
+          taskDateType.inListBeforeDisplayThreshold(taskItem) &&
+          dateWarnings.length < 1) {
+        dateWarnings.add(_getDateFromNow(taskDateType));
       }
+    }
 
-    } else {
-      if (taskItem.isCompleted() && !taskItem.pendingCompletion) {
-        dateWarnings.add(_getDateFromNow(TaskDateTypes.completed));
+    for (TaskDateType taskDateType in TaskDateTypes.allTypes.reversed) {
+      if (!taskItem.isCompleted() &&
+          taskDateType.inListAfterDisplayThreshold(taskItem) &&
+          TaskDateTypes.start != taskDateType &&
+          dateWarnings.length < 1) {
+        dateWarnings.add(_getDateFromNow(taskDateType));
       }
-
-      for (TaskDateType taskDateType in TaskDateTypes.allTypes) {
-        if (!taskItem.isCompleted() &&
-            taskDateType.inListBeforeDisplayThreshold(taskItem) &&
-            dateWarnings.length < 1) {
-          dateWarnings.add(_getDateFromNow(taskDateType));
-        }
-      }
-
-      for (TaskDateType taskDateType in TaskDateTypes.allTypes.reversed) {
-        if (!taskItem.isCompleted() &&
-            taskDateType.inListAfterDisplayThreshold(taskItem) &&
-            TaskDateTypes.start != taskDateType &&
-            dateWarnings.length < 1) {
-          dateWarnings.add(_getDateFromNow(taskDateType));
-        }
-      }
-
     }
 
     return Column(
-      children: dateWarnings
+        children: dateWarnings
     );
   }
 
