@@ -106,3 +106,4 @@ AppState _onDataUnloaded(AppState state, dynamic action) {
     ..recentlyCompleted = ListBuilder()
   );
 }
+

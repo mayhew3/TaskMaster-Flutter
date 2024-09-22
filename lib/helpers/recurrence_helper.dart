@@ -4,6 +4,8 @@ import 'package:taskmaster/models/task_item_recur_preview.dart';
 
 import '../date_util.dart';
 import '../models/sprint_display_task.dart';
+import '../models/task_date_type.dart';
+import '../models/task_item_blueprint.dart';
 
 class RecurrenceHelper {
 
@@ -50,6 +52,24 @@ class RecurrenceHelper {
     }
   }
 
+  static void generatePreview(TaskItemBlueprint taskItemEdit, int numUnits, String unitSize, TaskDateType dateType) {
+    DateTime snoozeDate = DateTime.now();
+    DateTime adjustedDate = _getAdjustedDate(snoozeDate, numUnits, unitSize);
+
+    DateTime? relevantDate = dateType.dateFieldGetter(taskItemEdit);
+
+    if (relevantDate == null) {
+      dateType.dateFieldSetter(taskItemEdit, adjustedDate);
+    } else {
+      Duration difference = adjustedDate.difference(relevantDate);
+      TaskDateTypes.allTypes.forEach((taskDateType) => taskItemEdit.incrementDateIfExists(taskDateType, difference));
+    }
+
+  }
+
+
+  // private helper methods
+
   static DateTime? _addToDate(DateTime? previousDate, Duration duration) {
     return previousDate?.add(duration);
   }
@@ -88,5 +108,6 @@ class RecurrenceHelper {
       return next;
     }
   }
+
 
 }

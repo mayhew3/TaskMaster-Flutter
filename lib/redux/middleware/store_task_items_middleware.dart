@@ -2,6 +2,7 @@ import 'package:built_collection/built_collection.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/helpers/recurrence_helper.dart';
 import 'package:taskmaster/models/models.dart';
+import 'package:taskmaster/models/snooze_blueprint.dart';
 import 'package:taskmaster/models/task_item_recur_preview.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
@@ -18,6 +19,7 @@ List<Middleware<AppState>> createStoreTaskItemsMiddleware(TaskRepository reposit
     TypedMiddleware<AppState, AddTaskItemAction>(_createNewTaskItem(repository)),
     TypedMiddleware<AppState, UpdateTaskItemAction>(_updateTaskItem(repository)),
     TypedMiddleware<AppState, CompleteTaskItemAction>(_completeTaskItem(repository)),
+    TypedMiddleware<AppState, ExecuteSnooze>(_executeSnooze(repository)),
   ];
 }
 
@@ -152,6 +154,35 @@ Future<void> Function(
   };
 }
 
+Future<void> Function(
+    Store<AppState>,
+    ExecuteSnooze action,
+    NextDispatcher next,
+    ) _executeSnooze(TaskRepository repository) {
+  return (Store<AppState> store, ExecuteSnooze action, NextDispatcher next) async {
+    next(action);
+    var inputs = await getRequiredInputs(store, "snooze");
+
+    RecurrenceHelper.generatePreview(action.blueprint, action.numUnits, action.unitSize, action.dateType);
+
+    DateTime? originalValue = action.dateType.dateFieldGetter(action.taskItem);
+    DateTime relevantDateField = action.dateType.dateFieldGetter(action.blueprint)!;
+
+    var updatedTask = await repository.updateTask(action.taskItem.id, action.blueprint, inputs.idToken);
+
+    SnoozeBlueprint snooze = new SnoozeBlueprint(
+        taskId: updatedTask.taskItem.id,
+        snoozeNumber: action.numUnits,
+        snoozeUnits: action.unitSize,
+        snoozeAnchor: action.dateType.label,
+        previousAnchor: originalValue,
+        newAnchor: relevantDateField);
+
+    await repository.addSnooze(snooze, inputs.idToken);
+    store.dispatch(SnoozeExecuted(updatedTask.taskItem));
+  };
+}
+
 
 // create task iteration
 
@@ -175,3 +206,5 @@ TaskRecurrenceBlueprint syncBlueprintToMostRecentTaskItem(TaskItem updatedTaskIt
   }
   return recurrenceBlueprint;
 }
+
+

@@ -1,8 +1,11 @@
+import 'package:taskmaster/models/snooze.dart';
+import 'package:taskmaster/models/snooze_blueprint.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
 
 import '../../models/data_payload.dart';
 import '../../models/models.dart';
+import '../../models/task_date_type.dart';
 
 class LoadDataAction {}
 
@@ -134,3 +137,27 @@ class UpdateTabAction {
 }
 
 class InitTimezoneHelperAction {}
+
+class ExecuteSnooze {
+  final TaskItem taskItem;
+  final TaskItemBlueprint blueprint;
+  final int numUnits;
+  final String unitSize;
+  final TaskDateType dateType;
+  final bool offCycle;
+
+  ExecuteSnooze({
+    required this.taskItem,
+    required this.blueprint,
+    required this.numUnits,
+    required this.unitSize,
+    required this.dateType,
+    required this.offCycle
+  });
+}
+
+class SnoozeExecuted {
+  final TaskItem taskItem;
+
+  SnoozeExecuted(this.taskItem);
+}
