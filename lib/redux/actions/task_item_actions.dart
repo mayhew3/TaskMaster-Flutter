@@ -1,5 +1,3 @@
-import 'package:taskmaster/models/snooze.dart';
-import 'package:taskmaster/models/snooze_blueprint.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
 
@@ -124,6 +122,10 @@ class UpdateTaskFilterAction {
 class ToggleTaskListShowCompletedAction {}
 
 class ToggleTaskListShowScheduledAction {}
+
+class ToggleSprintListShowCompletedAction {}
+
+class ToggleSprintListShowScheduledAction {}
 
 class UpdateTabAction {
   final TopNavItem newTab;

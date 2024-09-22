@@ -5,11 +5,21 @@ import '../app_state.dart';
 
 final sprintVisibilityReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, UpdateSprintFilterAction>(_sprintFilterReducer),
+  TypedReducer<AppState, ToggleSprintListShowScheduledAction>(_toggleSprintListShowScheduled),
+  TypedReducer<AppState, ToggleSprintListShowCompletedAction>(_toggleSprintListShowCompleted),
 ];
 
 AppState _sprintFilterReducer(
     AppState state, UpdateSprintFilterAction action) {
   return state.rebuild((s) => s..sprintListFilter = action.newFilter.toBuilder());
+}
+
+AppState _toggleSprintListShowScheduled(AppState state, ToggleSprintListShowScheduledAction action) {
+  return state.rebuild((s) => s..sprintListFilter.showScheduled = !s.sprintListFilter.showScheduled!);
+}
+
+AppState _toggleSprintListShowCompleted(AppState state, ToggleSprintListShowCompletedAction action) {
+  return state.rebuild((s) => s..sprintListFilter.showCompleted = !s.sprintListFilter.showCompleted!);
 }
 
 final taskVisibilityReducer = <AppState Function(AppState, dynamic)>[

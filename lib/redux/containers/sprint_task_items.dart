@@ -29,8 +29,8 @@ class SprintTaskItems extends StatelessWidget {
               FilterButton(
                 scheduledGetter: () => viewModel.showScheduled,
                 completedGetter: () => viewModel.showCompleted,
-                toggleScheduled: () => StoreProvider.of<AppState>(context).dispatch(ToggleTaskListShowScheduledAction()),
-                toggleCompleted: () => StoreProvider.of<AppState>(context).dispatch(ToggleTaskListShowCompletedAction()),
+                toggleScheduled: () => StoreProvider.of<AppState>(context).dispatch(ToggleSprintListShowScheduledAction()),
+                toggleCompleted: () => StoreProvider.of<AppState>(context).dispatch(ToggleSprintListShowCompletedAction()),
               ),
               IconButton(
                   icon: Icon(Icons.refresh),
