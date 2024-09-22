@@ -6,6 +6,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:taskmaster/redux/actions/task_item_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/presentation/details_screen.dart';
+import 'package:taskmaster/redux/presentation/plan_task_list.dart';
 import 'package:taskmaster/redux/presentation/snooze_dialog.dart';
 import 'package:taskmaster/redux/presentation/task_item_list_viewmodel.dart';
 
@@ -83,7 +84,6 @@ class TaskItemList extends StatelessWidget {
     };
     var taskCard = EditableTaskItemWidget(
       taskItem: taskItem,
-      addMode: false,
       sprint: viewModel.activeSprint,
       // highlightSprint: (widget.sprint == null && activeSprint != null && taskItem.sprints.contains(activeSprint)),
       highlightSprint: false,
@@ -305,11 +305,9 @@ class TaskItemList extends StatelessWidget {
       tiles.add(_createNoTasksFoundCard());
     }
 
-/*
-    if (widget.sprint != null) {
-      tiles.add(_createAddMoreButton());
+    if (viewModel.activeSprint != null) {
+      tiles.add(_createAddMoreButton(context));
     }
-*/
 
     return ListView.builder(
         padding: const EdgeInsets.only(bottom: kFloatingActionButtonMargin + 54),
@@ -317,6 +315,38 @@ class TaskItemList extends StatelessWidget {
         itemBuilder: (context, index) {
           return tiles[index];
         });
+  }
+
+  void _openPlanning(BuildContext context) async {
+    await Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) {
+          return PlanTaskList();
+        },
+        )
+    );
+  }
+
+  StatelessWidget _createAddMoreButton(BuildContext context) {
+    return Container(
+        padding: EdgeInsets.all(25.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(child:
+            Center(
+                child:
+                GestureDetector(
+                  onTap: () => _openPlanning(context),
+                  child: Text(
+                      "Add More...",
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0)
+                  ),
+                )
+            ),
+            ),
+          ],
+        )
+    );
   }
 
   Widget getLoadingBody() {

@@ -5,7 +5,7 @@ import 'package:built_collection/built_collection.dart';
 import "package:collection/collection.dart";
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:redux/src/store.dart';
+import 'package:redux/redux.dart';
 import 'package:taskmaster/helpers/recurrence_helper.dart';
 import 'package:taskmaster/models/sprint_blueprint.dart';
 import 'package:taskmaster/models/sprint_display_task.dart';
@@ -28,13 +28,11 @@ class PlanTaskList extends StatefulWidget {
   final int? numUnits;
   final String? unitName;
   final DateTime? startDate;
-  final Sprint? sprint;
 
   PlanTaskList({
     this.numUnits,
     this.unitName,
     this.startDate,
-    this.sprint,
   }) : super(key: TaskMasterKeys.planTaskList);
 
   @override
@@ -55,9 +53,18 @@ class PlanTaskListState extends State<PlanTaskList> {
 
   bool hasTiles = false;
 
+  late final DateTime endDate;
+
+  void validateState(PlanTaskListViewModel viewModel) {
+    if (viewModel.activeSprint != null &&
+        (widget.numUnits != null || widget.unitName != null || widget.startDate != null)) {
+      throw Exception(
+          "Expected all of numUnits, unitName, and startDate to be null if there is an active sprint.");
+    }
+  }
+
   void preSelectUrgentAndDueAndPreviousSprint(PlanTaskListViewModel viewModel) {
     BuiltList<TaskItem> baseList = getBaseList(viewModel);
-    DateTime endDate = getEndDate();
 
     final Iterable<TaskItem> dueOrUrgentTasks = baseList.where((taskItem) =>
     taskItem.isDueBefore(endDate) ||
@@ -77,7 +84,7 @@ class PlanTaskListState extends State<PlanTaskList> {
   PlanTaskItemWidget _createWidget({required SprintDisplayTask taskItem, required PlanTaskListViewModel viewModel}) {
     return PlanTaskItemWidget(
       sprintDisplayTask: taskItem,
-      endDate: getEndDate(),
+      endDate: endDate,
       sprint: null,
       highlightSprint: highlightSprint(taskItem, viewModel),
       initialCheckState: sprintDisplayTaskQueue.contains(taskItem) ? CheckState.checked : CheckState.inactive,
@@ -108,19 +115,19 @@ class PlanTaskListState extends State<PlanTaskList> {
     );
   }
 
-  List<TaskItem> getFilteredTasks(List<TaskItem> taskItems) {
-    DateTime endDate = getEndDate();
+  List<TaskItem> getFilteredTasks(List<TaskItem> taskItems, PlanTaskListViewModel viewModel) {
     List<TaskItem> filtered = taskItems.where((taskItem) {
+      var activeSprint = viewModel.activeSprint;
       return !taskItem.isScheduledAfter(endDate) && !taskItem.isCompleted() &&
-          (widget.sprint == null || !taskItemIsInSprint(taskItem, widget.sprint));
+          (activeSprint == null || !taskItemIsInSprint(taskItem, activeSprint));
     }).toList();
     return filtered;
   }
 
   BuiltList<TaskItem> getBaseList(PlanTaskListViewModel viewModel) {
-    var sprint = widget.sprint;
+    var sprint = viewModel.activeSprint;
     if (sprint == null) {
-      return taskItemsForPlacingOnNewSprint(viewModel.allTaskItems, getEndDate());
+      return taskItemsForPlacingOnNewSprint(viewModel.allTaskItems, endDate);
     } else {
       return taskItemsForPlacingOnExistingSprint(viewModel.allTaskItems, sprint);
     }
@@ -143,11 +150,10 @@ class PlanTaskListState extends State<PlanTaskList> {
   void createTemporaryIterations(PlanTaskListViewModel viewModel) {
     List<TaskItem> eligibleItems = [];
     eligibleItems.addAll(getBaseList(viewModel));
-    var sprint = widget.sprint;
+    var sprint = viewModel.activeSprint;
     if (sprint != null) {
       eligibleItems.addAll(taskItemsForSprintSelector(viewModel.allTaskItems, sprint));
     }
-    DateTime endDate = getEndDate();
     Set<int> recurIDs = new HashSet();
 
     for (var taskItem in eligibleItems) {
@@ -195,8 +201,6 @@ class PlanTaskListState extends State<PlanTaskList> {
     final List<SprintDisplayTask> otherTasks = [];
     otherTasks.addAll(getBaseList(viewModel));
     otherTasks.addAll(tempIterations);
-
-    DateTime endDate = getEndDate();
 
     Sprint? lastCompletedSprint = viewModel.lastSprint;
 
@@ -301,15 +305,15 @@ class PlanTaskListState extends State<PlanTaskList> {
     );
   }
 
-  DateTime getEndDate() {
-    return widget.sprint == null ?
+  DateTime getEndDate(PlanTaskListViewModel viewModel) {
+    var activeSprint = viewModel.activeSprint;
+    return activeSprint == null ?
     DateUtil.adjustToDate(widget.startDate!, widget.numUnits!, widget.unitName!) :
-    widget.sprint!.endDate;
+    activeSprint.endDate;
   }
 
   void submit(BuildContext context, PlanTaskListViewModel viewModel) async {
-    if (widget.sprint == null) {
-      DateTime endDate = getEndDate();
+    if (viewModel.activeSprint == null) {
       SprintBlueprint sprint = SprintBlueprint(
           startDate: widget.startDate!,
           endDate: endDate,
@@ -345,7 +349,9 @@ class PlanTaskListState extends State<PlanTaskList> {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, PlanTaskListViewModel>(
         builder: (context, viewModel) {
+          validateState(viewModel);
           if (!initialized) {
+            endDate = getEndDate(viewModel);
             preSelectUrgentAndDueAndPreviousSprint(viewModel);
             createTemporaryIterations(viewModel);
             initialized = true;
