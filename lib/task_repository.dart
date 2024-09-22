@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:built_collection/built_collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:taskmaster/models/data_payload.dart';
+import 'package:taskmaster/models/snooze_blueprint.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/sprint_blueprint.dart';
@@ -15,6 +16,8 @@ import 'package:taskmaster/models/task_item_recur_preview.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/models/serializers.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
+
+import 'models/snooze.dart';
 
 class TaskRepository {
   http.Client client;
@@ -359,4 +362,38 @@ class TaskRepository {
       throw Exception('Failed to $addOrUpdate task. Talk to Mayhew.');
     }
   }
+
+
+  Future<Snooze> addSnooze(SnoozeBlueprint snooze, String idToken) async {
+    var payload = {
+      'snooze': snooze.toJson()
+    };
+    return _addOrUpdateSnoozeSerializableJSON(payload, idToken);
+  }
+
+  Future<Snooze> _addOrUpdateSnoozeSerializableJSON(Map<String, dynamic> payload, String idToken) async {
+    var body = utf8.encode(json.encode(payload));
+
+    var uri = getUri('/api/snoozes');
+    final response = await client.post(uri,
+        headers: {HttpHeaders.authorizationHeader: idToken,
+          "Content-Type": "application/json"},
+        body: body
+    );
+
+    if (response.statusCode == 200) {
+      try {
+        var jsonObj = json.decode(response.body);
+        Snooze inboundSnooze = serializers.deserializeWith(Snooze.serializer, jsonObj)!;
+        return inboundSnooze;
+      } catch(exception, stackTrace) {
+        print(exception);
+        print(stackTrace);
+        throw Exception('Error parsing snooze from the server. Talk to Mayhew.');
+      }
+    } else {
+      throw Exception('Failed to add snooze. Talk to Mayhew.');
+    }
+  }
+
 }
