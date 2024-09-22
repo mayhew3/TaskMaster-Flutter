@@ -15,7 +15,7 @@ class CreateSprintWithTaskItems {
 
   @override
   String toString() {
-    return "CreateSprint{sprintBlueprint: $sprintBlueprint, taskItems: $taskItems";
+    return "CreateSprint{sprintBlueprint: $sprintBlueprint, taskItems: $taskItems, taskItemRecurPreviews: $taskItemRecurPreviews";
   }
 }
 
@@ -28,6 +28,32 @@ class SprintCreatedAction {
 
   @override
   String toString() {
-    return "SprintCreatedAction{sprint: $sprint, sprintAssignments: $sprintAssignments";
+    return "SprintCreatedAction{sprint: $sprint, addedTasks: $addedTasks, sprintAssignments: $sprintAssignments";
+  }
+}
+
+class AddTaskItemsToExistingSprint {
+  final Sprint sprint;
+  final BuiltList<TaskItem> taskItems;
+  final BuiltList<TaskItemRecurPreview> taskItemRecurPreviews;
+
+  AddTaskItemsToExistingSprint({required this.sprint, required this.taskItems, required this.taskItemRecurPreviews});
+
+  @override
+  String toString() {
+    return "AddTaskItemsToExistingSprint{sprint: $sprint, taskItems: $taskItems, taskItemRecurPreviews: $taskItemRecurPreviews";
+  }
+}
+
+class TaskItemsAddedToExistingSprint {
+  final int sprintId;
+  final BuiltList<TaskItem> addedTasks;
+  final BuiltList<SprintAssignment> sprintAssignments;
+
+  TaskItemsAddedToExistingSprint({required this.sprintId, required this.addedTasks, required this.sprintAssignments});
+
+  @override
+  String toString() {
+    return "TaskItemsAddedToExistingSprint{sprint: $sprintId, addedTasks: $addedTasks, sprintAssignments: $sprintAssignments";
   }
 }

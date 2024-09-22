@@ -135,7 +135,6 @@ class PlanTaskListState extends State<PlanTaskList> {
 
   bool highlightSprint(SprintDisplayTask taskItem, PlanTaskListViewModel viewModel) {
     return taskItemIsInSprint(taskItem, viewModel.lastSprint);
-    // return (taskItem is TaskItem) ? taskItem.sprints.contains(lastSprint) : false;
   }
 
   bool wasInEarlierSprint(SprintDisplayTask taskItem, PlanTaskListViewModel viewModel) {
@@ -312,8 +311,13 @@ class PlanTaskListState extends State<PlanTaskList> {
     activeSprint.endDate;
   }
 
+  bool addMode(PlanTaskListViewModel viewModel) {
+    return viewModel.activeSprint == null;
+  }
+
   void submit(BuildContext context, PlanTaskListViewModel viewModel) async {
-    if (viewModel.activeSprint == null) {
+    var store = StoreProvider.of<AppState>(context);
+    if (addMode(viewModel)) {
       SprintBlueprint sprint = SprintBlueprint(
           startDate: widget.startDate!,
           endDate: endDate,
@@ -321,24 +325,31 @@ class PlanTaskListState extends State<PlanTaskList> {
           unitName: widget.unitName!,
           personId: viewModel.personId
       );
-      var store = StoreProvider.of<AppState>(context);
-      waitForCompletionThenPopWindow(store, context);
+      waitForAddSprintThenPopWindow(store, context);
       store.dispatch(CreateSprintWithTaskItems(sprintBlueprint: sprint, taskItems: taskItemQueue.toBuiltList(), taskItemRecurPreviews: taskItemRecurPreviewQueue.toBuiltList()));
-      // await widget.taskHelper.addSprintAndTasks(sprint, verified);
-    } else if (viewModel.activeSprint != null) {
-      throw Exception("Edit mode unsupported.");
-      // StoreProvider.of<AppState>(context).dispatch(AddExistingTaskItemsToSprint(viewModel.activeSprint));
-      // await widget.taskHelper.addTasksToSprint(activeSprint!, verified);
+    } else {
+      waitForSprintAssignmentsThenPopWindow(store, context, viewModel.activeSprint!, taskItemsForSprintSelector(viewModel.allTaskItems, viewModel.activeSprint!));
+      store.dispatch(AddTaskItemsToExistingSprint(sprint: viewModel.activeSprint!, taskItems: taskItemQueue.toBuiltList(), taskItemRecurPreviews: taskItemRecurPreviewQueue.toBuiltList()));
     }
-
-    // Navigator.pop(context, 'Added');
   }
 
-  void waitForCompletionThenPopWindow(Store<AppState> store, BuildContext context) {
+  void waitForAddSprintThenPopWindow(Store<AppState> store, BuildContext context) {
     late StreamSubscription<AppState> subscription;
     subscription = store.onChange.listen((appState) {
       var activeSprint = activeSprintSelector(appState.sprints);
       if (activeSprint != null) {
+        Navigator.pop(context, 'Added');
+        subscription.cancel();
+      }
+    });
+  }
+
+  void waitForSprintAssignmentsThenPopWindow(Store<AppState> store, BuildContext context, Sprint sprint, BuiltList<TaskItem> startingItems) {
+    int initialCount = startingItems.length;
+    late StreamSubscription<AppState> subscription;
+    subscription = store.onChange.listen((appState) {
+      var updatedCount = taskItemsForSprintSelector(appState.taskItems, sprint).length;
+      if (updatedCount > initialCount) {
         Navigator.pop(context, 'Added');
         subscription.cancel();
       }

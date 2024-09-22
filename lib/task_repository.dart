@@ -296,15 +296,13 @@ class TaskRepository {
   }
 
 
-  Future<List<SprintAssignment>> addTasksToSprint(List<TaskItem> taskItems, Sprint sprint, String idToken) async {
-    Set<int> taskIds = new Set<int>();
-    for (TaskItem taskItem in taskItems) {
-      taskIds.add(taskItem.id);
-    }
+  Future<({BuiltList<TaskItem> addedTasks, BuiltList<SprintAssignment> sprintAssignments})> addTasksToSprint(BuiltList<TaskItem> taskItems, BuiltList<TaskItemRecurPreview> taskItemRecurPreviews, Sprint sprint, String idToken) async {
+    var list = taskItemRecurPreviews.map((t) => serializers.serializeWith(TaskItemRecurPreview.serializer, t)).toList();
 
     Map<String, Object> payload = {
       'sprint_id': sprint.id,
-      'task_ids': taskIds.toList(),
+      'task_ids': taskItems.map((t) => t.id).toList(),
+      'taskItems': list
     };
 
     var body = utf8.encode(json.encode(payload));
@@ -318,13 +316,15 @@ class TaskRepository {
 
     if (response.statusCode == 200) {
       try {
-        List<SprintAssignment> sprintAssignments = [];
-        var jsonArray = json.decode(response.body);
-        for (var assignment in jsonArray) {
-          var sprintAssignment = serializers.deserializeWith(SprintAssignment.serializer, assignment);
-          sprintAssignments.add(sprintAssignment!);
-        }
-        return sprintAssignments;
+        var jsonObj = json.decode(response.body);
+
+        var taskItemsObj = jsonObj['addedTasks'] as List<dynamic>;
+        var sprintAssignmentsObj = jsonObj['sprintAssignments'] as List<dynamic>;
+
+        BuiltList<TaskItem> taskItems = taskItemsObj.map((obj) => (serializers.deserializeWith(TaskItem.serializer, obj))!).toBuiltList();
+        BuiltList<SprintAssignment> sprintAssignments = sprintAssignmentsObj.map((obj) => (serializers.deserializeWith(SprintAssignment.serializer, obj))!).toBuiltList();
+
+        return (addedTasks: taskItems, sprintAssignments: sprintAssignments);
       } catch(exception, stackTrace) {
         print(exception);
         print(stackTrace);
