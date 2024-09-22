@@ -13,9 +13,10 @@ final taskItemsReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, RecurringTaskItemCompletedAction>(_onCompleteRecurringTaskItem),
   TypedReducer<AppState, TaskItemCompletedAction>(_onCompleteTaskItem),
   TypedReducer<AppState, DataLoadedAction>(_onDataLoaded),
-  TypedReducer<AppState, DataNotLoadedAction>(_onDataUnloaded),
-  TypedReducer<AppState, LogOutAction>(_onDataUnloaded),
+  TypedReducer<AppState, DataNotLoadedAction>(_onDataNotLoaded),
+  TypedReducer<AppState, LogOutAction>(_onDataNotLoaded),
   TypedReducer<AppState, ClearRecentlyCompletedAction>(_clearRecentlyCompleted),
+  TypedReducer<AppState, SnoozeExecuted>(_onSnoozeExecuted),
 ];
 
 AppState _taskItemAdded(AppState state, TaskItemAddedAction action) {
@@ -98,7 +99,7 @@ AppState _onDataLoaded(AppState state, DataLoadedAction action) {
   });
 }
 
-AppState _onDataUnloaded(AppState state, dynamic action) {
+AppState _onDataNotLoaded(AppState state, dynamic action) {
   return state.rebuild((s) => s
     ..taskItems = ListBuilder()
     ..sprints = ListBuilder()
@@ -107,3 +108,8 @@ AppState _onDataUnloaded(AppState state, dynamic action) {
   );
 }
 
+AppState _onSnoozeExecuted(AppState state, SnoozeExecuted action) {
+  var listBuilder = state.taskItems.toBuilder()
+    ..map((taskItem) => taskItem.id == action.taskItem.id ? action.taskItem : taskItem);
+  return state.rebuild((s) => s.taskItems = listBuilder);
+}
