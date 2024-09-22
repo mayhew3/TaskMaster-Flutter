@@ -23,9 +23,6 @@ class _$SnoozeSerializer implements StructuredSerializer<Snooze> {
       'dateAdded',
       serializers.serialize(object.dateAdded,
           specifiedType: const FullType(DateTime)),
-      'personId',
-      serializers.serialize(object.personId,
-          specifiedType: const FullType(int)),
       'taskId',
       serializers.serialize(object.taskId, specifiedType: const FullType(int)),
       'snoozeNumber',
@@ -71,10 +68,6 @@ class _$SnoozeSerializer implements StructuredSerializer<Snooze> {
           result.dateAdded = serializers.deserialize(value,
               specifiedType: const FullType(DateTime))! as DateTime;
           break;
-        case 'personId':
-          result.personId = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
-          break;
         case 'taskId':
           result.taskId = serializers.deserialize(value,
               specifiedType: const FullType(int))! as int;
@@ -112,8 +105,6 @@ class _$Snooze extends Snooze {
   @override
   final DateTime dateAdded;
   @override
-  final int personId;
-  @override
   final int taskId;
   @override
   final int snoozeNumber;
@@ -132,7 +123,6 @@ class _$Snooze extends Snooze {
   _$Snooze._(
       {required this.id,
       required this.dateAdded,
-      required this.personId,
       required this.taskId,
       required this.snoozeNumber,
       required this.snoozeUnits,
@@ -142,7 +132,6 @@ class _$Snooze extends Snooze {
       : super._() {
     BuiltValueNullFieldError.checkNotNull(id, r'Snooze', 'id');
     BuiltValueNullFieldError.checkNotNull(dateAdded, r'Snooze', 'dateAdded');
-    BuiltValueNullFieldError.checkNotNull(personId, r'Snooze', 'personId');
     BuiltValueNullFieldError.checkNotNull(taskId, r'Snooze', 'taskId');
     BuiltValueNullFieldError.checkNotNull(
         snoozeNumber, r'Snooze', 'snoozeNumber');
@@ -166,7 +155,6 @@ class _$Snooze extends Snooze {
     return other is Snooze &&
         id == other.id &&
         dateAdded == other.dateAdded &&
-        personId == other.personId &&
         taskId == other.taskId &&
         snoozeNumber == other.snoozeNumber &&
         snoozeUnits == other.snoozeUnits &&
@@ -180,7 +168,6 @@ class _$Snooze extends Snooze {
     var _$hash = 0;
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, dateAdded.hashCode);
-    _$hash = $jc(_$hash, personId.hashCode);
     _$hash = $jc(_$hash, taskId.hashCode);
     _$hash = $jc(_$hash, snoozeNumber.hashCode);
     _$hash = $jc(_$hash, snoozeUnits.hashCode);
@@ -196,7 +183,6 @@ class _$Snooze extends Snooze {
     return (newBuiltValueToStringHelper(r'Snooze')
           ..add('id', id)
           ..add('dateAdded', dateAdded)
-          ..add('personId', personId)
           ..add('taskId', taskId)
           ..add('snoozeNumber', snoozeNumber)
           ..add('snoozeUnits', snoozeUnits)
@@ -217,10 +203,6 @@ class SnoozeBuilder implements Builder<Snooze, SnoozeBuilder> {
   DateTime? _dateAdded;
   DateTime? get dateAdded => _$this._dateAdded;
   set dateAdded(DateTime? dateAdded) => _$this._dateAdded = dateAdded;
-
-  int? _personId;
-  int? get personId => _$this._personId;
-  set personId(int? personId) => _$this._personId = personId;
 
   int? _taskId;
   int? get taskId => _$this._taskId;
@@ -254,7 +236,6 @@ class SnoozeBuilder implements Builder<Snooze, SnoozeBuilder> {
     if ($v != null) {
       _id = $v.id;
       _dateAdded = $v.dateAdded;
-      _personId = $v.personId;
       _taskId = $v.taskId;
       _snoozeNumber = $v.snoozeNumber;
       _snoozeUnits = $v.snoozeUnits;
@@ -286,8 +267,6 @@ class SnoozeBuilder implements Builder<Snooze, SnoozeBuilder> {
             id: BuiltValueNullFieldError.checkNotNull(id, r'Snooze', 'id'),
             dateAdded: BuiltValueNullFieldError.checkNotNull(
                 dateAdded, r'Snooze', 'dateAdded'),
-            personId: BuiltValueNullFieldError.checkNotNull(
-                personId, r'Snooze', 'personId'),
             taskId: BuiltValueNullFieldError.checkNotNull(
                 taskId, r'Snooze', 'taskId'),
             snoozeNumber: BuiltValueNullFieldError.checkNotNull(

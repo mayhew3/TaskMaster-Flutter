@@ -9,7 +9,6 @@ abstract class Snooze implements Built<Snooze, SnoozeBuilder> {
 
   int get id;
   DateTime get dateAdded;
-  int get personId;
 
   int get taskId;
   int get snoozeNumber;

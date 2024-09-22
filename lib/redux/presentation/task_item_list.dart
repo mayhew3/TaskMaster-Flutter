@@ -1,10 +1,12 @@
 
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:taskmaster/redux/actions/task_item_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/presentation/details_screen.dart';
+import 'package:taskmaster/redux/presentation/snooze_dialog.dart';
 import 'package:taskmaster/redux/presentation/task_item_list_viewmodel.dart';
 
 import '../../keys.dart';
@@ -73,14 +75,12 @@ class TaskItemList extends StatelessWidget {
     required List<StatelessWidget> tiles,
     required TaskItemListViewModel viewModel
   }) {
-    /*var snoozeDialog = (TaskItem taskItem) {
+    var snoozeDialog = (TaskItem taskItem) {
       HapticFeedback.mediumImpact();
       showDialog<void>(context: context, builder: (context) => SnoozeDialog(
         taskItem: taskItem,
-        taskHelper: widget.taskHelper,
-        stateSetter: (callback) => setState(() => callback()),
       ));
-    };*/
+    };
     var taskCard = EditableTaskItemWidget(
       taskItem: taskItem,
       addMode: false,
@@ -96,8 +96,8 @@ class TaskItemList extends StatelessWidget {
           }),
         );
       },
-      // onLongPress: () => snoozeDialog(taskItem),
-      // onForcePress: (ForcePressDetails forcePressDetails) => snoozeDialog(taskItem),
+      onLongPress: () => snoozeDialog(taskItem),
+      onForcePress: (ForcePressDetails forcePressDetails) => snoozeDialog(taskItem),
       onTaskCompleteToggle: (checkState) => viewModel.onCheckboxClicked(taskItem, checkState),
       // onDismissed: (direction) async {
       //   if (direction == DismissDirection.endToStart) {

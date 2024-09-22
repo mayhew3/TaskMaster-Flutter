@@ -15,8 +15,8 @@ class EditableTaskItemWidget extends StatelessWidget {
   final CheckCycleWaiter? onTaskCompleteToggle;
   final CheckCycleWaiter? onTaskAssignmentToggle;
   // final ConfirmDismissCallback? onDismissed;
-  // final GestureLongPressCallback? onLongPress;
-  // final GestureForcePressStartCallback? onForcePress;
+  final GestureLongPressCallback? onLongPress;
+  final GestureForcePressStartCallback? onForcePress;
   final bool addMode;
   // final MyStateSetter stateSetter;
   final DateTime? endDate;
@@ -35,6 +35,8 @@ class EditableTaskItemWidget extends StatelessWidget {
     this.onTap,
     this.onTaskAssignmentToggle,
     this.initialCheckState,
+    this.onLongPress,
+    this.onForcePress,
   }) : super(key: key);
 
   bool hasPassed(DateTime? dateTime) {
@@ -271,13 +273,13 @@ class EditableTaskItemWidget extends StatelessWidget {
       // confirmDismiss: onDismissed,
       child: GestureDetector(
         onTap: onTap,
-        // onLongPress: onLongPress,
-        // onForcePressStart: (ForcePressDetails forcePressDetails) {
-        //   print('Force Press detected!');
-        //   if (onForcePress != null) {
-        //     onForcePress!(forcePressDetails);
-        //   }
-        // },
+        onLongPress: onLongPress,
+        onForcePressStart: (ForcePressDetails forcePressDetails) {
+          print('Force Press detected!');
+          if (onForcePress != null) {
+            onForcePress!(forcePressDetails);
+          }
+        },
         child: Card(
           shadowColor: _getShadowColor(),
           color: getBackgroundColor(),
