@@ -9,6 +9,7 @@ import 'package:taskmaster/redux/presentation/details_screen.dart';
 import 'package:taskmaster/redux/presentation/plan_task_list.dart';
 import 'package:taskmaster/redux/presentation/snooze_dialog.dart';
 import 'package:taskmaster/redux/presentation/task_item_list_viewmodel.dart';
+import 'package:taskmaster/redux/selectors/selectors.dart';
 
 import '../../keys.dart';
 import '../../models/models.dart';
@@ -17,26 +18,48 @@ import 'editable_task_item.dart';
 import 'header_list_item.dart';
 import 'loading_indicator.dart';
 
-class TaskItemList extends StatelessWidget {
+class TaskItemList extends StatefulWidget {
   final BuiltList<TaskItem> taskItems;
+  final bool sprintMode;
+
   // final Function(TaskItem) onRemove;
   // final Function(TaskItem) onUndoRemove;
   final String? subHeader;
   final String? subSubHeader;
-
   TaskItemList({
     Key? key,
     this.subHeader,
     this.subSubHeader,
     required this.taskItems,
+    required this.sprintMode,
     // required this.onRemove,
     // required this.onUndoRemove,
   }) : super(key: key);
 
   @override
+  State<StatefulWidget> createState() => TaskItemListState();
+}
+
+class TaskItemListState extends State<TaskItemList> {
+
+  late final Sprint? activeSprint;
+  late final BuiltList<TaskItem>? activeSprintItems;
+
+  bool initialized = false;
+  late bool showActive;
+
+  @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, TaskItemListViewModel>(
         builder: (context, viewModel) {
+          if (!initialized) {
+            this.showActive = widget.sprintMode;
+            this.activeSprint = viewModel.activeSprint;
+            this.activeSprintItems =
+            this.activeSprint == null ? null : taskItemsForSprintSelector(
+                viewModel.taskItems, activeSprint!);
+            initialized = true;
+          }
           return Container(
             padding: EdgeInsets.only(top: 7.0),
             child: Builder(
@@ -70,6 +93,14 @@ class TaskItemList extends StatelessWidget {
     );
   }
 
+  List<TaskItem> getFilteredTasks(BuiltList<TaskItem> taskItems) {
+    List<TaskItem> filtered = taskItems.where((taskItem) {
+      bool passesActiveFilter = showActive || (activeSprintItems != null && !activeSprintItems!.contains(taskItem));
+      return passesActiveFilter;
+    }).toList();
+    return filtered;
+  }
+
   void _addTaskTile({
     required TaskItem taskItem,
     required BuildContext context,
@@ -85,8 +116,7 @@ class TaskItemList extends StatelessWidget {
     var taskCard = EditableTaskItemWidget(
       taskItem: taskItem,
       sprint: viewModel.activeSprint,
-      // highlightSprint: (widget.sprint == null && activeSprint != null && taskItem.sprints.contains(activeSprint)),
-      highlightSprint: false,
+      highlightSprint: (!widget.sprintMode && viewModel.activeSprint != null && activeSprintItems != null && activeSprintItems!.contains(taskItem)),
       onTap: () async {
         await Navigator.of(context).push(
           MaterialPageRoute(builder: (_) {
@@ -121,7 +151,6 @@ class TaskItemList extends StatelessWidget {
     return subList;
   }
 
-/*
 
   Card _createSummaryWidget(Sprint sprint, BuildContext context) {
     var startDate = sprint.startDate;
@@ -130,8 +159,8 @@ class TaskItemList extends StatelessWidget {
     var totalDays = endDate.difference(startDate).inDays;
     var sprintStr = "Active Sprint - Day " + currentDay.toString() + " of " + totalDays.toString();
 
-    var completed = sprint.taskItems.where((taskItem) => taskItem.completionDate != null);
-    var taskStr = completed.length.toString() + "/" + sprint.taskItems.length.toString() + " Tasks Complete";
+    var completed = activeSprintItems!.where((taskItem) => taskItem.completionDate != null);
+    var taskStr = completed.length.toString() + "/" + activeSprintItems!.length.toString() + " Tasks Complete";
 
     return Card(
       color: Color.fromARGB(100, 100, 20, 20),
@@ -199,7 +228,6 @@ class TaskItemList extends StatelessWidget {
       ),
     );
   }
-*/
 
   Card _createNoTasksFoundCard() {
     return Card(
@@ -242,7 +270,7 @@ class TaskItemList extends StatelessWidget {
 
   ListView _buildListView(BuildContext context, TaskItemListViewModel viewModel) {
     // widget.appState.notificationScheduler.updateHomeScreenContext(context);
-    List<TaskItem> otherTasks = taskItems.toList();
+    List<TaskItem> otherTasks = getFilteredTasks(widget.taskItems);
 
     final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted()
         && !viewModel.recentlyCompleted.contains(taskItem)
@@ -259,14 +287,12 @@ class TaskItemList extends StatelessWidget {
 
     List<StatelessWidget> tiles = [];
 
-/*
-    if (widget.sprint == null) {
-      var activeSprint = widget.appState.getActiveSprint();
+    if (!widget.sprintMode) {
+      var activeSprint = viewModel.activeSprint;
       if (activeSprint != null) {
         tiles.add(_createSummaryWidget(activeSprint, context));
       }
     }
-*/
 
     if (dueTasks.isNotEmpty) {
       tiles.add(HeadingItem('Past Due'));
@@ -305,7 +331,7 @@ class TaskItemList extends StatelessWidget {
       tiles.add(_createNoTasksFoundCard());
     }
 
-    if (viewModel.activeSprint != null) {
+    if (widget.sprintMode) {
       tiles.add(_createAddMoreButton(context));
     }
 
@@ -359,7 +385,7 @@ class TaskItemList extends StatelessWidget {
 
   Widget getTaskListBody(BuildContext context, TaskItemListViewModel viewModel) {
     List<Widget> elements = [];
-    var subHeader = this.subHeader;
+    var subHeader = widget.subHeader;
     if (subHeader != null) {
       elements.add(
           Container(
@@ -371,7 +397,7 @@ class TaskItemList extends StatelessWidget {
           )
       );
     }
-    var subSubHeader = this.subSubHeader;
+    var subSubHeader = widget.subSubHeader;
     if (subSubHeader != null) {
       elements.add(
           Container(

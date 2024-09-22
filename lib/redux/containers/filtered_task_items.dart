@@ -41,6 +41,7 @@ class FilteredTaskItems extends StatelessWidget {
           ),
           body: TaskItemList(
             taskItems: viewModel.taskItems,
+            sprintMode: false,
             // onRemove: vm.onRemove,
             // onUndoRemove: vm.onUndoRemove,
           ),

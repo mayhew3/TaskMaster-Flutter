@@ -40,6 +40,7 @@ class SprintTaskItems extends StatelessWidget {
           ),
           body: TaskItemList(
             taskItems: viewModel.taskItems,
+            sprintMode: true,
             // onRemove: vm.onRemove,
             // onUndoRemove: vm.onUndoRemove,
           ),
