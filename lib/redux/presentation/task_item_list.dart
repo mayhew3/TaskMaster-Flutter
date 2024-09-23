@@ -91,7 +91,10 @@ class TaskItemListState extends State<TaskItemList> {
 
   List<TaskItem> getFilteredTasks(BuiltList<TaskItem> taskItems) {
     List<TaskItem> filtered = taskItems.where((taskItem) {
-      bool passesActiveFilter = showActive || (activeSprintItems != null && !activeSprintItems!.contains(taskItem));
+      bool isInActiveSprint = (activeSprintItems != null && activeSprintItems!.contains(taskItem));
+      bool passesActiveFilter = widget.sprintMode ||
+          showActive ||
+          !isInActiveSprint;
       return passesActiveFilter;
     }).toList();
     return filtered;
