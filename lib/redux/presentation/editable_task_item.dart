@@ -122,7 +122,7 @@ class EditableTaskItemWidget extends StatelessWidget {
 
     var pending = tmpTaskItem.pendingCompletion;
 
-    print("Checkbox: " + tmpTaskItem.name + ", " + completed.toString());
+    // print("Checkbox: " + tmpTaskItem.name + ", " + completed.toString());
 
     return DelayedCheckbox(
       taskName: taskItem.name,

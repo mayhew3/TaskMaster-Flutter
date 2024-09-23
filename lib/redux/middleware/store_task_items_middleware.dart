@@ -1,6 +1,4 @@
 import 'package:built_collection/built_collection.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:intl/intl.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/helpers/recurrence_helper.dart';
 import 'package:taskmaster/models/models.dart';
@@ -12,9 +10,7 @@ import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/middleware/notification_helper.dart';
 import 'package:taskmaster/redux/selectors/selectors.dart';
 import 'package:taskmaster/task_repository.dart';
-import 'package:taskmaster/timezone_helper.dart';
 
-import '../../date_util.dart';
 import '../actions/task_item_actions.dart';
 
 List<Middleware<AppState>> createStoreTaskItemsMiddleware(TaskRepository repository) {
@@ -112,9 +108,13 @@ Future<void> Function(
 
     // action.blueprint.recurrenceId = recurrence?.id;
     var payload = await repository.addTask(action.blueprint, inputs.idToken);
+
+    updateNotificationForItem(store, payload.taskItem);
+
     store.dispatch(TaskItemAddedAction(taskItem: payload.taskItem, taskRecurrence: payload.recurrence));
   };
 }
+
 /*
 
 Future<TaskRecurrence?> maybeAddRecurrence(TaskRecurrenceBlueprint? recurrenceBlueprint, ({String idToken, int personId}) inputs, TaskRepository repository) async {
@@ -136,6 +136,9 @@ Future<void> Function(
     var inputs = await getRequiredInputs(store, "update task");
     action.blueprint.recurrenceBlueprint?.personId = inputs.personId;
     var updated = await repository.updateTask(action.taskItem.id, action.blueprint, inputs.idToken);
+
+    updateNotificationForItem(store, updated.taskItem);
+
     store.dispatch(TaskItemUpdatedAction(updated.taskItem));
   };
 }
@@ -162,6 +165,8 @@ Future<void> Function(
     }
 
     var updated = await repository.updateTask(taskItem.id, blueprint, inputs.idToken);
+
+    updateNotificationForItem(store, updated.taskItem);
 
     if (recurrence != null && nextScheduledTask != null) {
       var recurrenceBlueprint = syncBlueprintToMostRecentTaskItem(updated.taskItem, nextScheduledTask, recurrence);
@@ -228,3 +233,7 @@ TaskRecurrenceBlueprint syncBlueprintToMostRecentTaskItem(TaskItem updatedTaskIt
   return recurrenceBlueprint;
 }
 
+void updateNotificationForItem(Store<AppState> store, TaskItem taskItem) {
+  var notificationHelper = new NotificationHelper(plugin: store.state.flutterLocalNotificationsPlugin, timezoneHelper: store.state.timezoneHelper);
+  notificationHelper.updateNotificationForTask(taskItem);
+}

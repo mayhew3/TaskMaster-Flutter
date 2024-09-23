@@ -18,6 +18,16 @@ class NotificationHelper {
     return plugin.cancelAll();
   }
 
+  Future<void> cancelNotificationsForTaskId(int taskId) async {
+    var taskSearch = 'task:$taskId';
+    var pendingNotificationRequests = await plugin.pendingNotificationRequests();
+    var existing = pendingNotificationRequests.where((notification) => notification.payload != null && notification.payload!.startsWith(taskSearch));
+    for (PendingNotificationRequest notification in existing) {
+      print('Removing task: ${notification.payload}');
+      await plugin.cancel(notification.id);
+    }
+  }
+
   Future<void> syncNotificationForTasksAndSprint(List<TaskItem> taskItems, Sprint? sprint) async {
     await cancelAllNotifications();
     List<PendingNotificationRequest> requests = await plugin.pendingNotificationRequests();
@@ -26,6 +36,16 @@ class NotificationHelper {
       await _syncNotificationForSprint(sprint, requests);
     }
     for (TaskItem taskItem in taskItems) {
+      await _syncNotificationForTask(taskItem, requests);
+    }
+  }
+
+  Future<void> updateNotificationForTask(TaskItem taskItem) async {
+    List<PendingNotificationRequest> requests = await plugin.pendingNotificationRequests();
+
+    if (taskItem.isCompleted()) {
+      await cancelNotificationsForTaskId(taskItem.id);
+    } else {
       await _syncNotificationForTask(taskItem, requests);
     }
   }
