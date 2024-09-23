@@ -13,10 +13,9 @@ class EditableTaskItemWidget extends StatelessWidget {
   final TaskItem taskItem;
   final GestureTapCallback? onTap;
   final CheckCycleWaiter? onTaskCompleteToggle;
-  // final ConfirmDismissCallback? onDismissed;
+  final ConfirmDismissCallback? onDismissed;
   final GestureLongPressCallback? onLongPress;
   final GestureForcePressStartCallback? onForcePress;
-  // final MyStateSetter stateSetter;
   final CheckState? initialCheckState;
   final Sprint? sprint;
   final bool highlightSprint;
@@ -29,6 +28,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     this.onTaskCompleteToggle,
     this.onTap,
     this.initialCheckState,
+    this.onDismissed,
     this.onLongPress,
     this.onForcePress,
   }) : super(key: key);
@@ -121,8 +121,6 @@ class EditableTaskItemWidget extends StatelessWidget {
     var completed = tmpTaskItem.completionDate != null;
 
     var pending = tmpTaskItem.pendingCompletion;
-
-    // print("Checkbox: " + tmpTaskItem.name + ", " + completed.toString());
 
     return DelayedCheckbox(
       taskName: taskItem.name,
@@ -220,8 +218,6 @@ class EditableTaskItemWidget extends StatelessWidget {
   }
 
   int getKey() {
-    // var taskItemTmp = taskItem;
-    // return taskItemTmp is TaskItem ? taskItemTmp.id : taskItemTmp.tmpId;
     return taskItem.id;
   }
 
@@ -230,7 +226,7 @@ class EditableTaskItemWidget extends StatelessWidget {
 
     return Dismissible(
       key: TaskMasterKeys.taskItem(getKey()),
-      // confirmDismiss: onDismissed,
+      confirmDismiss: onDismissed,
       child: GestureDetector(
         onTap: onTap,
         onLongPress: onLongPress,

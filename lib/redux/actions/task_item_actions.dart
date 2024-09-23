@@ -62,14 +62,20 @@ class RecurringTaskItemCompletedAction {
 }
 
 class DeleteTaskItemAction {
-  final int id;
+  final TaskItem taskItem;
 
-  DeleteTaskItemAction(this.id);
+  DeleteTaskItemAction(this.taskItem);
 
   @override
   String toString() {
-    return 'DeleteTaskItemAction{id: $id}';
+    return 'DeleteTaskItemAction{taskItem: $taskItem}';
   }
+}
+
+class TaskItemDeletedAction {
+  final int deletedTaskId;
+
+  TaskItemDeletedAction(this.deletedTaskId);
 }
 
 class AddTaskItemAction {

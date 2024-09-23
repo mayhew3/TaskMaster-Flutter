@@ -335,6 +335,23 @@ class TaskRepository {
     }
   }
 
+  Future<void> deleteTask(TaskItem taskItem, String idToken) async {
+    var queryParameters = {
+      'task_id': taskItem.id.toString()
+    };
+
+    var uri = getUriWithParameters('/api/tasks', queryParameters);
+
+    final response = await client.delete(uri,
+      headers: {HttpHeaders.authorizationHeader: idToken,
+        HttpHeaders.contentTypeHeader: 'application/json'},
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete task. Talk to Mayhew.');
+    }
+  }
+
   Future<({TaskItem taskItem, TaskRecurrence? recurrence})> _addOrUpdateTaskItemJSON(Map<String, Object?> payload, String addOrUpdate, String idToken) async {
     var body = utf8.encode(json.encode(payload));
 

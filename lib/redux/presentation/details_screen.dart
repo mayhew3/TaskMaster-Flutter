@@ -39,7 +39,7 @@ class DetailsScreen extends StatelessWidget {
                   key: TaskMasterKeys.deleteTaskItemButton,
                   icon: Icon(Icons.delete),
                   onPressed: () {
-                    StoreProvider.of<AppState>(context).dispatch(DeleteTaskItemAction(taskItem.id));
+                    StoreProvider.of<AppState>(context).dispatch(DeleteTaskItemAction(taskItem));
                     // todo: wait until action is completed
                     Navigator.pop(context, taskItem);
                   },

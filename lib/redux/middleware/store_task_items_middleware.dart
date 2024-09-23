@@ -20,6 +20,7 @@ List<Middleware<AppState>> createStoreTaskItemsMiddleware(TaskRepository reposit
     TypedMiddleware<AppState, DataLoadedAction>(_dataLoaded()),
     TypedMiddleware<AppState, AddTaskItemAction>(_createNewTaskItem(repository)),
     TypedMiddleware<AppState, UpdateTaskItemAction>(_updateTaskItem(repository)),
+    TypedMiddleware<AppState, DeleteTaskItemAction>(_deleteTaskItem(repository)),
     TypedMiddleware<AppState, CompleteTaskItemAction>(_completeTaskItem(repository)),
     TypedMiddleware<AppState, ExecuteSnooze>(_executeSnooze(repository)),
   ];
@@ -177,6 +178,22 @@ Future<void> Function(
       store.dispatch(TaskItemCompletedAction(updated.taskItem, action.complete));
     }
 
+  };
+}
+
+Future<void> Function(
+    Store<AppState>,
+    DeleteTaskItemAction action,
+    NextDispatcher next,
+    ) _deleteTaskItem(TaskRepository repository) {
+  return (Store<AppState> store, DeleteTaskItemAction action, NextDispatcher next) async {
+    next(action);
+    var inputs = await getRequiredInputs(store, "delete task");
+    var taskItemId = action.taskItem.id;
+
+    await repository.deleteTask(action.taskItem, inputs.idToken);
+
+    store.dispatch(TaskItemDeletedAction(taskItemId));
   };
 }
 

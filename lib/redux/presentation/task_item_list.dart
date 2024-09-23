@@ -22,8 +22,6 @@ class TaskItemList extends StatefulWidget {
   final BuiltList<TaskItem> taskItems;
   final bool sprintMode;
 
-  // final Function(TaskItem) onRemove;
-  // final Function(TaskItem) onUndoRemove;
   final String? subHeader;
   final String? subSubHeader;
   TaskItemList({
@@ -32,8 +30,6 @@ class TaskItemList extends StatefulWidget {
     this.subSubHeader,
     required this.taskItems,
     required this.sprintMode,
-    // required this.onRemove,
-    // required this.onUndoRemove,
   }) : super(key: key);
 
   @override
@@ -129,18 +125,18 @@ class TaskItemListState extends State<TaskItemList> {
       onLongPress: () => snoozeDialog(taskItem),
       onForcePress: (ForcePressDetails forcePressDetails) => snoozeDialog(taskItem),
       onTaskCompleteToggle: (checkState) => viewModel.onCheckboxClicked(taskItem, checkState),
-      // onDismissed: (direction) async {
-      //   if (direction == DismissDirection.endToStart) {
-      //     try {
-      //       await widget.taskHelper.deleteTask(taskItem, (callback) => setState(() => callback()));
-      //       _displaySnackBar("Task Deleted!", context);
-      //       return true;
-      //     } catch(err) {
-      //       return false;
-      //     }
-      //   }
-      //   return false;
-      // },
+      onDismissed: (direction) async {
+        if (direction == DismissDirection.endToStart) {
+          try {
+            StoreProvider.of<AppState>(context).dispatch(DeleteTaskItemAction(taskItem));
+            // _displaySnackBar("Task Deleted!", context);
+            return true;
+          } catch(err) {
+            return false;
+          }
+        }
+        return false;
+      },
     );
     tiles.add(taskCard);
   }
