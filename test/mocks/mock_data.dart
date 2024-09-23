@@ -1,6 +1,9 @@
 
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/models/task_recurrence.dart';
+
+import 'mock_recurrence_builder.dart';
 
 
 final DateTime pastSprintStart = DateTime.now().subtract(Duration(days: 10));
@@ -59,7 +62,7 @@ final Map<String, dynamic> catLitterJSON = {
   "recur_unit": "Days",
   "recur_wait": true,
   "recur_iteration": 1,
-  "recurrence_id": null,
+  "recurrence_id": 1,
   "date_added": catAdded.toIso8601String(),
   "retired": 0,
   "retired_date": null,
@@ -69,6 +72,21 @@ final Map<String, dynamic> catLitterJSON = {
       "sprint_id": currentSprint.id
     }
   ]
+};
+
+final Map<String, dynamic> catLitterRecurrenceJSON = {
+  "id": 1,
+  "person_id": 1,
+  "name": "Cat Litter",
+  "recur_number": 10,
+  "recur_unit": "Days",
+  "recur_wait": true,
+  "recur_iteration": 1,
+  "anchor_date": catAdded.toIso8601String(),
+  "anchor_type": "Target",
+  "date_added": catAdded.toIso8601String(),
+  "retired": 0,
+  "retired_date": null,
 };
 
 final DateTime bdayDue = DateTime.now().add(Duration(days: 20)).toUtc();
@@ -163,7 +181,7 @@ final Map<String, dynamic> pastJSON = {
   "recur_unit": 'Weeks',
   "recur_wait": false,
   "recur_iteration": 1,
-  "recurrence_id": null,
+  "recurrence_id": 1,
   "date_added": pastAdded.toIso8601String(),
   "retired": 0,
   "retired_date": null,
@@ -180,7 +198,7 @@ final DateTime burnComplete = DateTime.now().subtract(Duration(hours: 7));
 final DateTime burnAdded = DateTime.utc(2019, 6, 24, 8, 11, 56, 123);
 
 final Map<String, dynamic> burnJSON = {
-  "id": 28,
+  "id": 29,
   "person_id": 1,
   "name": "Burn Down the House",
   "description": "Because you're talking to my talking head",
@@ -219,3 +237,4 @@ TaskItem burnTask = TaskItem.fromJson(burnJSON);
 
 List<TaskItem> allTasks = [catLitterTask, birthdayTask, futureTask, pastTask, burnTask];
 
+TaskRecurrence onlyRecurrence = TaskRecurrenceBuilder.asDefault().create();

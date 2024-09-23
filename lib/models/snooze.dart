@@ -1,39 +1,22 @@
-import 'package:json_annotation/json_annotation.dart';
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
 
-/// This allows the `Snooze` class to access private members in
-/// the generated file. The value for this is *.g.dart, where
-/// the star denotes the source file name.
 part 'snooze.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
-class Snooze {
+abstract class Snooze implements Built<Snooze, SnoozeBuilder> {
+  @BuiltValueSerializer(serializeNulls: true)
+  static Serializer<Snooze> get serializer => _$snoozeSerializer;
 
-  int? id;
-  DateTime? dateAdded;
+  int get id;
+  DateTime get dateAdded;
 
-  int taskId;
-  int snoozeNumber;
-  String snoozeUnits;
-  String snoozeAnchor;
-  DateTime? previousAnchor;
-  DateTime newAnchor;
+  int get taskId;
+  int get snoozeNumber;
+  String get snoozeUnits;
+  String get snoozeAnchor;
+  DateTime? get previousAnchor;
+  DateTime get newAnchor;
 
-  Snooze({
-    required this.taskId,
-    required this.snoozeNumber,
-    required this.snoozeUnits,
-    required this.snoozeAnchor,
-    this.previousAnchor,
-    required this.newAnchor
-  });
-
-  /// A necessary factory constructor for creating a new User instance
-  /// from a map. Pass the map to the generated `_$UserFromJson()` constructor.
-  /// The constructor is named after the source class, in this case, User.
-  factory Snooze.fromJson(Map<String, dynamic> json) => _$SnoozeFromJson(json);
-
-  /// `toJson` is the convention for a class to declare support for serialization
-  /// to JSON. The implementation simply calls the private, generated
-  /// helper method `_$UserToJson`.
-  Map<String, dynamic> toJson() => _$SnoozeToJson(this);
+  Snooze._();
+  factory Snooze([Function(SnoozeBuilder) updates]) = _$Snooze;
 }

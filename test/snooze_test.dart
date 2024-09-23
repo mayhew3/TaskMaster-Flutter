@@ -1,5 +1,5 @@
 
-import 'package:taskmaster/models/snooze.dart';
+import 'package:taskmaster/models/snooze_blueprint.dart';
 import 'package:test/test.dart';
 
 void main() {

@@ -5,20 +5,18 @@ import 'package:taskmaster/timezone_helper.dart';
 
 class DateUtil {
 
-  static TimezoneHelper timezoneHelper = new TimezoneHelper();
-
-  static bool isSameDay(DateTime dateTime1, DateTime dateTime2) {
+  static bool isSameDay(DateTime dateTime1, DateTime dateTime2, TimezoneHelper timezoneHelper) {
     var dateFormat = DateFormat.MMMd();
     var formattedDate1 = timezoneHelper.getFormattedLocalTimeFromFormat(dateTime1, dateFormat);
     var formattedDate2 = timezoneHelper.getFormattedLocalTimeFromFormat(dateTime2, dateFormat);
     return formattedDate1 == formattedDate2;
   }
 
-  static String formatShortMaybeHidingYear(DateTime? dateTime) {
+  static String formatShortMaybeHidingYear(DateTime? dateTime, TimezoneHelper timezoneHelper) {
     if (dateTime == null) {
       return 'N/A';
     }
-    int thisYear = DateTime.now().year;
+    int thisYear = DateTime.timestamp().year;
     var localTime = timezoneHelper.getLocalTime(dateTime);
 
     DateFormat dateFormat = localTime.year == thisYear ?
@@ -31,11 +29,11 @@ class DateUtil {
     return dateTimes.reduce((a, b) => a.isAfter(b) ? a : b);
   }
 
-  static String formatMediumMaybeHidingYear(DateTime? dateTime) {
+  static String formatMediumMaybeHidingYear(DateTime? dateTime, TimezoneHelper timezoneHelper) {
     if (dateTime == null) {
       return 'N/A';
     }
-    int thisYear = DateTime.now().year;
+    int thisYear = DateTime.timestamp().year;
     var localTime = timezoneHelper.getLocalTime(dateTime);
 
     DateFormat dateFormat = localTime.year == thisYear ?
@@ -46,11 +44,11 @@ class DateUtil {
 
   static DateTime adjustToDate(DateTime dateTime, int recurNumber, String recurUnit) {
     switch (recurUnit) {
-      case 'Days': return Jiffy(dateTime).add(days: recurNumber).dateTime;
-      case 'Weeks': return Jiffy(dateTime).add(weeks: recurNumber).dateTime;
-      case 'Months': return Jiffy(dateTime).add(months: recurNumber).dateTime;
-      case 'Years': return Jiffy(dateTime).add(years: recurNumber).dateTime;
-      default: throw new Exception('Unknown recur_unit');
+      case 'Days': return Jiffy.parseFromDateTime(dateTime).add(days: recurNumber).dateTime;
+      case 'Weeks': return Jiffy.parseFromDateTime(dateTime).add(weeks: recurNumber).dateTime;
+      case 'Months': return Jiffy.parseFromDateTime(dateTime).add(months: recurNumber).dateTime;
+      case 'Years': return Jiffy.parseFromDateTime(dateTime).add(years: recurNumber).dateTime;
+      default: throw new Exception('Unknown recur_unit: ' + recurUnit);
     }
   }
 
@@ -59,11 +57,11 @@ class DateUtil {
   }
 
   static DateTime withoutMillis(DateTime originalDate) {
-    return Jiffy(originalDate).startOf(Units.SECOND).dateTime;
+    return Jiffy.parseFromDateTime(originalDate).startOf(Unit.second).dateTime;
   }
 
   static DateTime withoutSeconds(DateTime originalDate) {
-    return Jiffy(originalDate).startOf(Units.MINUTE).dateTime;
+    return Jiffy.parseFromDateTime(originalDate).startOf(Unit.minute).dateTime;
   }
 
 }

@@ -1,15 +1,19 @@
-import 'package:json_annotation/json_annotation.dart';
+
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
 
 part 'sprint_assignment.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
-class SprintAssignment {
-  int? id;
-  int? sprintId;
+abstract class SprintAssignment implements Built<SprintAssignment, SprintAssignmentBuilder> {
+  @BuiltValueSerializer(serializeNulls: true)
+  static Serializer<SprintAssignment> get serializer => _$sprintAssignmentSerializer;
 
-  SprintAssignment();
+  int get id;
+  int get taskId;
+  int get sprintId;
 
-  factory SprintAssignment.fromJson(Map<String, dynamic> json) => _$SprintAssignmentFromJson(json);
+  SprintAssignment._();
 
-  Map<String, dynamic> toJson() => _$SprintAssignmentToJson(this);
+  factory SprintAssignment([Function(SprintAssignmentBuilder) updates]) = _$SprintAssignment;
+
 }

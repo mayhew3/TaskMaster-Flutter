@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:taskmaster/app.dart';
 
-void main() => runApp(TaskMasterApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  runApp(TaskMasterApp());
+}

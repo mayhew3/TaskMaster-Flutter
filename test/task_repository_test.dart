@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 import 'package:mockito/mockito.dart';
 import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
@@ -20,17 +19,14 @@ void main() {
 
     // helper methods
 
-    dynamic _encodeBody(List<int> body, {int? id, DateTime? dateTime}) {
+    dynamic _encodeBody(List<int> body, {int? id}) {
       var utfDecoded = utf8.decode(body);
       var jsonObj = json.decode(utfDecoded);
       var jsonTask = jsonObj["task"];
       if (id != null) {
         jsonTask["id"] = id;
       }
-      if (dateTime != null) {
-        jsonTask["date_added"] =
-            DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime.toUtc());
-      }
+      jsonTask["person_id"] = 1;
       return json.encode(jsonTask);
     }
 
@@ -73,7 +69,7 @@ void main() {
         _validateToken(invocation, taskRepository.appState);
 
         var body = invocation.namedArguments[Symbol("body")];
-        var payload = _encodeBody(body, id: id, dateTime: DateTime.now());
+        var payload = _encodeBody(body, id: id);
         return Future<http.Response>.value(http.Response(payload, 200));
       });
 
@@ -84,7 +80,6 @@ void main() {
       expect(returnedItem.id, id);
       expect(returnedItem.name, addedItem.name);
       expect(returnedItem.personId, 1);
-      expect(returnedItem.dateAdded, isNot(null));
     });
 
     test('updateTask', () async {
@@ -92,6 +87,7 @@ void main() {
       var taskItems = [
         taskItem
       ];
+      var blueprint = taskItem.createBlueprint();
 
       TaskRepository taskRepository = TestMockHelper.createTaskRepositoryWithoutLoad(taskItems: taskItems);
 
@@ -100,28 +96,26 @@ void main() {
         _validateToken(invocation, taskRepository.appState);
 
         var body = invocation.namedArguments[Symbol("body")];
-        var payload = _encodeBody(body);
+        var payload = _encodeBody(body, id: taskItem.id);
         return Future<http.Response>.value(http.Response(payload, 200));
       });
 
       var newProject = "Groovy Time";
       var newTargetDate = DateTime.now().add(Duration(days: 3));
 
-      taskItem.project = newProject;
-      taskItem.targetDate = newTargetDate;
+      blueprint.project = newProject;
+      blueprint.targetDate = newTargetDate;
 
-      var returnedItem = await taskRepository.updateTask(taskItem);
+      var returnedItem = await taskRepository.updateTask(taskItem, blueprint);
 
       verify(taskRepository.client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")));
 
       expect(returnedItem.project, newProject);
-      expect(returnedItem.project, newProject);
-      expect(returnedItem.targetDate, newTargetDate);
       expect(returnedItem.targetDate, newTargetDate);
 
     });
 
-    // todo: updateTask, addSnooze, addSprint
+
   });
 
 

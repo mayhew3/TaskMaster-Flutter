@@ -3,40 +3,284 @@
 part of 'snooze.dart';
 
 // **************************************************************************
-// JsonSerializableGenerator
+// BuiltValueGenerator
 // **************************************************************************
 
-Snooze _$SnoozeFromJson(Map<String, dynamic> json) => Snooze(
-      taskId: json['task_id'] as int,
-      snoozeNumber: json['snooze_number'] as int,
-      snoozeUnits: json['snooze_units'] as String,
-      snoozeAnchor: json['snooze_anchor'] as String,
-      previousAnchor: json['previous_anchor'] == null
-          ? null
-          : DateTime.parse(json['previous_anchor'] as String),
-      newAnchor: DateTime.parse(json['new_anchor'] as String),
-    )
-      ..id = json['id'] as int?
-      ..dateAdded = json['date_added'] == null
-          ? null
-          : DateTime.parse(json['date_added'] as String);
+Serializer<Snooze> _$snoozeSerializer = new _$SnoozeSerializer();
 
-Map<String, dynamic> _$SnoozeToJson(Snooze instance) {
-  final val = <String, dynamic>{};
+class _$SnoozeSerializer implements StructuredSerializer<Snooze> {
+  @override
+  final Iterable<Type> types = const [Snooze, _$Snooze];
+  @override
+  final String wireName = 'Snooze';
 
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
+  @override
+  Iterable<Object?> serialize(Serializers serializers, Snooze object,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = <Object?>[
+      'id',
+      serializers.serialize(object.id, specifiedType: const FullType(int)),
+      'dateAdded',
+      serializers.serialize(object.dateAdded,
+          specifiedType: const FullType(DateTime)),
+      'taskId',
+      serializers.serialize(object.taskId, specifiedType: const FullType(int)),
+      'snoozeNumber',
+      serializers.serialize(object.snoozeNumber,
+          specifiedType: const FullType(int)),
+      'snoozeUnits',
+      serializers.serialize(object.snoozeUnits,
+          specifiedType: const FullType(String)),
+      'snoozeAnchor',
+      serializers.serialize(object.snoozeAnchor,
+          specifiedType: const FullType(String)),
+      'newAnchor',
+      serializers.serialize(object.newAnchor,
+          specifiedType: const FullType(DateTime)),
+    ];
+    Object? value;
+    value = object.previousAnchor;
+
+    result
+      ..add('previousAnchor')
+      ..add(serializers.serialize(value,
+          specifiedType: const FullType(DateTime)));
+
+    return result;
   }
 
-  writeNotNull('id', instance.id);
-  writeNotNull('date_added', instance.dateAdded?.toIso8601String());
-  val['task_id'] = instance.taskId;
-  val['snooze_number'] = instance.snoozeNumber;
-  val['snooze_units'] = instance.snoozeUnits;
-  val['snooze_anchor'] = instance.snoozeAnchor;
-  writeNotNull('previous_anchor', instance.previousAnchor?.toIso8601String());
-  val['new_anchor'] = instance.newAnchor.toIso8601String();
-  return val;
+  @override
+  Snooze deserialize(Serializers serializers, Iterable<Object?> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = new SnoozeBuilder();
+
+    final iterator = serialized.iterator;
+    while (iterator.moveNext()) {
+      final key = iterator.current! as String;
+      iterator.moveNext();
+      final Object? value = iterator.current;
+      switch (key) {
+        case 'id':
+          result.id = serializers.deserialize(value,
+              specifiedType: const FullType(int))! as int;
+          break;
+        case 'dateAdded':
+          result.dateAdded = serializers.deserialize(value,
+              specifiedType: const FullType(DateTime))! as DateTime;
+          break;
+        case 'taskId':
+          result.taskId = serializers.deserialize(value,
+              specifiedType: const FullType(int))! as int;
+          break;
+        case 'snoozeNumber':
+          result.snoozeNumber = serializers.deserialize(value,
+              specifiedType: const FullType(int))! as int;
+          break;
+        case 'snoozeUnits':
+          result.snoozeUnits = serializers.deserialize(value,
+              specifiedType: const FullType(String))! as String;
+          break;
+        case 'snoozeAnchor':
+          result.snoozeAnchor = serializers.deserialize(value,
+              specifiedType: const FullType(String))! as String;
+          break;
+        case 'previousAnchor':
+          result.previousAnchor = serializers.deserialize(value,
+              specifiedType: const FullType(DateTime)) as DateTime?;
+          break;
+        case 'newAnchor':
+          result.newAnchor = serializers.deserialize(value,
+              specifiedType: const FullType(DateTime))! as DateTime;
+          break;
+      }
+    }
+
+    return result.build();
+  }
 }
+
+class _$Snooze extends Snooze {
+  @override
+  final int id;
+  @override
+  final DateTime dateAdded;
+  @override
+  final int taskId;
+  @override
+  final int snoozeNumber;
+  @override
+  final String snoozeUnits;
+  @override
+  final String snoozeAnchor;
+  @override
+  final DateTime? previousAnchor;
+  @override
+  final DateTime newAnchor;
+
+  factory _$Snooze([void Function(SnoozeBuilder)? updates]) =>
+      (new SnoozeBuilder()..update(updates))._build();
+
+  _$Snooze._(
+      {required this.id,
+      required this.dateAdded,
+      required this.taskId,
+      required this.snoozeNumber,
+      required this.snoozeUnits,
+      required this.snoozeAnchor,
+      this.previousAnchor,
+      required this.newAnchor})
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(id, r'Snooze', 'id');
+    BuiltValueNullFieldError.checkNotNull(dateAdded, r'Snooze', 'dateAdded');
+    BuiltValueNullFieldError.checkNotNull(taskId, r'Snooze', 'taskId');
+    BuiltValueNullFieldError.checkNotNull(
+        snoozeNumber, r'Snooze', 'snoozeNumber');
+    BuiltValueNullFieldError.checkNotNull(
+        snoozeUnits, r'Snooze', 'snoozeUnits');
+    BuiltValueNullFieldError.checkNotNull(
+        snoozeAnchor, r'Snooze', 'snoozeAnchor');
+    BuiltValueNullFieldError.checkNotNull(newAnchor, r'Snooze', 'newAnchor');
+  }
+
+  @override
+  Snooze rebuild(void Function(SnoozeBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
+
+  @override
+  SnoozeBuilder toBuilder() => new SnoozeBuilder()..replace(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is Snooze &&
+        id == other.id &&
+        dateAdded == other.dateAdded &&
+        taskId == other.taskId &&
+        snoozeNumber == other.snoozeNumber &&
+        snoozeUnits == other.snoozeUnits &&
+        snoozeAnchor == other.snoozeAnchor &&
+        previousAnchor == other.previousAnchor &&
+        newAnchor == other.newAnchor;
+  }
+
+  @override
+  int get hashCode {
+    var _$hash = 0;
+    _$hash = $jc(_$hash, id.hashCode);
+    _$hash = $jc(_$hash, dateAdded.hashCode);
+    _$hash = $jc(_$hash, taskId.hashCode);
+    _$hash = $jc(_$hash, snoozeNumber.hashCode);
+    _$hash = $jc(_$hash, snoozeUnits.hashCode);
+    _$hash = $jc(_$hash, snoozeAnchor.hashCode);
+    _$hash = $jc(_$hash, previousAnchor.hashCode);
+    _$hash = $jc(_$hash, newAnchor.hashCode);
+    _$hash = $jf(_$hash);
+    return _$hash;
+  }
+
+  @override
+  String toString() {
+    return (newBuiltValueToStringHelper(r'Snooze')
+          ..add('id', id)
+          ..add('dateAdded', dateAdded)
+          ..add('taskId', taskId)
+          ..add('snoozeNumber', snoozeNumber)
+          ..add('snoozeUnits', snoozeUnits)
+          ..add('snoozeAnchor', snoozeAnchor)
+          ..add('previousAnchor', previousAnchor)
+          ..add('newAnchor', newAnchor))
+        .toString();
+  }
+}
+
+class SnoozeBuilder implements Builder<Snooze, SnoozeBuilder> {
+  _$Snooze? _$v;
+
+  int? _id;
+  int? get id => _$this._id;
+  set id(int? id) => _$this._id = id;
+
+  DateTime? _dateAdded;
+  DateTime? get dateAdded => _$this._dateAdded;
+  set dateAdded(DateTime? dateAdded) => _$this._dateAdded = dateAdded;
+
+  int? _taskId;
+  int? get taskId => _$this._taskId;
+  set taskId(int? taskId) => _$this._taskId = taskId;
+
+  int? _snoozeNumber;
+  int? get snoozeNumber => _$this._snoozeNumber;
+  set snoozeNumber(int? snoozeNumber) => _$this._snoozeNumber = snoozeNumber;
+
+  String? _snoozeUnits;
+  String? get snoozeUnits => _$this._snoozeUnits;
+  set snoozeUnits(String? snoozeUnits) => _$this._snoozeUnits = snoozeUnits;
+
+  String? _snoozeAnchor;
+  String? get snoozeAnchor => _$this._snoozeAnchor;
+  set snoozeAnchor(String? snoozeAnchor) => _$this._snoozeAnchor = snoozeAnchor;
+
+  DateTime? _previousAnchor;
+  DateTime? get previousAnchor => _$this._previousAnchor;
+  set previousAnchor(DateTime? previousAnchor) =>
+      _$this._previousAnchor = previousAnchor;
+
+  DateTime? _newAnchor;
+  DateTime? get newAnchor => _$this._newAnchor;
+  set newAnchor(DateTime? newAnchor) => _$this._newAnchor = newAnchor;
+
+  SnoozeBuilder();
+
+  SnoozeBuilder get _$this {
+    final $v = _$v;
+    if ($v != null) {
+      _id = $v.id;
+      _dateAdded = $v.dateAdded;
+      _taskId = $v.taskId;
+      _snoozeNumber = $v.snoozeNumber;
+      _snoozeUnits = $v.snoozeUnits;
+      _snoozeAnchor = $v.snoozeAnchor;
+      _previousAnchor = $v.previousAnchor;
+      _newAnchor = $v.newAnchor;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(Snooze other) {
+    ArgumentError.checkNotNull(other, 'other');
+    _$v = other as _$Snooze;
+  }
+
+  @override
+  void update(void Function(SnoozeBuilder)? updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  Snooze build() => _build();
+
+  _$Snooze _build() {
+    final _$result = _$v ??
+        new _$Snooze._(
+            id: BuiltValueNullFieldError.checkNotNull(id, r'Snooze', 'id'),
+            dateAdded: BuiltValueNullFieldError.checkNotNull(
+                dateAdded, r'Snooze', 'dateAdded'),
+            taskId: BuiltValueNullFieldError.checkNotNull(
+                taskId, r'Snooze', 'taskId'),
+            snoozeNumber: BuiltValueNullFieldError.checkNotNull(
+                snoozeNumber, r'Snooze', 'snoozeNumber'),
+            snoozeUnits: BuiltValueNullFieldError.checkNotNull(
+                snoozeUnits, r'Snooze', 'snoozeUnits'),
+            snoozeAnchor: BuiltValueNullFieldError.checkNotNull(
+                snoozeAnchor, r'Snooze', 'snoozeAnchor'),
+            previousAnchor: previousAnchor,
+            newAnchor: BuiltValueNullFieldError.checkNotNull(
+                newAnchor, r'Snooze', 'newAnchor'));
+    replace(_$result);
+    return _$result;
+  }
+}
+
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

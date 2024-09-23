@@ -1,100 +1,77 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:http/http.dart' as http;
-import 'package:taskmaster/app_state.dart';
-import 'package:taskmaster/auth.dart';
+import 'package:flutter_app_badger/flutter_app_badger.dart';
+import 'package:redux/redux.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:redux_logging/redux_logging.dart';
 import 'package:taskmaster/models/task_colors.dart';
-import 'package:taskmaster/nav_helper.dart';
-import 'package:taskmaster/screens/loading.dart';
-import 'package:taskmaster/task_helper.dart';
+import 'package:taskmaster/redux/actions/auth_actions.dart';
+import 'package:taskmaster/redux/actions/notification_actions.dart';
+import 'package:taskmaster/redux/middleware/auth_middleware.dart';
+import 'package:taskmaster/redux/middleware/store_sprint_middleware.dart';
+import 'package:taskmaster/redux/middleware/store_task_items_middleware.dart';
+import 'package:taskmaster/redux/presentation/home_screen.dart';
+import 'package:taskmaster/redux/app_state.dart';
+import 'package:taskmaster/redux/actions/task_item_actions.dart';
+import 'package:taskmaster/redux/presentation/sign_in.dart';
+import 'package:taskmaster/redux/presentation/splash.dart';
+import 'package:taskmaster/redux/reducers/app_state_reducer.dart';
+import 'package:taskmaster/routes.dart';
 import 'package:taskmaster/task_repository.dart';
+import 'package:http/http.dart' as http;
 
 class TaskMasterApp extends StatefulWidget {
+
+  const TaskMasterApp({
+    Key? key}) : super(key: key);
+
   @override
-  State<StatefulWidget> createState() {
-    return TaskMasterAppState();
-  }
+  TaskMasterAppState createState() => TaskMasterAppState();
 }
 
 class TaskMasterAppState extends State<TaskMasterApp> {
-  late final AppState appState;
-  late final TaskRepository repository;
-  late final NavHelper navHelper;
-  late final TaskMasterAuth auth;
-  late final TaskHelper taskHelper;
-
-  TaskMasterAppState() {
-    auth = TaskMasterAuth(
-      updateCurrentUser: updateCurrentUser,
-      updateIdToken: updateIdToken,
-    );
-    appState = AppState(
-      auth: auth,
-    );
-    repository = TaskRepository(
-      appState: appState,
-      client: http.Client(),
-    );
-    taskHelper = TaskHelper(
-        appState: appState,
-        repository: repository,
-        auth: auth,
-        stateSetter: (callback) => {
-          setState(callback)
-        });
-    navHelper = NavHelper(
-      appState: appState,
-      taskRepository: repository,
-      taskHelper: taskHelper,
-    );
-    taskHelper.navHelper = navHelper;
-  }
+  late final Store<AppState> store;
+  static final _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   void initState() {
     super.initState();
-    appState.updateNotificationScheduler(
-        context,
-        taskHelper);
+    var taskRepository = TaskRepository(client: http.Client());
+    store = Store<AppState>(
+        appReducer,
+        initialState: AppState.init(loading: true),
+        middleware: createStoreTaskItemsMiddleware(taskRepository)
+          ..addAll(createAuthenticationMiddleware(_navigatorKey))
+          ..addAll(createStoreSprintsMiddleware(taskRepository))
+          // ..add(new LoggingMiddleware.printer())
+    );
     maybeKickOffSignIn();
+    configureTimezoneHelper();
+    setupBadgeUpdater();
   }
 
-  void loadMainTaskUI() {
-    navHelper.goToLoadingScreen('Loading tasks...');
-    repository.loadTasks((callback) => setState(callback))
-        .then((_) async {
-      appState.finishedLoading();
-      navHelper.goToHomeScreen();
-      appState.notificationScheduler.updateBadge();
-      appState.syncAllNotifications();
+  void setupBadgeUpdater() {
+    store.onChange.listen((appState) {
+      if (appState.appIsReady() && appState.taskItems.isNotEmpty) {
+        var urgentCount = appState.taskItems.where((taskItem) => (taskItem.isUrgent() || taskItem.isPastDue()) && taskItem.completionDate == null).length;
+        FlutterAppBadger.isAppBadgeSupported().then((supported) {
+          if (supported) {
+            print("Updating badge count to $urgentCount");
+            FlutterAppBadger.updateBadgeCount(urgentCount);
+          }
+        }
+        );
+      }
     });
+  }
+
+  void configureTimezoneHelper() {
+    store.dispatch(InitTimezoneHelperAction());
   }
 
   void maybeKickOffSignIn() {
-    if (!appState.isAuthenticated()) {
-      appState.auth.addGoogleListener().then((value) {
-        if (value == null) {
-          navHelper.goToSignInScreen();
-        }
-      });
-    }
-  }
-
-  void updateCurrentUser(GoogleSignInAccount? currentUser) {
-    setState(() {
-      appState.currentUser = currentUser;
-    });
-    if (appState.isAuthenticated()) {
-      loadMainTaskUI();
-    }
-  }
-
-  void updateIdToken(String? idToken) {
-    setState(() {
-      appState.tokenRetrieved = (idToken != null);
-    });
-    if (appState.isAuthenticated()) {
-      loadMainTaskUI();
+    if (!store.state.isAuthenticated()) {
+      store.dispatch(TryToSilentlySignInAction());
     }
   }
 
@@ -105,36 +82,82 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       brightness: Brightness.dark,
       primaryColor: TaskColors.menuColor,
       canvasColor: TaskColors.backgroundColor,
-      toggleableActiveColor: TaskColors.highlight,
+      checkboxTheme: CheckboxThemeData(
+        fillColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+          if (states.contains(MaterialState.disabled)) { return TaskColors.highlight; }
+          if (states.contains(MaterialState.selected)) { return TaskColors.highlight; }
+          return TaskColors.highlight;
+        }),
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+          if (states.contains(MaterialState.disabled)) { return TaskColors.highlight; }
+          if (states.contains(MaterialState.selected)) { return TaskColors.highlight; }
+          return TaskColors.highlight;
+        }),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+          if (states.contains(MaterialState.disabled)) { return TaskColors.highlight; }
+          if (states.contains(MaterialState.selected)) { return TaskColors.highlight; }
+          return TaskColors.highlight;
+        }),
+        trackColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+          if (states.contains(MaterialState.disabled)) { return TaskColors.highlight; }
+          if (states.contains(MaterialState.selected)) { return TaskColors.highlight; }
+          return TaskColors.highlight;
+        }),
+      ),
     );
 
-    return MaterialApp(
-      title: appState.title,
-      theme: theme.copyWith(
-          colorScheme: theme.colorScheme.copyWith(
-            primary: TaskColors.backgroundColor,
-            secondary: TaskColors.highlight,
-            surface: TaskColors.menuColor,
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-              style: TextButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: TaskColors.menuColor
-              )
-          ),
-          textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: TaskColors.menuColor
-              )
-          )
-      ),
-      home: LoadingScreen(
-        appState: appState,
-        navHelper: navHelper,
-        msg: 'Signing in...',
+    return StoreProvider(
+      store: store,
+      child: MaterialApp(
+        title: "TaskMaster 3000",
+        navigatorKey: _navigatorKey,
+        theme: theme.copyWith(
+            colorScheme: theme.colorScheme.copyWith(
+              primary: TaskColors.backgroundColor,
+              secondary: TaskColors.highlight,
+              surface: TaskColors.menuColor,
+            ),
+            elevatedButtonTheme: ElevatedButtonThemeData(
+                style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: TaskColors.menuColor
+                )
+            ),
+            textButtonTheme: TextButtonThemeData(
+                style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: TaskColors.menuColor
+                )
+            )
+        ),
+        initialRoute: TaskMasterRoutes.splash,
+        routes: {
+          TaskMasterRoutes.splash: (context) {
+            return SplashScreen(message: "Signing in...");
+          },
+          TaskMasterRoutes.login: (context) {
+            return SignInScreen();
+          },
+          TaskMasterRoutes.home: (context) {
+            return HomeScreen(
+              onInit: () {
+                print("Home Screen: onInit()");
+                var store = StoreProvider.of<AppState>(context);
+                if (store.state.isAuthenticated()) {
+                  print("Home Screen: onInit(), authenticated");
+                  store.dispatch(LoadDataAction());
+                }
+              },
+            );
+          },
+        },
       ),
     );
+
   }
 
 }

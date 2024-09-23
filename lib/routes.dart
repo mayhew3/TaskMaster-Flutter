@@ -1,3 +1,5 @@
 class TaskMasterRoutes {
-  static final home = "/";
+  static final home = "/home";
+  static final login = "/login";
+  static final splash = "/splash";
 }
