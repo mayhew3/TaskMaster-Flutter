@@ -10,6 +10,7 @@ import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/selectors/selectors.dart';
 import 'package:taskmaster/task_repository.dart';
 
+import '../actions/notification_actions.dart';
 import '../actions/task_item_actions.dart';
 
 List<Middleware<AppState>> createStoreTaskItemsMiddleware(TaskRepository repository) {

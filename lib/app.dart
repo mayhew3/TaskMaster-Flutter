@@ -1,9 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:redux/redux.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux_logging/redux_logging.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
+import 'package:taskmaster/redux/actions/notification_actions.dart';
 import 'package:taskmaster/redux/middleware/auth_middleware.dart';
 import 'package:taskmaster/redux/middleware/store_sprint_middleware.dart';
 import 'package:taskmaster/redux/middleware/store_task_items_middleware.dart';
@@ -44,6 +47,22 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     );
     maybeKickOffSignIn();
     configureTimezoneHelper();
+    setupBadgeUpdater();
+  }
+
+  void setupBadgeUpdater() {
+    store.onChange.listen((appState) {
+      if (appState.appIsReady() && appState.taskItems.isNotEmpty) {
+        var urgentCount = appState.taskItems.where((taskItem) => (taskItem.isUrgent() || taskItem.isPastDue()) && taskItem.completionDate == null).length;
+        FlutterAppBadger.isAppBadgeSupported().then((supported) {
+          if (supported) {
+            print("Updating badge count to $urgentCount");
+            FlutterAppBadger.updateBadgeCount(urgentCount);
+          }
+        }
+        );
+      }
+    });
   }
 
   void configureTimezoneHelper() {

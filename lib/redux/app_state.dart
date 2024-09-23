@@ -58,28 +58,29 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   factory AppState([Function(AppStateBuilder) updates]) = _$AppState;
 
   factory AppState.init({bool loading = false}) => AppState((appState) async {
+    var navItemBuilder = initializeNavItems();
     return appState
       ..isLoading = loading
       ..loadFailed = false
       ..taskItems = ListBuilder()
       ..sprints = ListBuilder()
       ..taskRecurrences = ListBuilder()
-      ..activeTab = initializeNavItems()[0].toBuilder()
+      ..activeTab = navItemBuilder[0].toBuilder()
       ..sprintListFilter = VisibilityFilter.init(showScheduled: true, showCompleted: true, showActiveSprint: true).toBuilder()
       ..taskListFilter = VisibilityFilter.init().toBuilder()
       ..recentlyCompleted = ListBuilder()
       ..tokenRetrieved = false
       ..googleSignIn = GoogleSignIn(scopes: ['email'])
       ..timezoneHelper = TimezoneHelper()
-      ..allNavItems = ListBuilder(initializeNavItems())
+      ..allNavItems = navItemBuilder
       ..nextId = 0
       ..flutterLocalNotificationsPlugin = initializeNotificationPlugin()
     ;
   }
   );
 
-  static List<TopNavItem> initializeNavItems() {
-    var allNavItems = [
+  static ListBuilder<TopNavItem> initializeNavItems() {
+    return ListBuilder<TopNavItem>([
       TopNavItem.init(
           label: 'Plan',
           icon: Icons.assignment,
@@ -92,8 +93,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
           label: 'Stats',
           icon: Icons.show_chart,
           widgetGetter: () => StatsCounter()),
-    ];
-    return allNavItems;
+    ]);
   }
 
   static FlutterLocalNotificationsPlugin initializeNotificationPlugin() {
