@@ -106,12 +106,13 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
         android: initializationSettingsAndroid,
         iOS: initializationSettingsIOS
     );
-    var notificationsPlugin = FlutterLocalNotificationsPlugin();
-    notificationsPlugin.initialize(initializationSettings,
+    var plugin = FlutterLocalNotificationsPlugin();
+    plugin.initialize(initializationSettings,
       // onDidReceiveNotificationResponse: (response) => {}
     );
+    // plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
 
-    return notificationsPlugin;
+    return plugin;
   }
 
   bool appIsReady() {
