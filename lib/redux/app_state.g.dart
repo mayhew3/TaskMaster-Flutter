@@ -39,6 +39,10 @@ class _$AppState extends AppState {
   final bool tokenRetrieved;
   @override
   final TimezoneHelper timezoneHelper;
+  @override
+  final int nextId;
+  @override
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
   factory _$AppState([void Function(AppStateBuilder)? updates]) =>
       (new AppStateBuilder()..update(updates))._build();
@@ -59,7 +63,9 @@ class _$AppState extends AppState {
       this.firebaseUser,
       this.currentUser,
       required this.tokenRetrieved,
-      required this.timezoneHelper})
+      required this.timezoneHelper,
+      required this.nextId,
+      required this.flutterLocalNotificationsPlugin})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(taskItems, r'AppState', 'taskItems');
     BuiltValueNullFieldError.checkNotNull(sprints, r'AppState', 'sprints');
@@ -83,6 +89,9 @@ class _$AppState extends AppState {
         tokenRetrieved, r'AppState', 'tokenRetrieved');
     BuiltValueNullFieldError.checkNotNull(
         timezoneHelper, r'AppState', 'timezoneHelper');
+    BuiltValueNullFieldError.checkNotNull(nextId, r'AppState', 'nextId');
+    BuiltValueNullFieldError.checkNotNull(flutterLocalNotificationsPlugin,
+        r'AppState', 'flutterLocalNotificationsPlugin');
   }
 
   @override
@@ -111,7 +120,10 @@ class _$AppState extends AppState {
         firebaseUser == other.firebaseUser &&
         currentUser == other.currentUser &&
         tokenRetrieved == other.tokenRetrieved &&
-        timezoneHelper == other.timezoneHelper;
+        timezoneHelper == other.timezoneHelper &&
+        nextId == other.nextId &&
+        flutterLocalNotificationsPlugin ==
+            other.flutterLocalNotificationsPlugin;
   }
 
   @override
@@ -133,6 +145,8 @@ class _$AppState extends AppState {
     _$hash = $jc(_$hash, currentUser.hashCode);
     _$hash = $jc(_$hash, tokenRetrieved.hashCode);
     _$hash = $jc(_$hash, timezoneHelper.hashCode);
+    _$hash = $jc(_$hash, nextId.hashCode);
+    _$hash = $jc(_$hash, flutterLocalNotificationsPlugin.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -155,7 +169,10 @@ class _$AppState extends AppState {
           ..add('firebaseUser', firebaseUser)
           ..add('currentUser', currentUser)
           ..add('tokenRetrieved', tokenRetrieved)
-          ..add('timezoneHelper', timezoneHelper))
+          ..add('timezoneHelper', timezoneHelper)
+          ..add('nextId', nextId)
+          ..add('flutterLocalNotificationsPlugin',
+              flutterLocalNotificationsPlugin))
         .toString();
   }
 }
@@ -246,6 +263,17 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   set timezoneHelper(TimezoneHelper? timezoneHelper) =>
       _$this._timezoneHelper = timezoneHelper;
 
+  int? _nextId;
+  int? get nextId => _$this._nextId;
+  set nextId(int? nextId) => _$this._nextId = nextId;
+
+  FlutterLocalNotificationsPlugin? _flutterLocalNotificationsPlugin;
+  FlutterLocalNotificationsPlugin? get flutterLocalNotificationsPlugin =>
+      _$this._flutterLocalNotificationsPlugin;
+  set flutterLocalNotificationsPlugin(
+          FlutterLocalNotificationsPlugin? flutterLocalNotificationsPlugin) =>
+      _$this._flutterLocalNotificationsPlugin = flutterLocalNotificationsPlugin;
+
   AppStateBuilder();
 
   AppStateBuilder get _$this {
@@ -267,6 +295,8 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _currentUser = $v.currentUser;
       _tokenRetrieved = $v.tokenRetrieved;
       _timezoneHelper = $v.timezoneHelper;
+      _nextId = $v.nextId;
+      _flutterLocalNotificationsPlugin = $v.flutterLocalNotificationsPlugin;
       _$v = null;
     }
     return this;
@@ -311,7 +341,14 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               tokenRetrieved: BuiltValueNullFieldError.checkNotNull(
                   tokenRetrieved, r'AppState', 'tokenRetrieved'),
               timezoneHelper: BuiltValueNullFieldError.checkNotNull(
-                  timezoneHelper, r'AppState', 'timezoneHelper'));
+                  timezoneHelper, r'AppState', 'timezoneHelper'),
+              nextId: BuiltValueNullFieldError.checkNotNull(
+                  nextId, r'AppState', 'nextId'),
+              flutterLocalNotificationsPlugin:
+                  BuiltValueNullFieldError.checkNotNull(
+                      flutterLocalNotificationsPlugin,
+                      r'AppState',
+                      'flutterLocalNotificationsPlugin'));
     } catch (_) {
       late String _$failedField;
       try {

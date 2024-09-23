@@ -617,8 +617,13 @@ class MockTaskRepository extends _i1.Mock implements _i9.TaskRepository {
       ) as _i10.Future<_i7.TaskRecurrence>);
 
   @override
-  _i10.Future<List<_i14.SprintAssignment>> addTasksToSprint(
-    List<_i4.TaskItem>? taskItems,
+  _i10.Future<
+      ({
+        _i6.BuiltList<_i4.TaskItem> addedTasks,
+        _i6.BuiltList<_i14.SprintAssignment> sprintAssignments
+      })> addTasksToSprint(
+    _i6.BuiltList<_i4.TaskItem>? taskItems,
+    _i6.BuiltList<_i12.TaskItemRecurPreview>? taskItemRecurPreviews,
     _i5.Sprint? sprint,
     String? idToken,
   ) =>
@@ -627,16 +632,76 @@ class MockTaskRepository extends _i1.Mock implements _i9.TaskRepository {
           #addTasksToSprint,
           [
             taskItems,
+            taskItemRecurPreviews,
             sprint,
             idToken,
           ],
         ),
-        returnValue: _i10.Future<List<_i14.SprintAssignment>>.value(
-            <_i14.SprintAssignment>[]),
-        returnValueForMissingStub:
-            _i10.Future<List<_i14.SprintAssignment>>.value(
-                <_i14.SprintAssignment>[]),
-      ) as _i10.Future<List<_i14.SprintAssignment>>);
+        returnValue: _i10.Future<
+            ({
+              _i6.BuiltList<_i4.TaskItem> addedTasks,
+              _i6.BuiltList<_i14.SprintAssignment> sprintAssignments
+            })>.value((
+          addedTasks: _FakeBuiltList_5<_i4.TaskItem>(
+            this,
+            Invocation.method(
+              #addTasksToSprint,
+              [
+                taskItems,
+                taskItemRecurPreviews,
+                sprint,
+                idToken,
+              ],
+            ),
+          ),
+          sprintAssignments: _FakeBuiltList_5<_i14.SprintAssignment>(
+            this,
+            Invocation.method(
+              #addTasksToSprint,
+              [
+                taskItems,
+                taskItemRecurPreviews,
+                sprint,
+                idToken,
+              ],
+            ),
+          )
+        )),
+        returnValueForMissingStub: _i10.Future<
+            ({
+              _i6.BuiltList<_i4.TaskItem> addedTasks,
+              _i6.BuiltList<_i14.SprintAssignment> sprintAssignments
+            })>.value((
+          addedTasks: _FakeBuiltList_5<_i4.TaskItem>(
+            this,
+            Invocation.method(
+              #addTasksToSprint,
+              [
+                taskItems,
+                taskItemRecurPreviews,
+                sprint,
+                idToken,
+              ],
+            ),
+          ),
+          sprintAssignments: _FakeBuiltList_5<_i14.SprintAssignment>(
+            this,
+            Invocation.method(
+              #addTasksToSprint,
+              [
+                taskItems,
+                taskItemRecurPreviews,
+                sprint,
+                idToken,
+              ],
+            ),
+          )
+        )),
+      ) as _i10.Future<
+          ({
+            _i6.BuiltList<_i4.TaskItem> addedTasks,
+            _i6.BuiltList<_i14.SprintAssignment> sprintAssignments
+          })>);
 
   @override
   _i10.Future<_i8.Snooze> addSnooze(

@@ -2,12 +2,13 @@ import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart' hide Builder;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
 import 'package:taskmaster/redux/containers/filtered_task_items.dart';
 import 'package:taskmaster/redux/containers/planning_home.dart';
-import 'package:taskmaster/redux/containers/sprint_task_items.dart';
 import 'package:taskmaster/redux/presentation/stats_counter.dart';
+import 'package:flutter_app_badger/flutter_app_badger.dart';
 
 import '../models/models.dart';
 import '../timezone_helper.dart';
@@ -49,10 +50,35 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   // date-time
   TimezoneHelper get timezoneHelper;
 
+  // notifications
+  int get nextId;
+  FlutterLocalNotificationsPlugin get flutterLocalNotificationsPlugin;
+
   AppState._();
   factory AppState([Function(AppStateBuilder) updates]) = _$AppState;
 
   factory AppState.init({bool loading = false}) => AppState((appState) async {
+    return appState
+      ..isLoading = loading
+      ..loadFailed = false
+      ..taskItems = ListBuilder()
+      ..sprints = ListBuilder()
+      ..taskRecurrences = ListBuilder()
+      ..activeTab = initializeNavItems()[0].toBuilder()
+      ..sprintListFilter = VisibilityFilter.init(showScheduled: true, showCompleted: true, showActiveSprint: true).toBuilder()
+      ..taskListFilter = VisibilityFilter.init().toBuilder()
+      ..recentlyCompleted = ListBuilder()
+      ..tokenRetrieved = false
+      ..googleSignIn = GoogleSignIn(scopes: ['email'])
+      ..timezoneHelper = TimezoneHelper()
+      ..allNavItems = ListBuilder(initializeNavItems())
+      ..nextId = 0
+      ..flutterLocalNotificationsPlugin = initializeNotificationPlugin()
+    ;
+  }
+  );
+
+  static List<TopNavItem> initializeNavItems() {
     var allNavItems = [
       TopNavItem.init(
           label: 'Plan',
@@ -67,23 +93,26 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
           icon: Icons.show_chart,
           widgetGetter: () => StatsCounter()),
     ];
-    return appState
-      ..isLoading = loading
-      ..loadFailed = false
-      ..taskItems = ListBuilder()
-      ..sprints = ListBuilder()
-      ..taskRecurrences = ListBuilder()
-      ..activeTab = allNavItems[0].toBuilder()
-      ..sprintListFilter = VisibilityFilter.init(showScheduled: true, showCompleted: true, showActiveSprint: true).toBuilder()
-      ..taskListFilter = VisibilityFilter.init().toBuilder()
-      ..recentlyCompleted = ListBuilder()
-      ..tokenRetrieved = false
-      ..googleSignIn = GoogleSignIn(scopes: ['email'])
-      ..timezoneHelper = TimezoneHelper()
-      ..allNavItems = ListBuilder(allNavItems);
+    return allNavItems;
   }
 
-  );
+  static FlutterLocalNotificationsPlugin initializeNotificationPlugin() {
+    // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
+    var initializationSettingsAndroid = AndroidInitializationSettings('app_icon');
+    var initializationSettingsIOS = DarwinInitializationSettings(
+        // onDidReceiveLocalNotification: _onDidReceiveLocalNotification
+    );
+    var initializationSettings = InitializationSettings(
+        android: initializationSettingsAndroid,
+        iOS: initializationSettingsIOS
+    );
+    var notificationsPlugin = FlutterLocalNotificationsPlugin();
+    notificationsPlugin.initialize(initializationSettings,
+      // onDidReceiveNotificationResponse: (response) => {}
+    );
+
+    return notificationsPlugin;
+  }
 
   bool appIsReady() {
     return isAuthenticated() && personId != null && timezoneHelper.timezoneInitialized;

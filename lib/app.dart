@@ -27,7 +27,7 @@ class TaskMasterApp extends StatefulWidget {
 }
 
 class TaskMasterAppState extends State<TaskMasterApp> {
-  late Store<AppState> store;
+  late final Store<AppState> store;
   static final _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
