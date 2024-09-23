@@ -193,6 +193,8 @@ Future<void> Function(
 
     await repository.deleteTask(action.taskItem, inputs.idToken);
 
+    deleteNotificationForItem(store, taskItemId);
+
     store.dispatch(TaskItemDeletedAction(taskItemId));
   };
 }
@@ -253,4 +255,9 @@ TaskRecurrenceBlueprint syncBlueprintToMostRecentTaskItem(TaskItem updatedTaskIt
 void updateNotificationForItem(Store<AppState> store, TaskItem taskItem) {
   var notificationHelper = new NotificationHelper(plugin: store.state.flutterLocalNotificationsPlugin, timezoneHelper: store.state.timezoneHelper);
   notificationHelper.updateNotificationForTask(taskItem);
+}
+
+void deleteNotificationForItem(Store<AppState> store, int taskItemId) {
+  var notificationHelper = new NotificationHelper(plugin: store.state.flutterLocalNotificationsPlugin, timezoneHelper: store.state.timezoneHelper);
+  notificationHelper.cancelNotificationsForTaskId(taskItemId);
 }
