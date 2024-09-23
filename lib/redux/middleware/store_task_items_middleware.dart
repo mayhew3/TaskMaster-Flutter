@@ -1,4 +1,6 @@
 import 'package:built_collection/built_collection.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/intl.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/helpers/recurrence_helper.dart';
 import 'package:taskmaster/models/models.dart';
@@ -7,16 +9,19 @@ import 'package:taskmaster/models/task_item_recur_preview.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
+import 'package:taskmaster/redux/middleware/notification_helper.dart';
 import 'package:taskmaster/redux/selectors/selectors.dart';
 import 'package:taskmaster/task_repository.dart';
+import 'package:taskmaster/timezone_helper.dart';
 
-import '../actions/notification_actions.dart';
+import '../../date_util.dart';
 import '../actions/task_item_actions.dart';
 
 List<Middleware<AppState>> createStoreTaskItemsMiddleware(TaskRepository repository) {
   return [
     TypedMiddleware<AppState, VerifyPersonAction>(_verifyPerson(repository)),
     TypedMiddleware<AppState, LoadDataAction>(_loadData(repository)),
+    TypedMiddleware<AppState, DataLoadedAction>(_dataLoaded()),
     TypedMiddleware<AppState, AddTaskItemAction>(_createNewTaskItem(repository)),
     TypedMiddleware<AppState, UpdateTaskItemAction>(_updateTaskItem(repository)),
     TypedMiddleware<AppState, CompleteTaskItemAction>(_completeTaskItem(repository)),
@@ -72,6 +77,21 @@ Future<void> Function(
       store.dispatch(DataNotLoadedAction());
     }
 
+  };
+}
+
+Future<void> Function(
+    Store<AppState>,
+    DataLoadedAction action,
+    NextDispatcher next,
+    ) _dataLoaded() {
+  return (Store<AppState> store, DataLoadedAction action, NextDispatcher next) async {
+    next(action);
+    var taskItemCount = store.state.taskItems.length;
+    print("Data loaded. Task item count: $taskItemCount");
+
+    var notificationHelper = new NotificationHelper(plugin: store.state.flutterLocalNotificationsPlugin, timezoneHelper: store.state.timezoneHelper);
+    await notificationHelper.syncNotificationForTasksAndSprint(store.state.taskItems.toList(), activeSprintSelector(store.state.sprints));
   };
 }
 
@@ -207,5 +227,4 @@ TaskRecurrenceBlueprint syncBlueprintToMostRecentTaskItem(TaskItem updatedTaskIt
   }
   return recurrenceBlueprint;
 }
-
 
