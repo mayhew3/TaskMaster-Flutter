@@ -1,11 +1,9 @@
-import 'dart:async';
 import 'dart:collection';
 
 import 'package:built_collection/built_collection.dart';
 import "package:collection/collection.dart";
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:redux/redux.dart';
 import 'package:taskmaster/helpers/recurrence_helper.dart';
 import 'package:taskmaster/models/sprint_blueprint.dart';
 import 'package:taskmaster/models/sprint_display_task.dart';
@@ -57,9 +55,8 @@ class PlanTaskListState extends State<PlanTaskList> {
   late final DateTime endDate;
 
   void validateState(PlanTaskListViewModel viewModel) {
-    if (!submitting &&
-        (viewModel.activeSprint != null &&
-        (widget.numUnits != null || widget.unitName != null || widget.startDate != null))) {
+    if (viewModel.activeSprint != null &&
+        (widget.numUnits != null || widget.unitName != null || widget.startDate != null)) {
       throw Exception(
           "Expected all of numUnits, unitName, and startDate to be null if there is an active sprint.");
     }
@@ -318,66 +315,38 @@ class PlanTaskListState extends State<PlanTaskList> {
   }
 
   void submit(BuildContext context, PlanTaskListViewModel viewModel) async {
-    submitting = true;
-    try {
-      var store = StoreProvider.of<AppState>(context);
-      if (addMode(viewModel)) {
-        SprintBlueprint sprint = SprintBlueprint(
-            startDate: widget.startDate!,
-            endDate: endDate,
-            numUnits: widget.numUnits!,
-            unitName: widget.unitName!,
-            personId: viewModel.personId
-        );
-        print("Submitting");
-        waitForAddSprintThenPopWindow(store, context);
-        store.dispatch(CreateSprintWithTaskItems(sprintBlueprint: sprint,
-            taskItems: taskItemQueue.toBuiltList(),
-            taskItemRecurPreviews: taskItemRecurPreviewQueue.toBuiltList()));
-      } else {
-        waitForSprintAssignmentsThenPopWindow(
-            store, context, viewModel.activeSprint!, taskItemsForSprintSelector(
-            viewModel.allTaskItems, viewModel.activeSprint!));
-        store.dispatch(AddTaskItemsToExistingSprint(
-            sprint: viewModel.activeSprint!,
-            taskItems: taskItemQueue.toBuiltList(),
-            taskItemRecurPreviews: taskItemRecurPreviewQueue.toBuiltList()));
-      }
-    } catch (e) {
-      submitting = false;
+    var store = StoreProvider.of<AppState>(context);
+    if (addMode(viewModel)) {
+      SprintBlueprint sprint = SprintBlueprint(
+          startDate: widget.startDate!,
+          endDate: endDate,
+          numUnits: widget.numUnits!,
+          unitName: widget.unitName!,
+          personId: viewModel.personId
+      );
+      print("Submitting");
+      store.dispatch(CreateSprintWithTaskItems(sprintBlueprint: sprint,
+          taskItems: taskItemQueue.toBuiltList(),
+          taskItemRecurPreviews: taskItemRecurPreviewQueue.toBuiltList()));
+    } else {
+      store.dispatch(AddTaskItemsToExistingSprint(
+          sprint: viewModel.activeSprint!,
+          taskItems: taskItemQueue.toBuiltList(),
+          taskItemRecurPreviews: taskItemRecurPreviewQueue.toBuiltList()));
     }
-  }
-
-  void waitForAddSprintThenPopWindow(Store<AppState> store, BuildContext context) {
-    late StreamSubscription<AppState> subscription;
-    subscription = store.onChange.listen((appState) {
-      var activeSprint = activeSprintSelector(appState.sprints);
-      if (activeSprint != null) {
-        Navigator.pop(context, 'Added');
-        print("Popped!");
-        subscription.cancel();
-      }
-    });
-  }
-
-  void waitForSprintAssignmentsThenPopWindow(Store<AppState> store, BuildContext context, Sprint sprint, BuiltList<TaskItem> startingItems) {
-    int initialCount = startingItems.length;
-    late StreamSubscription<AppState> subscription;
-    subscription = store.onChange.listen((appState) {
-      var updatedCount = taskItemsForSprintSelector(appState.taskItems, sprint).length;
-      if (updatedCount > initialCount) {
-        Navigator.pop(context, 'Added');
-        subscription.cancel();
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, PlanTaskListViewModel>(
+        onWillChange: (prev, current) {
+          if (prev != null && prev.updating && !current.updating) {
+            Navigator.pop(context);
+          }
+        },
         builder: (context, viewModel) {
-          validateState(viewModel);
           if (!initialized) {
+            validateState(viewModel);
             endDate = getEndDate(viewModel);
             preSelectUrgentAndDueAndPreviousSprint(viewModel);
             createTemporaryIterations(viewModel);

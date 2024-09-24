@@ -2,6 +2,7 @@ import 'package:built_collection/built_collection.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
 
+import '../actions/sprint_actions.dart';
 import '../actions/task_item_actions.dart';
 import '../app_state.dart';
 
@@ -20,6 +21,7 @@ final taskItemsReducer = <AppState Function(AppState, dynamic)>[
 
   TypedReducer<AppState, UpdateTaskItemAction>(_setUpdating),
   TypedReducer<AppState, AddTaskItemAction>(_setUpdating),
+
 ];
 
 AppState _setUpdating(AppState state, dynamic action) {
@@ -84,6 +86,7 @@ AppState _onCompleteRecurringTaskItem(AppState state, RecurringTaskItemCompleted
     ..taskItems = taskItemListBuilder
     ..taskRecurrences = recurrenceBuilder
     ..recentlyCompleted = recentListBuilder
+    ..updating = false
   );
 }
 
@@ -97,6 +100,7 @@ AppState _onCompleteTaskItem(AppState state, TaskItemCompletedAction action) {
   return state.rebuild((s) => s
     ..taskItems = listBuilder
     ..recentlyCompleted = recentListBuilder
+    ..updating = false
   );
 }
 
@@ -108,6 +112,7 @@ AppState _onDeleteTaskItem(AppState state, TaskItemDeletedAction action) {
   return state.rebuild((s) => s
     ..taskItems = listBuilder
     ..recentlyCompleted = recentListBuilder
+    ..updating = false
   );
 }
 
@@ -117,6 +122,7 @@ AppState _onDataLoaded(AppState state, DataLoadedAction action) {
       ..recurrence = action.dataPayload.taskRecurrences.where((r) => r.id == t.recurrenceId).singleOrNull?.toBuilder())));
     s.sprints = ListBuilder(action.dataPayload.sprints);
     s.taskRecurrences = ListBuilder(action.dataPayload.taskRecurrences);
+    s.updating = false;
     return s;
   });
 }
@@ -127,11 +133,15 @@ AppState _onDataNotLoaded(AppState state, dynamic action) {
     ..sprints = ListBuilder()
     ..taskRecurrences = ListBuilder()
     ..recentlyCompleted = ListBuilder()
+    ..updating = false
   );
 }
 
 AppState _onSnoozeExecuted(AppState state, SnoozeExecuted action) {
   var listBuilder = state.taskItems.toBuilder()
     ..map((taskItem) => taskItem.id == action.taskItem.id ? action.taskItem : taskItem);
-  return state.rebuild((s) => s.taskItems = listBuilder);
+  return state.rebuild((s) => s
+    ..taskItems = listBuilder
+    ..updating = false
+  );
 }
