@@ -1034,6 +1034,23 @@ class MockTaskRepository extends _i1.Mock implements _i13.TaskRepository {
           })>);
 
   @override
+  _i12.Future<void> deleteTask(
+    _i4.TaskItem? taskItem,
+    String? idToken,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #deleteTask,
+          [
+            taskItem,
+            idToken,
+          ],
+        ),
+        returnValue: _i12.Future<void>.value(),
+        returnValueForMissingStub: _i12.Future<void>.value(),
+      ) as _i12.Future<void>);
+
+  @override
   _i12.Future<_i11.Snooze> addSnooze(
     _i19.SnoozeBlueprint? snooze,
     String? idToken,

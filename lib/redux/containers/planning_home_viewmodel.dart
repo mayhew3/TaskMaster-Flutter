@@ -9,6 +9,8 @@ part 'planning_home_viewmodel.g.dart';
 
 abstract class PlanningHomeViewModel implements Built<PlanningHomeViewModel, PlanningHomeViewModelBuilder> {
   Sprint? get activeSprint;
+  bool get isLoading;
+  bool get loadFailed;
 
   PlanningHomeViewModel._();
 
@@ -20,6 +22,9 @@ abstract class PlanningHomeViewModel implements Built<PlanningHomeViewModel, Pla
       if (activeSprint != null) {
         c..activeSprint = activeSprint.toBuilder();
       }
+      c
+        ..isLoading = store.state.isLoading
+        ..loadFailed = store.state.loadFailed;
     }
     );
   }

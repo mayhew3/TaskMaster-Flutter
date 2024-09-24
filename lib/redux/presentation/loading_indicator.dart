@@ -12,17 +12,22 @@ class LoadingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: <Widget>[
-            CircularProgressIndicator(
-              key: TaskMasterKeys.tasksLoading,
-              color: TaskColors.highlight,
-            ),
-            const Text("Loading tasks..."),
-          ],
-        )
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('TaskMaster 3000'),
+      ),
+      body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: <Widget>[
+              CircularProgressIndicator(
+                key: TaskMasterKeys.tasksLoading,
+                color: TaskColors.highlight,
+              ),
+              const Text("Loading tasks..."),
+            ],
+          )
+      ),
     );
   }
 }

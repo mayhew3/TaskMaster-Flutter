@@ -24,7 +24,7 @@ class SprintTaskItems extends StatelessWidget {
       builder: (context, viewModel) {
         return Scaffold(
           appBar: AppBar(
-            title: Text('All Tasks'),
+            title: Text('Sprint Tasks'),
             actions: <Widget>[
               FilterButton(
                 scheduledGetter: () => viewModel.showScheduled,
