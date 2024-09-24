@@ -27,7 +27,7 @@ class DelayedCheckbox extends StatelessWidget {
     Map<CheckState, Color> colorMap = {
       CheckState.inactive: Color.fromARGB(0, 0, 0, 0),
       CheckState.pending: TaskColors.pendingCheckbox,
-      CheckState.checked: checkedColor ?? themeData.checkboxTheme.fillColor!.resolve(Set.from([MaterialState.selected])) ?? TaskColors.cardColor,
+      CheckState.checked: checkedColor ?? themeData.checkboxTheme.fillColor!.resolve(Set.from([WidgetState.selected])) ?? TaskColors.cardColor,
     };
     return colorMap[initialState];
   }

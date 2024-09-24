@@ -8,7 +8,6 @@ import 'package:taskmaster/models/top_nav_item.dart';
 import 'package:taskmaster/redux/containers/filtered_task_items.dart';
 import 'package:taskmaster/redux/containers/planning_home.dart';
 import 'package:taskmaster/redux/presentation/stats_counter.dart';
-import 'package:flutter_app_badger/flutter_app_badger.dart';
 
 import '../models/models.dart';
 import '../timezone_helper.dart';
