@@ -1,7 +1,7 @@
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:intl/intl.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 
 class TimezoneHelper {
   bool _timezoneInitialized = false;
@@ -16,7 +16,7 @@ class TimezoneHelper {
 
   Future<void> configureLocalTimeZone() async {
     tz.initializeTimeZones();
-    String timezone = await FlutterNativeTimezone.getLocalTimezone();
+    String timezone = await FlutterTimezone.getLocalTimezone();
     tz.setLocalLocation(tz.getLocation(timezone));
     _timezoneInitialized = true;
   }
