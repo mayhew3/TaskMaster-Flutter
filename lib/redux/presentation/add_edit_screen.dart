@@ -8,6 +8,7 @@ import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 import 'package:taskmaster/redux/actions/task_item_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
+import 'package:taskmaster/redux/presentation/add_edit_screen_viewmodel.dart';
 import 'package:taskmaster/timezone_helper.dart';
 
 import '../../date_util.dart';
@@ -213,304 +214,312 @@ class AddEditScreenState extends State<AddEditScreen> {
 
   @override
   Widget build(BuildContext context) {
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Task Details"),
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(8.0),
-        child: Form(
-          key: formKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          onChanged: () {
-            setState(() {
-              _hasChanges = true;
-            });
-          },
-          child: SingleChildScrollView(
-              child: Column(
-                children: <Widget>[
-                  EditableTaskField(
-                    initialText: taskItemBlueprint.name,
-                    labelText: 'Name',
-                    fieldSetter: (value) => taskItemBlueprint.name = value,
-                    inputType: TextInputType.multiline,
-                    isRequired: true,
-                    wordCaps: true,
-                  ),
-                  NullableDropdown(
-                    initialValue: taskItemBlueprint.project,
-                    labelText: 'Project',
-                    possibleValues: possibleProjects,
-                    valueSetter: (value) => taskItemBlueprint.project = value,
-                  ),
-                  NullableDropdown(
-                    initialValue: taskItemBlueprint.context,
-                    labelText: 'Context',
-                    possibleValues: possibleContexts,
-                    valueSetter: (value) => taskItemBlueprint.context = value,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: <Widget>[
-                      Expanded(
-                        child: EditableTaskField(
-                          initialText: _getInputDisplay(taskItemBlueprint.priority),
-                          labelText: 'Priority',
-                          fieldSetter: (value) => taskItemBlueprint.priority = _parseInt(value),
-                          inputType: TextInputType.number,
+    return StoreConnector<AppState, AddEditScreenViewModel>(
+        onWillChange: (prev, current) {
+          if (prev != null && prev.updating && !current.updating) {
+            Navigator.pop(context);
+          }
+        },
+        builder: (context, viewModel) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text("Task Details"),
+            ),
+            body: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Form(
+                key: formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                onChanged: () {
+                  setState(() {
+                    _hasChanges = true;
+                  });
+                },
+                child: SingleChildScrollView(
+                    child: Column(
+                      children: <Widget>[
+                        EditableTaskField(
+                          initialText: taskItemBlueprint.name,
+                          labelText: 'Name',
+                          fieldSetter: (value) => taskItemBlueprint.name = value,
+                          inputType: TextInputType.multiline,
+                          isRequired: true,
+                          wordCaps: true,
                         ),
-                      ),
-                      Expanded(
-                        child: EditableTaskField(
-                          initialText: _getInputDisplay(taskItemBlueprint.gamePoints),
-                          labelText: 'Points',
-                          fieldSetter: (value) => taskItemBlueprint.gamePoints = _parseInt(value),
-                          inputType: TextInputType.number,
+                        NullableDropdown(
+                          initialValue: taskItemBlueprint.project,
+                          labelText: 'Project',
+                          possibleValues: possibleProjects,
+                          valueSetter: (value) => taskItemBlueprint.project = value,
                         ),
-                      ),
-                      Expanded(
-                        child: EditableTaskField(
-                          initialText: _getInputDisplay(taskItemBlueprint.duration),
-                          labelText: 'Length',
-                          fieldSetter: (value) => taskItemBlueprint.duration = _parseInt(value),
-                          inputType: TextInputType.number,
+                        NullableDropdown(
+                          initialValue: taskItemBlueprint.context,
+                          labelText: 'Context',
+                          possibleValues: possibleContexts,
+                          valueSetter: (value) => taskItemBlueprint.context = value,
                         ),
-                      ),
-                    ],
-                  ),
-                  ClearableDateTimeField(
-                    labelText: 'Start Date',
-                    dateGetter: () {
-                      return taskItemBlueprint.startDate;
-                    },
-                    initialPickerGetter: () {
-                      return DateTime.now();
-                    },
-                    dateSetter: (DateTime? pickedDate) {
-                      setState(() {
-                        taskItemBlueprint.startDate = pickedDate;
-                        if (!hasDate()) {
-                          clearRepeatOn();
-                        }
-                      });
-                    },
-                    timezoneHelper: widget.timezoneHelper,
-                  ),
-                  ClearableDateTimeField(
-                    labelText: 'Target Date',
-                    dateGetter: () {
-                      return taskItemBlueprint.targetDate;
-                    },
-                    initialPickerGetter: () {
-                      return _getOnePastPreviousDateOrNow(TaskDateTypes.target);
-                    },
-                    firstDateGetter: () {
-                      return taskItemBlueprint.startDate;
-                    },
-                    currentDateGetter: () {
-                      return _getPreviousDateOrNow(TaskDateTypes.target);
-                    },
-                    dateSetter: (DateTime? pickedDate) {
-                      setState(() {
-                        taskItemBlueprint.targetDate = pickedDate;
-                        if (!hasDate()) {
-                          clearRepeatOn();
-                        }
-                      });
-                    },
-                    timezoneHelper: widget.timezoneHelper,
-                  ),
-                  ClearableDateTimeField(
-                    labelText: 'Urgent Date',
-                    dateGetter: () {
-                      return taskItemBlueprint.urgentDate;
-                    },
-                    initialPickerGetter: () {
-                      return _getOnePastPreviousDateOrNow(TaskDateTypes.urgent);
-                    },
-                    firstDateGetter: () {
-                      return taskItemBlueprint.startDate;
-                    },
-                    currentDateGetter: () {
-                      return _getPreviousDateOrNow(TaskDateTypes.urgent);
-                    },
-                    dateSetter: (DateTime? pickedDate) {
-                      setState(() {
-                        taskItemBlueprint.urgentDate = pickedDate;
-                        if (!hasDate()) {
-                          clearRepeatOn();
-                        }
-                      });
-                    },
-                    timezoneHelper: widget.timezoneHelper,
-                  ),
-                  ClearableDateTimeField(
-                    labelText: 'Due Date',
-                    dateGetter: () {
-                      return taskItemBlueprint.dueDate;
-                    },
-                    initialPickerGetter: () {
-                      return _getOnePastPreviousDateOrNow(TaskDateTypes.due);
-                    },
-                    firstDateGetter: () {
-                      return taskItemBlueprint.startDate;
-                    },
-                    currentDateGetter: () {
-                      return _getPreviousDateOrNow(TaskDateTypes.due);
-                    },
-                    dateSetter: (DateTime? pickedDate) {
-                      setState(() {
-                        taskItemBlueprint.dueDate = pickedDate;
-                        if (!hasDate()) {
-                          clearRepeatOn();
-                        }
-                      });
-                    },
-                    timezoneHelper: widget.timezoneHelper,
-                  ),
-                  Visibility(
-                    visible: hasDate(),
-                    child: Card(
-                      elevation: 3.0,
-                      color: TaskColors.cardColor,
-                      child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
-                          child: Column(
-                            children: <Widget>[
-                              Row(
-                                children: <Widget>[
-                                  Expanded(
-                                    child: Padding(
-                                      padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
-                                      child: Text('Repeat',
-                                        style: Theme.of(context).textTheme.titleMedium,),
-                                    ),
-                                  ),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: <Widget>[
-                                      Switch(
-                                        value: _repeatOn,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            _repeatOn = value;
-                                            print(_repeatOn);
-                                          });
-                                        },
-                                        activeTrackColor: Colors.pinkAccent,
-                                        activeColor: Colors.pink,
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: <Widget>[
+                            Expanded(
+                              child: EditableTaskField(
+                                initialText: _getInputDisplay(taskItemBlueprint.priority),
+                                labelText: 'Priority',
+                                fieldSetter: (value) => taskItemBlueprint.priority = _parseInt(value),
+                                inputType: TextInputType.number,
                               ),
-                              Visibility(
-                                visible: _repeatOn,
+                            ),
+                            Expanded(
+                              child: EditableTaskField(
+                                initialText: _getInputDisplay(taskItemBlueprint.gamePoints),
+                                labelText: 'Points',
+                                fieldSetter: (value) => taskItemBlueprint.gamePoints = _parseInt(value),
+                                inputType: TextInputType.number,
+                              ),
+                            ),
+                            Expanded(
+                              child: EditableTaskField(
+                                initialText: _getInputDisplay(taskItemBlueprint.duration),
+                                labelText: 'Length',
+                                fieldSetter: (value) => taskItemBlueprint.duration = _parseInt(value),
+                                inputType: TextInputType.number,
+                              ),
+                            ),
+                          ],
+                        ),
+                        ClearableDateTimeField(
+                          labelText: 'Start Date',
+                          dateGetter: () {
+                            return taskItemBlueprint.startDate;
+                          },
+                          initialPickerGetter: () {
+                            return DateTime.now();
+                          },
+                          dateSetter: (DateTime? pickedDate) {
+                            setState(() {
+                              taskItemBlueprint.startDate = pickedDate;
+                              if (!hasDate()) {
+                                clearRepeatOn();
+                              }
+                            });
+                          },
+                          timezoneHelper: widget.timezoneHelper,
+                        ),
+                        ClearableDateTimeField(
+                          labelText: 'Target Date',
+                          dateGetter: () {
+                            return taskItemBlueprint.targetDate;
+                          },
+                          initialPickerGetter: () {
+                            return _getOnePastPreviousDateOrNow(TaskDateTypes.target);
+                          },
+                          firstDateGetter: () {
+                            return taskItemBlueprint.startDate;
+                          },
+                          currentDateGetter: () {
+                            return _getPreviousDateOrNow(TaskDateTypes.target);
+                          },
+                          dateSetter: (DateTime? pickedDate) {
+                            setState(() {
+                              taskItemBlueprint.targetDate = pickedDate;
+                              if (!hasDate()) {
+                                clearRepeatOn();
+                              }
+                            });
+                          },
+                          timezoneHelper: widget.timezoneHelper,
+                        ),
+                        ClearableDateTimeField(
+                          labelText: 'Urgent Date',
+                          dateGetter: () {
+                            return taskItemBlueprint.urgentDate;
+                          },
+                          initialPickerGetter: () {
+                            return _getOnePastPreviousDateOrNow(TaskDateTypes.urgent);
+                          },
+                          firstDateGetter: () {
+                            return taskItemBlueprint.startDate;
+                          },
+                          currentDateGetter: () {
+                            return _getPreviousDateOrNow(TaskDateTypes.urgent);
+                          },
+                          dateSetter: (DateTime? pickedDate) {
+                            setState(() {
+                              taskItemBlueprint.urgentDate = pickedDate;
+                              if (!hasDate()) {
+                                clearRepeatOn();
+                              }
+                            });
+                          },
+                          timezoneHelper: widget.timezoneHelper,
+                        ),
+                        ClearableDateTimeField(
+                          labelText: 'Due Date',
+                          dateGetter: () {
+                            return taskItemBlueprint.dueDate;
+                          },
+                          initialPickerGetter: () {
+                            return _getOnePastPreviousDateOrNow(TaskDateTypes.due);
+                          },
+                          firstDateGetter: () {
+                            return taskItemBlueprint.startDate;
+                          },
+                          currentDateGetter: () {
+                            return _getPreviousDateOrNow(TaskDateTypes.due);
+                          },
+                          dateSetter: (DateTime? pickedDate) {
+                            setState(() {
+                              taskItemBlueprint.dueDate = pickedDate;
+                              if (!hasDate()) {
+                                clearRepeatOn();
+                              }
+                            });
+                          },
+                          timezoneHelper: widget.timezoneHelper,
+                        ),
+                        Visibility(
+                          visible: hasDate(),
+                          child: Card(
+                            elevation: 3.0,
+                            color: TaskColors.cardColor,
+                            child: Padding(
+                                padding: EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
                                 child: Column(
                                   children: <Widget>[
                                     Row(
                                       children: <Widget>[
+                                        Expanded(
+                                          child: Padding(
+                                            padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
+                                            child: Text('Repeat',
+                                              style: Theme.of(context).textTheme.titleMedium,),
+                                          ),
+                                        ),
                                         Column(
                                           crossAxisAlignment: CrossAxisAlignment.end,
                                           children: <Widget>[
-                                            SizedBox(
-                                              width: 80.0,
-                                              child: EditableTaskField(
-                                                initialText: _getInputDisplay(taskItemBlueprint.recurNumber),
-                                                labelText: 'Num',
-                                                fieldSetter: (value) => taskItemBlueprint.recurNumber = _parseInt(value),
-                                                inputType: TextInputType.number,
-                                                validator: (value) {
-                                                  if (_repeatOn && value != null && value.isEmpty) {
-                                                    return 'Required';
-                                                  }
-                                                  return null;
-                                                },
-                                              ),
+                                            Switch(
+                                              value: _repeatOn,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  _repeatOn = value;
+                                                  print(_repeatOn);
+                                                });
+                                              },
+                                              activeTrackColor: Colors.pinkAccent,
+                                              activeColor: Colors.pink,
                                             ),
                                           ],
                                         ),
-                                        Expanded(
-                                          child: NullableDropdown(
-                                            initialValue: taskItemBlueprint.recurUnit,
-                                            labelText: 'Unit',
-                                            possibleValues: possibleRecurUnits,
-                                            valueSetter: (value) => taskItemBlueprint.recurUnit = value,
+                                      ],
+                                    ),
+                                    Visibility(
+                                      visible: _repeatOn,
+                                      child: Column(
+                                        children: <Widget>[
+                                          Row(
+                                            children: <Widget>[
+                                              Column(
+                                                crossAxisAlignment: CrossAxisAlignment.end,
+                                                children: <Widget>[
+                                                  SizedBox(
+                                                    width: 80.0,
+                                                    child: EditableTaskField(
+                                                      initialText: _getInputDisplay(taskItemBlueprint.recurNumber),
+                                                      labelText: 'Num',
+                                                      fieldSetter: (value) => taskItemBlueprint.recurNumber = _parseInt(value),
+                                                      inputType: TextInputType.number,
+                                                      validator: (value) {
+                                                        if (_repeatOn && value != null && value.isEmpty) {
+                                                          return 'Required';
+                                                        }
+                                                        return null;
+                                                      },
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              Expanded(
+                                                child: NullableDropdown(
+                                                  initialValue: taskItemBlueprint.recurUnit,
+                                                  labelText: 'Unit',
+                                                  possibleValues: possibleRecurUnits,
+                                                  valueSetter: (value) => taskItemBlueprint.recurUnit = value,
+                                                  validator: (value) {
+                                                    if (_repeatOn && value == '(none)') {
+                                                      return 'Unit is required for repeat.';
+                                                    }
+                                                    return null;
+                                                  },
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          NullableDropdown(
+                                            initialValue: recurWaitToAnchorDate(taskItemBlueprint.recurWait),
+                                            labelText: 'Anchor',
+                                            possibleValues: possibleAnchorDates,
+                                            valueSetter: (value) => taskItemBlueprint.recurWait = anchorDateToRecurWait(value!),
                                             validator: (value) {
                                               if (_repeatOn && value == '(none)') {
-                                                return 'Unit is required for repeat.';
+                                                return 'Anchor Date is required for repeat.';
                                               }
                                               return null;
                                             },
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    NullableDropdown(
-                                      initialValue: recurWaitToAnchorDate(taskItemBlueprint.recurWait),
-                                      labelText: 'Anchor',
-                                      possibleValues: possibleAnchorDates,
-                                      valueSetter: (value) => taskItemBlueprint.recurWait = anchorDateToRecurWait(value!),
-                                      validator: (value) {
-                                        if (_repeatOn && value == '(none)') {
-                                          return 'Anchor Date is required for repeat.';
-                                        }
-                                        return null;
-                                      },
+                                        ],
+                                      ),
                                     ),
                                   ],
-                                ),
-                              ),
-                            ],
-                          )
-                      ),
-                    ),
-                  ),
-                  EditableTaskField(
-                    initialText: taskItemBlueprint.description,
-                    labelText: 'Notes',
-                    fieldSetter: (value) => taskItemBlueprint.description = value == null || value.isEmpty ? null : value,
-                    inputType: TextInputType.multiline,
-                  ),
-                ],
-              )
-          ),
-        ),
-      ),
-      floatingActionButton: Visibility(
-        visible: _hasChanges || (_initialRepeatOn && !_repeatOn),
-        child: FloatingActionButton(
-            child: Icon(isEditing ? Icons.check : Icons.add),
-            onPressed: () async {
-              final form = formKey.currentState;
+                                )
+                            ),
+                          ),
+                        ),
+                        EditableTaskField(
+                          initialText: taskItemBlueprint.description,
+                          labelText: 'Notes',
+                          fieldSetter: (value) => taskItemBlueprint.description = value == null || value.isEmpty ? null : value,
+                          inputType: TextInputType.multiline,
+                        ),
+                      ],
+                    )
+                ),
+              ),
+            ),
+            floatingActionButton: Visibility(
+              visible: _hasChanges || (_initialRepeatOn && !_repeatOn),
+              child: FloatingActionButton(
+                  child: Icon(isEditing ? Icons.check : Icons.add),
+                  onPressed: () async {
 
-              if (!_repeatOn) {
-                clearRecurrenceFieldsFromTask();
-              }
+                    final form = formKey.currentState;
 
-              if (form != null && form.validate()) {
-                form.save();
+                    if (!_repeatOn) {
+                      clearRecurrenceFieldsFromTask();
+                    }
 
-                if (_repeatOn) {
-                  if (!_initialRepeatOn) {
-                    taskItemBlueprint.recurIteration = 1;
+                    if (form != null && form.validate()) {
+                      form.save();
+
+                      if (_repeatOn) {
+                        if (!_initialRepeatOn) {
+                          taskItemBlueprint.recurIteration = 1;
+                        }
+                        updateRecurrenceBlueprint();
+                      }
+
+                      if (editMode()) {
+                        StoreProvider.of<AppState>(context).dispatch(UpdateTaskItemAction(taskItem: taskItem!, blueprint: taskItemBlueprint));
+                      } else { // add mode
+                        StoreProvider.of<AppState>(context).dispatch(AddTaskItemAction(blueprint: taskItemBlueprint));
+                      }
+                    }
                   }
-                  updateRecurrenceBlueprint();
-                }
-
-                if (editMode()) {
-                  StoreProvider.of<AppState>(context).dispatch(UpdateTaskItemAction(taskItem: taskItem!, blueprint: taskItemBlueprint));
-                } else { // add mode
-                  StoreProvider.of<AppState>(context).dispatch(AddTaskItemAction(blueprint: taskItemBlueprint));
-                }
-              }
-
-              Navigator.pop(context);
-            }
-        ),
-      ),
+              ),
+            ),
+          );
+        },
+        converter: AddEditScreenViewModel.fromStore
     );
   }
 

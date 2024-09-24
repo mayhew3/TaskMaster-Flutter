@@ -249,6 +249,13 @@ class MockAppState extends _i1.Mock implements _i8.AppState {
       ) as bool);
 
   @override
+  bool get updating => (super.noSuchMethod(
+        Invocation.getter(#updating),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
   _i2.BuiltList<_i4.TaskItem> get recentlyCompleted => (super.noSuchMethod(
         Invocation.getter(#recentlyCompleted),
         returnValue: _FakeBuiltList_0<_i4.TaskItem>(

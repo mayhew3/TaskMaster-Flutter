@@ -17,7 +17,18 @@ final taskItemsReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, LogOutAction>(_onDataNotLoaded),
   TypedReducer<AppState, ClearRecentlyCompletedAction>(_clearRecentlyCompleted),
   TypedReducer<AppState, SnoozeExecuted>(_onSnoozeExecuted),
+
+  TypedReducer<AppState, UpdateTaskItemAction>(_setUpdating),
+  TypedReducer<AppState, AddTaskItemAction>(_setUpdating),
 ];
+
+AppState _setUpdating(AppState state, dynamic action) {
+  return state.rebuild((s) => s.updating = true);
+}
+
+AppState _setNotUpdating(AppState state, dynamic action) {
+  return state.rebuild((s) => s.updating = false);
+}
 
 AppState _taskItemAdded(AppState state, TaskItemAddedAction action) {
   var taskRecurrence = action.taskRecurrence;
@@ -26,6 +37,7 @@ AppState _taskItemAdded(AppState state, TaskItemAddedAction action) {
     if (taskRecurrence != null) {
       s.taskRecurrences = state.taskRecurrences.toBuilder()..add(taskRecurrence);
     }
+    s.updating = false;
     return s;
   });
 }
@@ -41,7 +53,10 @@ AppState _taskItemUpdated(AppState state, TaskItemUpdatedAction action) {
         ..pendingCompletion = false
         ..sprintAssignments = taskItem.sprintAssignments.toBuilder();
     }) : taskItem);
-  return state.rebuild((s) => s..taskItems = listBuilder);
+  return state.rebuild((s) => s
+    ..taskItems = listBuilder
+    ..updating = false
+  );
 }
 
 AppState _completeTaskItem(AppState state, CompleteTaskItemAction action) {
