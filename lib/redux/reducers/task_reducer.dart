@@ -92,12 +92,25 @@ AppState _onCompleteRecurringTaskItem(AppState state, RecurringTaskItemCompleted
 
 AppState _onCompleteTaskItem(AppState state, TaskItemCompletedAction action) {
   var listBuilder = state.taskItems.toBuilder()
-    ..map((taskItem) => taskItem.id == action.taskItem.id ? taskItem.rebuild((t) => t
+    ..map((taskItem) =>
+    taskItem.id == action.taskItem.id ? taskItem.rebuild((t) =>
+    t
       ..pendingCompletion = false
       ..completionDate = action.taskItem.completionDate
     ) : taskItem);
-  var recentListBuilder = state.recentlyCompleted.toBuilder()..add(listBuilder.build().where((t) => t.id == action.taskItem.id).first);
-  return state.rebuild((s) => s
+  var recentListBuilder;
+  if (action.complete) {
+    recentListBuilder = state.recentlyCompleted.toBuilder()
+      ..add(listBuilder
+          .build()
+          .where((t) => t.id == action.taskItem.id)
+          .first);
+  } else {
+    recentListBuilder = state.recentlyCompleted.toBuilder()
+        ..removeWhere((t) => t.id == action.taskItem.id);
+  }
+  return state.rebuild((s) =>
+  s
     ..taskItems = listBuilder
     ..recentlyCompleted = recentListBuilder
     ..updating = false

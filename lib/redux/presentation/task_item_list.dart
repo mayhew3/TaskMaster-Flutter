@@ -272,7 +272,7 @@ class TaskItemListState extends State<TaskItemList> {
     List<TaskItem> otherTasks = getFilteredTasks(widget.taskItems);
 
     final List<TaskItem> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted()
-        && !viewModel.recentlyCompleted.contains(taskItem)
+        && !viewModel.recentlyCompleted.any((t) => t.id == taskItem.id)
     );
     final List<TaskItem> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isPastDue());
     final List<TaskItem> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgent());
