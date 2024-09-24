@@ -42,6 +42,7 @@ class PlanTaskList extends StatefulWidget {
 class PlanTaskListState extends State<PlanTaskList> {
 
   bool initialized = false;
+  bool submitting = false;
 
   // three queues for the selected task items
   List<TaskItem> taskItemQueue = [];
@@ -56,8 +57,9 @@ class PlanTaskListState extends State<PlanTaskList> {
   late final DateTime endDate;
 
   void validateState(PlanTaskListViewModel viewModel) {
-    if (viewModel.activeSprint != null &&
-        (widget.numUnits != null || widget.unitName != null || widget.startDate != null)) {
+    if (!submitting &&
+        (viewModel.activeSprint != null &&
+        (widget.numUnits != null || widget.unitName != null || widget.startDate != null))) {
       throw Exception(
           "Expected all of numUnits, unitName, and startDate to be null if there is an active sprint.");
     }
@@ -316,20 +318,33 @@ class PlanTaskListState extends State<PlanTaskList> {
   }
 
   void submit(BuildContext context, PlanTaskListViewModel viewModel) async {
-    var store = StoreProvider.of<AppState>(context);
-    if (addMode(viewModel)) {
-      SprintBlueprint sprint = SprintBlueprint(
-          startDate: widget.startDate!,
-          endDate: endDate,
-          numUnits: widget.numUnits!,
-          unitName: widget.unitName!,
-          personId: viewModel.personId
-      );
-      waitForAddSprintThenPopWindow(store, context);
-      store.dispatch(CreateSprintWithTaskItems(sprintBlueprint: sprint, taskItems: taskItemQueue.toBuiltList(), taskItemRecurPreviews: taskItemRecurPreviewQueue.toBuiltList()));
-    } else {
-      waitForSprintAssignmentsThenPopWindow(store, context, viewModel.activeSprint!, taskItemsForSprintSelector(viewModel.allTaskItems, viewModel.activeSprint!));
-      store.dispatch(AddTaskItemsToExistingSprint(sprint: viewModel.activeSprint!, taskItems: taskItemQueue.toBuiltList(), taskItemRecurPreviews: taskItemRecurPreviewQueue.toBuiltList()));
+    submitting = true;
+    try {
+      var store = StoreProvider.of<AppState>(context);
+      if (addMode(viewModel)) {
+        SprintBlueprint sprint = SprintBlueprint(
+            startDate: widget.startDate!,
+            endDate: endDate,
+            numUnits: widget.numUnits!,
+            unitName: widget.unitName!,
+            personId: viewModel.personId
+        );
+        print("Submitting");
+        waitForAddSprintThenPopWindow(store, context);
+        store.dispatch(CreateSprintWithTaskItems(sprintBlueprint: sprint,
+            taskItems: taskItemQueue.toBuiltList(),
+            taskItemRecurPreviews: taskItemRecurPreviewQueue.toBuiltList()));
+      } else {
+        waitForSprintAssignmentsThenPopWindow(
+            store, context, viewModel.activeSprint!, taskItemsForSprintSelector(
+            viewModel.allTaskItems, viewModel.activeSprint!));
+        store.dispatch(AddTaskItemsToExistingSprint(
+            sprint: viewModel.activeSprint!,
+            taskItems: taskItemQueue.toBuiltList(),
+            taskItemRecurPreviews: taskItemRecurPreviewQueue.toBuiltList()));
+      }
+    } catch (e) {
+      submitting = false;
     }
   }
 
@@ -339,6 +354,7 @@ class PlanTaskListState extends State<PlanTaskList> {
       var activeSprint = activeSprintSelector(appState.sprints);
       if (activeSprint != null) {
         Navigator.pop(context, 'Added');
+        print("Popped!");
         subscription.cancel();
       }
     });
