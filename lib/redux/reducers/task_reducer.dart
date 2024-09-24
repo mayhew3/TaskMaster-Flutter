@@ -55,8 +55,9 @@ AppState _completeTaskItem(AppState state, CompleteTaskItemAction action) {
 AppState _onCompleteRecurringTaskItem(AppState state, RecurringTaskItemCompletedAction action) {
   var taskItemListBuilder = state.taskItems.toBuilder()
     ..map((taskItem) => taskItem.id == action.completedTaskItem.id ?
-    action.completedTaskItem.rebuild((t) => t
+    taskItem.rebuild((t) => t
       ..pendingCompletion = false
+      ..completionDate = action.completedTaskItem.completionDate
       ..recurrence = action.recurrence.toBuilder()) :
     taskItem)
     ..add(action.addedTaskItem.rebuild((t) => t.recurrence = action.recurrence.toBuilder()))
