@@ -1,4 +1,5 @@
 import 'package:built_collection/built_collection.dart';
+import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/helpers/recurrence_helper.dart';
 import 'package:taskmaster/models/models.dart';
@@ -9,15 +10,19 @@ import 'package:taskmaster/redux/actions/auth_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/middleware/notification_helper.dart';
 import 'package:taskmaster/redux/selectors/selectors.dart';
+import 'package:taskmaster/routes.dart';
 import 'package:taskmaster/task_repository.dart';
 
 import '../actions/task_item_actions.dart';
 
-List<Middleware<AppState>> createStoreTaskItemsMiddleware(TaskRepository repository) {
+List<Middleware<AppState>> createStoreTaskItemsMiddleware(
+    TaskRepository repository,
+    GlobalKey<NavigatorState> navigatorKey,
+    ) {
   return [
     TypedMiddleware<AppState, VerifyPersonAction>(_verifyPerson(repository)),
-    TypedMiddleware<AppState, LoadDataAction>(_loadData(repository)),
-    TypedMiddleware<AppState, DataLoadedAction>(_dataLoaded()),
+    TypedMiddleware<AppState, LoadDataAction>(_loadData(repository, navigatorKey)),
+    TypedMiddleware<AppState, DataLoadedAction>(_dataLoaded(navigatorKey)),
     TypedMiddleware<AppState, AddTaskItemAction>(_createNewTaskItem(repository)),
     TypedMiddleware<AppState, UpdateTaskItemAction>(_updateTaskItem(repository)),
     TypedMiddleware<AppState, DeleteTaskItemAction>(_deleteTaskItem(repository)),
@@ -61,9 +66,10 @@ Future<void> Function(
     Store<AppState>,
     LoadDataAction action,
     NextDispatcher next,
-    ) _loadData(TaskRepository repository) {
+    ) _loadData(TaskRepository repository, GlobalKey<NavigatorState> navigatorKey) {
   return (Store<AppState> store, LoadDataAction action, NextDispatcher next) async {
     next(action);
+    navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.loading);
     var inputs = await getRequiredInputs(store, "load tasks");
     print("Fetching tasks for person_id ${inputs.personId}...");
     try {
@@ -71,6 +77,7 @@ Future<void> Function(
       store.dispatch(DataLoadedAction(dataPayload: dataPayload));
     } catch (e) {
       print("Error fetching task list: $e");
+      navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.loadFailed);
       store.dispatch(DataNotLoadedAction());
     }
 
@@ -81,11 +88,13 @@ Future<void> Function(
     Store<AppState>,
     DataLoadedAction action,
     NextDispatcher next,
-    ) _dataLoaded() {
+    ) _dataLoaded(GlobalKey<NavigatorState> navigatorKey) {
   return (Store<AppState> store, DataLoadedAction action, NextDispatcher next) async {
     next(action);
     var taskItemCount = store.state.taskItems.length;
     print("Data loaded. Task item count: $taskItemCount");
+
+    navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.home);
 
     var notificationHelper = new NotificationHelper(plugin: store.state.flutterLocalNotificationsPlugin, timezoneHelper: store.state.timezoneHelper);
     await notificationHelper.syncNotificationForTasksAndSprint(store.state.taskItems.toList(), activeSprintSelector(store.state.sprints));

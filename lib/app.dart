@@ -13,6 +13,8 @@ import 'package:taskmaster/redux/middleware/store_task_items_middleware.dart';
 import 'package:taskmaster/redux/presentation/home_screen.dart';
 import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/actions/task_item_actions.dart';
+import 'package:taskmaster/redux/presentation/load_failed.dart';
+import 'package:taskmaster/redux/presentation/loading_indicator.dart';
 import 'package:taskmaster/redux/presentation/sign_in.dart';
 import 'package:taskmaster/redux/presentation/splash.dart';
 import 'package:taskmaster/redux/reducers/app_state_reducer.dart';
@@ -40,7 +42,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     store = Store<AppState>(
         appReducer,
         initialState: AppState.init(loading: true),
-        middleware: createStoreTaskItemsMiddleware(taskRepository)
+        middleware: createStoreTaskItemsMiddleware(taskRepository, _navigatorKey)
           ..addAll(createAuthenticationMiddleware(_navigatorKey))
           ..addAll(createStoreSprintsMiddleware(taskRepository))
           // ..add(new LoggingMiddleware.printer())
@@ -142,16 +144,15 @@ class TaskMasterAppState extends State<TaskMasterApp> {
           TaskMasterRoutes.login: (context) {
             return SignInScreen();
           },
+          TaskMasterRoutes.loading: (context) {
+            return LoadingIndicator();
+          },
+          TaskMasterRoutes.loadFailed: (context) {
+            return LoadFailedScreen();
+          },
           TaskMasterRoutes.home: (context) {
             return HomeScreen(
-              onInit: () {
-                print("Home Screen: onInit()");
-                var store = StoreProvider.of<AppState>(context);
-                if (store.state.isAuthenticated()) {
-                  print("Home Screen: onInit(), authenticated");
-                  store.dispatch(LoadDataAction());
-                }
-              },
+              onInit: () {},
             );
           },
         },

@@ -67,8 +67,9 @@ void Function(
     next(action);
     await store.state.timezoneHelper.configureLocalTimeZone();
     if (store.state.appIsReady()) {
+      store.dispatch(LoadDataAction());
       await navigatorKey.currentState!.pushReplacementNamed(
-          TaskMasterRoutes.home);
+          TaskMasterRoutes.loading);
     }
   };
 }
@@ -120,8 +121,9 @@ void Function(
         store.dispatch(OnAuthenticatedAction(account, firebaseUser, idToken));
         store.dispatch(VerifyPersonAction(account.email));
         if (store.state.appIsReady()) {
+          store.dispatch(LoadDataAction());
           await navigatorKey.currentState!.pushReplacementNamed(
-              TaskMasterRoutes.home);
+              TaskMasterRoutes.loading);
         }
       }
     });
@@ -141,8 +143,9 @@ void Function(
     next(action);
 
     if (store.state.appIsReady()) {
+      store.dispatch(LoadDataAction());
       await navigatorKey.currentState!.pushReplacementNamed(
-          TaskMasterRoutes.home);
+          TaskMasterRoutes.loading);
     }
   };
 }
