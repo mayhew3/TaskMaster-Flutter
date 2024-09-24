@@ -11,6 +11,7 @@ part 'plan_task_list_viewmodel.g.dart';
 abstract class PlanTaskListViewModel implements Built<PlanTaskListViewModel, PlanTaskListViewModelBuilder> {
   BuiltList<TaskItem> get allTaskItems;
   BuiltList<Sprint> get allSprints;
+  BuiltList<TaskItem> get recentlyCompleted;
   Sprint? get lastSprint;
   Sprint? get activeSprint;
   int get personId;
@@ -24,6 +25,7 @@ abstract class PlanTaskListViewModel implements Built<PlanTaskListViewModel, Pla
     return PlanTaskListViewModel((c) => c
       ..allTaskItems = store.state.taskItems.toBuilder()
       ..allSprints = store.state.sprints.toBuilder()
+      ..recentlyCompleted = store.state.recentlyCompleted.toBuilder()
       ..lastSprint = lastCompletedSprintSelector(store.state.sprints)?.toBuilder()
       ..activeSprint = activeSprintSelector(store.state.sprints)?.toBuilder()
       ..personId = store.state.personId

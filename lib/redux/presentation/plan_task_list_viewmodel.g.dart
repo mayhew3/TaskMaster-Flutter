@@ -12,6 +12,8 @@ class _$PlanTaskListViewModel extends PlanTaskListViewModel {
   @override
   final BuiltList<Sprint> allSprints;
   @override
+  final BuiltList<TaskItem> recentlyCompleted;
+  @override
   final Sprint? lastSprint;
   @override
   final Sprint? activeSprint;
@@ -27,6 +29,7 @@ class _$PlanTaskListViewModel extends PlanTaskListViewModel {
   _$PlanTaskListViewModel._(
       {required this.allTaskItems,
       required this.allSprints,
+      required this.recentlyCompleted,
       this.lastSprint,
       this.activeSprint,
       required this.personId,
@@ -36,6 +39,8 @@ class _$PlanTaskListViewModel extends PlanTaskListViewModel {
         allTaskItems, r'PlanTaskListViewModel', 'allTaskItems');
     BuiltValueNullFieldError.checkNotNull(
         allSprints, r'PlanTaskListViewModel', 'allSprints');
+    BuiltValueNullFieldError.checkNotNull(
+        recentlyCompleted, r'PlanTaskListViewModel', 'recentlyCompleted');
     BuiltValueNullFieldError.checkNotNull(
         personId, r'PlanTaskListViewModel', 'personId');
     BuiltValueNullFieldError.checkNotNull(
@@ -57,6 +62,7 @@ class _$PlanTaskListViewModel extends PlanTaskListViewModel {
     return other is PlanTaskListViewModel &&
         allTaskItems == other.allTaskItems &&
         allSprints == other.allSprints &&
+        recentlyCompleted == other.recentlyCompleted &&
         lastSprint == other.lastSprint &&
         activeSprint == other.activeSprint &&
         personId == other.personId &&
@@ -68,6 +74,7 @@ class _$PlanTaskListViewModel extends PlanTaskListViewModel {
     var _$hash = 0;
     _$hash = $jc(_$hash, allTaskItems.hashCode);
     _$hash = $jc(_$hash, allSprints.hashCode);
+    _$hash = $jc(_$hash, recentlyCompleted.hashCode);
     _$hash = $jc(_$hash, lastSprint.hashCode);
     _$hash = $jc(_$hash, activeSprint.hashCode);
     _$hash = $jc(_$hash, personId.hashCode);
@@ -81,6 +88,7 @@ class _$PlanTaskListViewModel extends PlanTaskListViewModel {
     return (newBuiltValueToStringHelper(r'PlanTaskListViewModel')
           ..add('allTaskItems', allTaskItems)
           ..add('allSprints', allSprints)
+          ..add('recentlyCompleted', recentlyCompleted)
           ..add('lastSprint', lastSprint)
           ..add('activeSprint', activeSprint)
           ..add('personId', personId)
@@ -104,6 +112,12 @@ class PlanTaskListViewModelBuilder
       _$this._allSprints ??= new ListBuilder<Sprint>();
   set allSprints(ListBuilder<Sprint>? allSprints) =>
       _$this._allSprints = allSprints;
+
+  ListBuilder<TaskItem>? _recentlyCompleted;
+  ListBuilder<TaskItem> get recentlyCompleted =>
+      _$this._recentlyCompleted ??= new ListBuilder<TaskItem>();
+  set recentlyCompleted(ListBuilder<TaskItem>? recentlyCompleted) =>
+      _$this._recentlyCompleted = recentlyCompleted;
 
   SprintBuilder? _lastSprint;
   SprintBuilder get lastSprint => _$this._lastSprint ??= new SprintBuilder();
@@ -130,6 +144,7 @@ class PlanTaskListViewModelBuilder
     if ($v != null) {
       _allTaskItems = $v.allTaskItems.toBuilder();
       _allSprints = $v.allSprints.toBuilder();
+      _recentlyCompleted = $v.recentlyCompleted.toBuilder();
       _lastSprint = $v.lastSprint?.toBuilder();
       _activeSprint = $v.activeSprint?.toBuilder();
       _personId = $v.personId;
@@ -160,6 +175,7 @@ class PlanTaskListViewModelBuilder
           new _$PlanTaskListViewModel._(
               allTaskItems: allTaskItems.build(),
               allSprints: allSprints.build(),
+              recentlyCompleted: recentlyCompleted.build(),
               lastSprint: _lastSprint?.build(),
               activeSprint: _activeSprint?.build(),
               personId: BuiltValueNullFieldError.checkNotNull(
@@ -173,6 +189,8 @@ class PlanTaskListViewModelBuilder
         allTaskItems.build();
         _$failedField = 'allSprints';
         allSprints.build();
+        _$failedField = 'recentlyCompleted';
+        recentlyCompleted.build();
         _$failedField = 'lastSprint';
         _lastSprint?.build();
         _$failedField = 'activeSprint';

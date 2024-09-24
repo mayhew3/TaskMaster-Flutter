@@ -202,7 +202,7 @@ class PlanTaskListState extends State<PlanTaskList> {
 
     Sprint? lastCompletedSprint = viewModel.lastSprint;
 
-    final List<SprintDisplayTask> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted());
+    final List<SprintDisplayTask> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted() && !viewModel.recentlyCompleted.any((t) => t.id == taskItem.id));
     final List<SprintDisplayTask> lastSprintTasks = _moveSublist(otherTasks, (taskItem) => (taskItem is TaskItem) && taskItemIsInSprint(taskItem, lastCompletedSprint));
     final List<SprintDisplayTask> otherSprintTasks = _moveSublist(otherTasks, (taskItem) => wasInEarlierSprint(taskItem, viewModel));
     final List<SprintDisplayTask> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isDueBefore(endDate));
