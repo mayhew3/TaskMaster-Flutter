@@ -8,6 +8,7 @@ import 'package:redux/redux.dart';
 import 'package:taskmaster/redux/actions/task_item_actions.dart';
 import 'package:taskmaster/routes.dart';
 
+import '../../firebase_options.dart';
 import '../actions/auth_actions.dart';
 import '../app_state.dart';
 
@@ -93,7 +94,9 @@ void Function(
     ) _tryToSilentlySignIn(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {
     next(action);
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform
+    );
     print("_tryToSilentlySignIn called.");
     store.state.googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) async {
       print("onCurrentUserChanged.");

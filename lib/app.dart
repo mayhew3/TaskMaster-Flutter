@@ -1,12 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:redux/redux.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:redux_logging/redux_logging.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
-import 'package:taskmaster/redux/actions/notification_actions.dart';
 import 'package:taskmaster/redux/middleware/auth_middleware.dart';
 import 'package:taskmaster/redux/middleware/store_sprint_middleware.dart';
 import 'package:taskmaster/redux/middleware/store_task_items_middleware.dart';
@@ -85,28 +82,28 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       primaryColor: TaskColors.menuColor,
       canvasColor: TaskColors.backgroundColor,
       checkboxTheme: CheckboxThemeData(
-        fillColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
-          if (states.contains(MaterialState.disabled)) { return TaskColors.highlight; }
-          if (states.contains(MaterialState.selected)) { return TaskColors.highlight; }
+        fillColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) { return TaskColors.highlight; }
+          if (states.contains(WidgetState.selected)) { return TaskColors.highlight; }
           return TaskColors.highlight;
         }),
       ),
       radioTheme: RadioThemeData(
-        fillColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
-          if (states.contains(MaterialState.disabled)) { return TaskColors.highlight; }
-          if (states.contains(MaterialState.selected)) { return TaskColors.highlight; }
+        fillColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) { return TaskColors.highlight; }
+          if (states.contains(WidgetState.selected)) { return TaskColors.highlight; }
           return TaskColors.highlight;
         }),
       ),
       switchTheme: SwitchThemeData(
-        thumbColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
-          if (states.contains(MaterialState.disabled)) { return TaskColors.highlight; }
-          if (states.contains(MaterialState.selected)) { return TaskColors.highlight; }
+        thumbColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) { return TaskColors.highlight; }
+          if (states.contains(WidgetState.selected)) { return TaskColors.highlight; }
           return TaskColors.highlight;
         }),
-        trackColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
-          if (states.contains(MaterialState.disabled)) { return TaskColors.highlight; }
-          if (states.contains(MaterialState.selected)) { return TaskColors.highlight; }
+        trackColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) { return TaskColors.highlight; }
+          if (states.contains(WidgetState.selected)) { return TaskColors.highlight; }
           return TaskColors.highlight;
         }),
       ),

@@ -34,6 +34,7 @@ abstract class TaskItemListViewModel implements Built<TaskItemListViewModel, Tas
           store.dispatch(CompleteTaskItemAction(
               taskItem, CheckState.inactive == checkState));
         }
+        return null;
       }
       ..activeSprint = activeSprintSelector(store.state.sprints)?.toBuilder()
     );

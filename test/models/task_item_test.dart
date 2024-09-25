@@ -17,9 +17,9 @@ void main() {
       expect(catLitter.completionDate, catEnd);
       expect(catLitter.recurWait, true);
       expect(catLitter.sprintAssignments, isNot(null));
-      expect(catLitter.sprintAssignments!.length, 1);
+      expect(catLitter.sprintAssignments.length, 1);
 
-      SprintAssignment sprintAssignment = catLitter.sprintAssignments![0];
+      SprintAssignment sprintAssignment = catLitter.sprintAssignments[0];
       expect(sprintAssignment.id, 2346);
       expect(sprintAssignment.sprintId, 11);
     });

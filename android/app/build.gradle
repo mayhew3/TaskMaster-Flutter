@@ -42,7 +42,7 @@ android {
 
     defaultConfig {
         applicationId "com.mayhew3.taskmaster"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
