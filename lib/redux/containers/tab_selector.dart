@@ -18,12 +18,12 @@ class TabSelector extends StatelessWidget {
       distinct: true,
       converter: TabSelectorViewModel.fromStore,
       builder: (context, vm) {
-        return BottomNavigationBar(
+        return NavigationBar(
           key: TaskMasterKeys.tabs,
-          currentIndex: vm.allTabs.indexOf(vm.activeTab),
-          onTap: vm.onTabSelected,
-          items: vm.allTabs.map((tab) {
-            return BottomNavigationBarItem(
+          selectedIndex: vm.allTabs.indexOf(vm.activeTab),
+          onDestinationSelected: vm.onTabSelected,
+          destinations: vm.allTabs.map((tab) {
+            return NavigationDestination(
               icon: Icon(tab.icon),
               label: tab.label,
             );
