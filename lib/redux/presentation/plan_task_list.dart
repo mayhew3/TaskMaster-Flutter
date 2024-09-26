@@ -66,7 +66,7 @@ class PlanTaskListState extends State<PlanTaskList> {
     BuiltList<TaskItem> baseList = getBaseList(viewModel);
 
     final Iterable<TaskItem> dueOrUrgentTasks = baseList.where((taskItem) =>
-    taskItem.isDueBefore(endDate) ||
+        taskItem.isDueBefore(endDate) ||
         taskItem.isUrgentBefore(endDate) ||
         taskItemIsInSprint(taskItem, viewModel.lastSprint)
     );

@@ -89,12 +89,12 @@ BuiltList<TaskItem> taskItemsForPlacingOnNewSprint(BuiltList<TaskItem> allTaskIt
 BuiltList<TaskItem> taskItemsForPlacingOnExistingSprint(BuiltList<TaskItem> allTaskItems, Sprint sprint) {
   var taskItems = allTaskItems.toList();
   return taskItems.where((taskItem) {
-    return !taskItem.isScheduledAfter(sprint.endDate) && !taskItem.isCompleted() && taskItemIsInSprint(taskItem, sprint);
+    return !taskItem.isScheduledAfter(sprint.endDate) && !taskItem.isCompleted() && !taskItemIsInSprint(taskItem, sprint);
   }).toBuiltList();
 }
 
 bool taskItemIsInSprint(SprintDisplayTask taskItem, Sprint? sprint) {
-  return sprint != null && taskItem.sprintAssignments.where((sa) => sa.sprintId == sprint.id).isEmpty;
+  return sprint != null && taskItem.sprintAssignments.where((sa) => sa.sprintId == sprint.id).isNotEmpty;
 }
 
 Future<({int personId, String idToken})> getRequiredInputs(Store<AppState> store, String actionDesc) async {
