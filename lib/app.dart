@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:redux/redux.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:taskmaster/app_theme.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
 import 'package:taskmaster/redux/middleware/auth_middleware.dart';
@@ -77,77 +78,12 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   @override
   Widget build(BuildContext context) {
 
-    final ThemeData theme = ThemeData(
-
-    );
-
     return StoreProvider(
       store: store,
       child: MaterialApp(
         title: "TaskMaster 3000",
         navigatorKey: _navigatorKey,
-        theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              brightness: Brightness.dark,
-              seedColor: TaskColors.menuColor,
-              primary: TaskColors.backgroundColor,
-              secondary: TaskColors.highlight,
-              surface: TaskColors.backgroundColor,
-            ),
-            appBarTheme: AppBarTheme(
-              backgroundColor: TaskColors.menuColor,
-              iconTheme: IconThemeData(
-                color: Colors.white,
-              ),
-            ),
-            navigationBarTheme: NavigationBarThemeData(
-              backgroundColor: TaskColors.menuColor,
-              indicatorColor: TaskColors.backgroundColor,
-              height: 70.0,
-            ),
-            floatingActionButtonTheme: FloatingActionButtonThemeData(
-              backgroundColor: TaskColors.highlight,
-            ),
-            elevatedButtonTheme: ElevatedButtonThemeData(
-                style: TextButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: TaskColors.menuColor
-                )
-            ),
-            textButtonTheme: TextButtonThemeData(
-                style: TextButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: TaskColors.menuColor
-                )
-            ),
-            checkboxTheme: CheckboxThemeData(
-              fillColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
-                if (states.contains(WidgetState.disabled)) { return TaskColors.highlight; }
-                if (states.contains(WidgetState.selected)) { return TaskColors.highlight; }
-                return TaskColors.highlight;
-              }),
-            ),
-            radioTheme: RadioThemeData(
-              fillColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
-                if (states.contains(WidgetState.disabled)) { return TaskColors.backgroundColor; }
-                if (states.contains(WidgetState.selected)) { return TaskColors.backgroundColor; }
-                return TaskColors.backgroundColor;
-              }),
-            ),
-            switchTheme: SwitchThemeData(
-              thumbColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
-                if (states.contains(WidgetState.disabled)) { return TaskColors.highlight; }
-                if (states.contains(WidgetState.selected)) { return TaskColors.highlight; }
-                return TaskColors.highlight;
-              }),
-              trackColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
-                if (states.contains(WidgetState.disabled)) { return TaskColors.backgroundColor; }
-                if (states.contains(WidgetState.selected)) { return TaskColors.backgroundColor; }
-                return TaskColors.backgroundColor;
-              }),
-            ),
-
-        ),
+        theme: taskMasterTheme,
         initialRoute: TaskMasterRoutes.splash,
         routes: <String, WidgetBuilder>{
           TaskMasterRoutes.splash: (context) {
