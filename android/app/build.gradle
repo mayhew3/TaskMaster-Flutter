@@ -24,6 +24,7 @@ if (flutterVersionName == null) {
 }
 
 android {
+    namespace "com.mayhew3.taskmaster"
     compileSdkVersion 34
 
     sourceSets {
@@ -35,6 +36,14 @@ android {
         disable "Instantiatable"
         checkReleaseBuilds false
         abortOnError false
+    }
+
+    /* Required because of flutter_local_notifications throwing an error */
+    compileOptions {
+        // Flag to enable support for the new language APIs
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     defaultConfig {
@@ -63,4 +72,5 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.2'
 }
