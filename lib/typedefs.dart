@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:taskmaster/models/sprint_display_task.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/redux/containers/tab_selector.dart';
@@ -28,3 +29,5 @@ typedef DateTime? DateFieldGetter(DateHolder dateHolder);
 typedef void DateFieldSetter(TaskItemBlueprint blueprint, DateTime? newDate);
 
 typedef Widget WidgetGetter();
+typedef bool TaskItemFilter(SprintDisplayTask sprintDisplayTask);
+typedef int TaskItemOrdering(SprintDisplayTask a, SprintDisplayTask b);
