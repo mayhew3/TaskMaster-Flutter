@@ -16,6 +16,7 @@ import '../../date_util.dart';
 import '../../keys.dart';
 import '../../models/sprint.dart';
 import '../../models/task_colors.dart';
+import '../../models/task_display_grouping.dart';
 import '../../models/task_item.dart';
 import '../../models/task_item_recur_preview.dart';
 import '../actions/sprint_actions.dart';
@@ -72,12 +73,6 @@ class PlanTaskListState extends State<PlanTaskList> {
     );
     taskItemQueue.addAll(dueOrUrgentTasks);
     sprintDisplayTaskQueue.addAll(dueOrUrgentTasks);
-  }
-
-  List<SprintDisplayTask> _moveSublist(List<SprintDisplayTask> superList, bool Function(SprintDisplayTask) condition) {
-    List<SprintDisplayTask> subList = superList.where(condition).toList(growable: false);
-    subList.forEach((task) => superList.remove(task));
-    return subList;
   }
 
   PlanTaskItemWidget _createWidget({required SprintDisplayTask taskItem, required PlanTaskListViewModel viewModel}) {
@@ -202,54 +197,32 @@ class PlanTaskListState extends State<PlanTaskList> {
 
     Sprint? lastCompletedSprint = viewModel.lastSprint;
 
-    final List<SprintDisplayTask> completedTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isCompleted() && !viewModel.recentlyCompleted.any((t) => t.id == taskItem.id));
-    final List<SprintDisplayTask> lastSprintTasks = _moveSublist(otherTasks, (taskItem) => (taskItem is TaskItem) && taskItemIsInSprint(taskItem, lastCompletedSprint));
-    final List<SprintDisplayTask> otherSprintTasks = _moveSublist(otherTasks, (taskItem) => wasInEarlierSprint(taskItem, viewModel));
-    final List<SprintDisplayTask> dueTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isDueBefore(endDate));
-    final List<SprintDisplayTask> urgentTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isUrgentBefore(endDate));
-    final List<SprintDisplayTask> targetTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isTargetBefore(endDate));
-    final List<SprintDisplayTask> scheduledTasks = _moveSublist(otherTasks, (taskItem) => taskItem.isScheduledAfter(endDate));
+    var startDateSort = (SprintDisplayTask a, SprintDisplayTask b) => a.startDate!.compareTo(b.startDate!);
+    var completionDateSort = (SprintDisplayTask a, SprintDisplayTask b) => a.completionDate!.compareTo(b.completionDate!);
+
+    final List<TaskDisplayGrouping> groupings = [
+      new TaskDisplayGrouping(displayName: "Last Sprint", displayOrder: 1, filter: (taskItem) => (taskItem is TaskItem) && taskItemIsInSprint(taskItem, lastCompletedSprint)),
+      new TaskDisplayGrouping(displayName: "Older Sprints", displayOrder: 2, filter: (taskItem) => wasInEarlierSprint(taskItem, viewModel)),
+      new TaskDisplayGrouping(displayName: "Due Soon", displayOrder: 3, filter: (taskItem) => taskItem.isDueBefore(endDate)),
+      new TaskDisplayGrouping(displayName: "Urgent Soon", displayOrder: 4, filter: (taskItem) => taskItem.isUrgentBefore(endDate)),
+      new TaskDisplayGrouping(displayName: "Target Soon", displayOrder: 5, filter: (taskItem) => taskItem.isTargetBefore(endDate)),
+      new TaskDisplayGrouping(displayName: "Starting Later", displayOrder: 7, filter: (taskItem) => taskItem.isScheduledAfter(endDate), ordering: startDateSort),
+      new TaskDisplayGrouping(displayName: "Completed", displayOrder: 8, filter: (taskItem) => taskItem.isCompleted() &&
+              !viewModel.recentlyCompleted.any((t) => t.id == taskItem.id), ordering: completionDateSort),
+      // must come last to take all the other tasks
+      new TaskDisplayGrouping(displayName: "Tasks", displayOrder: 6, filter: (_) => true),
+    ];
 
     List<StatelessWidget> tiles = [];
 
-    if (lastSprintTasks.isNotEmpty) {
-      tiles.add(HeadingItem('Last Sprint'));
-      lastSprintTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task, viewModel: viewModel));
-    }
+    groupings.forEach((g) => g.stealItemsThatMatch(otherTasks));
+    groupings.sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
 
-    if (otherSprintTasks.isNotEmpty) {
-      tiles.add(HeadingItem('Older Sprints'));
-      otherSprintTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task, viewModel: viewModel));
-    }
-
-    if (dueTasks.isNotEmpty) {
-      tiles.add(HeadingItem('Due Soon'));
-      dueTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task, viewModel: viewModel));
-    }
-
-    if (urgentTasks.isNotEmpty) {
-      tiles.add(HeadingItem('Urgent Soon'));
-      urgentTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task, viewModel: viewModel));
-    }
-
-    if (targetTasks.isNotEmpty) {
-      tiles.add(HeadingItem('Target Soon'));
-      targetTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task, viewModel: viewModel));
-    }
-
-    if (otherTasks.isNotEmpty) {
-      tiles.add(HeadingItem('Tasks'));
-      otherTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task, viewModel: viewModel));
-    }
-
-    if (scheduledTasks.isNotEmpty) {
-      tiles.add(HeadingItem('Starting Later'));
-      scheduledTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task, viewModel: viewModel));
-    }
-
-    if (completedTasks.isNotEmpty) {
-      tiles.add(HeadingItem('Completed'));
-      completedTasks.forEach((task) => _addTaskTile(tiles: tiles, task: task, viewModel: viewModel));
+    for (var grouping in groupings) {
+      if (grouping.taskItems.isNotEmpty) {
+        tiles.add(HeadingItem(grouping.displayName));
+        grouping.taskItems.forEach((task) => _addTaskTile(tiles: tiles, task: task, viewModel: viewModel));
+      }
     }
 
     if (!hasTiles) {
