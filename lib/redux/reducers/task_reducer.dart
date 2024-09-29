@@ -132,7 +132,7 @@ AppState _onDataNotLoaded(AppState state, dynamic action) {
 
 AppState _onSnoozeExecuted(AppState state, SnoozeExecuted action) {
   var listBuilder = state.taskItems.toBuilder()
-    ..map((taskItem) => taskItem.id == action.taskItem.id ? action.taskItem : taskItem);
+    ..map((taskItem) => taskItem.id == action.taskItem.id ? action.taskItem.rebuild((s) => s..sprintAssignments = taskItem.sprintAssignments.toBuilder()) : taskItem);
   return state.rebuild((s) => s
     ..taskItems = listBuilder
   );
