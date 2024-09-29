@@ -43,6 +43,8 @@ class PlanTaskListState extends State<PlanTaskList> {
   bool initialized = false;
   bool submitting = false;
 
+  late final Sprint? activeSprint;
+
   // three queues for the selected task items
   List<TaskItem> taskItemQueue = [];
   List<TaskItemRecurPreview> taskItemRecurPreviewQueue = [];
@@ -55,8 +57,8 @@ class PlanTaskListState extends State<PlanTaskList> {
 
   late final DateTime endDate;
 
-  void validateState(PlanTaskListViewModel viewModel) {
-    if (viewModel.activeSprint != null &&
+  void validateState() {
+    if (activeSprint != null &&
         (widget.numUnits != null || widget.unitName != null || widget.startDate != null)) {
       throw Exception(
           "Expected all of numUnits, unitName, and startDate to be null if there is an active sprint.");
@@ -109,9 +111,8 @@ class PlanTaskListState extends State<PlanTaskList> {
     );
   }
 
-  List<TaskItem> getFilteredTasks(List<TaskItem> taskItems, PlanTaskListViewModel viewModel) {
+  List<TaskItem> getFilteredTasks(List<TaskItem> taskItems) {
     List<TaskItem> filtered = taskItems.where((taskItem) {
-      var activeSprint = viewModel.activeSprint;
       return !taskItem.isScheduledAfter(endDate) && !taskItem.isCompleted() &&
           (activeSprint == null || !taskItemIsInSprint(taskItem, activeSprint));
     }).toList();
@@ -119,7 +120,7 @@ class PlanTaskListState extends State<PlanTaskList> {
   }
 
   BuiltList<TaskItem> getBaseList(PlanTaskListViewModel viewModel) {
-    var sprint = viewModel.activeSprint;
+    var sprint = activeSprint;
     if (sprint == null) {
       return taskItemsForPlacingOnNewSprint(viewModel.allTaskItems, endDate);
     } else {
@@ -143,7 +144,7 @@ class PlanTaskListState extends State<PlanTaskList> {
   void createTemporaryIterations(PlanTaskListViewModel viewModel) {
     List<TaskItem> eligibleItems = [];
     eligibleItems.addAll(getBaseList(viewModel));
-    var sprint = viewModel.activeSprint;
+    var sprint = activeSprint;
     if (sprint != null) {
       eligibleItems.addAll(taskItemsForSprintSelector(viewModel.allTaskItems, sprint));
     }
@@ -276,15 +277,14 @@ class PlanTaskListState extends State<PlanTaskList> {
     );
   }
 
-  DateTime getEndDate(PlanTaskListViewModel viewModel) {
-    var activeSprint = viewModel.activeSprint;
+  DateTime getEndDate() {
     return activeSprint == null ?
     DateUtil.adjustToDate(widget.startDate!, widget.numUnits!, widget.unitName!) :
-    activeSprint.endDate;
+    activeSprint!.endDate;
   }
 
   bool addMode(PlanTaskListViewModel viewModel) {
-    return viewModel.activeSprint == null;
+    return activeSprint == null;
   }
 
   void submit(BuildContext context, PlanTaskListViewModel viewModel) async {
@@ -303,7 +303,7 @@ class PlanTaskListState extends State<PlanTaskList> {
           taskItemRecurPreviews: taskItemRecurPreviewQueue.toBuiltList()));
     } else {
       store.dispatch(AddTaskItemsToExistingSprint(
-          sprint: viewModel.activeSprint!,
+          sprint: activeSprint!,
           taskItems: taskItemQueue.toBuiltList(),
           taskItemRecurPreviews: taskItemRecurPreviewQueue.toBuiltList()));
     }
@@ -313,14 +313,26 @@ class PlanTaskListState extends State<PlanTaskList> {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, PlanTaskListViewModel>(
         onWillChange: (prev, current) {
-          if (prev != null && prev.updating && !current.updating) {
-            Navigator.pop(context);
+          if (activeSprint == null) {
+            if (prev != null && current.activeSprint != null) {
+              Navigator.pop(context);
+            }
+          } else {
+            if (prev != null) {
+              var currentCount = taskItemsForSprintSelector(current.allTaskItems, current.activeSprint!).length;
+              var prevCount = taskItemsForSprintSelector(prev.allTaskItems, prev.activeSprint!).length;
+              if (currentCount > prevCount) {
+                Navigator.pop(context);
+              }
+            }
           }
+
         },
         builder: (context, viewModel) {
           if (!initialized) {
-            validateState(viewModel);
-            endDate = getEndDate(viewModel);
+            activeSprint = viewModel.activeSprint == null ? null : viewModel.activeSprint;
+            validateState();
+            endDate = getEndDate();
             preSelectUrgentAndDueAndPreviousSprint(viewModel);
             createTemporaryIterations(viewModel);
             initialized = true;

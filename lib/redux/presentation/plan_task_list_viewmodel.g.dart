@@ -19,8 +19,6 @@ class _$PlanTaskListViewModel extends PlanTaskListViewModel {
   final Sprint? activeSprint;
   @override
   final int personId;
-  @override
-  final bool updating;
 
   factory _$PlanTaskListViewModel(
           [void Function(PlanTaskListViewModelBuilder)? updates]) =>
@@ -32,8 +30,7 @@ class _$PlanTaskListViewModel extends PlanTaskListViewModel {
       required this.recentlyCompleted,
       this.lastSprint,
       this.activeSprint,
-      required this.personId,
-      required this.updating})
+      required this.personId})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(
         allTaskItems, r'PlanTaskListViewModel', 'allTaskItems');
@@ -43,8 +40,6 @@ class _$PlanTaskListViewModel extends PlanTaskListViewModel {
         recentlyCompleted, r'PlanTaskListViewModel', 'recentlyCompleted');
     BuiltValueNullFieldError.checkNotNull(
         personId, r'PlanTaskListViewModel', 'personId');
-    BuiltValueNullFieldError.checkNotNull(
-        updating, r'PlanTaskListViewModel', 'updating');
   }
 
   @override
@@ -65,8 +60,7 @@ class _$PlanTaskListViewModel extends PlanTaskListViewModel {
         recentlyCompleted == other.recentlyCompleted &&
         lastSprint == other.lastSprint &&
         activeSprint == other.activeSprint &&
-        personId == other.personId &&
-        updating == other.updating;
+        personId == other.personId;
   }
 
   @override
@@ -78,7 +72,6 @@ class _$PlanTaskListViewModel extends PlanTaskListViewModel {
     _$hash = $jc(_$hash, lastSprint.hashCode);
     _$hash = $jc(_$hash, activeSprint.hashCode);
     _$hash = $jc(_$hash, personId.hashCode);
-    _$hash = $jc(_$hash, updating.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -91,8 +84,7 @@ class _$PlanTaskListViewModel extends PlanTaskListViewModel {
           ..add('recentlyCompleted', recentlyCompleted)
           ..add('lastSprint', lastSprint)
           ..add('activeSprint', activeSprint)
-          ..add('personId', personId)
-          ..add('updating', updating))
+          ..add('personId', personId))
         .toString();
   }
 }
@@ -133,10 +125,6 @@ class PlanTaskListViewModelBuilder
   int? get personId => _$this._personId;
   set personId(int? personId) => _$this._personId = personId;
 
-  bool? _updating;
-  bool? get updating => _$this._updating;
-  set updating(bool? updating) => _$this._updating = updating;
-
   PlanTaskListViewModelBuilder();
 
   PlanTaskListViewModelBuilder get _$this {
@@ -148,7 +136,6 @@ class PlanTaskListViewModelBuilder
       _lastSprint = $v.lastSprint?.toBuilder();
       _activeSprint = $v.activeSprint?.toBuilder();
       _personId = $v.personId;
-      _updating = $v.updating;
       _$v = null;
     }
     return this;
@@ -179,9 +166,7 @@ class PlanTaskListViewModelBuilder
               lastSprint: _lastSprint?.build(),
               activeSprint: _activeSprint?.build(),
               personId: BuiltValueNullFieldError.checkNotNull(
-                  personId, r'PlanTaskListViewModel', 'personId'),
-              updating: BuiltValueNullFieldError.checkNotNull(
-                  updating, r'PlanTaskListViewModel', 'updating'));
+                  personId, r'PlanTaskListViewModel', 'personId'));
     } catch (_) {
       late String _$failedField;
       try {

@@ -15,7 +15,6 @@ abstract class PlanTaskListViewModel implements Built<PlanTaskListViewModel, Pla
   Sprint? get lastSprint;
   Sprint? get activeSprint;
   int get personId;
-  bool get updating;
 
   PlanTaskListViewModel._();
 
@@ -29,7 +28,6 @@ abstract class PlanTaskListViewModel implements Built<PlanTaskListViewModel, Pla
       ..lastSprint = lastCompletedSprintSelector(store.state.sprints)?.toBuilder()
       ..activeSprint = activeSprintSelector(store.state.sprints)?.toBuilder()
       ..personId = store.state.personId
-      ..updating = store.state.updating
     );
   }
 }
