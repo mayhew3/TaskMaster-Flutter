@@ -5,14 +5,7 @@ import 'package:taskmaster/redux/app_state.dart';
 final sprintsReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, SprintCreatedAction>(_sprintCreated),
   TypedReducer<AppState, TaskItemsAddedToExistingSprint>(_taskItemsAddedToExistingSprint),
-
-  TypedReducer<AppState, CreateSprintWithTaskItems>(_setUpdating),
-  TypedReducer<AppState, AddTaskItemsToExistingSprint>(_setUpdating),
 ];
-
-AppState _setUpdating(AppState state, dynamic action) {
-  return state.rebuild((s) => s.updating = true);
-}
 
 AppState _sprintCreated(AppState state, SprintCreatedAction action) {
   var sprintBuilder = state.sprints.toBuilder()..add(action.sprint);
@@ -33,7 +26,6 @@ AppState _sprintCreated(AppState state, SprintCreatedAction action) {
   return state.rebuild((s) => s
     ..sprints = sprintBuilder
     ..taskItems = taskItemBuilder
-    ..updating = false
   );
 }
 
@@ -54,6 +46,5 @@ AppState _taskItemsAddedToExistingSprint(AppState state, TaskItemsAddedToExistin
   ;
   return state.rebuild((s) => s
     ..taskItems = taskItemBuilder
-    ..updating = false
   );
 }

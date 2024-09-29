@@ -18,8 +18,6 @@ class _$AppState extends AppState {
   @override
   final bool loadFailed;
   @override
-  final bool updating;
-  @override
   final BuiltList<TaskItem> recentlyCompleted;
   @override
   final TopNavItem activeTab;
@@ -55,7 +53,6 @@ class _$AppState extends AppState {
       required this.taskRecurrences,
       required this.isLoading,
       required this.loadFailed,
-      required this.updating,
       required this.recentlyCompleted,
       required this.activeTab,
       required this.allNavItems,
@@ -77,7 +74,6 @@ class _$AppState extends AppState {
     BuiltValueNullFieldError.checkNotNull(isLoading, r'AppState', 'isLoading');
     BuiltValueNullFieldError.checkNotNull(
         loadFailed, r'AppState', 'loadFailed');
-    BuiltValueNullFieldError.checkNotNull(updating, r'AppState', 'updating');
     BuiltValueNullFieldError.checkNotNull(
         recentlyCompleted, r'AppState', 'recentlyCompleted');
     BuiltValueNullFieldError.checkNotNull(activeTab, r'AppState', 'activeTab');
@@ -114,7 +110,6 @@ class _$AppState extends AppState {
         taskRecurrences == other.taskRecurrences &&
         isLoading == other.isLoading &&
         loadFailed == other.loadFailed &&
-        updating == other.updating &&
         recentlyCompleted == other.recentlyCompleted &&
         activeTab == other.activeTab &&
         allNavItems == other.allNavItems &&
@@ -139,7 +134,6 @@ class _$AppState extends AppState {
     _$hash = $jc(_$hash, taskRecurrences.hashCode);
     _$hash = $jc(_$hash, isLoading.hashCode);
     _$hash = $jc(_$hash, loadFailed.hashCode);
-    _$hash = $jc(_$hash, updating.hashCode);
     _$hash = $jc(_$hash, recentlyCompleted.hashCode);
     _$hash = $jc(_$hash, activeTab.hashCode);
     _$hash = $jc(_$hash, allNavItems.hashCode);
@@ -165,7 +159,6 @@ class _$AppState extends AppState {
           ..add('taskRecurrences', taskRecurrences)
           ..add('isLoading', isLoading)
           ..add('loadFailed', loadFailed)
-          ..add('updating', updating)
           ..add('recentlyCompleted', recentlyCompleted)
           ..add('activeTab', activeTab)
           ..add('allNavItems', allNavItems)
@@ -211,10 +204,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   bool? _loadFailed;
   bool? get loadFailed => _$this._loadFailed;
   set loadFailed(bool? loadFailed) => _$this._loadFailed = loadFailed;
-
-  bool? _updating;
-  bool? get updating => _$this._updating;
-  set updating(bool? updating) => _$this._updating = updating;
 
   ListBuilder<TaskItem>? _recentlyCompleted;
   ListBuilder<TaskItem> get recentlyCompleted =>
@@ -295,7 +284,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _taskRecurrences = $v.taskRecurrences.toBuilder();
       _isLoading = $v.isLoading;
       _loadFailed = $v.loadFailed;
-      _updating = $v.updating;
       _recentlyCompleted = $v.recentlyCompleted.toBuilder();
       _activeTab = $v.activeTab.toBuilder();
       _allNavItems = $v.allNavItems.toBuilder();
@@ -340,8 +328,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
                   isLoading, r'AppState', 'isLoading'),
               loadFailed: BuiltValueNullFieldError.checkNotNull(
                   loadFailed, r'AppState', 'loadFailed'),
-              updating: BuiltValueNullFieldError.checkNotNull(
-                  updating, r'AppState', 'updating'),
               recentlyCompleted: recentlyCompleted.build(),
               activeTab: activeTab.build(),
               allNavItems: allNavItems.build(),

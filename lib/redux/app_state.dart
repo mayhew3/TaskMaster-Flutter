@@ -23,7 +23,6 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   // task item state
   bool get isLoading;
   bool get loadFailed;
-  bool get updating;
   BuiltList<TaskItem> get recentlyCompleted;
 
   // ui
@@ -62,7 +61,6 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
     return appState
       ..isLoading = loading
       ..loadFailed = false
-      ..updating = false
       ..taskItems = ListBuilder()
       ..sprints = ListBuilder()
       ..taskRecurrences = ListBuilder()

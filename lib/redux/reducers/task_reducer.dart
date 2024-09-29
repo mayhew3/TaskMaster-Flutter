@@ -17,19 +17,7 @@ final taskItemsReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, LogOutAction>(_onDataNotLoaded),
   TypedReducer<AppState, ClearRecentlyCompletedAction>(_clearRecentlyCompleted),
   TypedReducer<AppState, SnoozeExecuted>(_onSnoozeExecuted),
-
-  TypedReducer<AppState, UpdateTaskItemAction>(_setUpdating),
-  TypedReducer<AppState, AddTaskItemAction>(_setUpdating),
-
 ];
-
-AppState _setUpdating(AppState state, dynamic action) {
-  return state.rebuild((s) => s.updating = true);
-}
-
-AppState _setNotUpdating(AppState state, dynamic action) {
-  return state.rebuild((s) => s.updating = false);
-}
 
 AppState _taskItemAdded(AppState state, TaskItemAddedAction action) {
   var taskRecurrence = action.taskRecurrence;
@@ -38,7 +26,6 @@ AppState _taskItemAdded(AppState state, TaskItemAddedAction action) {
     if (taskRecurrence != null) {
       s.taskRecurrences = state.taskRecurrences.toBuilder()..add(taskRecurrence);
     }
-    s.updating = false;
     return s;
   });
 }
@@ -56,7 +43,6 @@ AppState _taskItemUpdated(AppState state, TaskItemUpdatedAction action) {
     }) : taskItem);
   return state.rebuild((s) => s
     ..taskItems = listBuilder
-    ..updating = false
   );
 }
 
@@ -85,7 +71,6 @@ AppState _onCompleteRecurringTaskItem(AppState state, RecurringTaskItemCompleted
     ..taskItems = taskItemListBuilder
     ..taskRecurrences = recurrenceBuilder
     ..recentlyCompleted = recentListBuilder
-    ..updating = false
   );
 }
 
@@ -112,7 +97,6 @@ AppState _onCompleteTaskItem(AppState state, TaskItemCompletedAction action) {
   s
     ..taskItems = listBuilder
     ..recentlyCompleted = recentListBuilder
-    ..updating = false
   );
 }
 
@@ -124,7 +108,6 @@ AppState _onDeleteTaskItem(AppState state, TaskItemDeletedAction action) {
   return state.rebuild((s) => s
     ..taskItems = listBuilder
     ..recentlyCompleted = recentListBuilder
-    ..updating = false
   );
 }
 
@@ -134,7 +117,6 @@ AppState _onDataLoaded(AppState state, DataLoadedAction action) {
       ..recurrence = action.dataPayload.taskRecurrences.where((r) => r.id == t.recurrenceId).singleOrNull?.toBuilder())));
     s.sprints = ListBuilder(action.dataPayload.sprints);
     s.taskRecurrences = ListBuilder(action.dataPayload.taskRecurrences);
-    s.updating = false;
     return s;
   });
 }
@@ -145,7 +127,6 @@ AppState _onDataNotLoaded(AppState state, dynamic action) {
     ..sprints = ListBuilder()
     ..taskRecurrences = ListBuilder()
     ..recentlyCompleted = ListBuilder()
-    ..updating = false
   );
 }
 
@@ -154,6 +135,5 @@ AppState _onSnoozeExecuted(AppState state, SnoozeExecuted action) {
     ..map((taskItem) => taskItem.id == action.taskItem.id ? action.taskItem : taskItem);
   return state.rebuild((s) => s
     ..taskItems = listBuilder
-    ..updating = false
   );
 }
