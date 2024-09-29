@@ -9,6 +9,7 @@ import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 import 'package:taskmaster/redux/actions/task_item_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/presentation/add_edit_screen_viewmodel.dart';
+import 'package:taskmaster/redux/selectors/selectors.dart';
 import 'package:taskmaster/timezone_helper.dart';
 
 import '../../date_util.dart';
@@ -40,8 +41,6 @@ class AddEditScreenState extends State<AddEditScreen> {
   late BuiltList<String> possibleAnchorDates;
   late BuiltList<String> possibleRecurUnits;
 
-  late bool _hasChanges;
-
   bool _repeatOn = false;
   late final bool _initialRepeatOn;
 
@@ -54,8 +53,6 @@ class AddEditScreenState extends State<AddEditScreen> {
   @override
   void initState() {
     super.initState();
-
-    _hasChanges = false;
 
     taskItem = widget.taskItem;
     // var taskRecurrence = taskItem?.taskRecurrencePreview;
@@ -225,8 +222,15 @@ class AddEditScreenState extends State<AddEditScreen> {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, AddEditScreenViewModel>(
         onWillChange: (prev, current) {
-          if (prev != null && prev.updating && !current.updating) {
-            Navigator.pop(context);
+          if (editMode()) {
+            var latest = taskItemSelector(current.allTaskItems, taskItem!.id);
+            if (latest != null && latest.hasChanges(taskItem!)) {
+              Navigator.pop(context);
+            }
+          } else {
+            if (prev != null && current.allTaskItems.length > prev.allTaskItems.length) {
+              Navigator.pop(context);
+            }
           }
         },
         builder: (context, viewModel) {
@@ -241,7 +245,6 @@ class AddEditScreenState extends State<AddEditScreen> {
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 onChanged: () {
                   setState(() {
-                    _hasChanges = true;
                   });
                 },
                 child: SingleChildScrollView(

@@ -66,7 +66,7 @@ class TaskItemBlueprint with DateHolder {
   }
 
   bool hasChanges(TaskItem other) {
-    var allMismatch = other.description != description ||
+    var allMismatch = other.name != name ||
           other.description != description ||
           other.project != project ||
           other.context != context ||
