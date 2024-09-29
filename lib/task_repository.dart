@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:built_collection/built_collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:taskmaster/models/data_payload.dart';
+import 'package:taskmaster/models/serializers.dart';
 import 'package:taskmaster/models/snooze_blueprint.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/sprint_assignment.dart';
@@ -14,8 +15,8 @@ import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_item_recur_preview.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
-import 'package:taskmaster/models/serializers.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
+import 'package:taskmaster/typedefs.dart';
 
 import 'models/snooze.dart';
 
@@ -28,100 +29,32 @@ class TaskRepository {
     required this.client,
   });
 
-  Uri getUriWithParameters(String path, Map<String, dynamic>? queryParameters) {
-    if (serverEnv == "") {
-      throw new Exception('Missing required SERVER environment variable.');
-    }
-    switch(serverEnv) {
-      case 'local':
-        return Uri.http('10.0.2.2:3000', path, queryParameters);
-      case 'staging':
-        return Uri.https('taskmaster-staging.herokuapp.com', path, queryParameters);
-      case 'heroku':
-        return Uri.https('taskmaster-general.herokuapp.com', path, queryParameters);
-      default:
-        throw new Exception('Unknown SERVER environment variable: ' + serverEnv);
-    }
-  }
-
-  Uri getUri(String path) {
-    return getUriWithParameters(path, null);
-  }
-
   Future<int?> getPersonId(String email, String idToken) async {
-
     var queryParameters = {
       'email': email
     };
 
-    var uri = getUriWithParameters('/api/persons', queryParameters);
-
-    final response = await this.client.get(uri,
-      headers: {HttpHeaders.authorizationHeader: idToken,
-        HttpHeaders.contentTypeHeader: 'application/json'},
-    );
-
-    if (response.statusCode == 200) {
-      try {
-        var jsonObj = json.decode(response.body);
-
-        return jsonObj['person']?['id'];
-
-      } catch(exception, stackTrace) {
-        print(exception);
-        print(stackTrace);
-        throw Exception('Error retrieving person data from the server. Talk to Mayhew.');
-      }
-    } else {
-      throw Exception('Failed to fetch person. Talk to Mayhew.');
-    }
+    var jsonObj = await this.executeGetApiAction(uriString: '/api/persons', queryParameters: queryParameters, idToken: idToken, operationDescription: "get person id");
+    return jsonObj['person']?['id'];
   }
 
   Future<DataPayload> loadTasks(int personId, String idToken) async {
-
     var queryParameters = {
       'person_id': personId.toString()
     };
 
-    var uri = getUriWithParameters('/api/tasks', queryParameters);
+    var jsonObj = await this.executeGetApiAction(uriString: '/api/tasks', queryParameters: queryParameters, idToken: idToken, operationDescription: "load tasks");
 
-    final response = await this.client.get(uri,
-      headers: {HttpHeaders.authorizationHeader: idToken,
-                HttpHeaders.contentTypeHeader: 'application/json'},
-    );
+    List<Sprint> sprints = (jsonObj['sprints'] as List<dynamic>).map((sprintJson) =>
+      serializers.deserializeWith(Sprint.serializer, sprintJson)!).toList();
 
-    if (response.statusCode == 200) {
-      try {
-        var jsonObj = json.decode(response.body);
+    List<TaskRecurrence> taskRecurrences = (jsonObj['taskRecurrences'] as List<dynamic>).map((recurrenceJson) =>
+      serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson)!).toList();
 
-        List<Sprint> sprints = [];
-        for (var sprintJson in jsonObj['sprints']) {
-          var sprint = serializers.deserializeWith(Sprint.serializer, sprintJson)!;
-          sprints.add(sprint);
-        }
+    List<TaskItem> taskItems = (jsonObj['tasks'] as List<dynamic>).map((taskJson) =>
+    serializers.deserializeWith(TaskItem.serializer, taskJson)!).toList();
 
-        List<TaskRecurrence> taskRecurrences = [];
-        for (var recurrenceJson in jsonObj['taskRecurrences']) {
-          var taskRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson)!;
-          taskRecurrences.add(taskRecurrence);
-        }
-
-        List<TaskItem> taskItems = [];
-        for (var taskJson in jsonObj['tasks']) {
-          var taskItem = serializers.deserializeWith(TaskItem.serializer, taskJson)!;
-          taskItems.add(taskItem);
-        }
-
-        return DataPayload(taskItems: taskItems, sprints: sprints, taskRecurrences: taskRecurrences);
-
-      } catch(exception, stackTrace) {
-        print(exception);
-        print(stackTrace);
-        throw Exception('Error retrieving task data from the server. Talk to Mayhew.');
-      }
-    } else {
-      throw Exception('Failed to load task list. Talk to Mayhew.');
-    }
+    return DataPayload(taskItems: taskItems, sprints: sprints, taskRecurrences: taskRecurrences);
   }
 
   Future<({TaskItem taskItem, TaskRecurrence? recurrence})> addTask(TaskItemBlueprint blueprint, String idToken) async {
@@ -353,59 +286,33 @@ class TaskRepository {
   }
 
   Future<({TaskItem taskItem, TaskRecurrence? recurrence})> _addTaskItemJSON(Map<String, Object?> payload, String idToken) async {
-    var body = utf8.encode(json.encode(payload));
+    var jsonObj = await executeBodyApiAction(
+        bodyApiOperation: this.client.post,
+        payload: payload,
+        uriString: '/api/tasks',
+        idToken: idToken,
+        operationDescription: "create task");
 
-    var uri = getUri('/api/tasks');
-    final response = await client.post(uri,
-        headers: {HttpHeaders.authorizationHeader: idToken,
-          "Content-Type": "application/json"},
-        body: body
-    );
-
-    if (response.statusCode == 200) {
-      try {
-        var jsonObj = json.decode(response.body);
-        var recurrenceObj = jsonObj['recurrence'];
-        TaskRecurrence? recurrence = (recurrenceObj == null) ? null :
-            serializers.deserializeWith(TaskRecurrence.serializer, recurrenceObj);
-        TaskItem inboundTask = serializers.deserializeWith(TaskItem.serializer, jsonObj)!;
-        return (taskItem: inboundTask, recurrence: recurrence);
-      } catch(exception, stackTrace) {
-        print(exception);
-        print(stackTrace);
-        throw Exception('Error parsing add task from the server. Talk to Mayhew.');
-      }
-    } else {
-      throw Exception('Failed to add task. Talk to Mayhew.');
-    }
+    var recurrenceObj = jsonObj['recurrence'];
+    TaskRecurrence? recurrence = (recurrenceObj == null) ? null :
+    serializers.deserializeWith(TaskRecurrence.serializer, recurrenceObj);
+    TaskItem inboundTask = serializers.deserializeWith(TaskItem.serializer, jsonObj)!;
+    return (taskItem: inboundTask, recurrence: recurrence);
   }
 
   Future<({TaskItem taskItem, TaskRecurrence? recurrence})> _updateTaskItemJSON(Map<String, Object?> payload, String idToken) async {
-    var body = utf8.encode(json.encode(payload));
+    var jsonObj = await executeBodyApiAction(
+        bodyApiOperation: this.client.patch,
+        payload: payload,
+        uriString: '/api/tasks',
+        idToken: idToken,
+        operationDescription: "edit task");
 
-    var uri = getUri('/api/tasks');
-    final response = await client.patch(uri,
-        headers: {HttpHeaders.authorizationHeader: idToken,
-          "Content-Type": "application/json"},
-        body: body
-    );
-
-    if (response.statusCode == 200) {
-      try {
-        var jsonObj = json.decode(response.body);
-        var recurrenceObj = jsonObj['recurrence'];
-        TaskRecurrence? recurrence = (recurrenceObj == null) ? null :
-            serializers.deserializeWith(TaskRecurrence.serializer, recurrenceObj);
-        TaskItem inboundTask = serializers.deserializeWith(TaskItem.serializer, jsonObj)!;
-        return (taskItem: inboundTask, recurrence: recurrence);
-      } catch(exception, stackTrace) {
-        print(exception);
-        print(stackTrace);
-        throw Exception('Error parsing update task from the server. Talk to Mayhew.');
-      }
-    } else {
-      throw Exception('Failed to update task. Talk to Mayhew.');
-    }
+    var recurrenceObj = jsonObj['recurrence'];
+    TaskRecurrence? recurrence = (recurrenceObj == null) ? null :
+    serializers.deserializeWith(TaskRecurrence.serializer, recurrenceObj);
+    TaskItem inboundTask = serializers.deserializeWith(TaskItem.serializer, jsonObj)!;
+    return (taskItem: inboundTask, recurrence: recurrence);
   }
 
 
@@ -438,6 +345,86 @@ class TaskRepository {
       }
     } else {
       throw Exception('Failed to add snooze. Talk to Mayhew.');
+    }
+  }
+
+
+  // HELPER METHODS
+
+  Uri getUriWithParameters(String path, Map<String, dynamic>? queryParameters) {
+    if (serverEnv == "") {
+      throw new Exception('Missing required SERVER environment variable.');
+    }
+    switch(serverEnv) {
+      case 'local':
+        return Uri.http('10.0.2.2:3000', path, queryParameters);
+      case 'staging':
+        return Uri.https('taskmaster-staging.herokuapp.com', path, queryParameters);
+      case 'heroku':
+        return Uri.https('taskmaster-general.herokuapp.com', path, queryParameters);
+      default:
+        throw new Exception('Unknown SERVER environment variable: ' + serverEnv);
+    }
+  }
+
+  Uri getUri(String path) {
+    return getUriWithParameters(path, null);
+  }
+
+  Future<dynamic> executeGetApiAction({
+    required String uriString,
+    Map<String, Object>? queryParameters,
+    required String idToken,
+    required String operationDescription}) async {
+
+    var uri = queryParameters == null ? getUri(uriString) : getUriWithParameters(uriString, queryParameters);
+
+    final response = await this.client.get(uri,
+      headers: {HttpHeaders.authorizationHeader: idToken,
+        HttpHeaders.contentTypeHeader: 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      try {
+        return json.decode(response.body);
+      } catch(exception, stackTrace) {
+        print(exception);
+        print(stackTrace);
+        throw Exception('Error $operationDescription from the server. Talk to Mayhew.');
+      }
+    } else {
+      throw Exception('Failed to $operationDescription. Talk to Mayhew.');
+    }
+  }
+
+  Future<dynamic> executeBodyApiAction({
+    required BodyApiOperation bodyApiOperation,
+    required Map<String, Object?> payload,
+    required String uriString,
+    Map<String, Object>? queryParameters,
+    required String idToken,
+    required String operationDescription}) async {
+
+    var uri = queryParameters == null ? getUri(uriString) : getUriWithParameters(uriString, queryParameters);
+
+    var body = utf8.encode(json.encode(payload));
+
+    final response = await bodyApiOperation(uri,
+      headers: {HttpHeaders.authorizationHeader: idToken,
+        HttpHeaders.contentTypeHeader: 'application/json'},
+      body: body,
+    );
+
+    if (response.statusCode == 200) {
+      try {
+        return json.decode(response.body);
+      } catch(exception, stackTrace) {
+        print(exception);
+        print(stackTrace);
+        throw Exception('Error $operationDescription from the server. Talk to Mayhew.');
+      }
+    } else {
+      throw Exception('Failed to $operationDescription. Talk to Mayhew.');
     }
   }
 
