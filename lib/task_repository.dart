@@ -69,7 +69,7 @@ class TaskRepository {
     var payload = {
       "task": blueprint.toJson()
     };
-    return _addTaskItemJSON(payload, idToken);
+    return _addOrUpdateTaskItemJSON(payload: payload, idToken: idToken, apiOperation: this.client.post, operationDescription: "create task");
   }
 
   Future<({TaskItem taskItem, TaskRecurrence? recurrence})> addRecurTask(TaskItemRecurPreview blueprint, String idToken) async {
@@ -77,7 +77,7 @@ class TaskRepository {
     var payload = {
       "task": taskObj
     };
-    return _addTaskItemJSON(payload, idToken);
+    return _addOrUpdateTaskItemJSON(payload: payload, idToken: idToken, apiOperation: this.client.post, operationDescription: "create task (with recur)");
   }
 
   Future<({TaskItem taskItem, TaskRecurrence? recurrence})> updateTask(int taskItemId, TaskItemBlueprint taskItemBlueprint, String idToken) async {
@@ -87,7 +87,7 @@ class TaskRepository {
       "task": taskObj,
       "taskItemId": taskItemId,
     };
-    return _updateTaskItemJSON(payload, idToken);
+    return _addOrUpdateTaskItemJSON(payload: payload, idToken: idToken, apiOperation: this.client.patch, operationDescription: "edit task");
   }
 
   Future<Sprint> addSprint(SprintBlueprint blueprint, String idToken) async {
@@ -201,13 +201,13 @@ class TaskRepository {
         operationDescription: "delete task");
   }
 
-  Future<({TaskItem taskItem, TaskRecurrence? recurrence})> _addTaskItemJSON(Map<String, Object?> payload, String idToken) async {
+  Future<({TaskItem taskItem, TaskRecurrence? recurrence})> _addOrUpdateTaskItemJSON({required Map<String, Object?> payload, required String idToken, required BodyApiOperation apiOperation, required String operationDescription}) async {
     var jsonObj = await executeBodyApiAction(
-        bodyApiOperation: this.client.post,
+        bodyApiOperation: apiOperation,
         payload: payload,
         uriString: '/api/tasks',
         idToken: idToken,
-        operationDescription: "create task");
+        operationDescription: operationDescription);
 
     var recurrenceObj = jsonObj['recurrence'];
     TaskRecurrence? recurrence = (recurrenceObj == null) ? null :
@@ -215,40 +215,21 @@ class TaskRepository {
     TaskItem inboundTask = serializers.deserializeWith(TaskItem.serializer, jsonObj)!;
     return (taskItem: inboundTask, recurrence: recurrence);
   }
-
-  Future<({TaskItem taskItem, TaskRecurrence? recurrence})> _updateTaskItemJSON(Map<String, Object?> payload, String idToken) async {
-    var jsonObj = await executeBodyApiAction(
-        bodyApiOperation: this.client.patch,
-        payload: payload,
-        uriString: '/api/tasks',
-        idToken: idToken,
-        operationDescription: "edit task");
-
-    var recurrenceObj = jsonObj['recurrence'];
-    TaskRecurrence? recurrence = (recurrenceObj == null) ? null :
-    serializers.deserializeWith(TaskRecurrence.serializer, recurrenceObj);
-    TaskItem inboundTask = serializers.deserializeWith(TaskItem.serializer, jsonObj)!;
-    return (taskItem: inboundTask, recurrence: recurrence);
-  }
-
 
   Future<Snooze> addSnooze(SnoozeBlueprint snooze, String idToken) async {
     var payload = {
       'snooze': snooze.toJson()
     };
-    return _addOrUpdateSnoozeSerializableJSON(payload, idToken);
-  }
 
-  Future<Snooze> _addOrUpdateSnoozeSerializableJSON(Map<String, dynamic> payload, String idToken) async {
     var jsonObj = await executeBodyApiAction(
         bodyApiOperation: this.client.post,
         payload: payload,
         uriString: "/api/snoozes",
         idToken: idToken,
         operationDescription: "add snooze");
-
     return serializers.deserializeWith(Snooze.serializer, jsonObj)!;
   }
+
 
 
   // HELPER METHODS
