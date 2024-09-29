@@ -65,53 +65,52 @@ class TaskItemBlueprint with DateHolder {
     taskDateType.dateFieldSetter(this, dateTime?.add(duration));
   }
 
-  @override
-  bool operator ==(Object other) {
-    if (other is TaskItem) {
-      return
-        other.name == name &&
-            other.description == description &&
-            other.project == project &&
-            other.context == context &&
-            other.urgency == urgency &&
-            other.priority == priority &&
-            other.duration == duration &&
-            other.gamePoints == gamePoints &&
-            other.startDate == startDate &&
-            other.targetDate == targetDate &&
-            other.dueDate == dueDate &&
-            other.urgentDate == urgentDate &&
-            other.completionDate == completionDate &&
-            other.recurNumber == recurNumber &&
-            other.recurUnit == recurUnit &&
-            other.recurWait == recurWait &&
-            other.recurrenceId == recurrenceId &&
-            other.recurIteration == recurIteration &&
-            other.recurrence == recurrenceBlueprint;
-    } else if (other is TaskItemBlueprint) {
-      return
-        other.name == name &&
-            other.description == description &&
-            other.project == project &&
-            other.context == context &&
-            other.urgency == urgency &&
-            other.priority == priority &&
-            other.duration == duration &&
-            other.gamePoints == gamePoints &&
-            other.startDate == startDate &&
-            other.targetDate == targetDate &&
-            other.dueDate == dueDate &&
-            other.urgentDate == urgentDate &&
-            other.completionDate == completionDate &&
-            other.recurNumber == recurNumber &&
-            other.recurUnit == recurUnit &&
-            other.recurWait == recurWait &&
-            other.recurrenceId == recurrenceId &&
-            other.recurIteration == recurIteration &&
-            other.recurrenceBlueprint == recurrenceBlueprint;
-    } else {
-      return false;
-    }
+  bool hasChanges(TaskItem other) {
+    var allMismatch = other.description != description ||
+          other.description != description ||
+          other.project != project ||
+          other.context != context ||
+          other.urgency != urgency ||
+          other.priority != priority ||
+          other.duration != duration ||
+          other.gamePoints != gamePoints ||
+          other.startDate != startDate ||
+          other.targetDate != targetDate ||
+          other.dueDate != dueDate ||
+          other.urgentDate != urgentDate ||
+          other.completionDate != completionDate ||
+          other.recurNumber != recurNumber ||
+          other.recurUnit != recurUnit ||
+          other.recurWait != recurWait ||
+          other.recurrenceId != recurrenceId ||
+          other.recurIteration != recurIteration ||
+        (recurrenceBlueprint == null ? other.recurrence != null : recurrenceBlueprint!.hasChanges(other.recurrence));
+    print("All mismatch: $allMismatch");
+    return
+      allMismatch;
+  }
+
+  bool hasChangesBlueprint(TaskItemBlueprint other) {
+    return
+      other.name != name ||
+          other.description != description ||
+          other.project != project ||
+          other.context != context ||
+          other.urgency != urgency ||
+          other.priority != priority ||
+          other.duration != duration ||
+          other.gamePoints != gamePoints ||
+          other.startDate != startDate ||
+          other.targetDate != targetDate ||
+          other.dueDate != dueDate ||
+          other.urgentDate != urgentDate ||
+          other.completionDate != completionDate ||
+          other.recurNumber != recurNumber ||
+          other.recurUnit != recurUnit ||
+          other.recurWait != recurWait ||
+          other.recurrenceId != recurrenceId ||
+          other.recurIteration != recurIteration ||
+          (recurrenceBlueprint == null ? other.recurrenceBlueprint != null : recurrenceBlueprint!.hasChangesBlueprint(other.recurrenceBlueprint));
   }
 
   @override

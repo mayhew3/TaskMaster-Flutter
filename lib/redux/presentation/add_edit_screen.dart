@@ -48,6 +48,7 @@ class AddEditScreenState extends State<AddEditScreen> {
   late TaskItemBlueprint taskItemBlueprint;
   late TaskItem? taskItem;
 
+  TaskItemBlueprint blankBlueprint = TaskItemBlueprint();
   late TaskRecurrenceBlueprint taskRecurrenceBlueprint;
 
   @override
@@ -187,6 +188,14 @@ class AddEditScreenState extends State<AddEditScreen> {
     taskItemBlueprint.recurrenceId = taskItem?.recurrence?.id;
   }
 
+  bool hasChanges() {
+    if (editMode()) {
+      return taskItemBlueprint.hasChanges(taskItem!);
+    } else {
+      return taskItemBlueprint.hasChangesBlueprint(blankBlueprint);
+    }
+  }
+
   bool editMode() {
     return taskItem != null;
   }
@@ -241,6 +250,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                         EditableTaskField(
                           initialText: taskItemBlueprint.name,
                           labelText: 'Name',
+                          onChanged: (value) => taskItemBlueprint.name = value,
                           fieldSetter: (value) => taskItemBlueprint.name = value,
                           inputType: TextInputType.multiline,
                           isRequired: true,
@@ -478,6 +488,7 @@ class AddEditScreenState extends State<AddEditScreen> {
                         EditableTaskField(
                           initialText: taskItemBlueprint.description,
                           labelText: 'Notes',
+                          onChanged: (value) => taskItemBlueprint.description = value == null || value.isEmpty ? null : value,
                           fieldSetter: (value) => taskItemBlueprint.description = value == null || value.isEmpty ? null : value,
                           inputType: TextInputType.multiline,
                         ),
@@ -487,7 +498,7 @@ class AddEditScreenState extends State<AddEditScreen> {
               ),
             ),
             floatingActionButton: Visibility(
-              visible: _hasChanges || (_initialRepeatOn && !_repeatOn),
+              visible: hasChanges() || (_initialRepeatOn && !_repeatOn),
               child: FloatingActionButton(
                   child: Icon(isEditing ? Icons.check : Icons.add),
                   onPressed: () async {

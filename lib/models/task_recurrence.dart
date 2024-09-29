@@ -45,26 +45,30 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
     return blueprint;
   }
 
-  @override
-  bool operator ==(Object other) {
-    if (other is TaskRecurrence) {
-      return other.name == name &&
-          other.recurNumber == recurNumber &&
-          other.recurUnit == recurUnit &&
-          other.recurWait == recurWait &&
-          other.recurIteration == recurIteration &&
-          other.anchorDate == anchorDate &&
-          other.anchorType == anchorType;
-    } else if (other is TaskRecurrenceBlueprint) {
-      return other.name == name &&
-          other.recurNumber == recurNumber &&
-          other.recurUnit == recurUnit &&
-          other.recurWait == recurWait &&
-          other.recurIteration == recurIteration &&
-          other.anchorDate == anchorDate &&
-          other.anchorType == anchorType;
-    } else {
-      return false;
+  bool hasChanges(TaskRecurrence? other) {
+    if (other == null) {
+      return true;
     }
+    return other.name != name ||
+        other.recurNumber != recurNumber ||
+        other.recurUnit != recurUnit ||
+        other.recurWait != recurWait ||
+        other.recurIteration != recurIteration ||
+        other.anchorDate != anchorDate ||
+        other.anchorType != anchorType;
   }
+
+  bool hasChangesBlueprint(TaskRecurrenceBlueprint? other) {
+    if (other == null) {
+      return true;
+    }
+    return other.name != name ||
+        other.recurNumber != recurNumber ||
+        other.recurUnit != recurUnit ||
+        other.recurWait != recurWait ||
+        other.recurIteration != recurIteration ||
+        other.anchorDate != anchorDate ||
+        other.anchorType != anchorType;
+  }
+
 }
