@@ -90,21 +90,6 @@ class TaskRepository {
     return _addOrUpdateTaskItemJSON(payload: payload, idToken: idToken, apiOperation: this.client.patch, operationDescription: "edit task");
   }
 
-  Future<Sprint> addSprint(SprintBlueprint blueprint, String idToken) async {
-    var payload = {
-      "sprint": blueprint.toJson()
-    };
-
-    var jsonObj = await executeBodyApiAction(
-        bodyApiOperation: this.client.post,
-        payload: payload,
-        uriString: "/api/sprints",
-        idToken: idToken,
-        operationDescription: "add sprint");
-
-    return serializers.deserializeWith(Sprint.serializer, jsonObj)!;
-  }
-
   Future<({Sprint sprint, BuiltList<TaskItem> addedTasks, BuiltList<SprintAssignment> sprintAssignments})> addSprintWithTaskItems(SprintBlueprint blueprint, BuiltList<TaskItem> existingItems, BuiltList<TaskItemRecurPreview> newItems, String idToken) async {
     var list = newItems.map((t) => serializers.serializeWith(TaskItemRecurPreview.serializer, t)).toList();
     var payload = {
