@@ -34,7 +34,11 @@ class TaskRepository {
       'email': email
     };
 
-    var jsonObj = await this.executeGetApiAction(uriString: '/api/persons', queryParameters: queryParameters, idToken: idToken, operationDescription: "get person id");
+    var jsonObj = await this.executeGetApiAction(
+        uriString: '/api/persons',
+        queryParameters: queryParameters,
+        idToken: idToken,
+        operationDescription: "get person id");
     return jsonObj['person']?['id'];
   }
 
@@ -43,7 +47,11 @@ class TaskRepository {
       'person_id': personId.toString()
     };
 
-    var jsonObj = await this.executeGetApiAction(uriString: '/api/tasks', queryParameters: queryParameters, idToken: idToken, operationDescription: "load tasks");
+    var jsonObj = await this.executeGetApiAction(
+        uriString: '/api/tasks',
+        queryParameters: queryParameters,
+        idToken: idToken,
+        operationDescription: "load tasks");
 
     List<Sprint> sprints = (jsonObj['sprints'] as List<dynamic>).map((sprintJson) =>
       serializers.deserializeWith(Sprint.serializer, sprintJson)!).toList();
@@ -82,44 +90,19 @@ class TaskRepository {
     return _updateTaskItemJSON(payload, idToken);
   }
 
-  String? formatForJson(DateTime? dateTime) {
-    if (dateTime == null) {
-      return null;
-    } else {
-      var utc = dateTime.toUtc();
-      return utc.toIso8601String();
-    }
-  }
-
   Future<Sprint> addSprint(SprintBlueprint blueprint, String idToken) async {
     var payload = {
       "sprint": blueprint.toJson()
     };
 
-    return await (Map<String, Object> payload, String idToken) async {
-      var body = utf8.encode(json.encode(payload));
+    var jsonObj = await executeBodyApiAction(
+        bodyApiOperation: this.client.post,
+        payload: payload,
+        uriString: "/api/sprints",
+        idToken: idToken,
+        operationDescription: "add sprint");
 
-      var uri = getUri("/api/sprints");
-      final response = await client.post(uri,
-          headers: {HttpHeaders.authorizationHeader: idToken,
-            "Content-Type": "application/json"},
-          body: body
-      );
-
-      if (response.statusCode == 200) {
-        try {
-          var jsonObj = json.decode(response.body);
-          Sprint inboundSprint = serializers.deserializeWith(Sprint.serializer, jsonObj)!;
-          return inboundSprint;
-        } catch(exception, stackTrace) {
-          print(exception);
-          print(stackTrace);
-          throw Exception('Error parsing snooze from the server. Talk to Mayhew.');
-        }
-      } else {
-        throw Exception('Failed to add snooze. Talk to Mayhew.');
-      }
-    }(payload, idToken);
+    return serializers.deserializeWith(Sprint.serializer, jsonObj)!;
   }
 
   Future<({Sprint sprint, BuiltList<TaskItem> addedTasks, BuiltList<SprintAssignment> sprintAssignments})> addSprintWithTaskItems(SprintBlueprint blueprint, BuiltList<TaskItem> existingItems, BuiltList<TaskItemRecurPreview> newItems, String idToken) async {
@@ -130,38 +113,22 @@ class TaskRepository {
       "taskItems": list
     };
 
-    return await (Map<String, Object> payload, String idToken) async {
-      var body = utf8.encode(json.encode(payload));
+    var jsonObj = await executeBodyApiAction(
+        bodyApiOperation: this.client.post,
+        payload: payload,
+        uriString: "/api/sprintsAndTasks",
+        idToken: idToken,
+        operationDescription: "add sprint and tasks");
 
-      var uri = getUri("/api/sprintsAndTasks");
-      final response = await client.post(uri,
-          headers: {HttpHeaders.authorizationHeader: idToken,
-            "Content-Type": "application/json"},
-          body: body
-      );
+    var sprintObj = jsonObj['sprint'];
+    var taskItemsObj = jsonObj['addedTasks'] as List<dynamic>;
+    var sprintAssignmentsObj = jsonObj['sprintAssignments'] as List<dynamic>;
 
-      if (response.statusCode == 200) {
-        try {
-          var jsonObj = json.decode(response.body);
+    Sprint inboundSprint = serializers.deserializeWith(Sprint.serializer, sprintObj)!;
+    BuiltList<TaskItem> taskItems = taskItemsObj.map((obj) => (serializers.deserializeWith(TaskItem.serializer, obj))!).toBuiltList();
+    BuiltList<SprintAssignment> sprintAssignments = sprintAssignmentsObj.map((obj) => (serializers.deserializeWith(SprintAssignment.serializer, obj))!).toBuiltList();
 
-          var sprintObj = jsonObj['sprint'];
-          var taskItemsObj = jsonObj['addedTasks'] as List<dynamic>;
-          var sprintAssignmentsObj = jsonObj['sprintAssignments'] as List<dynamic>;
-
-          Sprint inboundSprint = serializers.deserializeWith(Sprint.serializer, sprintObj)!;
-          BuiltList<TaskItem> taskItems = taskItemsObj.map((obj) => (serializers.deserializeWith(TaskItem.serializer, obj))!).toBuiltList();
-          BuiltList<SprintAssignment> sprintAssignments = sprintAssignmentsObj.map((obj) => (serializers.deserializeWith(SprintAssignment.serializer, obj))!).toBuiltList();
-
-          return (sprint: inboundSprint, addedTasks: taskItems, sprintAssignments: sprintAssignments);
-        } catch(exception, stackTrace) {
-          print(exception);
-          print(stackTrace);
-          throw Exception('Error parsing sprint and tasks from the server. Talk to Mayhew.');
-        }
-      } else {
-        throw Exception('Failed to add sprint and tasks. Talk to Mayhew.');
-      }
-    }(payload, idToken);
+    return (sprint: inboundSprint, addedTasks: taskItems, sprintAssignments: sprintAssignments);
   }
 
   Future<TaskRecurrence> addTaskRecurrence(TaskRecurrenceBlueprint blueprint, String idToken) async {
@@ -169,32 +136,16 @@ class TaskRepository {
       "taskRecurrence": blueprint.toJson()
     };
 
-    return await (Map<String, Object> payload, String idToken) async {
-      var body = utf8.encode(json.encode(payload));
+    var jsonObj = await executeBodyApiAction(
+        bodyApiOperation: this.client.post,
+        payload: payload,
+        uriString: "/api/taskRecurrences",
+        idToken: idToken,
+        operationDescription: "add recurrence");
 
-      var uri = getUri("/api/taskRecurrences");
-      final response = await client.post(uri,
-          headers: {HttpHeaders.authorizationHeader: idToken,
-            "Content-Type": "application/json"},
-          body: body
-      );
-
-      if (response.statusCode == 200) {
-        try {
-          var jsonObj = json.decode(response.body);
-          TaskRecurrence inboundTaskRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, jsonObj)!;
-          return inboundTaskRecurrence;
-        } catch(exception, stackTrace) {
-          print(exception);
-          print(stackTrace);
-          throw Exception('Error parsing task recurrence from the server. Talk to Mayhew.');
-        }
-      } else {
-        throw Exception('Failed to add task recurrence. Talk to Mayhew.');
-      }
-    }(payload, idToken);
+    TaskRecurrence inboundTaskRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, jsonObj)!;
+    return inboundTaskRecurrence;
   }
-
 
   Future<TaskRecurrence> updateTaskRecurrence(int taskRecurrenceId, TaskRecurrenceBlueprint blueprint, String idToken) async {
     var payload = {
@@ -202,30 +153,14 @@ class TaskRepository {
       "taskRecurrenceId": taskRecurrenceId,
     };
 
-    return await (Map<String, Object> payload, String idToken) async {
-      var body = utf8.encode(json.encode(payload));
+    var jsonObj = await executeBodyApiAction(
+        bodyApiOperation: this.client.patch,
+        payload: payload,
+        uriString: "/api/taskRecurrences",
+        idToken: idToken,
+        operationDescription: "update recurrence");
 
-      var uri = getUri("/api/taskRecurrences");
-      final response = await client.post(uri,
-          headers: {HttpHeaders.authorizationHeader: idToken,
-            "Content-Type": "application/json"},
-          body: body
-      );
-
-      if (response.statusCode == 200) {
-        try {
-          var jsonObj = json.decode(response.body);
-          TaskRecurrence inboundTaskRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, jsonObj)!;
-          return inboundTaskRecurrence;
-        } catch(exception, stackTrace) {
-          print(exception);
-          print(stackTrace);
-          throw Exception('Error parsing task recurrence from the server. Talk to Mayhew.');
-        }
-      } else {
-        throw Exception('Failed to update task recurrence. Talk to Mayhew.');
-      }
-    }(payload, idToken);
+    return serializers.deserializeWith(TaskRecurrence.serializer, jsonObj)!;
   }
 
 
@@ -425,6 +360,15 @@ class TaskRepository {
       }
     } else {
       throw Exception('Failed to $operationDescription. Talk to Mayhew.');
+    }
+  }
+
+  String? formatForJson(DateTime? dateTime) {
+    if (dateTime == null) {
+      return null;
+    } else {
+      var utc = dateTime.toUtc();
+      return utc.toIso8601String();
     }
   }
 
