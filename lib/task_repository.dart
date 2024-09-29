@@ -173,34 +173,20 @@ class TaskRepository {
       'taskItems': list
     };
 
-    var body = utf8.encode(json.encode(payload));
+    var jsonObj = await executeBodyApiAction(
+        bodyApiOperation: this.client.post,
+        payload: payload,
+        uriString: "/api/assignments",
+        idToken: idToken,
+        operationDescription: "add tasks to existing sprint");
 
-    var uri = getUri("/api/assignments");
-    final response = await client.post(uri,
-        headers: {HttpHeaders.authorizationHeader: idToken,
-          "Content-Type": "application/json"},
-        body: body
-    );
+    var taskItemsObj = jsonObj['addedTasks'] as List<dynamic>;
+    var sprintAssignmentsObj = jsonObj['sprintAssignments'] as List<dynamic>;
 
-    if (response.statusCode == 200) {
-      try {
-        var jsonObj = json.decode(response.body);
+    BuiltList<TaskItem> addedTaskItems = taskItemsObj.map((obj) => (serializers.deserializeWith(TaskItem.serializer, obj))!).toBuiltList();
+    BuiltList<SprintAssignment> sprintAssignments = sprintAssignmentsObj.map((obj) => (serializers.deserializeWith(SprintAssignment.serializer, obj))!).toBuiltList();
 
-        var taskItemsObj = jsonObj['addedTasks'] as List<dynamic>;
-        var sprintAssignmentsObj = jsonObj['sprintAssignments'] as List<dynamic>;
-
-        BuiltList<TaskItem> taskItems = taskItemsObj.map((obj) => (serializers.deserializeWith(TaskItem.serializer, obj))!).toBuiltList();
-        BuiltList<SprintAssignment> sprintAssignments = sprintAssignmentsObj.map((obj) => (serializers.deserializeWith(SprintAssignment.serializer, obj))!).toBuiltList();
-
-        return (addedTasks: taskItems, sprintAssignments: sprintAssignments);
-      } catch(exception, stackTrace) {
-        print(exception);
-        print(stackTrace);
-        throw Exception('Error parsing assignments from the server. Talk to Mayhew.');
-      }
-    } else {
-      throw Exception('Failed to add assignments. Talk to Mayhew.');
-    }
+    return (addedTasks: addedTaskItems, sprintAssignments: sprintAssignments);
   }
 
   Future<void> deleteTask(TaskItem taskItem, String idToken) async {
@@ -208,16 +194,11 @@ class TaskRepository {
       'task_id': taskItem.id.toString()
     };
 
-    var uri = getUriWithParameters('/api/tasks', queryParameters);
-
-    final response = await client.delete(uri,
-      headers: {HttpHeaders.authorizationHeader: idToken,
-        HttpHeaders.contentTypeHeader: 'application/json'},
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to delete task. Talk to Mayhew.');
-    }
+    return await executeDeleteApiAction(
+        uriString: '/api/tasks',
+        queryParameters: queryParameters,
+        idToken: idToken,
+        operationDescription: "delete task");
   }
 
   Future<({TaskItem taskItem, TaskRecurrence? recurrence})> _addTaskItemJSON(Map<String, Object?> payload, String idToken) async {
@@ -259,28 +240,14 @@ class TaskRepository {
   }
 
   Future<Snooze> _addOrUpdateSnoozeSerializableJSON(Map<String, dynamic> payload, String idToken) async {
-    var body = utf8.encode(json.encode(payload));
+    var jsonObj = await executeBodyApiAction(
+        bodyApiOperation: this.client.post,
+        payload: payload,
+        uriString: "/api/snoozes",
+        idToken: idToken,
+        operationDescription: "add snooze");
 
-    var uri = getUri('/api/snoozes');
-    final response = await client.post(uri,
-        headers: {HttpHeaders.authorizationHeader: idToken,
-          "Content-Type": "application/json"},
-        body: body
-    );
-
-    if (response.statusCode == 200) {
-      try {
-        var jsonObj = json.decode(response.body);
-        Snooze inboundSnooze = serializers.deserializeWith(Snooze.serializer, jsonObj)!;
-        return inboundSnooze;
-      } catch(exception, stackTrace) {
-        print(exception);
-        print(stackTrace);
-        throw Exception('Error parsing snooze from the server. Talk to Mayhew.');
-      }
-    } else {
-      throw Exception('Failed to add snooze. Talk to Mayhew.');
-    }
+    return serializers.deserializeWith(Snooze.serializer, jsonObj)!;
   }
 
 
@@ -359,6 +326,24 @@ class TaskRepository {
         throw Exception('Error $operationDescription from the server. Talk to Mayhew.');
       }
     } else {
+      throw Exception('Failed to $operationDescription. Talk to Mayhew.');
+    }
+  }
+
+  Future<void> executeDeleteApiAction({
+    required String uriString,
+    Map<String, Object>? queryParameters,
+    required String idToken,
+    required String operationDescription}) async {
+
+    var uri = queryParameters == null ? getUri(uriString) : getUriWithParameters(uriString, queryParameters);
+
+    final response = await this.client.delete(uri,
+      headers: {HttpHeaders.authorizationHeader: idToken,
+        HttpHeaders.contentTypeHeader: 'application/json'},
+    );
+
+    if (response.statusCode != 200) {
       throw Exception('Failed to $operationDescription. Talk to Mayhew.');
     }
   }
