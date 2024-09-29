@@ -1,6 +1,7 @@
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
+import 'package:taskmaster/models/task_recurrence.dart';
 
 part 'task_recurrence_blueprint.g.dart';
 
@@ -48,4 +49,26 @@ class TaskRecurrenceBlueprint {
     }
   }
 
+  @override
+  bool operator ==(Object other) {
+    if (other is TaskRecurrence) {
+      return other.name == name &&
+          other.recurNumber == recurNumber &&
+          other.recurUnit == recurUnit &&
+          other.recurWait == recurWait &&
+          other.recurIteration == recurIteration &&
+          other.anchorDate == anchorDate &&
+          other.anchorType == anchorType;
+    } else if (other is TaskRecurrenceBlueprint) {
+      return other.name == name &&
+          other.recurNumber == recurNumber &&
+          other.recurUnit == recurUnit &&
+          other.recurWait == recurWait &&
+          other.recurIteration == recurIteration &&
+          other.anchorDate == anchorDate &&
+          other.anchorType == anchorType;
+    } else {
+      return false;
+    }
+  }
 }

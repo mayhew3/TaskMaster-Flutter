@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
@@ -62,6 +63,55 @@ class TaskItemBlueprint with DateHolder {
   void incrementDateIfExists(TaskDateType taskDateType, Duration duration) {
     var dateTime = taskDateType.dateFieldGetter(this);
     taskDateType.dateFieldSetter(this, dateTime?.add(duration));
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is TaskItem) {
+      return
+        other.name == name &&
+            other.description == description &&
+            other.project == project &&
+            other.context == context &&
+            other.urgency == urgency &&
+            other.priority == priority &&
+            other.duration == duration &&
+            other.gamePoints == gamePoints &&
+            other.startDate == startDate &&
+            other.targetDate == targetDate &&
+            other.dueDate == dueDate &&
+            other.urgentDate == urgentDate &&
+            other.completionDate == completionDate &&
+            other.recurNumber == recurNumber &&
+            other.recurUnit == recurUnit &&
+            other.recurWait == recurWait &&
+            other.recurrenceId == recurrenceId &&
+            other.recurIteration == recurIteration &&
+            other.recurrence == recurrenceBlueprint;
+    } else if (other is TaskItemBlueprint) {
+      return
+        other.name == name &&
+            other.description == description &&
+            other.project == project &&
+            other.context == context &&
+            other.urgency == urgency &&
+            other.priority == priority &&
+            other.duration == duration &&
+            other.gamePoints == gamePoints &&
+            other.startDate == startDate &&
+            other.targetDate == targetDate &&
+            other.dueDate == dueDate &&
+            other.urgentDate == urgentDate &&
+            other.completionDate == completionDate &&
+            other.recurNumber == recurNumber &&
+            other.recurUnit == recurUnit &&
+            other.recurWait == recurWait &&
+            other.recurrenceId == recurrenceId &&
+            other.recurIteration == recurIteration &&
+            other.recurrenceBlueprint == recurrenceBlueprint;
+    } else {
+      return false;
+    }
   }
 
   @override

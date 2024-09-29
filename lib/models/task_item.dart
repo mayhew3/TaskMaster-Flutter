@@ -132,4 +132,54 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
       ..offCycle = offCycle
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is TaskItem) {
+      return
+        other.name == name &&
+            other.description == description &&
+            other.project == project &&
+            other.context == context &&
+            other.urgency == urgency &&
+            other.priority == priority &&
+            other.duration == duration &&
+            other.gamePoints == gamePoints &&
+            other.startDate == startDate &&
+            other.targetDate == targetDate &&
+            other.dueDate == dueDate &&
+            other.urgentDate == urgentDate &&
+            other.completionDate == completionDate &&
+            other.recurNumber == recurNumber &&
+            other.recurUnit == recurUnit &&
+            other.recurWait == recurWait &&
+            other.recurrenceId == recurrenceId &&
+            other.recurIteration == recurIteration &&
+            other.recurrence == recurrence;
+    } else if (other is TaskItemBlueprint) {
+      return
+        other.name == name &&
+            other.description == description &&
+            other.project == project &&
+            other.context == context &&
+            other.urgency == urgency &&
+            other.priority == priority &&
+            other.duration == duration &&
+            other.gamePoints == gamePoints &&
+            other.startDate == startDate &&
+            other.targetDate == targetDate &&
+            other.dueDate == dueDate &&
+            other.urgentDate == urgentDate &&
+            other.completionDate == completionDate &&
+            other.recurNumber == recurNumber &&
+            other.recurUnit == recurUnit &&
+            other.recurWait == recurWait &&
+            other.recurrenceId == recurrenceId &&
+            other.recurIteration == recurIteration &&
+            other.recurrenceBlueprint == recurrence;
+    } else {
+      return false;
+    }
+  }
+
 }
