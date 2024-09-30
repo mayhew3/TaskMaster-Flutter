@@ -272,12 +272,12 @@ class TaskItemListState extends State<TaskItemList> {
     var completionDateSort = (SprintDisplayTask a, SprintDisplayTask b) => a.completionDate!.compareTo(b.completionDate!);
 
     final List<TaskDisplayGrouping> groupings = [
+      new TaskDisplayGrouping(displayName: "Completed", displayOrder: 6, filter: (taskItem) => taskItem.isCompleted()
+          && !viewModel.recentlyCompleted.any((t) => t.id == taskItem.id), ordering: completionDateSort),
       new TaskDisplayGrouping(displayName: "Past Due", displayOrder: 1, filter: (taskItem) => taskItem.isPastDue()),
       new TaskDisplayGrouping(displayName: "Urgent", displayOrder: 2, filter: (taskItem) => taskItem.isUrgent()),
       new TaskDisplayGrouping(displayName: "Target", displayOrder: 3, filter: (taskItem) => taskItem.isTarget()),
       new TaskDisplayGrouping(displayName: "Scheduled", displayOrder: 5, filter: (taskItem) => taskItem.isScheduled(), ordering: startDateSort),
-      new TaskDisplayGrouping(displayName: "Completed", displayOrder: 6, filter: (taskItem) => taskItem.isCompleted()
-            && !viewModel.recentlyCompleted.any((t) => t.id == taskItem.id), ordering: completionDateSort),
       // must come last to take all the other tasks
       new TaskDisplayGrouping(displayName: "Tasks", displayOrder: 4, filter: (_) => true),
     ];
