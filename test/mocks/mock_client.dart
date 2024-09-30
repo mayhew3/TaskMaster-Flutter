@@ -1,5 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'package:mockito/mockito.dart';
+import 'package:taskmaster/models/serializers.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 
@@ -23,16 +24,20 @@ class MockClientOld extends Fake implements http.Client {
     }
 
     for (var sprintItem in sprintList) {
-      mockSprintList.add(sprintItem.toJson());
+      mockSprintList.add(_getMockSprint(sprintItem));
     }
 
     taskObj['tasks'] = mockPlayerList;
     taskObj['sprints'] = mockSprintList;
     return json.encode(taskObj);
   }
+  
+  dynamic _getMockSprint(Sprint sprint) {
+    return serializers.serializeWith(Sprint.serializer, sprint);
+  }
 
   dynamic _getMockTask(TaskItem taskItem) {
-    return taskItem.toJson();
+    return serializers.serializeWith(TaskItem.serializer, taskItem);
   }
 
   @override
