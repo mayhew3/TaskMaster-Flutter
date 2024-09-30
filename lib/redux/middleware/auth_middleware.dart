@@ -1,5 +1,6 @@
 
 
+import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -49,12 +50,13 @@ void Function(
     ) _manualLogout(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {
     print("_manualLogout!");
-    next(action);
+    navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.logout);
     try {
       await store.state.googleSignIn.disconnect();
     } catch (error) {
       store.dispatch(OnLogoutFailAction(error));
     }
+    next(action);
   };
 }
 

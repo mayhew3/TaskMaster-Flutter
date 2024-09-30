@@ -3,7 +3,7 @@ import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:redux/redux.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:taskmaster/app_theme.dart';
-import 'package:taskmaster/models/task_colors.dart';
+import 'package:redux_logging/redux_logging.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
 import 'package:taskmaster/redux/middleware/auth_middleware.dart';
 import 'package:taskmaster/redux/middleware/store_sprint_middleware.dart';
@@ -43,7 +43,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
         middleware: createStoreTaskItemsMiddleware(taskRepository, _navigatorKey)
           ..addAll(createAuthenticationMiddleware(_navigatorKey))
           ..addAll(createStoreSprintsMiddleware(taskRepository))
-          // ..add(new LoggingMiddleware.printer())
+          ..add(new LoggingMiddleware.printer())
     );
     maybeKickOffSignIn();
     configureTimezoneHelper();
@@ -88,6 +88,9 @@ class TaskMasterAppState extends State<TaskMasterApp> {
         routes: <String, WidgetBuilder>{
           TaskMasterRoutes.splash: (context) {
             return SplashScreen(message: "Signing in...");
+          },
+          TaskMasterRoutes.logout: (context) {
+            return SplashScreen(message: "Signing out...");
           },
           TaskMasterRoutes.login: (context) {
             return SignInScreen();
