@@ -1,34 +1,43 @@
+import 'package:built_collection/built_collection.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
+import 'package:taskmaster/models/top_nav_item.dart';
 import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
+import 'app_state_test.mocks.dart';
 import 'mocks/mock_data.dart';
-import 'mocks/mock_data_builder.dart';
-import 'mocks/mock_recurrence_builder.dart';
-import 'mocks/mock_task_master_auth.dart';
 
-@GenerateNiceMocks([MockSpec<TaskRepository>()])
+@GenerateNiceMocks([MockSpec<TaskRepository>(), MockSpec<UserCredential>(), MockSpec<Widget>()])
 void main() {
 
   AppState createAppState({
     List<TaskItem>? taskItems,
     List<Sprint>? sprints
   }) {
-    var appState = AppState(
-      auth: MockTaskMasterAuth(),
-      taskItems: taskItems ?? allTasks,
-      sprints: sprints ?? allSprints
-    );
+    var navItems = ListBuilder<TopNavItem>([
+      TopNavItem.init(
+          label: 'Plan',
+          icon: Icons.assignment,
+          widgetGetter: () => null),
+    ]);
+    var appState = AppStateBuilder()
+      ..isLoading = true
+      ..loadFailed = false
+      ..taskItems = taskItems == null ? ListBuilder() : ListBuilder(taskItems)
+      ..sprints = sprints == null ? ListBuilder() : ListBuilder(sprints)
+      ..taskRecurrences = ListBuilder()
+      ..activeTab = MockTopNavItem().toBuilder()
+
+    ;
     var mockTaskRepository = MockTaskRepository();
-    var navHelper = MockNavHelper();
-    when(navHelper.appState).thenReturn(appState);
-    when(navHelper.taskRepository).thenReturn(mockTaskRepository);
-    appState.updateNavHelper(navHelper);
+    var mockUser = MockUserCredential();
     return appState;
   }
 

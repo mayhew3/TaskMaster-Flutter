@@ -22,14 +22,15 @@ class MockFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNo
   }
 
   @override
-  Future<void> zonedSchedule(int id,
+  Future<void> zonedSchedule(
+      int id,
       String? title,
       String? body,
       TZDateTime scheduledDate,
       NotificationDetails notificationDetails, {
-        required UILocalNotificationDateInterpretation
-        uiLocalNotificationDateInterpretation,
-        required bool androidAllowWhileIdle,
+        required UILocalNotificationDateInterpretation uiLocalNotificationDateInterpretation,
+        bool androidAllowWhileIdle = false,
+        AndroidScheduleMode? androidScheduleMode,
         String? payload,
         DateTimeComponents? matchDateTimeComponents,
       }) async {

@@ -21,7 +21,6 @@ import 'package:test/test.dart';
 import 'matchers/approximate_time_matcher.dart';
 import 'mocks/mock_data.dart';
 import 'mocks/mock_data_builder.dart';
-import 'mocks/mock_task_master_auth.dart';
 import 'mocks/mock_timezone_helper.dart';
 import 'task_helper_test.mocks.dart';
 import 'test_mock_helper.dart';

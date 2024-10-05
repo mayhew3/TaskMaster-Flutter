@@ -14,7 +14,6 @@ import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/task_repository.dart';
 
 import 'mocks/mock_data.dart';
-import 'mocks/mock_task_master_auth.dart';
 import 'test_mock_helper.mocks.dart';
 
 @GenerateNiceMocks([MockSpec<http.Client>(), MockSpec<GoogleSignInAccount>()])
