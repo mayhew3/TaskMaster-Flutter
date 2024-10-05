@@ -1,6 +1,7 @@
 import 'package:taskmaster/models/task_recurrence.dart';
+import 'package:taskmaster/models/serializers.dart';
 
-class TaskRecurrenceBuilder {
+class MockTaskRecurrenceBuilder {
   int? id;
   late String name;
   late int recurNumber;
@@ -10,25 +11,24 @@ class TaskRecurrenceBuilder {
   late DateTime anchorDate;
   late String anchorType;
 
-  TaskRecurrenceBuilder();
+  MockTaskRecurrenceBuilder();
 
   TaskRecurrence create() {
-    TaskRecurrence taskRecurrence = new TaskRecurrence(
-        id: id!,
-        personId: 1,
-        name: name,
-        recurNumber: recurNumber,
-        recurUnit: recurUnit,
-        recurWait: recurWait,
-        recurIteration: recurIteration,
-        anchorDate: anchorDate,
-        anchorType: anchorType
-    );
-    return taskRecurrence;
+    var taskRecurrence = {
+      id: id,
+      name: name,
+      recurNumber: recurNumber,
+      recurUnit: recurUnit,
+      recurWait: recurWait,
+      recurIteration: recurIteration,
+      anchorDate: anchorDate,
+      anchorType: anchorType
+    };
+    return serializers.deserializeWith(TaskRecurrence.serializer, taskRecurrence)!;
   }
 
-  factory TaskRecurrenceBuilder.asPreCommit() {
-    return TaskRecurrenceBuilder()
+  factory MockTaskRecurrenceBuilder.asPreCommit() {
+    return MockTaskRecurrenceBuilder()
       ..name = 'Test Recurrence'
       ..recurNumber = 6
       ..recurIteration = 1
@@ -39,8 +39,8 @@ class TaskRecurrenceBuilder {
     ;
   }
 
-  factory TaskRecurrenceBuilder.asDefault() {
-    return TaskRecurrenceBuilder.asPreCommit()
+  factory MockTaskRecurrenceBuilder.asDefault() {
+    return MockTaskRecurrenceBuilder.asPreCommit()
         ..id = 1;
   }
 }

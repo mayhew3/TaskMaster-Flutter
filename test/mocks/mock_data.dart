@@ -2,6 +2,7 @@
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
+import 'package:taskmaster/models/serializers.dart';
 
 import 'mock_recurrence_builder.dart';
 
@@ -32,8 +33,8 @@ final Map<String, dynamic> currentSprintJSON = {
   "sprint_number": 6
 };
 
-Sprint pastSprint = Sprint.fromJson(pastSprintJSON);
-Sprint currentSprint = Sprint.fromJson(currentSprintJSON);
+Sprint pastSprint = serializers.deserializeWith(Sprint.serializer, pastSprintJSON)!;
+Sprint currentSprint = serializers.deserializeWith(Sprint.serializer, currentSprintJSON)!;
 
 List<Sprint> allSprints = [pastSprint, currentSprint];
 
@@ -229,12 +230,12 @@ final Map<String, dynamic> burnJSON = {
   ]
 };
 
-TaskItem catLitterTask = TaskItem.fromJson(catLitterJSON);
-TaskItem birthdayTask = TaskItem.fromJson(birthdayJSON);
-TaskItem futureTask = TaskItem.fromJson(futureJSON);
-TaskItem pastTask = TaskItem.fromJson(pastJSON);
-TaskItem burnTask = TaskItem.fromJson(burnJSON);
+TaskItem catLitterTask = serializers.deserializeWith(TaskItem.serializer, catLitterJSON)!;
+TaskItem birthdayTask = serializers.deserializeWith(TaskItem.serializer, birthdayJSON)!;
+TaskItem futureTask = serializers.deserializeWith(TaskItem.serializer, futureJSON)!;
+TaskItem pastTask = serializers.deserializeWith(TaskItem.serializer, pastJSON)!;
+TaskItem burnTask = serializers.deserializeWith(TaskItem.serializer, burnJSON)!;
 
 List<TaskItem> allTasks = [catLitterTask, birthdayTask, futureTask, pastTask, burnTask];
 
-TaskRecurrence onlyRecurrence = TaskRecurrenceBuilder.asDefault().create();
+TaskRecurrence onlyRecurrence = MockTaskRecurrenceBuilder.asDefault().create();
