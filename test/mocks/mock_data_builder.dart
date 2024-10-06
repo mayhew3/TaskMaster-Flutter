@@ -20,6 +20,7 @@ class MockTaskItemBuilder with DateHolder {
   DateTime? urgentDate;
   DateTime? dueDate;
   DateTime? completionDate;
+  late bool offCycle;
   late int gamePoints;
   int? recurNumber;
   String? recurUnit;
@@ -32,6 +33,11 @@ class MockTaskItemBuilder with DateHolder {
   MockTaskItemBuilder();
 
   TaskItemBlueprint createBlueprint() {
+
+    if (id != null) {
+      throw Exception('Cannot create blueprint with id. Use create() instead.');
+    }
+
     TaskItemBlueprint taskItem = new TaskItemBlueprint();
 
     taskItem.name = name;
@@ -45,6 +51,7 @@ class MockTaskItemBuilder with DateHolder {
     taskItem.targetDate = targetDate;
     taskItem.urgentDate = urgentDate;
     taskItem.dueDate = dueDate;
+    taskItem.offCycle = offCycle;
     taskItem.gamePoints = gamePoints;
     taskItem.recurNumber = recurNumber;
     taskItem.recurUnit = recurUnit;
@@ -56,6 +63,10 @@ class MockTaskItemBuilder with DateHolder {
   }
 
   TaskItem create() {
+
+    if (id == null) {
+      throw Exception('Cannot create task item without id. Use createBlueprint() instead.');
+    }
 
     var taskItemBuilder = new TaskItemBuilder()
       ..id = id!
@@ -73,6 +84,7 @@ class MockTaskItemBuilder with DateHolder {
       ..urgentDate = urgentDate
       ..dueDate = dueDate
       ..completionDate = completionDate
+      ..offCycle = offCycle
       ..recurNumber = recurNumber
       ..recurUnit = recurUnit
       ..recurWait = recurWait
@@ -96,6 +108,7 @@ class MockTaskItemBuilder with DateHolder {
       ..priority = 5
       ..duration = 15
       ..dateAdded = DateTime.now()
+      ..offCycle = false
       ..gamePoints = 1;
   }
 

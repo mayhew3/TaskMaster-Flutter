@@ -1,9 +1,10 @@
 import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/models/task_item_preview.dart';
+import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:test/test.dart';
 
 import '../mocks/mock_data.dart';
+import '../mocks/mock_data_builder.dart';
 
 void main() {
   group('TaskItem', () {
@@ -30,15 +31,19 @@ void main() {
     });
 
     test('isCompleted not completed', () {
-      TaskItem taskItem = new TaskItem(id: 2, personId: 1, name: 'Eat a Penny');
+      var taskItem = MockTaskItemBuilder
+          .asDefault()
+          .create();
+
       expect(taskItem.isCompleted(), false);
     });
 
     test('isScheduled is false for past date', () {
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      TaskItemPreview preview = catLitter.createPreview(startDate: catTarget);
+      TaskItemBlueprint blueprint = catLitter.createBlueprint();
+      blueprint.startDate = catTarget;
       expect(catTarget.isBefore(DateTime.now()), true);
-      expect(preview.isScheduled(), false);
+      expect(blueprint.isScheduled(), false);
     });
 
     test('isScheduled is false for null date', () {
@@ -50,15 +55,17 @@ void main() {
     test('isScheduled is true for future date', () {
       DateTime futureDate = DateTime.now().add(Duration(days: 5));
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      TaskItemPreview preview = catLitter.createPreview(startDate: futureDate);
-      expect(preview.isScheduled(), true);
+      TaskItemBlueprint blueprint = catLitter.createBlueprint();
+      blueprint.startDate = futureDate;
+      expect(blueprint.isScheduled(), true);
     });
 
     test('isPastDue is true for past date', () {
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      TaskItemPreview preview = catLitter.createPreview(dueDate: catTarget);
+      TaskItemBlueprint blueprint = catLitter.createBlueprint();
+      blueprint.dueDate = catTarget;
       expect(catTarget.isBefore(DateTime.now()), true);
-      expect(preview.isPastDue(), true);
+      expect(blueprint.isPastDue(), true);
     });
 
     test('isPastDue is false for null date', () {
@@ -70,15 +77,17 @@ void main() {
     test('isPastDue is false for future date', () {
       DateTime futureDate = DateTime.now().add(Duration(days: 5));
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      TaskItemPreview preview = catLitter.createPreview(dueDate: futureDate);
-      expect(preview.isPastDue(), false);
+      TaskItemBlueprint blueprint = catLitter.createBlueprint();
+      blueprint.dueDate = futureDate;
+      expect(blueprint.isPastDue(), false);
     });
 
     test('isUrgent is true for past date', () {
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      TaskItemPreview preview = catLitter.createPreview(urgentDate: catTarget);
+      TaskItemBlueprint blueprint = catLitter.createBlueprint();
+      blueprint.urgentDate = catTarget;
       expect(catTarget.isBefore(DateTime.now()), true);
-      expect(preview.isUrgent(), true);
+      expect(blueprint.isUrgent(), true);
     });
 
     test('isUrgent is false for null date', () {
@@ -90,8 +99,9 @@ void main() {
     test('isUrgent is false for future date', () {
       DateTime futureDate = DateTime.now().add(Duration(days: 5));
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      TaskItemPreview preview = catLitter.createPreview(urgentDate: futureDate);
-      expect(preview.isUrgent(), false);
+      TaskItemBlueprint blueprint = catLitter.createBlueprint();
+      blueprint.urgentDate = futureDate;
+      expect(blueprint.isUrgent(), false);
     });
 
     test('getAnchorDate targetDate when only date', () {
@@ -102,40 +112,27 @@ void main() {
 
     test('getAnchorDate targetDate instead of start date', () {
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      TaskItemPreview preview = catLitter.createPreview(startDate: catTarget.subtract(Duration(days: 3)));
+      TaskItemBlueprint blueprint = catLitter.createBlueprint();
+      blueprint.startDate = catTarget.subtract(Duration(days: 3));
       var expected = catLitter.targetDate;
-      expect(preview.getAnchorDate(), expected);
+      expect(blueprint.getAnchorDate(), expected);
     });
 
     test('getAnchorDate urgentDate', () {
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
       var expected = catTarget.add(Duration(days: 4));
-      TaskItemPreview preview = catLitter.createPreview(urgentDate: expected);
-      expect(preview.getAnchorDate(), expected);
+      TaskItemBlueprint blueprint = catLitter.createBlueprint();
+      blueprint.urgentDate = expected;
+      expect(blueprint.getAnchorDate(), expected);
     });
 
     test('getAnchorDate dueDate', () {
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
       var expected = catTarget.add(Duration(days: 6));
-      var preview = catLitter.createPreview(urgentDate: catTarget.add(Duration(days: 3)), dueDate: expected);
-      expect(preview.getAnchorDate(), expected);
-    });
-
-    test("equals identity", () {
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      expect(catLitter, catLitter);
-    });
-
-    test("equals only id matching", () {
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      TaskItem taskItem = new TaskItem(id: catLitter.id, personId: 1, name: 'Eat a Penny');
-      expect(catLitter, taskItem);
-    });
-
-    test("equals no matching", () {
-      TaskItem taskItem = new TaskItem(id: 2, personId: 1, name: 'Eat a Penny');
-      TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      expect(catLitter, isNot(taskItem));
+      var blueprint = catLitter.createBlueprint();
+      blueprint.urgentDate = catTarget.add(Duration(days: 3));
+      blueprint.dueDate = expected;
+      expect(blueprint.getAnchorDate(), expected);
     });
 
   });

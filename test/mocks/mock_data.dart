@@ -12,12 +12,13 @@ final DateTime pastSprintAdded = DateTime.utc(2019, 6, 24, 8, 11, 56, 123);
 
 final Map<String, dynamic> pastSprintJSON = {
   "id": 10,
-  "start_date": pastSprintStart.toIso8601String(),
-  "end_date": pastSprintStart.add(Duration(days: 7)).toIso8601String(),
-  "num_units": 1,
-  "unit_name": "Weeks",
-  "person_id": 1,
-  "sprint_number": 5
+  "dateAdded": pastSprintStart.toIso8601String(),
+  "startDate": pastSprintStart.toIso8601String(),
+  "endDate": pastSprintStart.add(Duration(days: 7)).toIso8601String(),
+  "numUnits": 1,
+  "unitName": "Weeks",
+  "personId": 1,
+  "sprintNumber": 5
 };
 
 final DateTime currentSprintStart = DateTime.now().subtract(Duration(days: 3));
@@ -25,12 +26,13 @@ final DateTime currentSprintAdded = DateTime.utc(2019, 7, 22, 1, 16, 8, 153);
 
 final Map<String, dynamic> currentSprintJSON = {
   "id": 11,
-  "start_date": currentSprintStart.toIso8601String(),
-  "end_date": currentSprintStart.add(Duration(days: 7)).toIso8601String(),
-  "num_units": 1,
-  "unit_name": "Weeks",
-  "person_id": 1,
-  "sprint_number": 6
+  "dateAdded": currentSprintStart.toIso8601String(),
+  "startDate": currentSprintStart.toIso8601String(),
+  "endDate": currentSprintStart.add(Duration(days: 7)).toIso8601String(),
+  "numUnits": 1,
+  "unitName": "Weeks",
+  "personId": 1,
+  "sprintNumber": 6
 };
 
 Sprint pastSprint = serializers.deserializeWith(Sprint.serializer, pastSprintJSON)!;
@@ -45,7 +47,7 @@ final DateTime catAdded = DateTime.utc(2019, 9, 27, 4, 34, 48, 460);
 final DateTime catRetired = DateTime.utc(2019, 10, 18, 3, 14, 47, 666);
 final Map<String, dynamic> catLitterJSON = {
   "id": 25,
-  "person_id": 1,
+  "personId": 1,
   "name": "Cat Litter",
   "description": null,
   "project": "Maintenance",
@@ -53,41 +55,43 @@ final Map<String, dynamic> catLitterJSON = {
   "urgency": 4,
   "priority": 6,
   "duration": 12,
-  "start_date": null,
-  "target_date": catTarget.toIso8601String(),
-  "due_date": null,
-  "completion_date": catEnd.toIso8601String(),
-  "urgent_date": null,
-  "game_points": 5,
-  "recur_number": 10,
-  "recur_unit": "Days",
-  "recur_wait": true,
-  "recur_iteration": 1,
-  "recurrence_id": 1,
-  "date_added": catAdded.toIso8601String(),
+  "startDate": null,
+  "targetDate": catTarget.toIso8601String(),
+  "dueDate": null,
+  "completionDate": catEnd.toIso8601String(),
+  "offCycle": false,
+  "urgentDate": null,
+  "gamePoints": 5,
+  "recurNumber": 10,
+  "recurUnit": "Days",
+  "recurWait": true,
+  "recurIteration": 1,
+  "recurrenceId": 1,
+  "dateAdded": catAdded.toIso8601String(),
   "retired": 0,
-  "retired_date": null,
-  "sprint_assignments": [
+  "retiredDate": null,
+  "sprintAssignments": [
     {
       "id": 2346,
-      "sprint_id": currentSprint.id
+      "taskId": 25,
+      "sprintId": currentSprint.id
     }
   ]
 };
 
 final Map<String, dynamic> catLitterRecurrenceJSON = {
   "id": 1,
-  "person_id": 1,
+  "personId": 1,
   "name": "Cat Litter",
-  "recur_number": 10,
-  "recur_unit": "Days",
-  "recur_wait": true,
-  "recur_iteration": 1,
-  "anchor_date": catAdded.toIso8601String(),
-  "anchor_type": "Target",
-  "date_added": catAdded.toIso8601String(),
+  "recurNumber": 10,
+  "recurUnit": "Days",
+  "recurWait": true,
+  "recurIteration": 1,
+  "anchorDate": catAdded.toIso8601String(),
+  "anchorType": "Target",
+  "dateAdded": catAdded.toIso8601String(),
   "retired": 0,
-  "retired_date": null,
+  "retiredDate": null,
 };
 
 final DateTime bdayDue = DateTime.now().add(Duration(days: 20)).toUtc();
@@ -95,7 +99,7 @@ final DateTime bdayAdded = DateTime.utc(2019, 8, 30, 17, 32, 14, 674);
 
 final Map<String, dynamic> birthdayJSON = {
   "id": 26,
-  "person_id": 1,
+  "personId": 1,
   "name": "Hunter Birthday",
   "description": null,
   "project": "Friends",
@@ -103,28 +107,29 @@ final Map<String, dynamic> birthdayJSON = {
   "urgency": 6,
   "priority": 7,
   "duration": 35,
-  "start_date": null,
-  "target_date": null,
-  "due_date": bdayDue.toIso8601String(),
-  "completion_date": null,
-  "urgent_date": null,
-  "game_points": 15,
-  "recur_number": null,
-  "recur_unit": null,
-  "recur_wait": null,
-  "recur_iteration": null,
-  "recurrence_id": null,
-  "date_added": bdayAdded.toIso8601String(),
+  "startDate": null,
+  "targetDate": null,
+  "dueDate": bdayDue.toIso8601String(),
+  "completionDate": null,
+  "offCycle": false,
+  "urgentDate": null,
+  "gamePoints": 15,
+  "recurNumber": null,
+  "recurUnit": null,
+  "recurWait": null,
+  "recurIteration": null,
+  "recurrenceId": null,
+  "dateAdded": bdayAdded.toIso8601String(),
   "retired": 0,
-  "retired_date": null,
-  "sprint_assignments": [
+  "retiredDate": null,
+  "sprintAssignments": [
     {
       "id": 1234,
-      "sprint_id": pastSprint.id
+      "sprintId": pastSprint.id
     },
     {
       "id": 2345,
-      "sprint_id": currentSprint.id
+      "sprintId": currentSprint.id
     }
   ]
 };
@@ -134,7 +139,7 @@ final DateTime futureAdded = DateTime.utc(2019, 6, 24, 8, 11, 56, 123);
 
 final Map<String, dynamic> futureJSON = {
   "id": 27,
-  "person_id": 1,
+  "personId": 1,
   "name": "Become President",
   "description": "It could happen",
   "project": "Projects",
@@ -142,21 +147,22 @@ final Map<String, dynamic> futureJSON = {
   "urgency": 3,
   "priority": 9,
   "duration": 1200,
-  "start_date": futureStart.toIso8601String(),
-  "target_date": null,
-  "due_date": null,
-  "completion_date": null,
-  "urgent_date": null,
-  "game_points": 15,
-  "recur_number": null,
-  "recur_unit": null,
-  "recur_wait": null,
-  "recur_iteration": null,
-  "recurrence_id": null,
-  "date_added": futureAdded.toIso8601String(),
+  "startDate": futureStart.toIso8601String(),
+  "targetDate": null,
+  "dueDate": null,
+  "completionDate": null,
+  "offCycle": false,
+  "urgentDate": null,
+  "gamePoints": 15,
+  "recurNumber": null,
+  "recurUnit": null,
+  "recurWait": null,
+  "recurIteration": null,
+  "recurrenceId": null,
+  "dateAdded": futureAdded.toIso8601String(),
   "retired": 0,
-  "retired_date": null,
-  "sprint_assignments": []
+  "retiredDate": null,
+  "sprintAssignments": []
 };
 
 final DateTime pastStart = DateTime.now().subtract(Duration(days: 90));
@@ -164,7 +170,7 @@ final DateTime pastAdded = DateTime.utc(2019, 6, 24, 8, 11, 56, 123);
 
 final Map<String, dynamic> pastJSON = {
   "id": 28,
-  "person_id": 1,
+  "personId": 1,
   "name": "Cut out Gluten",
   "description": "Because my tummy",
   "project": "Health",
@@ -172,24 +178,25 @@ final Map<String, dynamic> pastJSON = {
   "urgency": 4,
   "priority": 5,
   "duration": 60,
-  "start_date": pastStart.toIso8601String(),
-  "target_date": null,
-  "due_date": null,
-  "completion_date": null,
-  "urgent_date": null,
-  "game_points": 15,
-  "recur_number": 6,
-  "recur_unit": 'Weeks',
-  "recur_wait": false,
-  "recur_iteration": 1,
-  "recurrence_id": 1,
-  "date_added": pastAdded.toIso8601String(),
+  "startDate": pastStart.toIso8601String(),
+  "targetDate": null,
+  "dueDate": null,
+  "completionDate": null,
+  "offCycle": false,
+  "urgentDate": null,
+  "gamePoints": 15,
+  "recurNumber": 6,
+  "recurUnit": 'Weeks',
+  "recurWait": false,
+  "recurIteration": 1,
+  "recurrenceId": 1,
+  "dateAdded": pastAdded.toIso8601String(),
   "retired": 0,
-  "retired_date": null,
-  "sprint_assignments": [
+  "retiredDate": null,
+  "sprintAssignments": [
     {
       "id": 1233,
-      "sprint_id": pastSprint.id
+      "sprintId": pastSprint.id
     }
   ]
 };
@@ -200,7 +207,7 @@ final DateTime burnAdded = DateTime.utc(2019, 6, 24, 8, 11, 56, 123);
 
 final Map<String, dynamic> burnJSON = {
   "id": 29,
-  "person_id": 1,
+  "personId": 1,
   "name": "Burn Down the House",
   "description": "Because you're talking to my talking head",
   "project": "Organization",
@@ -208,24 +215,25 @@ final Map<String, dynamic> burnJSON = {
   "urgency": 8,
   "priority": 4,
   "duration": 70,
-  "start_date": null,
-  "target_date": burnTarget.toIso8601String(),
-  "due_date": null,
-  "completion_date": burnComplete.toIso8601String(),
-  "urgent_date": null,
-  "game_points": 4,
-  "recur_number": null,
-  "recur_unit": null,
-  "recur_wait": null,
-  "recur_iteration": null,
-  "recurrence_id": null,
-  "date_added": burnAdded.toIso8601String(),
+  "startDate": null,
+  "targetDate": burnTarget.toIso8601String(),
+  "dueDate": null,
+  "completionDate": burnComplete.toIso8601String(),
+  "offCycle": false,
+  "urgentDate": null,
+  "gamePoints": 4,
+  "recurNumber": null,
+  "recurUnit": null,
+  "recurWait": null,
+  "recurIteration": null,
+  "recurrenceId": null,
+  "dateAdded": burnAdded.toIso8601String(),
   "retired": 0,
-  "retired_date": null,
-  "sprint_assignments": [
+  "retiredDate": null,
+  "sprintAssignments": [
     {
       "id": 1233,
-      "sprint_id": currentSprint.id
+      "sprintId": currentSprint.id
     }
   ]
 };

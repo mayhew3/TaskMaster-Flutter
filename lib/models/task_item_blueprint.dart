@@ -31,6 +31,8 @@ class TaskItemBlueprint with DateHolder {
   DateTime? urgentDate;
   DateTime? completionDate;
 
+  bool? offCycle;
+
   int? recurNumber;
   String? recurUnit;
   bool? recurWait;
@@ -67,23 +69,24 @@ class TaskItemBlueprint with DateHolder {
 
   bool hasChanges(TaskItem other) {
     var allMismatch = other.name != name ||
-          other.description != description ||
-          other.project != project ||
-          other.context != context ||
-          other.urgency != urgency ||
-          other.priority != priority ||
-          other.duration != duration ||
-          other.gamePoints != gamePoints ||
-          other.startDate != startDate ||
-          other.targetDate != targetDate ||
-          other.dueDate != dueDate ||
-          other.urgentDate != urgentDate ||
-          other.completionDate != completionDate ||
-          other.recurNumber != recurNumber ||
-          other.recurUnit != recurUnit ||
-          other.recurWait != recurWait ||
-          other.recurrenceId != recurrenceId ||
-          other.recurIteration != recurIteration ||
+        other.description != description ||
+        other.project != project ||
+        other.context != context ||
+        other.urgency != urgency ||
+        other.priority != priority ||
+        other.duration != duration ||
+        other.gamePoints != gamePoints ||
+        other.startDate != startDate ||
+        other.targetDate != targetDate ||
+        other.dueDate != dueDate ||
+        other.urgentDate != urgentDate ||
+        other.completionDate != completionDate ||
+        other.offCycle != offCycle ||
+        other.recurNumber != recurNumber ||
+        other.recurUnit != recurUnit ||
+        other.recurWait != recurWait ||
+        other.recurrenceId != recurrenceId ||
+        other.recurIteration != recurIteration ||
         (recurrenceBlueprint == null ? other.recurrence != null : recurrenceBlueprint!.hasChanges(other.recurrence));
     print("All mismatch: $allMismatch");
     return
@@ -105,6 +108,7 @@ class TaskItemBlueprint with DateHolder {
           other.dueDate != dueDate ||
           other.urgentDate != urgentDate ||
           other.completionDate != completionDate ||
+          other.offCycle != offCycle ||
           other.recurNumber != recurNumber ||
           other.recurUnit != recurUnit ||
           other.recurWait != recurWait ||

@@ -5,6 +5,7 @@ import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 import 'package:taskmaster/models/models.dart';
+import 'package:taskmaster/models/serializers.dart';
 import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/sprint_display_task.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
@@ -85,6 +86,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
     blueprint.dueDate = dueDate;
     blueprint.urgentDate = urgentDate;
     blueprint.gamePoints = gamePoints;
+    blueprint.offCycle = offCycle;
     blueprint.personId = personId;
     blueprint.recurNumber = recurNumber;
     blueprint.recurUnit = recurUnit;
@@ -148,6 +150,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
           other.dueDate != dueDate ||
           other.urgentDate != urgentDate ||
           other.completionDate != completionDate ||
+          other.offCycle != offCycle ||
           other.recurNumber != recurNumber ||
           other.recurUnit != recurUnit ||
           other.recurWait != recurWait ||
@@ -171,6 +174,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
           other.dueDate != dueDate ||
           other.urgentDate != urgentDate ||
           other.completionDate != completionDate ||
+          other.offCycle != offCycle ||
           other.recurNumber != recurNumber ||
           other.recurUnit != recurUnit ||
           other.recurWait != recurWait ||
@@ -179,4 +183,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
           (recurrence == null ? other.recurrenceBlueprint != null : recurrence!.hasChangesBlueprint(other.recurrenceBlueprint));
   }
 
+  static TaskItem fromJson(dynamic json) {
+    return serializers.deserializeWith(TaskItem.serializer, json)!;
+  }
 }
