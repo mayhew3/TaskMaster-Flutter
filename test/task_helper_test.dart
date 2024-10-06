@@ -1,14 +1,19 @@
 
-import 'package:flutter/cupertino.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:redux/redux.dart';
 import 'package:taskmaster/date_util.dart';
+import 'package:taskmaster/models/serializers.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
+import 'package:taskmaster/redux/actions/task_item_actions.dart';
+import 'package:taskmaster/redux/app_state.dart';
+import 'package:taskmaster/redux/middleware/notification_helper.dart';
+import 'package:taskmaster/redux/middleware/store_task_items_middleware.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
@@ -20,7 +25,7 @@ import 'task_helper_test.mocks.dart';
 import 'test_mock_helper.dart';
 
 
-// @GenerateNiceMocks([MockSpec<TaskRepository>()])
+@GenerateNiceMocks([MockSpec<TaskRepository>(), MockSpec<Store>(), MockSpec<AppState>(), MockSpec<NotificationHelper>()])
 void main() {
 /*
 
@@ -94,24 +99,37 @@ void main() {
 
     expect(appState.isLoading, false);
   });
+*/
+
 
   test('addTask', () async {
-    var taskHelper = createTaskHelper(taskItems: [catLitterTask]);
-    var notificationScheduler = appState.notificationScheduler;
-    expect(notificationScheduler, isNot(null));
+    var taskRepository = MockTaskRepository();
+    var store = MockStore<AppState>();
+    var appState = MockAppState();
+
     var taskItem = TaskItem.fromJson(birthdayJSON);
-    var taskItemBlueprint = TaskItemBlueprint.fromJson(birthdayJSON);
+    var taskItemBlueprint = taskItem.createBlueprint();
+    var action = new AddTaskItemAction(blueprint: taskItemBlueprint);
 
-    when(taskRepository.addTask(taskItemBlueprint)).thenAnswer((_) => Future.value(taskItem));
+    when(store.state).thenAnswer((_) => appState);
+    when(appState.personId).thenAnswer((_) => 1);
+    when(appState.getIdToken()).thenAnswer((_) => Future.value("token"));
 
-    var resultingTaskItem = await taskHelper.addTask(taskItemBlueprint, (fn) => fn());
-    verify(taskRepository.addTask(taskItemBlueprint));
-    verify(notificationScheduler.updateNotificationForTask(birthdayTask));
-    verify(notificationScheduler.updateBadge());
+    // var notificationScheduler = new MockNotificationHelper();
+    // expect(notificationScheduler, isNot(null));
 
-    expect(appState.taskItems, [catLitterTask, resultingTaskItem]);
+    when(taskRepository.addTask(taskItemBlueprint, "token")).thenAnswer((_) => Future.value((taskItem: taskItem, recurrence: null)));
+
+    await createNewTaskItem(taskRepository)(store, action, (_) => {});
+
+    verify(taskRepository.addTask(taskItemBlueprint, "token"));
+    // verify(notificationScheduler.updateNotificationForTask(birthdayTask));
+
   });
 
+
+
+  /*
   test('addTask with recurrence', () async {
     var taskHelper = createTaskHelper(taskItems: [birthdayTask]);
     var notificationScheduler = appState.notificationScheduler;

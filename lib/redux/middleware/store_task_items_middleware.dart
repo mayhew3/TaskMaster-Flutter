@@ -23,7 +23,7 @@ List<Middleware<AppState>> createStoreTaskItemsMiddleware(
     TypedMiddleware<AppState, VerifyPersonAction>(_verifyPerson(repository)),
     TypedMiddleware<AppState, LoadDataAction>(_loadData(repository, navigatorKey)),
     TypedMiddleware<AppState, DataLoadedAction>(_dataLoaded(navigatorKey)),
-    TypedMiddleware<AppState, AddTaskItemAction>(_createNewTaskItem(repository)),
+    TypedMiddleware<AppState, AddTaskItemAction>(createNewTaskItem(repository)),
     TypedMiddleware<AppState, UpdateTaskItemAction>(_updateTaskItem(repository)),
     TypedMiddleware<AppState, DeleteTaskItemAction>(_deleteTaskItem(repository)),
     TypedMiddleware<AppState, CompleteTaskItemAction>(_completeTaskItem(repository)),
@@ -101,11 +101,12 @@ Future<void> Function(
   };
 }
 
+@visibleForTesting
 Future<void> Function(
     Store<AppState>,
     AddTaskItemAction action,
     NextDispatcher next,
-    ) _createNewTaskItem(TaskRepository repository) {
+    ) createNewTaskItem(TaskRepository repository) {
   return (Store<AppState> store, AddTaskItemAction action, NextDispatcher next) async {
     next(action);
 
