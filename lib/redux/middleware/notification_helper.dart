@@ -13,6 +13,25 @@ class NotificationHelper {
 
   NotificationHelper({required this.plugin, required this.timezoneHelper});
 
+  static FlutterLocalNotificationsPlugin initializeNotificationPlugin() {
+    // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
+    var initializationSettingsAndroid = AndroidInitializationSettings('app_icon');
+    var initializationSettingsIOS = DarwinInitializationSettings(
+      // onDidReceiveLocalNotification: _onDidReceiveLocalNotification
+    );
+    var initializationSettings = InitializationSettings(
+        android: initializationSettingsAndroid,
+        iOS: initializationSettingsIOS
+    );
+    var plugin = FlutterLocalNotificationsPlugin();
+    plugin.initialize(initializationSettings,
+      // onDidReceiveNotificationResponse: (response) => {}
+    );
+    // plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
+
+    return plugin;
+  }
+
   Future<void> cancelAllNotifications() async {
     print('Canceling all existing notifications and rebuilding...');
     return plugin.cancelAll();

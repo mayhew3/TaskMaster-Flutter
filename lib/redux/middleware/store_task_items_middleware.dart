@@ -8,7 +8,6 @@ import 'package:taskmaster/models/task_item_recur_preview.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
-import 'package:taskmaster/redux/middleware/notification_helper.dart';
 import 'package:taskmaster/redux/selectors/selectors.dart';
 import 'package:taskmaster/routes.dart';
 import 'package:taskmaster/task_repository.dart';
@@ -96,8 +95,7 @@ Future<void> Function(
 
     navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.home);
 
-    var notificationHelper = new NotificationHelper(plugin: store.state.flutterLocalNotificationsPlugin, timezoneHelper: store.state.timezoneHelper);
-    await notificationHelper.syncNotificationForTasksAndSprint(store.state.taskItems.toList(), activeSprintSelector(store.state.sprints));
+    await store.state.notificationHelper.syncNotificationForTasksAndSprint(store.state.taskItems.toList(), activeSprintSelector(store.state.sprints));
   };
 }
 
@@ -263,11 +261,9 @@ TaskRecurrenceBlueprint syncBlueprintToMostRecentTaskItem(TaskItem updatedTaskIt
 }
 
 void updateNotificationForItem(Store<AppState> store, TaskItem taskItem) {
-  var notificationHelper = new NotificationHelper(plugin: store.state.flutterLocalNotificationsPlugin, timezoneHelper: store.state.timezoneHelper);
-  notificationHelper.updateNotificationForTask(taskItem);
+  store.state.notificationHelper.updateNotificationForTask(taskItem);
 }
 
 void deleteNotificationForItem(Store<AppState> store, int taskItemId) {
-  var notificationHelper = new NotificationHelper(plugin: store.state.flutterLocalNotificationsPlugin, timezoneHelper: store.state.timezoneHelper);
-  notificationHelper.cancelNotificationsForTaskId(taskItemId);
+  store.state.notificationHelper.cancelNotificationsForTaskId(taskItemId);
 }

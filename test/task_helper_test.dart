@@ -36,6 +36,7 @@ void main() {
   MockTimezoneHelper timezoneHelper = MockTimezoneHelper();
   MockStore<AppState> store = MockStore<AppState>();
   MockAppState appState = new MockAppState();
+  MockNotificationHelper mockNotificationHelper = new MockNotificationHelper();
   // MockNotificationScheduler notificationScheduler = new MockNotificationScheduler();
   // StateSetter stateSetter = (callback) => callback();
 /*
@@ -54,8 +55,8 @@ void main() {
 
     when(appState.personId).thenAnswer((_) => 1);
     when(appState.getIdToken()).thenAnswer((_) => Future.value("token"));
-    when(appState.flutterLocalNotificationsPlugin).thenAnswer((_) => plugin);
     when(appState.timezoneHelper).thenAnswer((_) => timezoneHelper);
+    when(appState.notificationHelper).thenAnswer((_) => mockNotificationHelper);
 
     when(appState.taskItems).thenAnswer((_) => taskItems?.toBuiltList() ?? BuiltList<TaskItem>());
     when(appState.sprints).thenAnswer((_) => sprints?.toBuiltList() ?? BuiltList<Sprint>());
@@ -96,9 +97,6 @@ void main() {
     var taskItemBlueprint = taskItem.createBlueprint();
     var action = new AddTaskItemAction(blueprint: taskItemBlueprint);
 
-    // var notificationScheduler = new MockNotificationHelper();
-    // expect(notificationScheduler, isNot(null));
-
     when(taskRepository.addTask(taskItemBlueprint, "token")).thenAnswer((_) => Future.value((taskItem: taskItem, recurrence: null)));
 
     await createNewTaskItem(taskRepository)(store, action, (_) => {});
@@ -107,8 +105,7 @@ void main() {
     verify(appState.getIdToken());
     verify(taskRepository.addTask(taskItemBlueprint, "token"));
     verify(store.dispatch(argThat(isA<TaskItemAddedAction>())));
-    // verify(notificationScheduler.updateNotificationForTask(birthdayTask));
-
+    verify(mockNotificationHelper.updateNotificationForTask(taskItem));
   });
 
 /*
