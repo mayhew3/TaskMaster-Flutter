@@ -20,12 +20,13 @@ import 'package:test/test.dart';
 import 'matchers/approximate_time_matcher.dart';
 import 'mocks/mock_data.dart';
 import 'mocks/mock_data_builder.dart';
+import 'mocks/mock_flutter_plugin.dart';
 import 'mocks/mock_timezone_helper.dart';
 import 'task_helper_test.mocks.dart';
 import 'test_mock_helper.dart';
 
 
-@GenerateNiceMocks([MockSpec<TaskRepository>(), MockSpec<Store>(), MockSpec<AppState>(), MockSpec<NotificationHelper>()])
+@GenerateNiceMocks([MockSpec<TaskRepository>(), MockSpec<Store>(), MockSpec<NotificationHelper>(), MockSpec<AppState>()])
 void main() {
 /*
 
@@ -101,11 +102,15 @@ void main() {
   });
 */
 
-
   test('addTask', () async {
     var taskRepository = MockTaskRepository();
+    var plugin = MockFlutterLocalNotificationsPlugin();
+    var timezoneHelper = MockTimezoneHelper();
+    timezoneHelper.configureLocalTimeZone();
     var store = MockStore<AppState>();
     var appState = MockAppState();
+    
+    provideDummy<AppState>(appState);
 
     var taskItem = TaskItem.fromJson(birthdayJSON);
     var taskItemBlueprint = taskItem.createBlueprint();
@@ -114,6 +119,8 @@ void main() {
     when(store.state).thenAnswer((_) => appState);
     when(appState.personId).thenAnswer((_) => 1);
     when(appState.getIdToken()).thenAnswer((_) => Future.value("token"));
+    when(appState.flutterLocalNotificationsPlugin).thenAnswer((_) => plugin);
+    when(appState.timezoneHelper).thenAnswer((_) => timezoneHelper);
 
     // var notificationScheduler = new MockNotificationHelper();
     // expect(notificationScheduler, isNot(null));
@@ -122,7 +129,10 @@ void main() {
 
     await createNewTaskItem(taskRepository)(store, action, (_) => {});
 
+    verify(appState.personId);
+    verify(appState.getIdToken());
     verify(taskRepository.addTask(taskItemBlueprint, "token"));
+    verify(store.dispatch(argThat(isA<TaskItemAddedAction>())));
     // verify(notificationScheduler.updateNotificationForTask(birthdayTask));
 
   });

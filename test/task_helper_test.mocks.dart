@@ -7,14 +7,14 @@ import 'dart:async' as _i16;
 
 import 'package:built_collection/built_collection.dart' as _i5;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
-    as _i13;
-import 'package:google_sign_in/google_sign_in.dart' as _i11;
+    as _i9;
+import 'package:google_sign_in/google_sign_in.dart' as _i13;
 import 'package:http/http.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i25;
 import 'package:redux/src/store.dart' as _i24;
 import 'package:taskmaster/models/data_payload.dart' as _i3;
-import 'package:taskmaster/models/models.dart' as _i10;
+import 'package:taskmaster/models/models.dart' as _i12;
 import 'package:taskmaster/models/snooze.dart' as _i8;
 import 'package:taskmaster/models/snooze_blueprint.dart' as _i22;
 import 'package:taskmaster/models/sprint.dart' as _i6;
@@ -25,11 +25,11 @@ import 'package:taskmaster/models/task_item_blueprint.dart' as _i17;
 import 'package:taskmaster/models/task_item_recur_preview.dart' as _i18;
 import 'package:taskmaster/models/task_recurrence.dart' as _i7;
 import 'package:taskmaster/models/task_recurrence_blueprint.dart' as _i21;
-import 'package:taskmaster/models/top_nav_item.dart' as _i9;
+import 'package:taskmaster/models/top_nav_item.dart' as _i11;
 import 'package:taskmaster/redux/app_state.dart' as _i14;
 import 'package:taskmaster/redux/middleware/notification_helper.dart' as _i26;
 import 'package:taskmaster/task_repository.dart' as _i15;
-import 'package:taskmaster/timezone_helper.dart' as _i12;
+import 'package:taskmaster/timezone_helper.dart' as _i10;
 import 'package:taskmaster/typedefs.dart' as _i23;
 
 // ignore_for_file: type=lint
@@ -126,8 +126,9 @@ class _FakeUri_7 extends _i1.SmartFake implements Uri {
         );
 }
 
-class _FakeTopNavItem_8 extends _i1.SmartFake implements _i9.TopNavItem {
-  _FakeTopNavItem_8(
+class _FakeFlutterLocalNotificationsPlugin_8 extends _i1.SmartFake
+    implements _i9.FlutterLocalNotificationsPlugin {
+  _FakeFlutterLocalNotificationsPlugin_8(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -136,9 +137,9 @@ class _FakeTopNavItem_8 extends _i1.SmartFake implements _i9.TopNavItem {
         );
 }
 
-class _FakeVisibilityFilter_9 extends _i1.SmartFake
-    implements _i10.VisibilityFilter {
-  _FakeVisibilityFilter_9(
+class _FakeTimezoneHelper_9 extends _i1.SmartFake
+    implements _i10.TimezoneHelper {
+  _FakeTimezoneHelper_9(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -147,8 +148,8 @@ class _FakeVisibilityFilter_9 extends _i1.SmartFake
         );
 }
 
-class _FakeGoogleSignIn_10 extends _i1.SmartFake implements _i11.GoogleSignIn {
-  _FakeGoogleSignIn_10(
+class _FakeTopNavItem_10 extends _i1.SmartFake implements _i11.TopNavItem {
+  _FakeTopNavItem_10(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -157,9 +158,9 @@ class _FakeGoogleSignIn_10 extends _i1.SmartFake implements _i11.GoogleSignIn {
         );
 }
 
-class _FakeTimezoneHelper_11 extends _i1.SmartFake
-    implements _i12.TimezoneHelper {
-  _FakeTimezoneHelper_11(
+class _FakeVisibilityFilter_11 extends _i1.SmartFake
+    implements _i12.VisibilityFilter {
+  _FakeVisibilityFilter_11(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -168,9 +169,8 @@ class _FakeTimezoneHelper_11 extends _i1.SmartFake
         );
 }
 
-class _FakeFlutterLocalNotificationsPlugin_12 extends _i1.SmartFake
-    implements _i13.FlutterLocalNotificationsPlugin {
-  _FakeFlutterLocalNotificationsPlugin_12(
+class _FakeGoogleSignIn_12 extends _i1.SmartFake implements _i13.GoogleSignIn {
+  _FakeGoogleSignIn_12(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -943,6 +943,103 @@ class MockStore<State> extends _i1.Mock implements _i24.Store<State> {
       ) as _i16.Future<dynamic>);
 }
 
+/// A class which mocks [NotificationHelper].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockNotificationHelper extends _i1.Mock
+    implements _i26.NotificationHelper {
+  @override
+  int get nextId => (super.noSuchMethod(
+        Invocation.getter(#nextId),
+        returnValue: 0,
+        returnValueForMissingStub: 0,
+      ) as int);
+
+  @override
+  set nextId(int? _nextId) => super.noSuchMethod(
+        Invocation.setter(
+          #nextId,
+          _nextId,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i9.FlutterLocalNotificationsPlugin get plugin => (super.noSuchMethod(
+        Invocation.getter(#plugin),
+        returnValue: _FakeFlutterLocalNotificationsPlugin_8(
+          this,
+          Invocation.getter(#plugin),
+        ),
+        returnValueForMissingStub: _FakeFlutterLocalNotificationsPlugin_8(
+          this,
+          Invocation.getter(#plugin),
+        ),
+      ) as _i9.FlutterLocalNotificationsPlugin);
+
+  @override
+  _i10.TimezoneHelper get timezoneHelper => (super.noSuchMethod(
+        Invocation.getter(#timezoneHelper),
+        returnValue: _FakeTimezoneHelper_9(
+          this,
+          Invocation.getter(#timezoneHelper),
+        ),
+        returnValueForMissingStub: _FakeTimezoneHelper_9(
+          this,
+          Invocation.getter(#timezoneHelper),
+        ),
+      ) as _i10.TimezoneHelper);
+
+  @override
+  _i16.Future<void> cancelAllNotifications() => (super.noSuchMethod(
+        Invocation.method(
+          #cancelAllNotifications,
+          [],
+        ),
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
+
+  @override
+  _i16.Future<void> cancelNotificationsForTaskId(int? taskId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #cancelNotificationsForTaskId,
+          [taskId],
+        ),
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
+
+  @override
+  _i16.Future<void> syncNotificationForTasksAndSprint(
+    List<_i4.TaskItem>? taskItems,
+    _i6.Sprint? sprint,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #syncNotificationForTasksAndSprint,
+          [
+            taskItems,
+            sprint,
+          ],
+        ),
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
+
+  @override
+  _i16.Future<void> updateNotificationForTask(_i4.TaskItem? taskItem) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateNotificationForTask,
+          [taskItem],
+        ),
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
+}
+
 /// A class which mocks [AppState].
 ///
 /// See the documentation for Mockito's code generation for more information.
@@ -1014,69 +1111,69 @@ class MockAppState extends _i1.Mock implements _i14.AppState {
       ) as _i5.BuiltList<_i4.TaskItem>);
 
   @override
-  _i9.TopNavItem get activeTab => (super.noSuchMethod(
+  _i11.TopNavItem get activeTab => (super.noSuchMethod(
         Invocation.getter(#activeTab),
-        returnValue: _FakeTopNavItem_8(
+        returnValue: _FakeTopNavItem_10(
           this,
           Invocation.getter(#activeTab),
         ),
-        returnValueForMissingStub: _FakeTopNavItem_8(
+        returnValueForMissingStub: _FakeTopNavItem_10(
           this,
           Invocation.getter(#activeTab),
         ),
-      ) as _i9.TopNavItem);
+      ) as _i11.TopNavItem);
 
   @override
-  _i5.BuiltList<_i9.TopNavItem> get allNavItems => (super.noSuchMethod(
+  _i5.BuiltList<_i11.TopNavItem> get allNavItems => (super.noSuchMethod(
         Invocation.getter(#allNavItems),
-        returnValue: _FakeBuiltList_3<_i9.TopNavItem>(
+        returnValue: _FakeBuiltList_3<_i11.TopNavItem>(
           this,
           Invocation.getter(#allNavItems),
         ),
-        returnValueForMissingStub: _FakeBuiltList_3<_i9.TopNavItem>(
+        returnValueForMissingStub: _FakeBuiltList_3<_i11.TopNavItem>(
           this,
           Invocation.getter(#allNavItems),
         ),
-      ) as _i5.BuiltList<_i9.TopNavItem>);
+      ) as _i5.BuiltList<_i11.TopNavItem>);
 
   @override
-  _i10.VisibilityFilter get sprintListFilter => (super.noSuchMethod(
+  _i12.VisibilityFilter get sprintListFilter => (super.noSuchMethod(
         Invocation.getter(#sprintListFilter),
-        returnValue: _FakeVisibilityFilter_9(
+        returnValue: _FakeVisibilityFilter_11(
           this,
           Invocation.getter(#sprintListFilter),
         ),
-        returnValueForMissingStub: _FakeVisibilityFilter_9(
+        returnValueForMissingStub: _FakeVisibilityFilter_11(
           this,
           Invocation.getter(#sprintListFilter),
         ),
-      ) as _i10.VisibilityFilter);
+      ) as _i12.VisibilityFilter);
 
   @override
-  _i10.VisibilityFilter get taskListFilter => (super.noSuchMethod(
+  _i12.VisibilityFilter get taskListFilter => (super.noSuchMethod(
         Invocation.getter(#taskListFilter),
-        returnValue: _FakeVisibilityFilter_9(
+        returnValue: _FakeVisibilityFilter_11(
           this,
           Invocation.getter(#taskListFilter),
         ),
-        returnValueForMissingStub: _FakeVisibilityFilter_9(
+        returnValueForMissingStub: _FakeVisibilityFilter_11(
           this,
           Invocation.getter(#taskListFilter),
         ),
-      ) as _i10.VisibilityFilter);
+      ) as _i12.VisibilityFilter);
 
   @override
-  _i11.GoogleSignIn get googleSignIn => (super.noSuchMethod(
+  _i13.GoogleSignIn get googleSignIn => (super.noSuchMethod(
         Invocation.getter(#googleSignIn),
-        returnValue: _FakeGoogleSignIn_10(
+        returnValue: _FakeGoogleSignIn_12(
           this,
           Invocation.getter(#googleSignIn),
         ),
-        returnValueForMissingStub: _FakeGoogleSignIn_10(
+        returnValueForMissingStub: _FakeGoogleSignIn_12(
           this,
           Invocation.getter(#googleSignIn),
         ),
-      ) as _i11.GoogleSignIn);
+      ) as _i13.GoogleSignIn);
 
   @override
   bool get tokenRetrieved => (super.noSuchMethod(
@@ -1086,17 +1183,17 @@ class MockAppState extends _i1.Mock implements _i14.AppState {
       ) as bool);
 
   @override
-  _i12.TimezoneHelper get timezoneHelper => (super.noSuchMethod(
+  _i10.TimezoneHelper get timezoneHelper => (super.noSuchMethod(
         Invocation.getter(#timezoneHelper),
-        returnValue: _FakeTimezoneHelper_11(
+        returnValue: _FakeTimezoneHelper_9(
           this,
           Invocation.getter(#timezoneHelper),
         ),
-        returnValueForMissingStub: _FakeTimezoneHelper_11(
+        returnValueForMissingStub: _FakeTimezoneHelper_9(
           this,
           Invocation.getter(#timezoneHelper),
         ),
-      ) as _i12.TimezoneHelper);
+      ) as _i10.TimezoneHelper);
 
   @override
   int get nextId => (super.noSuchMethod(
@@ -1106,18 +1203,18 @@ class MockAppState extends _i1.Mock implements _i14.AppState {
       ) as int);
 
   @override
-  _i13.FlutterLocalNotificationsPlugin get flutterLocalNotificationsPlugin =>
+  _i9.FlutterLocalNotificationsPlugin get flutterLocalNotificationsPlugin =>
       (super.noSuchMethod(
         Invocation.getter(#flutterLocalNotificationsPlugin),
-        returnValue: _FakeFlutterLocalNotificationsPlugin_12(
+        returnValue: _FakeFlutterLocalNotificationsPlugin_8(
           this,
           Invocation.getter(#flutterLocalNotificationsPlugin),
         ),
-        returnValueForMissingStub: _FakeFlutterLocalNotificationsPlugin_12(
+        returnValueForMissingStub: _FakeFlutterLocalNotificationsPlugin_8(
           this,
           Invocation.getter(#flutterLocalNotificationsPlugin),
         ),
-      ) as _i13.FlutterLocalNotificationsPlugin);
+      ) as _i9.FlutterLocalNotificationsPlugin);
 
   @override
   _i16.Future<String?> getIdToken() => (super.noSuchMethod(
@@ -1193,101 +1290,4 @@ class MockAppState extends _i1.Mock implements _i14.AppState {
           ),
         ),
       ) as _i14.AppStateBuilder);
-}
-
-/// A class which mocks [NotificationHelper].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockNotificationHelper extends _i1.Mock
-    implements _i26.NotificationHelper {
-  @override
-  int get nextId => (super.noSuchMethod(
-        Invocation.getter(#nextId),
-        returnValue: 0,
-        returnValueForMissingStub: 0,
-      ) as int);
-
-  @override
-  set nextId(int? _nextId) => super.noSuchMethod(
-        Invocation.setter(
-          #nextId,
-          _nextId,
-        ),
-        returnValueForMissingStub: null,
-      );
-
-  @override
-  _i13.FlutterLocalNotificationsPlugin get plugin => (super.noSuchMethod(
-        Invocation.getter(#plugin),
-        returnValue: _FakeFlutterLocalNotificationsPlugin_12(
-          this,
-          Invocation.getter(#plugin),
-        ),
-        returnValueForMissingStub: _FakeFlutterLocalNotificationsPlugin_12(
-          this,
-          Invocation.getter(#plugin),
-        ),
-      ) as _i13.FlutterLocalNotificationsPlugin);
-
-  @override
-  _i12.TimezoneHelper get timezoneHelper => (super.noSuchMethod(
-        Invocation.getter(#timezoneHelper),
-        returnValue: _FakeTimezoneHelper_11(
-          this,
-          Invocation.getter(#timezoneHelper),
-        ),
-        returnValueForMissingStub: _FakeTimezoneHelper_11(
-          this,
-          Invocation.getter(#timezoneHelper),
-        ),
-      ) as _i12.TimezoneHelper);
-
-  @override
-  _i16.Future<void> cancelAllNotifications() => (super.noSuchMethod(
-        Invocation.method(
-          #cancelAllNotifications,
-          [],
-        ),
-        returnValue: _i16.Future<void>.value(),
-        returnValueForMissingStub: _i16.Future<void>.value(),
-      ) as _i16.Future<void>);
-
-  @override
-  _i16.Future<void> cancelNotificationsForTaskId(int? taskId) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #cancelNotificationsForTaskId,
-          [taskId],
-        ),
-        returnValue: _i16.Future<void>.value(),
-        returnValueForMissingStub: _i16.Future<void>.value(),
-      ) as _i16.Future<void>);
-
-  @override
-  _i16.Future<void> syncNotificationForTasksAndSprint(
-    List<_i4.TaskItem>? taskItems,
-    _i6.Sprint? sprint,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #syncNotificationForTasksAndSprint,
-          [
-            taskItems,
-            sprint,
-          ],
-        ),
-        returnValue: _i16.Future<void>.value(),
-        returnValueForMissingStub: _i16.Future<void>.value(),
-      ) as _i16.Future<void>);
-
-  @override
-  _i16.Future<void> updateNotificationForTask(_i4.TaskItem? taskItem) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #updateNotificationForTask,
-          [taskItem],
-        ),
-        returnValue: _i16.Future<void>.value(),
-        returnValueForMissingStub: _i16.Future<void>.value(),
-      ) as _i16.Future<void>);
 }
