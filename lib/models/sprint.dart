@@ -1,5 +1,6 @@
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+import 'package:taskmaster/models/serializers.dart';
 
 /// This allows the `Sprint` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
@@ -29,4 +30,8 @@ abstract class Sprint implements Built<Sprint, SprintBuilder> {
   Sprint._();
 
   factory Sprint([void Function(SprintBuilder) updates]) = _$Sprint;
+
+  dynamic toJson() {
+    return serializers.serializeWith(Sprint.serializer, this);
+  }
 }

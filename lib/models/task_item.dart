@@ -183,6 +183,10 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
           (recurrence == null ? other.recurrenceBlueprint != null : recurrence!.hasChangesBlueprint(other.recurrenceBlueprint));
   }
 
+  dynamic toJson() {
+    return serializers.serializeWith(TaskItem.serializer, this);
+  }
+
   static TaskItem fromJson(dynamic json) {
     return serializers.deserializeWith(TaskItem.serializer, json)!;
   }
