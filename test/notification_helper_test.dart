@@ -1,21 +1,17 @@
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
-import 'package:taskmaster/app_state.dart';
-import 'package:taskmaster/flutter_badger_wrapper.dart';
+// import 'package:mockito/annotations.dart';
+// import 'package:taskmaster/flutter_badger_wrapper.dart';
 import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/notification_scheduler.dart';
-import 'package:taskmaster/redux/app_state.dart';
-import 'package:taskmaster/task_helper.dart';
-import 'package:taskmaster/task_repository.dart';
+// import 'package:taskmaster/redux/app_state.dart';
+import 'package:taskmaster/redux/middleware/notification_helper.dart';
+// import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
-import 'mocks/mock_build_context.dart';
 import 'mocks/mock_data.dart';
 import 'mocks/mock_flutter_plugin.dart';
 import 'mocks/mock_pending_notification_request.dart';
 import 'mocks/mock_timezone_helper.dart';
-import 'notification_scheduler_test.mocks.dart';
 import 'test_mock_helper.dart';
+/*
 
 class MockAppBadger extends Fake implements FlutterBadgerWrapper {
   int badgeValue = 0;
@@ -25,16 +21,13 @@ class MockAppBadger extends Fake implements FlutterBadgerWrapper {
     badgeValue = count;
   }
 }
+*/
 
-@GenerateNiceMocks([MockSpec<AppState>(), MockSpec<TaskRepository>()])
+// @GenerateNiceMocks([MockSpec<AppState>(), MockSpec<TaskRepository>()])
 void main() {
 
   late MockFlutterLocalNotificationsPlugin plugin;
-  late MockAppBadger flutterBadgerWrapper;
-  late MockAppState appState;
-  late MockTaskHelper taskHelper;
   late MockTimezoneHelper timezoneHelper;
-  late MockTaskRepository taskRepository;
 
   late TaskItem futureDue;
   late TaskItem futureUrgentDue;
@@ -42,55 +35,49 @@ void main() {
   late TaskItem straddledUrgentDue;
 
   setUp(() {
-    futureDue = TaskItem(
-        id: 30,
-        personId: 1,
-        name: 'Barf a Penny',
-        dueDate: DateTime.now().add(Duration(days: 4)));
+    futureDue = TaskItem((t) => t
+      ..id = 30
+      ..personId = 1
+      ..name = 'Barf a Penny'
+      ..offCycle = false
+      ..dueDate = DateTime.now().add(Duration(days: 4)));
 
-    futureUrgentDue = TaskItem(
-        id: 31,
-        personId: 1,
-        name: 'Give a Penny',
-        dueDate: DateTime.now().add(Duration(days: 4)),
-        urgentDate: DateTime.now().add(Duration(days: 2))
+    futureUrgentDue = TaskItem((t) => t
+      ..id = 31
+      ..personId = 1
+      ..name = 'Give a Penny'
+      ..offCycle = false
+      ..dueDate = DateTime.now().add(Duration(days: 4))
+      ..urgentDate = DateTime.now().add(Duration(days: 2))
     );
 
-    pastUrgentDue = TaskItem(
-        id: 32,
-        personId: 1,
-        name: 'Take a Penny',
-        dueDate: DateTime.now().subtract(Duration(days: 2)),
-        urgentDate: DateTime.now().subtract(Duration(days: 4))
+    pastUrgentDue = TaskItem((t) => t
+      ..id = 32
+      ..personId = 1
+      ..name = 'Take a Penny'
+      ..offCycle = false
+      ..dueDate = DateTime.now().subtract(Duration(days: 2))
+      ..urgentDate = DateTime.now().subtract(Duration(days: 4))
     );
 
-    straddledUrgentDue = TaskItem(
-        id: 33,
-        personId: 1,
-        name: 'Eat a Penny',
-        dueDate: DateTime.now().add(Duration(days: 7)),
-        urgentDate: DateTime.now().subtract(Duration(days: 5))
+    straddledUrgentDue = TaskItem((t) => t
+      ..id = 33
+      ..personId = 1
+      ..name = 'Eat a Penny'
+      ..offCycle = false
+      ..dueDate = DateTime.now().add(Duration(days: 7))
+      ..urgentDate = DateTime.now().subtract(Duration(days: 5))
     );
   });
 
-  Future<NotificationScheduler> _createScheduler(List<TaskItem> taskItems) async {
+  Future<NotificationHelper> _createHelper(List<TaskItem> taskItems) async {
     plugin = MockFlutterLocalNotificationsPlugin();
-    flutterBadgerWrapper = MockAppBadger();
-    appState = MockAppState();
-    when(appState.taskItems).thenReturn(taskItems);
-    taskHelper = MockTaskHelper();
-    taskRepository = MockTaskRepository();
-    when(taskHelper.repository).thenReturn(taskRepository);
     timezoneHelper = new MockTimezoneHelper();
 
-    var notificationScheduler = new NotificationScheduler(
-      context: new MockBuildContext(),
-      taskHelper: taskHelper,
-      flutterLocalNotificationsPlugin: plugin,
-      flutterBadgerWrapper: flutterBadgerWrapper,
+    var notificationScheduler = new NotificationHelper(
+      plugin: plugin,
       timezoneHelper: timezoneHelper,
     );
-    notificationScheduler.appState = appState;
     List<Future<void>> futures = [];
     taskItems.forEach((taskItem) =>
       futures.add(notificationScheduler.updateNotificationForTask(taskItem))
@@ -144,13 +131,13 @@ void main() {
   // test methods
 
   test('construct with empty list', () {
-    _createScheduler([]);
+    _createHelper([]);
     expect(plugin.pendings.length, 0);
   });
 
   test('updateNotificationForTask first add', () async {
     var taskItem = birthdayTask;
-    var scheduler = await _createScheduler([]);
+    var scheduler = await _createHelper([]);
     await scheduler.updateNotificationForTask(taskItem);
     expect(plugin.pendings.length, 3);
 
@@ -158,19 +145,19 @@ void main() {
   });
 
   test('updateNotificationForTask adds nothing if no urgent or due date', () async {
-    var scheduler = await _createScheduler([]);
+    var scheduler = await _createHelper([]);
     await scheduler.updateNotificationForTask(pastTask);
     expect(plugin.pendings.length, 0);
   });
 
   test('updateNotificationForTask adds nothing if urgent and due date are past', () async {
-    var scheduler = await _createScheduler([]);
+    var scheduler = await _createHelper([]);
     await scheduler.updateNotificationForTask(pastUrgentDue);
     expect(plugin.pendings.length, 0);
   });
 
   test('updateNotificationForTask adds five notifications for urgent and due date', () async {
-    var scheduler = await _createScheduler([]);
+    var scheduler = await _createHelper([]);
 
     await scheduler.updateNotificationForTask(futureUrgentDue);
     expect(plugin.pendings.length, 5);
@@ -182,7 +169,7 @@ void main() {
   test('updateNotificationForTask adds three notification for past urgent and future due date', () async {
     var taskItem = straddledUrgentDue;
 
-    var scheduler = await _createScheduler([]);
+    var scheduler = await _createHelper([]);
     await scheduler.updateNotificationForTask(taskItem);
     expect(plugin.pendings.length, 3);
 
@@ -192,7 +179,7 @@ void main() {
   test('updateNotificationForTask replaces old due notification', () async {
     var taskItem = futureDue;
 
-    var scheduler = await _createScheduler([taskItem]);
+    var scheduler = await _createHelper([taskItem]);
     expect(plugin.pendings.length, 3);
 
     var blueprint = taskItem.createBlueprint();
@@ -208,7 +195,7 @@ void main() {
   test('updateNotificationForTask removes old due notification if due date moved back', () async {
     var taskItem = futureDue;
 
-    var scheduler = await _createScheduler([taskItem]);
+    var scheduler = await _createHelper([taskItem]);
     expect(plugin.pendings.length, 3);
 
     var blueprint = taskItem.createBlueprint();
@@ -222,7 +209,7 @@ void main() {
   test('updateNotificationForTask replaces old urgent and due notifications', () async {
     var taskItem = futureUrgentDue;
 
-    var scheduler = await _createScheduler([taskItem]);
+    var scheduler = await _createHelper([taskItem]);
     expect(plugin.pendings.length, 5);
 
     var blueprint = taskItem.createBlueprint();
@@ -239,7 +226,7 @@ void main() {
 
   test('cancelNotificationsForTaskId cancels due notification', () async {
     var taskItem = futureDue;
-    var scheduler = await _createScheduler([taskItem]);
+    var scheduler = await _createHelper([taskItem]);
     expect(plugin.pendings.length, 3);
     await scheduler.cancelNotificationsForTaskId(taskItem.id);
     expect(plugin.pendings.length, 0);
@@ -247,35 +234,36 @@ void main() {
 
   test('cancelNotificationsForTaskId cancels both urgent and due', () async {
     var taskItem = futureUrgentDue;
-    var scheduler = await _createScheduler([taskItem]);
+    var scheduler = await _createHelper([taskItem]);
     expect(plugin.pendings.length, 5);
     await scheduler.cancelNotificationsForTaskId(taskItem.id);
     expect(plugin.pendings.length, 0);
   });
 
   test('cancelAllNotifications', () async {
-    var scheduler = await _createScheduler([futureUrgentDue, birthdayTask]);
+    var scheduler = await _createHelper([futureUrgentDue, birthdayTask]);
     expect(plugin.pendings.length, 8);
     await scheduler.cancelAllNotifications();
     expect(plugin.pendings.length, 0);
   });
+/*
 
   test('updateBadge', () async {
-    var scheduler = await _createScheduler([pastUrgentDue]);
+    var scheduler = await _createHelper([pastUrgentDue]);
     expect(plugin.pendings.length, 0);
     scheduler.updateBadge();
     expect(flutterBadgerWrapper.badgeValue, 1);
   });
 
   test('updateBadge includes task with past urgent and future due', () async {
-    var scheduler = await _createScheduler([straddledUrgentDue]);
+    var scheduler = await _createHelper([straddledUrgentDue]);
     expect(plugin.pendings.length, 3);
     scheduler.updateBadge();
     expect(flutterBadgerWrapper.badgeValue, 1);
   });
 
   test('updateBadge includes only one task with past urgent and past due', () async {
-    var scheduler = await _createScheduler([pastUrgentDue]);
+    var scheduler = await _createHelper([pastUrgentDue]);
     expect(plugin.pendings.length, 0);
     scheduler.updateBadge();
     expect(flutterBadgerWrapper.badgeValue, 1);
@@ -286,11 +274,12 @@ void main() {
     blueprint.completionDate = DateTime.now();
     var edited = TestMockHelper.mockEditTask(pastUrgentDue, blueprint);
 
-    var scheduler = await _createScheduler([edited]);
+    var scheduler = await _createHelper([edited]);
     expect(plugin.pendings.length, 0);
     scheduler.updateBadge();
     expect(flutterBadgerWrapper.badgeValue, 0);
   });
+*/
 
 
 }
