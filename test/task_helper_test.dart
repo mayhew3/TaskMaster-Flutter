@@ -1,4 +1,5 @@
 
+import 'package:built_collection/built_collection.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:redux/redux.dart';
@@ -17,6 +18,7 @@ import 'package:taskmaster/redux/middleware/store_task_items_middleware.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
+import 'app_state_test.dart';
 import 'matchers/approximate_time_matcher.dart';
 import 'mocks/mock_data.dart';
 import 'mocks/mock_data_builder.dart';
@@ -28,30 +30,37 @@ import 'test_mock_helper.dart';
 
 @GenerateNiceMocks([MockSpec<TaskRepository>(), MockSpec<Store>(), MockSpec<NotificationHelper>(), MockSpec<AppState>()])
 void main() {
-/*
 
   MockTaskRepository taskRepository = new MockTaskRepository();
-  MockNavHelper navHelper = MockNavHelper();
+  MockFlutterLocalNotificationsPlugin plugin = MockFlutterLocalNotificationsPlugin();
   MockTimezoneHelper timezoneHelper = MockTimezoneHelper();
-  MockTaskMasterAuth auth = MockTaskMasterAuth();
-  AppState appState = new AppState(auth: auth);
-  MockNotificationScheduler notificationScheduler = new MockNotificationScheduler();
-  StateSetter stateSetter = (callback) => callback();
-
+  MockStore<AppState> store = MockStore<AppState>();
+  MockAppState appState = new MockAppState();
+  // MockNotificationScheduler notificationScheduler = new MockNotificationScheduler();
+  // StateSetter stateSetter = (callback) => callback();
+/*
   TaskItem _mockComplete(TaskItem taskItem, DateTime? completionDate) {
     var blueprint = taskItem.createBlueprint();
     blueprint.completionDate = completionDate;
     return TestMockHelper.mockEditTask(taskItem, blueprint);
   }
+*/
+  void prepareMocks({List<TaskItem>? taskItems, List<Sprint>? sprints, List<TaskRecurrence>? recurrences}) {
 
-  TaskHelper createTaskHelper({List<TaskItem>? taskItems, List<Sprint>? sprints, List<TaskRecurrence>? recurrences}) {
+    timezoneHelper.configureLocalTimeZone();
+    provideDummy<AppState>(appState);
 
-    appState.updateNavHelper(navHelper);
-    appState.updateNotificationScheduler(notificationScheduler);
+    when(store.state).thenAnswer((_) => appState);
 
-    appState.updateTasksAndSprints(taskItems ?? [], sprints ?? [], recurrences ?? []);
+    when(appState.personId).thenAnswer((_) => 1);
+    when(appState.getIdToken()).thenAnswer((_) => Future.value("token"));
+    when(appState.flutterLocalNotificationsPlugin).thenAnswer((_) => plugin);
+    when(appState.timezoneHelper).thenAnswer((_) => timezoneHelper);
 
-    when(taskRepository.appState).thenReturn(appState);
+    when(appState.taskItems).thenAnswer((_) => taskItems?.toBuiltList() ?? BuiltList<TaskItem>());
+    when(appState.sprints).thenAnswer((_) => sprints?.toBuiltList() ?? BuiltList<Sprint>());
+    when(appState.taskRecurrences).thenAnswer((_) => recurrences?.toBuiltList() ?? BuiltList<TaskRecurrence>());
+/*
 
     when(taskRepository.completeTask(argThat(isA<TaskItem>()), argThat(isA<DateTime?>()))).thenAnswer((invocation) {
       TaskItem originalTask = invocation.positionalArguments[0];
@@ -76,51 +85,16 @@ void main() {
       TaskItemPreview addedTask = invocation.positionalArguments[0];
       return Future.value(TestMockHelper.mockAddTask(addedTask, appState.taskItems.length + 1));
     });
-
-    var taskHelper = TaskHelper(
-        appState: appState,
-        repository: taskRepository,
-        auth: auth,
-        stateSetter: stateSetter);
-    taskHelper.navHelper = navHelper;
-    return taskHelper;
-  }
-
-  test('reloadTasks', () async {
-    var taskHelper = createTaskHelper();
-    var notificationScheduler = appState.notificationScheduler;
-    expect(notificationScheduler, isNot(null));
-
-    await taskHelper.reloadTasks();
-    verify(navHelper.goToLoadingScreen('Reloading tasks...'));
-
-    verify(taskRepository.loadTasks(stateSetter));
-    verify(notificationScheduler.updateBadge());
-    verify(navHelper.goToHomeScreen());
-
-    expect(appState.isLoading, false);
-  });
 */
 
+  }
+
   test('addTask', () async {
-    var taskRepository = MockTaskRepository();
-    var plugin = MockFlutterLocalNotificationsPlugin();
-    var timezoneHelper = MockTimezoneHelper();
-    timezoneHelper.configureLocalTimeZone();
-    var store = MockStore<AppState>();
-    var appState = MockAppState();
-    
-    provideDummy<AppState>(appState);
+    prepareMocks();
 
     var taskItem = TaskItem.fromJson(birthdayJSON);
     var taskItemBlueprint = taskItem.createBlueprint();
     var action = new AddTaskItemAction(blueprint: taskItemBlueprint);
-
-    when(store.state).thenAnswer((_) => appState);
-    when(appState.personId).thenAnswer((_) => 1);
-    when(appState.getIdToken()).thenAnswer((_) => Future.value("token"));
-    when(appState.flutterLocalNotificationsPlugin).thenAnswer((_) => plugin);
-    when(appState.timezoneHelper).thenAnswer((_) => timezoneHelper);
 
     // var notificationScheduler = new MockNotificationHelper();
     // expect(notificationScheduler, isNot(null));
@@ -136,6 +110,23 @@ void main() {
     // verify(notificationScheduler.updateNotificationForTask(birthdayTask));
 
   });
+
+/*
+  test('reloadTasks', () async {
+    var taskHelper = createTaskHelper();
+    var notificationScheduler = appState.notificationScheduler;
+    expect(notificationScheduler, isNot(null));
+
+    await taskHelper.reloadTasks();
+    verify(navHelper.goToLoadingScreen('Reloading tasks...'));
+
+    verify(taskRepository.loadTasks(stateSetter));
+    verify(notificationScheduler.updateBadge());
+    verify(navHelper.goToHomeScreen());
+
+    expect(appState.isLoading, false);
+  });
+*/
 
 
 
