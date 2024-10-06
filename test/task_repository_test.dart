@@ -3,13 +3,12 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:mockito/mockito.dart';
-import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
 import 'mocks/mock_data.dart';
-import 'mocks/mock_data_builder.dart';
 import 'test_mock_helper.dart';
 
 void main() {
