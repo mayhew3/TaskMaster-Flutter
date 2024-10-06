@@ -1,8 +1,11 @@
 // import 'package:mockito/annotations.dart';
 // import 'package:taskmaster/flutter_badger_wrapper.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/models/task_item_blueprint.dart';
+import 'package:taskmaster/models/task_recurrence.dart';
 // import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/middleware/notification_helper.dart';
+import 'package:taskmaster/timezone_helper.dart';
 // import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
@@ -10,7 +13,6 @@ import 'mocks/mock_data.dart';
 import 'mocks/mock_flutter_plugin.dart';
 import 'mocks/mock_pending_notification_request.dart';
 import 'mocks/mock_timezone_helper.dart';
-import 'test_mock_helper.dart';
 /*
 
 class MockAppBadger extends Fake implements FlutterBadgerWrapper {
@@ -27,7 +29,7 @@ class MockAppBadger extends Fake implements FlutterBadgerWrapper {
 void main() {
 
   late MockFlutterLocalNotificationsPlugin plugin;
-  late MockTimezoneHelper timezoneHelper;
+  late TimezoneHelper timezoneHelper;
 
   late TaskItem futureDue;
   late TaskItem futureUrgentDue;
@@ -73,6 +75,7 @@ void main() {
   Future<NotificationHelper> _createHelper(List<TaskItem> taskItems) async {
     plugin = MockFlutterLocalNotificationsPlugin();
     timezoneHelper = new MockTimezoneHelper();
+    await timezoneHelper.configureLocalTimeZone();
 
     var notificationScheduler = new NotificationHelper(
       plugin: plugin,
@@ -125,6 +128,51 @@ void main() {
     expect(twoHourRequest.notificationDate, twoHoursBefore);
     expect(twoHourRequest.title, '${taskItem.name} (urgent 2 hours)');
 
+  }
+
+  TaskItem mockEditTask(TaskItem original, TaskItemBlueprint blueprint) {
+    var recurrenceBlueprint = blueprint.recurrenceBlueprint;
+    var recurrence = original.recurrence;
+    TaskRecurrence? recurrenceCopy;
+    if (recurrenceBlueprint != null && recurrence != null) {
+      recurrenceCopy = new TaskRecurrence((r) => r
+        ..id = recurrence.id
+        ..personId = recurrence.personId
+        ..name = recurrenceBlueprint.name ?? recurrence.name
+        ..recurNumber = recurrenceBlueprint.recurNumber ?? recurrence.recurNumber
+        ..recurUnit = recurrenceBlueprint.recurUnit ?? recurrence.name
+        ..recurWait = recurrenceBlueprint.recurWait ?? recurrence.recurWait
+        ..recurIteration = recurrenceBlueprint.recurIteration ?? recurrence.recurIteration
+        ..anchorDate = recurrenceBlueprint.anchorDate ?? recurrence.anchorDate
+        ..anchorType = recurrenceBlueprint.anchorType ?? recurrence.anchorType);
+    }
+
+    TaskItem taskItem = new TaskItem((t) => t
+      ..name = original.name
+      ..id = original.id
+      ..personId = 1
+      ..description = blueprint.description
+      ..project = blueprint.project
+      ..context = blueprint.context
+      ..urgency = blueprint.urgency
+      ..priority = blueprint.priority
+      ..duration = blueprint.duration
+      ..gamePoints = blueprint.gamePoints
+      ..startDate = blueprint.startDate
+      ..targetDate = blueprint.targetDate
+      ..urgentDate = blueprint.urgentDate
+      ..dueDate = blueprint.dueDate
+      ..completionDate = blueprint.completionDate
+      ..offCycle = blueprint.offCycle
+      ..recurNumber = blueprint.recurNumber
+      ..recurUnit = blueprint.recurUnit
+      ..recurWait = blueprint.recurWait
+      ..recurrenceId = blueprint.recurrenceId
+      ..recurIteration = blueprint.recurIteration
+      ..recurrence = recurrenceCopy?.toBuilder()
+    );
+
+    return taskItem;
   }
 
 
@@ -184,7 +232,7 @@ void main() {
 
     var blueprint = taskItem.createBlueprint();
     blueprint.dueDate = DateTime.now().add(Duration(days: 8));
-    var edited = TestMockHelper.mockEditTask(taskItem, blueprint);
+    var edited = mockEditTask(taskItem, blueprint);
 
     await scheduler.updateNotificationForTask(edited);
     expect(plugin.pendings.length, 3);
@@ -200,7 +248,7 @@ void main() {
 
     var blueprint = taskItem.createBlueprint();
     blueprint.dueDate = DateTime.now().subtract(Duration(days: 8));
-    var edited = TestMockHelper.mockEditTask(taskItem, blueprint);
+    var edited = mockEditTask(taskItem, blueprint);
 
     await scheduler.updateNotificationForTask(edited);
     expect(plugin.pendings.length, 0);
@@ -215,7 +263,7 @@ void main() {
     var blueprint = taskItem.createBlueprint();
     blueprint.dueDate = DateTime.now().add(Duration(days: 12));
     blueprint.urgentDate = DateTime.now().add(Duration(days: 4));
-    var edited = TestMockHelper.mockEditTask(taskItem, blueprint);
+    var edited = mockEditTask(taskItem, blueprint);
 
     await scheduler.updateNotificationForTask(edited);
     expect(plugin.pendings.length, 5);

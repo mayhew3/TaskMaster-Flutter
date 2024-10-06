@@ -125,10 +125,12 @@ final Map<String, dynamic> birthdayJSON = {
   "sprintAssignments": [
     {
       "id": 1234,
+      "taskId": 26,
       "sprintId": pastSprint.id
     },
     {
       "id": 2345,
+      "taskId": 26,
       "sprintId": currentSprint.id
     }
   ]
@@ -196,6 +198,7 @@ final Map<String, dynamic> pastJSON = {
   "sprintAssignments": [
     {
       "id": 1233,
+      "taskId": 28,
       "sprintId": pastSprint.id
     }
   ]
@@ -233,6 +236,7 @@ final Map<String, dynamic> burnJSON = {
   "sprintAssignments": [
     {
       "id": 1233,
+      "taskId": 29,
       "sprintId": currentSprint.id
     }
   ]
