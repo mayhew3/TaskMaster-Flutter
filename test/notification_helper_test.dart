@@ -1,33 +1,16 @@
-// import 'package:mockito/annotations.dart';
-// import 'package:taskmaster/flutter_badger_wrapper.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
-// import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/middleware/notification_helper.dart';
 import 'package:taskmaster/timezone_helper.dart';
-// import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
 import 'mocks/mock_data.dart';
 import 'mocks/mock_flutter_plugin.dart';
 import 'mocks/mock_pending_notification_request.dart';
 import 'mocks/mock_timezone_helper.dart';
-/*
 
-class MockAppBadger extends Fake implements FlutterBadgerWrapper {
-  int badgeValue = 0;
-
-  @override
-  void updateBadgeCount(int count) {
-    badgeValue = count;
-  }
-}
-*/
-
-// @GenerateNiceMocks([MockSpec<AppState>(), MockSpec<TaskRepository>()])
 void main() {
-
   late MockFlutterLocalNotificationsPlugin plugin;
   late TimezoneHelper timezoneHelper;
 
@@ -294,40 +277,5 @@ void main() {
     await scheduler.cancelAllNotifications();
     expect(plugin.pendings.length, 0);
   });
-/*
-
-  test('updateBadge', () async {
-    var scheduler = await _createHelper([pastUrgentDue]);
-    expect(plugin.pendings.length, 0);
-    scheduler.updateBadge();
-    expect(flutterBadgerWrapper.badgeValue, 1);
-  });
-
-  test('updateBadge includes task with past urgent and future due', () async {
-    var scheduler = await _createHelper([straddledUrgentDue]);
-    expect(plugin.pendings.length, 3);
-    scheduler.updateBadge();
-    expect(flutterBadgerWrapper.badgeValue, 1);
-  });
-
-  test('updateBadge includes only one task with past urgent and past due', () async {
-    var scheduler = await _createHelper([pastUrgentDue]);
-    expect(plugin.pendings.length, 0);
-    scheduler.updateBadge();
-    expect(flutterBadgerWrapper.badgeValue, 1);
-  });
-
-  test('updateBadge excludes completed', () async {
-    var blueprint = pastUrgentDue.createBlueprint();
-    blueprint.completionDate = DateTime.now();
-    var edited = TestMockHelper.mockEditTask(pastUrgentDue, blueprint);
-
-    var scheduler = await _createHelper([edited]);
-    expect(plugin.pendings.length, 0);
-    scheduler.updateBadge();
-    expect(flutterBadgerWrapper.badgeValue, 0);
-  });
-*/
-
 
 }
