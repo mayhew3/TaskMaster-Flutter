@@ -3,34 +3,38 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i17;
+import 'dart:async' as _i20;
+import 'dart:ui' as _i30;
 
 import 'package:built_collection/built_collection.dart' as _i5;
+import 'package:flutter/foundation.dart' as _i17;
+import 'package:flutter/material.dart' as _i16;
+import 'package:flutter/scheduler.dart' as _i18;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     as _i9;
 import 'package:google_sign_in/google_sign_in.dart' as _i13;
 import 'package:http/http.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i26;
-import 'package:redux/src/store.dart' as _i25;
+import 'package:mockito/src/dummies.dart' as _i29;
+import 'package:redux/src/store.dart' as _i28;
 import 'package:taskmaster/models/data_payload.dart' as _i3;
 import 'package:taskmaster/models/models.dart' as _i12;
 import 'package:taskmaster/models/snooze.dart' as _i8;
-import 'package:taskmaster/models/snooze_blueprint.dart' as _i23;
+import 'package:taskmaster/models/snooze_blueprint.dart' as _i26;
 import 'package:taskmaster/models/sprint.dart' as _i6;
-import 'package:taskmaster/models/sprint_assignment.dart' as _i20;
-import 'package:taskmaster/models/sprint_blueprint.dart' as _i21;
+import 'package:taskmaster/models/sprint_assignment.dart' as _i23;
+import 'package:taskmaster/models/sprint_blueprint.dart' as _i24;
 import 'package:taskmaster/models/task_item.dart' as _i4;
-import 'package:taskmaster/models/task_item_blueprint.dart' as _i18;
-import 'package:taskmaster/models/task_item_recur_preview.dart' as _i19;
+import 'package:taskmaster/models/task_item_blueprint.dart' as _i21;
+import 'package:taskmaster/models/task_item_recur_preview.dart' as _i22;
 import 'package:taskmaster/models/task_recurrence.dart' as _i7;
-import 'package:taskmaster/models/task_recurrence_blueprint.dart' as _i22;
+import 'package:taskmaster/models/task_recurrence_blueprint.dart' as _i25;
 import 'package:taskmaster/models/top_nav_item.dart' as _i11;
 import 'package:taskmaster/redux/app_state.dart' as _i15;
 import 'package:taskmaster/redux/middleware/notification_helper.dart' as _i14;
-import 'package:taskmaster/task_repository.dart' as _i16;
+import 'package:taskmaster/task_repository.dart' as _i19;
 import 'package:taskmaster/timezone_helper.dart' as _i10;
-import 'package:taskmaster/typedefs.dart' as _i24;
+import 'package:taskmaster/typedefs.dart' as _i27;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -211,10 +215,107 @@ class _FakeAppStateBuilder_15 extends _i1.SmartFake
         );
 }
 
+class _FakeFocusNode_16 extends _i1.SmartFake implements _i16.FocusNode {
+  _FakeFocusNode_16(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+
+  @override
+  String toString(
+          {_i16.DiagnosticLevel? minLevel = _i16.DiagnosticLevel.info}) =>
+      super.toString();
+}
+
+class _FakeValueNotifier_17<T> extends _i1.SmartFake
+    implements _i16.ValueNotifier<T> {
+  _FakeValueNotifier_17(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeNavigator_18 extends _i1.SmartFake implements _i16.Navigator {
+  _FakeNavigator_18(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+
+  @override
+  String toString(
+          {_i16.DiagnosticLevel? minLevel = _i16.DiagnosticLevel.info}) =>
+      super.toString();
+}
+
+class _FakeBuildContext_19 extends _i1.SmartFake implements _i16.BuildContext {
+  _FakeBuildContext_19(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeWidget_20 extends _i1.SmartFake implements _i16.Widget {
+  _FakeWidget_20(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+
+  @override
+  String toString(
+          {_i16.DiagnosticLevel? minLevel = _i16.DiagnosticLevel.info}) =>
+      super.toString();
+}
+
+class _FakeDiagnosticsNode_21 extends _i1.SmartFake
+    implements _i16.DiagnosticsNode {
+  _FakeDiagnosticsNode_21(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+
+  @override
+  String toString({
+    _i17.TextTreeConfiguration? parentConfiguration,
+    _i16.DiagnosticLevel? minLevel = _i16.DiagnosticLevel.info,
+  }) =>
+      super.toString();
+}
+
+class _FakeTicker_22 extends _i1.SmartFake implements _i18.Ticker {
+  _FakeTicker_22(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+
+  @override
+  String toString({bool? debugIncludeStack = false}) => super.toString();
+}
+
 /// A class which mocks [TaskRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
+class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
   @override
   _i2.Client get client => (super.noSuchMethod(
         Invocation.getter(#client),
@@ -238,7 +339,7 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
       );
 
   @override
-  _i17.Future<int?> getPersonId(
+  _i20.Future<int?> getPersonId(
     String? email,
     String? idToken,
   ) =>
@@ -250,12 +351,12 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i17.Future<int?>.value(),
-        returnValueForMissingStub: _i17.Future<int?>.value(),
-      ) as _i17.Future<int?>);
+        returnValue: _i20.Future<int?>.value(),
+        returnValueForMissingStub: _i20.Future<int?>.value(),
+      ) as _i20.Future<int?>);
 
   @override
-  _i17.Future<_i3.DataPayload> loadTasks(
+  _i20.Future<_i3.DataPayload> loadTasks(
     int? personId,
     String? idToken,
   ) =>
@@ -267,7 +368,7 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i17.Future<_i3.DataPayload>.value(_FakeDataPayload_1(
+        returnValue: _i20.Future<_i3.DataPayload>.value(_FakeDataPayload_1(
           this,
           Invocation.method(
             #loadTasks,
@@ -278,7 +379,7 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i17.Future<_i3.DataPayload>.value(_FakeDataPayload_1(
+            _i20.Future<_i3.DataPayload>.value(_FakeDataPayload_1(
           this,
           Invocation.method(
             #loadTasks,
@@ -288,12 +389,12 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             ],
           ),
         )),
-      ) as _i17.Future<_i3.DataPayload>);
+      ) as _i20.Future<_i3.DataPayload>);
 
   @override
-  _i17.Future<
+  _i20.Future<
       ({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})> addTask(
-    _i18.TaskItemBlueprint? blueprint,
+    _i21.TaskItemBlueprint? blueprint,
     String? idToken,
   ) =>
       (super.noSuchMethod(
@@ -304,7 +405,7 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i17.Future<
+        returnValue: _i20.Future<
             ({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>.value((
           recurrence: null,
           taskItem: _FakeTaskItem_2(
@@ -318,7 +419,7 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             ),
           )
         )),
-        returnValueForMissingStub: _i17.Future<
+        returnValueForMissingStub: _i20.Future<
             ({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>.value((
           recurrence: null,
           taskItem: _FakeTaskItem_2(
@@ -332,13 +433,13 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             ),
           )
         )),
-      ) as _i17
+      ) as _i20
           .Future<({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>);
 
   @override
-  _i17.Future<
+  _i20.Future<
       ({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})> addRecurTask(
-    _i19.TaskItemRecurPreview? blueprint,
+    _i22.TaskItemRecurPreview? blueprint,
     String? idToken,
   ) =>
       (super.noSuchMethod(
@@ -349,7 +450,7 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i17.Future<
+        returnValue: _i20.Future<
             ({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>.value((
           recurrence: null,
           taskItem: _FakeTaskItem_2(
@@ -363,7 +464,7 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             ),
           )
         )),
-        returnValueForMissingStub: _i17.Future<
+        returnValueForMissingStub: _i20.Future<
             ({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>.value((
           recurrence: null,
           taskItem: _FakeTaskItem_2(
@@ -377,14 +478,14 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             ),
           )
         )),
-      ) as _i17
+      ) as _i20
           .Future<({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>);
 
   @override
-  _i17.Future<
+  _i20.Future<
       ({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})> updateTask(
     int? taskItemId,
-    _i18.TaskItemBlueprint? taskItemBlueprint,
+    _i21.TaskItemBlueprint? taskItemBlueprint,
     String? idToken,
   ) =>
       (super.noSuchMethod(
@@ -396,7 +497,7 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i17.Future<
+        returnValue: _i20.Future<
             ({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>.value((
           recurrence: null,
           taskItem: _FakeTaskItem_2(
@@ -411,7 +512,7 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             ),
           )
         )),
-        returnValueForMissingStub: _i17.Future<
+        returnValueForMissingStub: _i20.Future<
             ({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>.value((
           recurrence: null,
           taskItem: _FakeTaskItem_2(
@@ -426,19 +527,19 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             ),
           )
         )),
-      ) as _i17
+      ) as _i20
           .Future<({_i7.TaskRecurrence? recurrence, _i4.TaskItem taskItem})>);
 
   @override
-  _i17.Future<
+  _i20.Future<
       ({
         _i5.BuiltList<_i4.TaskItem> addedTasks,
         _i6.Sprint sprint,
-        _i5.BuiltList<_i20.SprintAssignment> sprintAssignments
+        _i5.BuiltList<_i23.SprintAssignment> sprintAssignments
       })> addSprintWithTaskItems(
-    _i21.SprintBlueprint? blueprint,
+    _i24.SprintBlueprint? blueprint,
     _i5.BuiltList<_i4.TaskItem>? existingItems,
-    _i5.BuiltList<_i19.TaskItemRecurPreview>? newItems,
+    _i5.BuiltList<_i22.TaskItemRecurPreview>? newItems,
     String? idToken,
   ) =>
       (super.noSuchMethod(
@@ -451,11 +552,11 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i17.Future<
+        returnValue: _i20.Future<
             ({
               _i5.BuiltList<_i4.TaskItem> addedTasks,
               _i6.Sprint sprint,
-              _i5.BuiltList<_i20.SprintAssignment> sprintAssignments
+              _i5.BuiltList<_i23.SprintAssignment> sprintAssignments
             })>.value((
           addedTasks: _FakeBuiltList_3<_i4.TaskItem>(
             this,
@@ -481,7 +582,7 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
               ],
             ),
           ),
-          sprintAssignments: _FakeBuiltList_3<_i20.SprintAssignment>(
+          sprintAssignments: _FakeBuiltList_3<_i23.SprintAssignment>(
             this,
             Invocation.method(
               #addSprintWithTaskItems,
@@ -494,11 +595,11 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             ),
           )
         )),
-        returnValueForMissingStub: _i17.Future<
+        returnValueForMissingStub: _i20.Future<
             ({
               _i5.BuiltList<_i4.TaskItem> addedTasks,
               _i6.Sprint sprint,
-              _i5.BuiltList<_i20.SprintAssignment> sprintAssignments
+              _i5.BuiltList<_i23.SprintAssignment> sprintAssignments
             })>.value((
           addedTasks: _FakeBuiltList_3<_i4.TaskItem>(
             this,
@@ -524,7 +625,7 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
               ],
             ),
           ),
-          sprintAssignments: _FakeBuiltList_3<_i20.SprintAssignment>(
+          sprintAssignments: _FakeBuiltList_3<_i23.SprintAssignment>(
             this,
             Invocation.method(
               #addSprintWithTaskItems,
@@ -537,16 +638,16 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             ),
           )
         )),
-      ) as _i17.Future<
+      ) as _i20.Future<
           ({
             _i5.BuiltList<_i4.TaskItem> addedTasks,
             _i6.Sprint sprint,
-            _i5.BuiltList<_i20.SprintAssignment> sprintAssignments
+            _i5.BuiltList<_i23.SprintAssignment> sprintAssignments
           })>);
 
   @override
-  _i17.Future<_i7.TaskRecurrence> addTaskRecurrence(
-    _i22.TaskRecurrenceBlueprint? blueprint,
+  _i20.Future<_i7.TaskRecurrence> addTaskRecurrence(
+    _i25.TaskRecurrenceBlueprint? blueprint,
     String? idToken,
   ) =>
       (super.noSuchMethod(
@@ -558,7 +659,7 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
           ],
         ),
         returnValue:
-            _i17.Future<_i7.TaskRecurrence>.value(_FakeTaskRecurrence_5(
+            _i20.Future<_i7.TaskRecurrence>.value(_FakeTaskRecurrence_5(
           this,
           Invocation.method(
             #addTaskRecurrence,
@@ -569,7 +670,7 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i17.Future<_i7.TaskRecurrence>.value(_FakeTaskRecurrence_5(
+            _i20.Future<_i7.TaskRecurrence>.value(_FakeTaskRecurrence_5(
           this,
           Invocation.method(
             #addTaskRecurrence,
@@ -579,12 +680,12 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             ],
           ),
         )),
-      ) as _i17.Future<_i7.TaskRecurrence>);
+      ) as _i20.Future<_i7.TaskRecurrence>);
 
   @override
-  _i17.Future<_i7.TaskRecurrence> updateTaskRecurrence(
+  _i20.Future<_i7.TaskRecurrence> updateTaskRecurrence(
     int? taskRecurrenceId,
-    _i22.TaskRecurrenceBlueprint? blueprint,
+    _i25.TaskRecurrenceBlueprint? blueprint,
     String? idToken,
   ) =>
       (super.noSuchMethod(
@@ -597,7 +698,7 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
           ],
         ),
         returnValue:
-            _i17.Future<_i7.TaskRecurrence>.value(_FakeTaskRecurrence_5(
+            _i20.Future<_i7.TaskRecurrence>.value(_FakeTaskRecurrence_5(
           this,
           Invocation.method(
             #updateTaskRecurrence,
@@ -609,7 +710,7 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i17.Future<_i7.TaskRecurrence>.value(_FakeTaskRecurrence_5(
+            _i20.Future<_i7.TaskRecurrence>.value(_FakeTaskRecurrence_5(
           this,
           Invocation.method(
             #updateTaskRecurrence,
@@ -620,16 +721,16 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             ],
           ),
         )),
-      ) as _i17.Future<_i7.TaskRecurrence>);
+      ) as _i20.Future<_i7.TaskRecurrence>);
 
   @override
-  _i17.Future<
+  _i20.Future<
       ({
         _i5.BuiltList<_i4.TaskItem> addedTasks,
-        _i5.BuiltList<_i20.SprintAssignment> sprintAssignments
+        _i5.BuiltList<_i23.SprintAssignment> sprintAssignments
       })> addTasksToSprint(
     _i5.BuiltList<_i4.TaskItem>? taskItems,
-    _i5.BuiltList<_i19.TaskItemRecurPreview>? taskItemRecurPreviews,
+    _i5.BuiltList<_i22.TaskItemRecurPreview>? taskItemRecurPreviews,
     _i6.Sprint? sprint,
     String? idToken,
   ) =>
@@ -643,10 +744,10 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i17.Future<
+        returnValue: _i20.Future<
             ({
               _i5.BuiltList<_i4.TaskItem> addedTasks,
-              _i5.BuiltList<_i20.SprintAssignment> sprintAssignments
+              _i5.BuiltList<_i23.SprintAssignment> sprintAssignments
             })>.value((
           addedTasks: _FakeBuiltList_3<_i4.TaskItem>(
             this,
@@ -660,7 +761,7 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
               ],
             ),
           ),
-          sprintAssignments: _FakeBuiltList_3<_i20.SprintAssignment>(
+          sprintAssignments: _FakeBuiltList_3<_i23.SprintAssignment>(
             this,
             Invocation.method(
               #addTasksToSprint,
@@ -673,10 +774,10 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             ),
           )
         )),
-        returnValueForMissingStub: _i17.Future<
+        returnValueForMissingStub: _i20.Future<
             ({
               _i5.BuiltList<_i4.TaskItem> addedTasks,
-              _i5.BuiltList<_i20.SprintAssignment> sprintAssignments
+              _i5.BuiltList<_i23.SprintAssignment> sprintAssignments
             })>.value((
           addedTasks: _FakeBuiltList_3<_i4.TaskItem>(
             this,
@@ -690,7 +791,7 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
               ],
             ),
           ),
-          sprintAssignments: _FakeBuiltList_3<_i20.SprintAssignment>(
+          sprintAssignments: _FakeBuiltList_3<_i23.SprintAssignment>(
             this,
             Invocation.method(
               #addTasksToSprint,
@@ -703,14 +804,14 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             ),
           )
         )),
-      ) as _i17.Future<
+      ) as _i20.Future<
           ({
             _i5.BuiltList<_i4.TaskItem> addedTasks,
-            _i5.BuiltList<_i20.SprintAssignment> sprintAssignments
+            _i5.BuiltList<_i23.SprintAssignment> sprintAssignments
           })>);
 
   @override
-  _i17.Future<void> deleteTask(
+  _i20.Future<void> deleteTask(
     _i4.TaskItem? taskItem,
     String? idToken,
   ) =>
@@ -722,13 +823,13 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i20.Future<void>.value(),
+        returnValueForMissingStub: _i20.Future<void>.value(),
+      ) as _i20.Future<void>);
 
   @override
-  _i17.Future<_i8.Snooze> addSnooze(
-    _i23.SnoozeBlueprint? snooze,
+  _i20.Future<_i8.Snooze> addSnooze(
+    _i26.SnoozeBlueprint? snooze,
     String? idToken,
   ) =>
       (super.noSuchMethod(
@@ -739,7 +840,7 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i17.Future<_i8.Snooze>.value(_FakeSnooze_6(
+        returnValue: _i20.Future<_i8.Snooze>.value(_FakeSnooze_6(
           this,
           Invocation.method(
             #addSnooze,
@@ -749,7 +850,7 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             ],
           ),
         )),
-        returnValueForMissingStub: _i17.Future<_i8.Snooze>.value(_FakeSnooze_6(
+        returnValueForMissingStub: _i20.Future<_i8.Snooze>.value(_FakeSnooze_6(
           this,
           Invocation.method(
             #addSnooze,
@@ -759,7 +860,7 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             ],
           ),
         )),
-      ) as _i17.Future<_i8.Snooze>);
+      ) as _i20.Future<_i8.Snooze>);
 
   @override
   Uri getUriWithParameters(
@@ -819,7 +920,7 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
       ) as Uri);
 
   @override
-  _i17.Future<dynamic> executeGetApiAction({
+  _i20.Future<dynamic> executeGetApiAction({
     required String? uriString,
     Map<String, Object>? queryParameters,
     required String? idToken,
@@ -836,13 +937,13 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             #operationDescription: operationDescription,
           },
         ),
-        returnValue: _i17.Future<dynamic>.value(),
-        returnValueForMissingStub: _i17.Future<dynamic>.value(),
-      ) as _i17.Future<dynamic>);
+        returnValue: _i20.Future<dynamic>.value(),
+        returnValueForMissingStub: _i20.Future<dynamic>.value(),
+      ) as _i20.Future<dynamic>);
 
   @override
-  _i17.Future<dynamic> executeBodyApiAction({
-    required _i24.BodyApiOperation? bodyApiOperation,
+  _i20.Future<dynamic> executeBodyApiAction({
+    required _i27.BodyApiOperation? bodyApiOperation,
     required Map<String, Object?>? payload,
     required String? uriString,
     Map<String, Object>? queryParameters,
@@ -862,12 +963,12 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             #operationDescription: operationDescription,
           },
         ),
-        returnValue: _i17.Future<dynamic>.value(),
-        returnValueForMissingStub: _i17.Future<dynamic>.value(),
-      ) as _i17.Future<dynamic>);
+        returnValue: _i20.Future<dynamic>.value(),
+        returnValueForMissingStub: _i20.Future<dynamic>.value(),
+      ) as _i20.Future<dynamic>);
 
   @override
-  _i17.Future<void> executeDeleteApiAction({
+  _i20.Future<void> executeDeleteApiAction({
     required String? uriString,
     Map<String, Object>? queryParameters,
     required String? idToken,
@@ -884,23 +985,23 @@ class MockTaskRepository extends _i1.Mock implements _i16.TaskRepository {
             #operationDescription: operationDescription,
           },
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i20.Future<void>.value(),
+        returnValueForMissingStub: _i20.Future<void>.value(),
+      ) as _i20.Future<void>);
 }
 
 /// A class which mocks [Store].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockStore<State> extends _i1.Mock implements _i25.Store<State> {
+class MockStore<State> extends _i1.Mock implements _i28.Store<State> {
   @override
-  _i25.Reducer<State> get reducer => (super.noSuchMethod(
+  _i28.Reducer<State> get reducer => (super.noSuchMethod(
         Invocation.getter(#reducer),
         returnValue: (
           State state,
           dynamic action,
         ) =>
-            _i26.dummyValue<State>(
+            _i29.dummyValue<State>(
           this,
           Invocation.getter(#reducer),
         ),
@@ -908,14 +1009,14 @@ class MockStore<State> extends _i1.Mock implements _i25.Store<State> {
           State state,
           dynamic action,
         ) =>
-            _i26.dummyValue<State>(
+            _i29.dummyValue<State>(
           this,
           Invocation.getter(#reducer),
         ),
-      ) as _i25.Reducer<State>);
+      ) as _i28.Reducer<State>);
 
   @override
-  set reducer(_i25.Reducer<State>? _reducer) => super.noSuchMethod(
+  set reducer(_i28.Reducer<State>? _reducer) => super.noSuchMethod(
         Invocation.setter(
           #reducer,
           _reducer,
@@ -926,32 +1027,32 @@ class MockStore<State> extends _i1.Mock implements _i25.Store<State> {
   @override
   State get state => (super.noSuchMethod(
         Invocation.getter(#state),
-        returnValue: _i26.dummyValue<State>(
+        returnValue: _i29.dummyValue<State>(
           this,
           Invocation.getter(#state),
         ),
-        returnValueForMissingStub: _i26.dummyValue<State>(
+        returnValueForMissingStub: _i29.dummyValue<State>(
           this,
           Invocation.getter(#state),
         ),
       ) as State);
 
   @override
-  _i17.Stream<State> get onChange => (super.noSuchMethod(
+  _i20.Stream<State> get onChange => (super.noSuchMethod(
         Invocation.getter(#onChange),
-        returnValue: _i17.Stream<State>.empty(),
-        returnValueForMissingStub: _i17.Stream<State>.empty(),
-      ) as _i17.Stream<State>);
+        returnValue: _i20.Stream<State>.empty(),
+        returnValueForMissingStub: _i20.Stream<State>.empty(),
+      ) as _i20.Stream<State>);
 
   @override
-  _i17.Future<dynamic> teardown() => (super.noSuchMethod(
+  _i20.Future<dynamic> teardown() => (super.noSuchMethod(
         Invocation.method(
           #teardown,
           [],
         ),
-        returnValue: _i17.Future<dynamic>.value(),
-        returnValueForMissingStub: _i17.Future<dynamic>.value(),
-      ) as _i17.Future<dynamic>);
+        returnValue: _i20.Future<dynamic>.value(),
+        returnValueForMissingStub: _i20.Future<dynamic>.value(),
+      ) as _i20.Future<dynamic>);
 }
 
 /// A class which mocks [NotificationHelper].
@@ -1002,28 +1103,28 @@ class MockNotificationHelper extends _i1.Mock
       ) as _i10.TimezoneHelper);
 
   @override
-  _i17.Future<void> cancelAllNotifications() => (super.noSuchMethod(
+  _i20.Future<void> cancelAllNotifications() => (super.noSuchMethod(
         Invocation.method(
           #cancelAllNotifications,
           [],
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i20.Future<void>.value(),
+        returnValueForMissingStub: _i20.Future<void>.value(),
+      ) as _i20.Future<void>);
 
   @override
-  _i17.Future<void> cancelNotificationsForTaskId(int? taskId) =>
+  _i20.Future<void> cancelNotificationsForTaskId(int? taskId) =>
       (super.noSuchMethod(
         Invocation.method(
           #cancelNotificationsForTaskId,
           [taskId],
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i20.Future<void>.value(),
+        returnValueForMissingStub: _i20.Future<void>.value(),
+      ) as _i20.Future<void>);
 
   @override
-  _i17.Future<void> syncNotificationForTasksAndSprint(
+  _i20.Future<void> syncNotificationForTasksAndSprint(
     List<_i4.TaskItem>? taskItems,
     _i6.Sprint? sprint,
   ) =>
@@ -1035,20 +1136,20 @@ class MockNotificationHelper extends _i1.Mock
             sprint,
           ],
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i20.Future<void>.value(),
+        returnValueForMissingStub: _i20.Future<void>.value(),
+      ) as _i20.Future<void>);
 
   @override
-  _i17.Future<void> updateNotificationForTask(_i4.TaskItem? taskItem) =>
+  _i20.Future<void> updateNotificationForTask(_i4.TaskItem? taskItem) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateNotificationForTask,
           [taskItem],
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i20.Future<void>.value(),
+        returnValueForMissingStub: _i20.Future<void>.value(),
+      ) as _i20.Future<void>);
 }
 
 /// A class which mocks [AppState].
@@ -1227,14 +1328,14 @@ class MockAppState extends _i1.Mock implements _i15.AppState {
       ) as _i14.NotificationHelper);
 
   @override
-  _i17.Future<String?> getIdToken() => (super.noSuchMethod(
+  _i20.Future<String?> getIdToken() => (super.noSuchMethod(
         Invocation.method(
           #getIdToken,
           [],
         ),
-        returnValue: _i17.Future<String?>.value(),
-        returnValueForMissingStub: _i17.Future<String?>.value(),
-      ) as _i17.Future<String?>);
+        returnValue: _i20.Future<String?>.value(),
+        returnValueForMissingStub: _i20.Future<String?>.value(),
+      ) as _i20.Future<String?>);
 
   @override
   bool isAuthenticated() => (super.noSuchMethod(
@@ -1300,4 +1401,910 @@ class MockAppState extends _i1.Mock implements _i15.AppState {
           ),
         ),
       ) as _i15.AppStateBuilder);
+}
+
+/// A class which mocks [GlobalKey].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockGlobalKey extends _i1.Mock
+    implements _i16.GlobalKey<_i16.NavigatorState> {}
+
+/// A class which mocks [NavigatorState].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
+  @override
+  _i16.FocusNode get focusNode => (super.noSuchMethod(
+        Invocation.getter(#focusNode),
+        returnValue: _FakeFocusNode_16(
+          this,
+          Invocation.getter(#focusNode),
+        ),
+        returnValueForMissingStub: _FakeFocusNode_16(
+          this,
+          Invocation.getter(#focusNode),
+        ),
+      ) as _i16.FocusNode);
+
+  @override
+  _i16.ValueNotifier<bool> get userGestureInProgressNotifier =>
+      (super.noSuchMethod(
+        Invocation.getter(#userGestureInProgressNotifier),
+        returnValue: _FakeValueNotifier_17<bool>(
+          this,
+          Invocation.getter(#userGestureInProgressNotifier),
+        ),
+        returnValueForMissingStub: _FakeValueNotifier_17<bool>(
+          this,
+          Invocation.getter(#userGestureInProgressNotifier),
+        ),
+      ) as _i16.ValueNotifier<bool>);
+
+  @override
+  bool get userGestureInProgress => (super.noSuchMethod(
+        Invocation.getter(#userGestureInProgress),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  _i16.Navigator get widget => (super.noSuchMethod(
+        Invocation.getter(#widget),
+        returnValue: _FakeNavigator_18(
+          this,
+          Invocation.getter(#widget),
+        ),
+        returnValueForMissingStub: _FakeNavigator_18(
+          this,
+          Invocation.getter(#widget),
+        ),
+      ) as _i16.Navigator);
+
+  @override
+  _i16.BuildContext get context => (super.noSuchMethod(
+        Invocation.getter(#context),
+        returnValue: _FakeBuildContext_19(
+          this,
+          Invocation.getter(#context),
+        ),
+        returnValueForMissingStub: _FakeBuildContext_19(
+          this,
+          Invocation.getter(#context),
+        ),
+      ) as _i16.BuildContext);
+
+  @override
+  bool get mounted => (super.noSuchMethod(
+        Invocation.getter(#mounted),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  bool get restorePending => (super.noSuchMethod(
+        Invocation.getter(#restorePending),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  void initState() => super.noSuchMethod(
+        Invocation.method(
+          #initState,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void restoreState(
+    _i16.RestorationBucket? oldBucket,
+    bool? initialRestore,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #restoreState,
+          [
+            oldBucket,
+            initialRestore,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void didToggleBucket(_i16.RestorationBucket? oldBucket) => super.noSuchMethod(
+        Invocation.method(
+          #didToggleBucket,
+          [oldBucket],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void didChangeDependencies() => super.noSuchMethod(
+        Invocation.method(
+          #didChangeDependencies,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void didUpdateWidget(_i16.StatefulWidget? oldWidget) => super.noSuchMethod(
+        Invocation.method(
+          #didUpdateWidget,
+          [oldWidget],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void deactivate() => super.noSuchMethod(
+        Invocation.method(
+          #deactivate,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void activate() => super.noSuchMethod(
+        Invocation.method(
+          #activate,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void dispose() => super.noSuchMethod(
+        Invocation.method(
+          #dispose,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i20.Future<T?> pushNamed<T extends Object?>(
+    String? routeName, {
+    Object? arguments,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #pushNamed,
+          [routeName],
+          {#arguments: arguments},
+        ),
+        returnValue: _i20.Future<T?>.value(),
+        returnValueForMissingStub: _i20.Future<T?>.value(),
+      ) as _i20.Future<T?>);
+
+  @override
+  String restorablePushNamed<T extends Object?>(
+    String? routeName, {
+    Object? arguments,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #restorablePushNamed,
+          [routeName],
+          {#arguments: arguments},
+        ),
+        returnValue: _i29.dummyValue<String>(
+          this,
+          Invocation.method(
+            #restorablePushNamed,
+            [routeName],
+            {#arguments: arguments},
+          ),
+        ),
+        returnValueForMissingStub: _i29.dummyValue<String>(
+          this,
+          Invocation.method(
+            #restorablePushNamed,
+            [routeName],
+            {#arguments: arguments},
+          ),
+        ),
+      ) as String);
+
+  @override
+  _i20.Future<T?> pushReplacementNamed<T extends Object?, TO extends Object?>(
+    String? routeName, {
+    TO? result,
+    Object? arguments,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #pushReplacementNamed,
+          [routeName],
+          {
+            #result: result,
+            #arguments: arguments,
+          },
+        ),
+        returnValue: _i20.Future<T?>.value(),
+        returnValueForMissingStub: _i20.Future<T?>.value(),
+      ) as _i20.Future<T?>);
+
+  @override
+  String restorablePushReplacementNamed<T extends Object?, TO extends Object?>(
+    String? routeName, {
+    TO? result,
+    Object? arguments,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #restorablePushReplacementNamed,
+          [routeName],
+          {
+            #result: result,
+            #arguments: arguments,
+          },
+        ),
+        returnValue: _i29.dummyValue<String>(
+          this,
+          Invocation.method(
+            #restorablePushReplacementNamed,
+            [routeName],
+            {
+              #result: result,
+              #arguments: arguments,
+            },
+          ),
+        ),
+        returnValueForMissingStub: _i29.dummyValue<String>(
+          this,
+          Invocation.method(
+            #restorablePushReplacementNamed,
+            [routeName],
+            {
+              #result: result,
+              #arguments: arguments,
+            },
+          ),
+        ),
+      ) as String);
+
+  @override
+  _i20.Future<T?> popAndPushNamed<T extends Object?, TO extends Object?>(
+    String? routeName, {
+    TO? result,
+    Object? arguments,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #popAndPushNamed,
+          [routeName],
+          {
+            #result: result,
+            #arguments: arguments,
+          },
+        ),
+        returnValue: _i20.Future<T?>.value(),
+        returnValueForMissingStub: _i20.Future<T?>.value(),
+      ) as _i20.Future<T?>);
+
+  @override
+  String restorablePopAndPushNamed<T extends Object?, TO extends Object?>(
+    String? routeName, {
+    TO? result,
+    Object? arguments,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #restorablePopAndPushNamed,
+          [routeName],
+          {
+            #result: result,
+            #arguments: arguments,
+          },
+        ),
+        returnValue: _i29.dummyValue<String>(
+          this,
+          Invocation.method(
+            #restorablePopAndPushNamed,
+            [routeName],
+            {
+              #result: result,
+              #arguments: arguments,
+            },
+          ),
+        ),
+        returnValueForMissingStub: _i29.dummyValue<String>(
+          this,
+          Invocation.method(
+            #restorablePopAndPushNamed,
+            [routeName],
+            {
+              #result: result,
+              #arguments: arguments,
+            },
+          ),
+        ),
+      ) as String);
+
+  @override
+  _i20.Future<T?> pushNamedAndRemoveUntil<T extends Object?>(
+    String? newRouteName,
+    _i16.RoutePredicate? predicate, {
+    Object? arguments,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #pushNamedAndRemoveUntil,
+          [
+            newRouteName,
+            predicate,
+          ],
+          {#arguments: arguments},
+        ),
+        returnValue: _i20.Future<T?>.value(),
+        returnValueForMissingStub: _i20.Future<T?>.value(),
+      ) as _i20.Future<T?>);
+
+  @override
+  String restorablePushNamedAndRemoveUntil<T extends Object?>(
+    String? newRouteName,
+    _i16.RoutePredicate? predicate, {
+    Object? arguments,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #restorablePushNamedAndRemoveUntil,
+          [
+            newRouteName,
+            predicate,
+          ],
+          {#arguments: arguments},
+        ),
+        returnValue: _i29.dummyValue<String>(
+          this,
+          Invocation.method(
+            #restorablePushNamedAndRemoveUntil,
+            [
+              newRouteName,
+              predicate,
+            ],
+            {#arguments: arguments},
+          ),
+        ),
+        returnValueForMissingStub: _i29.dummyValue<String>(
+          this,
+          Invocation.method(
+            #restorablePushNamedAndRemoveUntil,
+            [
+              newRouteName,
+              predicate,
+            ],
+            {#arguments: arguments},
+          ),
+        ),
+      ) as String);
+
+  @override
+  _i20.Future<T?> push<T extends Object?>(_i16.Route<T>? route) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #push,
+          [route],
+        ),
+        returnValue: _i20.Future<T?>.value(),
+        returnValueForMissingStub: _i20.Future<T?>.value(),
+      ) as _i20.Future<T?>);
+
+  @override
+  String restorablePush<T extends Object?>(
+    _i16.RestorableRouteBuilder<T>? routeBuilder, {
+    Object? arguments,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #restorablePush,
+          [routeBuilder],
+          {#arguments: arguments},
+        ),
+        returnValue: _i29.dummyValue<String>(
+          this,
+          Invocation.method(
+            #restorablePush,
+            [routeBuilder],
+            {#arguments: arguments},
+          ),
+        ),
+        returnValueForMissingStub: _i29.dummyValue<String>(
+          this,
+          Invocation.method(
+            #restorablePush,
+            [routeBuilder],
+            {#arguments: arguments},
+          ),
+        ),
+      ) as String);
+
+  @override
+  _i20.Future<T?> pushReplacement<T extends Object?, TO extends Object?>(
+    _i16.Route<T>? newRoute, {
+    TO? result,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #pushReplacement,
+          [newRoute],
+          {#result: result},
+        ),
+        returnValue: _i20.Future<T?>.value(),
+        returnValueForMissingStub: _i20.Future<T?>.value(),
+      ) as _i20.Future<T?>);
+
+  @override
+  String restorablePushReplacement<T extends Object?, TO extends Object?>(
+    _i16.RestorableRouteBuilder<T>? routeBuilder, {
+    TO? result,
+    Object? arguments,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #restorablePushReplacement,
+          [routeBuilder],
+          {
+            #result: result,
+            #arguments: arguments,
+          },
+        ),
+        returnValue: _i29.dummyValue<String>(
+          this,
+          Invocation.method(
+            #restorablePushReplacement,
+            [routeBuilder],
+            {
+              #result: result,
+              #arguments: arguments,
+            },
+          ),
+        ),
+        returnValueForMissingStub: _i29.dummyValue<String>(
+          this,
+          Invocation.method(
+            #restorablePushReplacement,
+            [routeBuilder],
+            {
+              #result: result,
+              #arguments: arguments,
+            },
+          ),
+        ),
+      ) as String);
+
+  @override
+  _i20.Future<T?> pushAndRemoveUntil<T extends Object?>(
+    _i16.Route<T>? newRoute,
+    _i16.RoutePredicate? predicate,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #pushAndRemoveUntil,
+          [
+            newRoute,
+            predicate,
+          ],
+        ),
+        returnValue: _i20.Future<T?>.value(),
+        returnValueForMissingStub: _i20.Future<T?>.value(),
+      ) as _i20.Future<T?>);
+
+  @override
+  String restorablePushAndRemoveUntil<T extends Object?>(
+    _i16.RestorableRouteBuilder<T>? newRouteBuilder,
+    _i16.RoutePredicate? predicate, {
+    Object? arguments,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #restorablePushAndRemoveUntil,
+          [
+            newRouteBuilder,
+            predicate,
+          ],
+          {#arguments: arguments},
+        ),
+        returnValue: _i29.dummyValue<String>(
+          this,
+          Invocation.method(
+            #restorablePushAndRemoveUntil,
+            [
+              newRouteBuilder,
+              predicate,
+            ],
+            {#arguments: arguments},
+          ),
+        ),
+        returnValueForMissingStub: _i29.dummyValue<String>(
+          this,
+          Invocation.method(
+            #restorablePushAndRemoveUntil,
+            [
+              newRouteBuilder,
+              predicate,
+            ],
+            {#arguments: arguments},
+          ),
+        ),
+      ) as String);
+
+  @override
+  void replace<T extends Object?>({
+    required _i16.Route<dynamic>? oldRoute,
+    required _i16.Route<T>? newRoute,
+  }) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #replace,
+          [],
+          {
+            #oldRoute: oldRoute,
+            #newRoute: newRoute,
+          },
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  String restorableReplace<T extends Object?>({
+    required _i16.Route<dynamic>? oldRoute,
+    required _i16.RestorableRouteBuilder<T>? newRouteBuilder,
+    Object? arguments,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #restorableReplace,
+          [],
+          {
+            #oldRoute: oldRoute,
+            #newRouteBuilder: newRouteBuilder,
+            #arguments: arguments,
+          },
+        ),
+        returnValue: _i29.dummyValue<String>(
+          this,
+          Invocation.method(
+            #restorableReplace,
+            [],
+            {
+              #oldRoute: oldRoute,
+              #newRouteBuilder: newRouteBuilder,
+              #arguments: arguments,
+            },
+          ),
+        ),
+        returnValueForMissingStub: _i29.dummyValue<String>(
+          this,
+          Invocation.method(
+            #restorableReplace,
+            [],
+            {
+              #oldRoute: oldRoute,
+              #newRouteBuilder: newRouteBuilder,
+              #arguments: arguments,
+            },
+          ),
+        ),
+      ) as String);
+
+  @override
+  void replaceRouteBelow<T extends Object?>({
+    required _i16.Route<dynamic>? anchorRoute,
+    required _i16.Route<T>? newRoute,
+  }) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #replaceRouteBelow,
+          [],
+          {
+            #anchorRoute: anchorRoute,
+            #newRoute: newRoute,
+          },
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  String restorableReplaceRouteBelow<T extends Object?>({
+    required _i16.Route<dynamic>? anchorRoute,
+    required _i16.RestorableRouteBuilder<T>? newRouteBuilder,
+    Object? arguments,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #restorableReplaceRouteBelow,
+          [],
+          {
+            #anchorRoute: anchorRoute,
+            #newRouteBuilder: newRouteBuilder,
+            #arguments: arguments,
+          },
+        ),
+        returnValue: _i29.dummyValue<String>(
+          this,
+          Invocation.method(
+            #restorableReplaceRouteBelow,
+            [],
+            {
+              #anchorRoute: anchorRoute,
+              #newRouteBuilder: newRouteBuilder,
+              #arguments: arguments,
+            },
+          ),
+        ),
+        returnValueForMissingStub: _i29.dummyValue<String>(
+          this,
+          Invocation.method(
+            #restorableReplaceRouteBelow,
+            [],
+            {
+              #anchorRoute: anchorRoute,
+              #newRouteBuilder: newRouteBuilder,
+              #arguments: arguments,
+            },
+          ),
+        ),
+      ) as String);
+
+  @override
+  bool canPop() => (super.noSuchMethod(
+        Invocation.method(
+          #canPop,
+          [],
+        ),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  _i20.Future<bool> maybePop<T extends Object?>([T? result]) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #maybePop,
+          [result],
+        ),
+        returnValue: _i20.Future<bool>.value(false),
+        returnValueForMissingStub: _i20.Future<bool>.value(false),
+      ) as _i20.Future<bool>);
+
+  @override
+  void pop<T extends Object?>([T? result]) => super.noSuchMethod(
+        Invocation.method(
+          #pop,
+          [result],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void popUntil(_i16.RoutePredicate? predicate) => super.noSuchMethod(
+        Invocation.method(
+          #popUntil,
+          [predicate],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void removeRoute(_i16.Route<dynamic>? route) => super.noSuchMethod(
+        Invocation.method(
+          #removeRoute,
+          [route],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void removeRouteBelow(_i16.Route<dynamic>? anchorRoute) => super.noSuchMethod(
+        Invocation.method(
+          #removeRouteBelow,
+          [anchorRoute],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void finalizeRoute(_i16.Route<dynamic>? route) => super.noSuchMethod(
+        Invocation.method(
+          #finalizeRoute,
+          [route],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void didStartUserGesture() => super.noSuchMethod(
+        Invocation.method(
+          #didStartUserGesture,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void didStopUserGesture() => super.noSuchMethod(
+        Invocation.method(
+          #didStopUserGesture,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i16.Widget build(_i16.BuildContext? context) => (super.noSuchMethod(
+        Invocation.method(
+          #build,
+          [context],
+        ),
+        returnValue: _FakeWidget_20(
+          this,
+          Invocation.method(
+            #build,
+            [context],
+          ),
+        ),
+        returnValueForMissingStub: _FakeWidget_20(
+          this,
+          Invocation.method(
+            #build,
+            [context],
+          ),
+        ),
+      ) as _i16.Widget);
+
+  @override
+  void reassemble() => super.noSuchMethod(
+        Invocation.method(
+          #reassemble,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void setState(_i30.VoidCallback? fn) => super.noSuchMethod(
+        Invocation.method(
+          #setState,
+          [fn],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void debugFillProperties(_i17.DiagnosticPropertiesBuilder? properties) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #debugFillProperties,
+          [properties],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  String toString(
+          {_i16.DiagnosticLevel? minLevel = _i16.DiagnosticLevel.info}) =>
+      super.toString();
+
+  @override
+  String toStringShort() => (super.noSuchMethod(
+        Invocation.method(
+          #toStringShort,
+          [],
+        ),
+        returnValue: _i29.dummyValue<String>(
+          this,
+          Invocation.method(
+            #toStringShort,
+            [],
+          ),
+        ),
+        returnValueForMissingStub: _i29.dummyValue<String>(
+          this,
+          Invocation.method(
+            #toStringShort,
+            [],
+          ),
+        ),
+      ) as String);
+
+  @override
+  _i16.DiagnosticsNode toDiagnosticsNode({
+    String? name,
+    _i17.DiagnosticsTreeStyle? style,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #toDiagnosticsNode,
+          [],
+          {
+            #name: name,
+            #style: style,
+          },
+        ),
+        returnValue: _FakeDiagnosticsNode_21(
+          this,
+          Invocation.method(
+            #toDiagnosticsNode,
+            [],
+            {
+              #name: name,
+              #style: style,
+            },
+          ),
+        ),
+        returnValueForMissingStub: _FakeDiagnosticsNode_21(
+          this,
+          Invocation.method(
+            #toDiagnosticsNode,
+            [],
+            {
+              #name: name,
+              #style: style,
+            },
+          ),
+        ),
+      ) as _i16.DiagnosticsNode);
+
+  @override
+  _i18.Ticker createTicker(_i18.TickerCallback? onTick) => (super.noSuchMethod(
+        Invocation.method(
+          #createTicker,
+          [onTick],
+        ),
+        returnValue: _FakeTicker_22(
+          this,
+          Invocation.method(
+            #createTicker,
+            [onTick],
+          ),
+        ),
+        returnValueForMissingStub: _FakeTicker_22(
+          this,
+          Invocation.method(
+            #createTicker,
+            [onTick],
+          ),
+        ),
+      ) as _i18.Ticker);
+
+  @override
+  void registerForRestoration(
+    _i16.RestorableProperty<Object?>? property,
+    String? restorationId,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #registerForRestoration,
+          [
+            property,
+            restorationId,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void unregisterFromRestoration(_i16.RestorableProperty<Object?>? property) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #unregisterFromRestoration,
+          [property],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void didUpdateRestorationId() => super.noSuchMethod(
+        Invocation.method(
+          #didUpdateRestorationId,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
 }

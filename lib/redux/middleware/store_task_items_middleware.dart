@@ -20,7 +20,7 @@ List<Middleware<AppState>> createStoreTaskItemsMiddleware(
     ) {
   return [
     TypedMiddleware<AppState, VerifyPersonAction>(_verifyPerson(repository)),
-    TypedMiddleware<AppState, LoadDataAction>(_loadData(repository, navigatorKey)),
+    TypedMiddleware<AppState, LoadDataAction>(loadData(repository, navigatorKey)),
     TypedMiddleware<AppState, DataLoadedAction>(_dataLoaded(navigatorKey)),
     TypedMiddleware<AppState, AddTaskItemAction>(createNewTaskItem(repository)),
     TypedMiddleware<AppState, UpdateTaskItemAction>(_updateTaskItem(repository)),
@@ -60,12 +60,12 @@ Future<void> Function(
   };
 }
 
-
+@visibleForTesting
 Future<void> Function(
     Store<AppState>,
     LoadDataAction action,
     NextDispatcher next,
-    ) _loadData(TaskRepository repository, GlobalKey<NavigatorState> navigatorKey) {
+    ) loadData(TaskRepository repository, GlobalKey<NavigatorState> navigatorKey) {
   return (Store<AppState> store, LoadDataAction action, NextDispatcher next) async {
     next(action);
     navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.loading);

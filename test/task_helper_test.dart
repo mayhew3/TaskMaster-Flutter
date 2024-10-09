@@ -1,5 +1,6 @@
 
 import 'package:built_collection/built_collection.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:redux/redux.dart';
@@ -15,6 +16,7 @@ import 'package:taskmaster/redux/actions/task_item_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/middleware/notification_helper.dart';
 import 'package:taskmaster/redux/middleware/store_task_items_middleware.dart';
+import 'package:taskmaster/routes.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
@@ -28,7 +30,8 @@ import 'task_helper_test.mocks.dart';
 import 'test_mock_helper.dart';
 
 
-@GenerateNiceMocks([MockSpec<TaskRepository>(), MockSpec<Store>(), MockSpec<NotificationHelper>(), MockSpec<AppState>()])
+@GenerateNiceMocks([MockSpec<TaskRepository>(), MockSpec<Store>(), MockSpec<NotificationHelper>(),
+  MockSpec<AppState>(), MockSpec<GlobalKey<NavigatorState>>(), MockSpec<NavigatorState>()])
 void main() {
 
   MockTaskRepository taskRepository = new MockTaskRepository();
@@ -37,6 +40,8 @@ void main() {
   MockStore<AppState> store = MockStore<AppState>();
   MockAppState appState = new MockAppState();
   MockNotificationHelper mockNotificationHelper = new MockNotificationHelper();
+  MockGlobalKey mockGlobalKey = new MockGlobalKey();
+  var mockNavigatorState = new MockNavigatorState();
 
   const String idToken = "token";
   const int personId = 1;
@@ -54,7 +59,7 @@ void main() {
     timezoneHelper.configureLocalTimeZone();
     provideDummy<AppState>(appState);
 
-    when(store.state).thenAnswer((_) => appState);
+    when(store.state).thenReturn(appState);
 
     when(appState.personId).thenAnswer((_) => personId);
     when(appState.getIdToken()).thenAnswer((_) => Future.value(idToken));
@@ -64,6 +69,9 @@ void main() {
     when(appState.taskItems).thenAnswer((_) => taskItems?.toBuiltList() ?? BuiltList<TaskItem>());
     when(appState.sprints).thenAnswer((_) => sprints?.toBuiltList() ?? BuiltList<Sprint>());
     when(appState.taskRecurrences).thenAnswer((_) => recurrences?.toBuiltList() ?? BuiltList<TaskRecurrence>());
+
+    when(mockGlobalKey.currentState).thenAnswer((_) => mockNavigatorState);
+    when(mockNavigatorState.pushReplacementNamed(any)).thenAnswer((t) => Future.value(t));
 /*
 
     when(taskRepository.completeTask(argThat(isA<TaskItem>()), argThat(isA<DateTime?>()))).thenAnswer((invocation) {
@@ -137,22 +145,17 @@ void main() {
     verify(mockNotificationHelper.updateNotificationForTask(taskItem));
   });
 
-/*
   test('reloadTasks', () async {
-    var taskHelper = createTaskHelper();
-    var notificationScheduler = appState.notificationScheduler;
-    expect(notificationScheduler, isNot(null));
+    prepareMocks();
 
-    await taskHelper.reloadTasks();
-    verify(navHelper.goToLoadingScreen('Reloading tasks...'));
-
-    verify(taskRepository.loadTasks(stateSetter));
-    verify(notificationScheduler.updateBadge());
-    verify(navHelper.goToHomeScreen());
-
-    expect(appState.isLoading, false);
+    await loadData(taskRepository, mockGlobalKey)(store, LoadDataAction(), (_) => {});;
+    verify(mockGlobalKey.currentState);
+    verify(mockNavigatorState.pushReplacementNamed(TaskMasterRoutes.loading));
+    verify(appState.personId);
+    verify(appState.getIdToken());
+    verify(taskRepository.loadTasks(personId, idToken));
+    verify(store.dispatch(argThat(isA<DataLoadedAction>())));
   });
-*/
 
 
   /*
