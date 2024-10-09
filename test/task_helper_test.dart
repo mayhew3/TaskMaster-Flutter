@@ -37,6 +37,9 @@ void main() {
   MockStore<AppState> store = MockStore<AppState>();
   MockAppState appState = new MockAppState();
   MockNotificationHelper mockNotificationHelper = new MockNotificationHelper();
+
+  const String idToken = "token";
+  const int personId = 1;
   // MockNotificationScheduler notificationScheduler = new MockNotificationScheduler();
   // StateSetter stateSetter = (callback) => callback();
 /*
@@ -53,8 +56,8 @@ void main() {
 
     when(store.state).thenAnswer((_) => appState);
 
-    when(appState.personId).thenAnswer((_) => 1);
-    when(appState.getIdToken()).thenAnswer((_) => Future.value("token"));
+    when(appState.personId).thenAnswer((_) => personId);
+    when(appState.getIdToken()).thenAnswer((_) => Future.value(idToken));
     when(appState.timezoneHelper).thenAnswer((_) => timezoneHelper);
     when(appState.notificationHelper).thenAnswer((_) => mockNotificationHelper);
 
@@ -97,13 +100,39 @@ void main() {
     var taskItemBlueprint = taskItem.createBlueprint();
     var action = new AddTaskItemAction(blueprint: taskItemBlueprint);
 
-    when(taskRepository.addTask(taskItemBlueprint, "token")).thenAnswer((_) => Future.value((taskItem: taskItem, recurrence: null)));
+    when(taskRepository.addTask(taskItemBlueprint, idToken)).thenAnswer((_) => Future.value((taskItem: taskItem, recurrence: null)));
+
+    await createNewTaskItem(taskRepository)(store, action, (_) => {});
+    expect(taskItem.personId, 1);
+    verify(appState.personId);
+    verify(appState.getIdToken());
+    verify(taskRepository.addTask(taskItemBlueprint, idToken));
+    verify(store.dispatch(argThat(isA<TaskItemAddedAction>())));
+    verify(mockNotificationHelper.updateNotificationForTask(taskItem));
+  });
+
+  test('addTask with recurrence', () async {
+    prepareMocks(taskItems: [birthdayTask]);
+
+    var taskRecurrence = TaskRecurrence.fromJson(catLitterRecurrenceJSON);
+    var taskRecurrenceBlueprint = taskRecurrence.createBlueprint();
+
+    var taskItem = TaskItem.fromJson(catLitterJSON);
+    var taskItemBlueprint = taskItem.createBlueprint();
+
+    taskItemBlueprint.recurrenceBlueprint = taskRecurrenceBlueprint;
+
+    var action = new AddTaskItemAction(blueprint: taskItemBlueprint);
+
+    when(taskRepository.addTask(taskItemBlueprint, idToken)).thenAnswer((_) => Future.value((taskItem: taskItem, recurrence: taskRecurrence)));
 
     await createNewTaskItem(taskRepository)(store, action, (_) => {});
 
+    expect(taskItem.personId, 1);
+    expect(taskRecurrence.personId, 1);
     verify(appState.personId);
     verify(appState.getIdToken());
-    verify(taskRepository.addTask(taskItemBlueprint, "token"));
+    verify(taskRepository.addTask(taskItemBlueprint, idToken));
     verify(store.dispatch(argThat(isA<TaskItemAddedAction>())));
     verify(mockNotificationHelper.updateNotificationForTask(taskItem));
   });
@@ -126,34 +155,7 @@ void main() {
 */
 
 
-
   /*
-  test('addTask with recurrence', () async {
-    var taskHelper = createTaskHelper(taskItems: [birthdayTask]);
-    var notificationScheduler = appState.notificationScheduler;
-    expect(notificationScheduler, isNot(null));
-    var taskItem = TaskItem.fromJson(catLitterJSON);
-    var taskItemBlueprint = TaskItemBlueprint.fromJson(catLitterJSON);
-
-    var taskRecurrence = TaskRecurrence.fromJson(catLitterRecurrenceJSON);
-    var taskRecurrenceBlueprint = TaskRecurrenceBlueprint.fromJson(catLitterRecurrenceJSON);
-
-    taskItemBlueprint.recurrenceBlueprint = taskRecurrenceBlueprint;
-    taskItem.taskRecurrencePreview = taskRecurrence;
-
-    when(taskRepository.addTask(taskItemBlueprint)).thenAnswer((_) => Future.value(taskItem));
-
-    TaskItem resultingTaskItem = await taskHelper.addTask(taskItemBlueprint, (fn) => fn());
-    verify(taskRepository.addTask(taskItemBlueprint));
-    verify(notificationScheduler.updateNotificationForTask(catLitterTask));
-    verify(notificationScheduler.updateBadge());
-
-    expect(appState.taskItems, [birthdayTask, resultingTaskItem]);
-
-    expect(resultingTaskItem, taskItem);
-    expect(resultingTaskItem.taskRecurrencePreview, taskRecurrence);
-  });
-
   test('completeTask no recur', () async {
     var taskHelper = createTaskHelper(taskItems: [birthdayTask]);
     var mockAppState = taskHelper.appState;

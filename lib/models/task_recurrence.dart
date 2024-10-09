@@ -1,6 +1,7 @@
 
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+import 'package:taskmaster/models/serializers.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 
 /// This allows the `TaskRecurrence` class to access private members in
@@ -71,4 +72,7 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
         other.anchorType != anchorType;
   }
 
+  static TaskRecurrence fromJson(dynamic json) {
+    return serializers.deserializeWith(TaskRecurrence.serializer, json)!;
+  }
 }
