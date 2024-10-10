@@ -25,7 +25,7 @@ List<Middleware<AppState>> createStoreTaskItemsMiddleware(
     TypedMiddleware<AppState, AddTaskItemAction>(createNewTaskItem(repository)),
     TypedMiddleware<AppState, UpdateTaskItemAction>(_updateTaskItem(repository)),
     TypedMiddleware<AppState, DeleteTaskItemAction>(_deleteTaskItem(repository)),
-    TypedMiddleware<AppState, CompleteTaskItemAction>(_completeTaskItem(repository)),
+    TypedMiddleware<AppState, CompleteTaskItemAction>(completeTaskItem(repository)),
     TypedMiddleware<AppState, ExecuteSnooze>(_executeSnooze(repository)),
   ];
 }
@@ -152,11 +152,12 @@ Future<void> Function(
   };
 }
 
+@visibleForTesting
 Future<void> Function(
     Store<AppState>,
     CompleteTaskItemAction action,
     NextDispatcher next,
-    ) _completeTaskItem(TaskRepository repository) {
+    ) completeTaskItem(TaskRepository repository) {
   return (Store<AppState> store, CompleteTaskItemAction action, NextDispatcher next) async {
     next(action);
     var inputs = await getRequiredInputs(store, "complete task");
