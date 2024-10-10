@@ -134,9 +134,9 @@ class TestMockHelper {
     }
 
     TaskItem taskItem = new TaskItem((t) => t
-      ..name = original.name
+      ..name = blueprint.name
       ..id = original.id
-      ..personId = 1
+      ..personId = original.personId
       ..description = blueprint.description
       ..project = blueprint.project
       ..context = blueprint.context

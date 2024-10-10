@@ -47,13 +47,11 @@ void main() {
   const int personId = 1;
   // MockNotificationScheduler notificationScheduler = new MockNotificationScheduler();
   // StateSetter stateSetter = (callback) => callback();
-/*
+
   TaskItem _mockComplete(TaskItem taskItem, DateTime? completionDate) {
-    var blueprint = taskItem.createBlueprint();
-    blueprint.completionDate = completionDate;
-    return TestMockHelper.mockEditTask(taskItem, blueprint);
+    return taskItem.rebuild((t) => t.completionDate = completionDate);
   }
-*/
+
   void prepareMocks({List<TaskItem>? taskItems, List<Sprint>? sprints, List<TaskRecurrence>? recurrences}) {
 
     timezoneHelper.configureLocalTimeZone();
@@ -158,33 +156,32 @@ void main() {
   });
 
 
-  /*
+
   test('completeTask no recur', () async {
-    var taskHelper = createTaskHelper(taskItems: [birthdayTask]);
-    var mockAppState = taskHelper.appState;
-    var notificationScheduler = mockAppState.notificationScheduler;
-    expect(notificationScheduler, isNot(null));
+    prepareMocks(taskItems: [birthdayTask]);
 
-    expect(birthdayTask.taskRecurrencePreview, null);
+    expect(birthdayTask.recurrence, null);
 
-    var now = DateTime.now();
-    var inboundTask = _mockComplete(birthdayTask, now);
+    TaskItem? resultTask;
+    TaskItemBlueprint? blueprint;
 
-    when(taskRepository.completeTask(birthdayTask, any)).thenAnswer((_) => Future.value(inboundTask));
+    when(taskRepository.updateTask(birthdayTask.id, any, idToken)).thenAnswer((invocation) {
+      blueprint = invocation.positionalArguments[1];
+      resultTask = TestMockHelper.mockEditTask(birthdayTask, blueprint!);
+      return Future.value((taskItem: resultTask!, recurrence: null));
+    });
 
-    var returnedTask = await taskHelper.completeTask(birthdayTask, true, stateSetter);
-    verify(notificationScheduler.updateNotificationForTask(returnedTask));
-    verify(notificationScheduler.updateBadge());
-    verifyNever(taskRepository.addTask(any));
+    await completeTaskItem(taskRepository)(store, CompleteTaskItemAction(birthdayTask, true), (_) => {});
+    verifyNever(taskRepository.addTask(any, any));
 
-    expect(returnedTask.id, birthdayTask.id);
-    expect(returnedTask.pendingCompletion, false);
-    expect(returnedTask.completionDate, now);
-    expect(returnedTask.completionDate, now);
-    expect(returnedTask.taskRecurrencePreview, null);
-
+    verify(appState.personId);
+    verify(appState.getIdToken());
+    verify(taskRepository.updateTask(birthdayTask.id, blueprint, idToken));
+    verify(mockNotificationHelper.updateNotificationForTask(resultTask));
+    verify(store.dispatch(argThat(isA<TaskItemCompletedAction>())));
   });
 
+/*
   test('completeTask uncomplete no recur', () async {
     var originalTask = burnTask;
 
