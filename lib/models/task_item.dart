@@ -22,6 +22,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   static Serializer<TaskItem> get serializer => _$taskItemSerializer;
 
   int get id;
+  String? get docId;
   int get personId;
 
   String get name;

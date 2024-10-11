@@ -75,7 +75,7 @@ class TaskRepository {
     };
 
     firestore.collection("tasks").add(blueprintJson).then((DocumentReference doc) {
-      print('DocumentSnapshot added with ID: ${doc.id}');
+      print('DocumentSnapshot added: ${JsonEncoder.withIndent('   ').convert(doc)}');
     });
 
     return _addOrUpdateTaskItemJSON(payload: payload, idToken: idToken, apiOperation: this.client.post, operationDescription: "create task");
@@ -271,6 +271,30 @@ class TaskRepository {
       }
     } else {
       throw Exception('Failed to $operationDescription. Talk to Mayhew.');
+    }
+  }
+
+  Future<void> migrateFromApi(String idToken) async {
+    var jsonObj = await this.executeGetApiAction(
+        uriString: '/api/allTasks',
+        idToken: idToken,
+        operationDescription: "load tasks for migration");
+/*
+
+    List<Sprint> sprints = (jsonObj['sprints'] as List<dynamic>).map((sprintJson) =>
+    serializers.deserializeWith(Sprint.serializer, sprintJson)!).toList();
+
+    List<TaskRecurrence> taskRecurrences = (jsonObj['taskRecurrences'] as List<dynamic>).map((recurrenceJson) =>
+    serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson)!).toList();
+
+
+    List<TaskItem> taskItems = (jsonObj['tasks'] as List<dynamic>).map((taskJson) =>
+    serializers.deserializeWith(TaskItem.serializer, taskJson)!).toList();
+*/
+    var taskCollection = firestore.collection("tasks");
+    var taskObjs = jsonObj['tasks'] as List<dynamic>;
+    for (var taskObj in taskObjs) {
+      await taskCollection.add(taskObj);
     }
   }
 

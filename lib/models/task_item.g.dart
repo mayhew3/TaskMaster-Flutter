@@ -34,6 +34,12 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
               BuiltList, const [const FullType(SprintAssignment)])),
     ];
     Object? value;
+    value = object.docId;
+
+    result
+      ..add('docId')
+      ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)));
     value = object.description;
 
     result
@@ -153,6 +159,10 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
           result.id = serializers.deserialize(value,
               specifiedType: const FullType(int))! as int;
           break;
+        case 'docId':
+          result.docId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String?;
+          break;
         case 'personId':
           result.personId = serializers.deserialize(value,
               specifiedType: const FullType(int))! as int;
@@ -255,6 +265,8 @@ class _$TaskItem extends TaskItem {
   @override
   final int id;
   @override
+  final String? docId;
+  @override
   final int personId;
   @override
   final String name;
@@ -306,6 +318,7 @@ class _$TaskItem extends TaskItem {
 
   _$TaskItem._(
       {required this.id,
+      this.docId,
       required this.personId,
       required this.name,
       this.description,
@@ -352,6 +365,7 @@ class _$TaskItem extends TaskItem {
     if (identical(other, this)) return true;
     return other is TaskItem &&
         id == other.id &&
+        docId == other.docId &&
         personId == other.personId &&
         name == other.name &&
         description == other.description &&
@@ -381,6 +395,7 @@ class _$TaskItem extends TaskItem {
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, id.hashCode);
+    _$hash = $jc(_$hash, docId.hashCode);
     _$hash = $jc(_$hash, personId.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
@@ -412,6 +427,7 @@ class _$TaskItem extends TaskItem {
   String toString() {
     return (newBuiltValueToStringHelper(r'TaskItem')
           ..add('id', id)
+          ..add('docId', docId)
           ..add('personId', personId)
           ..add('name', name)
           ..add('description', description)
@@ -445,6 +461,10 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   int? _id;
   int? get id => _$this._id;
   set id(int? id) => _$this._id = id;
+
+  String? _docId;
+  String? get docId => _$this._docId;
+  set docId(String? docId) => _$this._docId = docId;
 
   int? _personId;
   int? get personId => _$this._personId;
@@ -553,6 +573,7 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
     final $v = _$v;
     if ($v != null) {
       _id = $v.id;
+      _docId = $v.docId;
       _personId = $v.personId;
       _name = $v.name;
       _description = $v.description;
@@ -601,6 +622,7 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
       _$result = _$v ??
           new _$TaskItem._(
               id: BuiltValueNullFieldError.checkNotNull(id, r'TaskItem', 'id'),
+              docId: docId,
               personId: BuiltValueNullFieldError.checkNotNull(
                   personId, r'TaskItem', 'personId'),
               name: BuiltValueNullFieldError.checkNotNull(

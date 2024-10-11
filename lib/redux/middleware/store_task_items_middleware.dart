@@ -72,6 +72,8 @@ Future<void> Function(
     var inputs = await getRequiredInputs(store, "load tasks");
     print("Fetching tasks for person_id ${inputs.personId}...");
     try {
+      await repository.migrateFromApi(inputs.idToken);
+
       var dataPayload = await repository.loadTasks(inputs.personId, inputs.idToken);
       store.dispatch(DataLoadedAction(dataPayload: dataPayload));
     } catch (e) {
