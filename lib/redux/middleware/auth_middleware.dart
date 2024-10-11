@@ -96,9 +96,9 @@ void Function(
     ) _tryToSilentlySignIn(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {
     next(action);
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform
-    );
+    // await Firebase.initializeApp(
+    //   options: DefaultFirebaseOptions.currentPlatform
+    // );
     print("_tryToSilentlySignIn called.");
     store.state.googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) async {
       print("onCurrentUserChanged.");

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:redux/redux.dart';
@@ -36,7 +37,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   @override
   void initState() {
     super.initState();
-    var taskRepository = TaskRepository(client: http.Client());
+    var taskRepository = TaskRepository(client: http.Client(), firestore: FirebaseFirestore.instance);
     store = Store<AppState>(
         appReducer,
         initialState: AppState.init(loading: true),

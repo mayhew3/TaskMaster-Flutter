@@ -4,6 +4,7 @@ import 'dart:core';
 import 'dart:io';
 
 import 'package:built_collection/built_collection.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:taskmaster/models/data_payload.dart';
 import 'package:taskmaster/models/serializers.dart';
@@ -22,11 +23,13 @@ import 'models/snooze.dart';
 
 class TaskRepository {
   http.Client client;
+  FirebaseFirestore firestore;
 
   static const serverEnv = String.fromEnvironment('SERVER', defaultValue: 'heroku');
 
   TaskRepository({
     required this.client,
+    required this.firestore,
   });
 
   Future<int?> getPersonId(String email, String idToken) async {
@@ -66,9 +69,15 @@ class TaskRepository {
   }
 
   Future<({TaskItem taskItem, TaskRecurrence? recurrence})> addTask(TaskItemBlueprint blueprint, String idToken) async {
+    var blueprintJson = blueprint.toJson();
     var payload = {
-      "task": blueprint.toJson()
+      "task": blueprintJson
     };
+
+    firestore.collection("tasks").add(blueprintJson).then((DocumentReference doc) {
+      print('DocumentSnapshot added with ID: ${doc.id}');
+    });
+
     return _addOrUpdateTaskItemJSON(payload: payload, idToken: idToken, apiOperation: this.client.post, operationDescription: "create task");
   }
 
