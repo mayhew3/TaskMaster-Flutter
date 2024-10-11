@@ -74,7 +74,7 @@ Future<void> Function(
     try {
       // await repository.migrateFromApi(inputs.idToken);
 
-      var dataPayload = await repository.loadTasks(inputs.personId, inputs.idToken);
+      var dataPayload = await repository.loadTasksFromFirestore(inputs.personId);
       store.dispatch(DataLoadedAction(dataPayload: dataPayload));
     } catch (e) {
       print("Error fetching task list: $e");

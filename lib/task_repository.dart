@@ -68,6 +68,31 @@ class TaskRepository {
     return DataPayload(taskItems: taskItems, sprints: sprints, taskRecurrences: taskRecurrences);
   }
 
+  Future<DataPayload> loadTasksFromFirestore(int personId) async {
+    var taskCollection = firestore.collection("tasks");
+    var taskSnapshot = await taskCollection.where("personId", isEqualTo: personId).get();
+    var taskItemObjs = taskSnapshot.docs.map((d) => d.data());
+
+    var sprintCollection = firestore.collection("sprints");
+    var sprintSnapshot = await sprintCollection.where("personId", isEqualTo: personId).get();
+    var sprintObjs = sprintSnapshot.docs.map((d) => d.data());
+
+    var recurrenceCollection = firestore.collection("recurrences");
+    var recurrenceSnapshot = await recurrenceCollection.where("personId", isEqualTo: personId).get();
+    var recurrenceObjs = recurrenceSnapshot.docs.map((d) => d.data());
+
+    List<Sprint> sprints = sprintObjs.map((sprintJson) =>
+      serializers.deserializeWith(Sprint.serializer, sprintJson)!).toList();
+
+    List<TaskRecurrence> taskRecurrences = recurrenceObjs.map((recurrenceJson) =>
+      serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson)!).toList();
+
+    List<TaskItem> taskItems = taskItemObjs.map((taskJson) =>
+      serializers.deserializeWith(TaskItem.serializer, taskJson)!).toList();
+
+    return DataPayload(taskItems: taskItems, sprints: sprints, taskRecurrences: taskRecurrences);
+  }
+
   Future<({TaskItem taskItem, TaskRecurrence? recurrence})> addTask(TaskItemBlueprint blueprint, String idToken) async {
     var blueprintJson = blueprint.toJson();
     var payload = {
