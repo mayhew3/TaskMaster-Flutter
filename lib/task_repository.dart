@@ -77,7 +77,7 @@ class TaskRepository {
     var sprintSnapshot = await sprintCollection.where("personId", isEqualTo: personId).get();
     var sprintObjs = sprintSnapshot.docs.map((d) => d.data());
 
-    var recurrenceCollection = firestore.collection("recurrences");
+    var recurrenceCollection = firestore.collection("taskRecurrences");
     var recurrenceSnapshot = await recurrenceCollection.where("personId", isEqualTo: personId).get();
     var recurrenceObjs = recurrenceSnapshot.docs.map((d) => d.data());
 
