@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:mockito/annotations.dart';
@@ -13,7 +14,7 @@ import 'package:taskmaster/task_repository.dart';
 import 'mocks/mock_data.dart';
 import 'test_mock_helper.mocks.dart';
 
-@GenerateNiceMocks([MockSpec<http.Client>(), MockSpec<GoogleSignInAccount>()])
+@GenerateNiceMocks([MockSpec<http.Client>(), MockSpec<GoogleSignInAccount>(), MockSpec<FirebaseFirestore>()])
 void main() {
 
 }
@@ -24,8 +25,9 @@ class TestMockHelper {
     String email = 'scorpy@gmail.com';
     GoogleSignInAccount googleUser = new MockGoogleSignInAccount();
     http.Client client = new MockClient();
+    var mockFirebaseFirestore = new MockFirebaseFirestore();
 
-    TaskRepository taskRepository = TaskRepository(client: client);
+    TaskRepository taskRepository = TaskRepository(client: client, firestore: mockFirebaseFirestore);
 
     when(client.get(taskRepository.getUriWithParameters('/api/tasks', {'person_id': "1"}), headers: anyNamed('headers')))
         .thenAnswer((_) async => http.Response(_mockTheJSON(taskItems: taskItems, sprints: sprints), 200));

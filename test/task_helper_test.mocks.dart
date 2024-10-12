@@ -426,6 +426,30 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
       ) as _i21.Future<_i4.DataPayload>);
 
   @override
+  _i21.Future<_i4.DataPayload> loadTasksFromFirestore(int? personId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #loadTasksFromFirestore,
+          [personId],
+        ),
+        returnValue: _i21.Future<_i4.DataPayload>.value(_FakeDataPayload_2(
+          this,
+          Invocation.method(
+            #loadTasksFromFirestore,
+            [personId],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i21.Future<_i4.DataPayload>.value(_FakeDataPayload_2(
+          this,
+          Invocation.method(
+            #loadTasksFromFirestore,
+            [personId],
+          ),
+        )),
+      ) as _i21.Future<_i4.DataPayload>);
+
+  @override
   _i21.Future<
       ({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})> addTask(
     _i22.TaskItemBlueprint? blueprint,
@@ -974,6 +998,46 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
         returnValue: _i21.Future<dynamic>.value(),
         returnValueForMissingStub: _i21.Future<dynamic>.value(),
       ) as _i21.Future<dynamic>);
+
+  @override
+  _i21.Future<void> migrateFromApi(String? idToken) => (super.noSuchMethod(
+        Invocation.method(
+          #migrateFromApi,
+          [idToken],
+        ),
+        returnValue: _i21.Future<void>.value(),
+        returnValueForMissingStub: _i21.Future<void>.value(),
+      ) as _i21.Future<void>);
+
+  @override
+  _i21.Future<void> syncTasks(dynamic jsonObj) => (super.noSuchMethod(
+        Invocation.method(
+          #syncTasks,
+          [jsonObj],
+        ),
+        returnValue: _i21.Future<void>.value(),
+        returnValueForMissingStub: _i21.Future<void>.value(),
+      ) as _i21.Future<void>);
+
+  @override
+  _i21.Future<void> syncSprints(dynamic jsonObj) => (super.noSuchMethod(
+        Invocation.method(
+          #syncSprints,
+          [jsonObj],
+        ),
+        returnValue: _i21.Future<void>.value(),
+        returnValueForMissingStub: _i21.Future<void>.value(),
+      ) as _i21.Future<void>);
+
+  @override
+  _i21.Future<void> syncRecurrences(dynamic jsonObj) => (super.noSuchMethod(
+        Invocation.method(
+          #syncRecurrences,
+          [jsonObj],
+        ),
+        returnValue: _i21.Future<void>.value(),
+        returnValueForMissingStub: _i21.Future<void>.value(),
+      ) as _i21.Future<void>);
 
   @override
   _i21.Future<dynamic> executeBodyApiAction({
