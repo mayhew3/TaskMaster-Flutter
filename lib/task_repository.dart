@@ -305,12 +305,17 @@ class TaskRepository {
         idToken: idToken,
         operationDescription: "load tasks for migration");
 
+    var persons = await syncPersons(jsonObj);
     var recurrences = await syncRecurrences(jsonObj);
     var sprints = await syncSprints(jsonObj);
-    await syncTasks(jsonObj, recurrences, sprints);
+    await syncTasks(jsonObj, recurrences, sprints, persons);
   }
 
-  Future<void> syncTasks(dynamic jsonObj, List<DocumentReference<Map<String, dynamic>>> recurrences, List<DocumentReference<Map<String, dynamic>>> sprints) async {
+  Future<void> syncTasks(dynamic jsonObj,
+      List<DocumentSnapshot<Map<String, dynamic>>> recurrences,
+      List<DocumentSnapshot<Map<String, dynamic>>> sprints,
+      List<DocumentSnapshot<Map<String, dynamic>>> persons
+      ) async {
     var taskCollection = firestore.collection("tasks");
     var querySnapshot = await taskCollection.get();
 
@@ -322,6 +327,10 @@ class TaskRepository {
     for (var taskObj in taskObjs) {
       var existing = querySnapshot.docs.where((t) => t.data()['id'] == taskObj['id']).firstOrNull;
       if (existing == null) {
+        taskObj['personDocId'] = persons.where((p) => p.get('id') == taskObj['personId']);
+        for (var sprintAssignmentObj in taskObj['sprintAssignments']) {
+          // todo: use doc ids
+        }
         await taskCollection.add(taskObj);
         added++;
         print('Added new task! $added added.');
@@ -332,10 +341,10 @@ class TaskRepository {
     }
   }
 
-  Future<List<DocumentReference<Map<String, dynamic>>>> syncSprints(dynamic jsonObj) async {
+  Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncSprints(dynamic jsonObj) async {
     var sprintCollection = firestore.collection("sprints");
     var querySnapshot = await sprintCollection.get();
-    List<DocumentReference<Map<String, dynamic>>> sprintRefs = [];
+    List<DocumentSnapshot<Map<String, dynamic>>> sprintRefs = [];
 
     var sprintObjs = jsonObj['sprints'] as List<dynamic>;
     var sprintCount = sprintObjs.length;
@@ -345,7 +354,8 @@ class TaskRepository {
       var existing = querySnapshot.docs.where((s) => s.data()['id'] == sprintObj['id']).firstOrNull;
       if (existing == null) {
         var documentReference = await sprintCollection.add(sprintObj);
-        sprintRefs.add(documentReference);
+        var snapshot = await documentReference.get();
+        sprintRefs.add(snapshot);
         added++;
         print('Added new sprint! $added added.');
       }
@@ -357,10 +367,36 @@ class TaskRepository {
     return sprintRefs;
   }
 
-  Future<List<DocumentReference<Map<String, dynamic>>>> syncRecurrences(dynamic jsonObj) async {
+  Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncPersons(dynamic jsonObj) async {
+    var personCollection = firestore.collection("persons");
+    var querySnapshot = await personCollection.get();
+    List<DocumentSnapshot<Map<String, dynamic>>> personRefs = [];
+
+    var personObjs = jsonObj['persons'] as List<dynamic>;
+    var personCount = personObjs.length;
+    var currIndex = 0;
+    var added = 0;
+    for (var personObj in personObjs) {
+      var existing = querySnapshot.docs.where((p) => p.data()['id'] == personObj['id']).firstOrNull;
+      if (existing == null) {
+        var documentReference = await personCollection.add(personObj);
+        var snapshot = await documentReference.get();
+        personRefs.add(snapshot);
+        added++;
+        print('Added new person! $added added.');
+      }
+      currIndex++;
+      var percent = currIndex / personCount * 100;
+      print('Processed person $currIndex/$personCount} ($percent%).');
+    }
+
+    return personRefs;
+  }
+
+  Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncRecurrences(dynamic jsonObj) async {
     var recurrenceCollection = firestore.collection("taskRecurrences");
     var querySnapshot = await recurrenceCollection.get();
-    List<DocumentReference<Map<String, dynamic>>> recurrenceRefs = [];
+    List<DocumentSnapshot<Map<String, dynamic>>> recurrenceRefs = [];
 
     var recurrenceObjs = jsonObj['taskRecurrences'] as List<dynamic>;
     var recurrenceCount = recurrenceObjs.length;
@@ -370,7 +406,8 @@ class TaskRepository {
       var existing = querySnapshot.docs.where((r) => r.data()['id'] == recurrenceObj['id']).firstOrNull;
       if (existing == null) {
         var docRef = await recurrenceCollection.add(recurrenceObj);
-        recurrenceRefs.add(docRef);
+        var snapshot = await docRef.get();
+        recurrenceRefs.add(snapshot);
         added++;
         print('Added new recurrence! $added added.');
       }
