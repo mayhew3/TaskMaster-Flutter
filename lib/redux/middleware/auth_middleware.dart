@@ -1,15 +1,12 @@
 
 
-import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/redux/actions/task_item_actions.dart';
 import 'package:taskmaster/routes.dart';
 
-import '../../firebase_options.dart';
 import '../actions/auth_actions.dart';
 import '../app_state.dart';
 

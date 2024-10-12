@@ -1,17 +1,4 @@
-import 'package:built_collection/built_collection.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
-import 'package:taskmaster/models/sprint.dart';
-import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/models/task_recurrence.dart';
-import 'package:taskmaster/models/top_nav_item.dart';
-import 'package:taskmaster/redux/app_state.dart';
-import 'package:taskmaster/task_repository.dart';
-import 'package:test/test.dart';
 
-import 'mocks/mock_data.dart';
 
 // @GenerateNiceMocks([MockSpec<TaskRepository>(), MockSpec<UserCredential>(), MockSpec<Widget>()])
 void main() {
