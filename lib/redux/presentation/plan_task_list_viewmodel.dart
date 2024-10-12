@@ -15,6 +15,7 @@ abstract class PlanTaskListViewModel implements Built<PlanTaskListViewModel, Pla
   Sprint? get lastSprint;
   Sprint? get activeSprint;
   int get personId;
+  String? get personDocId;
 
   PlanTaskListViewModel._();
 

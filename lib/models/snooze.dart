@@ -9,6 +9,8 @@ abstract class Snooze implements Built<Snooze, SnoozeBuilder> {
   static Serializer<Snooze> get serializer => _$snoozeSerializer;
 
   int get id;
+  String? get docId;
+
   DateTime get dateAdded;
 
   int get taskId;

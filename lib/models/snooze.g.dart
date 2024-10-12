@@ -39,6 +39,12 @@ class _$SnoozeSerializer implements StructuredSerializer<Snooze> {
           specifiedType: const FullType(DateTime)),
     ];
     Object? value;
+    value = object.docId;
+
+    result
+      ..add('docId')
+      ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)));
     value = object.previousAnchor;
 
     result
@@ -63,6 +69,10 @@ class _$SnoozeSerializer implements StructuredSerializer<Snooze> {
         case 'id':
           result.id = serializers.deserialize(value,
               specifiedType: const FullType(int))! as int;
+          break;
+        case 'docId':
+          result.docId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String?;
           break;
         case 'dateAdded':
           result.dateAdded = serializers.deserialize(value,
@@ -103,6 +113,8 @@ class _$Snooze extends Snooze {
   @override
   final int id;
   @override
+  final String? docId;
+  @override
   final DateTime dateAdded;
   @override
   final int taskId;
@@ -122,6 +134,7 @@ class _$Snooze extends Snooze {
 
   _$Snooze._(
       {required this.id,
+      this.docId,
       required this.dateAdded,
       required this.taskId,
       required this.snoozeNumber,
@@ -154,6 +167,7 @@ class _$Snooze extends Snooze {
     if (identical(other, this)) return true;
     return other is Snooze &&
         id == other.id &&
+        docId == other.docId &&
         dateAdded == other.dateAdded &&
         taskId == other.taskId &&
         snoozeNumber == other.snoozeNumber &&
@@ -167,6 +181,7 @@ class _$Snooze extends Snooze {
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, id.hashCode);
+    _$hash = $jc(_$hash, docId.hashCode);
     _$hash = $jc(_$hash, dateAdded.hashCode);
     _$hash = $jc(_$hash, taskId.hashCode);
     _$hash = $jc(_$hash, snoozeNumber.hashCode);
@@ -182,6 +197,7 @@ class _$Snooze extends Snooze {
   String toString() {
     return (newBuiltValueToStringHelper(r'Snooze')
           ..add('id', id)
+          ..add('docId', docId)
           ..add('dateAdded', dateAdded)
           ..add('taskId', taskId)
           ..add('snoozeNumber', snoozeNumber)
@@ -199,6 +215,10 @@ class SnoozeBuilder implements Builder<Snooze, SnoozeBuilder> {
   int? _id;
   int? get id => _$this._id;
   set id(int? id) => _$this._id = id;
+
+  String? _docId;
+  String? get docId => _$this._docId;
+  set docId(String? docId) => _$this._docId = docId;
 
   DateTime? _dateAdded;
   DateTime? get dateAdded => _$this._dateAdded;
@@ -235,6 +255,7 @@ class SnoozeBuilder implements Builder<Snooze, SnoozeBuilder> {
     final $v = _$v;
     if ($v != null) {
       _id = $v.id;
+      _docId = $v.docId;
       _dateAdded = $v.dateAdded;
       _taskId = $v.taskId;
       _snoozeNumber = $v.snoozeNumber;
@@ -265,6 +286,7 @@ class SnoozeBuilder implements Builder<Snooze, SnoozeBuilder> {
     final _$result = _$v ??
         new _$Snooze._(
             id: BuiltValueNullFieldError.checkNotNull(id, r'Snooze', 'id'),
+            docId: docId,
             dateAdded: BuiltValueNullFieldError.checkNotNull(
                 dateAdded, r'Snooze', 'dateAdded'),
             taskId: BuiltValueNullFieldError.checkNotNull(

@@ -40,6 +40,12 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
       ..add('docId')
       ..add(
           serializers.serialize(value, specifiedType: const FullType(String)));
+    value = object.personDocId;
+
+    result
+      ..add('personDocId')
+      ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)));
     value = object.description;
 
     result
@@ -129,6 +135,12 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
     result
       ..add('recurrenceId')
       ..add(serializers.serialize(value, specifiedType: const FullType(int)));
+    value = object.recurrenceDocId;
+
+    result
+      ..add('recurrenceDocId')
+      ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)));
     value = object.recurIteration;
 
     result
@@ -166,6 +178,10 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
         case 'personId':
           result.personId = serializers.deserialize(value,
               specifiedType: const FullType(int))! as int;
+          break;
+        case 'personDocId':
+          result.personDocId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String?;
           break;
         case 'name':
           result.name = serializers.deserialize(value,
@@ -235,6 +251,10 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
           result.recurrenceId = serializers.deserialize(value,
               specifiedType: const FullType(int)) as int?;
           break;
+        case 'recurrenceDocId':
+          result.recurrenceDocId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String?;
+          break;
         case 'recurIteration':
           result.recurIteration = serializers.deserialize(value,
               specifiedType: const FullType(int)) as int?;
@@ -268,6 +288,8 @@ class _$TaskItem extends TaskItem {
   final String? docId;
   @override
   final int personId;
+  @override
+  final String? personDocId;
   @override
   final String name;
   @override
@@ -303,6 +325,8 @@ class _$TaskItem extends TaskItem {
   @override
   final int? recurrenceId;
   @override
+  final String? recurrenceDocId;
+  @override
   final int? recurIteration;
   @override
   final bool offCycle;
@@ -320,6 +344,7 @@ class _$TaskItem extends TaskItem {
       {required this.id,
       this.docId,
       required this.personId,
+      this.personDocId,
       required this.name,
       this.description,
       this.project,
@@ -337,6 +362,7 @@ class _$TaskItem extends TaskItem {
       this.recurUnit,
       this.recurWait,
       this.recurrenceId,
+      this.recurrenceDocId,
       this.recurIteration,
       required this.offCycle,
       required this.sprintAssignments,
@@ -367,6 +393,7 @@ class _$TaskItem extends TaskItem {
         id == other.id &&
         docId == other.docId &&
         personId == other.personId &&
+        personDocId == other.personDocId &&
         name == other.name &&
         description == other.description &&
         project == other.project &&
@@ -384,6 +411,7 @@ class _$TaskItem extends TaskItem {
         recurUnit == other.recurUnit &&
         recurWait == other.recurWait &&
         recurrenceId == other.recurrenceId &&
+        recurrenceDocId == other.recurrenceDocId &&
         recurIteration == other.recurIteration &&
         offCycle == other.offCycle &&
         sprintAssignments == other.sprintAssignments &&
@@ -397,6 +425,7 @@ class _$TaskItem extends TaskItem {
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, docId.hashCode);
     _$hash = $jc(_$hash, personId.hashCode);
+    _$hash = $jc(_$hash, personDocId.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
     _$hash = $jc(_$hash, project.hashCode);
@@ -414,6 +443,7 @@ class _$TaskItem extends TaskItem {
     _$hash = $jc(_$hash, recurUnit.hashCode);
     _$hash = $jc(_$hash, recurWait.hashCode);
     _$hash = $jc(_$hash, recurrenceId.hashCode);
+    _$hash = $jc(_$hash, recurrenceDocId.hashCode);
     _$hash = $jc(_$hash, recurIteration.hashCode);
     _$hash = $jc(_$hash, offCycle.hashCode);
     _$hash = $jc(_$hash, sprintAssignments.hashCode);
@@ -429,6 +459,7 @@ class _$TaskItem extends TaskItem {
           ..add('id', id)
           ..add('docId', docId)
           ..add('personId', personId)
+          ..add('personDocId', personDocId)
           ..add('name', name)
           ..add('description', description)
           ..add('project', project)
@@ -446,6 +477,7 @@ class _$TaskItem extends TaskItem {
           ..add('recurUnit', recurUnit)
           ..add('recurWait', recurWait)
           ..add('recurrenceId', recurrenceId)
+          ..add('recurrenceDocId', recurrenceDocId)
           ..add('recurIteration', recurIteration)
           ..add('offCycle', offCycle)
           ..add('sprintAssignments', sprintAssignments)
@@ -469,6 +501,10 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   int? _personId;
   int? get personId => _$this._personId;
   set personId(int? personId) => _$this._personId = personId;
+
+  String? _personDocId;
+  String? get personDocId => _$this._personDocId;
+  set personDocId(String? personDocId) => _$this._personDocId = personDocId;
 
   String? _name;
   String? get name => _$this._name;
@@ -539,6 +575,11 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   int? get recurrenceId => _$this._recurrenceId;
   set recurrenceId(int? recurrenceId) => _$this._recurrenceId = recurrenceId;
 
+  String? _recurrenceDocId;
+  String? get recurrenceDocId => _$this._recurrenceDocId;
+  set recurrenceDocId(String? recurrenceDocId) =>
+      _$this._recurrenceDocId = recurrenceDocId;
+
   int? _recurIteration;
   int? get recurIteration => _$this._recurIteration;
   set recurIteration(int? recurIteration) =>
@@ -575,6 +616,7 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
       _id = $v.id;
       _docId = $v.docId;
       _personId = $v.personId;
+      _personDocId = $v.personDocId;
       _name = $v.name;
       _description = $v.description;
       _project = $v.project;
@@ -592,6 +634,7 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
       _recurUnit = $v.recurUnit;
       _recurWait = $v.recurWait;
       _recurrenceId = $v.recurrenceId;
+      _recurrenceDocId = $v.recurrenceDocId;
       _recurIteration = $v.recurIteration;
       _offCycle = $v.offCycle;
       _sprintAssignments = $v.sprintAssignments.toBuilder();
@@ -625,6 +668,7 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
               docId: docId,
               personId: BuiltValueNullFieldError.checkNotNull(
                   personId, r'TaskItem', 'personId'),
+              personDocId: personDocId,
               name: BuiltValueNullFieldError.checkNotNull(
                   name, r'TaskItem', 'name'),
               description: description,
@@ -643,6 +687,7 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
               recurUnit: recurUnit,
               recurWait: recurWait,
               recurrenceId: recurrenceId,
+              recurrenceDocId: recurrenceDocId,
               recurIteration: recurIteration,
               offCycle: BuiltValueNullFieldError.checkNotNull(
                   offCycle, r'TaskItem', 'offCycle'),

@@ -12,6 +12,7 @@ abstract class Sprint implements Built<Sprint, SprintBuilder> {
   static Serializer<Sprint> get serializer => _$sprintSerializer;
 
   int get id;
+  String? get docId;
 
   DateTime get dateAdded;
 
@@ -24,6 +25,7 @@ abstract class Sprint implements Built<Sprint, SprintBuilder> {
   String get unitName;
 
   int get personId;
+  String? get personDocId;
 
   int? get sprintNumber;
 

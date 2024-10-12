@@ -23,7 +23,9 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
 
   int get id;
   String? get docId;
+
   int get personId;
+  String? get personDocId;
 
   String get name;
 
@@ -48,6 +50,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   bool? get recurWait;
 
   int? get recurrenceId;
+  String? get recurrenceDocId;
   int? get recurIteration;
 
   bool get offCycle;

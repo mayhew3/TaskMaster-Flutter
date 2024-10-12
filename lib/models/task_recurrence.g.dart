@@ -46,6 +46,19 @@ class _$TaskRecurrenceSerializer
       serializers.serialize(object.anchorType,
           specifiedType: const FullType(String)),
     ];
+    Object? value;
+    value = object.docId;
+
+    result
+      ..add('docId')
+      ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)));
+    value = object.personDocId;
+
+    result
+      ..add('personDocId')
+      ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)));
 
     return result;
   }
@@ -66,9 +79,17 @@ class _$TaskRecurrenceSerializer
           result.id = serializers.deserialize(value,
               specifiedType: const FullType(int))! as int;
           break;
+        case 'docId':
+          result.docId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String?;
+          break;
         case 'personId':
           result.personId = serializers.deserialize(value,
               specifiedType: const FullType(int))! as int;
+          break;
+        case 'personDocId':
+          result.personDocId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String?;
           break;
         case 'name':
           result.name = serializers.deserialize(value,
@@ -109,7 +130,11 @@ class _$TaskRecurrence extends TaskRecurrence {
   @override
   final int id;
   @override
+  final String? docId;
+  @override
   final int personId;
+  @override
+  final String? personDocId;
   @override
   final String name;
   @override
@@ -130,7 +155,9 @@ class _$TaskRecurrence extends TaskRecurrence {
 
   _$TaskRecurrence._(
       {required this.id,
+      this.docId,
       required this.personId,
+      this.personDocId,
       required this.name,
       required this.recurNumber,
       required this.recurUnit,
@@ -170,7 +197,9 @@ class _$TaskRecurrence extends TaskRecurrence {
     if (identical(other, this)) return true;
     return other is TaskRecurrence &&
         id == other.id &&
+        docId == other.docId &&
         personId == other.personId &&
+        personDocId == other.personDocId &&
         name == other.name &&
         recurNumber == other.recurNumber &&
         recurUnit == other.recurUnit &&
@@ -184,7 +213,9 @@ class _$TaskRecurrence extends TaskRecurrence {
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, id.hashCode);
+    _$hash = $jc(_$hash, docId.hashCode);
     _$hash = $jc(_$hash, personId.hashCode);
+    _$hash = $jc(_$hash, personDocId.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, recurNumber.hashCode);
     _$hash = $jc(_$hash, recurUnit.hashCode);
@@ -200,7 +231,9 @@ class _$TaskRecurrence extends TaskRecurrence {
   String toString() {
     return (newBuiltValueToStringHelper(r'TaskRecurrence')
           ..add('id', id)
+          ..add('docId', docId)
           ..add('personId', personId)
+          ..add('personDocId', personDocId)
           ..add('name', name)
           ..add('recurNumber', recurNumber)
           ..add('recurUnit', recurUnit)
@@ -220,9 +253,17 @@ class TaskRecurrenceBuilder
   int? get id => _$this._id;
   set id(int? id) => _$this._id = id;
 
+  String? _docId;
+  String? get docId => _$this._docId;
+  set docId(String? docId) => _$this._docId = docId;
+
   int? _personId;
   int? get personId => _$this._personId;
   set personId(int? personId) => _$this._personId = personId;
+
+  String? _personDocId;
+  String? get personDocId => _$this._personDocId;
+  set personDocId(String? personDocId) => _$this._personDocId = personDocId;
 
   String? _name;
   String? get name => _$this._name;
@@ -259,7 +300,9 @@ class TaskRecurrenceBuilder
     final $v = _$v;
     if ($v != null) {
       _id = $v.id;
+      _docId = $v.docId;
       _personId = $v.personId;
+      _personDocId = $v.personDocId;
       _name = $v.name;
       _recurNumber = $v.recurNumber;
       _recurUnit = $v.recurUnit;
@@ -291,8 +334,10 @@ class TaskRecurrenceBuilder
         new _$TaskRecurrence._(
             id: BuiltValueNullFieldError.checkNotNull(
                 id, r'TaskRecurrence', 'id'),
+            docId: docId,
             personId: BuiltValueNullFieldError.checkNotNull(
                 personId, r'TaskRecurrence', 'personId'),
+            personDocId: personDocId,
             name: BuiltValueNullFieldError.checkNotNull(
                 name, r'TaskRecurrence', 'name'),
             recurNumber: BuiltValueNullFieldError.checkNotNull(
