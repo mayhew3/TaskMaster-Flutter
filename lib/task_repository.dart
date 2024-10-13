@@ -327,11 +327,15 @@ class TaskRepository {
     for (var taskObj in taskObjs) {
       var existing = querySnapshot.docs.where((t) => t.data()['id'] == taskObj['id']).firstOrNull;
       if (existing == null) {
-        taskObj['personDocId'] = persons.where((p) => p.get('id') == taskObj['personId']);
-        for (var sprintAssignmentObj in taskObj['sprintAssignments']) {
-          // todo: use doc ids
+        taskObj['personDocId'] = persons.where((p) => p.get('id') == taskObj['personId']).first.id;
+        var documentRef = await taskCollection.add(taskObj);
+        var sprintAssignmentRefs = await documentRef.collection("sprintAssignments").get();
+        for (var sprintAssignment in sprintAssignmentRefs.docs) {
+          await sprintAssignment.reference.update({"taskDocId": documentRef.id});
+          var sprintId = sprintAssignment.get("sprintId");
+          var sprintDocId = sprints.where((s) => s.get('id') == sprintId).first.id;
+          await sprintAssignment.reference.update({"sprintDocId": sprintDocId});
         }
-        await taskCollection.add(taskObj);
         added++;
         print('Added new task! $added added.');
       }
