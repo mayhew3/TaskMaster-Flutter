@@ -1032,11 +1032,16 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
 
   @override
   _i21.Future<List<_i3.DocumentSnapshot<Map<String, dynamic>>>> syncSprints(
-          dynamic jsonObj) =>
+    dynamic jsonObj,
+    List<_i3.DocumentSnapshot<Map<String, dynamic>>>? persons,
+  ) =>
       (super.noSuchMethod(
         Invocation.method(
           #syncSprints,
-          [jsonObj],
+          [
+            jsonObj,
+            persons,
+          ],
         ),
         returnValue:
             _i21.Future<List<_i3.DocumentSnapshot<Map<String, dynamic>>>>.value(
@@ -1064,11 +1069,16 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
 
   @override
   _i21.Future<List<_i3.DocumentSnapshot<Map<String, dynamic>>>> syncRecurrences(
-          dynamic jsonObj) =>
+    dynamic jsonObj,
+    List<_i3.DocumentSnapshot<Map<String, dynamic>>>? persons,
+  ) =>
       (super.noSuchMethod(
         Invocation.method(
           #syncRecurrences,
-          [jsonObj],
+          [
+            jsonObj,
+            persons,
+          ],
         ),
         returnValue:
             _i21.Future<List<_i3.DocumentSnapshot<Map<String, dynamic>>>>.value(
