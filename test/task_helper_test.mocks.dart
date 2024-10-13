@@ -1010,34 +1010,73 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
       ) as _i21.Future<void>);
 
   @override
-  _i21.Future<void> syncTasks(dynamic jsonObj) => (super.noSuchMethod(
+  _i21.Future<void> syncTasks(
+    dynamic jsonObj,
+    List<_i3.DocumentSnapshot<Map<String, dynamic>>>? recurrences,
+    List<_i3.DocumentSnapshot<Map<String, dynamic>>>? sprints,
+    List<_i3.DocumentSnapshot<Map<String, dynamic>>>? persons,
+  ) =>
+      (super.noSuchMethod(
         Invocation.method(
           #syncTasks,
-          [jsonObj],
+          [
+            jsonObj,
+            recurrences,
+            sprints,
+            persons,
+          ],
         ),
         returnValue: _i21.Future<void>.value(),
         returnValueForMissingStub: _i21.Future<void>.value(),
       ) as _i21.Future<void>);
 
   @override
-  _i21.Future<void> syncSprints(dynamic jsonObj) => (super.noSuchMethod(
+  _i21.Future<List<_i3.DocumentSnapshot<Map<String, dynamic>>>> syncSprints(
+          dynamic jsonObj) =>
+      (super.noSuchMethod(
         Invocation.method(
           #syncSprints,
           [jsonObj],
         ),
-        returnValue: _i21.Future<void>.value(),
-        returnValueForMissingStub: _i21.Future<void>.value(),
-      ) as _i21.Future<void>);
+        returnValue:
+            _i21.Future<List<_i3.DocumentSnapshot<Map<String, dynamic>>>>.value(
+                <_i3.DocumentSnapshot<Map<String, dynamic>>>[]),
+        returnValueForMissingStub:
+            _i21.Future<List<_i3.DocumentSnapshot<Map<String, dynamic>>>>.value(
+                <_i3.DocumentSnapshot<Map<String, dynamic>>>[]),
+      ) as _i21.Future<List<_i3.DocumentSnapshot<Map<String, dynamic>>>>);
 
   @override
-  _i21.Future<void> syncRecurrences(dynamic jsonObj) => (super.noSuchMethod(
+  _i21.Future<List<_i3.DocumentSnapshot<Map<String, dynamic>>>> syncPersons(
+          dynamic jsonObj) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #syncPersons,
+          [jsonObj],
+        ),
+        returnValue:
+            _i21.Future<List<_i3.DocumentSnapshot<Map<String, dynamic>>>>.value(
+                <_i3.DocumentSnapshot<Map<String, dynamic>>>[]),
+        returnValueForMissingStub:
+            _i21.Future<List<_i3.DocumentSnapshot<Map<String, dynamic>>>>.value(
+                <_i3.DocumentSnapshot<Map<String, dynamic>>>[]),
+      ) as _i21.Future<List<_i3.DocumentSnapshot<Map<String, dynamic>>>>);
+
+  @override
+  _i21.Future<List<_i3.DocumentSnapshot<Map<String, dynamic>>>> syncRecurrences(
+          dynamic jsonObj) =>
+      (super.noSuchMethod(
         Invocation.method(
           #syncRecurrences,
           [jsonObj],
         ),
-        returnValue: _i21.Future<void>.value(),
-        returnValueForMissingStub: _i21.Future<void>.value(),
-      ) as _i21.Future<void>);
+        returnValue:
+            _i21.Future<List<_i3.DocumentSnapshot<Map<String, dynamic>>>>.value(
+                <_i3.DocumentSnapshot<Map<String, dynamic>>>[]),
+        returnValueForMissingStub:
+            _i21.Future<List<_i3.DocumentSnapshot<Map<String, dynamic>>>>.value(
+                <_i3.DocumentSnapshot<Map<String, dynamic>>>[]),
+      ) as _i21.Future<List<_i3.DocumentSnapshot<Map<String, dynamic>>>>);
 
   @override
   _i21.Future<dynamic> executeBodyApiAction({
