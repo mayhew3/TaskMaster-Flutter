@@ -76,8 +76,9 @@ Future<void> Function(
 
       var dataPayload = await repository.loadTasksFromFirestore(inputs.personId);
       store.dispatch(DataLoadedAction(dataPayload: dataPayload));
-    } catch (e) {
+    } catch (e, stack) {
       print("Error fetching task list: $e");
+      print(stack);
       navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.loadFailed);
       store.dispatch(DataNotLoadedAction());
     }

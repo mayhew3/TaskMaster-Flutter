@@ -306,8 +306,8 @@ class TaskRepository {
         operationDescription: "load tasks for migration");
 
     var persons = await syncPersons(jsonObj);
-    var recurrences = await syncRecurrences(jsonObj);
-    var sprints = await syncSprints(jsonObj);
+    var recurrences = await syncRecurrences(jsonObj, persons);
+    var sprints = await syncSprints(jsonObj, persons);
     await syncTasks(jsonObj, recurrences, sprints, persons);
   }
 
@@ -319,23 +319,41 @@ class TaskRepository {
     var taskCollection = firestore.collection("tasks");
     var querySnapshot = await taskCollection.get();
 
+    for (var document in querySnapshot.docs) {
+      var assignments = await document.reference.collection("sprintAssignments").get();
+      for (var assignment in assignments.docs) {
+        assignment.reference.delete();
+      }
+      await document.reference.delete();
+    }
+
+    querySnapshot = await taskCollection.get();
+
     var taskObjs = jsonObj['tasks'] as List<dynamic>;
     var taskCount = taskObjs.length;
 
     var currIndex = 0;
     var added = 0;
-    for (var taskObj in taskObjs) {
+    for (Map<String, Object?> taskObj in taskObjs) {
       var existing = querySnapshot.docs.where((t) => t.data()['id'] == taskObj['id']).firstOrNull;
       if (existing == null) {
         taskObj['personDocId'] = persons.where((p) => p.get('id') == taskObj['personId']).first.id;
+        taskObj['recurrenceDocId'] = recurrences.where((r) => r.get('id') == taskObj['recurrenceId']).firstOrNull?.id;
+
+        var sprintAssignmentObjs = taskObj['sprintAssignments'] as List<dynamic>;
+        taskObj.remove('sprintAssignments');
+
         var documentRef = await taskCollection.add(taskObj);
-        var sprintAssignmentRefs = await documentRef.collection("sprintAssignments").get();
-        for (var sprintAssignment in sprintAssignmentRefs.docs) {
-          await sprintAssignment.reference.update({"taskDocId": documentRef.id});
-          var sprintId = sprintAssignment.get("sprintId");
-          var sprintDocId = sprints.where((s) => s.get('id') == sprintId).first.id;
-          await sprintAssignment.reference.update({"sprintDocId": sprintDocId});
+
+        for (Map<String, Object?> sprintAssignmentObj in sprintAssignmentObjs) {
+          var sprintDocId = sprints.where((s) => s.get('id') == sprintAssignmentObj['sprintId']).first.id;
+          var taskDocId = documentRef.id;
+          sprintAssignmentObj['sprintDocId'] = sprintDocId;
+          sprintAssignmentObj['taskDocId'] = taskDocId;
+
+          documentRef.collection("sprintAssignments").add(sprintAssignmentObj);
         }
+
         added++;
         print('Added new task! $added added.');
       }
@@ -345,9 +363,16 @@ class TaskRepository {
     }
   }
 
-  Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncSprints(dynamic jsonObj) async {
+  Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncSprints(dynamic jsonObj, List<DocumentSnapshot<Map<String, dynamic>>> persons) async {
     var sprintCollection = firestore.collection("sprints");
     var querySnapshot = await sprintCollection.get();
+
+    for (var document in querySnapshot.docs) {
+      await document.reference.delete();
+    }
+
+    querySnapshot = await sprintCollection.get();
+
     List<DocumentSnapshot<Map<String, dynamic>>> sprintRefs = [];
 
     var sprintObjs = jsonObj['sprints'] as List<dynamic>;
@@ -357,11 +382,14 @@ class TaskRepository {
     for (var sprintObj in sprintObjs) {
       var existing = querySnapshot.docs.where((s) => s.data()['id'] == sprintObj['id']).firstOrNull;
       if (existing == null) {
+        sprintObj['personDocId'] = persons.where((p) => p.get('id') == sprintObj['personId']).first.id;
         var documentReference = await sprintCollection.add(sprintObj);
         var snapshot = await documentReference.get();
         sprintRefs.add(snapshot);
         added++;
         print('Added new sprint! $added added.');
+      } else {
+        sprintRefs.add(existing);
       }
       currIndex++;
       var percent = currIndex / sprintCount * 100;
@@ -374,6 +402,15 @@ class TaskRepository {
   Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncPersons(dynamic jsonObj) async {
     var personCollection = firestore.collection("persons");
     var querySnapshot = await personCollection.get();
+
+/*
+    for (var document in querySnapshot.docs) {
+      await document.reference.delete();
+    }
+*/
+
+    querySnapshot = await personCollection.get();
+
     List<DocumentSnapshot<Map<String, dynamic>>> personRefs = [];
 
     var personObjs = jsonObj['persons'] as List<dynamic>;
@@ -388,6 +425,8 @@ class TaskRepository {
         personRefs.add(snapshot);
         added++;
         print('Added new person! $added added.');
+      } else {
+        personRefs.add(existing);
       }
       currIndex++;
       var percent = currIndex / personCount * 100;
@@ -397,9 +436,16 @@ class TaskRepository {
     return personRefs;
   }
 
-  Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncRecurrences(dynamic jsonObj) async {
+  Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncRecurrences(dynamic jsonObj, List<DocumentSnapshot<Map<String, dynamic>>> persons) async {
     var recurrenceCollection = firestore.collection("taskRecurrences");
     var querySnapshot = await recurrenceCollection.get();
+
+    for (var document in querySnapshot.docs) {
+      await document.reference.delete();
+    }
+
+    querySnapshot = await recurrenceCollection.get();
+
     List<DocumentSnapshot<Map<String, dynamic>>> recurrenceRefs = [];
 
     var recurrenceObjs = jsonObj['taskRecurrences'] as List<dynamic>;
@@ -409,11 +455,14 @@ class TaskRepository {
     for (var recurrenceObj in recurrenceObjs) {
       var existing = querySnapshot.docs.where((r) => r.data()['id'] == recurrenceObj['id']).firstOrNull;
       if (existing == null) {
+        recurrenceObj['personDocId'] = persons.where((p) => p.get('id') == recurrenceObj['personId']).first.id;
         var docRef = await recurrenceCollection.add(recurrenceObj);
         var snapshot = await docRef.get();
         recurrenceRefs.add(snapshot);
         added++;
         print('Added new recurrence! $added added.');
+      } else {
+        recurrenceRefs.add(existing);
       }
       currIndex++;
       var percent = currIndex / recurrenceCount * 100;
