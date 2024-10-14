@@ -16,8 +16,7 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
   int get id;
   String? get docId;
 
-  int get personId;
-  String? get personDocId;
+  String get personDocId;
 
   String get name;
 
@@ -37,7 +36,7 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
   TaskRecurrenceBlueprint createBlueprint() {
     TaskRecurrenceBlueprint blueprint = TaskRecurrenceBlueprint();
 
-    blueprint.personId = personId;
+    blueprint.personDocId = personDocId;
     blueprint.name = name;
     blueprint.recurNumber = recurNumber;
     blueprint.recurUnit = recurUnit;

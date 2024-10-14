@@ -37,7 +37,7 @@ TaskItemBlueprint _$TaskItemBlueprintFromJson(Map<String, dynamic> json) =>
       ..recurWait = json['recur_wait'] as bool?
       ..recurrenceId = (json['recurrence_id'] as num?)?.toInt()
       ..recurIteration = (json['recur_iteration'] as num?)?.toInt()
-      ..personId = (json['person_id'] as num?)?.toInt()
+      ..personDocId = json['person_doc_id'] as String?
       ..tmpId = (json['tmp_id'] as num).toInt();
 
 Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) =>
@@ -62,5 +62,5 @@ Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) =>
       'recurrence_id': instance.recurrenceId,
       'recur_iteration': instance.recurIteration,
       'recurrence_blueprint': instance.recurrenceBlueprint,
-      'person_id': instance.personId,
+      'person_doc_id': instance.personDocId,
     };

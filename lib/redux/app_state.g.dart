@@ -28,8 +28,6 @@ class _$AppState extends AppState {
   @override
   final VisibilityFilter taskListFilter;
   @override
-  final int? personId;
-  @override
   final String? personDocId;
   @override
   final GoogleSignIn googleSignIn;
@@ -60,7 +58,6 @@ class _$AppState extends AppState {
       required this.allNavItems,
       required this.sprintListFilter,
       required this.taskListFilter,
-      this.personId,
       this.personDocId,
       required this.googleSignIn,
       this.firebaseUser,
@@ -118,7 +115,6 @@ class _$AppState extends AppState {
         allNavItems == other.allNavItems &&
         sprintListFilter == other.sprintListFilter &&
         taskListFilter == other.taskListFilter &&
-        personId == other.personId &&
         personDocId == other.personDocId &&
         googleSignIn == other.googleSignIn &&
         firebaseUser == other.firebaseUser &&
@@ -142,7 +138,6 @@ class _$AppState extends AppState {
     _$hash = $jc(_$hash, allNavItems.hashCode);
     _$hash = $jc(_$hash, sprintListFilter.hashCode);
     _$hash = $jc(_$hash, taskListFilter.hashCode);
-    _$hash = $jc(_$hash, personId.hashCode);
     _$hash = $jc(_$hash, personDocId.hashCode);
     _$hash = $jc(_$hash, googleSignIn.hashCode);
     _$hash = $jc(_$hash, firebaseUser.hashCode);
@@ -168,7 +163,6 @@ class _$AppState extends AppState {
           ..add('allNavItems', allNavItems)
           ..add('sprintListFilter', sprintListFilter)
           ..add('taskListFilter', taskListFilter)
-          ..add('personId', personId)
           ..add('personDocId', personDocId)
           ..add('googleSignIn', googleSignIn)
           ..add('firebaseUser', firebaseUser)
@@ -238,10 +232,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   set taskListFilter(VisibilityFilterBuilder? taskListFilter) =>
       _$this._taskListFilter = taskListFilter;
 
-  int? _personId;
-  int? get personId => _$this._personId;
-  set personId(int? personId) => _$this._personId = personId;
-
   String? _personDocId;
   String? get personDocId => _$this._personDocId;
   set personDocId(String? personDocId) => _$this._personDocId = personDocId;
@@ -295,7 +285,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _allNavItems = $v.allNavItems.toBuilder();
       _sprintListFilter = $v.sprintListFilter.toBuilder();
       _taskListFilter = $v.taskListFilter.toBuilder();
-      _personId = $v.personId;
       _personDocId = $v.personDocId;
       _googleSignIn = $v.googleSignIn;
       _firebaseUser = $v.firebaseUser;
@@ -340,7 +329,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               allNavItems: allNavItems.build(),
               sprintListFilter: sprintListFilter.build(),
               taskListFilter: taskListFilter.build(),
-              personId: personId,
               personDocId: personDocId,
               googleSignIn: BuiltValueNullFieldError.checkNotNull(
                   googleSignIn, r'AppState', 'googleSignIn'),

@@ -401,53 +401,17 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
       ) as _i21.Future<String?>);
 
   @override
-  _i21.Future<_i4.DataPayload> loadTasks(
-    int? personId,
-    String? idToken,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #loadTasks,
-          [
-            personId,
-            idToken,
-          ],
-        ),
-        returnValue: _i21.Future<_i4.DataPayload>.value(_FakeDataPayload_2(
-          this,
-          Invocation.method(
-            #loadTasks,
-            [
-              personId,
-              idToken,
-            ],
-          ),
-        )),
-        returnValueForMissingStub:
-            _i21.Future<_i4.DataPayload>.value(_FakeDataPayload_2(
-          this,
-          Invocation.method(
-            #loadTasks,
-            [
-              personId,
-              idToken,
-            ],
-          ),
-        )),
-      ) as _i21.Future<_i4.DataPayload>);
-
-  @override
-  _i21.Future<_i4.DataPayload> loadTasksFromFirestore(int? personId) =>
+  _i21.Future<_i4.DataPayload> loadTasksFromFirestore(String? personDocId) =>
       (super.noSuchMethod(
         Invocation.method(
           #loadTasksFromFirestore,
-          [personId],
+          [personDocId],
         ),
         returnValue: _i21.Future<_i4.DataPayload>.value(_FakeDataPayload_2(
           this,
           Invocation.method(
             #loadTasksFromFirestore,
-            [personId],
+            [personDocId],
           ),
         )),
         returnValueForMissingStub:
@@ -455,7 +419,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
           this,
           Invocation.method(
             #loadTasksFromFirestore,
-            [personId],
+            [personDocId],
           ),
         )),
       ) as _i21.Future<_i4.DataPayload>);

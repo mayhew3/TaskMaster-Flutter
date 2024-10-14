@@ -51,29 +51,6 @@ class TaskRepository {
     return withEmail.docs.firstOrNull?.id;
   }
 
-  Future<DataPayload> loadTasks(int personId, String idToken) async {
-    var queryParameters = {
-      'person_id': personId.toString()
-    };
-
-    var jsonObj = await this.executeGetApiAction(
-        uriString: '/api/tasks',
-        queryParameters: queryParameters,
-        idToken: idToken,
-        operationDescription: "load tasks");
-
-    List<Sprint> sprints = (jsonObj['sprints'] as List<dynamic>).map((sprintJson) =>
-      serializers.deserializeWith(Sprint.serializer, sprintJson)!).toList();
-
-    List<TaskRecurrence> taskRecurrences = (jsonObj['taskRecurrences'] as List<dynamic>).map((recurrenceJson) =>
-      serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson)!).toList();
-
-    List<TaskItem> taskItems = (jsonObj['tasks'] as List<dynamic>).map((taskJson) =>
-    serializers.deserializeWith(TaskItem.serializer, taskJson)!).toList();
-
-    return DataPayload(taskItems: taskItems, sprints: sprints, taskRecurrences: taskRecurrences);
-  }
-
   Future<DataPayload> loadTasksFromFirestore(String personDocId) async {
     var taskCollection = firestore.collection("tasks");
     var taskSnapshot = await taskCollection.where("personDocId", isEqualTo: personDocId).get();

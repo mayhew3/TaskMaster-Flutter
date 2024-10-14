@@ -9,7 +9,7 @@ part of 'task_recurrence_blueprint.dart';
 TaskRecurrenceBlueprint _$TaskRecurrenceBlueprintFromJson(
         Map<String, dynamic> json) =>
     TaskRecurrenceBlueprint()
-      ..personId = (json['person_id'] as num?)?.toInt()
+      ..personDocId = json['person_doc_id'] as String?
       ..name = json['name'] as String?
       ..recurNumber = (json['recur_number'] as num?)?.toInt()
       ..recurUnit = json['recur_unit'] as String?
@@ -23,7 +23,7 @@ TaskRecurrenceBlueprint _$TaskRecurrenceBlueprintFromJson(
 Map<String, dynamic> _$TaskRecurrenceBlueprintToJson(
         TaskRecurrenceBlueprint instance) =>
     <String, dynamic>{
-      'person_id': instance.personId,
+      'person_doc_id': instance.personDocId,
       'name': instance.name,
       'recur_number': instance.recurNumber,
       'recur_unit': instance.recurUnit,

@@ -24,9 +24,6 @@ class _$TaskItemRecurPreviewSerializer
       Serializers serializers, TaskItemRecurPreview object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object?>[
-      'personId',
-      serializers.serialize(object.personId,
-          specifiedType: const FullType(int)),
       'name',
       serializers.serialize(object.name, specifiedType: const FullType(String)),
       'offCycle',
@@ -176,10 +173,6 @@ class _$TaskItemRecurPreviewSerializer
           result.docId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String?;
           break;
-        case 'personId':
-          result.personId = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
-          break;
         case 'personDocId':
           result.personDocId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String?;
@@ -288,8 +281,6 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
   @override
   final String? docId;
   @override
-  final int personId;
-  @override
   final String? personDocId;
   @override
   final String name;
@@ -343,7 +334,6 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
   _$TaskItemRecurPreview._(
       {required this.id,
       this.docId,
-      required this.personId,
       this.personDocId,
       required this.name,
       this.description,
@@ -370,8 +360,6 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
       : super._() {
     BuiltValueNullFieldError.checkNotNull(id, r'TaskItemRecurPreview', 'id');
     BuiltValueNullFieldError.checkNotNull(
-        personId, r'TaskItemRecurPreview', 'personId');
-    BuiltValueNullFieldError.checkNotNull(
         name, r'TaskItemRecurPreview', 'name');
     BuiltValueNullFieldError.checkNotNull(
         offCycle, r'TaskItemRecurPreview', 'offCycle');
@@ -394,7 +382,6 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
     return other is TaskItemRecurPreview &&
         id == other.id &&
         docId == other.docId &&
-        personId == other.personId &&
         personDocId == other.personDocId &&
         name == other.name &&
         description == other.description &&
@@ -425,7 +412,6 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
     var _$hash = 0;
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, docId.hashCode);
-    _$hash = $jc(_$hash, personId.hashCode);
     _$hash = $jc(_$hash, personDocId.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
@@ -458,7 +444,6 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
     return (newBuiltValueToStringHelper(r'TaskItemRecurPreview')
           ..add('id', id)
           ..add('docId', docId)
-          ..add('personId', personId)
           ..add('personDocId', personDocId)
           ..add('name', name)
           ..add('description', description)
@@ -497,10 +482,6 @@ class TaskItemRecurPreviewBuilder
   String? _docId;
   String? get docId => _$this._docId;
   set docId(String? docId) => _$this._docId = docId;
-
-  int? _personId;
-  int? get personId => _$this._personId;
-  set personId(int? personId) => _$this._personId = personId;
 
   String? _personDocId;
   String? get personDocId => _$this._personDocId;
@@ -610,7 +591,6 @@ class TaskItemRecurPreviewBuilder
     if ($v != null) {
       _id = $v.id;
       _docId = $v.docId;
-      _personId = $v.personId;
       _personDocId = $v.personDocId;
       _name = $v.name;
       _description = $v.description;
@@ -661,8 +641,6 @@ class TaskItemRecurPreviewBuilder
               id: BuiltValueNullFieldError.checkNotNull(
                   id, r'TaskItemRecurPreview', 'id'),
               docId: docId,
-              personId: BuiltValueNullFieldError.checkNotNull(
-                  personId, r'TaskItemRecurPreview', 'personId'),
               personDocId: personDocId,
               name: BuiltValueNullFieldError.checkNotNull(
                   name, r'TaskItemRecurPreview', 'name'),

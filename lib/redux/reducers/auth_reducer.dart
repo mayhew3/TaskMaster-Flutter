@@ -9,7 +9,6 @@ final authReducers = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, OnAuthenticatedAction>(_onAuthenticated),
   TypedReducer<AppState, OnLogoutSuccessAction>(_onLogout),
   TypedReducer<AppState, OnLogoutFailAction>(_onLogoutFail),
-  TypedReducer<AppState, OnPersonVerifiedAction>(_onPersonVerified),
   TypedReducer<AppState, OnPersonVerifiedFirestoreAction>(_onPersonVerifiedFirestore),
 ];
 
@@ -27,18 +26,12 @@ AppState _onPersonVerifiedFirestore(AppState state, OnPersonVerifiedFirestoreAct
   });
 }
 
-AppState _onPersonVerified(AppState state, OnPersonVerifiedAction action) {
-  return state.rebuild((a) => {
-    a..personId = action.personId
-  });
-}
-
 AppState _onLogout(AppState state, OnLogoutSuccessAction action) {
   return state.rebuild((a) => {
     a..firebaseUser = null
       ..currentUser = null
       ..tokenRetrieved = false
-      ..personId = null
+      ..personDocId = null
       ..googleSignIn?.disconnect()
   });
 }

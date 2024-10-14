@@ -24,8 +24,7 @@ abstract class Sprint implements Built<Sprint, SprintBuilder> {
   int get numUnits;
   String get unitName;
 
-  int get personId;
-  String? get personDocId;
+  String get personDocId;
 
   int? get sprintNumber;
 

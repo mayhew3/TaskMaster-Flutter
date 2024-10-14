@@ -97,9 +97,7 @@ bool taskItemIsInSprint(SprintDisplayTask taskItem, Sprint? sprint) {
   return sprint != null && taskItem.sprintAssignments.where((sa) => sa.sprintId == sprint.id).isNotEmpty;
 }
 
-Future<({int? personId, String idToken, String? personDocId})> getRequiredInputs(Store<AppState> store, String actionDesc) async {
-
-  var personId = store.state.personId;
+Future<({String idToken, String personDocId})> getRequiredInputs(Store<AppState> store, String actionDesc) async {
 
   var idToken = await store.state.getIdToken();
   if (idToken == null) {
@@ -107,12 +105,11 @@ Future<({int? personId, String idToken, String? personDocId})> getRequiredInputs
   }
 
   var personDocId = store.state.personDocId;
-  /*
   if (personDocId == null) {
     throw new Exception("Cannot $actionDesc without person id.");
   }
-*/
-  return (personId: personId, idToken: idToken, personDocId: personDocId);
+
+  return (idToken: idToken, personDocId: personDocId);
 }
 
 TaskRecurrence? recurrenceForTaskItem(BuiltList<TaskRecurrence> recurrences, TaskItem taskItem) {

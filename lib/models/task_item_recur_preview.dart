@@ -22,7 +22,6 @@ abstract class TaskItemRecurPreview with DateHolder, SprintDisplayTask implement
   int get id;
   String? get docId;
 
-  int get personId;
   String? get personDocId;
 
   String get name;

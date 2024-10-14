@@ -295,7 +295,7 @@ class PlanTaskListState extends State<PlanTaskList> {
           endDate: endDate,
           numUnits: widget.numUnits!,
           unitName: widget.unitName!,
-          personId: viewModel.personId
+          personDocId: viewModel.personDocId
       );
       print("Submitting");
       store.dispatch(CreateSprintWithTaskItems(sprintBlueprint: sprint,

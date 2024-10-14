@@ -8,7 +8,7 @@ part 'task_recurrence_blueprint.g.dart';
 @JsonSerializable(fieldRename: FieldRename.snake)
 class TaskRecurrenceBlueprint {
 
-  int? personId;
+  String? personDocId;
 
   String? name;
 

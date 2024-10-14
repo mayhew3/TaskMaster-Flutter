@@ -12,7 +12,7 @@ SprintBlueprint _$SprintBlueprintFromJson(Map<String, dynamic> json) =>
       endDate: DateTime.parse(json['end_date'] as String),
       numUnits: (json['num_units'] as num).toInt(),
       unitName: json['unit_name'] as String,
-      personId: (json['person_id'] as num).toInt(),
+      personDocId: json['person_doc_id'] as String,
     );
 
 Map<String, dynamic> _$SprintBlueprintToJson(SprintBlueprint instance) =>
@@ -21,5 +21,5 @@ Map<String, dynamic> _$SprintBlueprintToJson(SprintBlueprint instance) =>
       'end_date': instance.endDate.toIso8601String(),
       'num_units': instance.numUnits,
       'unit_name': instance.unitName,
-      'person_id': instance.personId,
+      'person_doc_id': instance.personDocId,
     };

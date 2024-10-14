@@ -35,9 +35,9 @@ class _$SprintSerializer implements StructuredSerializer<Sprint> {
       'unitName',
       serializers.serialize(object.unitName,
           specifiedType: const FullType(String)),
-      'personId',
-      serializers.serialize(object.personId,
-          specifiedType: const FullType(int)),
+      'personDocId',
+      serializers.serialize(object.personDocId,
+          specifiedType: const FullType(String)),
     ];
     Object? value;
     value = object.docId;
@@ -52,12 +52,6 @@ class _$SprintSerializer implements StructuredSerializer<Sprint> {
       ..add('closeDate')
       ..add(serializers.serialize(value,
           specifiedType: const FullType(DateTime)));
-    value = object.personDocId;
-
-    result
-      ..add('personDocId')
-      ..add(
-          serializers.serialize(value, specifiedType: const FullType(String)));
     value = object.sprintNumber;
 
     result
@@ -110,13 +104,9 @@ class _$SprintSerializer implements StructuredSerializer<Sprint> {
           result.unitName = serializers.deserialize(value,
               specifiedType: const FullType(String))! as String;
           break;
-        case 'personId':
-          result.personId = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
-          break;
         case 'personDocId':
           result.personDocId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+              specifiedType: const FullType(String))! as String;
           break;
         case 'sprintNumber':
           result.sprintNumber = serializers.deserialize(value,
@@ -147,9 +137,7 @@ class _$Sprint extends Sprint {
   @override
   final String unitName;
   @override
-  final int personId;
-  @override
-  final String? personDocId;
+  final String personDocId;
   @override
   final int? sprintNumber;
 
@@ -165,8 +153,7 @@ class _$Sprint extends Sprint {
       this.closeDate,
       required this.numUnits,
       required this.unitName,
-      required this.personId,
-      this.personDocId,
+      required this.personDocId,
       this.sprintNumber})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(id, r'Sprint', 'id');
@@ -175,7 +162,8 @@ class _$Sprint extends Sprint {
     BuiltValueNullFieldError.checkNotNull(endDate, r'Sprint', 'endDate');
     BuiltValueNullFieldError.checkNotNull(numUnits, r'Sprint', 'numUnits');
     BuiltValueNullFieldError.checkNotNull(unitName, r'Sprint', 'unitName');
-    BuiltValueNullFieldError.checkNotNull(personId, r'Sprint', 'personId');
+    BuiltValueNullFieldError.checkNotNull(
+        personDocId, r'Sprint', 'personDocId');
   }
 
   @override
@@ -197,7 +185,6 @@ class _$Sprint extends Sprint {
         closeDate == other.closeDate &&
         numUnits == other.numUnits &&
         unitName == other.unitName &&
-        personId == other.personId &&
         personDocId == other.personDocId &&
         sprintNumber == other.sprintNumber;
   }
@@ -213,7 +200,6 @@ class _$Sprint extends Sprint {
     _$hash = $jc(_$hash, closeDate.hashCode);
     _$hash = $jc(_$hash, numUnits.hashCode);
     _$hash = $jc(_$hash, unitName.hashCode);
-    _$hash = $jc(_$hash, personId.hashCode);
     _$hash = $jc(_$hash, personDocId.hashCode);
     _$hash = $jc(_$hash, sprintNumber.hashCode);
     _$hash = $jf(_$hash);
@@ -231,7 +217,6 @@ class _$Sprint extends Sprint {
           ..add('closeDate', closeDate)
           ..add('numUnits', numUnits)
           ..add('unitName', unitName)
-          ..add('personId', personId)
           ..add('personDocId', personDocId)
           ..add('sprintNumber', sprintNumber))
         .toString();
@@ -273,10 +258,6 @@ class SprintBuilder implements Builder<Sprint, SprintBuilder> {
   String? get unitName => _$this._unitName;
   set unitName(String? unitName) => _$this._unitName = unitName;
 
-  int? _personId;
-  int? get personId => _$this._personId;
-  set personId(int? personId) => _$this._personId = personId;
-
   String? _personDocId;
   String? get personDocId => _$this._personDocId;
   set personDocId(String? personDocId) => _$this._personDocId = personDocId;
@@ -298,7 +279,6 @@ class SprintBuilder implements Builder<Sprint, SprintBuilder> {
       _closeDate = $v.closeDate;
       _numUnits = $v.numUnits;
       _unitName = $v.unitName;
-      _personId = $v.personId;
       _personDocId = $v.personDocId;
       _sprintNumber = $v.sprintNumber;
       _$v = null;
@@ -336,9 +316,8 @@ class SprintBuilder implements Builder<Sprint, SprintBuilder> {
                 numUnits, r'Sprint', 'numUnits'),
             unitName: BuiltValueNullFieldError.checkNotNull(
                 unitName, r'Sprint', 'unitName'),
-            personId: BuiltValueNullFieldError.checkNotNull(
-                personId, r'Sprint', 'personId'),
-            personDocId: personDocId,
+            personDocId: BuiltValueNullFieldError.checkNotNull(
+                personDocId, r'Sprint', 'personDocId'),
             sprintNumber: sprintNumber);
     replace(_$result);
     return _$result;

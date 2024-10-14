@@ -20,9 +20,6 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
     final result = <Object?>[
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(int)),
-      'personId',
-      serializers.serialize(object.personId,
-          specifiedType: const FullType(int)),
       'name',
       serializers.serialize(object.name, specifiedType: const FullType(String)),
       'offCycle',
@@ -175,10 +172,6 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
           result.docId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String?;
           break;
-        case 'personId':
-          result.personId = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
-          break;
         case 'personDocId':
           result.personDocId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String?;
@@ -287,8 +280,6 @@ class _$TaskItem extends TaskItem {
   @override
   final String? docId;
   @override
-  final int personId;
-  @override
   final String? personDocId;
   @override
   final String name;
@@ -343,7 +334,6 @@ class _$TaskItem extends TaskItem {
   _$TaskItem._(
       {required this.id,
       this.docId,
-      required this.personId,
       this.personDocId,
       required this.name,
       this.description,
@@ -370,7 +360,6 @@ class _$TaskItem extends TaskItem {
       required this.pendingCompletion})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(id, r'TaskItem', 'id');
-    BuiltValueNullFieldError.checkNotNull(personId, r'TaskItem', 'personId');
     BuiltValueNullFieldError.checkNotNull(name, r'TaskItem', 'name');
     BuiltValueNullFieldError.checkNotNull(offCycle, r'TaskItem', 'offCycle');
     BuiltValueNullFieldError.checkNotNull(
@@ -392,7 +381,6 @@ class _$TaskItem extends TaskItem {
     return other is TaskItem &&
         id == other.id &&
         docId == other.docId &&
-        personId == other.personId &&
         personDocId == other.personDocId &&
         name == other.name &&
         description == other.description &&
@@ -424,7 +412,6 @@ class _$TaskItem extends TaskItem {
     var _$hash = 0;
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, docId.hashCode);
-    _$hash = $jc(_$hash, personId.hashCode);
     _$hash = $jc(_$hash, personDocId.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
@@ -458,7 +445,6 @@ class _$TaskItem extends TaskItem {
     return (newBuiltValueToStringHelper(r'TaskItem')
           ..add('id', id)
           ..add('docId', docId)
-          ..add('personId', personId)
           ..add('personDocId', personDocId)
           ..add('name', name)
           ..add('description', description)
@@ -497,10 +483,6 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   String? _docId;
   String? get docId => _$this._docId;
   set docId(String? docId) => _$this._docId = docId;
-
-  int? _personId;
-  int? get personId => _$this._personId;
-  set personId(int? personId) => _$this._personId = personId;
 
   String? _personDocId;
   String? get personDocId => _$this._personDocId;
@@ -615,7 +597,6 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
     if ($v != null) {
       _id = $v.id;
       _docId = $v.docId;
-      _personId = $v.personId;
       _personDocId = $v.personDocId;
       _name = $v.name;
       _description = $v.description;
@@ -666,8 +647,6 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
           new _$TaskItem._(
               id: BuiltValueNullFieldError.checkNotNull(id, r'TaskItem', 'id'),
               docId: docId,
-              personId: BuiltValueNullFieldError.checkNotNull(
-                  personId, r'TaskItem', 'personId'),
               personDocId: personDocId,
               name: BuiltValueNullFieldError.checkNotNull(
                   name, r'TaskItem', 'name'),

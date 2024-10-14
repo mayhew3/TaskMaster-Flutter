@@ -40,18 +40,13 @@ Future<void> Function(
 
     var email = store.state.currentUser!.email;
     print("Verify person account for " + email + "...");
-    /*
-    var idToken = await store.state.getIdToken();
-    if (idToken == null) {
-      throw new Exception("Cannot load tasks without id token.");
-    }
-*/
+
     try {
-      var personId = await repository.getPersonIdFromFirestore(email);
-      if (personId == null) {
+      var personDocId = await repository.getPersonIdFromFirestore(email);
+      if (personDocId == null) {
         store.dispatch(OnPersonRejectedAction());
       } else {
-        store.dispatch(OnPersonVerifiedFirestoreAction(personId));
+        store.dispatch(OnPersonVerifiedFirestoreAction(personDocId));
       }
     } catch (e, stack) {
       print("Error fetching person for email: $e");
@@ -115,8 +110,8 @@ Future<void> Function(
 
     var inputs = await getRequiredInputs(store, "create task");
 
-    action.blueprint.personId = inputs.personId;
-    action.blueprint.recurrenceBlueprint?.personId = inputs.personId;
+    action.blueprint.personDocId = inputs.personDocId;
+    action.blueprint.recurrenceBlueprint?.personDocId = inputs.personDocId;
 
     // var recurrence = await maybeAddRecurrence(action.recurrenceBlueprint, inputs, repository);
 
@@ -148,7 +143,7 @@ Future<void> Function(
   return (Store<AppState> store, UpdateTaskItemAction action, NextDispatcher next) async {
     next(action);
     var inputs = await getRequiredInputs(store, "update task");
-    action.blueprint.recurrenceBlueprint?.personId = inputs.personId;
+    action.blueprint.recurrenceBlueprint?.personDocId = inputs.personDocId;
     var updated = await repository.updateTask(action.taskItem.id, action.blueprint, inputs.idToken);
 
     updateNotificationForItem(store, updated.taskItem);

@@ -59,12 +59,6 @@ class VerifyPersonAction {
   VerifyPersonAction(this.email);
 }
 
-class OnPersonVerifiedAction {
-  final int personId;
-
-  OnPersonVerifiedAction(this.personId);
-}
-
 class OnPersonVerifiedFirestoreAction {
   final String personDocId;
 

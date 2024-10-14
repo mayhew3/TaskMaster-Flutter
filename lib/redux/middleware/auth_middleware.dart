@@ -18,7 +18,7 @@ List<Middleware<AppState>> createAuthenticationMiddleware(
     TypedMiddleware<AppState, LogInAction>(_manualLogin(navigatorKey)),
     TypedMiddleware<AppState, LogOutAction>(_manualLogout(navigatorKey)),
     TypedMiddleware<AppState, InitTimezoneHelperAction>(_initTimezoneHelper(navigatorKey)),
-    TypedMiddleware<AppState, OnPersonVerifiedAction>(_onPersonVerified(navigatorKey)),
+    // TypedMiddleware<AppState, OnPersonVerifiedAction>(_onPersonVerified(navigatorKey)),
     TypedMiddleware<AppState, OnPersonVerifiedFirestoreAction>(_onPersonVerifiedFirestore(navigatorKey)),
     TypedMiddleware<AppState, OnPersonRejectedAction>(_onPersonRejected(navigatorKey)),
   ];
@@ -137,6 +137,8 @@ void Function(
   };
 }
 
+/*
+
 void Function(
     Store<AppState> store,
     OnPersonVerifiedAction action,
@@ -152,6 +154,7 @@ void Function(
     }
   };
 }
+*/
 
 void Function(
     Store<AppState> store,

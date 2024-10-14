@@ -11,14 +11,14 @@ class SprintBlueprint {
   int numUnits;
   String unitName;
 
-  int personId;
+  String personDocId;
 
   SprintBlueprint({
     required this.startDate,
     required this.endDate,
     required this.numUnits,
     required this.unitName,
-    required this.personId
+    required this.personDocId
   });
 
   /// `toJson` is the convention for a class to declare support for serialization
