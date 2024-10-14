@@ -37,7 +37,9 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   @override
   void initState() {
     super.initState();
-    var taskRepository = TaskRepository(client: http.Client(), firestore: FirebaseFirestore.instance);
+    var firestore = FirebaseFirestore.instance;
+    firestore.settings = const Settings(cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED);
+    var taskRepository = TaskRepository(client: http.Client(), firestore: firestore);
     store = Store<AppState>(
         appReducer,
         initialState: AppState.init(loading: true),

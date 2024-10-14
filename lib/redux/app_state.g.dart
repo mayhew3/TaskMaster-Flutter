@@ -38,6 +38,8 @@ class _$AppState extends AppState {
   @override
   final bool tokenRetrieved;
   @override
+  final bool offlineMode;
+  @override
   final TimezoneHelper timezoneHelper;
   @override
   final int nextId;
@@ -63,6 +65,7 @@ class _$AppState extends AppState {
       this.firebaseUser,
       this.currentUser,
       required this.tokenRetrieved,
+      required this.offlineMode,
       required this.timezoneHelper,
       required this.nextId,
       required this.notificationHelper})
@@ -87,6 +90,8 @@ class _$AppState extends AppState {
         googleSignIn, r'AppState', 'googleSignIn');
     BuiltValueNullFieldError.checkNotNull(
         tokenRetrieved, r'AppState', 'tokenRetrieved');
+    BuiltValueNullFieldError.checkNotNull(
+        offlineMode, r'AppState', 'offlineMode');
     BuiltValueNullFieldError.checkNotNull(
         timezoneHelper, r'AppState', 'timezoneHelper');
     BuiltValueNullFieldError.checkNotNull(nextId, r'AppState', 'nextId');
@@ -120,6 +125,7 @@ class _$AppState extends AppState {
         firebaseUser == other.firebaseUser &&
         currentUser == other.currentUser &&
         tokenRetrieved == other.tokenRetrieved &&
+        offlineMode == other.offlineMode &&
         timezoneHelper == other.timezoneHelper &&
         nextId == other.nextId &&
         notificationHelper == other.notificationHelper;
@@ -143,6 +149,7 @@ class _$AppState extends AppState {
     _$hash = $jc(_$hash, firebaseUser.hashCode);
     _$hash = $jc(_$hash, currentUser.hashCode);
     _$hash = $jc(_$hash, tokenRetrieved.hashCode);
+    _$hash = $jc(_$hash, offlineMode.hashCode);
     _$hash = $jc(_$hash, timezoneHelper.hashCode);
     _$hash = $jc(_$hash, nextId.hashCode);
     _$hash = $jc(_$hash, notificationHelper.hashCode);
@@ -168,6 +175,7 @@ class _$AppState extends AppState {
           ..add('firebaseUser', firebaseUser)
           ..add('currentUser', currentUser)
           ..add('tokenRetrieved', tokenRetrieved)
+          ..add('offlineMode', offlineMode)
           ..add('timezoneHelper', timezoneHelper)
           ..add('nextId', nextId)
           ..add('notificationHelper', notificationHelper))
@@ -256,6 +264,10 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   set tokenRetrieved(bool? tokenRetrieved) =>
       _$this._tokenRetrieved = tokenRetrieved;
 
+  bool? _offlineMode;
+  bool? get offlineMode => _$this._offlineMode;
+  set offlineMode(bool? offlineMode) => _$this._offlineMode = offlineMode;
+
   TimezoneHelper? _timezoneHelper;
   TimezoneHelper? get timezoneHelper => _$this._timezoneHelper;
   set timezoneHelper(TimezoneHelper? timezoneHelper) =>
@@ -290,6 +302,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _firebaseUser = $v.firebaseUser;
       _currentUser = $v.currentUser;
       _tokenRetrieved = $v.tokenRetrieved;
+      _offlineMode = $v.offlineMode;
       _timezoneHelper = $v.timezoneHelper;
       _nextId = $v.nextId;
       _notificationHelper = $v.notificationHelper;
@@ -336,6 +349,8 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               currentUser: currentUser,
               tokenRetrieved: BuiltValueNullFieldError.checkNotNull(
                   tokenRetrieved, r'AppState', 'tokenRetrieved'),
+              offlineMode: BuiltValueNullFieldError.checkNotNull(
+                  offlineMode, r'AppState', 'offlineMode'),
               timezoneHelper: BuiltValueNullFieldError.checkNotNull(
                   timezoneHelper, r'AppState', 'timezoneHelper'),
               nextId: BuiltValueNullFieldError.checkNotNull(

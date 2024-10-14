@@ -17,6 +17,8 @@ final taskItemsReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, LogOutAction>(_onDataNotLoaded),
   TypedReducer<AppState, ClearRecentlyCompletedAction>(_clearRecentlyCompleted),
   TypedReducer<AppState, SnoozeExecuted>(_onSnoozeExecuted),
+  TypedReducer<AppState, GoOffline>(goOffline),
+  TypedReducer<AppState, GoOnline>(goOnline),
 ];
 
 AppState _taskItemAdded(AppState state, TaskItemAddedAction action) {
@@ -136,4 +138,12 @@ AppState _onSnoozeExecuted(AppState state, SnoozeExecuted action) {
   return state.rebuild((s) => s
     ..taskItems = listBuilder
   );
+}
+
+AppState goOffline(AppState state, GoOffline action) {
+  return state.rebuild((s) => s..offlineMode = true);
+}
+
+AppState goOnline(AppState state, GoOnline action) {
+  return state.rebuild((s) => s..offlineMode = false);
 }

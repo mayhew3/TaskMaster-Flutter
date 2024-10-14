@@ -16,6 +16,8 @@ class _$FilteredTaskItemsViewModel extends FilteredTaskItemsViewModel {
   @override
   final bool showScheduled;
   @override
+  final bool offlineMode;
+  @override
   final TimezoneHelper timezoneHelper;
 
   factory _$FilteredTaskItemsViewModel(
@@ -27,6 +29,7 @@ class _$FilteredTaskItemsViewModel extends FilteredTaskItemsViewModel {
       required this.loading,
       required this.showCompleted,
       required this.showScheduled,
+      required this.offlineMode,
       required this.timezoneHelper})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(
@@ -37,6 +40,8 @@ class _$FilteredTaskItemsViewModel extends FilteredTaskItemsViewModel {
         showCompleted, r'FilteredTaskItemsViewModel', 'showCompleted');
     BuiltValueNullFieldError.checkNotNull(
         showScheduled, r'FilteredTaskItemsViewModel', 'showScheduled');
+    BuiltValueNullFieldError.checkNotNull(
+        offlineMode, r'FilteredTaskItemsViewModel', 'offlineMode');
     BuiltValueNullFieldError.checkNotNull(
         timezoneHelper, r'FilteredTaskItemsViewModel', 'timezoneHelper');
   }
@@ -58,6 +63,7 @@ class _$FilteredTaskItemsViewModel extends FilteredTaskItemsViewModel {
         loading == other.loading &&
         showCompleted == other.showCompleted &&
         showScheduled == other.showScheduled &&
+        offlineMode == other.offlineMode &&
         timezoneHelper == other.timezoneHelper;
   }
 
@@ -68,6 +74,7 @@ class _$FilteredTaskItemsViewModel extends FilteredTaskItemsViewModel {
     _$hash = $jc(_$hash, loading.hashCode);
     _$hash = $jc(_$hash, showCompleted.hashCode);
     _$hash = $jc(_$hash, showScheduled.hashCode);
+    _$hash = $jc(_$hash, offlineMode.hashCode);
     _$hash = $jc(_$hash, timezoneHelper.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -80,6 +87,7 @@ class _$FilteredTaskItemsViewModel extends FilteredTaskItemsViewModel {
           ..add('loading', loading)
           ..add('showCompleted', showCompleted)
           ..add('showScheduled', showScheduled)
+          ..add('offlineMode', offlineMode)
           ..add('timezoneHelper', timezoneHelper))
         .toString();
   }
@@ -110,6 +118,10 @@ class FilteredTaskItemsViewModelBuilder
   set showScheduled(bool? showScheduled) =>
       _$this._showScheduled = showScheduled;
 
+  bool? _offlineMode;
+  bool? get offlineMode => _$this._offlineMode;
+  set offlineMode(bool? offlineMode) => _$this._offlineMode = offlineMode;
+
   TimezoneHelper? _timezoneHelper;
   TimezoneHelper? get timezoneHelper => _$this._timezoneHelper;
   set timezoneHelper(TimezoneHelper? timezoneHelper) =>
@@ -124,6 +136,7 @@ class FilteredTaskItemsViewModelBuilder
       _loading = $v.loading;
       _showCompleted = $v.showCompleted;
       _showScheduled = $v.showScheduled;
+      _offlineMode = $v.offlineMode;
       _timezoneHelper = $v.timezoneHelper;
       _$v = null;
     }
@@ -160,6 +173,8 @@ class FilteredTaskItemsViewModelBuilder
                   showScheduled,
                   r'FilteredTaskItemsViewModel',
                   'showScheduled'),
+              offlineMode: BuiltValueNullFieldError.checkNotNull(
+                  offlineMode, r'FilteredTaskItemsViewModel', 'offlineMode'),
               timezoneHelper: BuiltValueNullFieldError.checkNotNull(
                   timezoneHelper,
                   r'FilteredTaskItemsViewModel',

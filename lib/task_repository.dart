@@ -38,6 +38,14 @@ class TaskRepository {
     return withEmail.docs.firstOrNull?.id;
   }
 
+  void goOffline() {
+    firestore.disableNetwork().then((_) => print('Offline mode.'));
+  }
+
+  void goOnline() {
+    firestore.enableNetwork().then((_) => print('Online mode.'));
+  }
+
   Future<DataPayload> loadTasksFromFirestore(String personDocId) async {
     var taskCollection = firestore.collection("tasks");
     var taskSnapshot = await taskCollection.where("personDocId", isEqualTo: personDocId).get();
@@ -89,22 +97,23 @@ class TaskRepository {
     var recurrenceBlueprint = blueprint.recurrenceBlueprint;
     TaskRecurrence? addedRecurrence;
     if (recurrenceBlueprint != null) {
-      var recurrenceDoc = await firestore.collection("taskRecurrences").add(recurrenceBlueprint.toJson());
+      var recurrenceDoc = firestore.collection("taskRecurrences").doc();
+      var recurrenceId = recurrenceDoc.id;
+      var recurrenceJson = recurrenceBlueprint.toJson();
+      recurrenceDoc.set(recurrenceJson);
       blueprintJson['recurrenceId'] = recurrenceDoc.id;
       blueprintJson.remove('recurrenceBlueprint');
-      var addedRecurrenceSnapshot = await recurrenceDoc.get();
-      var addedRecurrenceJson = addedRecurrenceSnapshot.data()!;
-      addedRecurrenceJson['docId'] = recurrenceDoc.id;
-      addedRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, addedRecurrenceJson);
+      recurrenceJson['docId'] = recurrenceId;
+      addedRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson);
     }
 
-    var addedTaskDoc = await firestore.collection("tasks").add(blueprintJson);
-    var addedTaskSnapshot = await addedTaskDoc.get();
-    var data = addedTaskSnapshot.data()!;
-    data['docId'] = addedTaskDoc.id;
-    var addedTask = serializers.deserializeWith(TaskItem.serializer, data)!;
+    var addedTaskDoc = firestore.collection("tasks").doc();
+    var taskId = addedTaskDoc.id;
+    addedTaskDoc.set(blueprintJson);
+    blueprintJson['docId'] = taskId;
+    var addedTask = serializers.deserializeWith(TaskItem.serializer, blueprintJson)!;
 
-    return (taskItem: addedTask, recurrence: addedRecurrence);
+    return Future.value((taskItem: addedTask, recurrence: addedRecurrence));
   }
 
   Future<({TaskItem taskItem, TaskRecurrence? recurrence})> addRecurTask(TaskItemRecurPreview blueprint, String idToken) async {

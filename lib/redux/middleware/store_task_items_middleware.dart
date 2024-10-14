@@ -27,6 +27,8 @@ List<Middleware<AppState>> createStoreTaskItemsMiddleware(
     TypedMiddleware<AppState, DeleteTaskItemAction>(_deleteTaskItem(repository)),
     TypedMiddleware<AppState, CompleteTaskItemAction>(completeTaskItem(repository)),
     TypedMiddleware<AppState, ExecuteSnooze>(_executeSnooze(repository)),
+    TypedMiddleware<AppState, GoOffline>(goOffline(repository)),
+    TypedMiddleware<AppState, GoOnline>(goOnline(repository)),
   ];
 }
 
@@ -236,6 +238,31 @@ Future<void> Function(
     store.dispatch(SnoozeExecuted(updatedTask.taskItem));
   };
 }
+
+@visibleForTesting
+Future<void> Function(
+    Store<AppState>,
+    GoOffline action,
+    NextDispatcher next,
+    ) goOffline(TaskRepository repository) {
+  return (Store<AppState> store, GoOffline action, NextDispatcher next) async {
+    next(action);
+    repository.goOffline();
+  };
+}
+
+@visibleForTesting
+Future<void> Function(
+    Store<AppState>,
+    GoOnline action,
+    NextDispatcher next,
+    ) goOnline(TaskRepository repository) {
+  return (Store<AppState> store, GoOnline action, NextDispatcher next) async {
+    next(action);
+    repository.goOnline();
+  };
+}
+
 
 
 // create task iteration

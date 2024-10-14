@@ -37,6 +37,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   UserCredential? get firebaseUser;
   GoogleSignInAccount? get currentUser;
   bool get tokenRetrieved;
+  bool get offlineMode;
 
   Future<String?> getIdToken() async {
     return await firebaseUser?.user?.getIdToken();
@@ -74,6 +75,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
       ..timezoneHelper = timezoneHelper
       ..allNavItems = navItemBuilder
       ..nextId = 0
+      ..offlineMode = false
       ..notificationHelper = new NotificationHelper(plugin: NotificationHelper.initializeNotificationPlugin(), timezoneHelper: timezoneHelper)
     ;
   }

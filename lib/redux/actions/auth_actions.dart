@@ -66,3 +66,7 @@ class OnPersonVerifiedFirestoreAction {
 }
 
 class OnPersonRejectedAction {}
+
+class GoOffline {}
+
+class GoOnline {}

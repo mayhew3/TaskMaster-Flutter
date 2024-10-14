@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:taskmaster/redux/actions/auth_actions.dart';
 import 'package:taskmaster/redux/containers/tab_selector.dart';
 
 import '../actions/task_item_actions.dart';
@@ -27,6 +28,11 @@ class FilteredTaskItems extends StatelessWidget {
           appBar: AppBar(
             title: Text('All Tasks'),
             actions: <Widget>[
+              IconButton(
+                  onPressed: () => viewModel.offlineMode ?
+                    StoreProvider.of<AppState>(context).dispatch(GoOnline()) :
+                    StoreProvider.of<AppState>(context).dispatch(GoOffline()),
+                  icon: Icon(viewModel.offlineMode ? Icons.account_circle_outlined : Icons.account_circle)),
               FilterButton(
                 scheduledGetter: () => viewModel.showScheduled,
                 completedGetter: () => viewModel.showCompleted,

@@ -384,6 +384,24 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
       ) as _i21.Future<String?>);
 
   @override
+  void goOffline() => super.noSuchMethod(
+        Invocation.method(
+          #goOffline,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void goOnline() => super.noSuchMethod(
+        Invocation.method(
+          #goOnline,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
   _i21.Future<_i4.DataPayload> loadTasksFromFirestore(String? personDocId) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -1316,6 +1334,13 @@ class MockAppState extends _i1.Mock implements _i16.AppState {
   @override
   bool get tokenRetrieved => (super.noSuchMethod(
         Invocation.getter(#tokenRetrieved),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  bool get offlineMode => (super.noSuchMethod(
+        Invocation.getter(#offlineMode),
         returnValue: false,
         returnValueForMissingStub: false,
       ) as bool);
