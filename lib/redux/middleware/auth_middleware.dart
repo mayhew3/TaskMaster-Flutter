@@ -19,6 +19,7 @@ List<Middleware<AppState>> createAuthenticationMiddleware(
     TypedMiddleware<AppState, LogOutAction>(_manualLogout(navigatorKey)),
     TypedMiddleware<AppState, InitTimezoneHelperAction>(_initTimezoneHelper(navigatorKey)),
     TypedMiddleware<AppState, OnPersonVerifiedAction>(_onPersonVerified(navigatorKey)),
+    TypedMiddleware<AppState, OnPersonVerifiedFirestoreAction>(_onPersonVerifiedFirestore(navigatorKey)),
     TypedMiddleware<AppState, OnPersonRejectedAction>(_onPersonRejected(navigatorKey)),
   ];
 }
@@ -141,6 +142,22 @@ void Function(
     OnPersonVerifiedAction action,
     NextDispatcher next,
     ) _onPersonVerified(GlobalKey<NavigatorState> navigatorKey,) {
+  return (store, action, next) async {
+    next(action);
+
+    if (store.state.appIsReady()) {
+      store.dispatch(LoadDataAction());
+      await navigatorKey.currentState!.pushReplacementNamed(
+          TaskMasterRoutes.loading);
+    }
+  };
+}
+
+void Function(
+    Store<AppState> store,
+    OnPersonVerifiedFirestoreAction action,
+    NextDispatcher next,
+    ) _onPersonVerifiedFirestore(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {
     next(action);
 

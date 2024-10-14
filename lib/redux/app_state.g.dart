@@ -30,6 +30,8 @@ class _$AppState extends AppState {
   @override
   final int? personId;
   @override
+  final String? personDocId;
+  @override
   final GoogleSignIn googleSignIn;
   @override
   final UserCredential? firebaseUser;
@@ -59,6 +61,7 @@ class _$AppState extends AppState {
       required this.sprintListFilter,
       required this.taskListFilter,
       this.personId,
+      this.personDocId,
       required this.googleSignIn,
       this.firebaseUser,
       this.currentUser,
@@ -116,6 +119,7 @@ class _$AppState extends AppState {
         sprintListFilter == other.sprintListFilter &&
         taskListFilter == other.taskListFilter &&
         personId == other.personId &&
+        personDocId == other.personDocId &&
         googleSignIn == other.googleSignIn &&
         firebaseUser == other.firebaseUser &&
         currentUser == other.currentUser &&
@@ -139,6 +143,7 @@ class _$AppState extends AppState {
     _$hash = $jc(_$hash, sprintListFilter.hashCode);
     _$hash = $jc(_$hash, taskListFilter.hashCode);
     _$hash = $jc(_$hash, personId.hashCode);
+    _$hash = $jc(_$hash, personDocId.hashCode);
     _$hash = $jc(_$hash, googleSignIn.hashCode);
     _$hash = $jc(_$hash, firebaseUser.hashCode);
     _$hash = $jc(_$hash, currentUser.hashCode);
@@ -164,6 +169,7 @@ class _$AppState extends AppState {
           ..add('sprintListFilter', sprintListFilter)
           ..add('taskListFilter', taskListFilter)
           ..add('personId', personId)
+          ..add('personDocId', personDocId)
           ..add('googleSignIn', googleSignIn)
           ..add('firebaseUser', firebaseUser)
           ..add('currentUser', currentUser)
@@ -236,6 +242,10 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   int? get personId => _$this._personId;
   set personId(int? personId) => _$this._personId = personId;
 
+  String? _personDocId;
+  String? get personDocId => _$this._personDocId;
+  set personDocId(String? personDocId) => _$this._personDocId = personDocId;
+
   GoogleSignIn? _googleSignIn;
   GoogleSignIn? get googleSignIn => _$this._googleSignIn;
   set googleSignIn(GoogleSignIn? googleSignIn) =>
@@ -286,6 +296,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _sprintListFilter = $v.sprintListFilter.toBuilder();
       _taskListFilter = $v.taskListFilter.toBuilder();
       _personId = $v.personId;
+      _personDocId = $v.personDocId;
       _googleSignIn = $v.googleSignIn;
       _firebaseUser = $v.firebaseUser;
       _currentUser = $v.currentUser;
@@ -330,6 +341,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               sprintListFilter: sprintListFilter.build(),
               taskListFilter: taskListFilter.build(),
               personId: personId,
+              personDocId: personDocId,
               googleSignIn: BuiltValueNullFieldError.checkNotNull(
                   googleSignIn, r'AppState', 'googleSignIn'),
               firebaseUser: firebaseUser,

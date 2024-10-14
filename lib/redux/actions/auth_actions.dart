@@ -65,4 +65,10 @@ class OnPersonVerifiedAction {
   OnPersonVerifiedAction(this.personId);
 }
 
+class OnPersonVerifiedFirestoreAction {
+  final String personDocId;
+
+  OnPersonVerifiedFirestoreAction(this.personDocId);
+}
+
 class OnPersonRejectedAction {}

@@ -40,20 +40,22 @@ Future<void> Function(
 
     var email = store.state.currentUser!.email;
     print("Verify person account for " + email + "...");
+    /*
     var idToken = await store.state.getIdToken();
     if (idToken == null) {
       throw new Exception("Cannot load tasks without id token.");
     }
-
+*/
     try {
-      var personId = await repository.getPersonId(email, idToken);
+      var personId = await repository.getPersonIdFromFirestore(email);
       if (personId == null) {
         store.dispatch(OnPersonRejectedAction());
       } else {
-        store.dispatch(OnPersonVerifiedAction(personId));
+        store.dispatch(OnPersonVerifiedFirestoreAction(personId));
       }
-    } catch (e) {
+    } catch (e, stack) {
       print("Error fetching person for email: $e");
+      print(stack);
       store.dispatch(OnPersonRejectedAction());
     }
 
@@ -70,11 +72,11 @@ Future<void> Function(
     next(action);
     navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.loading);
     var inputs = await getRequiredInputs(store, "load tasks");
-    print("Fetching tasks for person_id ${inputs.personId}...");
+    print("Fetching tasks for person_id ${inputs.personDocId}...");
     try {
       // await repository.migrateFromApi(inputs.idToken);
 
-      var dataPayload = await repository.loadTasksFromFirestore(inputs.personId);
+      var dataPayload = await repository.loadTasksFromFirestore(inputs.personDocId!);
       store.dispatch(DataLoadedAction(dataPayload: dataPayload));
     } catch (e, stack) {
       print("Error fetching task list: $e");

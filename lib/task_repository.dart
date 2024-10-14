@@ -46,6 +46,11 @@ class TaskRepository {
     return jsonObj['person']?['id'];
   }
 
+  Future<String?> getPersonIdFromFirestore(String email) async {
+    var withEmail = await firestore.collection("persons").where("email", isEqualTo: email).get();
+    return withEmail.docs.firstOrNull?.id;
+  }
+
   Future<DataPayload> loadTasks(int personId, String idToken) async {
     var queryParameters = {
       'person_id': personId.toString()
@@ -69,17 +74,17 @@ class TaskRepository {
     return DataPayload(taskItems: taskItems, sprints: sprints, taskRecurrences: taskRecurrences);
   }
 
-  Future<DataPayload> loadTasksFromFirestore(int personId) async {
+  Future<DataPayload> loadTasksFromFirestore(String personDocId) async {
     var taskCollection = firestore.collection("tasks");
-    var taskSnapshot = await taskCollection.where("personId", isEqualTo: personId).get();
+    var taskSnapshot = await taskCollection.where("personDocId", isEqualTo: personDocId).get();
     var taskItemObjs = taskSnapshot.docs.map((d) => d.data());
 
     var sprintCollection = firestore.collection("sprints");
-    var sprintSnapshot = await sprintCollection.where("personId", isEqualTo: personId).get();
+    var sprintSnapshot = await sprintCollection.where("personDocId", isEqualTo: personDocId).get();
     var sprintObjs = sprintSnapshot.docs.map((d) => d.data());
 
     var recurrenceCollection = firestore.collection("taskRecurrences");
-    var recurrenceSnapshot = await recurrenceCollection.where("personId", isEqualTo: personId).get();
+    var recurrenceSnapshot = await recurrenceCollection.where("personDocId", isEqualTo: personDocId).get();
     var recurrenceObjs = recurrenceSnapshot.docs.map((d) => d.data());
 
     List<Sprint> sprints = sprintObjs.map((sprintJson) =>

@@ -33,6 +33,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
 
   // auth
   int? get personId;
+  String? get personDocId;
   GoogleSignIn get googleSignIn;
   UserCredential? get firebaseUser;
   GoogleSignInAccount? get currentUser;
@@ -97,6 +98,6 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   }
 
   bool appIsReady() {
-    return isAuthenticated() && personId != null && timezoneHelper.timezoneInitialized;
+    return isAuthenticated() && (personId != null || personDocId != null) && timezoneHelper.timezoneInitialized;
   }
 }

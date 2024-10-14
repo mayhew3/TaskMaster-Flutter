@@ -390,6 +390,17 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
       ) as _i21.Future<int?>);
 
   @override
+  _i21.Future<String?> getPersonIdFromFirestore(String? email) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getPersonIdFromFirestore,
+          [email],
+        ),
+        returnValue: _i21.Future<String?>.value(),
+        returnValueForMissingStub: _i21.Future<String?>.value(),
+      ) as _i21.Future<String?>);
+
+  @override
   _i21.Future<_i4.DataPayload> loadTasks(
     int? personId,
     String? idToken,
