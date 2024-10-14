@@ -14,6 +14,8 @@ abstract class Snooze implements Built<Snooze, SnoozeBuilder> {
   DateTime get dateAdded;
 
   int get taskId;
+  String? get taskDocId;
+
   int get snoozeNumber;
   String get snoozeUnits;
   String get snoozeAnchor;

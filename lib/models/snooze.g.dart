@@ -45,6 +45,12 @@ class _$SnoozeSerializer implements StructuredSerializer<Snooze> {
       ..add('docId')
       ..add(
           serializers.serialize(value, specifiedType: const FullType(String)));
+    value = object.taskDocId;
+
+    result
+      ..add('taskDocId')
+      ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)));
     value = object.previousAnchor;
 
     result
@@ -81,6 +87,10 @@ class _$SnoozeSerializer implements StructuredSerializer<Snooze> {
         case 'taskId':
           result.taskId = serializers.deserialize(value,
               specifiedType: const FullType(int))! as int;
+          break;
+        case 'taskDocId':
+          result.taskDocId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String?;
           break;
         case 'snoozeNumber':
           result.snoozeNumber = serializers.deserialize(value,
@@ -119,6 +129,8 @@ class _$Snooze extends Snooze {
   @override
   final int taskId;
   @override
+  final String? taskDocId;
+  @override
   final int snoozeNumber;
   @override
   final String snoozeUnits;
@@ -137,6 +149,7 @@ class _$Snooze extends Snooze {
       this.docId,
       required this.dateAdded,
       required this.taskId,
+      this.taskDocId,
       required this.snoozeNumber,
       required this.snoozeUnits,
       required this.snoozeAnchor,
@@ -170,6 +183,7 @@ class _$Snooze extends Snooze {
         docId == other.docId &&
         dateAdded == other.dateAdded &&
         taskId == other.taskId &&
+        taskDocId == other.taskDocId &&
         snoozeNumber == other.snoozeNumber &&
         snoozeUnits == other.snoozeUnits &&
         snoozeAnchor == other.snoozeAnchor &&
@@ -184,6 +198,7 @@ class _$Snooze extends Snooze {
     _$hash = $jc(_$hash, docId.hashCode);
     _$hash = $jc(_$hash, dateAdded.hashCode);
     _$hash = $jc(_$hash, taskId.hashCode);
+    _$hash = $jc(_$hash, taskDocId.hashCode);
     _$hash = $jc(_$hash, snoozeNumber.hashCode);
     _$hash = $jc(_$hash, snoozeUnits.hashCode);
     _$hash = $jc(_$hash, snoozeAnchor.hashCode);
@@ -200,6 +215,7 @@ class _$Snooze extends Snooze {
           ..add('docId', docId)
           ..add('dateAdded', dateAdded)
           ..add('taskId', taskId)
+          ..add('taskDocId', taskDocId)
           ..add('snoozeNumber', snoozeNumber)
           ..add('snoozeUnits', snoozeUnits)
           ..add('snoozeAnchor', snoozeAnchor)
@@ -227,6 +243,10 @@ class SnoozeBuilder implements Builder<Snooze, SnoozeBuilder> {
   int? _taskId;
   int? get taskId => _$this._taskId;
   set taskId(int? taskId) => _$this._taskId = taskId;
+
+  String? _taskDocId;
+  String? get taskDocId => _$this._taskDocId;
+  set taskDocId(String? taskDocId) => _$this._taskDocId = taskDocId;
 
   int? _snoozeNumber;
   int? get snoozeNumber => _$this._snoozeNumber;
@@ -258,6 +278,7 @@ class SnoozeBuilder implements Builder<Snooze, SnoozeBuilder> {
       _docId = $v.docId;
       _dateAdded = $v.dateAdded;
       _taskId = $v.taskId;
+      _taskDocId = $v.taskDocId;
       _snoozeNumber = $v.snoozeNumber;
       _snoozeUnits = $v.snoozeUnits;
       _snoozeAnchor = $v.snoozeAnchor;
@@ -291,6 +312,7 @@ class SnoozeBuilder implements Builder<Snooze, SnoozeBuilder> {
                 dateAdded, r'Snooze', 'dateAdded'),
             taskId: BuiltValueNullFieldError.checkNotNull(
                 taskId, r'Snooze', 'taskId'),
+            taskDocId: taskDocId,
             snoozeNumber: BuiltValueNullFieldError.checkNotNull(
                 snoozeNumber, r'Snooze', 'snoozeNumber'),
             snoozeUnits: BuiltValueNullFieldError.checkNotNull(

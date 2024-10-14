@@ -72,7 +72,7 @@ Future<void> Function(
     var inputs = await getRequiredInputs(store, "load tasks");
     print("Fetching tasks for person_id ${inputs.personId}...");
     try {
-      // await repository.migrateFromApi(inputs.idToken);
+      await repository.migrateFromApi(inputs.idToken);
 
       var dataPayload = await repository.loadTasksFromFirestore(inputs.personId);
       store.dispatch(DataLoadedAction(dataPayload: dataPayload));
