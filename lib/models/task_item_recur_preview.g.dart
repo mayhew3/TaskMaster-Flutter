@@ -24,6 +24,9 @@ class _$TaskItemRecurPreviewSerializer
       Serializers serializers, TaskItemRecurPreview object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object?>[
+      'docId',
+      serializers.serialize(object.docId,
+          specifiedType: const FullType(String)),
       'name',
       serializers.serialize(object.name, specifiedType: const FullType(String)),
       'offCycle',
@@ -35,12 +38,6 @@ class _$TaskItemRecurPreviewSerializer
               BuiltList, const [const FullType(SprintAssignment)])),
     ];
     Object? value;
-    value = object.docId;
-
-    result
-      ..add('docId')
-      ..add(
-          serializers.serialize(value, specifiedType: const FullType(String)));
     value = object.personDocId;
 
     result
@@ -171,7 +168,7 @@ class _$TaskItemRecurPreviewSerializer
       switch (key) {
         case 'docId':
           result.docId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+              specifiedType: const FullType(String))! as String;
           break;
         case 'personDocId':
           result.personDocId = serializers.deserialize(value,
@@ -279,7 +276,7 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
   @override
   final int id;
   @override
-  final String? docId;
+  final String docId;
   @override
   final String? personDocId;
   @override
@@ -333,7 +330,7 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
 
   _$TaskItemRecurPreview._(
       {required this.id,
-      this.docId,
+      required this.docId,
       this.personDocId,
       required this.name,
       this.description,
@@ -359,6 +356,8 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
       this.recurrence})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(id, r'TaskItemRecurPreview', 'id');
+    BuiltValueNullFieldError.checkNotNull(
+        docId, r'TaskItemRecurPreview', 'docId');
     BuiltValueNullFieldError.checkNotNull(
         name, r'TaskItemRecurPreview', 'name');
     BuiltValueNullFieldError.checkNotNull(
@@ -640,7 +639,8 @@ class TaskItemRecurPreviewBuilder
           new _$TaskItemRecurPreview._(
               id: BuiltValueNullFieldError.checkNotNull(
                   id, r'TaskItemRecurPreview', 'id'),
-              docId: docId,
+              docId: BuiltValueNullFieldError.checkNotNull(
+                  docId, r'TaskItemRecurPreview', 'docId'),
               personDocId: personDocId,
               name: BuiltValueNullFieldError.checkNotNull(
                   name, r'TaskItemRecurPreview', 'name'),

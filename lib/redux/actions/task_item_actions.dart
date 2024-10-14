@@ -73,7 +73,7 @@ class DeleteTaskItemAction {
 }
 
 class TaskItemDeletedAction {
-  final int deletedTaskId;
+  final String deletedTaskId;
 
   TaskItemDeletedAction(this.deletedTaskId);
 }

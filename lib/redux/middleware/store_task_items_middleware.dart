@@ -144,7 +144,7 @@ Future<void> Function(
     next(action);
     var inputs = await getRequiredInputs(store, "update task");
     action.blueprint.recurrenceBlueprint?.personDocId = inputs.personDocId;
-    var updated = await repository.updateTask(action.taskItem.id, action.blueprint, inputs.idToken);
+    var updated = await repository.updateTask(action.taskItem.docId, action.blueprint, inputs.idToken);
 
     updateNotificationForItem(store, updated.taskItem);
 
@@ -174,7 +174,7 @@ Future<void> Function(
       nextScheduledTask = RecurrenceHelper.createNextIteration(taskItem, completionDate);
     }
 
-    var updated = await repository.updateTask(taskItem.id, blueprint, inputs.idToken);
+    var updated = await repository.updateTask(taskItem.docId, blueprint, inputs.idToken);
 
     updateNotificationForItem(store, updated.taskItem);
 
@@ -198,7 +198,7 @@ Future<void> Function(
   return (Store<AppState> store, DeleteTaskItemAction action, NextDispatcher next) async {
     next(action);
     var inputs = await getRequiredInputs(store, "delete task");
-    var taskItemId = action.taskItem.id;
+    var taskItemId = action.taskItem.docId;
 
     await repository.deleteTask(action.taskItem, inputs.idToken);
 
@@ -222,10 +222,10 @@ Future<void> Function(
     DateTime? originalValue = action.dateType.dateFieldGetter(action.taskItem);
     DateTime relevantDateField = action.dateType.dateFieldGetter(action.blueprint)!;
 
-    var updatedTask = await repository.updateTask(action.taskItem.id, action.blueprint, inputs.idToken);
+    var updatedTask = await repository.updateTask(action.taskItem.docId, action.blueprint, inputs.idToken);
 
     SnoozeBlueprint snooze = new SnoozeBlueprint(
-        taskId: updatedTask.taskItem.id,
+        taskId: updatedTask.taskItem.docId,
         snoozeNumber: action.numUnits,
         snoozeUnits: action.unitSize,
         snoozeAnchor: action.dateType.label,
@@ -265,6 +265,6 @@ void updateNotificationForItem(Store<AppState> store, TaskItem taskItem) {
   store.state.notificationHelper.updateNotificationForTask(taskItem);
 }
 
-void deleteNotificationForItem(Store<AppState> store, int taskItemId) {
+void deleteNotificationForItem(Store<AppState> store, String taskItemId) {
   store.state.notificationHelper.cancelNotificationsForTaskId(taskItemId);
 }

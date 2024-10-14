@@ -36,7 +36,7 @@ AppState _clearRecentlyCompleted(AppState state, ClearRecentlyCompletedAction ac
 
 AppState _taskItemUpdated(AppState state, TaskItemUpdatedAction action) {
   var listBuilder = state.taskItems.toBuilder()
-    ..map((taskItem) => taskItem.id == action.updatedTaskItem.id ? action.updatedTaskItem.rebuild((t) {
+    ..map((taskItem) => taskItem.docId == action.updatedTaskItem.docId ? action.updatedTaskItem.rebuild((t) {
       return t
         ..pendingCompletion = false
         ..sprintAssignments = taskItem.sprintAssignments.toBuilder();
@@ -48,7 +48,7 @@ AppState _taskItemUpdated(AppState state, TaskItemUpdatedAction action) {
 
 AppState _completeTaskItem(AppState state, CompleteTaskItemAction action) {
   var listBuilder = state.taskItems.toBuilder()
-    ..map((taskItem) => taskItem.id == action.taskItem.id ? action.taskItem.rebuild((t) => t..pendingCompletion = true) : taskItem);
+    ..map((taskItem) => taskItem.docId == action.taskItem.docId ? action.taskItem.rebuild((t) => t..pendingCompletion = true) : taskItem);
   return state.rebuild((s) => s
     ..taskItems = listBuilder
   );
@@ -56,7 +56,7 @@ AppState _completeTaskItem(AppState state, CompleteTaskItemAction action) {
 
 AppState _onCompleteRecurringTaskItem(AppState state, RecurringTaskItemCompletedAction action) {
   var taskItemListBuilder = state.taskItems.toBuilder()
-    ..map((taskItem) => taskItem.id == action.completedTaskItem.id ?
+    ..map((taskItem) => taskItem.docId == action.completedTaskItem.docId ?
     taskItem.rebuild((t) => t
       ..pendingCompletion = false
       ..completionDate = action.completedTaskItem.completionDate
@@ -64,7 +64,7 @@ AppState _onCompleteRecurringTaskItem(AppState state, RecurringTaskItemCompleted
     taskItem)
     ..add(action.addedTaskItem.rebuild((t) => t.recurrence = action.recurrence.toBuilder()))
   ;
-  var recentListBuilder = state.recentlyCompleted.toBuilder()..add(taskItemListBuilder.build().where((t) => t.id == action.completedTaskItem.id).first);
+  var recentListBuilder = state.recentlyCompleted.toBuilder()..add(taskItemListBuilder.build().where((t) => t.docId == action.completedTaskItem.docId).first);
   var recurrenceBuilder = state.taskRecurrences.toBuilder()
     ..map((recurrence) => recurrence.id == action.recurrence.id ? action.recurrence : recurrence);
   return state.rebuild((s) => s
@@ -77,7 +77,7 @@ AppState _onCompleteRecurringTaskItem(AppState state, RecurringTaskItemCompleted
 AppState _onCompleteTaskItem(AppState state, TaskItemCompletedAction action) {
   var listBuilder = state.taskItems.toBuilder()
     ..map((taskItem) =>
-    taskItem.id == action.taskItem.id ? taskItem.rebuild((t) =>
+    taskItem.docId == action.taskItem.docId ? taskItem.rebuild((t) =>
     t
       ..pendingCompletion = false
       ..completionDate = action.taskItem.completionDate
@@ -87,11 +87,11 @@ AppState _onCompleteTaskItem(AppState state, TaskItemCompletedAction action) {
     recentListBuilder = state.recentlyCompleted.toBuilder()
       ..add(listBuilder
           .build()
-          .where((t) => t.id == action.taskItem.id)
+          .where((t) => t.docId == action.taskItem.docId)
           .first);
   } else {
     recentListBuilder = state.recentlyCompleted.toBuilder()
-        ..removeWhere((t) => t.id == action.taskItem.id);
+        ..removeWhere((t) => t.docId == action.taskItem.docId);
   }
   return state.rebuild((s) =>
   s
@@ -102,9 +102,9 @@ AppState _onCompleteTaskItem(AppState state, TaskItemCompletedAction action) {
 
 AppState _onDeleteTaskItem(AppState state, TaskItemDeletedAction action) {
   var listBuilder = state.taskItems.toBuilder()
-    ..removeWhere((t) => t.id == action.deletedTaskId);
+    ..removeWhere((t) => t.docId == action.deletedTaskId);
   var recentListBuilder = state.recentlyCompleted.toBuilder()
-    ..removeWhere((t) => t.id == action.deletedTaskId);
+    ..removeWhere((t) => t.docId == action.deletedTaskId);
   return state.rebuild((s) => s
     ..taskItems = listBuilder
     ..recentlyCompleted = recentListBuilder
@@ -132,7 +132,7 @@ AppState _onDataNotLoaded(AppState state, dynamic action) {
 
 AppState _onSnoozeExecuted(AppState state, SnoozeExecuted action) {
   var listBuilder = state.taskItems.toBuilder()
-    ..map((taskItem) => taskItem.id == action.taskItem.id ? action.taskItem.rebuild((s) => s..sprintAssignments = taskItem.sprintAssignments.toBuilder()) : taskItem);
+    ..map((taskItem) => taskItem.docId == action.taskItem.docId ? action.taskItem.rebuild((s) => s..sprintAssignments = taskItem.sprintAssignments.toBuilder()) : taskItem);
   return state.rebuild((s) => s
     ..taskItems = listBuilder
   );

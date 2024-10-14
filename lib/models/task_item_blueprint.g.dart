@@ -15,30 +15,30 @@ TaskItemBlueprint _$TaskItemBlueprintFromJson(Map<String, dynamic> json) =>
       ..urgency = (json['urgency'] as num?)?.toInt()
       ..priority = (json['priority'] as num?)?.toInt()
       ..duration = (json['duration'] as num?)?.toInt()
-      ..gamePoints = (json['game_points'] as num?)?.toInt()
-      ..startDate = json['start_date'] == null
+      ..gamePoints = (json['gamePoints'] as num?)?.toInt()
+      ..startDate = json['startDate'] == null
           ? null
-          : DateTime.parse(json['start_date'] as String)
-      ..targetDate = json['target_date'] == null
+          : DateTime.parse(json['startDate'] as String)
+      ..targetDate = json['targetDate'] == null
           ? null
-          : DateTime.parse(json['target_date'] as String)
-      ..dueDate = json['due_date'] == null
+          : DateTime.parse(json['targetDate'] as String)
+      ..dueDate = json['dueDate'] == null
           ? null
-          : DateTime.parse(json['due_date'] as String)
-      ..urgentDate = json['urgent_date'] == null
+          : DateTime.parse(json['dueDate'] as String)
+      ..urgentDate = json['urgentDate'] == null
           ? null
-          : DateTime.parse(json['urgent_date'] as String)
-      ..completionDate = json['completion_date'] == null
+          : DateTime.parse(json['urgentDate'] as String)
+      ..completionDate = json['completionDate'] == null
           ? null
-          : DateTime.parse(json['completion_date'] as String)
-      ..offCycle = json['off_cycle'] as bool?
-      ..recurNumber = (json['recur_number'] as num?)?.toInt()
-      ..recurUnit = json['recur_unit'] as String?
-      ..recurWait = json['recur_wait'] as bool?
-      ..recurrenceId = (json['recurrence_id'] as num?)?.toInt()
-      ..recurIteration = (json['recur_iteration'] as num?)?.toInt()
-      ..personDocId = json['person_doc_id'] as String?
-      ..tmpId = (json['tmp_id'] as num).toInt();
+          : DateTime.parse(json['completionDate'] as String)
+      ..offCycle = json['offCycle'] as bool
+      ..recurNumber = (json['recurNumber'] as num?)?.toInt()
+      ..recurUnit = json['recurUnit'] as String?
+      ..recurWait = json['recurWait'] as bool?
+      ..recurrenceId = (json['recurrenceId'] as num?)?.toInt()
+      ..recurIteration = (json['recurIteration'] as num?)?.toInt()
+      ..personDocId = json['personDocId'] as String?
+      ..tmpId = (json['tmpId'] as num).toInt();
 
 Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) =>
     <String, dynamic>{
@@ -49,18 +49,18 @@ Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) =>
       'urgency': instance.urgency,
       'priority': instance.priority,
       'duration': instance.duration,
-      'game_points': instance.gamePoints,
-      'start_date': instance.startDate?.toIso8601String(),
-      'target_date': instance.targetDate?.toIso8601String(),
-      'due_date': instance.dueDate?.toIso8601String(),
-      'urgent_date': instance.urgentDate?.toIso8601String(),
-      'completion_date': instance.completionDate?.toIso8601String(),
-      'off_cycle': instance.offCycle,
-      'recur_number': instance.recurNumber,
-      'recur_unit': instance.recurUnit,
-      'recur_wait': instance.recurWait,
-      'recurrence_id': instance.recurrenceId,
-      'recur_iteration': instance.recurIteration,
-      'recurrence_blueprint': instance.recurrenceBlueprint,
-      'person_doc_id': instance.personDocId,
+      'gamePoints': instance.gamePoints,
+      'startDate': instance.startDate?.toIso8601String(),
+      'targetDate': instance.targetDate?.toIso8601String(),
+      'dueDate': instance.dueDate?.toIso8601String(),
+      'urgentDate': instance.urgentDate?.toIso8601String(),
+      'completionDate': instance.completionDate?.toIso8601String(),
+      'offCycle': instance.offCycle,
+      'recurNumber': instance.recurNumber,
+      'recurUnit': instance.recurUnit,
+      'recurWait': instance.recurWait,
+      'recurrenceId': instance.recurrenceId,
+      'recurIteration': instance.recurIteration,
+      'recurrenceBlueprint': instance.recurrenceBlueprint,
+      'personDocId': instance.personDocId,
     };

@@ -11,7 +11,7 @@ import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 /// the star denotes the source file name.
 part 'task_item_blueprint.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable()
 class TaskItemBlueprint with DateHolder {
 
   String? name;
@@ -31,7 +31,7 @@ class TaskItemBlueprint with DateHolder {
   DateTime? urgentDate;
   DateTime? completionDate;
 
-  bool? offCycle;
+  bool offCycle = false;
 
   int? recurNumber;
   String? recurUnit;

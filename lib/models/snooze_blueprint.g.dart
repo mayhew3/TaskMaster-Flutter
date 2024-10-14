@@ -8,19 +8,19 @@ part of 'snooze_blueprint.dart';
 
 SnoozeBlueprint _$SnoozeBlueprintFromJson(Map<String, dynamic> json) =>
     SnoozeBlueprint(
-      taskId: (json['task_id'] as num).toInt(),
-      snoozeNumber: (json['snooze_number'] as num).toInt(),
-      snoozeUnits: json['snooze_units'] as String,
-      snoozeAnchor: json['snooze_anchor'] as String,
-      previousAnchor: json['previous_anchor'] == null
+      taskId: json['taskId'] as String,
+      snoozeNumber: (json['snoozeNumber'] as num).toInt(),
+      snoozeUnits: json['snoozeUnits'] as String,
+      snoozeAnchor: json['snoozeAnchor'] as String,
+      previousAnchor: json['previousAnchor'] == null
           ? null
-          : DateTime.parse(json['previous_anchor'] as String),
-      newAnchor: DateTime.parse(json['new_anchor'] as String),
+          : DateTime.parse(json['previousAnchor'] as String),
+      newAnchor: DateTime.parse(json['newAnchor'] as String),
     )
       ..id = (json['id'] as num?)?.toInt()
-      ..dateAdded = json['date_added'] == null
+      ..dateAdded = json['dateAdded'] == null
           ? null
-          : DateTime.parse(json['date_added'] as String);
+          : DateTime.parse(json['dateAdded'] as String);
 
 Map<String, dynamic> _$SnoozeBlueprintToJson(SnoozeBlueprint instance) {
   final val = <String, dynamic>{};
@@ -32,12 +32,12 @@ Map<String, dynamic> _$SnoozeBlueprintToJson(SnoozeBlueprint instance) {
   }
 
   writeNotNull('id', instance.id);
-  writeNotNull('date_added', instance.dateAdded?.toIso8601String());
-  val['task_id'] = instance.taskId;
-  val['snooze_number'] = instance.snoozeNumber;
-  val['snooze_units'] = instance.snoozeUnits;
-  val['snooze_anchor'] = instance.snoozeAnchor;
-  writeNotNull('previous_anchor', instance.previousAnchor?.toIso8601String());
-  val['new_anchor'] = instance.newAnchor.toIso8601String();
+  writeNotNull('dateAdded', instance.dateAdded?.toIso8601String());
+  val['taskId'] = instance.taskId;
+  val['snoozeNumber'] = instance.snoozeNumber;
+  val['snoozeUnits'] = instance.snoozeUnits;
+  val['snoozeAnchor'] = instance.snoozeAnchor;
+  writeNotNull('previousAnchor', instance.previousAnchor?.toIso8601String());
+  val['newAnchor'] = instance.newAnchor.toIso8601String();
   return val;
 }

@@ -373,23 +373,6 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
       );
 
   @override
-  _i21.Future<int?> getPersonId(
-    String? email,
-    String? idToken,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getPersonId,
-          [
-            email,
-            idToken,
-          ],
-        ),
-        returnValue: _i21.Future<int?>.value(),
-        returnValueForMissingStub: _i21.Future<int?>.value(),
-      ) as _i21.Future<int?>);
-
-  @override
   _i21.Future<String?> getPersonIdFromFirestore(String? email) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -517,7 +500,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
   @override
   _i21.Future<
       ({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})> updateTask(
-    int? taskItemId,
+    String? taskItemId,
     _i22.TaskItemBlueprint? taskItemBlueprint,
     String? idToken,
   ) =>
@@ -1156,7 +1139,7 @@ class MockNotificationHelper extends _i1.Mock
       ) as _i21.Future<void>);
 
   @override
-  _i21.Future<void> cancelNotificationsForTaskId(int? taskId) =>
+  _i21.Future<void> cancelNotificationsForTaskId(String? taskId) =>
       (super.noSuchMethod(
         Invocation.method(
           #cancelNotificationsForTaskId,

@@ -5,7 +5,7 @@ import 'package:taskmaster/models/task_recurrence.dart';
 
 part 'task_recurrence_blueprint.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable()
 class TaskRecurrenceBlueprint {
 
   String? personDocId;

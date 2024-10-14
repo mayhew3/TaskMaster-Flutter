@@ -20,7 +20,7 @@ abstract class TaskItemRecurPreview with DateHolder, SprintDisplayTask implement
 
   @BuiltValueField(serialize: false)
   int get id;
-  String? get docId;
+  String get docId;
 
   String? get personDocId;
 

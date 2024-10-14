@@ -31,13 +31,13 @@ ListBuilder<TaskItem> filteredTaskItemsSelector(BuiltList<TaskItem> taskItems, B
 
     var completedPredicate = taskItem.completionDate == null || visibilityFilter.showCompleted;
     var scheduledPredicate = startDate == null || startDate.isBefore(DateTime.now()) || visibilityFilter.showScheduled;
-    var isRecentlyCompleted = recentlyCompleted.map((t) => t.id).contains(taskItem.id);
+    var isRecentlyCompleted = recentlyCompleted.map((t) => t.docId).contains(taskItem.docId);
 
     var withoutSprint = (completedPredicate && scheduledPredicate) || isRecentlyCompleted;
 
     if (sprint != null) {
       var taskItemsForSprint = taskItemsForSprintSelector(taskItems, sprint);
-      var sprintPredicate = taskItemsForSprint.map((t) => t.id).contains(taskItem.id);
+      var sprintPredicate = taskItemsForSprint.map((t) => t.docId).contains(taskItem.docId);
       return withoutSprint && sprintPredicate;
     } else {
       return withoutSprint;
@@ -46,9 +46,9 @@ ListBuilder<TaskItem> filteredTaskItemsSelector(BuiltList<TaskItem> taskItems, B
   return ListBuilder<TaskItem>(filteredTasks);
 }
 
-TaskItem? taskItemSelector(BuiltList<TaskItem> taskItems, int id) {
+TaskItem? taskItemSelector(BuiltList<TaskItem> taskItems, String id) {
   try {
-    return taskItems.firstWhere((taskItem) => taskItem.id == id);
+    return taskItems.firstWhere((taskItem) => taskItem.docId == id);
   } catch (e) {
     return null;
   }

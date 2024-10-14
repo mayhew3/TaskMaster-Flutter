@@ -10,10 +10,10 @@ class TaskMasterKeys {
   static final taskList = const Key('__taskItemList__');
   static final planTaskList = const Key('__planTaskList__');
   static final tasksLoading = const Key('__taskItemsLoading__');
-  static final taskItem = (int id) => Key('TaskItemItem__$id');
-  static final taskItemCheckbox = (int id) => Key('TaskItemItem__${id}__Checkbox');
-  static final taskItemTask = (int id) => Key('TaskItemItem__${id}__Task');
-  static final taskItemNote = (int id) => Key('TaskItemItem__${id}__Note');
+  static final taskItem = (String id) => Key('TaskItemItem__$id');
+  static final taskItemCheckbox = (String id) => Key('TaskItemItem__${id}__Checkbox');
+  static final taskItemTask = (String id) => Key('TaskItemItem__${id}__Task');
+  static final taskItemNote = (String id) => Key('TaskItemItem__${id}__Note');
 
   // Filters
   static const filterButton = Key('__filterButton__');

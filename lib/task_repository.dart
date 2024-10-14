@@ -33,19 +33,6 @@ class TaskRepository {
     required this.firestore,
   });
 
-  Future<int?> getPersonId(String email, String idToken) async {
-    var queryParameters = {
-      'email': email
-    };
-
-    var jsonObj = await this.executeGetApiAction(
-        uriString: '/api/persons',
-        queryParameters: queryParameters,
-        idToken: idToken,
-        operationDescription: "get person id");
-    return jsonObj['person']?['id'];
-  }
-
   Future<String?> getPersonIdFromFirestore(String email) async {
     var withEmail = await firestore.collection("persons").where("email", isEqualTo: email).get();
     return withEmail.docs.firstOrNull?.id;
@@ -54,39 +41,70 @@ class TaskRepository {
   Future<DataPayload> loadTasksFromFirestore(String personDocId) async {
     var taskCollection = firestore.collection("tasks");
     var taskSnapshot = await taskCollection.where("personDocId", isEqualTo: personDocId).get();
-    var taskItemObjs = taskSnapshot.docs.map((d) => d.data());
+    var taskItemDocs = taskSnapshot.docs;
 
     var sprintCollection = firestore.collection("sprints");
     var sprintSnapshot = await sprintCollection.where("personDocId", isEqualTo: personDocId).get();
-    var sprintObjs = sprintSnapshot.docs.map((d) => d.data());
+    var sprintDocs = sprintSnapshot.docs;
 
     var recurrenceCollection = firestore.collection("taskRecurrences");
     var recurrenceSnapshot = await recurrenceCollection.where("personDocId", isEqualTo: personDocId).get();
-    var recurrenceObjs = recurrenceSnapshot.docs.map((d) => d.data());
+    var recurrenceDocs = recurrenceSnapshot.docs;
 
-    List<Sprint> sprints = sprintObjs.map((sprintJson) =>
-      serializers.deserializeWith(Sprint.serializer, sprintJson)!).toList();
+    List<Sprint> sprints = sprintDocs.map((sprintDoc) {
+      var sprintJson = sprintDoc.data();
+      sprintJson['docId'] = sprintDoc.id;
+      return serializers.deserializeWith(Sprint.serializer, sprintJson)!;
+    }).toList();
 
-    List<TaskRecurrence> taskRecurrences = recurrenceObjs.map((recurrenceJson) =>
-      serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson)!).toList();
+    List<TaskRecurrence> taskRecurrences = recurrenceDocs.map((recurrenceDoc) {
+      var recurrenceJson = recurrenceDoc.data();
+      recurrenceJson['docId'] = recurrenceDoc.id;
+      return serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson)!;
+    }).toList();
 
-    List<TaskItem> taskItems = taskItemObjs.map((taskJson) =>
-      serializers.deserializeWith(TaskItem.serializer, taskJson)!).toList();
+    /* TEMP FIX CODE */
+
+    for (var taskDoc in taskItemDocs) {
+      var taskJson = taskDoc.data();
+      if (taskJson['offCycle'] == null) {
+        await taskDoc.reference.delete();
+      }
+    }
+    recurrenceSnapshot = await recurrenceCollection.where("personDocId", isEqualTo: personDocId).get();
+    recurrenceDocs = recurrenceSnapshot.docs;
+
+    List<TaskItem> taskItems = taskItemDocs.map((taskDoc) {
+      var taskJson = taskDoc.data();
+      taskJson['docId'] = taskDoc.id;
+      return serializers.deserializeWith(TaskItem.serializer, taskJson)!;
+    }).toList();
 
     return DataPayload(taskItems: taskItems, sprints: sprints, taskRecurrences: taskRecurrences);
   }
 
   Future<({TaskItem taskItem, TaskRecurrence? recurrence})> addTask(TaskItemBlueprint blueprint, String idToken) async {
     var blueprintJson = blueprint.toJson();
-    var payload = {
-      "task": blueprintJson
-    };
 
-    firestore.collection("tasks").add(blueprintJson).then((DocumentReference doc) {
-      print('DocumentSnapshot added: ${JsonEncoder.withIndent('   ').convert(doc)}');
-    });
+    var recurrenceBlueprint = blueprint.recurrenceBlueprint;
+    TaskRecurrence? addedRecurrence;
+    if (recurrenceBlueprint != null) {
+      var recurrenceDoc = await firestore.collection("taskRecurrences").add(recurrenceBlueprint.toJson());
+      blueprintJson['recurrenceId'] = recurrenceDoc.id;
+      blueprintJson.remove('recurrenceBlueprint');
+      var addedRecurrenceSnapshot = await recurrenceDoc.get();
+      var addedRecurrenceJson = addedRecurrenceSnapshot.data()!;
+      addedRecurrenceJson['docId'] = recurrenceDoc.id;
+      addedRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, addedRecurrenceJson);
+    }
 
-    return _addOrUpdateTaskItemJSON(payload: payload, idToken: idToken, apiOperation: this.client.post, operationDescription: "create task");
+    var addedTaskDoc = await firestore.collection("tasks").add(blueprintJson);
+    var addedTaskSnapshot = await addedTaskDoc.get();
+    var data = addedTaskSnapshot.data()!;
+    data['docId'] = addedTaskDoc.id;
+    var addedTask = serializers.deserializeWith(TaskItem.serializer, data)!;
+
+    return (taskItem: addedTask, recurrence: addedRecurrence);
   }
 
   Future<({TaskItem taskItem, TaskRecurrence? recurrence})> addRecurTask(TaskItemRecurPreview blueprint, String idToken) async {
@@ -97,7 +115,7 @@ class TaskRepository {
     return _addOrUpdateTaskItemJSON(payload: payload, idToken: idToken, apiOperation: this.client.post, operationDescription: "create task (with recur)");
   }
 
-  Future<({TaskItem taskItem, TaskRecurrence? recurrence})> updateTask(int taskItemId, TaskItemBlueprint taskItemBlueprint, String idToken) async {
+  Future<({TaskItem taskItem, TaskRecurrence? recurrence})> updateTask(String taskItemId, TaskItemBlueprint taskItemBlueprint, String idToken) async {
     var taskObj = taskItemBlueprint.toJson();
 
     var payload = {
@@ -111,7 +129,7 @@ class TaskRepository {
     var list = newItems.map((t) => serializers.serializeWith(TaskItemRecurPreview.serializer, t)).toList();
     var payload = {
       "sprint": blueprint.toJson(),
-      "task_ids": existingItems.map((t) => t.id).toList(),
+      "task_ids": existingItems.map((t) => t.docId).toList(),
       "taskItems": list
     };
 
@@ -171,7 +189,7 @@ class TaskRepository {
 
     Map<String, Object> payload = {
       'sprint_id': sprint.id,
-      'task_ids': taskItems.map((t) => t.id).toList(),
+      'task_ids': taskItems.map((t) => t.docId).toList(),
       'taskItems': list
     };
 
@@ -193,7 +211,7 @@ class TaskRepository {
 
   Future<void> deleteTask(TaskItem taskItem, String idToken) async {
     var queryParameters = {
-      'task_id': taskItem.id.toString()
+      'task_id': taskItem.docId.toString()
     };
 
     return await executeDeleteApiAction(

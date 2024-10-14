@@ -9,26 +9,26 @@ part of 'task_recurrence_blueprint.dart';
 TaskRecurrenceBlueprint _$TaskRecurrenceBlueprintFromJson(
         Map<String, dynamic> json) =>
     TaskRecurrenceBlueprint()
-      ..personDocId = json['person_doc_id'] as String?
+      ..personDocId = json['personDocId'] as String?
       ..name = json['name'] as String?
-      ..recurNumber = (json['recur_number'] as num?)?.toInt()
-      ..recurUnit = json['recur_unit'] as String?
-      ..recurWait = json['recur_wait'] as bool?
-      ..recurIteration = (json['recur_iteration'] as num?)?.toInt()
-      ..anchorDate = json['anchor_date'] == null
+      ..recurNumber = (json['recurNumber'] as num?)?.toInt()
+      ..recurUnit = json['recurUnit'] as String?
+      ..recurWait = json['recurWait'] as bool?
+      ..recurIteration = (json['recurIteration'] as num?)?.toInt()
+      ..anchorDate = json['anchorDate'] == null
           ? null
-          : DateTime.parse(json['anchor_date'] as String)
-      ..anchorType = json['anchor_type'] as String?;
+          : DateTime.parse(json['anchorDate'] as String)
+      ..anchorType = json['anchorType'] as String?;
 
 Map<String, dynamic> _$TaskRecurrenceBlueprintToJson(
         TaskRecurrenceBlueprint instance) =>
     <String, dynamic>{
-      'person_doc_id': instance.personDocId,
+      'personDocId': instance.personDocId,
       'name': instance.name,
-      'recur_number': instance.recurNumber,
-      'recur_unit': instance.recurUnit,
-      'recur_wait': instance.recurWait,
-      'recur_iteration': instance.recurIteration,
-      'anchor_date': instance.anchorDate?.toIso8601String(),
-      'anchor_type': instance.anchorType,
+      'recurNumber': instance.recurNumber,
+      'recurUnit': instance.recurUnit,
+      'recurWait': instance.recurWait,
+      'recurIteration': instance.recurIteration,
+      'anchorDate': instance.anchorDate?.toIso8601String(),
+      'anchorType': instance.anchorType,
     };

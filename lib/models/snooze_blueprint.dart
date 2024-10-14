@@ -5,13 +5,13 @@ import 'package:json_annotation/json_annotation.dart';
 /// the star denotes the source file name.
 part 'snooze_blueprint.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
+@JsonSerializable(includeIfNull: false)
 class SnoozeBlueprint {
 
   int? id;
   DateTime? dateAdded;
 
-  int taskId;
+  String taskId;
   int snoozeNumber;
   String snoozeUnits;
   String snoozeAnchor;

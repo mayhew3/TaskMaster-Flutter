@@ -209,7 +209,7 @@ class PlanTaskListState extends State<PlanTaskList> {
       new TaskDisplayGrouping(displayName: "Target Soon", displayOrder: 5, filter: (taskItem) => taskItem.isTargetBefore(endDate)),
       new TaskDisplayGrouping(displayName: "Starting Later", displayOrder: 7, filter: (taskItem) => taskItem.isScheduledAfter(endDate), ordering: startDateSort),
       new TaskDisplayGrouping(displayName: "Completed", displayOrder: 8, filter: (taskItem) => taskItem.isCompleted() &&
-              !viewModel.recentlyCompleted.any((t) => t.id == taskItem.id), ordering: completionDateSort),
+              !viewModel.recentlyCompleted.any((t) => t.docId == taskItem.docId), ordering: completionDateSort),
       // must come last to take all the other tasks
       new TaskDisplayGrouping(displayName: "Tasks", displayOrder: 6, filter: (_) => true),
     ];

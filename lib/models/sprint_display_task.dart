@@ -5,7 +5,7 @@ import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_item_recur_preview.dart';
 
 mixin SprintDisplayTask implements DateHolder {
-  int get id;
+  String get docId;
   String get name;
 
   String? get project;

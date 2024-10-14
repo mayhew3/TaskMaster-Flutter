@@ -16,9 +16,9 @@ abstract class DetailsScreenViewModel implements Built<DetailsScreenViewModel, D
 
   factory DetailsScreenViewModel([void Function(DetailsScreenViewModelBuilder) updates]) = _$DetailsScreenViewModel;
 
-  static DetailsScreenViewModel fromStore(Store<AppState> store, int id) {
+  static DetailsScreenViewModel fromStore(Store<AppState> store, String taskItemId) {
     return DetailsScreenViewModel((c) => c
-      ..taskItem = taskItemSelector(store.state.taskItems, id)!.toBuilder()
+      ..taskItem = taskItemSelector(store.state.taskItems, taskItemId)!.toBuilder()
       ..timezoneHelper = store.state.timezoneHelper
     );
   }

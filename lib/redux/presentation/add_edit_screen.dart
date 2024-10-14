@@ -223,7 +223,7 @@ class AddEditScreenState extends State<AddEditScreen> {
     return StoreConnector<AppState, AddEditScreenViewModel>(
         onWillChange: (prev, current) {
           if (editMode()) {
-            var latest = taskItemSelector(current.allTaskItems, taskItem!.id);
+            var latest = taskItemSelector(current.allTaskItems, taskItem!.docId);
             if (latest != null && latest.hasChanges(taskItem!)) {
               Navigator.pop(context);
             }

@@ -37,7 +37,7 @@ class NotificationHelper {
     return plugin.cancelAll();
   }
 
-  Future<void> cancelNotificationsForTaskId(int taskId) async {
+  Future<void> cancelNotificationsForTaskId(String taskId) async {
     var taskSearch = 'task:$taskId';
     var pendingNotificationRequests = await plugin.pendingNotificationRequests();
     var existing = pendingNotificationRequests.where((notification) => notification.payload != null && notification.payload!.startsWith(taskSearch));
@@ -63,7 +63,7 @@ class NotificationHelper {
     List<PendingNotificationRequest> requests = await plugin.pendingNotificationRequests();
 
     if (taskItem.isCompleted()) {
-      await cancelNotificationsForTaskId(taskItem.id);
+      await cancelNotificationsForTaskId(taskItem.docId);
     } else {
       await _syncNotificationForTask(taskItem, requests);
     }
@@ -125,8 +125,8 @@ class NotificationHelper {
     DateTime? twoHoursBefore = urgentDate?.subtract(Duration(minutes: 120));
 
     if (taskItem.completionDate == null) {
-      await _maybeReplaceNotification('task:${taskItem.id}:urgentTwoHours', requests, twoHoursBefore, '${taskItem.name} (urgent 2 hours)', 'Two hours until urgent!');
-      await _maybeReplaceNotification('task:${taskItem.id}:urgent', requests, urgentDate, '${taskItem.name} (urgent)', 'Task has reached urgent date');
+      await _maybeReplaceNotification('task:${taskItem.docId}:urgentTwoHours', requests, twoHoursBefore, '${taskItem.name} (urgent 2 hours)', 'Two hours until urgent!');
+      await _maybeReplaceNotification('task:${taskItem.docId}:urgent', requests, urgentDate, '${taskItem.name} (urgent)', 'Task has reached urgent date');
     }
   }
 
@@ -136,9 +136,9 @@ class NotificationHelper {
     DateTime? oneDayBefore = dueDate?.subtract(Duration(days: 1));
 
     if (taskItem.completionDate == null) {
-      await _maybeReplaceNotification('task:${taskItem.id}:dueOneDay', requests, oneDayBefore, '${taskItem.name} (due 1 day)', 'One day until due!');
-      await _maybeReplaceNotification('task:${taskItem.id}:dueTwoHours', requests, twoHoursBefore, '${taskItem.name} (due 2 hours)', 'Two hours until due!');
-      await _maybeReplaceNotification('task:${taskItem.id}:due', requests, dueDate, '${taskItem.name} (due)', 'Task has reached due date!');
+      await _maybeReplaceNotification('task:${taskItem.docId}:dueOneDay', requests, oneDayBefore, '${taskItem.name} (due 1 day)', 'One day until due!');
+      await _maybeReplaceNotification('task:${taskItem.docId}:dueTwoHours', requests, twoHoursBefore, '${taskItem.name} (due 2 hours)', 'Two hours until due!');
+      await _maybeReplaceNotification('task:${taskItem.docId}:due', requests, dueDate, '${taskItem.name} (due)', 'Task has reached due date!');
     }
   }
 
