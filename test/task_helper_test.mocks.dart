@@ -3,10 +3,11 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i21;
+import 'dart:async' as _i4;
 import 'dart:ui' as _i31;
 
 import 'package:built_collection/built_collection.dart' as _i6;
+import 'package:built_value/serializer.dart' as _i21;
 import 'package:cloud_firestore/cloud_firestore.dart' as _i3;
 import 'package:flutter/foundation.dart' as _i18;
 import 'package:flutter/material.dart' as _i17;
@@ -18,7 +19,6 @@ import 'package:http/http.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i30;
 import 'package:redux/src/store.dart' as _i29;
-import 'package:taskmaster/models/data_payload.dart' as _i4;
 import 'package:taskmaster/models/models.dart' as _i13;
 import 'package:taskmaster/models/snooze.dart' as _i9;
 import 'package:taskmaster/models/snooze_blueprint.dart' as _i27;
@@ -71,8 +71,9 @@ class _FakeFirebaseFirestore_1 extends _i1.SmartFake
         );
 }
 
-class _FakeDataPayload_2 extends _i1.SmartFake implements _i4.DataPayload {
-  _FakeDataPayload_2(
+class _FakeStreamSubscription_2<T1> extends _i1.SmartFake
+    implements _i4.StreamSubscription<T1> {
+  _FakeStreamSubscription_2(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -355,15 +356,15 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
       ) as _i3.FirebaseFirestore);
 
   @override
-  _i21.Future<String?> getPersonIdFromFirestore(String? email) =>
+  _i4.Future<String?> getPersonIdFromFirestore(String? email) =>
       (super.noSuchMethod(
         Invocation.method(
           #getPersonIdFromFirestore,
           [email],
         ),
-        returnValue: _i21.Future<String?>.value(),
-        returnValueForMissingStub: _i21.Future<String?>.value(),
-      ) as _i21.Future<String?>);
+        returnValue: _i4.Future<String?>.value(),
+        returnValueForMissingStub: _i4.Future<String?>.value(),
+      ) as _i4.Future<String?>);
 
   @override
   void goOffline() => super.noSuchMethod(
@@ -384,32 +385,53 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
       );
 
   @override
-  _i21.Future<_i4.DataPayload> loadTasksFromFirestore(String? personDocId) =>
+  _i4.StreamSubscription<
+      _i3.QuerySnapshot<Map<String, dynamic>>> createListener<T>(
+    String? collectionName,
+    String? personDocId,
+    dynamic Function(Iterable<T>)? actionCallback,
+    _i21.Serializer<T>? serializer,
+  ) =>
       (super.noSuchMethod(
         Invocation.method(
-          #loadTasksFromFirestore,
-          [personDocId],
+          #createListener,
+          [
+            collectionName,
+            personDocId,
+            actionCallback,
+            serializer,
+          ],
         ),
-        returnValue: _i21.Future<_i4.DataPayload>.value(_FakeDataPayload_2(
+        returnValue:
+            _FakeStreamSubscription_2<_i3.QuerySnapshot<Map<String, dynamic>>>(
           this,
           Invocation.method(
-            #loadTasksFromFirestore,
-            [personDocId],
+            #createListener,
+            [
+              collectionName,
+              personDocId,
+              actionCallback,
+              serializer,
+            ],
           ),
-        )),
+        ),
         returnValueForMissingStub:
-            _i21.Future<_i4.DataPayload>.value(_FakeDataPayload_2(
+            _FakeStreamSubscription_2<_i3.QuerySnapshot<Map<String, dynamic>>>(
           this,
           Invocation.method(
-            #loadTasksFromFirestore,
-            [personDocId],
+            #createListener,
+            [
+              collectionName,
+              personDocId,
+              actionCallback,
+              serializer,
+            ],
           ),
-        )),
-      ) as _i21.Future<_i4.DataPayload>);
+        ),
+      ) as _i4.StreamSubscription<_i3.QuerySnapshot<Map<String, dynamic>>>);
 
   @override
-  _i21.Future<
-      ({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})> addTask(
+  _i4.Future<({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})> addTask(
     _i22.TaskItemBlueprint? blueprint,
     String? idToken,
   ) =>
@@ -421,7 +443,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i21.Future<
+        returnValue: _i4.Future<
             ({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})>.value((
           recurrence: null,
           taskItem: _FakeTaskItem_3(
@@ -435,7 +457,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             ),
           )
         )),
-        returnValueForMissingStub: _i21.Future<
+        returnValueForMissingStub: _i4.Future<
             ({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})>.value((
           recurrence: null,
           taskItem: _FakeTaskItem_3(
@@ -449,11 +471,11 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             ),
           )
         )),
-      ) as _i21
+      ) as _i4
           .Future<({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})>);
 
   @override
-  _i21.Future<
+  _i4.Future<
       ({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})> addRecurTask(
     _i23.TaskItemRecurPreview? blueprint,
     String? idToken,
@@ -466,7 +488,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i21.Future<
+        returnValue: _i4.Future<
             ({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})>.value((
           recurrence: null,
           taskItem: _FakeTaskItem_3(
@@ -480,7 +502,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             ),
           )
         )),
-        returnValueForMissingStub: _i21.Future<
+        returnValueForMissingStub: _i4.Future<
             ({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})>.value((
           recurrence: null,
           taskItem: _FakeTaskItem_3(
@@ -494,11 +516,11 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             ),
           )
         )),
-      ) as _i21
+      ) as _i4
           .Future<({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})>);
 
   @override
-  _i21.Future<
+  _i4.Future<
       ({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})> updateTask(
     String? taskItemId,
     _i22.TaskItemBlueprint? taskItemBlueprint,
@@ -513,7 +535,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i21.Future<
+        returnValue: _i4.Future<
             ({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})>.value((
           recurrence: null,
           taskItem: _FakeTaskItem_3(
@@ -528,7 +550,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             ),
           )
         )),
-        returnValueForMissingStub: _i21.Future<
+        returnValueForMissingStub: _i4.Future<
             ({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})>.value((
           recurrence: null,
           taskItem: _FakeTaskItem_3(
@@ -543,11 +565,11 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             ),
           )
         )),
-      ) as _i21
+      ) as _i4
           .Future<({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})>);
 
   @override
-  _i21.Future<
+  _i4.Future<
       ({
         _i6.BuiltList<_i5.TaskItem> addedTasks,
         _i7.Sprint sprint,
@@ -568,7 +590,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i21.Future<
+        returnValue: _i4.Future<
             ({
               _i6.BuiltList<_i5.TaskItem> addedTasks,
               _i7.Sprint sprint,
@@ -611,7 +633,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             ),
           )
         )),
-        returnValueForMissingStub: _i21.Future<
+        returnValueForMissingStub: _i4.Future<
             ({
               _i6.BuiltList<_i5.TaskItem> addedTasks,
               _i7.Sprint sprint,
@@ -654,7 +676,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             ),
           )
         )),
-      ) as _i21.Future<
+      ) as _i4.Future<
           ({
             _i6.BuiltList<_i5.TaskItem> addedTasks,
             _i7.Sprint sprint,
@@ -662,7 +684,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
           })>);
 
   @override
-  _i21.Future<_i8.TaskRecurrence> addTaskRecurrence(
+  _i4.Future<_i8.TaskRecurrence> addTaskRecurrence(
     _i26.TaskRecurrenceBlueprint? blueprint,
     String? idToken,
   ) =>
@@ -674,8 +696,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             idToken,
           ],
         ),
-        returnValue:
-            _i21.Future<_i8.TaskRecurrence>.value(_FakeTaskRecurrence_6(
+        returnValue: _i4.Future<_i8.TaskRecurrence>.value(_FakeTaskRecurrence_6(
           this,
           Invocation.method(
             #addTaskRecurrence,
@@ -686,7 +707,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i21.Future<_i8.TaskRecurrence>.value(_FakeTaskRecurrence_6(
+            _i4.Future<_i8.TaskRecurrence>.value(_FakeTaskRecurrence_6(
           this,
           Invocation.method(
             #addTaskRecurrence,
@@ -696,10 +717,10 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             ],
           ),
         )),
-      ) as _i21.Future<_i8.TaskRecurrence>);
+      ) as _i4.Future<_i8.TaskRecurrence>);
 
   @override
-  _i21.Future<_i8.TaskRecurrence> updateTaskRecurrence(
+  _i4.Future<_i8.TaskRecurrence> updateTaskRecurrence(
     int? taskRecurrenceId,
     _i26.TaskRecurrenceBlueprint? blueprint,
     String? idToken,
@@ -713,8 +734,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             idToken,
           ],
         ),
-        returnValue:
-            _i21.Future<_i8.TaskRecurrence>.value(_FakeTaskRecurrence_6(
+        returnValue: _i4.Future<_i8.TaskRecurrence>.value(_FakeTaskRecurrence_6(
           this,
           Invocation.method(
             #updateTaskRecurrence,
@@ -726,7 +746,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
           ),
         )),
         returnValueForMissingStub:
-            _i21.Future<_i8.TaskRecurrence>.value(_FakeTaskRecurrence_6(
+            _i4.Future<_i8.TaskRecurrence>.value(_FakeTaskRecurrence_6(
           this,
           Invocation.method(
             #updateTaskRecurrence,
@@ -737,10 +757,10 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             ],
           ),
         )),
-      ) as _i21.Future<_i8.TaskRecurrence>);
+      ) as _i4.Future<_i8.TaskRecurrence>);
 
   @override
-  _i21.Future<
+  _i4.Future<
       ({
         _i6.BuiltList<_i5.TaskItem> addedTasks,
         _i6.BuiltList<_i24.SprintAssignment> sprintAssignments
@@ -760,7 +780,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i21.Future<
+        returnValue: _i4.Future<
             ({
               _i6.BuiltList<_i5.TaskItem> addedTasks,
               _i6.BuiltList<_i24.SprintAssignment> sprintAssignments
@@ -790,7 +810,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             ),
           )
         )),
-        returnValueForMissingStub: _i21.Future<
+        returnValueForMissingStub: _i4.Future<
             ({
               _i6.BuiltList<_i5.TaskItem> addedTasks,
               _i6.BuiltList<_i24.SprintAssignment> sprintAssignments
@@ -820,14 +840,14 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             ),
           )
         )),
-      ) as _i21.Future<
+      ) as _i4.Future<
           ({
             _i6.BuiltList<_i5.TaskItem> addedTasks,
             _i6.BuiltList<_i24.SprintAssignment> sprintAssignments
           })>);
 
   @override
-  _i21.Future<void> deleteTask(
+  _i4.Future<void> deleteTask(
     _i5.TaskItem? taskItem,
     String? idToken,
   ) =>
@@ -839,12 +859,12 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i21.Future<void>.value(),
-        returnValueForMissingStub: _i21.Future<void>.value(),
-      ) as _i21.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
-  _i21.Future<_i9.Snooze> addSnooze(
+  _i4.Future<_i9.Snooze> addSnooze(
     _i27.SnoozeBlueprint? snooze,
     String? idToken,
   ) =>
@@ -856,7 +876,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i21.Future<_i9.Snooze>.value(_FakeSnooze_7(
+        returnValue: _i4.Future<_i9.Snooze>.value(_FakeSnooze_7(
           this,
           Invocation.method(
             #addSnooze,
@@ -866,7 +886,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             ],
           ),
         )),
-        returnValueForMissingStub: _i21.Future<_i9.Snooze>.value(_FakeSnooze_7(
+        returnValueForMissingStub: _i4.Future<_i9.Snooze>.value(_FakeSnooze_7(
           this,
           Invocation.method(
             #addSnooze,
@@ -876,7 +896,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             ],
           ),
         )),
-      ) as _i21.Future<_i9.Snooze>);
+      ) as _i4.Future<_i9.Snooze>);
 
   @override
   Uri getUriWithParameters(
@@ -936,7 +956,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
       ) as Uri);
 
   @override
-  _i21.Future<dynamic> executeGetApiAction({
+  _i4.Future<dynamic> executeGetApiAction({
     required String? uriString,
     Map<String, Object>? queryParameters,
     required String? idToken,
@@ -953,22 +973,22 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             #operationDescription: operationDescription,
           },
         ),
-        returnValue: _i21.Future<dynamic>.value(),
-        returnValueForMissingStub: _i21.Future<dynamic>.value(),
-      ) as _i21.Future<dynamic>);
+        returnValue: _i4.Future<dynamic>.value(),
+        returnValueForMissingStub: _i4.Future<dynamic>.value(),
+      ) as _i4.Future<dynamic>);
 
   @override
-  _i21.Future<void> migrateFromApi(String? idToken) => (super.noSuchMethod(
+  _i4.Future<void> migrateFromApi(String? idToken) => (super.noSuchMethod(
         Invocation.method(
           #migrateFromApi,
           [idToken],
         ),
-        returnValue: _i21.Future<void>.value(),
-        returnValueForMissingStub: _i21.Future<void>.value(),
-      ) as _i21.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
-  _i21.Future<dynamic> executeBodyApiAction({
+  _i4.Future<dynamic> executeBodyApiAction({
     required _i28.BodyApiOperation? bodyApiOperation,
     required Map<String, Object?>? payload,
     required String? uriString,
@@ -989,12 +1009,12 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             #operationDescription: operationDescription,
           },
         ),
-        returnValue: _i21.Future<dynamic>.value(),
-        returnValueForMissingStub: _i21.Future<dynamic>.value(),
-      ) as _i21.Future<dynamic>);
+        returnValue: _i4.Future<dynamic>.value(),
+        returnValueForMissingStub: _i4.Future<dynamic>.value(),
+      ) as _i4.Future<dynamic>);
 
   @override
-  _i21.Future<void> executeDeleteApiAction({
+  _i4.Future<void> executeDeleteApiAction({
     required String? uriString,
     Map<String, Object>? queryParameters,
     required String? idToken,
@@ -1011,9 +1031,9 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             #operationDescription: operationDescription,
           },
         ),
-        returnValue: _i21.Future<void>.value(),
-        returnValueForMissingStub: _i21.Future<void>.value(),
-      ) as _i21.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 }
 
 /// A class which mocks [Store].
@@ -1064,21 +1084,21 @@ class MockStore<State> extends _i1.Mock implements _i29.Store<State> {
       ) as State);
 
   @override
-  _i21.Stream<State> get onChange => (super.noSuchMethod(
+  _i4.Stream<State> get onChange => (super.noSuchMethod(
         Invocation.getter(#onChange),
-        returnValue: _i21.Stream<State>.empty(),
-        returnValueForMissingStub: _i21.Stream<State>.empty(),
-      ) as _i21.Stream<State>);
+        returnValue: _i4.Stream<State>.empty(),
+        returnValueForMissingStub: _i4.Stream<State>.empty(),
+      ) as _i4.Stream<State>);
 
   @override
-  _i21.Future<dynamic> teardown() => (super.noSuchMethod(
+  _i4.Future<dynamic> teardown() => (super.noSuchMethod(
         Invocation.method(
           #teardown,
           [],
         ),
-        returnValue: _i21.Future<dynamic>.value(),
-        returnValueForMissingStub: _i21.Future<dynamic>.value(),
-      ) as _i21.Future<dynamic>);
+        returnValue: _i4.Future<dynamic>.value(),
+        returnValueForMissingStub: _i4.Future<dynamic>.value(),
+      ) as _i4.Future<dynamic>);
 }
 
 /// A class which mocks [NotificationHelper].
@@ -1129,28 +1149,28 @@ class MockNotificationHelper extends _i1.Mock
       ) as _i11.TimezoneHelper);
 
   @override
-  _i21.Future<void> cancelAllNotifications() => (super.noSuchMethod(
+  _i4.Future<void> cancelAllNotifications() => (super.noSuchMethod(
         Invocation.method(
           #cancelAllNotifications,
           [],
         ),
-        returnValue: _i21.Future<void>.value(),
-        returnValueForMissingStub: _i21.Future<void>.value(),
-      ) as _i21.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
-  _i21.Future<void> cancelNotificationsForTaskId(String? taskId) =>
+  _i4.Future<void> cancelNotificationsForTaskId(String? taskId) =>
       (super.noSuchMethod(
         Invocation.method(
           #cancelNotificationsForTaskId,
           [taskId],
         ),
-        returnValue: _i21.Future<void>.value(),
-        returnValueForMissingStub: _i21.Future<void>.value(),
-      ) as _i21.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
-  _i21.Future<void> syncNotificationForTasksAndSprint(
+  _i4.Future<void> syncNotificationForTasksAndSprint(
     List<_i5.TaskItem>? taskItems,
     _i7.Sprint? sprint,
   ) =>
@@ -1162,20 +1182,20 @@ class MockNotificationHelper extends _i1.Mock
             sprint,
           ],
         ),
-        returnValue: _i21.Future<void>.value(),
-        returnValueForMissingStub: _i21.Future<void>.value(),
-      ) as _i21.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
-  _i21.Future<void> updateNotificationForTask(_i5.TaskItem? taskItem) =>
+  _i4.Future<void> updateNotificationForTask(_i5.TaskItem? taskItem) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateNotificationForTask,
           [taskItem],
         ),
-        returnValue: _i21.Future<void>.value(),
-        returnValueForMissingStub: _i21.Future<void>.value(),
-      ) as _i21.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 }
 
 /// A class which mocks [AppState].
@@ -1382,14 +1402,14 @@ class MockAppState extends _i1.Mock implements _i16.AppState {
       ) as _i15.NotificationHelper);
 
   @override
-  _i21.Future<String?> getIdToken() => (super.noSuchMethod(
+  _i4.Future<String?> getIdToken() => (super.noSuchMethod(
         Invocation.method(
           #getIdToken,
           [],
         ),
-        returnValue: _i21.Future<String?>.value(),
-        returnValueForMissingStub: _i21.Future<String?>.value(),
-      ) as _i21.Future<String?>);
+        returnValue: _i4.Future<String?>.value(),
+        returnValueForMissingStub: _i4.Future<String?>.value(),
+      ) as _i4.Future<String?>);
 
   @override
   bool isAuthenticated() => (super.noSuchMethod(
@@ -1621,7 +1641,7 @@ class MockNavigatorState extends _i1.Mock implements _i17.NavigatorState {
       );
 
   @override
-  _i21.Future<T?> pushNamed<T extends Object?>(
+  _i4.Future<T?> pushNamed<T extends Object?>(
     String? routeName, {
     Object? arguments,
   }) =>
@@ -1631,9 +1651,9 @@ class MockNavigatorState extends _i1.Mock implements _i17.NavigatorState {
           [routeName],
           {#arguments: arguments},
         ),
-        returnValue: _i21.Future<T?>.value(),
-        returnValueForMissingStub: _i21.Future<T?>.value(),
-      ) as _i21.Future<T?>);
+        returnValue: _i4.Future<T?>.value(),
+        returnValueForMissingStub: _i4.Future<T?>.value(),
+      ) as _i4.Future<T?>);
 
   @override
   String restorablePushNamed<T extends Object?>(
@@ -1665,7 +1685,7 @@ class MockNavigatorState extends _i1.Mock implements _i17.NavigatorState {
       ) as String);
 
   @override
-  _i21.Future<T?> pushReplacementNamed<T extends Object?, TO extends Object?>(
+  _i4.Future<T?> pushReplacementNamed<T extends Object?, TO extends Object?>(
     String? routeName, {
     TO? result,
     Object? arguments,
@@ -1679,9 +1699,9 @@ class MockNavigatorState extends _i1.Mock implements _i17.NavigatorState {
             #arguments: arguments,
           },
         ),
-        returnValue: _i21.Future<T?>.value(),
-        returnValueForMissingStub: _i21.Future<T?>.value(),
-      ) as _i21.Future<T?>);
+        returnValue: _i4.Future<T?>.value(),
+        returnValueForMissingStub: _i4.Future<T?>.value(),
+      ) as _i4.Future<T?>);
 
   @override
   String restorablePushReplacementNamed<T extends Object?, TO extends Object?>(
@@ -1723,7 +1743,7 @@ class MockNavigatorState extends _i1.Mock implements _i17.NavigatorState {
       ) as String);
 
   @override
-  _i21.Future<T?> popAndPushNamed<T extends Object?, TO extends Object?>(
+  _i4.Future<T?> popAndPushNamed<T extends Object?, TO extends Object?>(
     String? routeName, {
     TO? result,
     Object? arguments,
@@ -1737,9 +1757,9 @@ class MockNavigatorState extends _i1.Mock implements _i17.NavigatorState {
             #arguments: arguments,
           },
         ),
-        returnValue: _i21.Future<T?>.value(),
-        returnValueForMissingStub: _i21.Future<T?>.value(),
-      ) as _i21.Future<T?>);
+        returnValue: _i4.Future<T?>.value(),
+        returnValueForMissingStub: _i4.Future<T?>.value(),
+      ) as _i4.Future<T?>);
 
   @override
   String restorablePopAndPushNamed<T extends Object?, TO extends Object?>(
@@ -1781,7 +1801,7 @@ class MockNavigatorState extends _i1.Mock implements _i17.NavigatorState {
       ) as String);
 
   @override
-  _i21.Future<T?> pushNamedAndRemoveUntil<T extends Object?>(
+  _i4.Future<T?> pushNamedAndRemoveUntil<T extends Object?>(
     String? newRouteName,
     _i17.RoutePredicate? predicate, {
     Object? arguments,
@@ -1795,9 +1815,9 @@ class MockNavigatorState extends _i1.Mock implements _i17.NavigatorState {
           ],
           {#arguments: arguments},
         ),
-        returnValue: _i21.Future<T?>.value(),
-        returnValueForMissingStub: _i21.Future<T?>.value(),
-      ) as _i21.Future<T?>);
+        returnValue: _i4.Future<T?>.value(),
+        returnValueForMissingStub: _i4.Future<T?>.value(),
+      ) as _i4.Future<T?>);
 
   @override
   String restorablePushNamedAndRemoveUntil<T extends Object?>(
@@ -1839,15 +1859,15 @@ class MockNavigatorState extends _i1.Mock implements _i17.NavigatorState {
       ) as String);
 
   @override
-  _i21.Future<T?> push<T extends Object?>(_i17.Route<T>? route) =>
+  _i4.Future<T?> push<T extends Object?>(_i17.Route<T>? route) =>
       (super.noSuchMethod(
         Invocation.method(
           #push,
           [route],
         ),
-        returnValue: _i21.Future<T?>.value(),
-        returnValueForMissingStub: _i21.Future<T?>.value(),
-      ) as _i21.Future<T?>);
+        returnValue: _i4.Future<T?>.value(),
+        returnValueForMissingStub: _i4.Future<T?>.value(),
+      ) as _i4.Future<T?>);
 
   @override
   String restorablePush<T extends Object?>(
@@ -1879,7 +1899,7 @@ class MockNavigatorState extends _i1.Mock implements _i17.NavigatorState {
       ) as String);
 
   @override
-  _i21.Future<T?> pushReplacement<T extends Object?, TO extends Object?>(
+  _i4.Future<T?> pushReplacement<T extends Object?, TO extends Object?>(
     _i17.Route<T>? newRoute, {
     TO? result,
   }) =>
@@ -1889,9 +1909,9 @@ class MockNavigatorState extends _i1.Mock implements _i17.NavigatorState {
           [newRoute],
           {#result: result},
         ),
-        returnValue: _i21.Future<T?>.value(),
-        returnValueForMissingStub: _i21.Future<T?>.value(),
-      ) as _i21.Future<T?>);
+        returnValue: _i4.Future<T?>.value(),
+        returnValueForMissingStub: _i4.Future<T?>.value(),
+      ) as _i4.Future<T?>);
 
   @override
   String restorablePushReplacement<T extends Object?, TO extends Object?>(
@@ -1933,7 +1953,7 @@ class MockNavigatorState extends _i1.Mock implements _i17.NavigatorState {
       ) as String);
 
   @override
-  _i21.Future<T?> pushAndRemoveUntil<T extends Object?>(
+  _i4.Future<T?> pushAndRemoveUntil<T extends Object?>(
     _i17.Route<T>? newRoute,
     _i17.RoutePredicate? predicate,
   ) =>
@@ -1945,9 +1965,9 @@ class MockNavigatorState extends _i1.Mock implements _i17.NavigatorState {
             predicate,
           ],
         ),
-        returnValue: _i21.Future<T?>.value(),
-        returnValueForMissingStub: _i21.Future<T?>.value(),
-      ) as _i21.Future<T?>);
+        returnValue: _i4.Future<T?>.value(),
+        returnValueForMissingStub: _i4.Future<T?>.value(),
+      ) as _i4.Future<T?>);
 
   @override
   String restorablePushAndRemoveUntil<T extends Object?>(
@@ -2117,15 +2137,15 @@ class MockNavigatorState extends _i1.Mock implements _i17.NavigatorState {
       ) as bool);
 
   @override
-  _i21.Future<bool> maybePop<T extends Object?>([T? result]) =>
+  _i4.Future<bool> maybePop<T extends Object?>([T? result]) =>
       (super.noSuchMethod(
         Invocation.method(
           #maybePop,
           [result],
         ),
-        returnValue: _i21.Future<bool>.value(false),
-        returnValueForMissingStub: _i21.Future<bool>.value(false),
-      ) as _i21.Future<bool>);
+        returnValue: _i4.Future<bool>.value(false),
+        returnValueForMissingStub: _i4.Future<bool>.value(false),
+      ) as _i4.Future<bool>);
 
   @override
   void pop<T extends Object?>([T? result]) => super.noSuchMethod(

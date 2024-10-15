@@ -18,7 +18,6 @@ import '../../models/task_colors.dart';
 import '../../models/task_display_grouping.dart';
 import 'editable_task_item.dart';
 import 'header_list_item.dart';
-import 'loading_indicator.dart';
 
 class TaskItemList extends StatefulWidget {
   final BuiltList<TaskItem> taskItems;

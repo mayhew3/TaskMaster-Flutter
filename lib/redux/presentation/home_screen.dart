@@ -4,7 +4,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:taskmaster/redux/actions/task_item_actions.dart';
 import 'package:taskmaster/redux/presentation/home_screen_viewmodel.dart';
 import 'package:taskmaster/redux/presentation/loading_indicator.dart';
 import 'package:taskmaster/redux/presentation/splash.dart';

@@ -149,7 +149,7 @@ class _NewSprintState extends State<NewSprint> {
               actions: <Widget>[
                 IconButton(
                     icon: Icon(Icons.refresh),
-                    onPressed: () => StoreProvider.of<AppState>(context).dispatch(LoadDataAction())
+                    onPressed: () => StoreProvider.of<AppState>(context).dispatch(DataNotLoadedAction())
                 ),
               ],
             ),

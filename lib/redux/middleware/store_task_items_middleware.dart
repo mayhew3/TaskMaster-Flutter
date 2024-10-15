@@ -1,5 +1,4 @@
 import 'package:built_collection/built_collection.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/helpers/recurrence_helper.dart';
@@ -13,7 +12,6 @@ import 'package:taskmaster/redux/selectors/selectors.dart';
 import 'package:taskmaster/routes.dart';
 import 'package:taskmaster/task_repository.dart';
 
-import '../../models/serializers.dart';
 import '../actions/sprint_actions.dart';
 import '../actions/task_item_actions.dart';
 

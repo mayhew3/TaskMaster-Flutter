@@ -9,7 +9,6 @@ import 'package:built_value/serializer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:taskmaster/firestore_migrator.dart';
-import 'package:taskmaster/models/data_payload.dart';
 import 'package:taskmaster/models/serializers.dart';
 import 'package:taskmaster/models/snooze_blueprint.dart';
 import 'package:taskmaster/models/sprint.dart';

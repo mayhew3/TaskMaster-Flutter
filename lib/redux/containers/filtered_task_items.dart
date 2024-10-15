@@ -41,7 +41,7 @@ class FilteredTaskItems extends StatelessWidget {
               ),
               IconButton(
                   icon: Icon(Icons.refresh),
-                  onPressed: () => StoreProvider.of<AppState>(context).dispatch(LoadDataAction())
+                  onPressed: () => StoreProvider.of<AppState>(context).dispatch(DataNotLoadedAction())
               ),
             ],
           ),

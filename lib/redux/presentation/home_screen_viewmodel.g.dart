@@ -10,12 +10,6 @@ class _$HomeScreenViewModel extends HomeScreenViewModel {
   @override
   final TopNavItem activeTab;
   @override
-  final BuiltList<TaskItem> taskItems;
-  @override
-  final BuiltList<Sprint> sprints;
-  @override
-  final BuiltList<TaskRecurrence> taskRecurrences;
-  @override
   final bool tasksLoading;
   @override
   final bool sprintsLoading;
@@ -36,9 +30,6 @@ class _$HomeScreenViewModel extends HomeScreenViewModel {
 
   _$HomeScreenViewModel._(
       {required this.activeTab,
-      required this.taskItems,
-      required this.sprints,
-      required this.taskRecurrences,
       required this.tasksLoading,
       required this.sprintsLoading,
       required this.taskRecurrencesLoading,
@@ -49,12 +40,6 @@ class _$HomeScreenViewModel extends HomeScreenViewModel {
       : super._() {
     BuiltValueNullFieldError.checkNotNull(
         activeTab, r'HomeScreenViewModel', 'activeTab');
-    BuiltValueNullFieldError.checkNotNull(
-        taskItems, r'HomeScreenViewModel', 'taskItems');
-    BuiltValueNullFieldError.checkNotNull(
-        sprints, r'HomeScreenViewModel', 'sprints');
-    BuiltValueNullFieldError.checkNotNull(
-        taskRecurrences, r'HomeScreenViewModel', 'taskRecurrences');
     BuiltValueNullFieldError.checkNotNull(
         tasksLoading, r'HomeScreenViewModel', 'tasksLoading');
     BuiltValueNullFieldError.checkNotNull(
@@ -79,9 +64,6 @@ class _$HomeScreenViewModel extends HomeScreenViewModel {
     if (identical(other, this)) return true;
     return other is HomeScreenViewModel &&
         activeTab == other.activeTab &&
-        taskItems == other.taskItems &&
-        sprints == other.sprints &&
-        taskRecurrences == other.taskRecurrences &&
         tasksLoading == other.tasksLoading &&
         sprintsLoading == other.sprintsLoading &&
         taskRecurrencesLoading == other.taskRecurrencesLoading &&
@@ -95,9 +77,6 @@ class _$HomeScreenViewModel extends HomeScreenViewModel {
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, activeTab.hashCode);
-    _$hash = $jc(_$hash, taskItems.hashCode);
-    _$hash = $jc(_$hash, sprints.hashCode);
-    _$hash = $jc(_$hash, taskRecurrences.hashCode);
     _$hash = $jc(_$hash, tasksLoading.hashCode);
     _$hash = $jc(_$hash, sprintsLoading.hashCode);
     _$hash = $jc(_$hash, taskRecurrencesLoading.hashCode);
@@ -113,9 +92,6 @@ class _$HomeScreenViewModel extends HomeScreenViewModel {
   String toString() {
     return (newBuiltValueToStringHelper(r'HomeScreenViewModel')
           ..add('activeTab', activeTab)
-          ..add('taskItems', taskItems)
-          ..add('sprints', sprints)
-          ..add('taskRecurrences', taskRecurrences)
           ..add('tasksLoading', tasksLoading)
           ..add('sprintsLoading', sprintsLoading)
           ..add('taskRecurrencesLoading', taskRecurrencesLoading)
@@ -135,23 +111,6 @@ class HomeScreenViewModelBuilder
   TopNavItemBuilder get activeTab =>
       _$this._activeTab ??= new TopNavItemBuilder();
   set activeTab(TopNavItemBuilder? activeTab) => _$this._activeTab = activeTab;
-
-  ListBuilder<TaskItem>? _taskItems;
-  ListBuilder<TaskItem> get taskItems =>
-      _$this._taskItems ??= new ListBuilder<TaskItem>();
-  set taskItems(ListBuilder<TaskItem>? taskItems) =>
-      _$this._taskItems = taskItems;
-
-  ListBuilder<Sprint>? _sprints;
-  ListBuilder<Sprint> get sprints =>
-      _$this._sprints ??= new ListBuilder<Sprint>();
-  set sprints(ListBuilder<Sprint>? sprints) => _$this._sprints = sprints;
-
-  ListBuilder<TaskRecurrence>? _taskRecurrences;
-  ListBuilder<TaskRecurrence> get taskRecurrences =>
-      _$this._taskRecurrences ??= new ListBuilder<TaskRecurrence>();
-  set taskRecurrences(ListBuilder<TaskRecurrence>? taskRecurrences) =>
-      _$this._taskRecurrences = taskRecurrences;
 
   bool? _tasksLoading;
   bool? get tasksLoading => _$this._tasksLoading;
@@ -192,9 +151,6 @@ class HomeScreenViewModelBuilder
     final $v = _$v;
     if ($v != null) {
       _activeTab = $v.activeTab.toBuilder();
-      _taskItems = $v.taskItems.toBuilder();
-      _sprints = $v.sprints.toBuilder();
-      _taskRecurrences = $v.taskRecurrences.toBuilder();
       _tasksLoading = $v.tasksLoading;
       _sprintsLoading = $v.sprintsLoading;
       _taskRecurrencesLoading = $v.taskRecurrencesLoading;
@@ -227,9 +183,6 @@ class HomeScreenViewModelBuilder
       _$result = _$v ??
           new _$HomeScreenViewModel._(
               activeTab: activeTab.build(),
-              taskItems: taskItems.build(),
-              sprints: sprints.build(),
-              taskRecurrences: taskRecurrences.build(),
               tasksLoading: BuiltValueNullFieldError.checkNotNull(
                   tasksLoading, r'HomeScreenViewModel', 'tasksLoading'),
               sprintsLoading: BuiltValueNullFieldError.checkNotNull(
@@ -248,12 +201,6 @@ class HomeScreenViewModelBuilder
       try {
         _$failedField = 'activeTab';
         activeTab.build();
-        _$failedField = 'taskItems';
-        taskItems.build();
-        _$failedField = 'sprints';
-        sprints.build();
-        _$failedField = 'taskRecurrences';
-        taskRecurrences.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             r'HomeScreenViewModel', _$failedField, e.toString());
