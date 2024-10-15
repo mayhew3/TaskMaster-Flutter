@@ -80,6 +80,7 @@ class TaskRepository {
 
     var addedTaskDoc = firestore.collection("tasks").doc();
     var taskId = addedTaskDoc.id;
+    blueprintJson['dateAdded'] = DateTime.now().toUtc().toString();
     addedTaskDoc.set(blueprintJson);
     blueprintJson['docId'] = taskId;
     var addedTask = serializers.deserializeWith(TaskItem.serializer, blueprintJson)!;

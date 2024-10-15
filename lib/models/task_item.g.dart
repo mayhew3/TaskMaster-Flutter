@@ -21,6 +21,9 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
       'docId',
       serializers.serialize(object.docId,
           specifiedType: const FullType(String)),
+      'dateAdded',
+      serializers.serialize(object.dateAdded,
+          specifiedType: const FullType(DateTime)),
       'name',
       serializers.serialize(object.name, specifiedType: const FullType(String)),
       'offCycle',
@@ -163,6 +166,10 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
           result.docId = serializers.deserialize(value,
               specifiedType: const FullType(String))! as String;
           break;
+        case 'dateAdded':
+          result.dateAdded = serializers.deserialize(value,
+              specifiedType: const FullType(DateTime))! as DateTime;
+          break;
         case 'personDocId':
           result.personDocId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String?;
@@ -269,6 +276,8 @@ class _$TaskItem extends TaskItem {
   @override
   final String docId;
   @override
+  final DateTime dateAdded;
+  @override
   final String? personDocId;
   @override
   final String name;
@@ -322,6 +331,7 @@ class _$TaskItem extends TaskItem {
 
   _$TaskItem._(
       {required this.docId,
+      required this.dateAdded,
       this.personDocId,
       required this.name,
       this.description,
@@ -348,6 +358,7 @@ class _$TaskItem extends TaskItem {
       required this.pendingCompletion})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(docId, r'TaskItem', 'docId');
+    BuiltValueNullFieldError.checkNotNull(dateAdded, r'TaskItem', 'dateAdded');
     BuiltValueNullFieldError.checkNotNull(name, r'TaskItem', 'name');
     BuiltValueNullFieldError.checkNotNull(offCycle, r'TaskItem', 'offCycle');
     BuiltValueNullFieldError.checkNotNull(
@@ -368,6 +379,7 @@ class _$TaskItem extends TaskItem {
     if (identical(other, this)) return true;
     return other is TaskItem &&
         docId == other.docId &&
+        dateAdded == other.dateAdded &&
         personDocId == other.personDocId &&
         name == other.name &&
         description == other.description &&
@@ -398,6 +410,7 @@ class _$TaskItem extends TaskItem {
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, docId.hashCode);
+    _$hash = $jc(_$hash, dateAdded.hashCode);
     _$hash = $jc(_$hash, personDocId.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
@@ -430,6 +443,7 @@ class _$TaskItem extends TaskItem {
   String toString() {
     return (newBuiltValueToStringHelper(r'TaskItem')
           ..add('docId', docId)
+          ..add('dateAdded', dateAdded)
           ..add('personDocId', personDocId)
           ..add('name', name)
           ..add('description', description)
@@ -464,6 +478,10 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   String? _docId;
   String? get docId => _$this._docId;
   set docId(String? docId) => _$this._docId = docId;
+
+  DateTime? _dateAdded;
+  DateTime? get dateAdded => _$this._dateAdded;
+  set dateAdded(DateTime? dateAdded) => _$this._dateAdded = dateAdded;
 
   String? _personDocId;
   String? get personDocId => _$this._personDocId;
@@ -577,6 +595,7 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
     final $v = _$v;
     if ($v != null) {
       _docId = $v.docId;
+      _dateAdded = $v.dateAdded;
       _personDocId = $v.personDocId;
       _name = $v.name;
       _description = $v.description;
@@ -627,6 +646,8 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
           new _$TaskItem._(
               docId: BuiltValueNullFieldError.checkNotNull(
                   docId, r'TaskItem', 'docId'),
+              dateAdded: BuiltValueNullFieldError.checkNotNull(
+                  dateAdded, r'TaskItem', 'dateAdded'),
               personDocId: personDocId,
               name: BuiltValueNullFieldError.checkNotNull(
                   name, r'TaskItem', 'name'),
