@@ -1,4 +1,5 @@
 import 'package:built_collection/built_collection.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/helpers/recurrence_helper.dart';
@@ -12,6 +13,8 @@ import 'package:taskmaster/redux/selectors/selectors.dart';
 import 'package:taskmaster/routes.dart';
 import 'package:taskmaster/task_repository.dart';
 
+import '../../models/serializers.dart';
+import '../actions/sprint_actions.dart';
 import '../actions/task_item_actions.dart';
 
 List<Middleware<AppState>> createStoreTaskItemsMiddleware(
@@ -67,14 +70,51 @@ Future<void> Function(
     ) loadData(TaskRepository repository, GlobalKey<NavigatorState> navigatorKey) {
   return (Store<AppState> store, LoadDataAction action, NextDispatcher next) async {
     next(action);
-    navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.loading);
+    navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.home);
     var inputs = await getRequiredInputs(store, "load tasks");
     print("Fetching tasks for person_id ${inputs.personDocId}...");
     try {
       // await repository.migrateFromApi(inputs.idToken);
 
-      var dataPayload = await repository.loadTasksFromFirestore(inputs.personDocId!);
-      store.dispatch(DataLoadedAction(dataPayload: dataPayload));
+      // var dataPayload = await repository.loadTasksFromFirestore(inputs.personDocId);
+
+      var sprintSnapshots = repository.firestore.collection("sprints").where("personDocId", isEqualTo: inputs.personDocId).snapshots();
+      sprintSnapshots.listen((event) {
+        print('Sprint snapshots event!');
+        var addedSprintDocs = event.docChanges.where((dc) => dc.type == DocumentChangeType.added).map((dc) => dc.doc);
+        var addedSprints = addedSprintDocs.map((sprintDoc) {
+          var sprintJson = sprintDoc.data()!;
+          sprintJson['docId'] = sprintDoc.id;
+          return serializers.deserializeWith(Sprint.serializer, sprintJson)!;
+        });
+        store.dispatch(SprintsAddedAction(addedSprints));
+      });
+
+      var recurrenceSnapshots = repository.firestore.collection("taskRecurrences").where("personDocId", isEqualTo: inputs.personDocId).snapshots();
+      recurrenceSnapshots.listen((event) {
+        print('Task recurrence snapshots event!');
+        var addedTaskRecurrenceDocs = event.docChanges.where((dc) => dc.type == DocumentChangeType.added).map((dc) => dc.doc);
+        var addedTaskRecurrences = addedTaskRecurrenceDocs.map((taskRecurrenceDoc) {
+          var taskRecurrenceJson = taskRecurrenceDoc.data()!;
+          taskRecurrenceJson['docId'] = taskRecurrenceDoc.id;
+          return serializers.deserializeWith(TaskRecurrence.serializer, taskRecurrenceJson)!;
+        });
+        store.dispatch(TaskRecurrencesAddedAction(addedTaskRecurrences));
+      });
+
+      var taskSnapshots = repository.firestore.collection("tasks").where("personDocId", isEqualTo: inputs.personDocId).snapshots();
+      taskSnapshots.listen((event) {
+        print('Task snapshots event!');
+        var addedTaskDocs = event.docChanges.where((dc) => dc.type == DocumentChangeType.added).map((dc) => dc.doc);
+        var addedTasks = addedTaskDocs.map((taskDoc) {
+          var taskJson = taskDoc.data()!;
+          taskJson['docId'] = taskDoc.id;
+          return serializers.deserializeWith(TaskItem.serializer, taskJson)!;
+        });
+        store.dispatch(TasksAddedAction(addedTasks));
+      });
+
+      // store.dispatch(DataLoadedAction(dataPayload: dataPayload));
     } catch (e, stack) {
       print("Error fetching task list: $e");
       print(stack);

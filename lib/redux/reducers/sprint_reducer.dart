@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/redux/actions/sprint_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
@@ -5,6 +6,7 @@ import 'package:taskmaster/redux/app_state.dart';
 final sprintsReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, SprintCreatedAction>(_sprintCreated),
   TypedReducer<AppState, TaskItemsAddedToExistingSprint>(_taskItemsAddedToExistingSprint),
+  TypedReducer<AppState, SprintsAddedAction>(sprintsAdded),
 ];
 
 AppState _sprintCreated(AppState state, SprintCreatedAction action) {
@@ -26,6 +28,16 @@ AppState _sprintCreated(AppState state, SprintCreatedAction action) {
   return state.rebuild((s) => s
     ..sprints = sprintBuilder
     ..taskItems = taskItemBuilder
+  );
+}
+
+@visibleForTesting
+AppState sprintsAdded(AppState state, SprintsAddedAction action) {
+  var sprintBuilder = state.sprints.toBuilder()..addAll(action.addedSprints);
+
+  return state.rebuild((s) => s
+    ..sprints = sprintBuilder
+    ..sprintsLoading = false
   );
 }
 

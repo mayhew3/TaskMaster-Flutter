@@ -14,6 +14,12 @@ class _$AppState extends AppState {
   @override
   final BuiltList<TaskRecurrence> taskRecurrences;
   @override
+  final bool tasksLoading;
+  @override
+  final bool sprintsLoading;
+  @override
+  final bool taskRecurrencesLoading;
+  @override
   final bool isLoading;
   @override
   final bool loadFailed;
@@ -53,6 +59,9 @@ class _$AppState extends AppState {
       {required this.taskItems,
       required this.sprints,
       required this.taskRecurrences,
+      required this.tasksLoading,
+      required this.sprintsLoading,
+      required this.taskRecurrencesLoading,
       required this.isLoading,
       required this.loadFailed,
       required this.recentlyCompleted,
@@ -74,6 +83,12 @@ class _$AppState extends AppState {
     BuiltValueNullFieldError.checkNotNull(sprints, r'AppState', 'sprints');
     BuiltValueNullFieldError.checkNotNull(
         taskRecurrences, r'AppState', 'taskRecurrences');
+    BuiltValueNullFieldError.checkNotNull(
+        tasksLoading, r'AppState', 'tasksLoading');
+    BuiltValueNullFieldError.checkNotNull(
+        sprintsLoading, r'AppState', 'sprintsLoading');
+    BuiltValueNullFieldError.checkNotNull(
+        taskRecurrencesLoading, r'AppState', 'taskRecurrencesLoading');
     BuiltValueNullFieldError.checkNotNull(isLoading, r'AppState', 'isLoading');
     BuiltValueNullFieldError.checkNotNull(
         loadFailed, r'AppState', 'loadFailed');
@@ -113,6 +128,9 @@ class _$AppState extends AppState {
         taskItems == other.taskItems &&
         sprints == other.sprints &&
         taskRecurrences == other.taskRecurrences &&
+        tasksLoading == other.tasksLoading &&
+        sprintsLoading == other.sprintsLoading &&
+        taskRecurrencesLoading == other.taskRecurrencesLoading &&
         isLoading == other.isLoading &&
         loadFailed == other.loadFailed &&
         recentlyCompleted == other.recentlyCompleted &&
@@ -137,6 +155,9 @@ class _$AppState extends AppState {
     _$hash = $jc(_$hash, taskItems.hashCode);
     _$hash = $jc(_$hash, sprints.hashCode);
     _$hash = $jc(_$hash, taskRecurrences.hashCode);
+    _$hash = $jc(_$hash, tasksLoading.hashCode);
+    _$hash = $jc(_$hash, sprintsLoading.hashCode);
+    _$hash = $jc(_$hash, taskRecurrencesLoading.hashCode);
     _$hash = $jc(_$hash, isLoading.hashCode);
     _$hash = $jc(_$hash, loadFailed.hashCode);
     _$hash = $jc(_$hash, recentlyCompleted.hashCode);
@@ -163,6 +184,9 @@ class _$AppState extends AppState {
           ..add('taskItems', taskItems)
           ..add('sprints', sprints)
           ..add('taskRecurrences', taskRecurrences)
+          ..add('tasksLoading', tasksLoading)
+          ..add('sprintsLoading', sprintsLoading)
+          ..add('taskRecurrencesLoading', taskRecurrencesLoading)
           ..add('isLoading', isLoading)
           ..add('loadFailed', loadFailed)
           ..add('recentlyCompleted', recentlyCompleted)
@@ -202,6 +226,20 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _$this._taskRecurrences ??= new ListBuilder<TaskRecurrence>();
   set taskRecurrences(ListBuilder<TaskRecurrence>? taskRecurrences) =>
       _$this._taskRecurrences = taskRecurrences;
+
+  bool? _tasksLoading;
+  bool? get tasksLoading => _$this._tasksLoading;
+  set tasksLoading(bool? tasksLoading) => _$this._tasksLoading = tasksLoading;
+
+  bool? _sprintsLoading;
+  bool? get sprintsLoading => _$this._sprintsLoading;
+  set sprintsLoading(bool? sprintsLoading) =>
+      _$this._sprintsLoading = sprintsLoading;
+
+  bool? _taskRecurrencesLoading;
+  bool? get taskRecurrencesLoading => _$this._taskRecurrencesLoading;
+  set taskRecurrencesLoading(bool? taskRecurrencesLoading) =>
+      _$this._taskRecurrencesLoading = taskRecurrencesLoading;
 
   bool? _isLoading;
   bool? get isLoading => _$this._isLoading;
@@ -290,6 +328,9 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _taskItems = $v.taskItems.toBuilder();
       _sprints = $v.sprints.toBuilder();
       _taskRecurrences = $v.taskRecurrences.toBuilder();
+      _tasksLoading = $v.tasksLoading;
+      _sprintsLoading = $v.sprintsLoading;
+      _taskRecurrencesLoading = $v.taskRecurrencesLoading;
       _isLoading = $v.isLoading;
       _loadFailed = $v.loadFailed;
       _recentlyCompleted = $v.recentlyCompleted.toBuilder();
@@ -333,6 +374,12 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               taskItems: taskItems.build(),
               sprints: sprints.build(),
               taskRecurrences: taskRecurrences.build(),
+              tasksLoading: BuiltValueNullFieldError.checkNotNull(
+                  tasksLoading, r'AppState', 'tasksLoading'),
+              sprintsLoading: BuiltValueNullFieldError.checkNotNull(
+                  sprintsLoading, r'AppState', 'sprintsLoading'),
+              taskRecurrencesLoading: BuiltValueNullFieldError.checkNotNull(
+                  taskRecurrencesLoading, r'AppState', 'taskRecurrencesLoading'),
               isLoading: BuiltValueNullFieldError.checkNotNull(
                   isLoading, r'AppState', 'isLoading'),
               loadFailed: BuiltValueNullFieldError.checkNotNull(
@@ -351,12 +398,9 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
                   tokenRetrieved, r'AppState', 'tokenRetrieved'),
               offlineMode: BuiltValueNullFieldError.checkNotNull(
                   offlineMode, r'AppState', 'offlineMode'),
-              timezoneHelper: BuiltValueNullFieldError.checkNotNull(
-                  timezoneHelper, r'AppState', 'timezoneHelper'),
-              nextId: BuiltValueNullFieldError.checkNotNull(
-                  nextId, r'AppState', 'nextId'),
-              notificationHelper: BuiltValueNullFieldError.checkNotNull(
-                  notificationHelper, r'AppState', 'notificationHelper'));
+              timezoneHelper: BuiltValueNullFieldError.checkNotNull(timezoneHelper, r'AppState', 'timezoneHelper'),
+              nextId: BuiltValueNullFieldError.checkNotNull(nextId, r'AppState', 'nextId'),
+              notificationHelper: BuiltValueNullFieldError.checkNotNull(notificationHelper, r'AppState', 'notificationHelper'));
     } catch (_) {
       late String _$failedField;
       try {

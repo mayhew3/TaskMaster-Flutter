@@ -62,27 +62,7 @@ class TaskItemListState extends State<TaskItemList> {
             padding: EdgeInsets.only(top: 7.0),
             child: Builder(
               builder: (context) {
-                if (viewModel.isLoading) {
-                  return LoadingIndicator(key: TaskMasterKeys.tasksLoading);
-                } else if (viewModel.loadFailed) {
-                  return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: <Widget>[
-                          const Text(
-                              "Could not load tasks from server. Please try again."),
-                          ElevatedButton(
-                            child: const Text('RETRY'),
-                            onPressed: () {
-                              StoreProvider.of<AppState>(context).dispatch(LoadDataAction());
-                            },
-                          ),
-                        ],
-                      )
-                  );
-                } else {
-                  return _buildListView(context, viewModel);
-                }
+                return _buildListView(context, viewModel);
               },
             ),
           );

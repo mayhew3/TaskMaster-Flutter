@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:taskmaster/redux/presentation/home_screen_viewmodel.dart';
+import 'package:taskmaster/redux/presentation/loading_indicator.dart';
 
 import '../../keys.dart';
 import '../app_state.dart';
@@ -29,7 +30,11 @@ class HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, HomeScreenViewModel>(
         builder: (context, viewModel) {
-          return viewModel.activeTab.widgetGetter();
+          if (viewModel.isLoading()) {
+            return LoadingIndicator();
+          } else {
+            return viewModel.activeTab.widgetGetter();
+          }
         },
         converter: HomeScreenViewModel.fromStore
     );

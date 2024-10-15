@@ -70,7 +70,7 @@ void Function(
     if (store.state.appIsReady()) {
       store.dispatch(LoadDataAction());
       await navigatorKey.currentState!.pushReplacementNamed(
-          TaskMasterRoutes.loading);
+          TaskMasterRoutes.home);
     }
   };
 }
@@ -126,7 +126,7 @@ void Function(
         if (store.state.appIsReady()) {
           store.dispatch(LoadDataAction());
           await navigatorKey.currentState!.pushReplacementNamed(
-              TaskMasterRoutes.loading);
+              TaskMasterRoutes.home);
         }
       }
     });
@@ -167,7 +167,7 @@ void Function(
     if (store.state.appIsReady()) {
       store.dispatch(LoadDataAction());
       await navigatorKey.currentState!.pushReplacementNamed(
-          TaskMasterRoutes.loading);
+          TaskMasterRoutes.home);
     }
   };
 }

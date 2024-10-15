@@ -1,4 +1,5 @@
 import 'package:built_collection/built_collection.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
 
@@ -19,6 +20,8 @@ final taskItemsReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, SnoozeExecuted>(_onSnoozeExecuted),
   TypedReducer<AppState, GoOffline>(goOffline),
   TypedReducer<AppState, GoOnline>(goOnline),
+  TypedReducer<AppState, TasksAddedAction>(onTaskItemsAdded),
+  TypedReducer<AppState, TaskRecurrencesAddedAction>(onTaskRecurrencesAdded),
 ];
 
 AppState _taskItemAdded(AppState state, TaskItemAddedAction action) {
@@ -115,12 +118,45 @@ AppState _onDeleteTaskItem(AppState state, TaskItemDeletedAction action) {
 
 AppState _onDataLoaded(AppState state, DataLoadedAction action) {
   return state.rebuild((s) {
-    s.taskItems = ListBuilder(action.dataPayload.taskItems.map((taskItem) => taskItem.rebuild((t) => t
-      ..recurrence = action.dataPayload.taskRecurrences.where((r) => r.id == t.recurrenceId).singleOrNull?.toBuilder())));
+    // s.taskItems = ListBuilder(action.dataPayload.taskItems.map((taskItem) => taskItem.rebuild((t) => t
+    //   ..recurrence = action.dataPayload.taskRecurrences.where((r) => r.id == t.recurrenceId).singleOrNull?.toBuilder())));
     s.sprints = ListBuilder(action.dataPayload.sprints);
     s.taskRecurrences = ListBuilder(action.dataPayload.taskRecurrences);
     return s;
   });
+}
+
+@visibleForTesting
+AppState onTaskItemsAdded(AppState state, TasksAddedAction action) {
+  var recurrences = state.taskRecurrences;
+
+  var withRecurrences = action.addedItems.map((taskItem) => taskItem.rebuild((t) => t
+    ..recurrence = recurrences.where((r) => r.docId == t.recurrenceDocId).singleOrNull?.toBuilder()
+  ));
+
+  var rebuiltList = state.taskItems.toBuilder()..addAll(withRecurrences);
+
+  return state.rebuild((s) {
+    return s
+      ..taskItems = rebuiltList
+      ..tasksLoading = false
+    ;
+  });
+}
+
+@visibleForTesting
+AppState onTaskRecurrencesAdded(AppState state, TaskRecurrencesAddedAction action) {
+  var rebuiltRecurrenceList = state.taskRecurrences.toBuilder()..addAll(action.addedRecurrences);
+
+  var withRecurrences = state.taskItems.map((taskItem) => taskItem.rebuild((t) => t
+    ..recurrence = rebuiltRecurrenceList.build().where((r) => r.docId == t.recurrenceDocId).singleOrNull?.toBuilder()
+  ));
+
+  return state.rebuild((s) => s
+    ..taskRecurrences = rebuiltRecurrenceList
+    ..taskItems = ListBuilder(withRecurrences)
+    ..taskRecurrencesLoading = false
+  );
 }
 
 AppState _onDataNotLoaded(AppState state, dynamic action) {

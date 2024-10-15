@@ -342,15 +342,6 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
       ) as _i2.Client);
 
   @override
-  set client(_i2.Client? _client) => super.noSuchMethod(
-        Invocation.setter(
-          #client,
-          _client,
-        ),
-        returnValueForMissingStub: null,
-      );
-
-  @override
   _i3.FirebaseFirestore get firestore => (super.noSuchMethod(
         Invocation.getter(#firestore),
         returnValue: _FakeFirebaseFirestore_1(
@@ -362,15 +353,6 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
           Invocation.getter(#firestore),
         ),
       ) as _i3.FirebaseFirestore);
-
-  @override
-  set firestore(_i3.FirebaseFirestore? _firestore) => super.noSuchMethod(
-        Invocation.setter(
-          #firestore,
-          _firestore,
-        ),
-        returnValueForMissingStub: null,
-      );
 
   @override
   _i21.Future<String?> getPersonIdFromFirestore(String? email) =>
@@ -1238,6 +1220,27 @@ class MockAppState extends _i1.Mock implements _i16.AppState {
           Invocation.getter(#taskRecurrences),
         ),
       ) as _i6.BuiltList<_i8.TaskRecurrence>);
+
+  @override
+  bool get tasksLoading => (super.noSuchMethod(
+        Invocation.getter(#tasksLoading),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  bool get sprintsLoading => (super.noSuchMethod(
+        Invocation.getter(#sprintsLoading),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  bool get taskRecurrencesLoading => (super.noSuchMethod(
+        Invocation.getter(#taskRecurrencesLoading),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
 
   @override
   bool get isLoading => (super.noSuchMethod(

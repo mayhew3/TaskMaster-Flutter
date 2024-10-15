@@ -21,6 +21,9 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   BuiltList<TaskRecurrence> get taskRecurrences;
 
   // task item state
+  bool get tasksLoading;
+  bool get sprintsLoading;
+  bool get taskRecurrencesLoading;
   bool get isLoading;
   bool get loadFailed;
   BuiltList<TaskItem> get recentlyCompleted;
@@ -62,6 +65,9 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
     var timezoneHelper = TimezoneHelper();
     return appState
       ..isLoading = loading
+      ..tasksLoading = true
+      ..sprintsLoading = true
+      ..taskRecurrencesLoading = true
       ..loadFailed = false
       ..taskItems = ListBuilder()
       ..sprints = ListBuilder()

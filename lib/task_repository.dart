@@ -23,8 +23,8 @@ import 'package:taskmaster/typedefs.dart';
 import 'models/snooze.dart';
 
 class TaskRepository {
-  http.Client client;
-  FirebaseFirestore firestore;
+  final http.Client client;
+  final FirebaseFirestore firestore;
 
   static const serverEnv = String.fromEnvironment('SERVER', defaultValue: 'heroku');
 
@@ -47,10 +47,11 @@ class TaskRepository {
   }
 
   Future<DataPayload> loadTasksFromFirestore(String personDocId) async {
+    /*
     var taskCollection = firestore.collection("tasks");
     var taskSnapshot = await taskCollection.where("personDocId", isEqualTo: personDocId).get();
     var taskItemDocs = taskSnapshot.docs;
-
+*/
     var sprintCollection = firestore.collection("sprints");
     var sprintSnapshot = await sprintCollection.where("personDocId", isEqualTo: personDocId).get();
     var sprintDocs = sprintSnapshot.docs;
@@ -86,14 +87,16 @@ class TaskRepository {
     recurrenceSnapshot = await recurrenceCollection.where("personDocId", isEqualTo: personDocId).get();
     recurrenceDocs = recurrenceSnapshot.docs;
 */
+/*
 
     List<TaskItem> taskItems = taskItemDocs.map((taskDoc) {
       var taskJson = taskDoc.data();
       taskJson['docId'] = taskDoc.id;
       return serializers.deserializeWith(TaskItem.serializer, taskJson)!;
     }).toList();
+*/
 
-    return DataPayload(taskItems: taskItems, sprints: sprints, taskRecurrences: taskRecurrences);
+    return DataPayload(taskItems: [], sprints: sprints, taskRecurrences: taskRecurrences);
   }
 
   Future<({TaskItem taskItem, TaskRecurrence? recurrence})> addTask(TaskItemBlueprint blueprint, String idToken) async {

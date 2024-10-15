@@ -20,6 +20,18 @@ class DataLoadedAction {
   }
 }
 
+class TasksAddedAction {
+  final Iterable<TaskItem> addedItems;
+
+  TasksAddedAction(this.addedItems);
+}
+
+class TaskRecurrencesAddedAction {
+  final Iterable<TaskRecurrence> addedRecurrences;
+
+  TaskRecurrencesAddedAction(this.addedRecurrences);
+}
+
 class UpdateTaskItemAction {
   final TaskItem taskItem;
   final TaskItemBlueprint blueprint;
