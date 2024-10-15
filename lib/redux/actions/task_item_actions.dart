@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
 
@@ -18,6 +21,18 @@ class DataLoadedAction {
   String toString() {
     return 'DataLoadedAction{dataPayload: $dataPayload}';
   }
+}
+
+class ListenersInitializedAction {
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>> taskListener;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>> sprintListener;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>> taskRecurrenceListener;
+
+  ListenersInitializedAction(
+      this.taskListener,
+      this.sprintListener,
+      this.taskRecurrenceListener
+      );
 }
 
 class TasksAddedAction {

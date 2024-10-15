@@ -14,6 +14,13 @@ class _$AppState extends AppState {
   @override
   final BuiltList<TaskRecurrence> taskRecurrences;
   @override
+  final StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? taskListener;
+  @override
+  final StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? sprintListener;
+  @override
+  final StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      taskRecurrenceListener;
+  @override
   final bool tasksLoading;
   @override
   final bool sprintsLoading;
@@ -59,6 +66,9 @@ class _$AppState extends AppState {
       {required this.taskItems,
       required this.sprints,
       required this.taskRecurrences,
+      this.taskListener,
+      this.sprintListener,
+      this.taskRecurrenceListener,
       required this.tasksLoading,
       required this.sprintsLoading,
       required this.taskRecurrencesLoading,
@@ -128,6 +138,9 @@ class _$AppState extends AppState {
         taskItems == other.taskItems &&
         sprints == other.sprints &&
         taskRecurrences == other.taskRecurrences &&
+        taskListener == other.taskListener &&
+        sprintListener == other.sprintListener &&
+        taskRecurrenceListener == other.taskRecurrenceListener &&
         tasksLoading == other.tasksLoading &&
         sprintsLoading == other.sprintsLoading &&
         taskRecurrencesLoading == other.taskRecurrencesLoading &&
@@ -155,6 +168,9 @@ class _$AppState extends AppState {
     _$hash = $jc(_$hash, taskItems.hashCode);
     _$hash = $jc(_$hash, sprints.hashCode);
     _$hash = $jc(_$hash, taskRecurrences.hashCode);
+    _$hash = $jc(_$hash, taskListener.hashCode);
+    _$hash = $jc(_$hash, sprintListener.hashCode);
+    _$hash = $jc(_$hash, taskRecurrenceListener.hashCode);
     _$hash = $jc(_$hash, tasksLoading.hashCode);
     _$hash = $jc(_$hash, sprintsLoading.hashCode);
     _$hash = $jc(_$hash, taskRecurrencesLoading.hashCode);
@@ -184,6 +200,9 @@ class _$AppState extends AppState {
           ..add('taskItems', taskItems)
           ..add('sprints', sprints)
           ..add('taskRecurrences', taskRecurrences)
+          ..add('taskListener', taskListener)
+          ..add('sprintListener', sprintListener)
+          ..add('taskRecurrenceListener', taskRecurrenceListener)
           ..add('tasksLoading', tasksLoading)
           ..add('sprintsLoading', sprintsLoading)
           ..add('taskRecurrencesLoading', taskRecurrencesLoading)
@@ -226,6 +245,31 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _$this._taskRecurrences ??= new ListBuilder<TaskRecurrence>();
   set taskRecurrences(ListBuilder<TaskRecurrence>? taskRecurrences) =>
       _$this._taskRecurrences = taskRecurrences;
+
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _taskListener;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? get taskListener =>
+      _$this._taskListener;
+  set taskListener(
+          StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+              taskListener) =>
+      _$this._taskListener = taskListener;
+
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _sprintListener;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? get sprintListener =>
+      _$this._sprintListener;
+  set sprintListener(
+          StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+              sprintListener) =>
+      _$this._sprintListener = sprintListener;
+
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      _taskRecurrenceListener;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      get taskRecurrenceListener => _$this._taskRecurrenceListener;
+  set taskRecurrenceListener(
+          StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+              taskRecurrenceListener) =>
+      _$this._taskRecurrenceListener = taskRecurrenceListener;
 
   bool? _tasksLoading;
   bool? get tasksLoading => _$this._tasksLoading;
@@ -328,6 +372,9 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _taskItems = $v.taskItems.toBuilder();
       _sprints = $v.sprints.toBuilder();
       _taskRecurrences = $v.taskRecurrences.toBuilder();
+      _taskListener = $v.taskListener;
+      _sprintListener = $v.sprintListener;
+      _taskRecurrenceListener = $v.taskRecurrenceListener;
       _tasksLoading = $v.tasksLoading;
       _sprintsLoading = $v.sprintsLoading;
       _taskRecurrencesLoading = $v.taskRecurrencesLoading;
@@ -374,6 +421,9 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               taskItems: taskItems.build(),
               sprints: sprints.build(),
               taskRecurrences: taskRecurrences.build(),
+              taskListener: taskListener,
+              sprintListener: sprintListener,
+              taskRecurrenceListener: taskRecurrenceListener,
               tasksLoading: BuiltValueNullFieldError.checkNotNull(
                   tasksLoading, r'AppState', 'tasksLoading'),
               sprintsLoading: BuiltValueNullFieldError.checkNotNull(

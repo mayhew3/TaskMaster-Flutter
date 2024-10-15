@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart' hide Builder;
 import 'package:google_sign_in/google_sign_in.dart';
@@ -19,6 +22,10 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   BuiltList<TaskItem> get taskItems;
   BuiltList<Sprint> get sprints;
   BuiltList<TaskRecurrence> get taskRecurrences;
+
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? get taskListener;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? get sprintListener;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? get taskRecurrenceListener;
 
   // task item state
   bool get tasksLoading;

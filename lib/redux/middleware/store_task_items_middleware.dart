@@ -75,45 +75,24 @@ Future<void> Function(
     try {
       // await repository.migrateFromApi(inputs.idToken);
 
-      // var dataPayload = await repository.loadTasksFromFirestore(inputs.personDocId);
+      var sprintListener = repository.createListener<Sprint>(
+          "sprints",
+          inputs.personDocId,
+              (sprints) => store.dispatch(SprintsAddedAction(sprints)),
+          Sprint.serializer);
+      var recurrenceListener = repository.createListener<TaskRecurrence>(
+          "taskRecurrences",
+          inputs.personDocId,
+              (taskRecurrences) => store.dispatch(TaskRecurrencesAddedAction(taskRecurrences)),
+          TaskRecurrence.serializer);
+      var taskListener = repository.createListener<TaskItem>(
+          "tasks",
+          inputs.personDocId,
+              (taskItems) => store.dispatch(TasksAddedAction(taskItems)),
+          TaskItem.serializer);
 
-      var sprintSnapshots = repository.firestore.collection("sprints").where("personDocId", isEqualTo: inputs.personDocId).snapshots();
-      sprintSnapshots.listen((event) {
-        print('Sprint snapshots event!');
-        var addedSprintDocs = event.docChanges.where((dc) => dc.type == DocumentChangeType.added).map((dc) => dc.doc);
-        var addedSprints = addedSprintDocs.map((sprintDoc) {
-          var sprintJson = sprintDoc.data()!;
-          sprintJson['docId'] = sprintDoc.id;
-          return serializers.deserializeWith(Sprint.serializer, sprintJson)!;
-        });
-        store.dispatch(SprintsAddedAction(addedSprints));
-      });
+      store.dispatch(ListenersInitializedAction(taskListener, sprintListener, recurrenceListener));
 
-      var recurrenceSnapshots = repository.firestore.collection("taskRecurrences").where("personDocId", isEqualTo: inputs.personDocId).snapshots();
-      recurrenceSnapshots.listen((event) {
-        print('Task recurrence snapshots event!');
-        var addedTaskRecurrenceDocs = event.docChanges.where((dc) => dc.type == DocumentChangeType.added).map((dc) => dc.doc);
-        var addedTaskRecurrences = addedTaskRecurrenceDocs.map((taskRecurrenceDoc) {
-          var taskRecurrenceJson = taskRecurrenceDoc.data()!;
-          taskRecurrenceJson['docId'] = taskRecurrenceDoc.id;
-          return serializers.deserializeWith(TaskRecurrence.serializer, taskRecurrenceJson)!;
-        });
-        store.dispatch(TaskRecurrencesAddedAction(addedTaskRecurrences));
-      });
-
-      var taskSnapshots = repository.firestore.collection("tasks").where("personDocId", isEqualTo: inputs.personDocId).snapshots();
-      taskSnapshots.listen((event) {
-        print('Task snapshots event!');
-        var addedTaskDocs = event.docChanges.where((dc) => dc.type == DocumentChangeType.added).map((dc) => dc.doc);
-        var addedTasks = addedTaskDocs.map((taskDoc) {
-          var taskJson = taskDoc.data()!;
-          taskJson['docId'] = taskDoc.id;
-          return serializers.deserializeWith(TaskItem.serializer, taskJson)!;
-        });
-        store.dispatch(TasksAddedAction(addedTasks));
-      });
-
-      // store.dispatch(DataLoadedAction(dataPayload: dataPayload));
     } catch (e, stack) {
       print("Error fetching task list: $e");
       print(stack);

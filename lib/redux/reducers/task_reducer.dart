@@ -24,6 +24,15 @@ final taskItemsReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, TaskRecurrencesAddedAction>(onTaskRecurrencesAdded),
 ];
 
+@visibleForTesting
+AppState listenersInitialized(AppState state, ListenersInitializedAction action) {
+  return state.rebuild((s) => s
+    ..taskListener = action.taskListener
+    ..sprintListener = action.sprintListener
+    ..taskRecurrenceListener = action.taskRecurrenceListener
+  );
+}
+
 AppState _taskItemAdded(AppState state, TaskItemAddedAction action) {
   var taskRecurrence = action.taskRecurrence;
   return state.rebuild((s) {
@@ -162,11 +171,20 @@ AppState onTaskRecurrencesAdded(AppState state, TaskRecurrencesAddedAction actio
 }
 
 AppState _onDataNotLoaded(AppState state, dynamic action) {
+  state.taskListener?.cancel();
+  state.sprintListener?.cancel();
+  state.taskRecurrenceListener?.cancel();
   return state.rebuild((s) => s
     ..taskItems = ListBuilder()
     ..sprints = ListBuilder()
     ..taskRecurrences = ListBuilder()
     ..recentlyCompleted = ListBuilder()
+    ..taskListener = null
+    ..sprintListener = null
+    ..taskRecurrenceListener = null
+    ..tasksLoading = true
+    ..sprintsLoading = true
+    ..taskRecurrencesLoading = true
   );
 }
 

@@ -1,9 +1,11 @@
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
 
 import 'package:built_collection/built_collection.dart';
+import 'package:built_value/serializer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:taskmaster/firestore_migrator.dart';
@@ -46,57 +48,19 @@ class TaskRepository {
     firestore.enableNetwork().then((_) => print('Online mode.'));
   }
 
-  Future<DataPayload> loadTasksFromFirestore(String personDocId) async {
-    /*
-    var taskCollection = firestore.collection("tasks");
-    var taskSnapshot = await taskCollection.where("personDocId", isEqualTo: personDocId).get();
-    var taskItemDocs = taskSnapshot.docs;
-*/
-    var sprintCollection = firestore.collection("sprints");
-    var sprintSnapshot = await sprintCollection.where("personDocId", isEqualTo: personDocId).get();
-    var sprintDocs = sprintSnapshot.docs;
-
-    var recurrenceCollection = firestore.collection("taskRecurrences");
-    var recurrenceSnapshot = await recurrenceCollection.where("personDocId", isEqualTo: personDocId).get();
-    var recurrenceDocs = recurrenceSnapshot.docs;
-
-    List<Sprint> sprints = sprintDocs.map((sprintDoc) {
-      var sprintJson = sprintDoc.data();
-      sprintJson['docId'] = sprintDoc.id;
-      return serializers.deserializeWith(Sprint.serializer, sprintJson)!;
-    }).toList();
-
-    List<TaskRecurrence> taskRecurrences = recurrenceDocs.map((recurrenceDoc) {
-      var recurrenceJson = recurrenceDoc.data();
-      recurrenceJson['docId'] = recurrenceDoc.id;
-      return serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson)!;
-    }).toList();
-
-/*
-
-
-   // TEMP FIX CODE
-
-
-    for (var taskDoc in taskItemDocs) {
-      var taskJson = taskDoc.data();
-      if (taskJson['offCycle'] == null) {
-        await taskDoc.reference.delete();
-      }
-    }
-    recurrenceSnapshot = await recurrenceCollection.where("personDocId", isEqualTo: personDocId).get();
-    recurrenceDocs = recurrenceSnapshot.docs;
-*/
-/*
-
-    List<TaskItem> taskItems = taskItemDocs.map((taskDoc) {
-      var taskJson = taskDoc.data();
-      taskJson['docId'] = taskDoc.id;
-      return serializers.deserializeWith(TaskItem.serializer, taskJson)!;
-    }).toList();
-*/
-
-    return DataPayload(taskItems: [], sprints: sprints, taskRecurrences: taskRecurrences);
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>> createListener<T>(String collectionName, String personDocId, Function(Iterable<T>) actionCallback, Serializer<T> serializer) {
+    var snapshots = firestore.collection(collectionName).where("personDocId", isEqualTo: personDocId).snapshots();
+    var listener = snapshots.listen((event) {
+      print('$collectionName snapshots event!');
+      var docs = event.docChanges.where((dc) => dc.type == DocumentChangeType.added).map((dc) => dc.doc);
+      var addedTs = docs.map((doc) {
+        var json = doc.data()!;
+        json['docId'] = doc.id;
+        return serializers.deserializeWith(serializer, json)!;
+      });
+      actionCallback(addedTs);
+    });
+    return listener;
   }
 
   Future<({TaskItem taskItem, TaskRecurrence? recurrence})> addTask(TaskItemBlueprint blueprint, String idToken) async {
