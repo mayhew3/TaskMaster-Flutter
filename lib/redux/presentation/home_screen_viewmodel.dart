@@ -2,8 +2,11 @@
 
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
+import 'package:taskmaster/timezone_helper.dart';
 
 import '../../models/sprint.dart';
 import '../../models/task_item.dart';
@@ -24,7 +27,16 @@ abstract class HomeScreenViewModel implements Built<HomeScreenViewModel, HomeScr
   bool get sprintsLoading;
   bool get taskRecurrencesLoading;
 
+  GoogleSignInAccount? get currentUser;
+  UserCredential? get firebaseUser;
+  String? get personDocId;
+  TimezoneHelper get timezoneHelper;
+
   HomeScreenViewModel._();
+
+  bool appIsReady() {
+    return currentUser != null && firebaseUser?.user != null && personDocId != null && timezoneHelper.timezoneInitialized;
+  }
 
   bool isLoading() {
     return tasksLoading || sprintsLoading || taskRecurrencesLoading;
@@ -41,6 +53,10 @@ abstract class HomeScreenViewModel implements Built<HomeScreenViewModel, HomeScr
       ..tasksLoading = store.state.tasksLoading
       ..sprintsLoading = store.state.sprintsLoading
       ..taskRecurrencesLoading = store.state.taskRecurrencesLoading
+      ..currentUser = store.state.currentUser
+      ..personDocId = store.state.personDocId
+      ..timezoneHelper = store.state.timezoneHelper
+      ..firebaseUser = store.state.firebaseUser
     );
   }
 }

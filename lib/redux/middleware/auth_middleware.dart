@@ -18,8 +18,6 @@ List<Middleware<AppState>> createAuthenticationMiddleware(
     TypedMiddleware<AppState, LogInAction>(_manualLogin(navigatorKey)),
     TypedMiddleware<AppState, LogOutAction>(_manualLogout(navigatorKey)),
     TypedMiddleware<AppState, InitTimezoneHelperAction>(_initTimezoneHelper(navigatorKey)),
-    // TypedMiddleware<AppState, OnPersonVerifiedAction>(_onPersonVerified(navigatorKey)),
-    TypedMiddleware<AppState, OnPersonVerifiedFirestoreAction>(_onPersonVerifiedFirestore(navigatorKey)),
     TypedMiddleware<AppState, OnPersonRejectedAction>(_onPersonRejected(navigatorKey)),
   ];
 }
@@ -34,7 +32,7 @@ void Function(
     next(action);
     try {
       await store.state.googleSignIn.signIn();
-      await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.splash);
+      await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.home);
     } catch (error) {
       store.dispatch(OnLoginFailAction(error));
     }
@@ -67,11 +65,6 @@ void Function(
     print("_initTimezoneHelper!");
     next(action);
     await store.state.timezoneHelper.configureLocalTimeZone();
-    if (store.state.appIsReady()) {
-      store.dispatch(LoadDataAction());
-      await navigatorKey.currentState!.pushReplacementNamed(
-          TaskMasterRoutes.home);
-    }
   };
 }
 
@@ -94,9 +87,6 @@ void Function(
     ) _tryToSilentlySignIn(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {
     next(action);
-    // await Firebase.initializeApp(
-    //   options: DefaultFirebaseOptions.currentPlatform
-    // );
     print("_tryToSilentlySignIn called.");
     store.state.googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) async {
       print("onCurrentUserChanged.");
@@ -123,51 +113,11 @@ void Function(
 
         store.dispatch(OnAuthenticatedAction(account, firebaseUser, idToken));
         store.dispatch(VerifyPersonAction(account.email));
-        if (store.state.appIsReady()) {
-          store.dispatch(LoadDataAction());
-          await navigatorKey.currentState!.pushReplacementNamed(
-              TaskMasterRoutes.home);
-        }
       }
     });
     var account = await store.state.googleSignIn.signInSilently();
     if (account == null) {
       await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.login);
-    }
-  };
-}
-
-/*
-
-void Function(
-    Store<AppState> store,
-    OnPersonVerifiedAction action,
-    NextDispatcher next,
-    ) _onPersonVerified(GlobalKey<NavigatorState> navigatorKey,) {
-  return (store, action, next) async {
-    next(action);
-
-    if (store.state.appIsReady()) {
-      store.dispatch(LoadDataAction());
-      await navigatorKey.currentState!.pushReplacementNamed(
-          TaskMasterRoutes.loading);
-    }
-  };
-}
-*/
-
-void Function(
-    Store<AppState> store,
-    OnPersonVerifiedFirestoreAction action,
-    NextDispatcher next,
-    ) _onPersonVerifiedFirestore(GlobalKey<NavigatorState> navigatorKey,) {
-  return (store, action, next) async {
-    next(action);
-
-    if (store.state.appIsReady()) {
-      store.dispatch(LoadDataAction());
-      await navigatorKey.currentState!.pushReplacementNamed(
-          TaskMasterRoutes.home);
     }
   };
 }

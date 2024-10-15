@@ -148,7 +148,7 @@ void main() {
 
     await loadData(taskRepository, mockGlobalKey)(store, LoadDataAction(), (_) => {});;
     verify(mockGlobalKey.currentState);
-    verify(mockNavigatorState.pushReplacementNamed(TaskMasterRoutes.loading));
+    verify(mockNavigatorState.pushReplacementNamed(TaskMasterRoutes.home));
     verify(appState.personId);
     verify(appState.getIdToken());
     verify(taskRepository.loadTasks(personId, idToken));

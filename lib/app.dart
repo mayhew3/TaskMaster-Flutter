@@ -87,27 +87,19 @@ class TaskMasterAppState extends State<TaskMasterApp> {
         title: "TaskMaster 3000",
         navigatorKey: _navigatorKey,
         theme: taskMasterTheme,
-        initialRoute: TaskMasterRoutes.splash,
+        initialRoute: TaskMasterRoutes.home,
         routes: <String, WidgetBuilder>{
-          TaskMasterRoutes.splash: (context) {
-            return SplashScreen(message: "Signing in...");
-          },
           TaskMasterRoutes.logout: (context) {
             return SplashScreen(message: "Signing out...");
           },
           TaskMasterRoutes.login: (context) {
             return SignInScreen();
           },
-          TaskMasterRoutes.loading: (context) {
-            return LoadingIndicator();
-          },
           TaskMasterRoutes.loadFailed: (context) {
             return LoadFailedScreen();
           },
           TaskMasterRoutes.home: (context) {
-            return HomeScreen(
-              onInit: () {},
-            );
+            return HomeScreen();
           },
         },
       ),

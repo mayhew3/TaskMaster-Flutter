@@ -21,6 +21,14 @@ class _$HomeScreenViewModel extends HomeScreenViewModel {
   final bool sprintsLoading;
   @override
   final bool taskRecurrencesLoading;
+  @override
+  final GoogleSignInAccount? currentUser;
+  @override
+  final UserCredential? firebaseUser;
+  @override
+  final String? personDocId;
+  @override
+  final TimezoneHelper timezoneHelper;
 
   factory _$HomeScreenViewModel(
           [void Function(HomeScreenViewModelBuilder)? updates]) =>
@@ -33,7 +41,11 @@ class _$HomeScreenViewModel extends HomeScreenViewModel {
       required this.taskRecurrences,
       required this.tasksLoading,
       required this.sprintsLoading,
-      required this.taskRecurrencesLoading})
+      required this.taskRecurrencesLoading,
+      this.currentUser,
+      this.firebaseUser,
+      this.personDocId,
+      required this.timezoneHelper})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(
         activeTab, r'HomeScreenViewModel', 'activeTab');
@@ -49,6 +61,8 @@ class _$HomeScreenViewModel extends HomeScreenViewModel {
         sprintsLoading, r'HomeScreenViewModel', 'sprintsLoading');
     BuiltValueNullFieldError.checkNotNull(taskRecurrencesLoading,
         r'HomeScreenViewModel', 'taskRecurrencesLoading');
+    BuiltValueNullFieldError.checkNotNull(
+        timezoneHelper, r'HomeScreenViewModel', 'timezoneHelper');
   }
 
   @override
@@ -70,7 +84,11 @@ class _$HomeScreenViewModel extends HomeScreenViewModel {
         taskRecurrences == other.taskRecurrences &&
         tasksLoading == other.tasksLoading &&
         sprintsLoading == other.sprintsLoading &&
-        taskRecurrencesLoading == other.taskRecurrencesLoading;
+        taskRecurrencesLoading == other.taskRecurrencesLoading &&
+        currentUser == other.currentUser &&
+        firebaseUser == other.firebaseUser &&
+        personDocId == other.personDocId &&
+        timezoneHelper == other.timezoneHelper;
   }
 
   @override
@@ -83,6 +101,10 @@ class _$HomeScreenViewModel extends HomeScreenViewModel {
     _$hash = $jc(_$hash, tasksLoading.hashCode);
     _$hash = $jc(_$hash, sprintsLoading.hashCode);
     _$hash = $jc(_$hash, taskRecurrencesLoading.hashCode);
+    _$hash = $jc(_$hash, currentUser.hashCode);
+    _$hash = $jc(_$hash, firebaseUser.hashCode);
+    _$hash = $jc(_$hash, personDocId.hashCode);
+    _$hash = $jc(_$hash, timezoneHelper.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -96,7 +118,11 @@ class _$HomeScreenViewModel extends HomeScreenViewModel {
           ..add('taskRecurrences', taskRecurrences)
           ..add('tasksLoading', tasksLoading)
           ..add('sprintsLoading', sprintsLoading)
-          ..add('taskRecurrencesLoading', taskRecurrencesLoading))
+          ..add('taskRecurrencesLoading', taskRecurrencesLoading)
+          ..add('currentUser', currentUser)
+          ..add('firebaseUser', firebaseUser)
+          ..add('personDocId', personDocId)
+          ..add('timezoneHelper', timezoneHelper))
         .toString();
   }
 }
@@ -141,6 +167,25 @@ class HomeScreenViewModelBuilder
   set taskRecurrencesLoading(bool? taskRecurrencesLoading) =>
       _$this._taskRecurrencesLoading = taskRecurrencesLoading;
 
+  GoogleSignInAccount? _currentUser;
+  GoogleSignInAccount? get currentUser => _$this._currentUser;
+  set currentUser(GoogleSignInAccount? currentUser) =>
+      _$this._currentUser = currentUser;
+
+  UserCredential? _firebaseUser;
+  UserCredential? get firebaseUser => _$this._firebaseUser;
+  set firebaseUser(UserCredential? firebaseUser) =>
+      _$this._firebaseUser = firebaseUser;
+
+  String? _personDocId;
+  String? get personDocId => _$this._personDocId;
+  set personDocId(String? personDocId) => _$this._personDocId = personDocId;
+
+  TimezoneHelper? _timezoneHelper;
+  TimezoneHelper? get timezoneHelper => _$this._timezoneHelper;
+  set timezoneHelper(TimezoneHelper? timezoneHelper) =>
+      _$this._timezoneHelper = timezoneHelper;
+
   HomeScreenViewModelBuilder();
 
   HomeScreenViewModelBuilder get _$this {
@@ -153,6 +198,10 @@ class HomeScreenViewModelBuilder
       _tasksLoading = $v.tasksLoading;
       _sprintsLoading = $v.sprintsLoading;
       _taskRecurrencesLoading = $v.taskRecurrencesLoading;
+      _currentUser = $v.currentUser;
+      _firebaseUser = $v.firebaseUser;
+      _personDocId = $v.personDocId;
+      _timezoneHelper = $v.timezoneHelper;
       _$v = null;
     }
     return this;
@@ -188,7 +237,12 @@ class HomeScreenViewModelBuilder
               taskRecurrencesLoading: BuiltValueNullFieldError.checkNotNull(
                   taskRecurrencesLoading,
                   r'HomeScreenViewModel',
-                  'taskRecurrencesLoading'));
+                  'taskRecurrencesLoading'),
+              currentUser: currentUser,
+              firebaseUser: firebaseUser,
+              personDocId: personDocId,
+              timezoneHelper: BuiltValueNullFieldError.checkNotNull(
+                  timezoneHelper, r'HomeScreenViewModel', 'timezoneHelper'));
     } catch (_) {
       late String _$failedField;
       try {

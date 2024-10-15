@@ -70,7 +70,6 @@ Future<void> Function(
     ) loadData(TaskRepository repository, GlobalKey<NavigatorState> navigatorKey) {
   return (Store<AppState> store, LoadDataAction action, NextDispatcher next) async {
     next(action);
-    navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.home);
     var inputs = await getRequiredInputs(store, "load tasks");
     print("Fetching tasks for person_id ${inputs.personDocId}...");
     try {
