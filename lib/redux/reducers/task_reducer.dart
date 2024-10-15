@@ -130,7 +130,9 @@ AppState _onDataLoaded(AppState state, DataLoadedAction action) {
 AppState onTaskItemsAdded(AppState state, TasksAddedAction action) {
   var recurrences = state.taskRecurrences;
 
-  var withRecurrences = action.addedItems.map((taskItem) => taskItem.rebuild((t) => t
+  var nonExistingItems = action.addedItems.where((t) => !state.taskItems.map((ti) => ti.docId).contains(t.docId));
+
+  var withRecurrences = nonExistingItems.map((taskItem) => taskItem.rebuild((t) => t
     ..recurrence = recurrences.where((r) => r.docId == t.recurrenceDocId).singleOrNull?.toBuilder()
   ));
 
