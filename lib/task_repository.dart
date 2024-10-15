@@ -63,7 +63,9 @@ class TaskRepository {
       return serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson)!;
     }).toList();
 
-    /* TEMP FIX CODE */
+/*
+
+     // TEMP FIX CODE
 
     for (var taskDoc in taskItemDocs) {
       var taskJson = taskDoc.data();
@@ -73,6 +75,7 @@ class TaskRepository {
     }
     recurrenceSnapshot = await recurrenceCollection.where("personDocId", isEqualTo: personDocId).get();
     recurrenceDocs = recurrenceSnapshot.docs;
+*/
 
     List<TaskItem> taskItems = taskItemDocs.map((taskDoc) {
       var taskJson = taskDoc.data();
