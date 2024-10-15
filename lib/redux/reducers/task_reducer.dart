@@ -171,6 +171,7 @@ AppState onTaskRecurrencesAdded(AppState state, TaskRecurrencesAddedAction actio
 }
 
 AppState _onDataNotLoaded(AppState state, dynamic action) {
+  print("Removing data and listeners.");
   state.taskListener?.cancel();
   state.sprintListener?.cancel();
   state.taskRecurrenceListener?.cancel();

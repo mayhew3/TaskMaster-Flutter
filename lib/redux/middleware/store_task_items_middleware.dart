@@ -41,6 +41,9 @@ Future<void> Function(
   return (Store<AppState> store, VerifyPersonAction action, NextDispatcher next) async {
     next(action);
 
+    await repository.migrateFromApi();
+    print("Migration complete!");
+
     var email = store.state.currentUser!.email;
     print("Verify person account for " + email + "...");
 
@@ -71,7 +74,8 @@ Future<void> Function(
     var inputs = await getRequiredInputs(store, "load tasks");
     print("Fetching tasks for person_id ${inputs.personDocId}...");
     try {
-      // await repository.migrateFromApi(inputs.idToken);
+
+      print("Initializing data listeners...");
 
       var sprintListener = repository.createListener<Sprint>(
           "sprints",

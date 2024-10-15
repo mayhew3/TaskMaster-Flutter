@@ -281,13 +281,27 @@ class TaskRepository {
     }
   }
 
-  Future<void> migrateFromApi(String idToken) async {
-    var jsonObj = await this.executeGetApiAction(
-        uriString: '/api/allTasks',
-        idToken: idToken,
-        operationDescription: "load tasks for migration");
+  Future<void> migrateFromApi() async {
+    var uri = getUri("/api/allTasks");
 
-    await new FirestoreMigrator(client: client, firestore: firestore, jsonObj: jsonObj).migrateFromApi(idToken);
+    final response = await this.client.get(uri,
+      headers: {HttpHeaders.contentTypeHeader: 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      try {
+        var jsonObj = json.decode(response.body);
+        await new FirestoreMigrator(client: client, firestore: firestore, jsonObj: jsonObj).migrateFromApi();
+      } catch(exception, stackTrace) {
+        print(exception);
+        print(stackTrace);
+        throw Exception('Error migration from the server. Talk to Mayhew.');
+      }
+    } else {
+      throw Exception('Failed to migration. Talk to Mayhew.');
+    }
+
+
   }
 
   Future<dynamic> executeBodyApiAction({

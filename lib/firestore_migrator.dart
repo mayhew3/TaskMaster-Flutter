@@ -1,3 +1,4 @@
+import 'package:built_collection/built_collection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 
@@ -12,11 +13,11 @@ class FirestoreMigrator {
     required this.jsonObj,
   });
 
-  Future<void> migrateFromApi(String idToken) async {
-    var persons = await syncPersons(false);
-    var recurrences = await syncRecurrences(persons, false);
-    var sprints = await syncSprints(persons, false);
-    var tasks = await syncTasks(recurrences, sprints, persons, false);
+  Future<void> migrateFromApi() async {
+    var persons = await syncPersons(true);
+    var recurrences = await syncRecurrences(persons, true);
+    var sprints = await syncSprints(persons, true);
+    var tasks = await syncTasks(recurrences, sprints, persons, true);
     await syncSnoozes(tasks, true);
   }
 
@@ -30,6 +31,7 @@ class FirestoreMigrator {
     var querySnapshot = await taskCollection.get();
 
     if (dropFirst) {
+      print("Dropping collection tasks...");
       for (var document in querySnapshot.docs) {
         var assignments = await document.reference.collection(
             "sprintAssignments").get();
@@ -39,6 +41,7 @@ class FirestoreMigrator {
         await document.reference.delete();
       }
       querySnapshot = await taskCollection.get();
+      print("Dropped.");
     }
 
     List<DocumentSnapshot<Map<String, dynamic>>> taskRefs = [];
@@ -81,6 +84,8 @@ class FirestoreMigrator {
       print('Processed task $currIndex/$taskCount} ($percent%).');
     }
 
+    print("Finished processing tasks.");
+
     return taskRefs;
   }
 
@@ -117,6 +122,7 @@ class FirestoreMigrator {
       print('Processed sprint $currIndex/$sprintCount} ($percent%).');
     }
 
+    print("Finished processing sprints.");
     return sprintRefs;
   }
 
@@ -156,7 +162,21 @@ class FirestoreMigrator {
       print('Processed sprint $currIndex/$snoozeCount} ($percent%).');
     }
 
+    print("Finished processing snoozes.");
     return snoozeRefs;
+  }
+  
+  dynamic maybeConvertDate(MapEntry<String, dynamic> jsonValue) {
+    var value = jsonValue.value;
+    if (!(value is String)) {
+      return jsonValue;
+    }
+    try {
+      var parsed = DateTime.parse(value).toUtc();
+      return MapEntry<String, dynamic>(jsonValue.key, parsed);
+    } catch (e) {
+      return jsonValue;
+    }
   }
 
   Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncPersons(bool dropFirst,) async {
@@ -169,8 +189,18 @@ class FirestoreMigrator {
 
     List<DocumentSnapshot<Map<String, dynamic>>> personRefs = [];
 
-    var personObjs = jsonObj['persons'] as List<dynamic>;
-    var personCount = personObjs.length;
+    var personJsons = jsonObj['persons'] as List;
+    var destinationList = ListBuilder<Map<String, dynamic>>();
+    for (var personJson in personJsons) {
+      var destinationMap = new Map<String, dynamic>();
+      for (var entry in personJson.entries) {
+        var addedEntry = maybeConvertDate(entry);
+        destinationMap.addEntries([addedEntry]);
+      }
+      destinationList.add(destinationMap);
+    }
+    var personObjs = destinationList.build();
+    var personCount = destinationList.length;
     var currIndex = 0;
     var added = 0;
     for (var personObj in personObjs) {
@@ -189,6 +219,7 @@ class FirestoreMigrator {
       print('Processed person $currIndex/$personCount} ($percent%).');
     }
 
+    print("Finished processing persons.");
     return personRefs;
   }
 
@@ -223,15 +254,18 @@ class FirestoreMigrator {
       print('Processed recurrence $currIndex/$recurrenceCount} ($percent%).');
     }
 
+    print("Finished processing recurrences.");
     return recurrenceRefs;
   }
 
   Future<QuerySnapshot<Map<String, dynamic>>> dropTable(
       QuerySnapshot<Map<String, dynamic>> querySnapshot,
       CollectionReference<Map<String, dynamic>> collectionReference) async {
+    print("Dropping table ${collectionReference.path}...");
     for (var document in querySnapshot.docs) {
       await document.reference.delete();
     }
+    print("Dropped.");
     return await collectionReference.get();
   }
 

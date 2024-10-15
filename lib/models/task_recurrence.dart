@@ -16,6 +16,8 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
   int get id;
   String? get docId;
 
+  DateTime get dateAdded;
+
   String get personDocId;
 
   String get name;
