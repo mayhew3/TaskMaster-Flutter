@@ -41,8 +41,8 @@ Future<void> Function(
   return (Store<AppState> store, VerifyPersonAction action, NextDispatcher next) async {
     next(action);
 
-    await repository.migrateFromApi();
-    print("Migration complete!");
+    // await repository.migrateFromApi();
+    // print("Migration complete!");
 
     var email = store.state.currentUser!.email;
     print("Verify person account for " + email + "...");
