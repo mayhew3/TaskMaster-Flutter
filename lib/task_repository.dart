@@ -52,12 +52,21 @@ class TaskRepository {
     var listener = snapshots.listen((event) {
       print('$collectionName snapshots event!');
       var docs = event.docChanges.where((dc) => dc.type == DocumentChangeType.added).map((dc) => dc.doc);
-      var addedTs = docs.map((doc) {
+      List<T> finalList = [];
+      for (var doc in docs) {
         var json = doc.data()!;
-        json['docId'] = doc.id;
-        return serializers.deserializeWith(serializer, json)!;
-      });
-      actionCallback(addedTs);
+
+        // tmp fix code
+        if (json['recurrenceId'] != null && json['recurrenceId'] is String) {
+          print("WARNING: Found recurrenceId with invalid String value, task docId: ${doc.id}");
+          doc.reference.delete();
+        } else {
+          json['docId'] = doc.id;
+          var deserialized = serializers.deserializeWith(serializer, json)!;
+          finalList.add(deserialized);
+        }
+      }
+      actionCallback(finalList);
     });
     return listener;
   }
@@ -71,8 +80,9 @@ class TaskRepository {
       var recurrenceDoc = firestore.collection("taskRecurrences").doc();
       var recurrenceId = recurrenceDoc.id;
       var recurrenceJson = recurrenceBlueprint.toJson();
+      recurrenceJson['dateAdded'] = DateTime.now().toUtc().toString();
       recurrenceDoc.set(recurrenceJson);
-      blueprintJson['recurrenceId'] = recurrenceDoc.id;
+      blueprintJson['recurrenceDocId'] = recurrenceDoc.id;
       blueprintJson.remove('recurrenceBlueprint');
       recurrenceJson['docId'] = recurrenceId;
       addedRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson);
@@ -169,7 +179,7 @@ class TaskRepository {
     var list = taskItemRecurPreviews.map((t) => serializers.serializeWith(TaskItemRecurPreview.serializer, t)).toList();
 
     Map<String, Object> payload = {
-      'sprint_id': sprint.id,
+      'sprint_id': sprint.id!,
       'task_ids': taskItems.map((t) => t.docId).toList(),
       'taskItems': list
     };

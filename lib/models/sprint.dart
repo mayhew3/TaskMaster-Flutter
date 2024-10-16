@@ -11,8 +11,8 @@ abstract class Sprint implements Built<Sprint, SprintBuilder> {
   @BuiltValueSerializer(serializeNulls: true)
   static Serializer<Sprint> get serializer => _$sprintSerializer;
 
-  int get id;
-  String? get docId;
+  int? get id;
+  String get docId;
 
   DateTime get dateAdded;
 

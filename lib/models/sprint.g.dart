@@ -18,8 +18,9 @@ class _$SprintSerializer implements StructuredSerializer<Sprint> {
   Iterable<Object?> serialize(Serializers serializers, Sprint object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object?>[
-      'id',
-      serializers.serialize(object.id, specifiedType: const FullType(int)),
+      'docId',
+      serializers.serialize(object.docId,
+          specifiedType: const FullType(String)),
       'dateAdded',
       serializers.serialize(object.dateAdded,
           specifiedType: const FullType(DateTime)),
@@ -40,12 +41,11 @@ class _$SprintSerializer implements StructuredSerializer<Sprint> {
           specifiedType: const FullType(String)),
     ];
     Object? value;
-    value = object.docId;
+    value = object.id;
 
     result
-      ..add('docId')
-      ..add(
-          serializers.serialize(value, specifiedType: const FullType(String)));
+      ..add('id')
+      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
     value = object.closeDate;
 
     result
@@ -74,11 +74,11 @@ class _$SprintSerializer implements StructuredSerializer<Sprint> {
       switch (key) {
         case 'id':
           result.id = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
+              specifiedType: const FullType(int)) as int?;
           break;
         case 'docId':
           result.docId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+              specifiedType: const FullType(String))! as String;
           break;
         case 'dateAdded':
           result.dateAdded = serializers.deserialize(value,
@@ -121,9 +121,9 @@ class _$SprintSerializer implements StructuredSerializer<Sprint> {
 
 class _$Sprint extends Sprint {
   @override
-  final int id;
+  final int? id;
   @override
-  final String? docId;
+  final String docId;
   @override
   final DateTime dateAdded;
   @override
@@ -145,8 +145,8 @@ class _$Sprint extends Sprint {
       (new SprintBuilder()..update(updates))._build();
 
   _$Sprint._(
-      {required this.id,
-      this.docId,
+      {this.id,
+      required this.docId,
       required this.dateAdded,
       required this.startDate,
       required this.endDate,
@@ -156,7 +156,7 @@ class _$Sprint extends Sprint {
       required this.personDocId,
       this.sprintNumber})
       : super._() {
-    BuiltValueNullFieldError.checkNotNull(id, r'Sprint', 'id');
+    BuiltValueNullFieldError.checkNotNull(docId, r'Sprint', 'docId');
     BuiltValueNullFieldError.checkNotNull(dateAdded, r'Sprint', 'dateAdded');
     BuiltValueNullFieldError.checkNotNull(startDate, r'Sprint', 'startDate');
     BuiltValueNullFieldError.checkNotNull(endDate, r'Sprint', 'endDate');
@@ -303,8 +303,9 @@ class SprintBuilder implements Builder<Sprint, SprintBuilder> {
   _$Sprint _build() {
     final _$result = _$v ??
         new _$Sprint._(
-            id: BuiltValueNullFieldError.checkNotNull(id, r'Sprint', 'id'),
-            docId: docId,
+            id: id,
+            docId: BuiltValueNullFieldError.checkNotNull(
+                docId, r'Sprint', 'docId'),
             dateAdded: BuiltValueNullFieldError.checkNotNull(
                 dateAdded, r'Sprint', 'dateAdded'),
             startDate: BuiltValueNullFieldError.checkNotNull(

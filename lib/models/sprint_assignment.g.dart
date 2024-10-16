@@ -20,33 +20,32 @@ class _$SprintAssignmentSerializer
   Iterable<Object?> serialize(Serializers serializers, SprintAssignment object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object?>[
-      'id',
-      serializers.serialize(object.id, specifiedType: const FullType(int)),
-      'taskId',
-      serializers.serialize(object.taskId, specifiedType: const FullType(int)),
-      'sprintId',
-      serializers.serialize(object.sprintId,
-          specifiedType: const FullType(int)),
+      'docId',
+      serializers.serialize(object.docId,
+          specifiedType: const FullType(String)),
+      'taskDocId',
+      serializers.serialize(object.taskDocId,
+          specifiedType: const FullType(String)),
+      'sprintDocId',
+      serializers.serialize(object.sprintDocId,
+          specifiedType: const FullType(String)),
     ];
     Object? value;
-    value = object.docId;
+    value = object.id;
 
     result
-      ..add('docId')
-      ..add(
-          serializers.serialize(value, specifiedType: const FullType(String)));
-    value = object.taskDocId;
+      ..add('id')
+      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
+    value = object.taskId;
 
     result
-      ..add('taskDocId')
-      ..add(
-          serializers.serialize(value, specifiedType: const FullType(String)));
-    value = object.sprintDocId;
+      ..add('taskId')
+      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
+    value = object.sprintId;
 
     result
-      ..add('sprintDocId')
-      ..add(
-          serializers.serialize(value, specifiedType: const FullType(String)));
+      ..add('sprintId')
+      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
 
     return result;
   }
@@ -65,27 +64,27 @@ class _$SprintAssignmentSerializer
       switch (key) {
         case 'id':
           result.id = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
+              specifiedType: const FullType(int)) as int?;
           break;
         case 'docId':
           result.docId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+              specifiedType: const FullType(String))! as String;
           break;
         case 'taskId':
           result.taskId = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
+              specifiedType: const FullType(int)) as int?;
           break;
         case 'taskDocId':
           result.taskDocId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+              specifiedType: const FullType(String))! as String;
           break;
         case 'sprintId':
           result.sprintId = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
+              specifiedType: const FullType(int)) as int?;
           break;
         case 'sprintDocId':
           result.sprintDocId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+              specifiedType: const FullType(String))! as String;
           break;
       }
     }
@@ -96,35 +95,35 @@ class _$SprintAssignmentSerializer
 
 class _$SprintAssignment extends SprintAssignment {
   @override
-  final int id;
+  final int? id;
   @override
-  final String? docId;
+  final String docId;
   @override
-  final int taskId;
+  final int? taskId;
   @override
-  final String? taskDocId;
+  final String taskDocId;
   @override
-  final int sprintId;
+  final int? sprintId;
   @override
-  final String? sprintDocId;
+  final String sprintDocId;
 
   factory _$SprintAssignment(
           [void Function(SprintAssignmentBuilder)? updates]) =>
       (new SprintAssignmentBuilder()..update(updates))._build();
 
   _$SprintAssignment._(
-      {required this.id,
-      this.docId,
-      required this.taskId,
-      this.taskDocId,
-      required this.sprintId,
-      this.sprintDocId})
+      {this.id,
+      required this.docId,
+      this.taskId,
+      required this.taskDocId,
+      this.sprintId,
+      required this.sprintDocId})
       : super._() {
-    BuiltValueNullFieldError.checkNotNull(id, r'SprintAssignment', 'id');
+    BuiltValueNullFieldError.checkNotNull(docId, r'SprintAssignment', 'docId');
     BuiltValueNullFieldError.checkNotNull(
-        taskId, r'SprintAssignment', 'taskId');
+        taskDocId, r'SprintAssignment', 'taskDocId');
     BuiltValueNullFieldError.checkNotNull(
-        sprintId, r'SprintAssignment', 'sprintId');
+        sprintDocId, r'SprintAssignment', 'sprintDocId');
   }
 
   @override
@@ -234,15 +233,15 @@ class SprintAssignmentBuilder
   _$SprintAssignment _build() {
     final _$result = _$v ??
         new _$SprintAssignment._(
-            id: BuiltValueNullFieldError.checkNotNull(
-                id, r'SprintAssignment', 'id'),
-            docId: docId,
-            taskId: BuiltValueNullFieldError.checkNotNull(
-                taskId, r'SprintAssignment', 'taskId'),
-            taskDocId: taskDocId,
-            sprintId: BuiltValueNullFieldError.checkNotNull(
-                sprintId, r'SprintAssignment', 'sprintId'),
-            sprintDocId: sprintDocId);
+            id: id,
+            docId: BuiltValueNullFieldError.checkNotNull(
+                docId, r'SprintAssignment', 'docId'),
+            taskId: taskId,
+            taskDocId: BuiltValueNullFieldError.checkNotNull(
+                taskDocId, r'SprintAssignment', 'taskDocId'),
+            sprintId: sprintId,
+            sprintDocId: BuiltValueNullFieldError.checkNotNull(
+                sprintDocId, r'SprintAssignment', 'sprintDocId'));
     replace(_$result);
     return _$result;
   }

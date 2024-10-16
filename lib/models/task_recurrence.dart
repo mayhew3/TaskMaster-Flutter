@@ -13,8 +13,8 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
   @BuiltValueSerializer(serializeNulls: true)
   static Serializer<TaskRecurrence> get serializer => _$taskRecurrenceSerializer;
 
-  int get id;
-  String? get docId;
+  int? get id;
+  String get docId;
 
   DateTime get dateAdded;
 

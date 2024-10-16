@@ -56,7 +56,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
         middleware: createStoreTaskItemsMiddleware(taskRepository, _navigatorKey)
           ..addAll(createAuthenticationMiddleware(_navigatorKey))
           ..addAll(createStoreSprintsMiddleware(taskRepository))
-          ..add(new LoggingMiddleware.printer())
+          // ..add(new LoggingMiddleware.printer())
     );
     maybeKickOffSignIn();
     configureTimezoneHelper();
