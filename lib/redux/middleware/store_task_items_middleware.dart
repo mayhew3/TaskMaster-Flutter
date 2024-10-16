@@ -291,7 +291,7 @@ bool hasNextIterationAlready(TaskItem taskItem, BuiltList<TaskItem> allTaskItems
   var recurIteration = taskItem.recurIteration!;
 
   Iterable<TaskItem> nextInLine = allTaskItems.where((TaskItem ti) =>
-          ti.recurrenceId == taskItem.recurrenceId &&
+          ti.recurrenceDocId == taskItem.recurrenceDocId &&
           ti.recurIteration! > recurIteration);
 
   return nextInLine.isNotEmpty;

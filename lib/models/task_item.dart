@@ -96,6 +96,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
     blueprint.recurUnit = recurUnit;
     blueprint.recurWait = recurWait;
     blueprint.recurrenceId = recurrenceId;
+    blueprint.recurrenceDocId = recurrenceDocId;
     blueprint.recurIteration = recurIteration;
 
     // blueprint.taskRecurrenceBlueprint = TaskRecurrenceBlueprint();
@@ -132,6 +133,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
       ..recurUnit = recurUnit
       ..recurWait = recurWait
       ..recurrenceId = recurrenceId
+      ..recurrenceDocId = recurrenceDocId
       ..recurIteration = this.recurIteration! + 1
       ..recurrence = recurrence!.toBuilder()
       ..offCycle = offCycle
@@ -157,7 +159,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
           other.recurNumber != recurNumber ||
           other.recurUnit != recurUnit ||
           other.recurWait != recurWait ||
-          other.recurrenceId != recurrenceId ||
+          other.recurrenceDocId != recurrenceDocId ||
           other.recurIteration != recurIteration ||
           (recurrence == null ? other.recurrence != null : recurrence!.hasChanges(other.recurrence));
   }
@@ -181,7 +183,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
           other.recurNumber != recurNumber ||
           other.recurUnit != recurUnit ||
           other.recurWait != recurWait ||
-          other.recurrenceId != recurrenceId ||
+          other.recurrenceDocId != recurrenceDocId ||
           other.recurIteration != recurIteration ||
           (recurrence == null ? other.recurrenceBlueprint != null : recurrence!.hasChangesBlueprint(other.recurrenceBlueprint));
   }

@@ -38,6 +38,7 @@ class TaskItemBlueprint with DateHolder {
   bool? recurWait;
 
   int? recurrenceId;
+  String? recurrenceDocId;
   int? recurIteration;
 
   @JsonKey(includeFromJson: false, includeToJson: true)
@@ -85,7 +86,7 @@ class TaskItemBlueprint with DateHolder {
         other.recurNumber != recurNumber ||
         other.recurUnit != recurUnit ||
         other.recurWait != recurWait ||
-        other.recurrenceId != recurrenceId ||
+        other.recurrenceDocId != recurrenceDocId ||
         other.recurIteration != recurIteration ||
         (recurrenceBlueprint == null ? other.recurrence != null : recurrenceBlueprint!.hasChanges(other.recurrence));
     print("All mismatch: $allMismatch");
@@ -112,7 +113,7 @@ class TaskItemBlueprint with DateHolder {
           other.recurNumber != recurNumber ||
           other.recurUnit != recurUnit ||
           other.recurWait != recurWait ||
-          other.recurrenceId != recurrenceId ||
+          other.recurrenceDocId != recurrenceDocId ||
           other.recurIteration != recurIteration ||
           (recurrenceBlueprint == null ? other.recurrenceBlueprint != null : recurrenceBlueprint!.hasChangesBlueprint(other.recurrenceBlueprint));
   }

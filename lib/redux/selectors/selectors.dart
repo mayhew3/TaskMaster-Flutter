@@ -15,7 +15,7 @@ VisibilityFilter taskFilterSelector(AppState state) => state.taskListFilter;
 
 BuiltList<TaskItem> tasksForRecurrenceSelector(AppState state, TaskRecurrence taskRecurrence) {
   return ListBuilder<TaskItem>(state.taskItems.where((taskItem) {
-    return taskItem.recurrenceId == taskRecurrence.id;
+    return taskItem.recurrenceDocId == taskRecurrence.docId;
   })).build();
 }
 
@@ -113,5 +113,5 @@ Future<({String idToken, String personDocId})> getRequiredInputs(Store<AppState>
 }
 
 TaskRecurrence? recurrenceForTaskItem(BuiltList<TaskRecurrence> recurrences, TaskItem taskItem) {
-  return recurrences.where((r) => r.id == taskItem.recurrenceId).singleOrNull;
+  return recurrences.where((r) => r.docId == taskItem.recurrenceDocId).singleOrNull;
 }

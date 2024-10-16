@@ -15,7 +15,7 @@ AppState _sprintCreated(AppState state, SprintCreatedAction action) {
     ..addAll(action.addedTasks.rebuild((list) =>
         list.map((t) => t.rebuild((taskItem) =>
           taskItem..recurrence = state.taskRecurrences.where((r) =>
-            r.id == t.recurrenceId).singleOrNull?.toBuilder()))))
+            r.docId == t.recurrenceDocId).singleOrNull?.toBuilder()))))
     ..map((taskItem) {
       var sprintAssignment = action.sprintAssignments.where((sa) => sa.taskId == taskItem.docId).singleOrNull;
       if (sprintAssignment != null) {
@@ -46,7 +46,7 @@ AppState _taskItemsAddedToExistingSprint(AppState state, TaskItemsAddedToExistin
     ..addAll(action.addedTasks.rebuild((list) =>
         list.map((t) => t.rebuild((taskItem) =>
           taskItem..recurrence = state.taskRecurrences.where((r) =>
-            r.id == t.recurrenceId).singleOrNull?.toBuilder()))))
+            r.docId == t.recurrenceDocId).singleOrNull?.toBuilder()))))
     ..map((taskItem) {
       var sprintAssignment = action.sprintAssignments.where((sa) => sa.taskId == taskItem.docId).singleOrNull;
       if (sprintAssignment != null) {

@@ -148,16 +148,16 @@ class PlanTaskListState extends State<PlanTaskList> {
     if (sprint != null) {
       eligibleItems.addAll(taskItemsForSprintSelector(viewModel.allTaskItems, sprint));
     }
-    Set<int> recurIDs = new HashSet();
+    Set<String> recurIDs = new HashSet();
 
     for (var taskItem in eligibleItems) {
-      if (taskItem.recurrenceId != null) {
-        recurIDs.add(taskItem.recurrenceId!);
+      if (taskItem.recurrenceDocId != null) {
+        recurIDs.add(taskItem.recurrenceDocId!);
       }
     }
 
     for (var recurID in recurIDs) {
-      Iterable<TaskItem> recurItems = eligibleItems.where((var taskItem) => taskItem.recurrenceId == recurID);
+      Iterable<TaskItem> recurItems = eligibleItems.where((var taskItem) => taskItem.recurrenceDocId == recurID);
       List<TaskItem> sortedItems = recurItems.sorted((TaskItem t1, TaskItem t2) => t1.recurIteration!.compareTo(t2.recurIteration!));
       TaskItem newest = sortedItems.last;
       List<TaskItemRecurPreview> futureIterations = [];
