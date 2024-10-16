@@ -14,10 +14,10 @@ class FirestoreMigrator {
   });
 
   Future<void> migrateFromApi() async {
-    var persons = await syncPersons(true);
-    var recurrences = await syncRecurrences(persons, true);
-    var sprints = await syncSprints(persons, true);
-    var tasks = await syncTasks(recurrences, sprints, persons, true);
+    var persons = await syncPersons(false);
+    var recurrences = await syncRecurrences(persons, false);
+    var sprints = await syncSprints(persons, false);
+    var tasks = await syncTasks(recurrences, sprints, persons, false);
     await syncSnoozes(tasks, true);
   }
 
@@ -31,23 +31,14 @@ class FirestoreMigrator {
     var querySnapshot = await taskCollection.get();
 
     if (dropFirst) {
-      print("Dropping collection tasks...");
-      for (var document in querySnapshot.docs) {
-        var assignments = await document.reference.collection(
-            "sprintAssignments").get();
-        for (var assignment in assignments.docs) {
-          assignment.reference.delete();
-        }
-        await document.reference.delete();
-      }
-      querySnapshot = await taskCollection.get();
-      print("Dropped.");
+      querySnapshot = await dropTable(querySnapshot, taskCollection, "sprintAssignments");
     }
 
     List<DocumentSnapshot<Map<String, dynamic>>> taskRefs = [];
 
-    var taskObjs = jsonObj['tasks'] as List<dynamic>;
-    var taskCount = taskObjs.length;
+    var taskJsons = jsonObj['tasks'] as List<dynamic>;
+    var taskCount = taskJsons.length;
+    var taskObjs = convertDates(taskJsons);
 
     var currIndex = 0;
     var added = 0;
@@ -65,6 +56,8 @@ class FirestoreMigrator {
         for (Map<String, Object?> sprintAssignmentObj in sprintAssignmentObjs) {
           var sprintDocId = sprints.where((s) => s.get('id') == sprintAssignmentObj['sprintId']).first.id;
           var taskDocId = documentRef.id;
+          var originalDate = sprintAssignmentObj['dateAdded']! as String;
+          sprintAssignmentObj['dateAdded'] = DateTime.parse(originalDate).toUtc();
           sprintAssignmentObj['sprintDocId'] = sprintDocId;
           sprintAssignmentObj['taskDocId'] = taskDocId;
 
@@ -96,13 +89,14 @@ class FirestoreMigrator {
     var querySnapshot = await sprintCollection.get();
 
     if (dropFirst) {
-      querySnapshot = await dropTable(querySnapshot, sprintCollection);
+      querySnapshot = await dropTable(querySnapshot, sprintCollection, null);
     }
 
     List<DocumentSnapshot<Map<String, dynamic>>> sprintRefs = [];
 
-    var sprintObjs = jsonObj['sprints'] as List<dynamic>;
-    var sprintCount = sprintObjs.length;
+    var sprintJsons = jsonObj['sprints'] as List<dynamic>;
+    var sprintCount = sprintJsons.length;
+    var sprintObjs = convertDates(sprintJsons);
     var currIndex = 0;
     var added = 0;
     for (var sprintObj in sprintObjs) {
@@ -133,13 +127,14 @@ class FirestoreMigrator {
     var querySnapshot = await snoozeCollection.get();
 
     if (dropFirst) {
-      querySnapshot = await dropTable(querySnapshot, snoozeCollection);
+      querySnapshot = await dropTable(querySnapshot, snoozeCollection, null);
     }
 
     List<DocumentSnapshot<Map<String, dynamic>>> snoozeRefs = [];
 
-    var snoozeObjs = jsonObj['snoozes'] as List<dynamic>;
-    var snoozeCount = snoozeObjs.length;
+    var snoozeJsons = jsonObj['snoozes'] as List<dynamic>;
+    var snoozeCount = snoozeJsons.length;
+    var snoozeObjs = convertDates(snoozeJsons);
     var currIndex = 0;
     var added = 0;
     for (var snoozeObj in snoozeObjs) {
@@ -165,42 +160,20 @@ class FirestoreMigrator {
     print("Finished processing snoozes.");
     return snoozeRefs;
   }
-  
-  dynamic maybeConvertDate(MapEntry<String, dynamic> jsonValue) {
-    var value = jsonValue.value;
-    if (!(value is String)) {
-      return jsonValue;
-    }
-    try {
-      var parsed = DateTime.parse(value).toUtc();
-      return MapEntry<String, dynamic>(jsonValue.key, parsed);
-    } catch (e) {
-      return jsonValue;
-    }
-  }
 
   Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncPersons(bool dropFirst,) async {
     var personCollection = firestore.collection("persons");
     var querySnapshot = await personCollection.get();
 
     if (dropFirst) {
-      querySnapshot = await dropTable(querySnapshot, personCollection);
+      querySnapshot = await dropTable(querySnapshot, personCollection, null);
     }
 
     List<DocumentSnapshot<Map<String, dynamic>>> personRefs = [];
 
-    var personJsons = jsonObj['persons'] as List;
-    var destinationList = ListBuilder<Map<String, dynamic>>();
-    for (var personJson in personJsons) {
-      var destinationMap = new Map<String, dynamic>();
-      for (var entry in personJson.entries) {
-        var addedEntry = maybeConvertDate(entry);
-        destinationMap.addEntries([addedEntry]);
-      }
-      destinationList.add(destinationMap);
-    }
-    var personObjs = destinationList.build();
-    var personCount = destinationList.length;
+    var personJsons = jsonObj['persons'] as List<dynamic>;
+    var personCount = personJsons.length;
+    var personObjs = convertDates(personJsons);
     var currIndex = 0;
     var added = 0;
     for (var personObj in personObjs) {
@@ -228,13 +201,14 @@ class FirestoreMigrator {
     var querySnapshot = await recurrenceCollection.get();
 
     if (dropFirst) {
-      querySnapshot = await dropTable(querySnapshot, recurrenceCollection);
+      querySnapshot = await dropTable(querySnapshot, recurrenceCollection, null);
     }
 
     List<DocumentSnapshot<Map<String, dynamic>>> recurrenceRefs = [];
 
-    var recurrenceObjs = jsonObj['taskRecurrences'] as List<dynamic>;
-    var recurrenceCount = recurrenceObjs.length;
+    var recurrenceJsons = jsonObj['taskRecurrences'] as List<dynamic>;
+    var recurrenceCount = recurrenceJsons.length;
+    var recurrenceObjs = convertDates(recurrenceJsons);
     var currIndex = 0;
     var added = 0;
     for (var recurrenceObj in recurrenceObjs) {
@@ -251,7 +225,7 @@ class FirestoreMigrator {
       }
       currIndex++;
       var percent = currIndex / recurrenceCount * 100;
-      print('Processed recurrence $currIndex/$recurrenceCount} ($percent%).');
+      print('Processed recurrence $currIndex/$recurrenceCount (${percent.toStringAsFixed(1)}%).');
     }
 
     print("Finished processing recurrences.");
@@ -260,13 +234,65 @@ class FirestoreMigrator {
 
   Future<QuerySnapshot<Map<String, dynamic>>> dropTable(
       QuerySnapshot<Map<String, dynamic>> querySnapshot,
-      CollectionReference<Map<String, dynamic>> collectionReference) async {
-    print("Dropping table ${collectionReference.path}...");
+      CollectionReference<Map<String, dynamic>> collectionReference,
+      String? subCollectionName,
+      ) async {
+    var totalCount = querySnapshot.docs.length;
+    var collectionPath = collectionReference.path;
+    print("Dropping collection $collectionPath with $totalCount documents...");
+    var dropCount = 0;
     for (var document in querySnapshot.docs) {
+
+      var subDocCount = 0;
+
+      if (subCollectionName != null) {
+        var subCollectRef = await document.reference.collection(
+            subCollectionName).get();
+        var docs = subCollectRef.docs;
+        subDocCount = docs.length;
+        for (var subDoc in docs) {
+          subDoc.reference.delete();
+        }
+      }
+
       await document.reference.delete();
+      dropCount++;
+
+      var percent = (dropCount / totalCount * 100).toStringAsFixed(1);
+      var msg = "Dropped document $dropCount/$totalCount ($percent%) from collection $collectionPath";
+      if (subDocCount > 0) {
+        msg += ", including $subDocCount in subcollection '$subCollectionName'";
+      }
+      print(msg);
     }
-    print("Dropped.");
+    print("All documents dropped from collection $collectionPath.");
     return await collectionReference.get();
+  }
+
+  dynamic maybeConvertDate(MapEntry<String, dynamic> jsonValue) {
+    var value = jsonValue.value;
+    if (!(value is String)) {
+      return jsonValue;
+    }
+    try {
+      var parsed = DateTime.parse(value).toUtc();
+      return MapEntry<String, dynamic>(jsonValue.key, parsed);
+    } catch (e) {
+      return jsonValue;
+    }
+  }
+
+  BuiltList<Map<String, dynamic>> convertDates(List jsonObjs) {
+    var destinationList = ListBuilder<Map<String, dynamic>>();
+    for (var jsonObj in jsonObjs) {
+      var destinationMap = new Map<String, dynamic>();
+      for (var entry in jsonObj.entries) {
+        var addedEntry = maybeConvertDate(entry);
+        destinationMap.addEntries([addedEntry]);
+      }
+      destinationList.add(destinationMap);
+    }
+    return destinationList.build();
   }
 
 }
