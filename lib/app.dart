@@ -38,6 +38,17 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     super.initState();
     var firestore = FirebaseFirestore.instance;
     firestore.settings = const Settings(cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED);
+    
+    /*
+
+    // LOCAL EMULATOR SETTINGS - USE WITH ENV VARIABLE
+
+    firestore.useFirestoreEmulator("127.0.0.1", 8085);
+    firestore.settings = const Settings(
+      persistenceEnabled: false,
+    );
+    */
+
     var taskRepository = TaskRepository(client: http.Client(), firestore: firestore);
     store = Store<AppState>(
         appReducer,
