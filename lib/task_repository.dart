@@ -158,7 +158,7 @@ class TaskRepository {
     return inboundTaskRecurrence;
   }
 
-  Future<TaskRecurrence> updateTaskRecurrence(int taskRecurrenceId, TaskRecurrenceBlueprint blueprint, String idToken) async {
+  Future<TaskRecurrence> updateTaskRecurrence(String taskRecurrenceId, TaskRecurrenceBlueprint blueprint, String idToken) async {
     var payload = {
       "taskRecurrence": blueprint.toJson(),
       "taskRecurrenceId": taskRecurrenceId,
@@ -179,7 +179,7 @@ class TaskRepository {
     var list = taskItemRecurPreviews.map((t) => serializers.serializeWith(TaskItemRecurPreview.serializer, t)).toList();
 
     Map<String, Object> payload = {
-      'sprint_id': sprint.id!,
+      'sprint_id': sprint.docId,
       'task_ids': taskItems.map((t) => t.docId).toList(),
       'taskItems': list
     };

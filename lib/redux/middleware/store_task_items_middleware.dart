@@ -202,7 +202,7 @@ Future<void> Function(
 
     if (recurrence != null && nextScheduledTask != null) {
       var recurrenceBlueprint = syncBlueprintToMostRecentTaskItem(updated.taskItem, nextScheduledTask, recurrence);
-      var updatedRecurrence = await repository.updateTaskRecurrence(recurrence.id!, recurrenceBlueprint, inputs.idToken);
+      var updatedRecurrence = await repository.updateTaskRecurrence(recurrence.docId, recurrenceBlueprint, inputs.idToken);
       var addedTaskItem = (await repository.addRecurTask(nextScheduledTask, inputs.idToken)).taskItem;
       store.dispatch(RecurringTaskItemCompletedAction(updated.taskItem, addedTaskItem, updatedRecurrence, action.complete));
     } else {

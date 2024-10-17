@@ -80,7 +80,7 @@ AppState _onCompleteRecurringTaskItem(AppState state, RecurringTaskItemCompleted
   ;
   var recentListBuilder = state.recentlyCompleted.toBuilder()..add(taskItemListBuilder.build().where((t) => t.docId == action.completedTaskItem.docId).first);
   var recurrenceBuilder = state.taskRecurrences.toBuilder()
-    ..map((recurrence) => recurrence.id == action.recurrence.id ? action.recurrence : recurrence);
+    ..map((recurrence) => recurrence.docId == action.recurrence.docId ? action.recurrence : recurrence);
   return state.rebuild((s) => s
     ..taskItems = taskItemListBuilder
     ..taskRecurrences = recurrenceBuilder

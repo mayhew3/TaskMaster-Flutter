@@ -19,7 +19,7 @@ abstract class TaskItemRecurPreview with DateHolder, SprintDisplayTask implement
   static Serializer<TaskItemRecurPreview> get serializer => _$taskItemRecurPreviewSerializer;
 
   @BuiltValueField(serialize: false)
-  int get id;
+  int? get id;
   String get docId;
 
   String? get personDocId;
@@ -46,7 +46,7 @@ abstract class TaskItemRecurPreview with DateHolder, SprintDisplayTask implement
   String? get recurUnit;
   bool? get recurWait;
 
-  int? get recurrenceId;
+  // int? get recurrenceId;
   String? get recurrenceDocId;
 
   int? get recurIteration;
@@ -63,7 +63,8 @@ abstract class TaskItemRecurPreview with DateHolder, SprintDisplayTask implement
   @BuiltValueHook(initializeBuilder: true)
   static void _setDefaults(TaskItemRecurPreviewBuilder b) =>
       b
-        ..id = 0 - new Random().nextInt(60000);
+        ..id = 0 - new Random().nextInt(60000)
+  ;
 
   TaskItemRecurPreview createNextRecurPreview({
     required DateTime? startDate,

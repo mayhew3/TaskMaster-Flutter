@@ -128,11 +128,6 @@ class _$TaskItemRecurPreviewSerializer
     result
       ..add('recurWait')
       ..add(serializers.serialize(value, specifiedType: const FullType(bool)));
-    value = object.recurrenceId;
-
-    result
-      ..add('recurrenceId')
-      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
     value = object.recurrenceDocId;
 
     result
@@ -238,10 +233,6 @@ class _$TaskItemRecurPreviewSerializer
           result.recurWait = serializers.deserialize(value,
               specifiedType: const FullType(bool)) as bool?;
           break;
-        case 'recurrenceId':
-          result.recurrenceId = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int?;
-          break;
         case 'recurrenceDocId':
           result.recurrenceDocId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String?;
@@ -274,7 +265,7 @@ class _$TaskItemRecurPreviewSerializer
 
 class _$TaskItemRecurPreview extends TaskItemRecurPreview {
   @override
-  final int id;
+  final int? id;
   @override
   final String docId;
   @override
@@ -312,8 +303,6 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
   @override
   final bool? recurWait;
   @override
-  final int? recurrenceId;
-  @override
   final String? recurrenceDocId;
   @override
   final int? recurIteration;
@@ -329,7 +318,7 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
       (new TaskItemRecurPreviewBuilder()..update(updates))._build();
 
   _$TaskItemRecurPreview._(
-      {required this.id,
+      {this.id,
       required this.docId,
       this.personDocId,
       required this.name,
@@ -348,14 +337,12 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
       this.recurNumber,
       this.recurUnit,
       this.recurWait,
-      this.recurrenceId,
       this.recurrenceDocId,
       this.recurIteration,
       required this.offCycle,
       required this.sprintAssignments,
       this.recurrence})
       : super._() {
-    BuiltValueNullFieldError.checkNotNull(id, r'TaskItemRecurPreview', 'id');
     BuiltValueNullFieldError.checkNotNull(
         docId, r'TaskItemRecurPreview', 'docId');
     BuiltValueNullFieldError.checkNotNull(
@@ -398,7 +385,6 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
         recurNumber == other.recurNumber &&
         recurUnit == other.recurUnit &&
         recurWait == other.recurWait &&
-        recurrenceId == other.recurrenceId &&
         recurrenceDocId == other.recurrenceDocId &&
         recurIteration == other.recurIteration &&
         offCycle == other.offCycle &&
@@ -428,7 +414,6 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
     _$hash = $jc(_$hash, recurNumber.hashCode);
     _$hash = $jc(_$hash, recurUnit.hashCode);
     _$hash = $jc(_$hash, recurWait.hashCode);
-    _$hash = $jc(_$hash, recurrenceId.hashCode);
     _$hash = $jc(_$hash, recurrenceDocId.hashCode);
     _$hash = $jc(_$hash, recurIteration.hashCode);
     _$hash = $jc(_$hash, offCycle.hashCode);
@@ -460,7 +445,6 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
           ..add('recurNumber', recurNumber)
           ..add('recurUnit', recurUnit)
           ..add('recurWait', recurWait)
-          ..add('recurrenceId', recurrenceId)
           ..add('recurrenceDocId', recurrenceDocId)
           ..add('recurIteration', recurIteration)
           ..add('offCycle', offCycle)
@@ -551,10 +535,6 @@ class TaskItemRecurPreviewBuilder
   bool? get recurWait => _$this._recurWait;
   set recurWait(bool? recurWait) => _$this._recurWait = recurWait;
 
-  int? _recurrenceId;
-  int? get recurrenceId => _$this._recurrenceId;
-  set recurrenceId(int? recurrenceId) => _$this._recurrenceId = recurrenceId;
-
   String? _recurrenceDocId;
   String? get recurrenceDocId => _$this._recurrenceDocId;
   set recurrenceDocId(String? recurrenceDocId) =>
@@ -607,7 +587,6 @@ class TaskItemRecurPreviewBuilder
       _recurNumber = $v.recurNumber;
       _recurUnit = $v.recurUnit;
       _recurWait = $v.recurWait;
-      _recurrenceId = $v.recurrenceId;
       _recurrenceDocId = $v.recurrenceDocId;
       _recurIteration = $v.recurIteration;
       _offCycle = $v.offCycle;
@@ -637,8 +616,7 @@ class TaskItemRecurPreviewBuilder
     try {
       _$result = _$v ??
           new _$TaskItemRecurPreview._(
-              id: BuiltValueNullFieldError.checkNotNull(
-                  id, r'TaskItemRecurPreview', 'id'),
+              id: id,
               docId: BuiltValueNullFieldError.checkNotNull(
                   docId, r'TaskItemRecurPreview', 'docId'),
               personDocId: personDocId,
@@ -659,7 +637,6 @@ class TaskItemRecurPreviewBuilder
               recurNumber: recurNumber,
               recurUnit: recurUnit,
               recurWait: recurWait,
-              recurrenceId: recurrenceId,
               recurrenceDocId: recurrenceDocId,
               recurIteration: recurIteration,
               offCycle: BuiltValueNullFieldError.checkNotNull(

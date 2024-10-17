@@ -46,7 +46,7 @@ Future<void> Function(
 
     try {
       var payload = await repository.addTasksToSprint(action.taskItems, action.taskItemRecurPreviews, action.sprint, inputs.idToken);
-      store.dispatch(TaskItemsAddedToExistingSprint(sprintId: action.sprint.id!, addedTasks: payload.addedTasks, sprintAssignments: payload.sprintAssignments));
+      store.dispatch(TaskItemsAddedToExistingSprint(sprintId: action.sprint.docId, addedTasks: payload.addedTasks, sprintAssignments: payload.sprintAssignments));
     } catch (e) {
       print("Error creating new sprint: $e");
     }

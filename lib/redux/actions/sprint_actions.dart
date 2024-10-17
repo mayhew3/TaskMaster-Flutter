@@ -52,7 +52,7 @@ class AddTaskItemsToExistingSprint {
 }
 
 class TaskItemsAddedToExistingSprint {
-  final int sprintId;
+  final String sprintId;
   final BuiltList<TaskItem> addedTasks;
   final BuiltList<SprintAssignment> sprintAssignments;
 

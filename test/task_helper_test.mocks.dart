@@ -721,7 +721,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
 
   @override
   _i4.Future<_i8.TaskRecurrence> updateTaskRecurrence(
-    int? taskRecurrenceId,
+    String? taskRecurrenceId,
     _i26.TaskRecurrenceBlueprint? blueprint,
     String? idToken,
   ) =>

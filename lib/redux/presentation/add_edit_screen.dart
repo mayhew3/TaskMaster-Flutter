@@ -170,7 +170,7 @@ class AddEditScreenState extends State<AddEditScreen> {
     taskItemBlueprint.recurWait = null;
     taskItemBlueprint.recurIteration = null;
     taskItemBlueprint.recurrenceBlueprint = null;
-    taskItemBlueprint.recurrenceId = null;
+    taskItemBlueprint.recurrenceDocId = null;
   }
 
   void updateRecurrenceBlueprint() {
@@ -182,7 +182,7 @@ class AddEditScreenState extends State<AddEditScreen> {
     taskRecurrenceBlueprint.anchorDate = taskItemBlueprint.getAnchorDate();
     taskRecurrenceBlueprint.anchorType = taskItemBlueprint.getAnchorDateType()!.label;
     taskItemBlueprint.recurrenceBlueprint = taskRecurrenceBlueprint;
-    taskItemBlueprint.recurrenceId = taskItem?.recurrence?.id;
+    taskItemBlueprint.recurrenceDocId = taskItem?.recurrence?.docId;
   }
 
   bool hasChanges() {

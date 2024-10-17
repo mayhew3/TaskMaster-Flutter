@@ -70,7 +70,7 @@ class NotificationHelper {
   }
 
   Future<void> _syncNotificationForSprint(Sprint sprint, List<PendingNotificationRequest> requests) async {
-    String sprintSearch = 'sprint:${sprint.id}';
+    String sprintSearch = 'sprint:${sprint.docId}';
     String sprintName = 'Sprint ${sprint.sprintNumber}';
 
     DateTime exactTime = sprint.endDate;

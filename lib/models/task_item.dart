@@ -95,7 +95,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
     blueprint.recurNumber = recurNumber;
     blueprint.recurUnit = recurUnit;
     blueprint.recurWait = recurWait;
-    blueprint.recurrenceId = recurrenceId;
+    // blueprint.recurrenceId = recurrenceId;
     blueprint.recurrenceDocId = recurrenceDocId;
     blueprint.recurIteration = recurIteration;
 
@@ -116,6 +116,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   }) {
     return TaskItemRecurPreview((b) => b
       ..id = 0 - new Random().nextInt(60000)
+      ..docId = "ASKLJDH"
       ..personDocId = personDocId
       ..name = name
       ..description = description
@@ -132,7 +133,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
       ..recurNumber = recurNumber
       ..recurUnit = recurUnit
       ..recurWait = recurWait
-      ..recurrenceId = recurrenceId
+      // ..recurrenceId = recurrenceId
       ..recurrenceDocId = recurrenceDocId
       ..recurIteration = this.recurIteration! + 1
       ..recurrence = recurrence!.toBuilder()
