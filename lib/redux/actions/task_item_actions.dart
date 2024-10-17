@@ -111,10 +111,10 @@ class DeleteTaskItemAction {
   }
 }
 
-class TaskItemDeletedAction {
-  final String deletedTaskId;
+class TasksDeletedAction {
+  final Iterable<String> deletedTaskIds;
 
-  TaskItemDeletedAction(this.deletedTaskId);
+  TasksDeletedAction(this.deletedTaskIds);
 }
 
 class AddTaskItemAction {

@@ -236,16 +236,8 @@ class TaskRepository {
     return (addedTasks: addedTaskItems, sprintAssignments: sprintAssignments);
   }
 
-  Future<void> deleteTask(TaskItem taskItem, String idToken) async {
-    var queryParameters = {
-      'task_id': taskItem.docId.toString()
-    };
+  void deleteTask(TaskItem taskItem) async {
 
-    return await executeDeleteApiAction(
-        uriString: '/api/tasks',
-        queryParameters: queryParameters,
-        idToken: idToken,
-        operationDescription: "delete task");
   }
 
   Future<({TaskItem taskItem, TaskRecurrence? recurrence})> _addOrUpdateTaskItemJSON({required Map<String, Object?> payload, required String idToken, required BodyApiOperation apiOperation, required String operationDescription}) async {
@@ -325,6 +317,44 @@ class TaskRepository {
     } else {
       throw Exception('Failed to $operationDescription. Talk to Mayhew.');
     }
+  }
+
+  Future<void> convertRetired() async {
+    await convertRetiredCollection(collectionName: "persons");
+    await convertRetiredCollection(collectionName: "snoozes");
+    await convertRetiredCollection(collectionName: "sprints");
+    await convertRetiredCollection(collectionName: "taskRecurrences");
+    await convertRetiredCollection(collectionName: "tasks", subCollectionName: "sprintAssignments");
+  }
+
+  Future<void> convertRetiredCollection({required String collectionName, String? subCollectionName}) async {
+    print('Processing $collectionName...');
+    var snapshot = await firestore.collection(collectionName).get();
+    var docs = snapshot.docs;
+    var totalCount = docs.length;
+    var currIndex = 0;
+    var updated = 0;
+    for (var doc in docs) {
+
+      if (subCollectionName != null) {
+        var subCollectionRef = await doc.reference.collection(subCollectionName).get();
+        var subDocs = subCollectionRef.docs;
+        for (var subDoc in subDocs) {
+          if (!subDoc.data().containsKey('retired')) {
+            await subDoc.reference.update({'retired': null});
+          }
+        }
+      }
+
+      if (!doc.data().containsKey('retired')) {
+        await doc.reference.update({'retired': null});
+        updated++;
+      }
+      currIndex++;
+      var percent = (currIndex / totalCount * 100).toStringAsFixed(1);
+      print('Processed $collectionName $currIndex/$totalCount ($percent%). Updated $updated/$currIndex.');
+    }
+    print('Finished processing $collectionName');
   }
 
   Future<void> migrateFromApi() async {

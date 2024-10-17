@@ -44,6 +44,8 @@ Future<void> Function(
     // await repository.migrateFromApi();
     // print("Migration complete!");
 
+    // await repository.convertRetired();
+
     var email = store.state.currentUser!.email;
     print("Verify person account for " + email + "...");
 
@@ -222,13 +224,10 @@ Future<void> Function(
   return (Store<AppState> store, DeleteTaskItemAction action, NextDispatcher next) async {
     next(action);
     var inputs = await getRequiredInputs(store, "delete task");
-    var taskItemId = action.taskItem.docId;
 
-    await repository.deleteTask(action.taskItem, inputs.idToken);
+    repository.deleteTask(action.taskItem);
 
-    deleteNotificationForItem(store, taskItemId);
-
-    store.dispatch(TaskItemDeletedAction(taskItemId));
+    // deleteNotificationForItem(store, taskItemId);
   };
 }
 

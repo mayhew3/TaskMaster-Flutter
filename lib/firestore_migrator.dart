@@ -18,7 +18,7 @@ class FirestoreMigrator {
     var recurrences = await syncRecurrences(persons, false);
     var sprints = await syncSprints(persons, false);
     var tasks = await syncTasks(recurrences, sprints, persons, false);
-    await syncSnoozes(tasks, true);
+    await syncSnoozes(tasks, false);
   }
 
   Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncTasks(
@@ -70,6 +70,9 @@ class FirestoreMigrator {
         added++;
         print('Added new task! $added added.');
       } else {
+        if (!existing.data().containsKey('retired')) {
+          await existing.reference.update({'retired': null});
+        }
         taskRefs.add(existing);
       }
       currIndex++;
@@ -109,6 +112,9 @@ class FirestoreMigrator {
         added++;
         print('Added new sprint! $added added.');
       } else {
+        if (!existing.data().containsKey('retired')) {
+          await existing.reference.update({'retired': null});
+        }
         sprintRefs.add(existing);
       }
       currIndex++;
@@ -150,6 +156,9 @@ class FirestoreMigrator {
           print('Added new snooze! $added added.');
         }
       } else {
+        if (!existing.data().containsKey('retired')) {
+          await existing.reference.update({'retired': null});
+        }
         snoozeRefs.add(existing);
       }
       currIndex++;
@@ -185,6 +194,9 @@ class FirestoreMigrator {
         added++;
         print('Added new person! $added added.');
       } else {
+        if (!existing.data().containsKey('retired')) {
+          await existing.reference.update({'retired': null});
+        }
         personRefs.add(existing);
       }
       currIndex++;
@@ -221,6 +233,9 @@ class FirestoreMigrator {
         added++;
         print('Added new recurrence! $added added.');
       } else {
+        if (!existing.data().containsKey('retired')) {
+          await existing.reference.update({'retired': null});
+        }
         recurrenceRefs.add(existing);
       }
       currIndex++;

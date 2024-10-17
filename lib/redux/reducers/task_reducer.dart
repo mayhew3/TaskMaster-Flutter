@@ -7,7 +7,7 @@ import '../actions/task_item_actions.dart';
 import '../app_state.dart';
 
 final taskItemsReducer = <AppState Function(AppState, dynamic)>[
-  TypedReducer<AppState, TaskItemDeletedAction>(_onDeleteTaskItem),
+  TypedReducer<AppState, TasksDeletedAction>(onDeleteTaskItems),
   TypedReducer<AppState, TaskItemUpdatedAction>(_taskItemUpdated),
   TypedReducer<AppState, CompleteTaskItemAction>(_completeTaskItem),
   TypedReducer<AppState, RecurringTaskItemCompletedAction>(_onCompleteRecurringTaskItem),
@@ -104,11 +104,12 @@ AppState _onCompleteTaskItem(AppState state, TaskItemCompletedAction action) {
   );
 }
 
-AppState _onDeleteTaskItem(AppState state, TaskItemDeletedAction action) {
+@visibleForTesting
+AppState onDeleteTaskItems(AppState state, TasksDeletedAction action) {
   var listBuilder = state.taskItems.toBuilder()
-    ..removeWhere((t) => t.docId == action.deletedTaskId);
+    ..removeWhere((t) => action.deletedTaskIds.contains(t.docId));
   var recentListBuilder = state.recentlyCompleted.toBuilder()
-    ..removeWhere((t) => t.docId == action.deletedTaskId);
+    ..removeWhere((t) => action.deletedTaskIds.contains(t.docId));
   return state.rebuild((s) => s
     ..taskItems = listBuilder
     ..recentlyCompleted = recentListBuilder
