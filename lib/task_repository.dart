@@ -47,13 +47,19 @@ class TaskRepository {
     firestore.enableNetwork().then((_) => print('Online mode.'));
   }
 
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>> createListener<T>(String collectionName, String personDocId, Function(Iterable<T>) actionCallback, Serializer<T> serializer) {
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>> createListener<T>({
+    required String collectionName,
+    required String personDocId,
+    required Function(Iterable<T>) addCallback,
+    Function(Iterable<T>)? modifyCallback,
+    required Serializer<T> serializer}
+      ) {
     var snapshots = firestore.collection(collectionName).where("personDocId", isEqualTo: personDocId).snapshots();
     var listener = snapshots.listen((event) {
       print('$collectionName snapshots event!');
-      var docs = event.docChanges.where((dc) => dc.type == DocumentChangeType.added).map((dc) => dc.doc);
+      var addedDocs = event.docChanges.where((dc) => dc.type == DocumentChangeType.added).map((dc) => dc.doc);
       List<T> finalList = [];
-      for (var doc in docs) {
+      for (var doc in addedDocs) {
         var json = doc.data()!;
 
         // tmp fix code
@@ -66,26 +72,37 @@ class TaskRepository {
           finalList.add(deserialized);
         }
       }
-      actionCallback(finalList);
+      addCallback(finalList);
+
+      if (modifyCallback != null) {
+        var modifyDocs = event.docChanges.where((dc) =>
+        dc.type == DocumentChangeType.modified).map((dc) => dc.doc);
+        List<T> modifyList = [];
+        for (var doc in modifyDocs) {
+          var json = doc.data()!;
+          json['docId'] = doc.id;
+
+          var deserialized = serializers.deserializeWith(serializer, json)!;
+          modifyList.add(deserialized);
+        }
+        modifyCallback(modifyList);
+      }
+
     });
     return listener;
   }
 
-  Future<({TaskItem taskItem, TaskRecurrence? recurrence})> addTask(TaskItemBlueprint blueprint, String idToken) async {
+  void addTask(TaskItemBlueprint blueprint, String idToken) async {
     var blueprintJson = blueprint.toJson();
 
     var recurrenceBlueprint = blueprint.recurrenceBlueprint;
-    TaskRecurrence? addedRecurrence;
     if (recurrenceBlueprint != null) {
       var recurrenceDoc = firestore.collection("taskRecurrences").doc();
-      var recurrenceId = recurrenceDoc.id;
       var recurrenceJson = recurrenceBlueprint.toJson();
       recurrenceJson['dateAdded'] = DateTime.now().toUtc().toString();
       recurrenceDoc.set(recurrenceJson);
       blueprintJson['recurrenceDocId'] = recurrenceDoc.id;
       blueprintJson.remove('recurrenceBlueprint');
-      recurrenceJson['docId'] = recurrenceId;
-      addedRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson);
     }
 
     var addedTaskDoc = firestore.collection("tasks").doc();
@@ -93,9 +110,6 @@ class TaskRepository {
     blueprintJson['dateAdded'] = DateTime.now().toUtc().toString();
     addedTaskDoc.set(blueprintJson);
     blueprintJson['docId'] = taskId;
-    var addedTask = serializers.deserializeWith(TaskItem.serializer, blueprintJson)!;
-
-    return Future.value((taskItem: addedTask, recurrence: addedRecurrence));
   }
 
   Future<({TaskItem taskItem, TaskRecurrence? recurrence})> addRecurTask(TaskItemRecurPreview blueprint, String idToken) async {
@@ -106,14 +120,31 @@ class TaskRepository {
     return _addOrUpdateTaskItemJSON(payload: payload, idToken: idToken, apiOperation: this.client.post, operationDescription: "create task (with recur)");
   }
 
-  Future<({TaskItem taskItem, TaskRecurrence? recurrence})> updateTask(String taskItemId, TaskItemBlueprint taskItemBlueprint, String idToken) async {
-    var taskObj = taskItemBlueprint.toJson();
+  Future<({TaskItem taskItem, TaskRecurrence? recurrence})> updateTask(String taskItemDocId, TaskItemBlueprint blueprint) async {
+    var blueprintJson = blueprint.toJson();
 
-    var payload = {
-      "task": taskObj,
-      "taskItemId": taskItemId,
-    };
-    return _addOrUpdateTaskItemJSON(payload: payload, idToken: idToken, apiOperation: this.client.patch, operationDescription: "edit task");
+    var recurrenceBlueprint = blueprint.recurrenceBlueprint;
+    TaskRecurrence? updatedRecurrence;
+    if (recurrenceBlueprint != null) {
+      var recurrenceDoc = firestore.collection("taskRecurrences").doc(blueprint.recurrenceDocId);
+      var recurrenceJson = recurrenceBlueprint.toJson();
+      recurrenceDoc.update(recurrenceJson);
+
+      var recurSnap = await recurrenceDoc.get();
+      recurrenceJson['docId'] = blueprint.recurrenceDocId;
+      recurrenceJson['dateAdded'] = recurSnap.get('dateAdded');
+      updatedRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson);
+    }
+
+    var doc = firestore.collection("tasks").doc(taskItemDocId);
+    doc.update(blueprintJson);
+
+    var snapshot = await doc.get();
+    blueprintJson['docId'] = doc.id;
+    blueprintJson['dateAdded'] = snapshot.get('dateAdded');
+    var updatedTask = serializers.deserializeWith(TaskItem.serializer, blueprintJson)!;
+
+    return (taskItem: updatedTask, recurrence: updatedRecurrence);
   }
 
   Future<({Sprint sprint, BuiltList<TaskItem> addedTasks, BuiltList<SprintAssignment> sprintAssignments})> addSprintWithTaskItems(SprintBlueprint blueprint, BuiltList<TaskItem> existingItems, BuiltList<TaskItemRecurPreview> newItems, String idToken) async {

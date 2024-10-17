@@ -7,7 +7,6 @@ import '../actions/task_item_actions.dart';
 import '../app_state.dart';
 
 final taskItemsReducer = <AppState Function(AppState, dynamic)>[
-  TypedReducer<AppState, TaskItemAddedAction>(_taskItemAdded),
   TypedReducer<AppState, TaskItemDeletedAction>(_onDeleteTaskItem),
   TypedReducer<AppState, TaskItemUpdatedAction>(_taskItemUpdated),
   TypedReducer<AppState, CompleteTaskItemAction>(_completeTaskItem),
@@ -22,6 +21,8 @@ final taskItemsReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, GoOnline>(goOnline),
   TypedReducer<AppState, TasksAddedAction>(onTaskItemsAdded),
   TypedReducer<AppState, TaskRecurrencesAddedAction>(onTaskRecurrencesAdded),
+  TypedReducer<AppState, TasksModifiedAction>(onTaskItemsModified),
+  TypedReducer<AppState, TaskRecurrencesModifiedAction>(onTaskRecurrencesModified),
 ];
 
 @visibleForTesting
@@ -31,17 +32,6 @@ AppState listenersInitialized(AppState state, ListenersInitializedAction action)
     ..sprintListener = action.sprintListener
     ..taskRecurrenceListener = action.taskRecurrenceListener
   );
-}
-
-AppState _taskItemAdded(AppState state, TaskItemAddedAction action) {
-  var taskRecurrence = action.taskRecurrence;
-  return state.rebuild((s) {
-    s.taskItems = state.taskItems.toBuilder()..add(action.taskItem);
-    if (taskRecurrence != null) {
-      s.taskRecurrences = state.taskRecurrences.toBuilder()..add(taskRecurrence);
-    }
-    return s;
-  });
 }
 
 AppState _clearRecentlyCompleted(AppState state, ClearRecentlyCompletedAction action) {
@@ -156,6 +146,24 @@ AppState onTaskItemsAdded(AppState state, TasksAddedAction action) {
 }
 
 @visibleForTesting
+AppState onTaskItemsModified(AppState state, TasksModifiedAction action) {
+  var listBuilder = state.taskItems.toBuilder()
+    ..map((taskItem) {
+      var modifiedMatch = action.modifiedItems.where((t) => t.docId == taskItem.docId).firstOrNull;
+      if (modifiedMatch == null) {
+        return taskItem;
+      } else {
+        return modifiedMatch.rebuild((t) => t
+            ..pendingCompletion = false
+            ..sprintAssignments = taskItem.sprintAssignments.toBuilder());
+      }
+    });
+  return state.rebuild((s) => s
+    ..taskItems = listBuilder
+  );
+}
+
+@visibleForTesting
 AppState onTaskRecurrencesAdded(AppState state, TaskRecurrencesAddedAction action) {
   var rebuiltRecurrenceList = state.taskRecurrences.toBuilder()..addAll(action.addedRecurrences);
 
@@ -167,6 +175,22 @@ AppState onTaskRecurrencesAdded(AppState state, TaskRecurrencesAddedAction actio
     ..taskRecurrences = rebuiltRecurrenceList
     ..taskItems = ListBuilder(withRecurrences)
     ..taskRecurrencesLoading = false
+  );
+}
+
+@visibleForTesting
+AppState onTaskRecurrencesModified(AppState state, TaskRecurrencesModifiedAction action) {
+  var listBuilder = state.taskRecurrences.toBuilder()
+    ..map((taskRecurrence) {
+      var modifiedMatch = action.modifiedRecurrences.where((r) => r.docId == taskRecurrence.docId).firstOrNull;
+      if (modifiedMatch == null) {
+        return taskRecurrence;
+      } else {
+        return modifiedMatch;
+      }
+    });
+  return state.rebuild((s) => s
+    ..taskRecurrences = listBuilder
   );
 }
 

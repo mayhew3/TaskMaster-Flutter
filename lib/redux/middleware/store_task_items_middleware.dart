@@ -78,20 +78,22 @@ Future<void> Function(
       print("Initializing data listeners...");
 
       var sprintListener = repository.createListener<Sprint>(
-          "sprints",
-          inputs.personDocId,
-              (sprints) => store.dispatch(SprintsAddedAction(sprints)),
-          Sprint.serializer);
+          collectionName: "sprints",
+          personDocId: inputs.personDocId,
+          addCallback: (sprints) => store.dispatch(SprintsAddedAction(sprints)),
+          serializer: Sprint.serializer);
       var recurrenceListener = repository.createListener<TaskRecurrence>(
-          "taskRecurrences",
-          inputs.personDocId,
-              (taskRecurrences) => store.dispatch(TaskRecurrencesAddedAction(taskRecurrences)),
-          TaskRecurrence.serializer);
+          collectionName:  "taskRecurrences",
+          personDocId: inputs.personDocId,
+          addCallback: (taskRecurrences) => store.dispatch(TaskRecurrencesAddedAction(taskRecurrences)),
+          modifyCallback: (taskRecurrences) => store.dispatch(TaskRecurrencesModifiedAction(taskRecurrences)),
+          serializer: TaskRecurrence.serializer);
       var taskListener = repository.createListener<TaskItem>(
-          "tasks",
-          inputs.personDocId,
-              (taskItems) => store.dispatch(TasksAddedAction(taskItems)),
-          TaskItem.serializer);
+          collectionName: "tasks",
+          personDocId: inputs.personDocId,
+          addCallback: (taskItems) => store.dispatch(TasksAddedAction(taskItems)),
+          modifyCallback: (taskItems) => store.dispatch(TasksModifiedAction(taskItems)),
+          serializer: TaskItem.serializer);
 
       store.dispatch(ListenersInitializedAction(taskListener, sprintListener, recurrenceListener));
 
@@ -138,9 +140,9 @@ Future<void> Function(
     // var recurrence = await maybeAddRecurrence(action.recurrenceBlueprint, inputs, repository);
 
     // action.blueprint.recurrenceId = recurrence?.id;
-    var payload = await repository.addTask(action.blueprint, inputs.idToken);
+    repository.addTask(action.blueprint, inputs.idToken);
 
-    updateNotificationForItem(store, payload.taskItem);
+    // updateNotificationForItem(store, payload.taskItem);
 
     // store.dispatch(TaskItemAddedAction(taskItem: payload.taskItem, taskRecurrence: payload.recurrence));
   };
@@ -166,11 +168,11 @@ Future<void> Function(
     next(action);
     var inputs = await getRequiredInputs(store, "update task");
     action.blueprint.recurrenceBlueprint?.personDocId = inputs.personDocId;
-    var updated = await repository.updateTask(action.taskItem.docId, action.blueprint, inputs.idToken);
+    repository.updateTask(action.taskItem.docId, action.blueprint);
 
-    updateNotificationForItem(store, updated.taskItem);
+    // updateNotificationForItem(store, updated.taskItem);
 
-    store.dispatch(TaskItemUpdatedAction(updated.taskItem));
+    // store.dispatch(TaskItemUpdatedAction(updated.taskItem));
   };
 }
 
@@ -196,7 +198,7 @@ Future<void> Function(
       nextScheduledTask = RecurrenceHelper.createNextIteration(taskItem, completionDate);
     }
 
-    var updated = await repository.updateTask(taskItem.docId, blueprint, inputs.idToken);
+    var updated = await repository.updateTask(taskItem.docId, blueprint);
 
     updateNotificationForItem(store, updated.taskItem);
 
@@ -244,7 +246,7 @@ Future<void> Function(
     DateTime? originalValue = action.dateType.dateFieldGetter(action.taskItem);
     DateTime relevantDateField = action.dateType.dateFieldGetter(action.blueprint)!;
 
-    var updatedTask = await repository.updateTask(action.taskItem.docId, action.blueprint, inputs.idToken);
+    var updatedTask = await repository.updateTask(action.taskItem.docId, action.blueprint);
 
     SnoozeBlueprint snooze = new SnoozeBlueprint(
         taskId: updatedTask.taskItem.docId,

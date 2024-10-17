@@ -47,6 +47,18 @@ class TaskRecurrencesAddedAction {
   TaskRecurrencesAddedAction(this.addedRecurrences);
 }
 
+class TasksModifiedAction {
+  final Iterable<TaskItem> modifiedItems;
+
+  TasksModifiedAction(this.modifiedItems);
+}
+
+class TaskRecurrencesModifiedAction {
+  final Iterable<TaskRecurrence> modifiedRecurrences;
+
+  TaskRecurrencesModifiedAction(this.modifiedRecurrences);
+}
+
 class UpdateTaskItemAction {
   final TaskItem taskItem;
   final TaskItemBlueprint blueprint;
