@@ -223,8 +223,12 @@ class AddEditScreenState extends State<AddEditScreen> {
     return StoreConnector<AppState, AddEditScreenViewModel>(
         onWillChange: (prev, current) {
           if (editMode()) {
-            var latest = taskItemSelector(current.allTaskItems, taskItem!.docId);
-            if (latest != null && latest.hasChanges(taskItem!)) {
+            var latestTask = taskItemSelector(current.allTaskItems, taskItem!.docId);
+            var latestRecurrence = taskRecurrenceSelector(current.allTaskRecurrences, taskItem!.recurrence?.docId);
+            var hasTaskChanges = latestTask != null && latestTask.hasChanges(taskItem!);
+            var recurrenceAddedOrRemoved = prev != null && current.allTaskRecurrences.length != prev.allTaskRecurrences.length;
+            var hasRecurrenceChanges = latestRecurrence != null && latestRecurrence.hasChanges(taskItem!.recurrence);
+            if (hasTaskChanges || hasRecurrenceChanges || recurrenceAddedOrRemoved) {
               Navigator.pop(context);
             }
           } else {

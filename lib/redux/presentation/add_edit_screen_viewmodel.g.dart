@@ -9,14 +9,20 @@ part of 'add_edit_screen_viewmodel.dart';
 class _$AddEditScreenViewModel extends AddEditScreenViewModel {
   @override
   final BuiltList<TaskItem> allTaskItems;
+  @override
+  final BuiltList<TaskRecurrence> allTaskRecurrences;
 
   factory _$AddEditScreenViewModel(
           [void Function(AddEditScreenViewModelBuilder)? updates]) =>
       (new AddEditScreenViewModelBuilder()..update(updates))._build();
 
-  _$AddEditScreenViewModel._({required this.allTaskItems}) : super._() {
+  _$AddEditScreenViewModel._(
+      {required this.allTaskItems, required this.allTaskRecurrences})
+      : super._() {
     BuiltValueNullFieldError.checkNotNull(
         allTaskItems, r'AddEditScreenViewModel', 'allTaskItems');
+    BuiltValueNullFieldError.checkNotNull(
+        allTaskRecurrences, r'AddEditScreenViewModel', 'allTaskRecurrences');
   }
 
   @override
@@ -32,13 +38,15 @@ class _$AddEditScreenViewModel extends AddEditScreenViewModel {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is AddEditScreenViewModel &&
-        allTaskItems == other.allTaskItems;
+        allTaskItems == other.allTaskItems &&
+        allTaskRecurrences == other.allTaskRecurrences;
   }
 
   @override
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, allTaskItems.hashCode);
+    _$hash = $jc(_$hash, allTaskRecurrences.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -46,7 +54,8 @@ class _$AddEditScreenViewModel extends AddEditScreenViewModel {
   @override
   String toString() {
     return (newBuiltValueToStringHelper(r'AddEditScreenViewModel')
-          ..add('allTaskItems', allTaskItems))
+          ..add('allTaskItems', allTaskItems)
+          ..add('allTaskRecurrences', allTaskRecurrences))
         .toString();
   }
 }
@@ -61,12 +70,19 @@ class AddEditScreenViewModelBuilder
   set allTaskItems(ListBuilder<TaskItem>? allTaskItems) =>
       _$this._allTaskItems = allTaskItems;
 
+  ListBuilder<TaskRecurrence>? _allTaskRecurrences;
+  ListBuilder<TaskRecurrence> get allTaskRecurrences =>
+      _$this._allTaskRecurrences ??= new ListBuilder<TaskRecurrence>();
+  set allTaskRecurrences(ListBuilder<TaskRecurrence>? allTaskRecurrences) =>
+      _$this._allTaskRecurrences = allTaskRecurrences;
+
   AddEditScreenViewModelBuilder();
 
   AddEditScreenViewModelBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
       _allTaskItems = $v.allTaskItems.toBuilder();
+      _allTaskRecurrences = $v.allTaskRecurrences.toBuilder();
       _$v = null;
     }
     return this;
@@ -90,12 +106,16 @@ class AddEditScreenViewModelBuilder
     _$AddEditScreenViewModel _$result;
     try {
       _$result = _$v ??
-          new _$AddEditScreenViewModel._(allTaskItems: allTaskItems.build());
+          new _$AddEditScreenViewModel._(
+              allTaskItems: allTaskItems.build(),
+              allTaskRecurrences: allTaskRecurrences.build());
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'allTaskItems';
         allTaskItems.build();
+        _$failedField = 'allTaskRecurrences';
+        allTaskRecurrences.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             r'AddEditScreenViewModel', _$failedField, e.toString());

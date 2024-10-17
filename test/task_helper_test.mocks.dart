@@ -386,33 +386,38 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
 
   @override
   _i4.StreamSubscription<
-      _i3.QuerySnapshot<Map<String, dynamic>>> createListener<T>(
-    String? collectionName,
-    String? personDocId,
-    dynamic Function(Iterable<T>)? actionCallback,
-    _i21.Serializer<T>? serializer,
-  ) =>
+      _i3.QuerySnapshot<Map<String, dynamic>>> createListener<T>({
+    required String? collectionName,
+    required String? personDocId,
+    required dynamic Function(Iterable<T>)? addCallback,
+    dynamic Function(Iterable<T>)? modifyCallback,
+    required _i21.Serializer<T>? serializer,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
           #createListener,
-          [
-            collectionName,
-            personDocId,
-            actionCallback,
-            serializer,
-          ],
+          [],
+          {
+            #collectionName: collectionName,
+            #personDocId: personDocId,
+            #addCallback: addCallback,
+            #modifyCallback: modifyCallback,
+            #serializer: serializer,
+          },
         ),
         returnValue:
             _FakeStreamSubscription_2<_i3.QuerySnapshot<Map<String, dynamic>>>(
           this,
           Invocation.method(
             #createListener,
-            [
-              collectionName,
-              personDocId,
-              actionCallback,
-              serializer,
-            ],
+            [],
+            {
+              #collectionName: collectionName,
+              #personDocId: personDocId,
+              #addCallback: addCallback,
+              #modifyCallback: modifyCallback,
+              #serializer: serializer,
+            },
           ),
         ),
         returnValueForMissingStub:
@@ -420,22 +425,24 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
           this,
           Invocation.method(
             #createListener,
-            [
-              collectionName,
-              personDocId,
-              actionCallback,
-              serializer,
-            ],
+            [],
+            {
+              #collectionName: collectionName,
+              #personDocId: personDocId,
+              #addCallback: addCallback,
+              #modifyCallback: modifyCallback,
+              #serializer: serializer,
+            },
           ),
         ),
       ) as _i4.StreamSubscription<_i3.QuerySnapshot<Map<String, dynamic>>>);
 
   @override
-  _i4.Future<({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})> addTask(
+  void addTask(
     _i22.TaskItemBlueprint? blueprint,
     String? idToken,
   ) =>
-      (super.noSuchMethod(
+      super.noSuchMethod(
         Invocation.method(
           #addTask,
           [
@@ -443,36 +450,8 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             idToken,
           ],
         ),
-        returnValue: _i4.Future<
-            ({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})>.value((
-          recurrence: null,
-          taskItem: _FakeTaskItem_3(
-            this,
-            Invocation.method(
-              #addTask,
-              [
-                blueprint,
-                idToken,
-              ],
-            ),
-          )
-        )),
-        returnValueForMissingStub: _i4.Future<
-            ({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})>.value((
-          recurrence: null,
-          taskItem: _FakeTaskItem_3(
-            this,
-            Invocation.method(
-              #addTask,
-              [
-                blueprint,
-                idToken,
-              ],
-            ),
-          )
-        )),
-      ) as _i4
-          .Future<({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})>);
+        returnValueForMissingStub: null,
+      );
 
   @override
   _i4.Future<
@@ -522,17 +501,15 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
   @override
   _i4.Future<
       ({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})> updateTask(
-    String? taskItemId,
-    _i22.TaskItemBlueprint? taskItemBlueprint,
-    String? idToken,
+    String? taskItemDocId,
+    _i22.TaskItemBlueprint? blueprint,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateTask,
           [
-            taskItemId,
-            taskItemBlueprint,
-            idToken,
+            taskItemDocId,
+            blueprint,
           ],
         ),
         returnValue: _i4.Future<
@@ -543,9 +520,8 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             Invocation.method(
               #updateTask,
               [
-                taskItemId,
-                taskItemBlueprint,
-                idToken,
+                taskItemDocId,
+                blueprint,
               ],
             ),
           )
@@ -558,9 +534,8 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             Invocation.method(
               #updateTask,
               [
-                taskItemId,
-                taskItemBlueprint,
-                idToken,
+                taskItemDocId,
+                blueprint,
               ],
             ),
           )

@@ -89,7 +89,7 @@ class TaskItemBlueprint with DateHolder {
         other.recurrenceDocId != recurrenceDocId ||
         other.recurIteration != recurIteration ||
         (recurrenceBlueprint == null ? other.recurrence != null : recurrenceBlueprint!.hasChanges(other.recurrence));
-    print("All mismatch: $allMismatch");
+    // print("All mismatch: $allMismatch");
     return
       allMismatch;
   }

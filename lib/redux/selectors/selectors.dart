@@ -54,6 +54,17 @@ TaskItem? taskItemSelector(BuiltList<TaskItem> taskItems, String id) {
   }
 }
 
+TaskRecurrence? taskRecurrenceSelector(BuiltList<TaskRecurrence> taskRecurrences, String? id) {
+  if (id == null) {
+    return null;
+  }
+  try {
+    return taskRecurrences.firstWhere((recurrence) => recurrence.docId == id);
+  } catch (e) {
+    return null;
+  }
+}
+
 Sprint? activeSprintSelector(BuiltList<Sprint> sprints) {
   DateTime now = DateTime.timestamp();
   Iterable<Sprint> matching = sprints.where((sprint) =>

@@ -72,7 +72,9 @@ class TaskRepository {
           finalList.add(deserialized);
         }
       }
-      addCallback(finalList);
+      if (finalList.isNotEmpty) {
+        addCallback(finalList);
+      }
 
       if (modifyCallback != null) {
         var modifyDocs = event.docChanges.where((dc) =>
@@ -85,7 +87,9 @@ class TaskRepository {
           var deserialized = serializers.deserializeWith(serializer, json)!;
           modifyList.add(deserialized);
         }
-        modifyCallback(modifyList);
+        if (modifyList.isNotEmpty) {
+          modifyCallback(modifyList);
+        }
       }
 
     });
