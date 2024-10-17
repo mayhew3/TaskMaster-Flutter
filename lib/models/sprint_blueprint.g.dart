@@ -8,8 +8,10 @@ part of 'sprint_blueprint.dart';
 
 SprintBlueprint _$SprintBlueprintFromJson(Map<String, dynamic> json) =>
     SprintBlueprint(
-      startDate: DateTime.parse(json['startDate'] as String),
-      endDate: DateTime.parse(json['endDate'] as String),
+      startDate: const JsonDateTimePassThroughConverter()
+          .fromJson(json['startDate'] as DateTime),
+      endDate: const JsonDateTimePassThroughConverter()
+          .fromJson(json['endDate'] as DateTime),
       numUnits: (json['numUnits'] as num).toInt(),
       unitName: json['unitName'] as String,
       personDocId: json['personDocId'] as String,
@@ -17,8 +19,10 @@ SprintBlueprint _$SprintBlueprintFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$SprintBlueprintToJson(SprintBlueprint instance) =>
     <String, dynamic>{
-      'startDate': instance.startDate.toIso8601String(),
-      'endDate': instance.endDate.toIso8601String(),
+      'startDate':
+          const JsonDateTimePassThroughConverter().toJson(instance.startDate),
+      'endDate':
+          const JsonDateTimePassThroughConverter().toJson(instance.endDate),
       'numUnits': instance.numUnits,
       'unitName': instance.unitName,
       'personDocId': instance.personDocId,

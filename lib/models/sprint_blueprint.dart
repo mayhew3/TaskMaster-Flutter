@@ -1,11 +1,15 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import 'json_datetime_converter.dart';
+
 part 'sprint_blueprint.g.dart';
 
 @JsonSerializable()
 class SprintBlueprint {
 
+  @JsonDateTimePassThroughConverter()
   DateTime startDate;
+  @JsonDateTimePassThroughConverter()
   DateTime endDate;
 
   int numUnits;

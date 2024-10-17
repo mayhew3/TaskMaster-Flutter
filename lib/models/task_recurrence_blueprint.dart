@@ -3,6 +3,8 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
 
+import 'json_datetime_converter.dart';
+
 part 'task_recurrence_blueprint.g.dart';
 
 @JsonSerializable()
@@ -18,6 +20,7 @@ class TaskRecurrenceBlueprint {
 
   int? recurIteration;
 
+  @JsonDateTimePassThroughConverter()
   DateTime? anchorDate;
   String? anchorType;
 

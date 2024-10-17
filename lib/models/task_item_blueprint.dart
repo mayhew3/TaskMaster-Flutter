@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:taskmaster/models/json_datetime_converter.dart';
 import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_date_type.dart';
@@ -25,10 +26,15 @@ class TaskItemBlueprint with DateHolder {
 
   int? gamePoints;
 
+  @JsonDateTimePassThroughConverter()
   DateTime? startDate;
+  @JsonDateTimePassThroughConverter()
   DateTime? targetDate;
+  @JsonDateTimePassThroughConverter()
   DateTime? dueDate;
+  @JsonDateTimePassThroughConverter()
   DateTime? urgentDate;
+  @JsonDateTimePassThroughConverter()
   DateTime? completionDate;
 
   bool offCycle = false;

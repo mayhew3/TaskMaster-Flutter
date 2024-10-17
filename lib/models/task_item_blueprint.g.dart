@@ -16,21 +16,17 @@ TaskItemBlueprint _$TaskItemBlueprintFromJson(Map<String, dynamic> json) =>
       ..priority = (json['priority'] as num?)?.toInt()
       ..duration = (json['duration'] as num?)?.toInt()
       ..gamePoints = (json['gamePoints'] as num?)?.toInt()
-      ..startDate = json['startDate'] == null
-          ? null
-          : DateTime.parse(json['startDate'] as String)
-      ..targetDate = json['targetDate'] == null
-          ? null
-          : DateTime.parse(json['targetDate'] as String)
-      ..dueDate = json['dueDate'] == null
-          ? null
-          : DateTime.parse(json['dueDate'] as String)
-      ..urgentDate = json['urgentDate'] == null
-          ? null
-          : DateTime.parse(json['urgentDate'] as String)
-      ..completionDate = json['completionDate'] == null
-          ? null
-          : DateTime.parse(json['completionDate'] as String)
+      ..startDate = _$JsonConverterFromJson<DateTime, DateTime>(
+          json['startDate'], const JsonDateTimePassThroughConverter().fromJson)
+      ..targetDate = _$JsonConverterFromJson<DateTime, DateTime>(
+          json['targetDate'], const JsonDateTimePassThroughConverter().fromJson)
+      ..dueDate = _$JsonConverterFromJson<DateTime, DateTime>(
+          json['dueDate'], const JsonDateTimePassThroughConverter().fromJson)
+      ..urgentDate = _$JsonConverterFromJson<DateTime, DateTime>(
+          json['urgentDate'], const JsonDateTimePassThroughConverter().fromJson)
+      ..completionDate = _$JsonConverterFromJson<DateTime, DateTime>(
+          json['completionDate'],
+          const JsonDateTimePassThroughConverter().fromJson)
       ..offCycle = json['offCycle'] as bool
       ..recurNumber = (json['recurNumber'] as num?)?.toInt()
       ..recurUnit = json['recurUnit'] as String?
@@ -51,11 +47,17 @@ Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) =>
       'priority': instance.priority,
       'duration': instance.duration,
       'gamePoints': instance.gamePoints,
-      'startDate': instance.startDate?.toIso8601String(),
-      'targetDate': instance.targetDate?.toIso8601String(),
-      'dueDate': instance.dueDate?.toIso8601String(),
-      'urgentDate': instance.urgentDate?.toIso8601String(),
-      'completionDate': instance.completionDate?.toIso8601String(),
+      'startDate': _$JsonConverterToJson<DateTime, DateTime>(
+          instance.startDate, const JsonDateTimePassThroughConverter().toJson),
+      'targetDate': _$JsonConverterToJson<DateTime, DateTime>(
+          instance.targetDate, const JsonDateTimePassThroughConverter().toJson),
+      'dueDate': _$JsonConverterToJson<DateTime, DateTime>(
+          instance.dueDate, const JsonDateTimePassThroughConverter().toJson),
+      'urgentDate': _$JsonConverterToJson<DateTime, DateTime>(
+          instance.urgentDate, const JsonDateTimePassThroughConverter().toJson),
+      'completionDate': _$JsonConverterToJson<DateTime, DateTime>(
+          instance.completionDate,
+          const JsonDateTimePassThroughConverter().toJson),
       'offCycle': instance.offCycle,
       'recurNumber': instance.recurNumber,
       'recurUnit': instance.recurUnit,
@@ -66,3 +68,15 @@ Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) =>
       'recurrenceBlueprint': instance.recurrenceBlueprint,
       'personDocId': instance.personDocId,
     };
+
+Value? _$JsonConverterFromJson<Json, Value>(
+  Object? json,
+  Value? Function(Json json) fromJson,
+) =>
+    json == null ? null : fromJson(json as Json);
+
+Json? _$JsonConverterToJson<Json, Value>(
+  Value? value,
+  Json? Function(Value value) toJson,
+) =>
+    value == null ? null : toJson(value);
