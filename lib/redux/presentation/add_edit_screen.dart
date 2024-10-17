@@ -50,9 +50,12 @@ class AddEditScreenState extends State<AddEditScreen> {
   TaskItemBlueprint blankBlueprint = TaskItemBlueprint();
   late TaskRecurrenceBlueprint taskRecurrenceBlueprint;
 
+  bool popped = false;
+
   @override
   void initState() {
     super.initState();
+
 
     taskItem = widget.taskItem;
     // var taskRecurrence = taskItem?.taskRecurrencePreview;
@@ -222,18 +225,30 @@ class AddEditScreenState extends State<AddEditScreen> {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, AddEditScreenViewModel>(
         onWillChange: (prev, current) {
-          if (editMode()) {
-            var latestTask = taskItemSelector(current.allTaskItems, taskItem!.docId);
-            var latestRecurrence = taskRecurrenceSelector(current.allTaskRecurrences, taskItem!.recurrence?.docId);
-            var hasTaskChanges = latestTask != null && latestTask.hasChanges(taskItem!);
-            var recurrenceAddedOrRemoved = prev != null && current.allTaskRecurrences.length != prev.allTaskRecurrences.length;
-            var hasRecurrenceChanges = latestRecurrence != null && latestRecurrence.hasChanges(taskItem!.recurrence);
-            if (hasTaskChanges || hasRecurrenceChanges || recurrenceAddedOrRemoved) {
-              Navigator.pop(context);
-            }
-          } else {
-            if (prev != null && current.allTaskItems.length > prev.allTaskItems.length) {
-              Navigator.pop(context);
+          if (!popped) {
+            if (editMode()) {
+              var latestTask = taskItemSelector(
+                  current.allTaskItems, taskItem!.docId);
+              var latestRecurrence = taskRecurrenceSelector(
+                  current.allTaskRecurrences, taskItem!.recurrence?.docId);
+              var hasTaskChanges = latestTask != null &&
+                  latestTask.hasChanges(taskItem!);
+              var recurrenceAddedOrRemoved = prev != null &&
+                  current.allTaskRecurrences.length !=
+                      prev.allTaskRecurrences.length;
+              var hasRecurrenceChanges = latestRecurrence != null &&
+                  latestRecurrence.hasChanges(taskItem!.recurrence);
+              if (hasTaskChanges || hasRecurrenceChanges ||
+                  recurrenceAddedOrRemoved) {
+                popped = true;
+                Navigator.pop(context);
+              }
+            } else {
+              if (prev != null &&
+                  current.allTaskItems.length > prev.allTaskItems.length) {
+                popped = true;
+                Navigator.pop(context);
+              }
             }
           }
         },
