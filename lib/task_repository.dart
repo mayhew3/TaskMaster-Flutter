@@ -195,20 +195,18 @@ class TaskRepository {
     return inboundTaskRecurrence;
   }
 
-  Future<TaskRecurrence> updateTaskRecurrence(String taskRecurrenceId, TaskRecurrenceBlueprint blueprint, String idToken) async {
-    var payload = {
-      "taskRecurrence": blueprint.toJson(),
-      "taskRecurrenceId": taskRecurrenceId,
-    };
+  Future<TaskRecurrence> updateTaskRecurrence(String taskRecurrenceDocId, TaskRecurrenceBlueprint blueprint, String idToken) async {
+    var blueprintJson = blueprint.toJson();
 
-    var jsonObj = await executeBodyApiAction(
-        bodyApiOperation: this.client.patch,
-        payload: payload,
-        uriString: "/api/taskRecurrences",
-        idToken: idToken,
-        operationDescription: "update recurrence");
+    var doc = firestore.collection("taskRecurrences").doc(taskRecurrenceDocId);
+    doc.update(blueprintJson);
 
-    return serializers.deserializeWith(TaskRecurrence.serializer, jsonObj)!;
+    var snapshot = await doc.get();
+    blueprintJson['docId'] = doc.id;
+    blueprintJson['dateAdded'] = snapshot.get('dateAdded');
+    var updatedRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, blueprintJson)!;
+
+    return updatedRecurrence;
   }
 
 
