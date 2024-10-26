@@ -186,7 +186,6 @@ Future<void> Function(
     ) completeTaskItem(TaskRepository repository) {
   return (Store<AppState> store, CompleteTaskItemAction action, NextDispatcher next) async {
     next(action);
-    var inputs = await getRequiredInputs(store, "complete task");
     var completionDate = action.complete ? DateTime.timestamp() : null;
 
     var taskItem = action.taskItem;
@@ -206,8 +205,8 @@ Future<void> Function(
 
     if (recurrence != null && nextScheduledTask != null) {
       var recurrenceBlueprint = syncBlueprintToMostRecentTaskItem(updated.taskItem, nextScheduledTask, recurrence);
-      var updatedRecurrence = await repository.updateTaskRecurrence(recurrence.docId, recurrenceBlueprint, inputs.idToken);
-      var addedTaskItem = repository.addRecurTask(nextScheduledTask, inputs.idToken);
+      var updatedRecurrence = await repository.updateTaskRecurrence(recurrence.docId, recurrenceBlueprint);
+      var addedTaskItem = repository.addRecurTask(nextScheduledTask);
       store.dispatch(RecurringTaskItemCompletedAction(updated.taskItem, addedTaskItem, updatedRecurrence, action.complete));
     } else {
       store.dispatch(TaskItemCompletedAction(updated.taskItem, action.complete));
@@ -248,14 +247,14 @@ Future<void> Function(
     var updatedTask = await repository.updateTask(action.taskItem.docId, action.blueprint);
 
     SnoozeBlueprint snooze = new SnoozeBlueprint(
-        taskId: updatedTask.taskItem.docId,
+        taskDocId: updatedTask.taskItem.docId,
         snoozeNumber: action.numUnits,
         snoozeUnits: action.unitSize,
         snoozeAnchor: action.dateType.label,
         previousAnchor: originalValue,
         newAnchor: relevantDateField);
 
-    await repository.addSnooze(snooze, inputs.idToken);
+    repository.addSnooze(snooze);
     store.dispatch(SnoozeExecuted(updatedTask.taskItem));
   };
 }

@@ -13,7 +13,8 @@ class SnoozeBlueprint {
   int? id;
   DateTime? dateAdded;
 
-  String taskId;
+  int? taskId;
+  String taskDocId;
   int snoozeNumber;
   String snoozeUnits;
   String snoozeAnchor;
@@ -24,7 +25,8 @@ class SnoozeBlueprint {
   DateTime newAnchor;
 
   SnoozeBlueprint({
-    required this.taskId,
+    this.taskId,
+    required this.taskDocId,
     required this.snoozeNumber,
     required this.snoozeUnits,
     required this.snoozeAnchor,

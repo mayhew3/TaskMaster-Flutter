@@ -8,7 +8,8 @@ part of 'snooze_blueprint.dart';
 
 SnoozeBlueprint _$SnoozeBlueprintFromJson(Map<String, dynamic> json) =>
     SnoozeBlueprint(
-      taskId: json['taskId'] as String,
+      taskId: (json['taskId'] as num?)?.toInt(),
+      taskDocId: json['taskDocId'] as String,
       snoozeNumber: (json['snoozeNumber'] as num).toInt(),
       snoozeUnits: json['snoozeUnits'] as String,
       snoozeAnchor: json['snoozeAnchor'] as String,
@@ -34,7 +35,8 @@ Map<String, dynamic> _$SnoozeBlueprintToJson(SnoozeBlueprint instance) {
 
   writeNotNull('id', instance.id);
   writeNotNull('dateAdded', instance.dateAdded?.toIso8601String());
-  val['taskId'] = instance.taskId;
+  writeNotNull('taskId', instance.taskId);
+  val['taskDocId'] = instance.taskDocId;
   val['snoozeNumber'] = instance.snoozeNumber;
   val['snoozeUnits'] = instance.snoozeUnits;
   val['snoozeAnchor'] = instance.snoozeAnchor;

@@ -117,7 +117,7 @@ class TaskRepository {
     blueprintJson['docId'] = taskId;
   }
 
-  TaskItem addRecurTask(TaskItemRecurPreview blueprint, String idToken) {
+  TaskItem addRecurTask(TaskItemRecurPreview blueprint) {
     Map<String, Object?> blueprintJson = serializers.serializeWith(TaskItemRecurPreview.serializer, blueprint)! as Map<String, Object?>;
 
     var addedTaskDoc = firestore.collection("tasks").doc();
@@ -201,7 +201,7 @@ class TaskRepository {
     return inboundTaskRecurrence;
   }
 
-  Future<TaskRecurrence> updateTaskRecurrence(String taskRecurrenceDocId, TaskRecurrenceBlueprint blueprint, String idToken) async {
+  Future<TaskRecurrence> updateTaskRecurrence(String taskRecurrenceDocId, TaskRecurrenceBlueprint blueprint) async {
     var blueprintJson = blueprint.toJson();
 
     var doc = firestore.collection("taskRecurrences").doc(taskRecurrenceDocId);
@@ -246,33 +246,12 @@ class TaskRepository {
     doc.update({"retired": taskItem.docId, "retiredDate": DateTime.now().toUtc()});
   }
 
-  Future<({TaskItem taskItem, TaskRecurrence? recurrence})> _addOrUpdateTaskItemJSON({required Map<String, Object?> payload, required String idToken, required BodyApiOperation apiOperation, required String operationDescription}) async {
-    var jsonObj = await executeBodyApiAction(
-        bodyApiOperation: apiOperation,
-        payload: payload,
-        uriString: '/api/tasks',
-        idToken: idToken,
-        operationDescription: operationDescription);
+  void addSnooze(SnoozeBlueprint snooze) async {
+    var blueprintJson = snooze.toJson();
 
-    var recurrenceObj = jsonObj['recurrence'];
-    TaskRecurrence? recurrence = (recurrenceObj == null) ? null :
-    serializers.deserializeWith(TaskRecurrence.serializer, recurrenceObj);
-    TaskItem inboundTask = serializers.deserializeWith(TaskItem.serializer, jsonObj)!;
-    return (taskItem: inboundTask, recurrence: recurrence);
-  }
-
-  Future<Snooze> addSnooze(SnoozeBlueprint snooze, String idToken) async {
-    var payload = {
-      'snooze': snooze.toJson()
-    };
-
-    var jsonObj = await executeBodyApiAction(
-        bodyApiOperation: this.client.post,
-        payload: payload,
-        uriString: "/api/snoozes",
-        idToken: idToken,
-        operationDescription: "add snooze");
-    return serializers.deserializeWith(Snooze.serializer, jsonObj)!;
+    var addedSnoozeDoc = firestore.collection("snoozes").doc();
+    blueprintJson['dateAdded'] = DateTime.now().toUtc();
+    addedSnoozeDoc.set(blueprintJson);
   }
 
 
