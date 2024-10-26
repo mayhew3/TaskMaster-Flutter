@@ -168,8 +168,7 @@ Future<void> Function(
     ) _updateTaskItem(TaskRepository repository) {
   return (Store<AppState> store, UpdateTaskItemAction action, NextDispatcher next) async {
     next(action);
-    var inputs = await getRequiredInputs(store, "update task");
-    action.blueprint.recurrenceBlueprint?.personDocId = inputs.personDocId;
+    action.blueprint.recurrenceBlueprint?.personDocId = action.taskItem.personDocId;
     repository.updateTask(action.taskItem.docId, action.blueprint);
 
     // updateNotificationForItem(store, updated.taskItem);
@@ -222,7 +221,6 @@ Future<void> Function(
     ) _deleteTaskItem(TaskRepository repository) {
   return (Store<AppState> store, DeleteTaskItemAction action, NextDispatcher next) async {
     next(action);
-    var inputs = await getRequiredInputs(store, "delete task");
 
     repository.deleteTask(action.taskItem);
 
@@ -237,7 +235,6 @@ Future<void> Function(
     ) _executeSnooze(TaskRepository repository) {
   return (Store<AppState> store, ExecuteSnooze action, NextDispatcher next) async {
     next(action);
-    var inputs = await getRequiredInputs(store, "snooze");
 
     RecurrenceHelper.generatePreview(action.blueprint, action.numUnits, action.unitSize, action.dateType);
 

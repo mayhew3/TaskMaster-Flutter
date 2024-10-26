@@ -160,29 +160,44 @@ class TaskRepository {
   }
 
   Future<({Sprint sprint, BuiltList<TaskItem> addedTasks, BuiltList<SprintAssignment> sprintAssignments})> addSprintWithTaskItems(SprintBlueprint blueprint, BuiltList<TaskItem> existingItems, BuiltList<TaskItemRecurPreview> newItems, String idToken) async {
-    var list = newItems.map((t) => serializers.serializeWith(TaskItemRecurPreview.serializer, t)).toList();
-    var payload = {
-      "sprint": blueprint.toJson(),
-      "task_ids": existingItems.map((t) => t.docId).toList(),
-      "taskItems": list
-    };
+    var newTaskItemsList = newItems.map((t) => serializers.serializeWith(TaskItemRecurPreview.serializer, t)).toList();
 
-    var jsonObj = await executeBodyApiAction(
-        bodyApiOperation: this.client.post,
-        payload: payload,
-        uriString: "/api/sprintsAndTasks",
-        idToken: idToken,
-        operationDescription: "add sprint and tasks");
+    var blueprintJson = blueprint.toJson();
+    var existingIds = existingItems.map((t) => t.docId).toList();
 
-    var sprintObj = jsonObj['sprint'];
-    var taskItemsObj = jsonObj['addedTasks'] as List<dynamic>;
-    var sprintAssignmentsObj = jsonObj['sprintAssignments'] as List<dynamic>;
+    var addedSprintDoc = firestore.collection("sprints").doc();
+    var sprintId = addedSprintDoc.id;
+    blueprintJson['dateAdded'] = DateTime.now().toUtc();
+    addedSprintDoc.set(blueprintJson);
+    blueprintJson['docId'] = sprintId;
+    var addedSprint = serializers.deserializeWith(Sprint.serializer, blueprintJson)!;
 
-    Sprint inboundSprint = serializers.deserializeWith(Sprint.serializer, sprintObj)!;
-    BuiltList<TaskItem> taskItems = taskItemsObj.map((obj) => (serializers.deserializeWith(TaskItem.serializer, obj))!).toBuiltList();
-    BuiltList<SprintAssignment> sprintAssignments = sprintAssignmentsObj.map((obj) => (serializers.deserializeWith(SprintAssignment.serializer, obj))!).toBuiltList();
+    var addedTasks = ListBuilder<TaskItem>();
+    for (var toAdd in newTaskItemsList) {
+      toAdd as Map<String, Object?>;
+      var addedTaskDoc = firestore.collection("tasks").doc();
+      var taskId = addedTaskDoc.id;
+      toAdd['dateAdded'] = DateTime.now().toUtc();
+      addedTaskDoc.set(toAdd);
+      toAdd['docId'] = taskId;
+      addedTasks.add(serializers.deserializeWith(TaskItem.serializer, toAdd)!);
+    }
 
-    return (sprint: inboundSprint, addedTasks: taskItems, sprintAssignments: sprintAssignments);
+    var sprintAssignments = ListBuilder<SprintAssignment>();
+    for (var existingId in existingIds) {
+      var sprintAssignment = firestore.collection("tasks").doc(existingId).collection("sprintAssignments").doc();
+      var sprintAssignmentId = sprintAssignment.id;
+      var sprintAssignmentJson = {
+        "taskDocId": existingId,
+        "sprintDocId": sprintId,
+        "dateAdded": DateTime.now().toUtc()
+      };
+      sprintAssignment.set(sprintAssignmentJson);
+      sprintAssignmentJson["docId"] = sprintAssignmentId;
+      sprintAssignments.add(serializers.deserializeWith(SprintAssignment.serializer, sprintAssignmentJson)!);
+    }
+
+    return (sprint: addedSprint, addedTasks: addedTasks.build(), sprintAssignments: sprintAssignments.build());
   }
 
   Future<TaskRecurrence> addTaskRecurrence(TaskRecurrenceBlueprint blueprint, String idToken) async {

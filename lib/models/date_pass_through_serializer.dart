@@ -18,6 +18,10 @@ class DatePassThroughSerializer implements PrimitiveSerializer<DateTime> {
     if (serialized is String) {
       return DateTime.parse(serialized).toUtc();
     } else if (serialized is DateTime) {
+      if (!serialized.isUtc) {
+        throw ArgumentError.value(
+            serialized, 'dateTime', 'Must be in utc for serialization.');
+      }
       return serialized;
     } else if (serialized is Timestamp) {
       return DateTime.fromMillisecondsSinceEpoch(serialized.millisecondsSinceEpoch);
