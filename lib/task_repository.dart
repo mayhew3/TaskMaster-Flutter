@@ -117,12 +117,18 @@ class TaskRepository {
     blueprintJson['docId'] = taskId;
   }
 
-  Future<({TaskItem taskItem, TaskRecurrence? recurrence})> addRecurTask(TaskItemRecurPreview blueprint, String idToken) async {
-    var taskObj = serializers.serializeWith(TaskItemRecurPreview.serializer, blueprint);
-    var payload = {
-      "task": taskObj
-    };
-    return _addOrUpdateTaskItemJSON(payload: payload, idToken: idToken, apiOperation: this.client.post, operationDescription: "create task (with recur)");
+  TaskItem addRecurTask(TaskItemRecurPreview blueprint, String idToken) {
+    Map<String, Object?> blueprintJson = serializers.serializeWith(TaskItemRecurPreview.serializer, blueprint)! as Map<String, Object?>;
+
+    var addedTaskDoc = firestore.collection("tasks").doc();
+    var taskId = addedTaskDoc.id;
+    blueprintJson['dateAdded'] = DateTime.now().toUtc();
+    addedTaskDoc.set(blueprintJson);
+    blueprintJson['docId'] = taskId;
+
+    var updatedTask = serializers.deserializeWith(TaskItem.serializer, blueprintJson)!;
+
+    return updatedTask;
   }
 
   Future<({TaskItem taskItem, TaskRecurrence? recurrence})> updateTask(String taskItemDocId, TaskItemBlueprint blueprint) async {
