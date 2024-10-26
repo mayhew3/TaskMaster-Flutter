@@ -146,6 +146,18 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
     result
       ..add('recurIteration')
       ..add(serializers.serialize(value, specifiedType: const FullType(int)));
+    value = object.retired;
+
+    result
+      ..add('retired')
+      ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)));
+    value = object.retiredDate;
+
+    result
+      ..add('retiredDate')
+      ..add(serializers.serialize(value,
+          specifiedType: const FullType(DateTime)));
     value = object.recurrence;
 
     result
@@ -259,6 +271,14 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
           result.recurIteration = serializers.deserialize(value,
               specifiedType: const FullType(int)) as int?;
           break;
+        case 'retired':
+          result.retired = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String?;
+          break;
+        case 'retiredDate':
+          result.retiredDate = serializers.deserialize(value,
+              specifiedType: const FullType(DateTime)) as DateTime?;
+          break;
         case 'offCycle':
           result.offCycle = serializers.deserialize(value,
               specifiedType: const FullType(bool))! as bool;
@@ -329,6 +349,10 @@ class _$TaskItem extends TaskItem {
   @override
   final int? recurIteration;
   @override
+  final String? retired;
+  @override
+  final DateTime? retiredDate;
+  @override
   final bool offCycle;
   @override
   final BuiltList<SprintAssignment> sprintAssignments;
@@ -364,6 +388,8 @@ class _$TaskItem extends TaskItem {
       this.recurrenceId,
       this.recurrenceDocId,
       this.recurIteration,
+      this.retired,
+      this.retiredDate,
       required this.offCycle,
       required this.sprintAssignments,
       this.recurrence,
@@ -413,6 +439,8 @@ class _$TaskItem extends TaskItem {
         recurrenceId == other.recurrenceId &&
         recurrenceDocId == other.recurrenceDocId &&
         recurIteration == other.recurIteration &&
+        retired == other.retired &&
+        retiredDate == other.retiredDate &&
         offCycle == other.offCycle &&
         sprintAssignments == other.sprintAssignments &&
         recurrence == other.recurrence &&
@@ -445,6 +473,8 @@ class _$TaskItem extends TaskItem {
     _$hash = $jc(_$hash, recurrenceId.hashCode);
     _$hash = $jc(_$hash, recurrenceDocId.hashCode);
     _$hash = $jc(_$hash, recurIteration.hashCode);
+    _$hash = $jc(_$hash, retired.hashCode);
+    _$hash = $jc(_$hash, retiredDate.hashCode);
     _$hash = $jc(_$hash, offCycle.hashCode);
     _$hash = $jc(_$hash, sprintAssignments.hashCode);
     _$hash = $jc(_$hash, recurrence.hashCode);
@@ -479,6 +509,8 @@ class _$TaskItem extends TaskItem {
           ..add('recurrenceId', recurrenceId)
           ..add('recurrenceDocId', recurrenceDocId)
           ..add('recurIteration', recurIteration)
+          ..add('retired', retired)
+          ..add('retiredDate', retiredDate)
           ..add('offCycle', offCycle)
           ..add('sprintAssignments', sprintAssignments)
           ..add('recurrence', recurrence)
@@ -585,6 +617,14 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   set recurIteration(int? recurIteration) =>
       _$this._recurIteration = recurIteration;
 
+  String? _retired;
+  String? get retired => _$this._retired;
+  set retired(String? retired) => _$this._retired = retired;
+
+  DateTime? _retiredDate;
+  DateTime? get retiredDate => _$this._retiredDate;
+  set retiredDate(DateTime? retiredDate) => _$this._retiredDate = retiredDate;
+
   bool? _offCycle;
   bool? get offCycle => _$this._offCycle;
   set offCycle(bool? offCycle) => _$this._offCycle = offCycle;
@@ -636,6 +676,8 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
       _recurrenceId = $v.recurrenceId;
       _recurrenceDocId = $v.recurrenceDocId;
       _recurIteration = $v.recurIteration;
+      _retired = $v.retired;
+      _retiredDate = $v.retiredDate;
       _offCycle = $v.offCycle;
       _sprintAssignments = $v.sprintAssignments.toBuilder();
       _recurrence = $v.recurrence?.toBuilder();
@@ -690,6 +732,8 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
               recurrenceId: recurrenceId,
               recurrenceDocId: recurrenceDocId,
               recurIteration: recurIteration,
+              retired: retired,
+              retiredDate: retiredDate,
               offCycle: BuiltValueNullFieldError.checkNotNull(
                   offCycle, r'TaskItem', 'offCycle'),
               sprintAssignments: sprintAssignments.build(),

@@ -52,6 +52,7 @@ class TaskRepository {
     required String personDocId,
     required Function(Iterable<T>) addCallback,
     Function(Iterable<T>)? modifyCallback,
+    Function(Iterable<T>)? deleteCallback,
     required Serializer<T> serializer}
       ) {
     var snapshots = firestore.collection(collectionName).where("personDocId", isEqualTo: personDocId).snapshots();
@@ -237,7 +238,8 @@ class TaskRepository {
   }
 
   void deleteTask(TaskItem taskItem) async {
-
+    var doc = firestore.collection("tasks").doc(taskItem.docId);
+    doc.update({"retired": taskItem.docId, "retiredDate": DateTime.now().toUtc()});
   }
 
   Future<({TaskItem taskItem, TaskRecurrence? recurrence})> _addOrUpdateTaskItemJSON({required Map<String, Object?> payload, required String idToken, required BodyApiOperation apiOperation, required String operationDescription}) async {

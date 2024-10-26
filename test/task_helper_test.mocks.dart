@@ -391,6 +391,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
     required String? personDocId,
     required dynamic Function(Iterable<T>)? addCallback,
     dynamic Function(Iterable<T>)? modifyCallback,
+    dynamic Function(Iterable<T>)? deleteCallback,
     required _i21.Serializer<T>? serializer,
   }) =>
       (super.noSuchMethod(
@@ -402,6 +403,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             #personDocId: personDocId,
             #addCallback: addCallback,
             #modifyCallback: modifyCallback,
+            #deleteCallback: deleteCallback,
             #serializer: serializer,
           },
         ),
@@ -416,6 +418,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
               #personDocId: personDocId,
               #addCallback: addCallback,
               #modifyCallback: modifyCallback,
+              #deleteCallback: deleteCallback,
               #serializer: serializer,
             },
           ),
@@ -431,6 +434,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
               #personDocId: personDocId,
               #addCallback: addCallback,
               #modifyCallback: modifyCallback,
+              #deleteCallback: deleteCallback,
               #serializer: serializer,
             },
           ),
@@ -822,21 +826,13 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
           })>);
 
   @override
-  _i4.Future<void> deleteTask(
-    _i5.TaskItem? taskItem,
-    String? idToken,
-  ) =>
-      (super.noSuchMethod(
+  void deleteTask(_i5.TaskItem? taskItem) => super.noSuchMethod(
         Invocation.method(
           #deleteTask,
-          [
-            taskItem,
-            idToken,
-          ],
+          [taskItem],
         ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
+        returnValueForMissingStub: null,
+      );
 
   @override
   _i4.Future<_i9.Snooze> addSnooze(
@@ -951,6 +947,34 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
         returnValue: _i4.Future<dynamic>.value(),
         returnValueForMissingStub: _i4.Future<dynamic>.value(),
       ) as _i4.Future<dynamic>);
+
+  @override
+  _i4.Future<void> convertRetired() => (super.noSuchMethod(
+        Invocation.method(
+          #convertRetired,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> convertRetiredCollection({
+    required String? collectionName,
+    String? subCollectionName,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #convertRetiredCollection,
+          [],
+          {
+            #collectionName: collectionName,
+            #subCollectionName: subCollectionName,
+          },
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
   _i4.Future<void> migrateFromApi() => (super.noSuchMethod(

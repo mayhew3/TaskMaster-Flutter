@@ -53,6 +53,9 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   String? get recurrenceDocId;
   int? get recurIteration;
 
+  String? get retired;
+  DateTime? get retiredDate;
+
   bool get offCycle;
 
   BuiltList<SprintAssignment> get sprintAssignments;

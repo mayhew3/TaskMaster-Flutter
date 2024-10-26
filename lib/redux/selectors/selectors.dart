@@ -27,6 +27,10 @@ int numCompletedSelector(BuiltList<TaskItem> taskItems) =>
 
 ListBuilder<TaskItem> filteredTaskItemsSelector(BuiltList<TaskItem> taskItems, BuiltList<TaskItem> recentlyCompleted, Sprint? sprint, VisibilityFilter visibilityFilter) {
   var filteredTasks = taskItems.where((taskItem) {
+    if (taskItem.retired != null) {
+      return false;
+    }
+
     var startDate = taskItem.startDate;
 
     var completedPredicate = taskItem.completionDate == null || visibilityFilter.showCompleted;
