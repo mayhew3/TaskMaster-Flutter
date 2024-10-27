@@ -277,7 +277,58 @@ class TaskRepository {
   }
 
 
-  Future<({BuiltList<TaskItem> addedTasks, BuiltList<SprintAssignment> sprintAssignments})> addTasksToSprint(BuiltList<TaskItem> taskItems, BuiltList<TaskItemRecurPreview> taskItemRecurPreviews, Sprint sprint, String idToken) async {
+  Future<({BuiltList<TaskItem> addedTasks, BuiltList<SprintAssignment> sprintAssignments})> addTasksToSprint(BuiltList<TaskItem> existingItems, BuiltList<TaskItemRecurPreview> newItems, Sprint sprint, String idToken) async {
+    var newTaskItemsList = newItems.map((t) => serializers.serializeWith(TaskItemRecurPreview.serializer, t)).toList();
+
+    var existingIds = existingItems.map((t) => t.docId).toList();
+
+    var addedTasks = ListBuilder<TaskItem>();
+    var sprintAssignments = ListBuilder<SprintAssignment>();
+
+    try {
+      await firestore.runTransaction((transaction) async {
+        var sprintId = sprint.docId;
+
+        for (var toAdd in newTaskItemsList) {
+          toAdd as Map<String, Object?>;
+          var addedTaskDoc = firestore.collection("tasks").doc();
+          var taskId = addedTaskDoc.id;
+          toAdd['dateAdded'] = DateTime.now().toUtc();
+          transaction.set(addedTaskDoc, toAdd);
+          toAdd['docId'] = taskId;
+          addedTasks.add(
+              serializers.deserializeWith(TaskItem.serializer, toAdd)!);
+          existingIds.add(taskId);
+        }
+
+        for (var existingId in existingIds) {
+          var sprintAssignment = firestore.collection("tasks")
+              .doc(existingId)
+              .collection("sprintAssignments")
+              .doc();
+          var sprintAssignmentId = sprintAssignment.id;
+          var sprintAssignmentJson = {
+            "taskDocId": existingId,
+            "sprintDocId": sprintId,
+            "dateAdded": DateTime.now().toUtc(),
+            "retired": null,
+            "retiredDate": null,
+          };
+          transaction.set(sprintAssignment, sprintAssignmentJson);
+          sprintAssignmentJson["docId"] = sprintAssignmentId;
+          sprintAssignments.add(serializers.deserializeWith(
+              SprintAssignment.serializer, sprintAssignmentJson)!);
+        }
+      });
+
+      return (addedTasks: addedTasks.build(), sprintAssignments: sprintAssignments.build());
+
+    } catch (e) {
+      print("Error adding sprint: $e");
+      throw e;
+    }
+
+    /*
     var list = taskItemRecurPreviews.map((t) => serializers.serializeWith(TaskItemRecurPreview.serializer, t)).toList();
 
     Map<String, Object> payload = {
@@ -298,8 +349,7 @@ class TaskRepository {
 
     BuiltList<TaskItem> addedTaskItems = taskItemsObj.map((obj) => (serializers.deserializeWith(TaskItem.serializer, obj))!).toBuiltList();
     BuiltList<SprintAssignment> sprintAssignments = sprintAssignmentsObj.map((obj) => (serializers.deserializeWith(SprintAssignment.serializer, obj))!).toBuiltList();
-
-    return (addedTasks: addedTaskItems, sprintAssignments: sprintAssignments);
+*/
   }
 
   void deleteTask(TaskItem taskItem) async {
