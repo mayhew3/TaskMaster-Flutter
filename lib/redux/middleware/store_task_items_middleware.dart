@@ -143,7 +143,7 @@ Future<void> Function(
     // var recurrence = await maybeAddRecurrence(action.recurrenceBlueprint, inputs, repository);
 
     // action.blueprint.recurrenceId = recurrence?.id;
-    repository.addTask(action.blueprint, inputs.idToken);
+    repository.addTask(action.blueprint);
 
     // updateNotificationForItem(store, payload.taskItem);
 

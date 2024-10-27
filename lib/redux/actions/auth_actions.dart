@@ -10,9 +10,8 @@ class LogInAction {}
 class OnAuthenticatedAction {
   final GoogleSignInAccount account;
   final UserCredential userCredential;
-  final String? idToken;
 
-  OnAuthenticatedAction(this.account, this.userCredential, this.idToken);
+  OnAuthenticatedAction(this.account, this.userCredential);
 
   @override
   String toString() {

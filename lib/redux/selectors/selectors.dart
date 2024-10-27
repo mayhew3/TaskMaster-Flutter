@@ -119,19 +119,14 @@ bool taskItemIsInSprint(SprintDisplayTask taskItem, Sprint? sprint) {
   return sprint != null && taskItem.sprintAssignments.where((sa) => sa.sprintDocId == sprint.docId).isNotEmpty;
 }
 
-Future<({String idToken, String personDocId})> getRequiredInputs(Store<AppState> store, String actionDesc) async {
-
-  var idToken = await store.state.getIdToken();
-  if (idToken == null) {
-    throw new Exception("Cannot $actionDesc without id token.");
-  }
+Future<({String personDocId})> getRequiredInputs(Store<AppState> store, String actionDesc) async {
 
   var personDocId = store.state.personDocId;
   if (personDocId == null) {
     throw new Exception("Cannot $actionDesc without person id.");
   }
 
-  return (idToken: idToken, personDocId: personDocId);
+  return (personDocId: personDocId);
 }
 
 TaskRecurrence? recurrenceForTaskItem(BuiltList<TaskRecurrence> recurrences, TaskItem taskItem) {

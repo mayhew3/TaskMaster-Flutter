@@ -19,7 +19,6 @@ import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_item_recur_preview.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
-import 'package:taskmaster/typedefs.dart';
 
 class TaskRepository {
   final http.Client client;
@@ -31,19 +30,6 @@ class TaskRepository {
     required this.client,
     required this.firestore,
   });
-
-  Future<int?> getPersonId(String email, String idToken) async {
-    var queryParameters = {
-      'email': email
-    };
-
-    var jsonObj = await this.executeGetApiAction(
-        uriString: '/api/persons',
-        queryParameters: queryParameters,
-        idToken: idToken,
-        operationDescription: "get person id");
-    return jsonObj['person']?['id'];
-  }
 
   Future<String?> getPersonIdFromFirestore(String email) async {
     var withEmail = await firestore.collection("persons").where("email", isEqualTo: email).get();
@@ -119,7 +105,7 @@ class TaskRepository {
     return listener;
   }
 
-  void addTask(TaskItemBlueprint blueprint, String idToken) async {
+  void addTask(TaskItemBlueprint blueprint) async {
     var blueprintJson = blueprint.toJson();
 
     var recurrenceBlueprint = blueprint.recurrenceBlueprint;
@@ -246,22 +232,6 @@ class TaskRepository {
     }
   }
 
-  Future<TaskRecurrence> addTaskRecurrence(TaskRecurrenceBlueprint blueprint, String idToken) async {
-    var payload = {
-      "taskRecurrence": blueprint.toJson()
-    };
-
-    var jsonObj = await executeBodyApiAction(
-        bodyApiOperation: this.client.post,
-        payload: payload,
-        uriString: "/api/taskRecurrences",
-        idToken: idToken,
-        operationDescription: "add recurrence");
-
-    TaskRecurrence inboundTaskRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, jsonObj)!;
-    return inboundTaskRecurrence;
-  }
-
   Future<TaskRecurrence> updateTaskRecurrence(String taskRecurrenceDocId, TaskRecurrenceBlueprint blueprint) async {
     var blueprintJson = blueprint.toJson();
 
@@ -277,7 +247,7 @@ class TaskRepository {
   }
 
 
-  Future<({BuiltList<TaskItem> addedTasks, BuiltList<SprintAssignment> sprintAssignments})> addTasksToSprint(BuiltList<TaskItem> existingItems, BuiltList<TaskItemRecurPreview> newItems, Sprint sprint, String idToken) async {
+  Future<({BuiltList<TaskItem> addedTasks, BuiltList<SprintAssignment> sprintAssignments})> addTasksToSprint(BuiltList<TaskItem> existingItems, BuiltList<TaskItemRecurPreview> newItems, Sprint sprint) async {
     var newTaskItemsList = newItems.map((t) => serializers.serializeWith(TaskItemRecurPreview.serializer, t)).toList();
 
     var existingIds = existingItems.map((t) => t.docId).toList();
@@ -328,28 +298,6 @@ class TaskRepository {
       throw e;
     }
 
-    /*
-    var list = taskItemRecurPreviews.map((t) => serializers.serializeWith(TaskItemRecurPreview.serializer, t)).toList();
-
-    Map<String, Object> payload = {
-      'sprint_id': sprint.docId,
-      'task_ids': taskItems.map((t) => t.docId).toList(),
-      'taskItems': list
-    };
-
-    var jsonObj = await executeBodyApiAction(
-        bodyApiOperation: this.client.post,
-        payload: payload,
-        uriString: "/api/assignments",
-        idToken: idToken,
-        operationDescription: "add tasks to existing sprint");
-
-    var taskItemsObj = jsonObj['addedTasks'] as List<dynamic>;
-    var sprintAssignmentsObj = jsonObj['sprintAssignments'] as List<dynamic>;
-
-    BuiltList<TaskItem> addedTaskItems = taskItemsObj.map((obj) => (serializers.deserializeWith(TaskItem.serializer, obj))!).toBuiltList();
-    BuiltList<SprintAssignment> sprintAssignments = sprintAssignmentsObj.map((obj) => (serializers.deserializeWith(SprintAssignment.serializer, obj))!).toBuiltList();
-*/
   }
 
   void deleteTask(TaskItem taskItem) async {
@@ -387,32 +335,6 @@ class TaskRepository {
 
   Uri getUri(String path) {
     return getUriWithParameters(path, null);
-  }
-
-  Future<dynamic> executeGetApiAction({
-    required String uriString,
-    Map<String, Object>? queryParameters,
-    required String idToken,
-    required String operationDescription}) async {
-
-    var uri = queryParameters == null ? getUri(uriString) : getUriWithParameters(uriString, queryParameters);
-
-    final response = await this.client.get(uri,
-      headers: {HttpHeaders.authorizationHeader: idToken,
-        HttpHeaders.contentTypeHeader: 'application/json'},
-    );
-
-    if (response.statusCode == 200) {
-      try {
-        return json.decode(response.body);
-      } catch(exception, stackTrace) {
-        print(exception);
-        print(stackTrace);
-        throw Exception('Error $operationDescription from the server. Talk to Mayhew.');
-      }
-    } else {
-      throw Exception('Failed to $operationDescription. Talk to Mayhew.');
-    }
   }
 
   Future<void> dataFixAll() async {
@@ -525,64 +447,6 @@ class TaskRepository {
     }
 
 
-  }
-
-  Future<dynamic> executeBodyApiAction({
-    required BodyApiOperation bodyApiOperation,
-    required Map<String, Object?> payload,
-    required String uriString,
-    Map<String, Object>? queryParameters,
-    required String idToken,
-    required String operationDescription}) async {
-
-    var uri = queryParameters == null ? getUri(uriString) : getUriWithParameters(uriString, queryParameters);
-
-    var body = utf8.encode(json.encode(payload));
-
-    final response = await bodyApiOperation(uri,
-      headers: {HttpHeaders.authorizationHeader: idToken,
-        HttpHeaders.contentTypeHeader: 'application/json'},
-      body: body,
-    );
-
-    if (response.statusCode == 200) {
-      try {
-        return json.decode(response.body);
-      } catch(exception, stackTrace) {
-        print(exception);
-        print(stackTrace);
-        throw Exception('Error $operationDescription from the server. Talk to Mayhew.');
-      }
-    } else {
-      throw Exception('Failed to $operationDescription. Talk to Mayhew.');
-    }
-  }
-
-  Future<void> executeDeleteApiAction({
-    required String uriString,
-    Map<String, Object>? queryParameters,
-    required String idToken,
-    required String operationDescription}) async {
-
-    var uri = queryParameters == null ? getUri(uriString) : getUriWithParameters(uriString, queryParameters);
-
-    final response = await this.client.delete(uri,
-      headers: {HttpHeaders.authorizationHeader: idToken,
-        HttpHeaders.contentTypeHeader: 'application/json'},
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to $operationDescription. Talk to Mayhew.');
-    }
-  }
-
-  String? formatForJson(DateTime? dateTime) {
-    if (dateTime == null) {
-      return null;
-    } else {
-      var utc = dateTime.toUtc();
-      return utc.toIso8601String();
-    }
   }
 
 }

@@ -109,9 +109,8 @@ void Function(
         );
 
         var firebaseUser = await FirebaseAuth.instance.signInWithCredential(credential);
-        String? idToken = await firebaseUser.user!.getIdToken();
 
-        store.dispatch(OnAuthenticatedAction(account, firebaseUser, idToken));
+        store.dispatch(OnAuthenticatedAction(account, firebaseUser));
         store.dispatch(VerifyPersonAction(account.email));
       }
     });

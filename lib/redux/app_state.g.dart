@@ -49,8 +49,6 @@ class _$AppState extends AppState {
   @override
   final GoogleSignInAccount? currentUser;
   @override
-  final bool tokenRetrieved;
-  @override
   final bool offlineMode;
   @override
   final TimezoneHelper timezoneHelper;
@@ -83,7 +81,6 @@ class _$AppState extends AppState {
       required this.googleSignIn,
       this.firebaseUser,
       this.currentUser,
-      required this.tokenRetrieved,
       required this.offlineMode,
       required this.timezoneHelper,
       required this.nextId,
@@ -113,8 +110,6 @@ class _$AppState extends AppState {
         taskListFilter, r'AppState', 'taskListFilter');
     BuiltValueNullFieldError.checkNotNull(
         googleSignIn, r'AppState', 'googleSignIn');
-    BuiltValueNullFieldError.checkNotNull(
-        tokenRetrieved, r'AppState', 'tokenRetrieved');
     BuiltValueNullFieldError.checkNotNull(
         offlineMode, r'AppState', 'offlineMode');
     BuiltValueNullFieldError.checkNotNull(
@@ -155,7 +150,6 @@ class _$AppState extends AppState {
         googleSignIn == other.googleSignIn &&
         firebaseUser == other.firebaseUser &&
         currentUser == other.currentUser &&
-        tokenRetrieved == other.tokenRetrieved &&
         offlineMode == other.offlineMode &&
         timezoneHelper == other.timezoneHelper &&
         nextId == other.nextId &&
@@ -185,7 +179,6 @@ class _$AppState extends AppState {
     _$hash = $jc(_$hash, googleSignIn.hashCode);
     _$hash = $jc(_$hash, firebaseUser.hashCode);
     _$hash = $jc(_$hash, currentUser.hashCode);
-    _$hash = $jc(_$hash, tokenRetrieved.hashCode);
     _$hash = $jc(_$hash, offlineMode.hashCode);
     _$hash = $jc(_$hash, timezoneHelper.hashCode);
     _$hash = $jc(_$hash, nextId.hashCode);
@@ -217,7 +210,6 @@ class _$AppState extends AppState {
           ..add('googleSignIn', googleSignIn)
           ..add('firebaseUser', firebaseUser)
           ..add('currentUser', currentUser)
-          ..add('tokenRetrieved', tokenRetrieved)
           ..add('offlineMode', offlineMode)
           ..add('timezoneHelper', timezoneHelper)
           ..add('nextId', nextId)
@@ -341,11 +333,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   set currentUser(GoogleSignInAccount? currentUser) =>
       _$this._currentUser = currentUser;
 
-  bool? _tokenRetrieved;
-  bool? get tokenRetrieved => _$this._tokenRetrieved;
-  set tokenRetrieved(bool? tokenRetrieved) =>
-      _$this._tokenRetrieved = tokenRetrieved;
-
   bool? _offlineMode;
   bool? get offlineMode => _$this._offlineMode;
   set offlineMode(bool? offlineMode) => _$this._offlineMode = offlineMode;
@@ -389,7 +376,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _googleSignIn = $v.googleSignIn;
       _firebaseUser = $v.firebaseUser;
       _currentUser = $v.currentUser;
-      _tokenRetrieved = $v.tokenRetrieved;
       _offlineMode = $v.offlineMode;
       _timezoneHelper = $v.timezoneHelper;
       _nextId = $v.nextId;
@@ -444,11 +430,10 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
                   googleSignIn, r'AppState', 'googleSignIn'),
               firebaseUser: firebaseUser,
               currentUser: currentUser,
-              tokenRetrieved: BuiltValueNullFieldError.checkNotNull(
-                  tokenRetrieved, r'AppState', 'tokenRetrieved'),
               offlineMode: BuiltValueNullFieldError.checkNotNull(
                   offlineMode, r'AppState', 'offlineMode'),
-              timezoneHelper: BuiltValueNullFieldError.checkNotNull(timezoneHelper, r'AppState', 'timezoneHelper'),
+              timezoneHelper: BuiltValueNullFieldError.checkNotNull(
+                  timezoneHelper, r'AppState', 'timezoneHelper'),
               nextId: BuiltValueNullFieldError.checkNotNull(nextId, r'AppState', 'nextId'),
               notificationHelper: BuiltValueNullFieldError.checkNotNull(notificationHelper, r'AppState', 'notificationHelper'));
     } catch (_) {

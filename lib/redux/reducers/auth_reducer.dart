@@ -16,7 +16,6 @@ AppState _onAuthenticated(AppState state, OnAuthenticatedAction action) {
   return state.rebuild((a) => {
     a..firebaseUser = action.userCredential
       ..currentUser = action.account
-      ..tokenRetrieved = action.idToken != null
   });
 }
 
@@ -30,7 +29,6 @@ AppState _onLogout(AppState state, OnLogoutSuccessAction action) {
   return state.rebuild((a) => {
     a..firebaseUser = null
       ..currentUser = null
-      ..tokenRetrieved = false
       ..personDocId = null
       ..googleSignIn?.disconnect()
   });

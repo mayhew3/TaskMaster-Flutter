@@ -4,7 +4,7 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i4;
-import 'dart:ui' as _i30;
+import 'dart:ui' as _i29;
 
 import 'package:built_collection/built_collection.dart' as _i6;
 import 'package:built_value/serializer.dart' as _i20;
@@ -17,8 +17,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart'
 import 'package:google_sign_in/google_sign_in.dart' as _i13;
 import 'package:http/http.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i29;
-import 'package:redux/src/store.dart' as _i28;
+import 'package:mockito/src/dummies.dart' as _i28;
+import 'package:redux/src/store.dart' as _i27;
 import 'package:taskmaster/models/models.dart' as _i12;
 import 'package:taskmaster/models/snooze_blueprint.dart' as _i26;
 import 'package:taskmaster/models/sprint.dart' as _i7;
@@ -34,7 +34,6 @@ import 'package:taskmaster/redux/app_state.dart' as _i15;
 import 'package:taskmaster/redux/middleware/notification_helper.dart' as _i14;
 import 'package:taskmaster/task_repository.dart' as _i19;
 import 'package:taskmaster/timezone_helper.dart' as _i10;
-import 'package:taskmaster/typedefs.dart' as _i27;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -345,23 +344,6 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
       ) as _i3.FirebaseFirestore);
 
   @override
-  _i4.Future<int?> getPersonId(
-    String? email,
-    String? idToken,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getPersonId,
-          [
-            email,
-            idToken,
-          ],
-        ),
-        returnValue: _i4.Future<int?>.value(),
-        returnValueForMissingStub: _i4.Future<int?>.value(),
-      ) as _i4.Future<int?>);
-
-  @override
   _i4.Future<String?> getPersonIdFromFirestore(String? email) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -452,17 +434,10 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
       ) as _i4.StreamSubscription<_i3.QuerySnapshot<Map<String, dynamic>>>);
 
   @override
-  void addTask(
-    _i21.TaskItemBlueprint? blueprint,
-    String? idToken,
-  ) =>
-      super.noSuchMethod(
+  void addTask(_i21.TaskItemBlueprint? blueprint) => super.noSuchMethod(
         Invocation.method(
           #addTask,
-          [
-            blueprint,
-            idToken,
-          ],
+          [blueprint],
         ),
         returnValueForMissingStub: null,
       );
@@ -643,42 +618,6 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
           })>);
 
   @override
-  _i4.Future<_i8.TaskRecurrence> addTaskRecurrence(
-    _i25.TaskRecurrenceBlueprint? blueprint,
-    String? idToken,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #addTaskRecurrence,
-          [
-            blueprint,
-            idToken,
-          ],
-        ),
-        returnValue: _i4.Future<_i8.TaskRecurrence>.value(_FakeTaskRecurrence_6(
-          this,
-          Invocation.method(
-            #addTaskRecurrence,
-            [
-              blueprint,
-              idToken,
-            ],
-          ),
-        )),
-        returnValueForMissingStub:
-            _i4.Future<_i8.TaskRecurrence>.value(_FakeTaskRecurrence_6(
-          this,
-          Invocation.method(
-            #addTaskRecurrence,
-            [
-              blueprint,
-              idToken,
-            ],
-          ),
-        )),
-      ) as _i4.Future<_i8.TaskRecurrence>);
-
-  @override
   _i4.Future<_i8.TaskRecurrence> updateTaskRecurrence(
     String? taskRecurrenceDocId,
     _i25.TaskRecurrenceBlueprint? blueprint,
@@ -720,19 +659,17 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
         _i6.BuiltList<_i5.TaskItem> addedTasks,
         _i6.BuiltList<_i23.SprintAssignment> sprintAssignments
       })> addTasksToSprint(
-    _i6.BuiltList<_i5.TaskItem>? taskItems,
-    _i6.BuiltList<_i22.TaskItemRecurPreview>? taskItemRecurPreviews,
+    _i6.BuiltList<_i5.TaskItem>? existingItems,
+    _i6.BuiltList<_i22.TaskItemRecurPreview>? newItems,
     _i7.Sprint? sprint,
-    String? idToken,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
           #addTasksToSprint,
           [
-            taskItems,
-            taskItemRecurPreviews,
+            existingItems,
+            newItems,
             sprint,
-            idToken,
           ],
         ),
         returnValue: _i4.Future<
@@ -745,10 +682,9 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
             Invocation.method(
               #addTasksToSprint,
               [
-                taskItems,
-                taskItemRecurPreviews,
+                existingItems,
+                newItems,
                 sprint,
-                idToken,
               ],
             ),
           ),
@@ -757,10 +693,9 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
             Invocation.method(
               #addTasksToSprint,
               [
-                taskItems,
-                taskItemRecurPreviews,
+                existingItems,
+                newItems,
                 sprint,
-                idToken,
               ],
             ),
           )
@@ -775,10 +710,9 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
             Invocation.method(
               #addTasksToSprint,
               [
-                taskItems,
-                taskItemRecurPreviews,
+                existingItems,
+                newItems,
                 sprint,
-                idToken,
               ],
             ),
           ),
@@ -787,10 +721,9 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
             Invocation.method(
               #addTasksToSprint,
               [
-                taskItems,
-                taskItemRecurPreviews,
+                existingItems,
+                newItems,
                 sprint,
-                idToken,
               ],
             ),
           )
@@ -877,28 +810,6 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
       ) as Uri);
 
   @override
-  _i4.Future<dynamic> executeGetApiAction({
-    required String? uriString,
-    Map<String, Object>? queryParameters,
-    required String? idToken,
-    required String? operationDescription,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #executeGetApiAction,
-          [],
-          {
-            #uriString: uriString,
-            #queryParameters: queryParameters,
-            #idToken: idToken,
-            #operationDescription: operationDescription,
-          },
-        ),
-        returnValue: _i4.Future<dynamic>.value(),
-        returnValueForMissingStub: _i4.Future<dynamic>.value(),
-      ) as _i4.Future<dynamic>);
-
-  @override
   _i4.Future<void> dataFixAll() => (super.noSuchMethod(
         Invocation.method(
           #dataFixAll,
@@ -935,68 +846,20 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
-
-  @override
-  _i4.Future<dynamic> executeBodyApiAction({
-    required _i27.BodyApiOperation? bodyApiOperation,
-    required Map<String, Object?>? payload,
-    required String? uriString,
-    Map<String, Object>? queryParameters,
-    required String? idToken,
-    required String? operationDescription,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #executeBodyApiAction,
-          [],
-          {
-            #bodyApiOperation: bodyApiOperation,
-            #payload: payload,
-            #uriString: uriString,
-            #queryParameters: queryParameters,
-            #idToken: idToken,
-            #operationDescription: operationDescription,
-          },
-        ),
-        returnValue: _i4.Future<dynamic>.value(),
-        returnValueForMissingStub: _i4.Future<dynamic>.value(),
-      ) as _i4.Future<dynamic>);
-
-  @override
-  _i4.Future<void> executeDeleteApiAction({
-    required String? uriString,
-    Map<String, Object>? queryParameters,
-    required String? idToken,
-    required String? operationDescription,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #executeDeleteApiAction,
-          [],
-          {
-            #uriString: uriString,
-            #queryParameters: queryParameters,
-            #idToken: idToken,
-            #operationDescription: operationDescription,
-          },
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
 }
 
 /// A class which mocks [Store].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockStore<State> extends _i1.Mock implements _i28.Store<State> {
+class MockStore<State> extends _i1.Mock implements _i27.Store<State> {
   @override
-  _i28.Reducer<State> get reducer => (super.noSuchMethod(
+  _i27.Reducer<State> get reducer => (super.noSuchMethod(
         Invocation.getter(#reducer),
         returnValue: (
           State state,
           dynamic action,
         ) =>
-            _i29.dummyValue<State>(
+            _i28.dummyValue<State>(
           this,
           Invocation.getter(#reducer),
         ),
@@ -1004,14 +867,14 @@ class MockStore<State> extends _i1.Mock implements _i28.Store<State> {
           State state,
           dynamic action,
         ) =>
-            _i29.dummyValue<State>(
+            _i28.dummyValue<State>(
           this,
           Invocation.getter(#reducer),
         ),
-      ) as _i28.Reducer<State>);
+      ) as _i27.Reducer<State>);
 
   @override
-  set reducer(_i28.Reducer<State>? _reducer) => super.noSuchMethod(
+  set reducer(_i27.Reducer<State>? _reducer) => super.noSuchMethod(
         Invocation.setter(
           #reducer,
           _reducer,
@@ -1022,11 +885,11 @@ class MockStore<State> extends _i1.Mock implements _i28.Store<State> {
   @override
   State get state => (super.noSuchMethod(
         Invocation.getter(#state),
-        returnValue: _i29.dummyValue<State>(
+        returnValue: _i28.dummyValue<State>(
           this,
           Invocation.getter(#state),
         ),
-        returnValueForMissingStub: _i29.dummyValue<State>(
+        returnValueForMissingStub: _i28.dummyValue<State>(
           this,
           Invocation.getter(#state),
         ),
@@ -1302,13 +1165,6 @@ class MockAppState extends _i1.Mock implements _i15.AppState {
           Invocation.getter(#googleSignIn),
         ),
       ) as _i13.GoogleSignIn);
-
-  @override
-  bool get tokenRetrieved => (super.noSuchMethod(
-        Invocation.getter(#tokenRetrieved),
-        returnValue: false,
-        returnValueForMissingStub: false,
-      ) as bool);
 
   @override
   bool get offlineMode => (super.noSuchMethod(
@@ -1615,7 +1471,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
           [routeName],
           {#arguments: arguments},
         ),
-        returnValue: _i29.dummyValue<String>(
+        returnValue: _i28.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePushNamed,
@@ -1623,7 +1479,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             {#arguments: arguments},
           ),
         ),
-        returnValueForMissingStub: _i29.dummyValue<String>(
+        returnValueForMissingStub: _i28.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePushNamed,
@@ -1667,7 +1523,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             #arguments: arguments,
           },
         ),
-        returnValue: _i29.dummyValue<String>(
+        returnValue: _i28.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePushReplacementNamed,
@@ -1678,7 +1534,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             },
           ),
         ),
-        returnValueForMissingStub: _i29.dummyValue<String>(
+        returnValueForMissingStub: _i28.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePushReplacementNamed,
@@ -1725,7 +1581,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             #arguments: arguments,
           },
         ),
-        returnValue: _i29.dummyValue<String>(
+        returnValue: _i28.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePopAndPushNamed,
@@ -1736,7 +1592,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             },
           ),
         ),
-        returnValueForMissingStub: _i29.dummyValue<String>(
+        returnValueForMissingStub: _i28.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePopAndPushNamed,
@@ -1783,7 +1639,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
           ],
           {#arguments: arguments},
         ),
-        returnValue: _i29.dummyValue<String>(
+        returnValue: _i28.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePushNamedAndRemoveUntil,
@@ -1794,7 +1650,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             {#arguments: arguments},
           ),
         ),
-        returnValueForMissingStub: _i29.dummyValue<String>(
+        returnValueForMissingStub: _i28.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePushNamedAndRemoveUntil,
@@ -1829,7 +1685,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
           [routeBuilder],
           {#arguments: arguments},
         ),
-        returnValue: _i29.dummyValue<String>(
+        returnValue: _i28.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePush,
@@ -1837,7 +1693,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             {#arguments: arguments},
           ),
         ),
-        returnValueForMissingStub: _i29.dummyValue<String>(
+        returnValueForMissingStub: _i28.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePush,
@@ -1877,7 +1733,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             #arguments: arguments,
           },
         ),
-        returnValue: _i29.dummyValue<String>(
+        returnValue: _i28.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePushReplacement,
@@ -1888,7 +1744,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             },
           ),
         ),
-        returnValueForMissingStub: _i29.dummyValue<String>(
+        returnValueForMissingStub: _i28.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePushReplacement,
@@ -1933,7 +1789,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
           ],
           {#arguments: arguments},
         ),
-        returnValue: _i29.dummyValue<String>(
+        returnValue: _i28.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePushAndRemoveUntil,
@@ -1944,7 +1800,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             {#arguments: arguments},
           ),
         ),
-        returnValueForMissingStub: _i29.dummyValue<String>(
+        returnValueForMissingStub: _i28.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePushAndRemoveUntil,
@@ -1990,7 +1846,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             #arguments: arguments,
           },
         ),
-        returnValue: _i29.dummyValue<String>(
+        returnValue: _i28.dummyValue<String>(
           this,
           Invocation.method(
             #restorableReplace,
@@ -2002,7 +1858,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             },
           ),
         ),
-        returnValueForMissingStub: _i29.dummyValue<String>(
+        returnValueForMissingStub: _i28.dummyValue<String>(
           this,
           Invocation.method(
             #restorableReplace,
@@ -2049,7 +1905,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             #arguments: arguments,
           },
         ),
-        returnValue: _i29.dummyValue<String>(
+        returnValue: _i28.dummyValue<String>(
           this,
           Invocation.method(
             #restorableReplaceRouteBelow,
@@ -2061,7 +1917,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             },
           ),
         ),
-        returnValueForMissingStub: _i29.dummyValue<String>(
+        returnValueForMissingStub: _i28.dummyValue<String>(
           this,
           Invocation.method(
             #restorableReplaceRouteBelow,
@@ -2191,7 +2047,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
       );
 
   @override
-  void setState(_i30.VoidCallback? fn) => super.noSuchMethod(
+  void setState(_i29.VoidCallback? fn) => super.noSuchMethod(
         Invocation.method(
           #setState,
           [fn],
@@ -2220,14 +2076,14 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
           #toStringShort,
           [],
         ),
-        returnValue: _i29.dummyValue<String>(
+        returnValue: _i28.dummyValue<String>(
           this,
           Invocation.method(
             #toStringShort,
             [],
           ),
         ),
-        returnValueForMissingStub: _i29.dummyValue<String>(
+        returnValueForMissingStub: _i28.dummyValue<String>(
           this,
           Invocation.method(
             #toStringShort,

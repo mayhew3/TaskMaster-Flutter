@@ -47,10 +47,8 @@ Future<void> Function(
   return (Store<AppState> store, AddTaskItemsToExistingSprint action, NextDispatcher next) async {
     next(action);
 
-    var inputs = await getRequiredInputs(store, "create sprint");
-
     try {
-      var payload = await repository.addTasksToSprint(action.taskItems, action.taskItemRecurPreviews, action.sprint, inputs.idToken);
+      var payload = await repository.addTasksToSprint(action.taskItems, action.taskItemRecurPreviews, action.sprint);
       store.dispatch(TaskItemsAddedToExistingSprint(sprintId: action.sprint.docId, addedTasks: payload.addedTasks, sprintAssignments: payload.sprintAssignments));
     } catch (e) {
       print("Error creating new sprint: $e");

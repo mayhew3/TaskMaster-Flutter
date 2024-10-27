@@ -46,7 +46,6 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   GoogleSignIn get googleSignIn;
   UserCredential? get firebaseUser;
   GoogleSignInAccount? get currentUser;
-  bool get tokenRetrieved;
   bool get offlineMode;
 
   Future<String?> getIdToken() async {
@@ -54,7 +53,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   }
 
   bool isAuthenticated() {
-    return currentUser != null && tokenRetrieved;
+    return currentUser != null;
   }
 
   // date-time
@@ -83,7 +82,6 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
       ..sprintListFilter = VisibilityFilter.init(showScheduled: true, showCompleted: true, showActiveSprint: true).toBuilder()
       ..taskListFilter = VisibilityFilter.init().toBuilder()
       ..recentlyCompleted = ListBuilder()
-      ..tokenRetrieved = false
       ..googleSignIn = GoogleSignIn(scopes: ['email'])
       ..timezoneHelper = timezoneHelper
       ..allNavItems = navItemBuilder
