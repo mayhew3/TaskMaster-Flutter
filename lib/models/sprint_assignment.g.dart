@@ -20,6 +20,9 @@ class _$SprintAssignmentSerializer
   Iterable<Object?> serialize(Serializers serializers, SprintAssignment object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object?>[
+      'docId',
+      serializers.serialize(object.docId,
+          specifiedType: const FullType(String)),
       'taskDocId',
       serializers.serialize(object.taskDocId,
           specifiedType: const FullType(String)),
@@ -33,12 +36,6 @@ class _$SprintAssignmentSerializer
     result
       ..add('id')
       ..add(serializers.serialize(value, specifiedType: const FullType(int)));
-    value = object.docId;
-
-    result
-      ..add('docId')
-      ..add(
-          serializers.serialize(value, specifiedType: const FullType(String)));
     value = object.taskId;
 
     result
@@ -83,7 +80,7 @@ class _$SprintAssignmentSerializer
           break;
         case 'docId':
           result.docId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+              specifiedType: const FullType(String))! as String;
           break;
         case 'taskId':
           result.taskId = serializers.deserialize(value,
@@ -120,7 +117,7 @@ class _$SprintAssignment extends SprintAssignment {
   @override
   final int? id;
   @override
-  final String? docId;
+  final String docId;
   @override
   final int? taskId;
   @override
@@ -140,7 +137,7 @@ class _$SprintAssignment extends SprintAssignment {
 
   _$SprintAssignment._(
       {this.id,
-      this.docId,
+      required this.docId,
       this.taskId,
       required this.taskDocId,
       this.sprintId,
@@ -148,6 +145,7 @@ class _$SprintAssignment extends SprintAssignment {
       this.retired,
       this.retiredDate})
       : super._() {
+    BuiltValueNullFieldError.checkNotNull(docId, r'SprintAssignment', 'docId');
     BuiltValueNullFieldError.checkNotNull(
         taskDocId, r'SprintAssignment', 'taskDocId');
     BuiltValueNullFieldError.checkNotNull(
@@ -278,7 +276,8 @@ class SprintAssignmentBuilder
     final _$result = _$v ??
         new _$SprintAssignment._(
             id: id,
-            docId: docId,
+            docId: BuiltValueNullFieldError.checkNotNull(
+                docId, r'SprintAssignment', 'docId'),
             taskId: taskId,
             taskDocId: BuiltValueNullFieldError.checkNotNull(
                 taskDocId, r'SprintAssignment', 'taskDocId'),

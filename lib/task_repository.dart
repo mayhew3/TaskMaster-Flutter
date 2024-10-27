@@ -84,7 +84,11 @@ class TaskRepository {
           if (subCollectionName != null) {
             var subDocs = (await doc.reference.collection(subCollectionName).get()).docs;
             if (subDocs.isNotEmpty) {
-              json[subCollectionName] = subDocs.map((sd) => sd.data());
+              json[subCollectionName] = subDocs.map((sd) {
+                var subJson = sd.data();
+                subJson['docId'] = sd.id;
+                return subJson;
+              });
             }
           }
           var deserialized = serializers.deserializeWith(serializer, json)!;

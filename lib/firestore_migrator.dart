@@ -67,7 +67,6 @@ class FirestoreMigrator {
           sprintAssignmentObj['taskDocId'] = taskDocId;
           sprintAssignmentObj['retired'] = null;
           sprintAssignmentObj['retiredDate'] = null;
-          sprintAssignmentObj['docId'] = addedDoc.id;
 
           addedDoc.set(sprintAssignmentObj);
         }
