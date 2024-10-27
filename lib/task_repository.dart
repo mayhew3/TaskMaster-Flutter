@@ -355,12 +355,31 @@ class TaskRepository {
 
       var taskId = doc.id;
 
+      bool docUpdated = false;
+      bool dateUpdated = false;
+
       if (subCollectionName != null) {
         var subCollectionRef = await doc.reference.collection(subCollectionName).get();
         var subDocs = subCollectionRef.docs;
         for (var subDoc in subDocs) {
-          if (!subDoc.data().containsKey('retired')) {
+          var data = subDoc.data();
+          if (!data.containsKey('retired')) {
             await subDoc.reference.update({'retired': null});
+            docUpdated = true;
+          }
+          for (var dateField in dateFields) {
+            if (data.containsKey(dateField)) {
+              var dataValue = data[dateField];
+              if (dataValue is String) {
+                var dateVal = DateTime.parse(dataValue).toUtc();
+                await doc.reference.update({dateField: dateVal});
+                dateUpdated = true;
+              } else if (dataValue is DateTime) {
+                var dateVal = dataValue.toUtc();
+                await doc.reference.update({dateField: dateVal});
+                dateUpdated = true;
+              }
+            }
           }
         }
       }
@@ -368,7 +387,7 @@ class TaskRepository {
       var data = doc.data();
       if (!data.containsKey('retired')) {
         await doc.reference.update({'retired': null});
-        updated++;
+        docUpdated = true;
       }
       var stringsUpdated = [];
       var datesUpdated = [];
@@ -379,14 +398,20 @@ class TaskRepository {
             var dateVal = DateTime.parse(dataValue).toUtc();
             await doc.reference.update({dateField: dateVal});
             stringsUpdated.add(dateField);
-            updatedDate++;
+            dateUpdated = true;
           } else if (dataValue is DateTime) {
             var dateVal = dataValue.toUtc();
             await doc.reference.update({dateField: dateVal});
             datesUpdated.add(dateField);
-            updatedDate++;
+            dateUpdated = true;
           }
         }
+      }
+      if (docUpdated) {
+        updated++;
+      }
+      if (dateUpdated) {
+        updatedDate++;
       }
       currIndex++;
       var percent = (currIndex / totalCount * 100).toStringAsFixed(1);
@@ -394,7 +419,7 @@ class TaskRepository {
       var datesMsg = datesUpdated.isEmpty ? '' : " Updates non-UTC dates: " + datesUpdated.join(", ") + ".";
       print('Processed $collectionName $currIndex/$totalCount ($percent%). Updated $updatedDate/$currIndex.' + stringsMsg + datesMsg + " ID: $taskId");
     }
-    print('Finished processing $collectionName');
+    print('Finished processing $collectionName. Updated $updated/$currIndex retired values, $updatedDate/$currIndex dates.');
   }
 
   Future<void> migrateFromApi() async {

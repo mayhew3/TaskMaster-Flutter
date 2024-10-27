@@ -14,11 +14,11 @@ class FirestoreMigrator {
   });
 
   Future<void> migrateFromApi() async {
-    var persons = await syncPersons(false);
-    var recurrences = await syncRecurrences(persons, false);
-    var sprints = await syncSprints(persons, false);
-    var tasks = await syncTasks(recurrences, sprints, persons, false);
-    await syncSnoozes(tasks, false);
+    var persons = await syncPersons(true);
+    var recurrences = await syncRecurrences(persons, true);
+    var sprints = await syncSprints(persons, true);
+    var tasks = await syncTasks(recurrences, sprints, persons, true);
+    await syncSnoozes(tasks, true);
   }
 
   Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncTasks(
@@ -39,8 +39,6 @@ class FirestoreMigrator {
     var taskJsons = jsonObj['tasks'] as List<dynamic>;
     var taskCount = taskJsons.length;
     var taskObjs = convertDates(taskJsons);
-
-    final dateFields = ['startDate', 'targetDate', 'urgentDate', 'dueDate', 'completionDate'];
 
     var currIndex = 0;
     var added = 0;
@@ -78,7 +76,7 @@ class FirestoreMigrator {
         taskRefs.add(existing);
       }
       currIndex++;
-      var percent = currIndex / taskCount * 100;
+      var percent = (currIndex / taskCount * 100).toStringAsFixed(1);
       print('Processed task $currIndex/$taskCount} ($percent%).');
     }
 
@@ -120,7 +118,7 @@ class FirestoreMigrator {
         sprintRefs.add(existing);
       }
       currIndex++;
-      var percent = currIndex / sprintCount * 100;
+      var percent = (currIndex / sprintCount * 100).toStringAsFixed(1);
       print('Processed sprint $currIndex/$sprintCount} ($percent%).');
     }
 
@@ -164,7 +162,7 @@ class FirestoreMigrator {
         snoozeRefs.add(existing);
       }
       currIndex++;
-      var percent = currIndex / snoozeCount * 100;
+      var percent = (currIndex / snoozeCount * 100).toStringAsFixed(1);
       print('Processed sprint $currIndex/$snoozeCount} ($percent%).');
     }
 
@@ -202,7 +200,7 @@ class FirestoreMigrator {
         personRefs.add(existing);
       }
       currIndex++;
-      var percent = currIndex / personCount * 100;
+      var percent = (currIndex / personCount * 100).toStringAsFixed(1);
       print('Processed person $currIndex/$personCount} ($percent%).');
     }
 
