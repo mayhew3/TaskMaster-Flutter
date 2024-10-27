@@ -5,7 +5,6 @@ import 'package:taskmaster/redux/actions/sprint_actions.dart';
 import 'package:taskmaster/task_repository.dart';
 
 import '../app_state.dart';
-import '../selectors/selectors.dart';
 
 List<Middleware<AppState>> createStoreSprintsMiddleware(TaskRepository repository) {
   return [

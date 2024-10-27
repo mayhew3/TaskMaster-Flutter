@@ -4,7 +4,6 @@ import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:redux/redux.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:taskmaster/app_theme.dart';
-import 'package:redux_logging/redux_logging.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
 import 'package:taskmaster/redux/middleware/auth_middleware.dart';
 import 'package:taskmaster/redux/middleware/store_sprint_middleware.dart';
