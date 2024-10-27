@@ -9,7 +9,7 @@ abstract class SprintAssignment implements Built<SprintAssignment, SprintAssignm
   static Serializer<SprintAssignment> get serializer => _$sprintAssignmentSerializer;
 
   int? get id;
-  String get docId;
+  String? get docId;
 
   int? get taskId;
   String get taskDocId;

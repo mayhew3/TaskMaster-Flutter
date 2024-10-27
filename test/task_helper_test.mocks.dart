@@ -394,6 +394,7 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
   _i4.StreamSubscription<
       _i3.QuerySnapshot<Map<String, dynamic>>> createListener<T>({
     required String? collectionName,
+    String? subCollectionName,
     required String? personDocId,
     required dynamic Function(Iterable<T>)? addCallback,
     dynamic Function(Iterable<T>)? modifyCallback,
@@ -406,6 +407,7 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
           [],
           {
             #collectionName: collectionName,
+            #subCollectionName: subCollectionName,
             #personDocId: personDocId,
             #addCallback: addCallback,
             #modifyCallback: modifyCallback,
@@ -421,6 +423,7 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
             [],
             {
               #collectionName: collectionName,
+              #subCollectionName: subCollectionName,
               #personDocId: personDocId,
               #addCallback: addCallback,
               #modifyCallback: modifyCallback,
@@ -437,6 +440,7 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
             [],
             {
               #collectionName: collectionName,
+              #subCollectionName: subCollectionName,
               #personDocId: personDocId,
               #addCallback: addCallback,
               #modifyCallback: modifyCallback,

@@ -62,6 +62,7 @@ class TaskRepository {
 
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>> createListener<T>({
     required String collectionName,
+    String? subCollectionName,
     required String personDocId,
     required Function(Iterable<T>) addCallback,
     Function(Iterable<T>)? modifyCallback,
@@ -69,7 +70,7 @@ class TaskRepository {
     required Serializer<T> serializer}
       ) {
     var snapshots = firestore.collection(collectionName).where("personDocId", isEqualTo: personDocId).snapshots();
-    var listener = snapshots.listen((event) {
+    var listener = snapshots.listen((event) async {
       print('$collectionName snapshots event!');
       var addedDocs = event.docChanges.where((dc) => dc.type == DocumentChangeType.added).map((dc) => dc.doc);
       List<T> finalList = [];
@@ -82,6 +83,12 @@ class TaskRepository {
           doc.reference.delete();
         } else {
           json['docId'] = doc.id;
+          if (subCollectionName != null) {
+            var subDocs = (await doc.reference.collection(subCollectionName).get()).docs;
+            if (subDocs.isNotEmpty) {
+              json[subCollectionName] = subDocs.map((sd) => sd.data());
+            }
+          }
           var deserialized = serializers.deserializeWith(serializer, json)!;
           finalList.add(deserialized);
         }
@@ -205,7 +212,9 @@ class TaskRepository {
       var sprintAssignmentJson = {
         "taskDocId": existingId,
         "sprintDocId": sprintId,
-        "dateAdded": DateTime.now().toUtc()
+        "dateAdded": DateTime.now().toUtc(),
+        "retired": null,
+        "retiredDate": null,
       };
       sprintAssignment.set(sprintAssignmentJson);
       sprintAssignmentJson["docId"] = sprintAssignmentId;
@@ -361,8 +370,7 @@ class TaskRepository {
       bool dateUpdated = false;
 
       if (subCollectionName != null) {
-        var subCollectionRef = await doc.reference.collection(subCollectionName).get();
-        var subDocs = subCollectionRef.docs;
+        var subDocs = (await doc.reference.collection(subCollectionName).get()).docs;
         for (var subDoc in subDocs) {
           var data = subDoc.data();
           if (!data.containsKey('retired')) {

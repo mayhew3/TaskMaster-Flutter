@@ -92,6 +92,7 @@ Future<void> Function(
           serializer: TaskRecurrence.serializer);
       var taskListener = repository.createListener<TaskItem>(
           collectionName: "tasks",
+          subCollectionName: "sprintAssignments",
           personDocId: inputs.personDocId,
           addCallback: (taskItems) => store.dispatch(TasksAddedAction(taskItems)),
           modifyCallback: (taskItems) => store.dispatch(TasksModifiedAction(taskItems)),
