@@ -40,6 +40,8 @@ class FirestoreMigrator {
     var taskCount = taskJsons.length;
     var taskObjs = convertDates(taskJsons);
 
+    final dateFields = ['startDate', 'targetDate', 'urgentDate', 'dueDate', 'completionDate'];
+
     var currIndex = 0;
     var added = 0;
     for (Map<String, Object?> taskObj in taskObjs) {
@@ -170,7 +172,7 @@ class FirestoreMigrator {
     return snoozeRefs;
   }
 
-  Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncPersons(bool dropFirst,) async {
+  Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncPersons(bool dropFirst) async {
     var personCollection = firestore.collection("persons");
     var querySnapshot = await personCollection.get();
 

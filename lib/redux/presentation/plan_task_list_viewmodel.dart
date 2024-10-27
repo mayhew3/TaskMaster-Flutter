@@ -22,7 +22,7 @@ abstract class PlanTaskListViewModel implements Built<PlanTaskListViewModel, Pla
 
   static PlanTaskListViewModel fromStore(Store<AppState> store) {
     return PlanTaskListViewModel((c) => c
-      ..allTaskItems = store.state.taskItems.toBuilder()
+      ..allTaskItems = nonRetiredTaskItems(store.state.taskItems).toBuilder()
       ..allSprints = store.state.sprints.toBuilder()
       ..recentlyCompleted = store.state.recentlyCompleted.toBuilder()
       ..lastSprint = lastCompletedSprintSelector(store.state.sprints)?.toBuilder()

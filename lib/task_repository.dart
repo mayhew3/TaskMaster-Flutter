@@ -34,6 +34,19 @@ class TaskRepository {
     required this.firestore,
   });
 
+  Future<int?> getPersonId(String email, String idToken) async {
+    var queryParameters = {
+      'email': email
+    };
+
+    var jsonObj = await this.executeGetApiAction(
+        uriString: '/api/persons',
+        queryParameters: queryParameters,
+        idToken: idToken,
+        operationDescription: "get person id");
+    return jsonObj['person']?['id'];
+  }
+
   Future<String?> getPersonIdFromFirestore(String email) async {
     var withEmail = await firestore.collection("persons").where("email", isEqualTo: email).get();
     return withEmail.docs.firstOrNull?.id;
@@ -319,22 +332,28 @@ class TaskRepository {
     }
   }
 
-  Future<void> convertRetired() async {
-    await convertRetiredCollection(collectionName: "persons");
-    await convertRetiredCollection(collectionName: "snoozes");
-    await convertRetiredCollection(collectionName: "sprints");
-    await convertRetiredCollection(collectionName: "taskRecurrences");
-    await convertRetiredCollection(collectionName: "tasks", subCollectionName: "sprintAssignments");
+  Future<void> dataFixAll() async {
+    await dataFixCollection(collectionName: "persons");
+    await dataFixCollection(collectionName: "snoozes");
+    await dataFixCollection(collectionName: "sprints");
+    await dataFixCollection(collectionName: "taskRecurrences");
+    await dataFixCollection(collectionName: "tasks", subCollectionName: "sprintAssignments");
   }
 
-  Future<void> convertRetiredCollection({required String collectionName, String? subCollectionName}) async {
+  Future<void> dataFixCollection({required String collectionName, String? subCollectionName}) async {
     print('Processing $collectionName...');
     var snapshot = await firestore.collection(collectionName).get();
     var docs = snapshot.docs;
+
+    final dateFields = ['startDate', 'targetDate', 'urgentDate', 'dueDate', 'completionDate', 'dateAdded'];
+
     var totalCount = docs.length;
     var currIndex = 0;
     var updated = 0;
+    var updatedDate = 0;
     for (var doc in docs) {
+
+      var taskId = doc.id;
 
       if (subCollectionName != null) {
         var subCollectionRef = await doc.reference.collection(subCollectionName).get();
@@ -346,13 +365,34 @@ class TaskRepository {
         }
       }
 
-      if (!doc.data().containsKey('retired')) {
+      var data = doc.data();
+      if (!data.containsKey('retired')) {
         await doc.reference.update({'retired': null});
         updated++;
       }
+      var stringsUpdated = [];
+      var datesUpdated = [];
+      for (var dateField in dateFields) {
+        if (data.containsKey(dateField)) {
+          var dataValue = data[dateField];
+          if (dataValue is String) {
+            var dateVal = DateTime.parse(dataValue).toUtc();
+            await doc.reference.update({dateField: dateVal});
+            stringsUpdated.add(dateField);
+            updatedDate++;
+          } else if (dataValue is DateTime) {
+            var dateVal = dataValue.toUtc();
+            await doc.reference.update({dateField: dateVal});
+            datesUpdated.add(dateField);
+            updatedDate++;
+          }
+        }
+      }
       currIndex++;
       var percent = (currIndex / totalCount * 100).toStringAsFixed(1);
-      print('Processed $collectionName $currIndex/$totalCount ($percent%). Updated $updated/$currIndex.');
+      var stringsMsg = stringsUpdated.isEmpty ? '' : " Updated string dates: " + stringsUpdated.join(", ") + ".";
+      var datesMsg = datesUpdated.isEmpty ? '' : " Updates non-UTC dates: " + datesUpdated.join(", ") + ".";
+      print('Processed $collectionName $currIndex/$totalCount ($percent%). Updated $updatedDate/$currIndex.' + stringsMsg + datesMsg + " ID: $taskId");
     }
     print('Finished processing $collectionName');
   }

@@ -345,6 +345,23 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
       ) as _i3.FirebaseFirestore);
 
   @override
+  _i4.Future<int?> getPersonId(
+    String? email,
+    String? idToken,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getPersonId,
+          [
+            email,
+            idToken,
+          ],
+        ),
+        returnValue: _i4.Future<int?>.value(),
+        returnValueForMissingStub: _i4.Future<int?>.value(),
+      ) as _i4.Future<int?>);
+
+  @override
   _i4.Future<String?> getPersonIdFromFirestore(String? email) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -886,9 +903,9 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
       ) as _i4.Future<dynamic>);
 
   @override
-  _i4.Future<void> convertRetired() => (super.noSuchMethod(
+  _i4.Future<void> dataFixAll() => (super.noSuchMethod(
         Invocation.method(
-          #convertRetired,
+          #dataFixAll,
           [],
         ),
         returnValue: _i4.Future<void>.value(),
@@ -896,13 +913,13 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
       ) as _i4.Future<void>);
 
   @override
-  _i4.Future<void> convertRetiredCollection({
+  _i4.Future<void> dataFixCollection({
     required String? collectionName,
     String? subCollectionName,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #convertRetiredCollection,
+          #dataFixCollection,
           [],
           {
             #collectionName: collectionName,

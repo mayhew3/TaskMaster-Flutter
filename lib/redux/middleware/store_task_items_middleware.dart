@@ -44,7 +44,7 @@ Future<void> Function(
     // await repository.migrateFromApi();
     // print("Migration complete!");
 
-    // await repository.convertRetired();
+    // await repository.dataFixAll();
 
     var email = store.state.currentUser!.email;
     print("Verify person account for " + email + "...");

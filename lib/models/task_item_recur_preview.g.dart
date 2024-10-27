@@ -24,9 +24,6 @@ class _$TaskItemRecurPreviewSerializer
       Serializers serializers, TaskItemRecurPreview object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object?>[
-      'docId',
-      serializers.serialize(object.docId,
-          specifiedType: const FullType(String)),
       'name',
       serializers.serialize(object.name, specifiedType: const FullType(String)),
       'offCycle',
@@ -161,10 +158,6 @@ class _$TaskItemRecurPreviewSerializer
       iterator.moveNext();
       final Object? value = iterator.current;
       switch (key) {
-        case 'docId':
-          result.docId = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
-          break;
         case 'personDocId':
           result.personDocId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String?;

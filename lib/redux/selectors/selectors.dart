@@ -94,11 +94,18 @@ BuiltList<TaskItem> taskItemsForSprintSelector(BuiltList<TaskItem> taskItems, Sp
   return taskItems.where((t) => t.sprintAssignments.where((sa) => sa.sprintDocId == sprint.docId).isNotEmpty).toBuiltList();
 }
 
+BuiltList<TaskItem> nonRetiredTaskItems(BuiltList<TaskItem> allTaskItems) {
+  return allTaskItems.where((t) => t.retired == null).toBuiltList();
+}
+
 BuiltList<TaskItem> taskItemsForPlacingOnNewSprint(BuiltList<TaskItem> allTaskItems, DateTime endDate) {
   var taskItems = allTaskItems.toList();
-  return taskItems.where((taskItem) {
-    return !taskItem.isScheduledAfter(endDate) && !taskItem.isCompleted();
-  }).toBuiltList();
+  var taskItemsNotUtc = taskItems.where((t) => t.startDate != null && !t.startDate!.isUtc);
+  print("[taskItemsForPlacingOnNewSprint]: ${taskItemsNotUtc.length} of all task items that are not utc.");
+  var forScheduling = taskItems.where((taskItem) => !taskItem.isScheduledAfter(endDate) && !taskItem.isCompleted());
+  var taskItemsScheduleNotUtc = forScheduling.where((t) => t.startDate != null && !t.startDate!.isUtc);
+  print("[taskItemsForPlacingOnNewSprint]: ${taskItemsScheduleNotUtc.length} of scheduled task items that are not utc.");
+  return forScheduling.toBuiltList();
 }
 
 BuiltList<TaskItem> taskItemsForPlacingOnExistingSprint(BuiltList<TaskItem> allTaskItems, Sprint sprint) {

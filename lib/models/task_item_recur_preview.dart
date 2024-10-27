@@ -20,6 +20,7 @@ abstract class TaskItemRecurPreview with DateHolder, SprintDisplayTask implement
 
   @BuiltValueField(serialize: false)
   int? get id;
+  @BuiltValueField(serialize: false)
   String get docId;
 
   String? get personDocId;
@@ -64,6 +65,7 @@ abstract class TaskItemRecurPreview with DateHolder, SprintDisplayTask implement
   static void _setDefaults(TaskItemRecurPreviewBuilder b) =>
       b
         ..id = 0 - new Random().nextInt(60000)
+        ..docId = (0 - new Random().nextInt(60000)).toString()
   ;
 
   TaskItemRecurPreview createNextRecurPreview({

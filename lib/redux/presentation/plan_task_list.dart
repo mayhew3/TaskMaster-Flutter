@@ -161,6 +161,9 @@ class PlanTaskListState extends State<PlanTaskList> {
       List<TaskItem> sortedItems = recurItems.sorted((TaskItem t1, TaskItem t2) => t1.recurIteration!.compareTo(t2.recurIteration!));
       TaskItem newest = sortedItems.last;
       List<TaskItemRecurPreview> futureIterations = [];
+      if (newest.startDate != null && !newest.startDate!.isUtc) {
+        print("[createTemporaryIterations]: Task '${newest.name}' has non-UTC start date! ID: ${newest.docId}");
+      }
       if (newest.recurWait == false) {
         addNextIterations(newest, endDate, futureIterations);
       }
@@ -170,6 +173,9 @@ class PlanTaskListState extends State<PlanTaskList> {
 
 
   void addNextIterations(SprintDisplayTask newest, DateTime endDate, List<TaskItemRecurPreview> collector) {
+    if (newest.startDate != null && !newest.startDate!.isUtc) {
+      print("[addNextIterations]: Task '${newest.name}' has non-UTC start date! ID: ${newest.docId}");
+    }
     TaskItemRecurPreview nextIteration = RecurrenceHelper.createNextIteration(newest, DateTime.now());
     var willBeUrgentOrDue = nextIteration.isDueBefore(endDate) || nextIteration.isUrgentBefore(endDate);
     var willBeTargetOrStart = nextIteration.isTargetBefore(endDate) || nextIteration.isScheduledBefore(endDate);
