@@ -61,25 +61,19 @@ class TaskRepository {
       for (var doc in addedDocs) {
         var json = doc.data()!;
 
-        // tmp fix code
-        if (json['recurrenceId'] != null && json['recurrenceId'] is String) {
-          print("WARNING: Found recurrenceId with invalid String value, task docId: ${doc.id}");
-          doc.reference.delete();
-        } else {
-          json['docId'] = doc.id;
-          if (subCollectionName != null) {
-            var subDocs = (await doc.reference.collection(subCollectionName).get()).docs;
-            if (subDocs.isNotEmpty) {
-              json[subCollectionName] = subDocs.map((sd) {
-                var subJson = sd.data();
-                subJson['docId'] = sd.id;
-                return subJson;
-              });
-            }
+        json['docId'] = doc.id;
+        if (subCollectionName != null) {
+          var subDocs = (await doc.reference.collection(subCollectionName).get()).docs;
+          if (subDocs.isNotEmpty) {
+            json[subCollectionName] = subDocs.map((sd) {
+              var subJson = sd.data();
+              subJson['docId'] = sd.id;
+              return subJson;
+            });
           }
-          var deserialized = serializers.deserializeWith(serializer, json)!;
-          finalList.add(deserialized);
         }
+        var deserialized = serializers.deserializeWith(serializer, json)!;
+        finalList.add(deserialized);
       }
       if (finalList.isNotEmpty) {
         addCallback(finalList);
