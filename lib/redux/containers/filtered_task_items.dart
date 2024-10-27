@@ -8,6 +8,7 @@ import '../actions/task_item_actions.dart';
 import '../app_state.dart';
 import '../presentation/add_edit_screen.dart';
 import '../presentation/filter_button.dart';
+import '../presentation/refresh_button.dart';
 import '../presentation/task_item_list.dart';
 import '../presentation/task_main_menu.dart';
 import 'filtered_task_items_viewmodel.dart';
@@ -39,10 +40,7 @@ class FilteredTaskItems extends StatelessWidget {
                 toggleScheduled: () => StoreProvider.of<AppState>(context).dispatch(ToggleTaskListShowScheduledAction()),
                 toggleCompleted: () => StoreProvider.of<AppState>(context).dispatch(ToggleTaskListShowCompletedAction()),
               ),
-              IconButton(
-                  icon: Icon(Icons.refresh),
-                  onPressed: () => StoreProvider.of<AppState>(context).dispatch(DataNotLoadedAction())
-              ),
+              RefreshButton(),
             ],
           ),
           body: TaskItemList(

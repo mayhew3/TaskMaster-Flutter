@@ -5,12 +5,12 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:intl/intl.dart';
 import 'package:taskmaster/redux/presentation/new_sprint_viewmodel.dart';
 import 'package:taskmaster/redux/presentation/plan_task_list.dart';
+import 'package:taskmaster/redux/presentation/refresh_button.dart';
 import 'package:taskmaster/redux/presentation/task_main_menu.dart';
 
 import '../../date_util.dart';
 import '../../models/sprint.dart';
 import '../../parse_helper.dart';
-import '../actions/task_item_actions.dart';
 import '../app_state.dart';
 import '../containers/tab_selector.dart';
 import 'editable_task_field.dart';
@@ -147,10 +147,7 @@ class _NewSprintState extends State<NewSprint> {
             appBar: AppBar(
               title: Text('All Tasks'),
               actions: <Widget>[
-                IconButton(
-                    icon: Icon(Icons.refresh),
-                    onPressed: () => StoreProvider.of<AppState>(context).dispatch(DataNotLoadedAction())
-                ),
+                RefreshButton(),
               ],
             ),
             body: Padding(
