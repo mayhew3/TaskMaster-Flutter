@@ -21,8 +21,6 @@ import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 import 'package:taskmaster/typedefs.dart';
 
-import 'models/snooze.dart';
-
 class TaskRepository {
   final http.Client client;
   final FirebaseFirestore firestore;
@@ -201,7 +199,6 @@ class TaskRepository {
       addedTaskDoc.set(toAdd);
       toAdd['docId'] = taskId;
       addedTasks.add(serializers.deserializeWith(TaskItem.serializer, toAdd)!);
-      // todo: should fix it?
       existingIds.add(taskId);
     }
 
@@ -433,7 +430,7 @@ class TaskRepository {
   }
 
   Future<void> migrateFromApi() async {
-    var uri = getUri("/api/allTasks");
+    var uri = getUriWithParameters("/api/allTasks", {'email': 'commander.boffo@gmail.com'});
 
     final response = await this.client.get(uri,
       headers: {HttpHeaders.contentTypeHeader: 'application/json'},

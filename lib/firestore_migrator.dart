@@ -59,13 +59,17 @@ class FirestoreMigrator {
           var sprintDocId = sprints.where((s) => s.get('id') == sprintAssignmentObj['sprintId']).first.id;
           var taskDocId = documentRef.id;
           var originalDate = sprintAssignmentObj['dateAdded']! as String;
+
+          var addedDoc = documentRef.collection("sprintAssignments").doc();
+
           sprintAssignmentObj['dateAdded'] = DateTime.parse(originalDate).toUtc();
           sprintAssignmentObj['sprintDocId'] = sprintDocId;
           sprintAssignmentObj['taskDocId'] = taskDocId;
           sprintAssignmentObj['retired'] = null;
           sprintAssignmentObj['retiredDate'] = null;
+          sprintAssignmentObj['docId'] = addedDoc.id;
 
-          documentRef.collection("sprintAssignments").add(sprintAssignmentObj);
+          addedDoc.set(sprintAssignmentObj);
         }
 
         var snapshot = await documentRef.get();
