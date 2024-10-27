@@ -48,10 +48,6 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   GoogleSignInAccount? get currentUser;
   bool get offlineMode;
 
-  Future<String?> getIdToken() async {
-    return await firebaseUser?.user?.getIdToken();
-  }
-
   bool isAuthenticated() {
     return currentUser != null;
   }

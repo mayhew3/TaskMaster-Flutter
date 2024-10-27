@@ -1207,16 +1207,6 @@ class MockAppState extends _i1.Mock implements _i15.AppState {
       ) as _i14.NotificationHelper);
 
   @override
-  _i4.Future<String?> getIdToken() => (super.noSuchMethod(
-        Invocation.method(
-          #getIdToken,
-          [],
-        ),
-        returnValue: _i4.Future<String?>.value(),
-        returnValueForMissingStub: _i4.Future<String?>.value(),
-      ) as _i4.Future<String?>);
-
-  @override
   bool isAuthenticated() => (super.noSuchMethod(
         Invocation.method(
           #isAuthenticated,
