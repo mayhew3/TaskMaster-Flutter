@@ -125,6 +125,18 @@ class _$TaskItemRecurPreviewSerializer
     result
       ..add('recurWait')
       ..add(serializers.serialize(value, specifiedType: const FullType(bool)));
+    value = object.retired;
+
+    result
+      ..add('retired')
+      ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)));
+    value = object.retiredDate;
+
+    result
+      ..add('retiredDate')
+      ..add(serializers.serialize(value,
+          specifiedType: const FullType(DateTime)));
     value = object.recurrenceDocId;
 
     result
@@ -226,6 +238,14 @@ class _$TaskItemRecurPreviewSerializer
           result.recurWait = serializers.deserialize(value,
               specifiedType: const FullType(bool)) as bool?;
           break;
+        case 'retired':
+          result.retired = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String?;
+          break;
+        case 'retiredDate':
+          result.retiredDate = serializers.deserialize(value,
+              specifiedType: const FullType(DateTime)) as DateTime?;
+          break;
         case 'recurrenceDocId':
           result.recurrenceDocId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String?;
@@ -296,6 +316,10 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
   @override
   final bool? recurWait;
   @override
+  final String? retired;
+  @override
+  final DateTime? retiredDate;
+  @override
   final String? recurrenceDocId;
   @override
   final int? recurIteration;
@@ -330,6 +354,8 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
       this.recurNumber,
       this.recurUnit,
       this.recurWait,
+      this.retired,
+      this.retiredDate,
       this.recurrenceDocId,
       this.recurIteration,
       required this.offCycle,
@@ -378,6 +404,8 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
         recurNumber == other.recurNumber &&
         recurUnit == other.recurUnit &&
         recurWait == other.recurWait &&
+        retired == other.retired &&
+        retiredDate == other.retiredDate &&
         recurrenceDocId == other.recurrenceDocId &&
         recurIteration == other.recurIteration &&
         offCycle == other.offCycle &&
@@ -407,6 +435,8 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
     _$hash = $jc(_$hash, recurNumber.hashCode);
     _$hash = $jc(_$hash, recurUnit.hashCode);
     _$hash = $jc(_$hash, recurWait.hashCode);
+    _$hash = $jc(_$hash, retired.hashCode);
+    _$hash = $jc(_$hash, retiredDate.hashCode);
     _$hash = $jc(_$hash, recurrenceDocId.hashCode);
     _$hash = $jc(_$hash, recurIteration.hashCode);
     _$hash = $jc(_$hash, offCycle.hashCode);
@@ -438,6 +468,8 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
           ..add('recurNumber', recurNumber)
           ..add('recurUnit', recurUnit)
           ..add('recurWait', recurWait)
+          ..add('retired', retired)
+          ..add('retiredDate', retiredDate)
           ..add('recurrenceDocId', recurrenceDocId)
           ..add('recurIteration', recurIteration)
           ..add('offCycle', offCycle)
@@ -528,6 +560,14 @@ class TaskItemRecurPreviewBuilder
   bool? get recurWait => _$this._recurWait;
   set recurWait(bool? recurWait) => _$this._recurWait = recurWait;
 
+  String? _retired;
+  String? get retired => _$this._retired;
+  set retired(String? retired) => _$this._retired = retired;
+
+  DateTime? _retiredDate;
+  DateTime? get retiredDate => _$this._retiredDate;
+  set retiredDate(DateTime? retiredDate) => _$this._retiredDate = retiredDate;
+
   String? _recurrenceDocId;
   String? get recurrenceDocId => _$this._recurrenceDocId;
   set recurrenceDocId(String? recurrenceDocId) =>
@@ -580,6 +620,8 @@ class TaskItemRecurPreviewBuilder
       _recurNumber = $v.recurNumber;
       _recurUnit = $v.recurUnit;
       _recurWait = $v.recurWait;
+      _retired = $v.retired;
+      _retiredDate = $v.retiredDate;
       _recurrenceDocId = $v.recurrenceDocId;
       _recurIteration = $v.recurIteration;
       _offCycle = $v.offCycle;
@@ -630,6 +672,8 @@ class TaskItemRecurPreviewBuilder
               recurNumber: recurNumber,
               recurUnit: recurUnit,
               recurWait: recurWait,
+              retired: retired,
+              retiredDate: retiredDate,
               recurrenceDocId: recurrenceDocId,
               recurIteration: recurIteration,
               offCycle: BuiltValueNullFieldError.checkNotNull(

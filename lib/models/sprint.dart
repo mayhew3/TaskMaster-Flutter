@@ -26,7 +26,10 @@ abstract class Sprint implements Built<Sprint, SprintBuilder> {
 
   String get personDocId;
 
-  int? get sprintNumber;
+  int get sprintNumber;
+
+  String? get retired;
+  DateTime? get retiredDate;
 
   Sprint._();
 

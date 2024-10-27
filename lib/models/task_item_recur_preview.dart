@@ -47,6 +47,9 @@ abstract class TaskItemRecurPreview with DateHolder, SprintDisplayTask implement
   String? get recurUnit;
   bool? get recurWait;
 
+  String? get retired;
+  DateTime? get retiredDate;
+
   // int? get recurrenceId;
   String? get recurrenceDocId;
 

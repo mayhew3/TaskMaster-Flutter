@@ -541,7 +541,6 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
     _i24.SprintBlueprint? blueprint,
     _i6.BuiltList<_i5.TaskItem>? existingItems,
     _i6.BuiltList<_i22.TaskItemRecurPreview>? newItems,
-    String? idToken,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -550,7 +549,6 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
             blueprint,
             existingItems,
             newItems,
-            idToken,
           ],
         ),
         returnValue: _i4.Future<
@@ -567,7 +565,6 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
                 blueprint,
                 existingItems,
                 newItems,
-                idToken,
               ],
             ),
           ),
@@ -579,7 +576,6 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
                 blueprint,
                 existingItems,
                 newItems,
-                idToken,
               ],
             ),
           ),
@@ -591,7 +587,6 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
                 blueprint,
                 existingItems,
                 newItems,
-                idToken,
               ],
             ),
           )
@@ -610,7 +605,6 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
                 blueprint,
                 existingItems,
                 newItems,
-                idToken,
               ],
             ),
           ),
@@ -622,7 +616,6 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
                 blueprint,
                 existingItems,
                 newItems,
-                idToken,
               ],
             ),
           ),
@@ -634,7 +627,6 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
                 blueprint,
                 existingItems,
                 newItems,
-                idToken,
               ],
             ),
           )

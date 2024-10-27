@@ -172,7 +172,7 @@ class TaskRepository {
     return (taskItem: updatedTask, recurrence: updatedRecurrence);
   }
 
-  Future<({Sprint sprint, BuiltList<TaskItem> addedTasks, BuiltList<SprintAssignment> sprintAssignments})> addSprintWithTaskItems(SprintBlueprint blueprint, BuiltList<TaskItem> existingItems, BuiltList<TaskItemRecurPreview> newItems, String idToken) async {
+  Future<({Sprint sprint, BuiltList<TaskItem> addedTasks, BuiltList<SprintAssignment> sprintAssignments})> addSprintWithTaskItems(SprintBlueprint blueprint, BuiltList<TaskItem> existingItems, BuiltList<TaskItemRecurPreview> newItems) async {
     var newTaskItemsList = newItems.map((t) => serializers.serializeWith(TaskItemRecurPreview.serializer, t)).toList();
 
     var blueprintJson = blueprint.toJson();
@@ -194,6 +194,8 @@ class TaskRepository {
       addedTaskDoc.set(toAdd);
       toAdd['docId'] = taskId;
       addedTasks.add(serializers.deserializeWith(TaskItem.serializer, toAdd)!);
+      // todo: should fix it?
+      existingIds.add(taskId);
     }
 
     var sprintAssignments = ListBuilder<SprintAssignment>();

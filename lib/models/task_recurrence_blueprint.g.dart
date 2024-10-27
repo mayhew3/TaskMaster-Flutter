@@ -17,7 +17,11 @@ TaskRecurrenceBlueprint _$TaskRecurrenceBlueprintFromJson(
       ..recurIteration = (json['recurIteration'] as num?)?.toInt()
       ..anchorDate = _$JsonConverterFromJson<DateTime, DateTime>(
           json['anchorDate'], const JsonDateTimePassThroughConverter().fromJson)
-      ..anchorType = json['anchorType'] as String?;
+      ..anchorType = json['anchorType'] as String?
+      ..retired = json['retired'] as String?
+      ..retiredDate = json['retiredDate'] == null
+          ? null
+          : DateTime.parse(json['retiredDate'] as String);
 
 Map<String, dynamic> _$TaskRecurrenceBlueprintToJson(
         TaskRecurrenceBlueprint instance) =>
@@ -31,6 +35,8 @@ Map<String, dynamic> _$TaskRecurrenceBlueprintToJson(
       'anchorDate': _$JsonConverterToJson<DateTime, DateTime>(
           instance.anchorDate, const JsonDateTimePassThroughConverter().toJson),
       'anchorType': instance.anchorType,
+      'retired': instance.retired,
+      'retiredDate': instance.retiredDate?.toIso8601String(),
     };
 
 Value? _$JsonConverterFromJson<Json, Value>(

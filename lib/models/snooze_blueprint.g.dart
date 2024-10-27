@@ -22,32 +22,29 @@ SnoozeBlueprint _$SnoozeBlueprintFromJson(Map<String, dynamic> json) =>
       ..id = (json['id'] as num?)?.toInt()
       ..dateAdded = json['dateAdded'] == null
           ? null
-          : DateTime.parse(json['dateAdded'] as String);
+          : DateTime.parse(json['dateAdded'] as String)
+      ..retired = json['retired'] as String?
+      ..retiredDate = json['retiredDate'] == null
+          ? null
+          : DateTime.parse(json['retiredDate'] as String);
 
-Map<String, dynamic> _$SnoozeBlueprintToJson(SnoozeBlueprint instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('id', instance.id);
-  writeNotNull('dateAdded', instance.dateAdded?.toIso8601String());
-  writeNotNull('taskId', instance.taskId);
-  val['taskDocId'] = instance.taskDocId;
-  val['snoozeNumber'] = instance.snoozeNumber;
-  val['snoozeUnits'] = instance.snoozeUnits;
-  val['snoozeAnchor'] = instance.snoozeAnchor;
-  writeNotNull(
-      'previousAnchor',
-      _$JsonConverterToJson<DateTime, DateTime>(instance.previousAnchor,
-          const JsonDateTimePassThroughConverter().toJson));
-  val['newAnchor'] =
-      const JsonDateTimePassThroughConverter().toJson(instance.newAnchor);
-  return val;
-}
+Map<String, dynamic> _$SnoozeBlueprintToJson(SnoozeBlueprint instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'dateAdded': instance.dateAdded?.toIso8601String(),
+      'taskId': instance.taskId,
+      'taskDocId': instance.taskDocId,
+      'snoozeNumber': instance.snoozeNumber,
+      'snoozeUnits': instance.snoozeUnits,
+      'snoozeAnchor': instance.snoozeAnchor,
+      'previousAnchor': _$JsonConverterToJson<DateTime, DateTime>(
+          instance.previousAnchor,
+          const JsonDateTimePassThroughConverter().toJson),
+      'newAnchor':
+          const JsonDateTimePassThroughConverter().toJson(instance.newAnchor),
+      'retired': instance.retired,
+      'retiredDate': instance.retiredDate?.toIso8601String(),
+    };
 
 Value? _$JsonConverterFromJson<Json, Value>(
   Object? json,

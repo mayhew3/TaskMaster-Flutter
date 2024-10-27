@@ -17,6 +17,9 @@ abstract class SprintAssignment implements Built<SprintAssignment, SprintAssignm
   int? get sprintId;
   String get sprintDocId;
 
+  String? get retired;
+  DateTime? get retiredDate;
+
   SprintAssignment._();
 
   factory SprintAssignment([Function(SprintAssignmentBuilder) updates]) = _$SprintAssignment;

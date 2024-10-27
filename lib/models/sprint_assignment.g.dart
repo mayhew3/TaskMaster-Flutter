@@ -46,6 +46,18 @@ class _$SprintAssignmentSerializer
     result
       ..add('sprintId')
       ..add(serializers.serialize(value, specifiedType: const FullType(int)));
+    value = object.retired;
+
+    result
+      ..add('retired')
+      ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)));
+    value = object.retiredDate;
+
+    result
+      ..add('retiredDate')
+      ..add(serializers.serialize(value,
+          specifiedType: const FullType(DateTime)));
 
     return result;
   }
@@ -86,6 +98,14 @@ class _$SprintAssignmentSerializer
           result.sprintDocId = serializers.deserialize(value,
               specifiedType: const FullType(String))! as String;
           break;
+        case 'retired':
+          result.retired = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String?;
+          break;
+        case 'retiredDate':
+          result.retiredDate = serializers.deserialize(value,
+              specifiedType: const FullType(DateTime)) as DateTime?;
+          break;
       }
     }
 
@@ -106,6 +126,10 @@ class _$SprintAssignment extends SprintAssignment {
   final int? sprintId;
   @override
   final String sprintDocId;
+  @override
+  final String? retired;
+  @override
+  final DateTime? retiredDate;
 
   factory _$SprintAssignment(
           [void Function(SprintAssignmentBuilder)? updates]) =>
@@ -117,7 +141,9 @@ class _$SprintAssignment extends SprintAssignment {
       this.taskId,
       required this.taskDocId,
       this.sprintId,
-      required this.sprintDocId})
+      required this.sprintDocId,
+      this.retired,
+      this.retiredDate})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(docId, r'SprintAssignment', 'docId');
     BuiltValueNullFieldError.checkNotNull(
@@ -143,7 +169,9 @@ class _$SprintAssignment extends SprintAssignment {
         taskId == other.taskId &&
         taskDocId == other.taskDocId &&
         sprintId == other.sprintId &&
-        sprintDocId == other.sprintDocId;
+        sprintDocId == other.sprintDocId &&
+        retired == other.retired &&
+        retiredDate == other.retiredDate;
   }
 
   @override
@@ -155,6 +183,8 @@ class _$SprintAssignment extends SprintAssignment {
     _$hash = $jc(_$hash, taskDocId.hashCode);
     _$hash = $jc(_$hash, sprintId.hashCode);
     _$hash = $jc(_$hash, sprintDocId.hashCode);
+    _$hash = $jc(_$hash, retired.hashCode);
+    _$hash = $jc(_$hash, retiredDate.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -167,7 +197,9 @@ class _$SprintAssignment extends SprintAssignment {
           ..add('taskId', taskId)
           ..add('taskDocId', taskDocId)
           ..add('sprintId', sprintId)
-          ..add('sprintDocId', sprintDocId))
+          ..add('sprintDocId', sprintDocId)
+          ..add('retired', retired)
+          ..add('retiredDate', retiredDate))
         .toString();
   }
 }
@@ -200,6 +232,14 @@ class SprintAssignmentBuilder
   String? get sprintDocId => _$this._sprintDocId;
   set sprintDocId(String? sprintDocId) => _$this._sprintDocId = sprintDocId;
 
+  String? _retired;
+  String? get retired => _$this._retired;
+  set retired(String? retired) => _$this._retired = retired;
+
+  DateTime? _retiredDate;
+  DateTime? get retiredDate => _$this._retiredDate;
+  set retiredDate(DateTime? retiredDate) => _$this._retiredDate = retiredDate;
+
   SprintAssignmentBuilder();
 
   SprintAssignmentBuilder get _$this {
@@ -211,6 +251,8 @@ class SprintAssignmentBuilder
       _taskDocId = $v.taskDocId;
       _sprintId = $v.sprintId;
       _sprintDocId = $v.sprintDocId;
+      _retired = $v.retired;
+      _retiredDate = $v.retiredDate;
       _$v = null;
     }
     return this;
@@ -241,7 +283,9 @@ class SprintAssignmentBuilder
                 taskDocId, r'SprintAssignment', 'taskDocId'),
             sprintId: sprintId,
             sprintDocId: BuiltValueNullFieldError.checkNotNull(
-                sprintDocId, r'SprintAssignment', 'sprintDocId'));
+                sprintDocId, r'SprintAssignment', 'sprintDocId'),
+            retired: retired,
+            retiredDate: retiredDate);
     replace(_$result);
     return _$result;
   }

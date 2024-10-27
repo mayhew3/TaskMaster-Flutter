@@ -55,6 +55,8 @@ class PlanTaskListState extends State<PlanTaskList> {
 
   bool hasTiles = false;
 
+  bool popped = false;
+
   late final DateTime endDate;
 
   void validateState() {
@@ -319,16 +321,22 @@ class PlanTaskListState extends State<PlanTaskList> {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, PlanTaskListViewModel>(
         onWillChange: (prev, current) {
-          if (activeSprint == null) {
-            if (prev != null && current.activeSprint != null) {
-              Navigator.pop(context);
-            }
-          } else {
-            if (prev != null) {
-              var currentCount = taskItemsForSprintSelector(current.allTaskItems, current.activeSprint!).length;
-              var prevCount = taskItemsForSprintSelector(prev.allTaskItems, prev.activeSprint!).length;
-              if (currentCount > prevCount) {
+          if (!popped) {
+            if (activeSprint == null) {
+              if (prev != null && current.activeSprint != null) {
+                popped = true;
                 Navigator.pop(context);
+              }
+            } else {
+              if (prev != null) {
+                var currentCount = taskItemsForSprintSelector(
+                    current.allTaskItems, current.activeSprint!).length;
+                var prevCount = taskItemsForSprintSelector(
+                    prev.allTaskItems, prev.activeSprint!).length;
+                if (currentCount > prevCount) {
+                  popped = true;
+                  Navigator.pop(context);
+                }
               }
             }
           }

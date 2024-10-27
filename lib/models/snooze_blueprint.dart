@@ -7,7 +7,7 @@ import 'json_datetime_converter.dart';
 /// the star denotes the source file name.
 part 'snooze_blueprint.g.dart';
 
-@JsonSerializable(includeIfNull: false)
+@JsonSerializable(includeIfNull: true)
 class SnoozeBlueprint {
 
   int? id;
@@ -23,6 +23,9 @@ class SnoozeBlueprint {
   DateTime? previousAnchor;
   @JsonDateTimePassThroughConverter()
   DateTime newAnchor;
+
+  String? retired;
+  DateTime? retiredDate;
 
   SnoozeBlueprint({
     this.taskId,

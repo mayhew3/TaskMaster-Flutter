@@ -7,7 +7,7 @@ import 'json_datetime_converter.dart';
 
 part 'task_recurrence_blueprint.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(includeIfNull: true)
 class TaskRecurrenceBlueprint {
 
   String? personDocId;
@@ -23,6 +23,9 @@ class TaskRecurrenceBlueprint {
   @JsonDateTimePassThroughConverter()
   DateTime? anchorDate;
   String? anchorType;
+
+  String? retired;
+  DateTime? retiredDate;
 
   /// `toJson` is the convention for a class to declare support for serialization
   /// to JSON. The implementation simply calls the private, generated
