@@ -187,42 +187,63 @@ class TaskRepository {
     var blueprintJson = blueprint.toJson();
     var existingIds = existingItems.map((t) => t.docId).toList();
 
-    var addedSprintDoc = firestore.collection("sprints").doc();
-    var sprintId = addedSprintDoc.id;
-    blueprintJson['dateAdded'] = DateTime.now().toUtc();
-    addedSprintDoc.set(blueprintJson);
-    blueprintJson['docId'] = sprintId;
-    var addedSprint = serializers.deserializeWith(Sprint.serializer, blueprintJson)!;
-
+    Sprint? addedSprint;
     var addedTasks = ListBuilder<TaskItem>();
-    for (var toAdd in newTaskItemsList) {
-      toAdd as Map<String, Object?>;
-      var addedTaskDoc = firestore.collection("tasks").doc();
-      var taskId = addedTaskDoc.id;
-      toAdd['dateAdded'] = DateTime.now().toUtc();
-      addedTaskDoc.set(toAdd);
-      toAdd['docId'] = taskId;
-      addedTasks.add(serializers.deserializeWith(TaskItem.serializer, toAdd)!);
-      existingIds.add(taskId);
-    }
-
     var sprintAssignments = ListBuilder<SprintAssignment>();
-    for (var existingId in existingIds) {
-      var sprintAssignment = firestore.collection("tasks").doc(existingId).collection("sprintAssignments").doc();
-      var sprintAssignmentId = sprintAssignment.id;
-      var sprintAssignmentJson = {
-        "taskDocId": existingId,
-        "sprintDocId": sprintId,
-        "dateAdded": DateTime.now().toUtc(),
-        "retired": null,
-        "retiredDate": null,
-      };
-      sprintAssignment.set(sprintAssignmentJson);
-      sprintAssignmentJson["docId"] = sprintAssignmentId;
-      sprintAssignments.add(serializers.deserializeWith(SprintAssignment.serializer, sprintAssignmentJson)!);
-    }
 
-    return (sprint: addedSprint, addedTasks: addedTasks.build(), sprintAssignments: sprintAssignments.build());
+    try {
+      await firestore.runTransaction((transaction) async {
+        var addedSprintDoc = firestore.collection("sprints").doc();
+        var sprintId = addedSprintDoc.id;
+        blueprintJson['dateAdded'] = DateTime.now().toUtc();
+        transaction.set(addedSprintDoc, blueprintJson);
+        blueprintJson['docId'] = sprintId;
+        addedSprint =
+        serializers.deserializeWith(Sprint.serializer, blueprintJson)!;
+
+        for (var toAdd in newTaskItemsList) {
+          toAdd as Map<String, Object?>;
+          var addedTaskDoc = firestore.collection("tasks").doc();
+          var taskId = addedTaskDoc.id;
+          toAdd['dateAdded'] = DateTime.now().toUtc();
+          transaction.set(addedTaskDoc, toAdd);
+          toAdd['docId'] = taskId;
+          addedTasks.add(
+              serializers.deserializeWith(TaskItem.serializer, toAdd)!);
+          existingIds.add(taskId);
+        }
+
+        for (var existingId in existingIds) {
+          var sprintAssignment = firestore.collection("tasks")
+              .doc(existingId)
+              .collection("sprintAssignments")
+              .doc();
+          var sprintAssignmentId = sprintAssignment.id;
+          var sprintAssignmentJson = {
+            "taskDocId": existingId,
+            "sprintDocId": sprintId,
+            "dateAdded": DateTime.now().toUtc(),
+            "retired": null,
+            "retiredDate": null,
+          };
+          transaction.set(sprintAssignment, sprintAssignmentJson);
+          sprintAssignmentJson["docId"] = sprintAssignmentId;
+          sprintAssignments.add(serializers.deserializeWith(
+              SprintAssignment.serializer, sprintAssignmentJson)!);
+        }
+      });
+
+
+      if (addedSprint == null) {
+        throw Exception("No added sprint!");
+      } else {
+        return (sprint: addedSprint!, addedTasks: addedTasks
+            .build(), sprintAssignments: sprintAssignments.build());
+      }
+    } catch (e) {
+      print("Error adding sprint: $e");
+      throw e;
+    }
   }
 
   Future<TaskRecurrence> addTaskRecurrence(TaskRecurrenceBlueprint blueprint, String idToken) async {
