@@ -47,6 +47,8 @@ class FirestoreMigrator {
       if (existing == null) {
         taskObj['personDocId'] = persons.where((p) => p.get('id') == taskObj['personId']).first.id;
         taskObj['recurrenceDocId'] = recurrences.where((r) => r.get('id') == taskObj['recurrenceId']).firstOrNull?.id;
+        taskObj['retired'] = null;
+        taskObj['retiredDate'] = null;
 
         var sprintAssignmentObjs = taskObj['sprintAssignments'] as List<dynamic>;
         taskObj.remove('sprintAssignments');
@@ -60,6 +62,8 @@ class FirestoreMigrator {
           sprintAssignmentObj['dateAdded'] = DateTime.parse(originalDate).toUtc();
           sprintAssignmentObj['sprintDocId'] = sprintDocId;
           sprintAssignmentObj['taskDocId'] = taskDocId;
+          sprintAssignmentObj['retired'] = null;
+          sprintAssignmentObj['retiredDate'] = null;
 
           documentRef.collection("sprintAssignments").add(sprintAssignmentObj);
         }
@@ -106,6 +110,8 @@ class FirestoreMigrator {
       var existing = querySnapshot.docs.where((s) => s.data()['id'] == sprintObj['id']).firstOrNull;
       if (existing == null) {
         sprintObj['personDocId'] = persons.where((p) => p.get('id') == sprintObj['personId']).first.id;
+        sprintObj['retired'] = null;
+        sprintObj['retiredDate'] = null;
         var documentReference = await sprintCollection.add(sprintObj);
         var snapshot = await documentReference.get();
         sprintRefs.add(snapshot);
@@ -149,6 +155,8 @@ class FirestoreMigrator {
         var taskObj = tasks.where((t) => t.get('id') == snoozeObj['taskId']).firstOrNull;
         if (taskObj != null) {
           snoozeObj['taskDocId'] = taskObj.id;
+          snoozeObj['retired'] = null;
+          snoozeObj['retiredDate'] = null;
           var documentReference = await snoozeCollection.add(snoozeObj);
           var snapshot = await documentReference.get();
           snoozeRefs.add(snapshot);
@@ -188,6 +196,8 @@ class FirestoreMigrator {
     for (var personObj in personObjs) {
       var existing = querySnapshot.docs.where((p) => p.data()['id'] == personObj['id']).firstOrNull;
       if (existing == null) {
+        personObj['retired'] = null;
+        personObj['retiredDate'] = null;
         var documentReference = await personCollection.add(personObj);
         var snapshot = await documentReference.get();
         personRefs.add(snapshot);
@@ -227,6 +237,8 @@ class FirestoreMigrator {
       var existing = querySnapshot.docs.where((r) => r.data()['id'] == recurrenceObj['id']).firstOrNull;
       if (existing == null) {
         recurrenceObj['personDocId'] = persons.where((p) => p.get('id') == recurrenceObj['personId']).first.id;
+        recurrenceObj['retired'] = null;
+        recurrenceObj['retiredDate'] = null;
         var docRef = await recurrenceCollection.add(recurrenceObj);
         var snapshot = await docRef.get();
         recurrenceRefs.add(snapshot);
