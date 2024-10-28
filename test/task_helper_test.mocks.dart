@@ -982,6 +982,17 @@ class MockNotificationHelper extends _i1.Mock
       ) as _i4.Future<void>);
 
   @override
+  _i4.Future<void> syncNotificationForSprint(_i7.Sprint? sprint) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #syncNotificationForSprint,
+          [sprint],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
   _i4.Future<void> syncNotificationForTasksAndSprint(
     List<_i5.TaskItem>? taskItems,
     _i7.Sprint? sprint,

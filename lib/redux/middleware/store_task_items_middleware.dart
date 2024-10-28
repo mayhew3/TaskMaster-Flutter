@@ -140,14 +140,9 @@ Future<void> Function(
     action.blueprint.personDocId = inputs.personDocId;
     action.blueprint.recurrenceBlueprint?.personDocId = inputs.personDocId;
 
-    // var recurrence = await maybeAddRecurrence(action.recurrenceBlueprint, inputs, repository);
-
-    // action.blueprint.recurrenceId = recurrence?.id;
     repository.addTask(action.blueprint);
 
     // updateNotificationForItem(store, payload.taskItem);
-
-    // store.dispatch(TaskItemAddedAction(taskItem: payload.taskItem, taskRecurrence: payload.recurrence));
   };
 }
 

@@ -1,7 +1,11 @@
+import 'package:built_collection/built_collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/redux/actions/sprint_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
+import 'package:taskmaster/redux/selectors/selectors.dart';
+
+import '../../models/sprint.dart';
 
 final sprintsReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, SprintCreatedAction>(_sprintCreated),
@@ -34,6 +38,12 @@ AppState _sprintCreated(AppState state, SprintCreatedAction action) {
 @visibleForTesting
 AppState sprintsAdded(AppState state, SprintsAddedAction action) {
   var sprintBuilder = state.sprints.toBuilder()..addAll(action.addedSprints);
+
+  var addedSprints = ListBuilder<Sprint>(action.addedSprints).build();
+  var activeSprint = activeSprintSelector(addedSprints);
+  if (activeSprint != null) {
+    state.notificationHelper.syncNotificationForSprint(activeSprint);
+  }
 
   return state.rebuild((s) => s
     ..sprints = sprintBuilder

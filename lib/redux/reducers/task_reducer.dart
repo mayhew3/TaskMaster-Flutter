@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
 
+import '../../models/task_item.dart';
 import '../actions/task_item_actions.dart';
 import '../app_state.dart';
 
@@ -132,6 +133,8 @@ AppState onTaskItemsAdded(AppState state, TasksAddedAction action) {
 
   var nonExistingItems = action.addedItems.where((t) => !state.taskItems.map((ti) => ti.docId).contains(t.docId));
 
+  nonExistingItems.forEach((t) => updateNotificationForItem(state, t));
+
   var withRecurrences = nonExistingItems.map((taskItem) => taskItem.rebuild((t) => t
     ..recurrence = recurrences.where((r) => r.docId == t.recurrenceDocId).singleOrNull?.toBuilder()
   ));
@@ -148,6 +151,8 @@ AppState onTaskItemsAdded(AppState state, TasksAddedAction action) {
 
 @visibleForTesting
 AppState onTaskItemsModified(AppState state, TasksModifiedAction action) {
+  action.modifiedItems.forEach((t) => updateNotificationForItem(state, t));
+
   var listBuilder = state.taskItems.toBuilder()
     ..map((taskItem) {
       var modifiedMatch = action.modifiedItems.where((t) => t.docId == taskItem.docId).firstOrNull;
@@ -211,6 +216,7 @@ AppState _onDataNotLoaded(AppState state, dynamic action) {
   state.taskListener?.cancel();
   state.sprintListener?.cancel();
   state.taskRecurrenceListener?.cancel();
+  cancelAllNotifications(state);
   return state.rebuild((s) => s
     ..taskItems = ListBuilder()
     ..sprints = ListBuilder()
@@ -239,4 +245,12 @@ AppState goOffline(AppState state, GoOffline action) {
 
 AppState goOnline(AppState state, GoOnline action) {
   return state.rebuild((s) => s..offlineMode = false);
+}
+
+void updateNotificationForItem(AppState state, TaskItem taskItem) {
+  state.notificationHelper.updateNotificationForTask(taskItem);
+}
+
+void cancelAllNotifications(AppState state) {
+  state.notificationHelper.cancelAllNotifications();
 }

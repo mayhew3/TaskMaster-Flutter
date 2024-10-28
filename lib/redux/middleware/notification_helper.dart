@@ -47,6 +47,11 @@ class NotificationHelper {
     }
   }
 
+  Future<void> syncNotificationForSprint(Sprint sprint) async {
+    List<PendingNotificationRequest> requests = await plugin.pendingNotificationRequests();
+    await _syncNotificationForSprint(sprint, requests);
+  }
+
   Future<void> syncNotificationForTasksAndSprint(List<TaskItem> taskItems, Sprint? sprint) async {
     await cancelAllNotifications();
     List<PendingNotificationRequest> requests = await plugin.pendingNotificationRequests();
@@ -62,7 +67,7 @@ class NotificationHelper {
   Future<void> updateNotificationForTask(TaskItem taskItem) async {
     List<PendingNotificationRequest> requests = await plugin.pendingNotificationRequests();
 
-    if (taskItem.isCompleted()) {
+    if (taskItem.isCompleted() || taskItem.retired != null) {
       await cancelNotificationsForTaskId(taskItem.docId);
     } else {
       await _syncNotificationForTask(taskItem, requests);
