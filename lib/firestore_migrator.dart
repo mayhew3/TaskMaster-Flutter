@@ -45,8 +45,11 @@ class FirestoreMigrator {
     for (Map<String, Object?> taskObj in taskObjs) {
       var existing = querySnapshot.docs.where((t) => t.data()['id'] == taskObj['id']).firstOrNull;
       if (existing == null) {
-        taskObj['personDocId'] = persons.where((p) => p.get('id') == taskObj['personId']).first.id;
-        taskObj['recurrenceDocId'] = recurrences.where((r) => r.get('id') == taskObj['recurrenceId']).firstOrNull?.id;
+        var personDocId = persons.where((p) => p.get('id') == taskObj['personId']).first.id;
+        var recurrenceDocId = recurrences.where((r) => r.get('id') == taskObj['recurrenceId']).firstOrNull?.id;
+
+        taskObj['personDocId'] = personDocId;
+        taskObj['recurrenceDocId'] = recurrenceDocId;
         taskObj['retired'] = null;
         taskObj['retiredDate'] = null;
 
@@ -67,6 +70,7 @@ class FirestoreMigrator {
           sprintAssignmentObj['taskDocId'] = taskDocId;
           sprintAssignmentObj['retired'] = null;
           sprintAssignmentObj['retiredDate'] = null;
+          sprintAssignmentObj['personDocId'] = personDocId;
 
           addedDoc.set(sprintAssignmentObj);
         }

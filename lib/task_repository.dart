@@ -56,7 +56,7 @@ class TaskRepository {
     bool collectionGroup = false,
   }) {
     var collectionRef = collectionGroup ? firestore.collectionGroup(collectionName) : firestore.collection(collectionName);
-    var snapshots = collectionGroup ? collectionRef.snapshots() : collectionRef.where("personDocId", isEqualTo: personDocId).snapshots();
+    var snapshots = collectionRef.where("personDocId", isEqualTo: personDocId).snapshots();
     var listener = snapshots.listen((event) async {
       log.fine('$collectionName snapshots event!');
 
@@ -108,11 +108,18 @@ class TaskRepository {
         i++;
       }
 
-      Duration totalDuration = DateTime.now().difference(startingTime);
-      log.fine("Total duration for $collectionName add over $totalCount items: $totalDuration (${totalDuration~/totalCount} per item)");
-      log.fine(" - data(): $dataTime (${(dataTime.inMilliseconds/totalDuration.inMilliseconds*100).toStringAsFixed(1)}%)");
-      log.fine(" - subCollection: $subCollectionTime (${(subCollectionTime.inMilliseconds/totalDuration.inMilliseconds*100).toStringAsFixed(1)}%)");
-      log.fine(" - deserialize: $deserialTime (${(deserialTime.inMilliseconds/totalDuration.inMilliseconds*100).toStringAsFixed(1)}%)");
+      if (totalCount > 0) {
+        Duration totalDuration = DateTime.now().difference(startingTime);
+        log.fine(
+            "Total duration for $collectionName add over $totalCount items: $totalDuration (${totalDuration ~/ totalCount} per item)");
+        log.fine(" - data(): $dataTime (${(dataTime.inMilliseconds / totalDuration.inMilliseconds * 100).toStringAsFixed(1)}%)");
+        log.fine(" - subCollection: $subCollectionTime (${(subCollectionTime
+            .inMilliseconds / totalDuration.inMilliseconds * 100)
+            .toStringAsFixed(1)}%)");
+        log.fine(
+            " - deserialize: $deserialTime (${(deserialTime.inMilliseconds /
+                totalDuration.inMilliseconds * 100).toStringAsFixed(1)}%)");
+      }
 
       if (finalList.isNotEmpty) {
         addCallback(finalList);
