@@ -4,6 +4,7 @@ import 'package:redux/redux.dart';
 import 'package:taskmaster/helpers/recurrence_helper.dart';
 import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/snooze_blueprint.dart';
+import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/task_item_recur_preview.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
@@ -92,11 +93,16 @@ Future<void> Function(
           serializer: TaskRecurrence.serializer);
       var taskListener = repository.createListener<TaskItem>(
           collectionName: "tasks",
-          subCollectionName: "sprintAssignments",
           personDocId: inputs.personDocId,
           addCallback: (taskItems) => store.dispatch(TasksAddedAction(taskItems)),
           modifyCallback: (taskItems) => store.dispatch(TasksModifiedAction(taskItems)),
           serializer: TaskItem.serializer);
+      var sprintAssignmentListener = repository.createListener<SprintAssignment>(
+          collectionName: "sprintAssignments",
+          personDocId: inputs.personDocId,
+          addCallback: (sprintAssignments) => store.dispatch(SprintAssignmentsAddedAction(sprintAssignments)),
+          serializer: SprintAssignment.serializer,
+          collectionGroup: true);
 
       store.dispatch(ListenersInitializedAction(taskListener, sprintListener, recurrenceListener));
 

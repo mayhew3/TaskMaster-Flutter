@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
 
@@ -39,6 +40,12 @@ class TasksAddedAction {
   final Iterable<TaskItem> addedItems;
 
   TasksAddedAction(this.addedItems);
+}
+
+class SprintAssignmentsAddedAction {
+  final Iterable<SprintAssignment> addedSprintAssignments;
+
+  SprintAssignmentsAddedAction(this.addedSprintAssignments);
 }
 
 class TaskRecurrencesAddedAction {

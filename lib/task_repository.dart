@@ -8,6 +8,7 @@ import 'package:built_collection/built_collection.dart';
 import 'package:built_value/serializer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
+import 'package:logging/logging.dart';
 import 'package:taskmaster/firestore_migrator.dart';
 import 'package:taskmaster/models/serializers.dart';
 import 'package:taskmaster/models/snooze_blueprint.dart';
@@ -25,6 +26,7 @@ class TaskRepository {
   final FirebaseFirestore firestore;
 
   static const serverEnv = String.fromEnvironment('SERVER', defaultValue: 'heroku');
+  final log = Logger('TaskRepository');
 
   TaskRepository({
     required this.client,
@@ -46,39 +48,77 @@ class TaskRepository {
 
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>> createListener<T>({
     required String collectionName,
-    String? subCollectionName,
     required String personDocId,
     required Function(Iterable<T>) addCallback,
     Function(Iterable<T>)? modifyCallback,
     Function(Iterable<T>)? deleteCallback,
-    required Serializer<T> serializer}
-      ) {
-    var snapshots = firestore.collection(collectionName).where("personDocId", isEqualTo: personDocId).snapshots();
+    required Serializer<T> serializer,
+    bool collectionGroup = false,
+  }) {
+    var collectionRef = collectionGroup ? firestore.collectionGroup(collectionName) : firestore.collection(collectionName);
+    var snapshots = collectionGroup ? collectionRef.snapshots() : collectionRef.where("personDocId", isEqualTo: personDocId).snapshots();
     var listener = snapshots.listen((event) async {
-      print('$collectionName snapshots event!');
+      log.fine('$collectionName snapshots event!');
+
       var addedDocs = event.docChanges.where((dc) => dc.type == DocumentChangeType.added).map((dc) => dc.doc);
+
+      var i = 0;
+      var totalCount = addedDocs.length;
+      var startingTime = DateTime.now();
+      var rollingTime = DateTime.now();
+      var gapTime = DateTime.now();
+
+      var dataTimes = [];
+      var dataTime = Duration.zero;
+      var subCollectionTime = Duration.zero;
+      var deserialTime = Duration.zero;
+      var subCollectionTimes = [];
+      var deserialTimes = [];
+
       List<T> finalList = [];
+      // todo: fix performance
       for (var doc in addedDocs) {
+
         var json = doc.data()!;
 
+        gapTime = DateTime.now();
+        dataTimes.add(gapTime.difference(rollingTime));
+        dataTime = dataTime + gapTime.difference(rollingTime);
+        rollingTime = gapTime;
+
         json['docId'] = doc.id;
-        if (subCollectionName != null) {
-          var subDocs = (await doc.reference.collection(subCollectionName).get()).docs;
-          if (subDocs.isNotEmpty) {
-            json[subCollectionName] = subDocs.map((sd) {
-              var subJson = sd.data();
-              subJson['docId'] = sd.id;
-              return subJson;
-            });
-          }
-        }
+
+        gapTime = DateTime.now();
+        subCollectionTimes.add(gapTime.difference(rollingTime));
+        subCollectionTime = subCollectionTime + gapTime.difference(rollingTime);
+        rollingTime = gapTime;
+
         var deserialized = serializers.deserializeWith(serializer, json)!;
         finalList.add(deserialized);
+
+        gapTime = DateTime.now();
+        deserialTimes.add(gapTime.difference(rollingTime));
+        deserialTime = deserialTime + gapTime.difference(rollingTime);
+        rollingTime = gapTime;
+
+        if (i % 10 == 0) {
+          log.finer("Processed $i/$totalCount (${(i/totalCount*100).toStringAsFixed(1)}%)");
+        }
+
+        i++;
       }
+
+      Duration totalDuration = DateTime.now().difference(startingTime);
+      log.fine("Total duration for $collectionName add over $totalCount items: $totalDuration (${totalDuration~/totalCount} per item)");
+      log.fine(" - data(): $dataTime (${(dataTime.inMilliseconds/totalDuration.inMilliseconds*100).toStringAsFixed(1)}%)");
+      log.fine(" - subCollection: $subCollectionTime (${(subCollectionTime.inMilliseconds/totalDuration.inMilliseconds*100).toStringAsFixed(1)}%)");
+      log.fine(" - deserialize: $deserialTime (${(deserialTime.inMilliseconds/totalDuration.inMilliseconds*100).toStringAsFixed(1)}%)");
+
       if (finalList.isNotEmpty) {
         addCallback(finalList);
       }
 
+      i = 0;
       if (modifyCallback != null) {
         var modifyDocs = event.docChanges.where((dc) =>
         dc.type == DocumentChangeType.modified).map((dc) => dc.doc);
