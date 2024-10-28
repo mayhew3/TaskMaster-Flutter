@@ -838,10 +838,11 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
       ) as _i4.Future<void>);
 
   @override
-  _i4.Future<void> migrateFromApi() => (super.noSuchMethod(
+  _i4.Future<void> migrateFromApi({String? email}) => (super.noSuchMethod(
         Invocation.method(
           #migrateFromApi,
           [],
+          {#email: email},
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),

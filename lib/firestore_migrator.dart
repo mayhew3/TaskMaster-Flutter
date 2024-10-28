@@ -14,11 +14,11 @@ class FirestoreMigrator {
   });
 
   Future<void> migrateFromApi() async {
-    var persons = await syncPersons(true);
-    var recurrences = await syncRecurrences(persons, true);
-    var sprints = await syncSprints(persons, true);
-    var tasks = await syncTasks(recurrences, sprints, persons, true);
-    await syncSnoozes(tasks, true);
+    var persons = await syncPersons(false);
+    var recurrences = await syncRecurrences(persons, false);
+    var sprints = await syncSprints(persons, false);
+    var tasks = await syncTasks(recurrences, sprints, persons, false);
+    await syncSnoozes(tasks, false);
   }
 
   Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncTasks(

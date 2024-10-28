@@ -420,8 +420,10 @@ class TaskRepository {
     print('Finished processing $collectionName. Updated $updated/$currIndex retired values, $updatedDate/$currIndex dates.');
   }
 
-  Future<void> migrateFromApi() async {
-    var uri = getUriWithParameters("/api/allTasks", {'email': 'commander.boffo@gmail.com'});
+  Future<void> migrateFromApi({String? email}) async {
+    var uri = email != null ?
+      getUriWithParameters("/api/allTasks", {'email': email}) :
+      getUri("/api/allTasks");
 
     final response = await this.client.get(uri,
       headers: {HttpHeaders.contentTypeHeader: 'application/json'},
