@@ -10,7 +10,7 @@ class JsonDateTimePassThroughConverter implements JsonConverter<DateTime, DateTi
 
   @override
   DateTime toJson(DateTime object) {
-    return object;
+    return object.toUtc();
   }
 
 }
