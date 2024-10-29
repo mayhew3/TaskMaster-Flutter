@@ -104,7 +104,12 @@ Future<void> Function(
           serializer: SprintAssignment.serializer,
           collectionGroup: true);
 
-      store.dispatch(ListenersInitializedAction(taskListener, sprintListener, recurrenceListener));
+      store.dispatch(ListenersInitializedAction(
+          taskListener: taskListener,
+          sprintListener: sprintListener,
+          taskRecurrenceListener: recurrenceListener,
+          sprintAssignmentListener: sprintAssignmentListener,
+      ));
 
     } catch (e, stack) {
       print("Error fetching task list: $e");

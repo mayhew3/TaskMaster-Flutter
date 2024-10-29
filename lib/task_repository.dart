@@ -55,8 +55,17 @@ class TaskRepository {
     required Serializer<T> serializer,
     bool collectionGroup = false,
   }) {
+    var sevenDaysAgo = DateTime.now().subtract(Duration(days: 7));
     var collectionRef = collectionGroup ? firestore.collectionGroup(collectionName) : firestore.collection(collectionName);
-    var snapshots = collectionRef.where("personDocId", isEqualTo: personDocId).snapshots();
+    var completionQuery = collectionName == "tasks" ?
+        collectionRef.where(
+          Filter.or(
+            Filter("completionDate", isNull: true),
+            Filter("completionDate", isGreaterThan: sevenDaysAgo),
+          ),
+        ) :
+        collectionRef;
+    var snapshots = completionQuery.where("personDocId", isEqualTo: personDocId).snapshots();
     var listener = snapshots.listen((event) async {
       log.fine('$collectionName snapshots event!');
 
