@@ -33,7 +33,9 @@ void Function(
     try {
       await store.state.googleSignIn.signIn();
       await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.home);
-    } catch (error) {
+    } catch (error, stackTrace) {
+      print("Error signing in: $error");
+      print(stackTrace);
       store.dispatch(OnLoginFailAction(error));
     }
   };
@@ -116,6 +118,7 @@ void Function(
     });
     var account = await store.state.googleSignIn.signInSilently();
     if (account == null) {
+      print("Sign in silently failed. Returning to login screen.");
       await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.login);
     }
   };
