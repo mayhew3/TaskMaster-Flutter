@@ -476,7 +476,7 @@ class TaskRepository {
     print('Finished processing $collectionName. Updated $updated/$currIndex retired values, $updatedDate/$currIndex dates.');
   }
 
-  Future<void> migrateFromApi({String? email}) async {
+  Future<void> migrateFromApi({String? email, bool? dropExisting = false}) async {
     var uri = email != null ?
       getUriWithParameters("/api/allTasks", {'email': email}) :
       getUri("/api/allTasks");
@@ -488,7 +488,7 @@ class TaskRepository {
     if (response.statusCode == 200) {
       try {
         var jsonObj = json.decode(response.body);
-        await new FirestoreMigrator(client: client, firestore: firestore, jsonObj: jsonObj).migrateFromApi();
+        await new FirestoreMigrator(client: client, firestore: firestore, jsonObj: jsonObj, dropFirst: dropExisting).migrateFromApi();
       } catch(exception, stackTrace) {
         print(exception);
         print(stackTrace);

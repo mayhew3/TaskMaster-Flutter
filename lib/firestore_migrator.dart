@@ -6,26 +6,27 @@ class FirestoreMigrator {
   http.Client client;
   FirebaseFirestore firestore;
   dynamic jsonObj;
+  bool? dropFirst;
 
   FirestoreMigrator({
     required this.client,
     required this.firestore,
     required this.jsonObj,
+    this.dropFirst = false,
   });
 
   Future<void> migrateFromApi() async {
-    var persons = await syncPersons(false);
-    var recurrences = await syncRecurrences(persons, false);
-    var sprints = await syncSprints(persons, false);
-    var tasks = await syncTasks(recurrences, sprints, persons, false);
-    await syncSnoozes(tasks, false);
+    var persons = await syncPersons();
+    var recurrences = await syncRecurrences(persons);
+    var sprints = await syncSprints(persons);
+    var tasks = await syncTasks(recurrences, sprints, persons);
+    await syncSnoozes(tasks);
   }
 
   Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncTasks(
       List<DocumentSnapshot<Map<String, dynamic>>> recurrences,
       List<DocumentSnapshot<Map<String, dynamic>>> sprints,
       List<DocumentSnapshot<Map<String, dynamic>>> persons,
-      bool dropFirst,
       ) async {
     var taskCollection = firestore.collection("tasks");
     var querySnapshot = await taskCollection.get();
@@ -97,8 +98,7 @@ class FirestoreMigrator {
   }
 
   Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncSprints(
-      List<DocumentSnapshot<Map<String, dynamic>>> persons,
-      bool dropFirst,) async {
+      List<DocumentSnapshot<Map<String, dynamic>>> persons,) async {
     var sprintCollection = firestore.collection("sprints");
     var querySnapshot = await sprintCollection.get();
 
@@ -141,7 +141,7 @@ class FirestoreMigrator {
 
   Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncSnoozes(
       List<DocumentSnapshot<Map<String, dynamic>>> tasks,
-      bool dropFirst,) async {
+      ) async {
     var snoozeCollection = firestore.collection("snoozes");
     var querySnapshot = await snoozeCollection.get();
 
@@ -185,7 +185,7 @@ class FirestoreMigrator {
     return snoozeRefs;
   }
 
-  Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncPersons(bool dropFirst) async {
+  Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncPersons() async {
     var personCollection = firestore.collection("persons");
     var querySnapshot = await personCollection.get();
 
@@ -225,7 +225,7 @@ class FirestoreMigrator {
     return personRefs;
   }
 
-  Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncRecurrences(List<DocumentSnapshot<Map<String, dynamic>>> persons, bool dropFirst,) async {
+  Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncRecurrences(List<DocumentSnapshot<Map<String, dynamic>>> persons,) async {
     var recurrenceCollection = firestore.collection("taskRecurrences");
     var querySnapshot = await recurrenceCollection.get();
 

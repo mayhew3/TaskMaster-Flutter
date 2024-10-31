@@ -16,9 +16,17 @@ import 'package:taskmaster/task_repository.dart';
 import '../actions/sprint_actions.dart';
 import '../actions/task_item_actions.dart';
 
+const migration = String.fromEnvironment("MIGRATION_DROP");
+const migrationEmail = String.fromEnvironment("MIGRATION_EMAIL");
+
 List<Middleware<AppState>> createStoreTaskItemsMiddleware(
     TaskRepository repository,
     GlobalKey<NavigatorState> navigatorKey,
+{
+  bool? migrate = false,
+  bool? migrateDrop = false,
+  String? email = null,
+}
     ) {
   return [
     TypedMiddleware<AppState, VerifyPersonAction>(_verifyPerson(repository)),
@@ -42,9 +50,13 @@ Future<void> Function(
   return (Store<AppState> store, VerifyPersonAction action, NextDispatcher next) async {
     next(action);
 
-    // await repository.migrateFromApi();
-    // print("Migration complete!");
-
+    if (migration.isNotEmpty) {
+      bool dropExisting = bool.parse(migration);
+      String? email = migrationEmail.isEmpty ? null : migrationEmail;
+      await repository.migrateFromApi(dropExisting: dropExisting, email: email);
+      print("Migration complete!");
+    }
+    
     // await repository.dataFixAll();
 
     var email = store.state.currentUser!.email;
