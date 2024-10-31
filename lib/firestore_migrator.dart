@@ -6,7 +6,7 @@ class FirestoreMigrator {
   http.Client client;
   FirebaseFirestore firestore;
   dynamic jsonObj;
-  bool? dropFirst;
+  bool dropFirst;
 
   FirestoreMigrator({
     required this.client,
@@ -18,14 +18,15 @@ class FirestoreMigrator {
   Future<void> migrateFromApi() async {
     var persons = await syncPersons();
     var recurrences = await syncRecurrences(persons);
-    var sprints = await syncSprints(persons);
-    var tasks = await syncTasks(recurrences, sprints, persons);
-    await syncSnoozes(tasks);
+    var payload = await syncTasks(recurrences, persons);
+    await syncSprints(persons, payload.sprintAssignments);
+    await syncSnoozes(payload.tasks);
   }
 
-  Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncTasks(
+  Future<({
+    List<DocumentSnapshot<Map<String, dynamic>>> tasks,
+    List<Map<String, Object?>> sprintAssignments})> syncTasks(
       List<DocumentSnapshot<Map<String, dynamic>>> recurrences,
-      List<DocumentSnapshot<Map<String, dynamic>>> sprints,
       List<DocumentSnapshot<Map<String, dynamic>>> persons,
       ) async {
     var taskCollection = firestore.collection("tasks");
@@ -36,6 +37,7 @@ class FirestoreMigrator {
     }
 
     List<DocumentSnapshot<Map<String, dynamic>>> taskRefs = [];
+    List<Map<String, Object?>> allSprintAssignmentObjs = [];
 
     var taskJsons = jsonObj['tasks'] as List<dynamic>;
     var taskCount = taskJsons.length;
@@ -59,21 +61,11 @@ class FirestoreMigrator {
 
         var documentRef = await taskCollection.add(taskObj);
 
+        var taskDocId = documentRef.id;
+
         for (Map<String, Object?> sprintAssignmentObj in sprintAssignmentObjs) {
-          var sprintDocId = sprints.where((s) => s.get('id') == sprintAssignmentObj['sprintId']).first.id;
-          var taskDocId = documentRef.id;
-          var originalDate = sprintAssignmentObj['dateAdded']! as String;
-
-          var addedDoc = documentRef.collection("sprintAssignments").doc();
-
-          sprintAssignmentObj['dateAdded'] = DateTime.parse(originalDate).toUtc();
-          sprintAssignmentObj['sprintDocId'] = sprintDocId;
           sprintAssignmentObj['taskDocId'] = taskDocId;
-          sprintAssignmentObj['retired'] = null;
-          sprintAssignmentObj['retiredDate'] = null;
-          sprintAssignmentObj['personDocId'] = personDocId;
-
-          addedDoc.set(sprintAssignmentObj);
+          allSprintAssignmentObjs.add(sprintAssignmentObj);
         }
 
         var snapshot = await documentRef.get();
@@ -94,11 +86,27 @@ class FirestoreMigrator {
 
     print("Finished processing tasks.");
 
-    return taskRefs;
+    return (tasks: taskRefs, sprintAssignments: allSprintAssignmentObjs);
+  }
+
+  void createSprintAssignment(Map<String, Object?> sprintAssignmentObj, CollectionReference<Map<String, dynamic>> assignmentCollection, String sprintDocId, String personDocId) {
+    var originalDate = sprintAssignmentObj['dateAdded']! as String;
+
+    var addedDoc = assignmentCollection.doc();
+
+    sprintAssignmentObj['dateAdded'] = DateTime.parse(originalDate).toUtc();
+    sprintAssignmentObj['sprintDocId'] = sprintDocId;
+    sprintAssignmentObj['retired'] = null;
+    sprintAssignmentObj['retiredDate'] = null;
+    sprintAssignmentObj['personDocId'] = personDocId;
+
+    addedDoc.set(sprintAssignmentObj);
   }
 
   Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncSprints(
-      List<DocumentSnapshot<Map<String, dynamic>>> persons,) async {
+      List<DocumentSnapshot<Map<String, dynamic>>> persons,
+      List<Map<String, Object?>> sprintAssignments,
+      ) async {
     var sprintCollection = firestore.collection("sprints");
     var querySnapshot = await sprintCollection.get();
 
@@ -116,11 +124,26 @@ class FirestoreMigrator {
     for (var sprintObj in sprintObjs) {
       var existing = querySnapshot.docs.where((s) => s.data()['id'] == sprintObj['id']).firstOrNull;
       if (existing == null) {
-        sprintObj['personDocId'] = persons.where((p) => p.get('id') == sprintObj['personId']).first.id;
+        var personDocId = persons.where((p) => p.get('id') == sprintObj['personId']).first.id;
+        sprintObj['personDocId'] = personDocId;
         sprintObj['retired'] = null;
         sprintObj['retiredDate'] = null;
-        var documentReference = await sprintCollection.add(sprintObj);
+        var documentReference = sprintCollection.doc();
+
+        var sprintDocId = documentReference.id;
+
+        var sprintAssignmentsForSprint = sprintAssignments.where((sa) => sa['sprintId'] == sprintObj['id']);
+
+        var assignmentCollection = documentReference.collection("sprintAssignments");
+
+        for (var sprintAssignmentObj in sprintAssignmentsForSprint) {
+          createSprintAssignment(sprintAssignmentObj, assignmentCollection, sprintDocId, personDocId);
+        }
+
+        documentReference.set(sprintObj);
+
         var snapshot = await documentReference.get();
+
         sprintRefs.add(snapshot);
         added++;
         print('Added new sprint! $added added.');
@@ -178,7 +201,7 @@ class FirestoreMigrator {
       }
       currIndex++;
       var percent = (currIndex / snoozeCount * 100).toStringAsFixed(1);
-      print('Processed sprint $currIndex/$snoozeCount} ($percent%).');
+      print('Processed snooze $currIndex/$snoozeCount} ($percent%).');
     }
 
     print("Finished processing snoozes.");

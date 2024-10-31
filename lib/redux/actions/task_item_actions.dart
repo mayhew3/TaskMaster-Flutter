@@ -28,13 +28,11 @@ class ListenersInitializedAction {
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>> taskListener;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>> sprintListener;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>> taskRecurrenceListener;
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>> sprintAssignmentListener;
 
   ListenersInitializedAction({
     required this.taskListener,
     required this.sprintListener,
     required this.taskRecurrenceListener,
-    required this.sprintAssignmentListener,
   });
 }
 

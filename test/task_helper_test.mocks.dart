@@ -400,12 +400,14 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
   _i5.StreamSubscription<
       _i3.QuerySnapshot<Map<String, dynamic>>> createListener<T>({
     required String? collectionName,
+    String? subCollectionName,
     required String? personDocId,
     required dynamic Function(Iterable<T>)? addCallback,
     dynamic Function(Iterable<T>)? modifyCallback,
     dynamic Function(Iterable<T>)? deleteCallback,
     required _i21.Serializer<T>? serializer,
-    bool? collectionGroup = false,
+    int? limit,
+    DateTime? completionFilter,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -413,12 +415,14 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
           [],
           {
             #collectionName: collectionName,
+            #subCollectionName: subCollectionName,
             #personDocId: personDocId,
             #addCallback: addCallback,
             #modifyCallback: modifyCallback,
             #deleteCallback: deleteCallback,
             #serializer: serializer,
-            #collectionGroup: collectionGroup,
+            #limit: limit,
+            #completionFilter: completionFilter,
           },
         ),
         returnValue:
@@ -429,12 +433,14 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             [],
             {
               #collectionName: collectionName,
+              #subCollectionName: subCollectionName,
               #personDocId: personDocId,
               #addCallback: addCallback,
               #modifyCallback: modifyCallback,
               #deleteCallback: deleteCallback,
               #serializer: serializer,
-              #collectionGroup: collectionGroup,
+              #limit: limit,
+              #completionFilter: completionFilter,
             },
           ),
         ),
@@ -446,12 +452,14 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             [],
             {
               #collectionName: collectionName,
+              #subCollectionName: subCollectionName,
               #personDocId: personDocId,
               #addCallback: addCallback,
               #modifyCallback: modifyCallback,
               #deleteCallback: deleteCallback,
               #serializer: serializer,
-              #collectionGroup: collectionGroup,
+              #limit: limit,
+              #completionFilter: completionFilter,
             },
           ),
         ),
@@ -862,11 +870,18 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
       ) as _i5.Future<void>);
 
   @override
-  _i5.Future<void> migrateFromApi({String? email}) => (super.noSuchMethod(
+  _i5.Future<void> migrateFromApi({
+    String? email,
+    bool? dropExisting = false,
+  }) =>
+      (super.noSuchMethod(
         Invocation.method(
           #migrateFromApi,
           [],
-          {#email: email},
+          {
+            #email: email,
+            #dropExisting: dropExisting,
+          },
         ),
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),

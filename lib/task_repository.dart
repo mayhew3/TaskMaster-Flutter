@@ -48,24 +48,29 @@ class TaskRepository {
 
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>> createListener<T>({
     required String collectionName,
+    String? subCollectionName,
     required String personDocId,
     required Function(Iterable<T>) addCallback,
     Function(Iterable<T>)? modifyCallback,
     Function(Iterable<T>)? deleteCallback,
     required Serializer<T> serializer,
-    bool collectionGroup = false,
+    int? limit,
+    DateTime? completionFilter,
   }) {
-    var sevenDaysAgo = DateTime.now().subtract(Duration(days: 7));
-    var collectionRef = collectionGroup ? firestore.collectionGroup(collectionName) : firestore.collection(collectionName);
-    var completionQuery = collectionName == "tasks" ?
-        collectionRef.where(
-          Filter.or(
-            Filter("completionDate", isNull: true),
-            Filter("completionDate", isGreaterThan: sevenDaysAgo),
-          ),
-        ) :
-        collectionRef;
-    var snapshots = completionQuery.where("personDocId", isEqualTo: personDocId).snapshots();
+    var collectionRef = firestore.collection(collectionName);
+    var completionQuery = completionFilter != null ?
+      collectionRef.where(
+        Filter.or(
+          Filter("completionDate", isNull: true),
+          Filter("completionDate", isGreaterThan: completionFilter),
+        ),
+      ) :
+      collectionRef;
+    var limitQuery = limit == null ?
+      completionQuery :
+      completionQuery.orderBy("sprintNumber", descending: true)
+          .limit(limit);
+    var snapshots = limitQuery.where("personDocId", isEqualTo: personDocId).snapshots();
     var listener = snapshots.listen((event) async {
       log.fine('$collectionName snapshots event!');
 
@@ -96,6 +101,17 @@ class TaskRepository {
         rollingTime = gapTime;
 
         json['docId'] = doc.id;
+
+        if (subCollectionName != null) {
+          var subDocs = (await doc.reference.collection(subCollectionName).get()).docs;
+          if (subDocs.isNotEmpty) {
+            json[subCollectionName] = subDocs.map((sd) {
+              var subJson = sd.data();
+              subJson['docId'] = sd.id;
+              return subJson;
+            });
+          }
+        }
 
         gapTime = DateTime.now();
         subCollectionTimes.add(gapTime.difference(rollingTime));
@@ -476,7 +492,7 @@ class TaskRepository {
     print('Finished processing $collectionName. Updated $updated/$currIndex retired values, $updatedDate/$currIndex dates.');
   }
 
-  Future<void> migrateFromApi({String? email, bool? dropExisting = false}) async {
+  Future<void> migrateFromApi({String? email, bool dropExisting = false}) async {
     var uri = email != null ?
       getUriWithParameters("/api/allTasks", {'email': email}) :
       getUri("/api/allTasks");

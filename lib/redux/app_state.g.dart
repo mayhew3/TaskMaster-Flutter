@@ -21,9 +21,6 @@ class _$AppState extends AppState {
   final StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
       taskRecurrenceListener;
   @override
-  final StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
-      sprintAssignmentListener;
-  @override
   final bool tasksLoading;
   @override
   final bool sprintsLoading;
@@ -70,7 +67,6 @@ class _$AppState extends AppState {
       this.taskListener,
       this.sprintListener,
       this.taskRecurrenceListener,
-      this.sprintAssignmentListener,
       required this.tasksLoading,
       required this.sprintsLoading,
       required this.taskRecurrencesLoading,
@@ -140,7 +136,6 @@ class _$AppState extends AppState {
         taskListener == other.taskListener &&
         sprintListener == other.sprintListener &&
         taskRecurrenceListener == other.taskRecurrenceListener &&
-        sprintAssignmentListener == other.sprintAssignmentListener &&
         tasksLoading == other.tasksLoading &&
         sprintsLoading == other.sprintsLoading &&
         taskRecurrencesLoading == other.taskRecurrencesLoading &&
@@ -170,7 +165,6 @@ class _$AppState extends AppState {
     _$hash = $jc(_$hash, taskListener.hashCode);
     _$hash = $jc(_$hash, sprintListener.hashCode);
     _$hash = $jc(_$hash, taskRecurrenceListener.hashCode);
-    _$hash = $jc(_$hash, sprintAssignmentListener.hashCode);
     _$hash = $jc(_$hash, tasksLoading.hashCode);
     _$hash = $jc(_$hash, sprintsLoading.hashCode);
     _$hash = $jc(_$hash, taskRecurrencesLoading.hashCode);
@@ -202,7 +196,6 @@ class _$AppState extends AppState {
           ..add('taskListener', taskListener)
           ..add('sprintListener', sprintListener)
           ..add('taskRecurrenceListener', taskRecurrenceListener)
-          ..add('sprintAssignmentListener', sprintAssignmentListener)
           ..add('tasksLoading', tasksLoading)
           ..add('sprintsLoading', sprintsLoading)
           ..add('taskRecurrencesLoading', taskRecurrencesLoading)
@@ -269,15 +262,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
           StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
               taskRecurrenceListener) =>
       _$this._taskRecurrenceListener = taskRecurrenceListener;
-
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
-      _sprintAssignmentListener;
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
-      get sprintAssignmentListener => _$this._sprintAssignmentListener;
-  set sprintAssignmentListener(
-          StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
-              sprintAssignmentListener) =>
-      _$this._sprintAssignmentListener = sprintAssignmentListener;
 
   bool? _tasksLoading;
   bool? get tasksLoading => _$this._tasksLoading;
@@ -378,7 +362,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _taskListener = $v.taskListener;
       _sprintListener = $v.sprintListener;
       _taskRecurrenceListener = $v.taskRecurrenceListener;
-      _sprintAssignmentListener = $v.sprintAssignmentListener;
       _tasksLoading = $v.tasksLoading;
       _sprintsLoading = $v.sprintsLoading;
       _taskRecurrencesLoading = $v.taskRecurrencesLoading;
@@ -427,7 +410,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               taskListener: taskListener,
               sprintListener: sprintListener,
               taskRecurrenceListener: taskRecurrenceListener,
-              sprintAssignmentListener: sprintAssignmentListener,
               tasksLoading: BuiltValueNullFieldError.checkNotNull(
                   tasksLoading, r'AppState', 'tasksLoading'),
               sprintsLoading: BuiltValueNullFieldError.checkNotNull(
