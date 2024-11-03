@@ -12,6 +12,7 @@ import 'package:taskmaster/redux/selectors/selectors.dart';
 import 'package:taskmaster/routes.dart';
 import 'package:taskmaster/task_repository.dart';
 
+import '../../models/sprint_assignment.dart';
 import '../actions/sprint_actions.dart';
 import '../actions/task_item_actions.dart';
 
@@ -111,11 +112,18 @@ Future<void> Function(
           modifyCallback: (taskItems) => store.dispatch(TasksModifiedAction(taskItems)),
           completionFilter: DateTime.now().subtract(Duration(days: 7)),
           serializer: TaskItem.serializer);
+      var sprintAssignmentListener = repository.createListener<SprintAssignment>(
+          collectionName: "sprintAssignments",
+          personDocId: inputs.personDocId,
+          addCallback: (sprintAssignments) => store.dispatch(SprintAssignmentsAddedAction(sprintAssignments)),
+          serializer: SprintAssignment.serializer,
+          collectionGroup: true);
 
       store.dispatch(ListenersInitializedAction(
-          taskListener: taskListener,
-          sprintListener: sprintListener,
-          taskRecurrenceListener: recurrenceListener,
+        taskListener: taskListener,
+        sprintListener: sprintListener,
+        taskRecurrenceListener: recurrenceListener,
+        sprintAssignmentListener: sprintAssignmentListener,
       ));
 
     } catch (e, stack) {

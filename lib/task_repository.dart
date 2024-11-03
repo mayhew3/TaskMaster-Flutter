@@ -56,8 +56,9 @@ class TaskRepository {
     required Serializer<T> serializer,
     int? limit,
     DateTime? completionFilter,
+    bool collectionGroup = false,
   }) {
-    var collectionRef = firestore.collection(collectionName);
+    var collectionRef = collectionGroup ? firestore.collectionGroup(collectionName) : firestore.collection(collectionName);
     var completionQuery = completionFilter != null ?
       collectionRef.where(
         Filter.or(
@@ -101,6 +102,7 @@ class TaskRepository {
         rollingTime = gapTime;
 
         json['docId'] = doc.id;
+/*
 
         if (subCollectionName != null) {
           var subDocs = (await doc.reference.collection(subCollectionName).get()).docs;
@@ -112,6 +114,7 @@ class TaskRepository {
             });
           }
         }
+*/
 
         gapTime = DateTime.now();
         subCollectionTimes.add(gapTime.difference(rollingTime));
@@ -265,11 +268,11 @@ class TaskRepository {
           existingIds.add(taskId);
         }
 
+        var sprintAssignmentsCollection = addedSprintDoc
+            .collection("sprintAssignments");
+
         for (var existingId in existingIds) {
-          var sprintAssignment = firestore.collection("tasks")
-              .doc(existingId)
-              .collection("sprintAssignments")
-              .doc();
+          var sprintAssignment = sprintAssignmentsCollection.doc();
           var sprintAssignmentId = sprintAssignment.id;
           var sprintAssignmentJson = {
             "taskDocId": existingId,
@@ -324,6 +327,7 @@ class TaskRepository {
     try {
       await firestore.runTransaction((transaction) async {
         var sprintId = sprint.docId;
+        var sprintDocRef = firestore.collection("sprints").doc(sprint.docId);
 
         for (var toAdd in newTaskItemsList) {
           toAdd as Map<String, Object?>;
@@ -337,11 +341,11 @@ class TaskRepository {
           existingIds.add(taskId);
         }
 
+        var sprintAssignmentsCollection = sprintDocRef
+            .collection("sprintAssignments");
+
         for (var existingId in existingIds) {
-          var sprintAssignment = firestore.collection("tasks")
-              .doc(existingId)
-              .collection("sprintAssignments")
-              .doc();
+          var sprintAssignment = sprintAssignmentsCollection.doc();
           var sprintAssignmentId = sprintAssignment.id;
           var sprintAssignmentJson = {
             "taskDocId": existingId,

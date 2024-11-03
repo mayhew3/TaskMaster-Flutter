@@ -24,6 +24,7 @@ final taskItemsReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, TaskRecurrencesAddedAction>(onTaskRecurrencesAdded),
   TypedReducer<AppState, TasksModifiedAction>(onTaskItemsModified),
   TypedReducer<AppState, TaskRecurrencesModifiedAction>(onTaskRecurrencesModified),
+  TypedReducer<AppState, SprintAssignmentsAddedAction>(onSprintAssignmentsAdded),
 ];
 
 @visibleForTesting
@@ -32,6 +33,7 @@ AppState listenersInitialized(AppState state, ListenersInitializedAction action)
     ..taskListener = action.taskListener
     ..sprintListener = action.sprintListener
     ..taskRecurrenceListener = action.taskRecurrenceListener
+    ..sprintAssignmentListener = action.sprintAssignmentListener
   );
 }
 
@@ -209,6 +211,19 @@ AppState onTaskRecurrencesModified(AppState state, TaskRecurrencesModifiedAction
   return state.rebuild((s) => s
     ..taskRecurrences = recurrenceListBuilder
     ..taskItems = taskListBuilder
+  );
+}
+
+@visibleForTesting
+AppState onSprintAssignmentsAdded(AppState state, SprintAssignmentsAddedAction action) {
+  var sprintAssignments = action.addedSprintAssignments;
+  var sprintListBuilder = state.sprints.toBuilder()
+  ..map((sprint) {
+    var sprintAssignmentsForSprint = sprintAssignments.where((sa) => sa.sprintDocId == sprint.docId);
+    return sprint.rebuild((t) => t..sprintAssignments = ListBuilder(sprintAssignmentsForSprint));
+  });
+  return state.rebuild((s) => s
+    ..sprints = sprintListBuilder
   );
 }
 

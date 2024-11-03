@@ -408,6 +408,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
     required _i21.Serializer<T>? serializer,
     int? limit,
     DateTime? completionFilter,
+    bool? collectionGroup = false,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -423,6 +424,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
             #serializer: serializer,
             #limit: limit,
             #completionFilter: completionFilter,
+            #collectionGroup: collectionGroup,
           },
         ),
         returnValue:
@@ -441,6 +443,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
               #serializer: serializer,
               #limit: limit,
               #completionFilter: completionFilter,
+              #collectionGroup: collectionGroup,
             },
           ),
         ),
@@ -460,6 +463,7 @@ class MockTaskRepository extends _i1.Mock implements _i20.TaskRepository {
               #serializer: serializer,
               #limit: limit,
               #completionFilter: completionFilter,
+              #collectionGroup: collectionGroup,
             },
           ),
         ),

@@ -26,6 +26,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? get taskListener;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? get sprintListener;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? get taskRecurrenceListener;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? get sprintAssignmentListener;
 
   // task item state
   bool get tasksLoading;
