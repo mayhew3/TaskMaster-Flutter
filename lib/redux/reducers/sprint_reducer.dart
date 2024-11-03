@@ -8,10 +8,11 @@ import 'package:taskmaster/redux/selectors/selectors.dart';
 import '../../models/sprint.dart';
 
 final sprintsReducer = <AppState Function(AppState, dynamic)>[
-  TypedReducer<AppState, SprintCreatedAction>(_sprintCreated),
-  TypedReducer<AppState, TaskItemsAddedToExistingSprint>(_taskItemsAddedToExistingSprint),
+  // TypedReducer<AppState, SprintCreatedAction>(_sprintCreated),
+  // TypedReducer<AppState, TaskItemsAddedToExistingSprint>(_taskItemsAddedToExistingSprint),
   TypedReducer<AppState, SprintsAddedAction>(sprintsAdded),
 ];
+/*
 
 AppState _sprintCreated(AppState state, SprintCreatedAction action) {
   var sprintBuilder = state.sprints.toBuilder()..add(action.sprint);
@@ -34,6 +35,7 @@ AppState _sprintCreated(AppState state, SprintCreatedAction action) {
     ..taskItems = taskItemBuilder
   );
 }
+*/
 
 @visibleForTesting
 AppState sprintsAdded(AppState state, SprintsAddedAction action) {
@@ -51,6 +53,7 @@ AppState sprintsAdded(AppState state, SprintsAddedAction action) {
   );
 }
 
+/*
 AppState _taskItemsAddedToExistingSprint(AppState state, TaskItemsAddedToExistingSprint action) {
   var taskItemBuilder = state.taskItems.toBuilder()
     ..addAll(action.addedTasks.rebuild((list) =>
@@ -70,3 +73,4 @@ AppState _taskItemsAddedToExistingSprint(AppState state, TaskItemsAddedToExistin
     ..taskItems = taskItemBuilder
   );
 }
+*/

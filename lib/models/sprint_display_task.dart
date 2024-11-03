@@ -19,8 +19,6 @@ mixin SprintDisplayTask implements DateHolder {
   TaskRecurrence? get recurrence;
   int? get recurIteration;
 
-  BuiltList<SprintAssignment> get sprintAssignments;
-
   DateTime? getAnchorDate();
   bool isScheduled();
   bool isPastDue();

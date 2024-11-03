@@ -1,6 +1,8 @@
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 import 'package:taskmaster/models/serializers.dart';
+import 'package:taskmaster/models/sprint_assignment.dart';
 
 /// This allows the `Sprint` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
@@ -30,6 +32,8 @@ abstract class Sprint implements Built<Sprint, SprintBuilder> {
 
   String? get retired;
   DateTime? get retiredDate;
+
+  BuiltList<SprintAssignment> get sprintAssignments;
 
   Sprint._();
 

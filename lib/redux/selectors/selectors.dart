@@ -87,11 +87,11 @@ Sprint? lastCompletedSprintSelector(BuiltList<Sprint> sprints) {
 }
 
 BuiltList<Sprint> sprintsForTaskItemSelector(BuiltList<Sprint> sprints, TaskItem taskItem) {
-  return sprints.where((s) => taskItem.sprintAssignments.where((sa) => sa.sprintDocId == s.docId).isNotEmpty).toBuiltList();
+  return sprints.where((s) => s.sprintAssignments.where((sa) => sa.taskDocId == taskItem.docId).isNotEmpty).toBuiltList();
 }
 
 BuiltList<TaskItem> taskItemsForSprintSelector(BuiltList<TaskItem> taskItems, Sprint sprint) {
-  return taskItems.where((t) => t.sprintAssignments.where((sa) => sa.sprintDocId == sprint.docId).isNotEmpty).toBuiltList();
+  return taskItems.where((t) => sprint.sprintAssignments.where((sa) => sa.taskDocId == t.docId).isNotEmpty).toBuiltList();
 }
 
 BuiltList<TaskItem> nonRetiredTaskItems(BuiltList<TaskItem> allTaskItems) {
@@ -116,7 +116,7 @@ BuiltList<TaskItem> taskItemsForPlacingOnExistingSprint(BuiltList<TaskItem> allT
 }
 
 bool taskItemIsInSprint(SprintDisplayTask taskItem, Sprint? sprint) {
-  return sprint != null && taskItem.sprintAssignments.where((sa) => sa.sprintDocId == sprint.docId).isNotEmpty;
+  return sprint != null && sprint.sprintAssignments.where((sa) => sa.taskDocId == taskItem.docId).isNotEmpty;
 }
 
 Future<({String personDocId})> getRequiredInputs(Store<AppState> store, String actionDesc) async {

@@ -9,7 +9,7 @@ import '../app_state.dart';
 
 final taskItemsReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, TasksDeletedAction>(onDeleteTaskItems),
-  TypedReducer<AppState, TaskItemUpdatedAction>(_taskItemUpdated),
+  // TypedReducer<AppState, TaskItemUpdatedAction>(_taskItemUpdated),
   TypedReducer<AppState, CompleteTaskItemAction>(_completeTaskItem),
   TypedReducer<AppState, RecurringTaskItemCompletedAction>(_onCompleteRecurringTaskItem),
   TypedReducer<AppState, TaskItemCompletedAction>(_onCompleteTaskItem),
@@ -24,7 +24,6 @@ final taskItemsReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, TaskRecurrencesAddedAction>(onTaskRecurrencesAdded),
   TypedReducer<AppState, TasksModifiedAction>(onTaskItemsModified),
   TypedReducer<AppState, TaskRecurrencesModifiedAction>(onTaskRecurrencesModified),
-  TypedReducer<AppState, SprintAssignmentsAddedAction>(onSprintAssignmentsAdded),
 ];
 
 @visibleForTesting
@@ -39,6 +38,7 @@ AppState listenersInitialized(AppState state, ListenersInitializedAction action)
 AppState _clearRecentlyCompleted(AppState state, ClearRecentlyCompletedAction action) {
   return state.rebuild((s) => s..recentlyCompleted = ListBuilder());
 }
+/*
 
 AppState _taskItemUpdated(AppState state, TaskItemUpdatedAction action) {
   var listBuilder = state.taskItems.toBuilder()
@@ -51,6 +51,7 @@ AppState _taskItemUpdated(AppState state, TaskItemUpdatedAction action) {
     ..taskItems = listBuilder
   );
 }
+*/
 
 AppState _completeTaskItem(AppState state, CompleteTaskItemAction action) {
   var listBuilder = state.taskItems.toBuilder()
@@ -162,8 +163,7 @@ AppState onTaskItemsModified(AppState state, TasksModifiedAction action) {
       } else {
         return modifiedMatch.rebuild((t) => t
           ..recurrence = taskItem.recurrence?.toBuilder()
-          ..pendingCompletion = false
-          ..sprintAssignments = taskItem.sprintAssignments.toBuilder());
+          ..pendingCompletion = false);
       }
     });
   return state.rebuild((s) => s
@@ -212,19 +212,6 @@ AppState onTaskRecurrencesModified(AppState state, TaskRecurrencesModifiedAction
   );
 }
 
-@visibleForTesting
-AppState onSprintAssignmentsAdded(AppState state, SprintAssignmentsAddedAction action) {
-  var sprintAssignments = action.addedSprintAssignments;
-  var taskListBuilder = state.taskItems.toBuilder()
-  ..map((taskItem) {
-    var sprintAssignmentsForTask = sprintAssignments.where((t) => t.taskDocId == taskItem.docId);
-    return taskItem.rebuild((t) => t..sprintAssignments = ListBuilder(sprintAssignmentsForTask));
-  });
-  return state.rebuild((s) => s
-    ..taskItems = taskListBuilder
-  );
-}
-
 AppState _onDataNotLoaded(AppState state, dynamic action) {
   print("Removing data and listeners.");
   state.taskListener?.cancel();
@@ -247,7 +234,7 @@ AppState _onDataNotLoaded(AppState state, dynamic action) {
 
 AppState _onSnoozeExecuted(AppState state, SnoozeExecuted action) {
   var listBuilder = state.taskItems.toBuilder()
-    ..map((taskItem) => taskItem.docId == action.taskItem.docId ? action.taskItem.rebuild((s) => s..sprintAssignments = taskItem.sprintAssignments.toBuilder()) : taskItem);
+    ..map((taskItem) => taskItem.docId == action.taskItem.docId ? action.taskItem : taskItem);
   return state.rebuild((s) => s
     ..taskItems = listBuilder
   );
