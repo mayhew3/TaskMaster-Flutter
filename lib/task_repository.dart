@@ -239,6 +239,8 @@ class TaskRepository {
   Future<({Sprint sprint, BuiltList<TaskItem> addedTasks, BuiltList<SprintAssignment> sprintAssignments})> addSprintWithTaskItems(SprintBlueprint blueprint, BuiltList<TaskItem> existingItems, BuiltList<TaskItemRecurPreview> newItems) async {
     var newTaskItemsList = newItems.map((t) => serializers.serializeWith(TaskItemRecurPreview.serializer, t)).toList();
 
+    var personDocId = blueprint.personDocId;
+
     var blueprintJson = blueprint.toJson();
     var existingIds = existingItems.map((t) => t.docId).toList();
 
@@ -277,6 +279,7 @@ class TaskRepository {
           var sprintAssignmentJson = {
             "taskDocId": existingId,
             "sprintDocId": sprintId,
+            "personDocId": personDocId,
             "dateAdded": DateTime.now().toUtc(),
             "retired": null,
             "retiredDate": null,

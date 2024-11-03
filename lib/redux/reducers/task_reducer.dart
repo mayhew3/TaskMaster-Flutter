@@ -220,7 +220,7 @@ AppState onSprintAssignmentsAdded(AppState state, SprintAssignmentsAddedAction a
   var sprintListBuilder = state.sprints.toBuilder()
   ..map((sprint) {
     var sprintAssignmentsForSprint = sprintAssignments.where((sa) => sa.sprintDocId == sprint.docId);
-    return sprint.rebuild((t) => t..sprintAssignments = ListBuilder(sprintAssignmentsForSprint));
+    return sprint.rebuild((s) => s..sprintAssignments = ListBuilder(sprintAssignmentsForSprint));
   });
   return state.rebuild((s) => s
     ..sprints = sprintListBuilder
@@ -232,6 +232,7 @@ AppState _onDataNotLoaded(AppState state, dynamic action) {
   state.taskListener?.cancel();
   state.sprintListener?.cancel();
   state.taskRecurrenceListener?.cancel();
+  state.sprintAssignmentListener?.cancel();
   cancelAllNotifications(state);
   return state.rebuild((s) => s
     ..taskItems = ListBuilder()
@@ -241,6 +242,7 @@ AppState _onDataNotLoaded(AppState state, dynamic action) {
     ..taskListener = null
     ..sprintListener = null
     ..taskRecurrenceListener = null
+    ..sprintAssignmentListener = null
     ..tasksLoading = true
     ..sprintsLoading = true
     ..taskRecurrencesLoading = true
