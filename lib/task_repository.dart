@@ -102,7 +102,6 @@ class TaskRepository {
         rollingTime = gapTime;
 
         json['docId'] = doc.id;
-/*
 
         if (subCollectionName != null) {
           var subDocs = (await doc.reference.collection(subCollectionName).get()).docs;
@@ -114,7 +113,6 @@ class TaskRepository {
             });
           }
         }
-*/
 
         gapTime = DateTime.now();
         subCollectionTimes.add(gapTime.difference(rollingTime));
