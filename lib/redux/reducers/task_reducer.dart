@@ -1,6 +1,7 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:redux/redux.dart';
+import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
 
 import '../../models/task_item.dart';
@@ -220,7 +221,18 @@ AppState onSprintAssignmentsAdded(AppState state, SprintAssignmentsAddedAction a
   var sprintListBuilder = state.sprints.toBuilder()
   ..map((sprint) {
     var sprintAssignmentsForSprint = sprintAssignments.where((sa) => sa.sprintDocId == sprint.docId);
-    return sprint.rebuild((s) => s..sprintAssignments = ListBuilder(sprintAssignmentsForSprint));
+    return sprint.rebuild((s) {
+      var existingSprintAssignments = sprint.sprintAssignments;
+      var listBuilder = ListBuilder<SprintAssignment>(existingSprintAssignments);
+      for (var sa in sprintAssignmentsForSprint) {
+        var existing = existingSprintAssignments.where((s) => s.taskDocId == sa.taskDocId).firstOrNull;
+        if (existing == null) {
+          listBuilder.add(sa);
+        }
+      }
+      s.sprintAssignments = listBuilder;
+      return s;
+    });
   });
   return state.rebuild((s) => s
     ..sprints = sprintListBuilder
