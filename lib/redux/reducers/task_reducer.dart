@@ -10,11 +10,9 @@ import '../app_state.dart';
 
 final taskItemsReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, TasksDeletedAction>(onDeleteTaskItems),
-  // TypedReducer<AppState, TaskItemUpdatedAction>(_taskItemUpdated),
   TypedReducer<AppState, CompleteTaskItemAction>(_completeTaskItem),
   TypedReducer<AppState, RecurringTaskItemCompletedAction>(_onCompleteRecurringTaskItem),
   TypedReducer<AppState, TaskItemCompletedAction>(_onCompleteTaskItem),
-  TypedReducer<AppState, DataLoadedAction>(_onDataLoaded),
   TypedReducer<AppState, DataNotLoadedAction>(_onDataNotLoaded),
   TypedReducer<AppState, LogOutAction>(_onDataNotLoaded),
   TypedReducer<AppState, ClearRecentlyCompletedAction>(_clearRecentlyCompleted),
@@ -41,20 +39,6 @@ AppState listenersInitialized(AppState state, ListenersInitializedAction action)
 AppState _clearRecentlyCompleted(AppState state, ClearRecentlyCompletedAction action) {
   return state.rebuild((s) => s..recentlyCompleted = ListBuilder());
 }
-/*
-
-AppState _taskItemUpdated(AppState state, TaskItemUpdatedAction action) {
-  var listBuilder = state.taskItems.toBuilder()
-    ..map((taskItem) => taskItem.docId == action.updatedTaskItem.docId ? action.updatedTaskItem.rebuild((t) {
-      return t
-        ..pendingCompletion = false
-        ..sprintAssignments = taskItem.sprintAssignments.toBuilder();
-    }) : taskItem);
-  return state.rebuild((s) => s
-    ..taskItems = listBuilder
-  );
-}
-*/
 
 AppState _completeTaskItem(AppState state, CompleteTaskItemAction action) {
   var listBuilder = state.taskItems.toBuilder()
@@ -120,16 +104,6 @@ AppState onDeleteTaskItems(AppState state, TasksDeletedAction action) {
     ..taskItems = listBuilder
     ..recentlyCompleted = recentListBuilder
   );
-}
-
-AppState _onDataLoaded(AppState state, DataLoadedAction action) {
-  return state.rebuild((s) {
-    // s.taskItems = ListBuilder(action.dataPayload.taskItems.map((taskItem) => taskItem.rebuild((t) => t
-    //   ..recurrence = action.dataPayload.taskRecurrences.where((r) => r.id == t.recurrenceId).singleOrNull?.toBuilder())));
-    s.sprints = ListBuilder(action.dataPayload.sprints);
-    s.taskRecurrences = ListBuilder(action.dataPayload.taskRecurrences);
-    return s;
-  });
 }
 
 @visibleForTesting
