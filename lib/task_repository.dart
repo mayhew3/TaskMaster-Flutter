@@ -1,15 +1,11 @@
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:core';
-import 'dart:io';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/serializer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
-import 'package:taskmaster/firestore_migrator.dart';
 import 'package:taskmaster/models/serializers.dart';
 import 'package:taskmaster/models/snooze_blueprint.dart';
 import 'package:taskmaster/models/sprint.dart';
@@ -22,14 +18,11 @@ import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 
 class TaskRepository {
-  final http.Client client;
   final FirebaseFirestore firestore;
 
-  static const serverEnv = String.fromEnvironment('SERVER', defaultValue: 'heroku');
   final log = Logger('TaskRepository');
 
   TaskRepository({
-    required this.client,
     required this.firestore,
   });
 
@@ -391,26 +384,6 @@ class TaskRepository {
 
   // HELPER METHODS
 
-  Uri getUriWithParameters(String path, Map<String, dynamic>? queryParameters) {
-    if (serverEnv == "") {
-      throw new Exception('Missing required SERVER environment variable.');
-    }
-    switch(serverEnv) {
-      case 'local':
-        return Uri.http('10.0.2.2:3000', path, queryParameters);
-      case 'staging':
-        return Uri.https('taskmaster-staging.herokuapp.com', path, queryParameters);
-      case 'heroku':
-        return Uri.https('taskmaster-general.herokuapp.com', path, queryParameters);
-      default:
-        throw new Exception('Unknown SERVER environment variable: ' + serverEnv);
-    }
-  }
-
-  Uri getUri(String path) {
-    return getUriWithParameters(path, null);
-  }
-
   Future<void> dataFixAll() async {
     await dataFixCollection(collectionName: "persons");
     await dataFixCollection(collectionName: "snoozes");
@@ -498,31 +471,6 @@ class TaskRepository {
       print('Processed $collectionName $currIndex/$totalCount ($percent%). Updated $updatedDate/$currIndex.' + stringsMsg + datesMsg + " ID: $taskId");
     }
     print('Finished processing $collectionName. Updated $updated/$currIndex retired values, $updatedDate/$currIndex dates.');
-  }
-
-  Future<void> migrateFromApi({String? email, bool dropExisting = false}) async {
-    var uri = email != null ?
-      getUriWithParameters("/api/allTasks", {'email': email}) :
-      getUri("/api/allTasks");
-
-    final response = await this.client.get(uri,
-      headers: {HttpHeaders.contentTypeHeader: 'application/json'},
-    );
-
-    if (response.statusCode == 200) {
-      try {
-        var jsonObj = json.decode(response.body);
-        await new FirestoreMigrator(client: client, firestore: firestore, jsonObj: jsonObj, dropFirst: dropExisting).migrateFromApi();
-      } catch(exception, stackTrace) {
-        print(exception);
-        print(stackTrace);
-        throw Exception('Error migration from the server. Talk to Mayhew.');
-      }
-    } else {
-      throw Exception('Failed to migration. Talk to Mayhew.');
-    }
-
-
   }
 
 }

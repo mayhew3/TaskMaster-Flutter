@@ -4,6 +4,7 @@ import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:redux/redux.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:taskmaster/app_theme.dart';
+import 'package:taskmaster/firestore_migrator.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
 import 'package:taskmaster/redux/middleware/auth_middleware.dart';
 import 'package:taskmaster/redux/middleware/store_sprint_middleware.dart';
@@ -48,11 +49,13 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       firestore.settings = const Settings(cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED);
     }
 
-    var taskRepository = TaskRepository(client: http.Client(), firestore: firestore);
+    var migrator = FirestoreMigrator(client: http.Client(), firestore: firestore);
+    var taskRepository = TaskRepository(firestore: firestore);
+
     store = Store<AppState>(
         appReducer,
         initialState: AppState.init(loading: true),
-        middleware: createStoreTaskItemsMiddleware(taskRepository, _navigatorKey)
+        middleware: createStoreTaskItemsMiddleware(taskRepository, _navigatorKey, migrator)
           ..addAll(createAuthenticationMiddleware(_navigatorKey))
           ..addAll(createStoreSprintsMiddleware(taskRepository))
           // ..add(new LoggingMiddleware.printer())

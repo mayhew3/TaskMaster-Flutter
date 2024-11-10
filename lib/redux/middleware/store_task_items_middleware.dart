@@ -1,6 +1,7 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
+import 'package:taskmaster/firestore_migrator.dart';
 import 'package:taskmaster/helpers/recurrence_helper.dart';
 import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/snooze_blueprint.dart';
@@ -22,14 +23,10 @@ const migrationEmail = String.fromEnvironment("MIGRATION_EMAIL");
 List<Middleware<AppState>> createStoreTaskItemsMiddleware(
     TaskRepository repository,
     GlobalKey<NavigatorState> navigatorKey,
-{
-  bool? migrate = false,
-  bool? migrateDrop = false,
-  String? email = null,
-}
+    FirestoreMigrator migrator,
     ) {
   return [
-    TypedMiddleware<AppState, VerifyPersonAction>(_verifyPerson(repository)),
+    TypedMiddleware<AppState, VerifyPersonAction>(_verifyPerson(repository, migrator)),
     TypedMiddleware<AppState, LoadDataAction>(loadData(repository, navigatorKey)),
     TypedMiddleware<AppState, DataLoadedAction>(_dataLoaded(navigatorKey)),
     TypedMiddleware<AppState, AddTaskItemAction>(createNewTaskItem(repository)),
@@ -46,14 +43,13 @@ Future<void> Function(
     Store<AppState>,
     VerifyPersonAction action,
     NextDispatcher next,
-    ) _verifyPerson(TaskRepository repository) {
+    ) _verifyPerson(TaskRepository repository, FirestoreMigrator migrator) {
   return (Store<AppState> store, VerifyPersonAction action, NextDispatcher next) async {
     next(action);
 
     if (migration.isNotEmpty) {
-      bool dropExisting = bool.parse(migration);
       String? email = migrationEmail.isEmpty ? null : migrationEmail;
-      await repository.migrateFromApi(dropExisting: dropExisting, email: email);
+      await migrator.migrateFromApi(email: email);
       print("Migration complete!");
     }
     

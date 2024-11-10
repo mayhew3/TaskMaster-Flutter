@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:built_collection/built_collection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
@@ -8,19 +11,64 @@ class FirestoreMigrator {
   dynamic jsonObj;
   bool dropFirst;
 
+  static const serverEnv = String.fromEnvironment('SERVER', defaultValue: 'heroku');
+
   FirestoreMigrator({
     required this.client,
     required this.firestore,
-    required this.jsonObj,
     this.dropFirst = false,
   });
 
-  Future<void> migrateFromApi() async {
+  Future<void> migrateFromApi({String? email}) async {
+    var uri = email != null ?
+      getUriWithParameters("/api/allTasks", {'email': email}) :
+      getUri("/api/allTasks");
+
+    final response = await this.client.get(uri,
+      headers: {HttpHeaders.contentTypeHeader: 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      try {
+        this.jsonObj = json.decode(response.body);
+        await _executeMigration();
+      } catch(exception, stackTrace) {
+        print(exception);
+        print(stackTrace);
+        throw Exception('Error migration from the server. Talk to Mayhew.');
+      }
+    } else {
+      throw Exception('Failed to migration. Talk to Mayhew.');
+    }
+
+  }
+
+  Future<void> _executeMigration() async {
     var persons = await syncPersons();
     var recurrences = await syncRecurrences(persons);
     var payload = await syncTasks(recurrences, persons);
     await syncSprints(persons, payload.sprintAssignments);
     await syncSnoozes(payload.tasks);
+  }
+
+  Uri getUriWithParameters(String path, Map<String, dynamic>? queryParameters) {
+    if (serverEnv == "") {
+      throw new Exception('Missing required SERVER environment variable.');
+    }
+    switch(serverEnv) {
+      case 'local':
+        return Uri.http('10.0.2.2:3000', path, queryParameters);
+      case 'staging':
+        return Uri.https('taskmaster-staging.herokuapp.com', path, queryParameters);
+      case 'heroku':
+        return Uri.https('taskmaster-general.herokuapp.com', path, queryParameters);
+      default:
+        throw new Exception('Unknown SERVER environment variable: ' + serverEnv);
+    }
+  }
+
+  Uri getUri(String path) {
+    return getUriWithParameters(path, null);
   }
 
   Future<({
