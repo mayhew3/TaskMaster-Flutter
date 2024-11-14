@@ -17,6 +17,7 @@ import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
 import 'mocks/mock_data.dart';
+import 'mocks/mock_data_builder.dart';
 import 'mocks/mock_flutter_plugin.dart';
 import 'mocks/mock_timezone_helper.dart';
 import 'task_helper_test.mocks.dart';
@@ -36,8 +37,6 @@ void main() {
   MockGlobalKey mockGlobalKey = new MockGlobalKey();
   var mockNavigatorState = new MockNavigatorState();
 
-  const String idToken = "token";
-  const int personId = 1;
   // MockNotificationScheduler notificationScheduler = new MockNotificationScheduler();
   // StateSetter stateSetter = (callback) => callback();
 
@@ -52,8 +51,7 @@ void main() {
 
     when(store.state).thenReturn(appState);
 
-    when(appState.personId).thenAnswer((_) => personId);
-    when(appState.getIdToken()).thenAnswer((_) => Future.value(idToken));
+    when(appState.personDocId).thenAnswer((_) => MockTaskItemBuilder.me);
     when(appState.timezoneHelper).thenAnswer((_) => timezoneHelper);
     when(appState.notificationHelper).thenAnswer((_) => mockNotificationHelper);
 
@@ -75,7 +73,7 @@ void main() {
       TaskRecurrencePreview original = invocation.positionalArguments[0];
       return Future.value(TaskRecurrence(
           id: original.id,
-          personId: original.personId,
+          personDocId: original.personDocId,
           name: original.name,
           recurNumber: original.recurNumber,
           recurUnit: original.recurUnit,
@@ -99,13 +97,10 @@ void main() {
     var taskItemBlueprint = taskItem.createBlueprint();
     var action = new AddTaskItemAction(blueprint: taskItemBlueprint);
 
-    when(taskRepository.addTask(taskItemBlueprint, idToken)).thenAnswer((_) => Future.value((taskItem: taskItem, recurrence: null)));
-
     await createNewTaskItem(taskRepository)(store, action, (_) => {});
-    expect(taskItem.personId, 1);
-    verify(appState.personId);
-    verify(appState.getIdToken());
-    verify(taskRepository.addTask(taskItemBlueprint, idToken));
+    expect(taskItem.personDocId, MockTaskItemBuilder.me);
+    verify(appState.personDocId);
+    verify(taskRepository.addTask(taskItemBlueprint));
     verify(store.dispatch(argThat(isA<TaskItemAddedAction>())));
     verify(mockNotificationHelper.updateNotificationForTask(taskItem));
   });
@@ -123,15 +118,12 @@ void main() {
 
     var action = new AddTaskItemAction(blueprint: taskItemBlueprint);
 
-    when(taskRepository.addTask(taskItemBlueprint, idToken)).thenAnswer((_) => Future.value((taskItem: taskItem, recurrence: taskRecurrence)));
-
     await createNewTaskItem(taskRepository)(store, action, (_) => {});
 
-    expect(taskItem.personId, 1);
-    expect(taskRecurrence.personId, 1);
-    verify(appState.personId);
-    verify(appState.getIdToken());
-    verify(taskRepository.addTask(taskItemBlueprint, idToken));
+    expect(taskItem.personDocId, MockTaskItemBuilder.me);
+    expect(taskRecurrence.personDocId, MockTaskItemBuilder.me);
+    verify(appState.personDocId);
+    verify(taskRepository.addTask(taskItemBlueprint));
     verify(store.dispatch(argThat(isA<TaskItemAddedAction>())));
     verify(mockNotificationHelper.updateNotificationForTask(taskItem));
   });
@@ -142,9 +134,7 @@ void main() {
     await loadData(taskRepository, mockGlobalKey)(store, LoadDataAction(), (_) => {});;
     verify(mockGlobalKey.currentState);
     verify(mockNavigatorState.pushReplacementNamed(TaskMasterRoutes.home));
-    verify(appState.personId);
-    verify(appState.getIdToken());
-    verify(taskRepository.loadTasks(personId, idToken));
+    verify(appState.personDocId);
     verify(store.dispatch(argThat(isA<DataLoadedAction>())));
   });
 
@@ -158,18 +148,17 @@ void main() {
     TaskItem? resultTask;
     TaskItemBlueprint? blueprint;
 
-    when(taskRepository.updateTask(birthdayTask.id, any, idToken)).thenAnswer((invocation) {
+    when(taskRepository.updateTask(birthdayTask.docId, any)).thenAnswer((invocation) {
       blueprint = invocation.positionalArguments[1];
       resultTask = TestMockHelper.mockEditTask(birthdayTask, blueprint!);
       return Future.value((taskItem: resultTask!, recurrence: null));
     });
 
     await completeTaskItem(taskRepository)(store, CompleteTaskItemAction(birthdayTask, true), (_) => {});
-    verifyNever(taskRepository.addTask(any, any));
+    verifyNever(taskRepository.addTask(any));
 
-    verify(appState.personId);
-    verify(appState.getIdToken());
-    verify(taskRepository.updateTask(birthdayTask.id, blueprint, idToken));
+    verify(appState.personDocId);
+    verify(taskRepository.updateTask(birthdayTask.docId, blueprint));
     verify(mockNotificationHelper.updateNotificationForTask(resultTask));
     verify(store.dispatch(argThat(isA<TaskItemCompletedAction>())));
   });

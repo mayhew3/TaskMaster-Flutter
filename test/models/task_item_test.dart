@@ -1,4 +1,3 @@
-import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:test/test.dart';
@@ -17,12 +16,6 @@ void main() {
       expect(catLitter.targetDate, catTarget);
       expect(catLitter.completionDate, catEnd);
       expect(catLitter.recurWait, true);
-      expect(catLitter.sprintAssignments, isNot(null));
-      expect(catLitter.sprintAssignments.length, 1);
-
-      SprintAssignment sprintAssignment = catLitter.sprintAssignments[0];
-      expect(sprintAssignment.id, 2346);
-      expect(sprintAssignment.sprintId, 11);
     });
 
     test('isCompleted', () {

@@ -6,6 +6,9 @@ import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'mock_recurrence_builder.dart';
 
 class MockTaskItemBuilder with DateHolder {
+
+  static const String me = "ADBC1234";
+
   int? id;
   late String name;
   late String description;
@@ -70,7 +73,7 @@ class MockTaskItemBuilder with DateHolder {
 
     var taskItemBuilder = new TaskItemBuilder()
       ..id = id!
-      ..personId = 1
+      ..personDocId = me
       ..name = name
       ..description = description
       ..project = project

@@ -12,9 +12,10 @@ import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/task_repository.dart';
 
 import 'mocks/mock_data.dart';
+import 'mocks/mock_data_builder.dart';
 import 'test_mock_helper.mocks.dart';
 
-@GenerateNiceMocks([MockSpec<http.Client>(), MockSpec<GoogleSignInAccount>(), MockSpec<FirebaseFirestore>()])
+@GenerateNiceMocks([MockSpec<GoogleSignInAccount>(), MockSpec<FirebaseFirestore>()])
 void main() {
 
 }
@@ -24,13 +25,10 @@ class TestMockHelper {
   static TaskRepository createTaskRepositoryWithoutLoad({List<TaskItem>? taskItems, List<Sprint>? sprints}) {
     String email = 'scorpy@gmail.com';
     GoogleSignInAccount googleUser = new MockGoogleSignInAccount();
-    http.Client client = new MockClient();
     var mockFirebaseFirestore = new MockFirebaseFirestore();
 
-    TaskRepository taskRepository = TaskRepository(client: client, firestore: mockFirebaseFirestore);
+    TaskRepository taskRepository = TaskRepository(firestore: mockFirebaseFirestore);
 
-    when(client.get(taskRepository.getUriWithParameters('/api/tasks', {'person_id': "1"}), headers: anyNamed('headers')))
-        .thenAnswer((_) async => http.Response(_mockTheJSON(taskItems: taskItems, sprints: sprints), 200));
     when(googleUser.email)
         .thenAnswer((_) => email);
     return taskRepository;
@@ -38,7 +36,6 @@ class TestMockHelper {
 
   static Future<TaskRepository> createTaskRepositoryAndLoad({List<TaskItem>? taskItems, List<Sprint>? sprints}) async {
     TaskRepository taskRepository = createTaskRepositoryWithoutLoad(taskItems: taskItems, sprints: sprints);
-    await taskRepository.loadTasks(1, 'token');
     return taskRepository;
   }
 
@@ -79,7 +76,7 @@ class TestMockHelper {
     if (recurrenceBlueprint != null) {
       recurrenceCopy = new TaskRecurrence((r) => r
         ..id = recurrenceId
-        ..personId = recurrenceBlueprint.personId
+        ..personDocId = recurrenceBlueprint.personDocId
         ..name = recurrenceBlueprint.name
         ..recurNumber = recurrenceBlueprint.recurNumber
         ..recurUnit = recurrenceBlueprint.recurUnit
@@ -92,7 +89,7 @@ class TestMockHelper {
     TaskItem taskItem = new TaskItem((t) => t
       ..name = blueprint.name
       ..id = id
-      ..personId = 1
+      ..personDocId = MockTaskItemBuilder.me
       ..description = blueprint.description
       ..project = blueprint.project
       ..context = blueprint.context
@@ -125,7 +122,7 @@ class TestMockHelper {
     if (recurrenceBlueprint != null && recurrence != null) {
       recurrenceCopy = new TaskRecurrence((r) => r
         ..id = recurrence.id
-        ..personId = recurrence.personId
+        ..personDocId = recurrence.personDocId
         ..name = recurrenceBlueprint.name ?? recurrence.name
         ..recurNumber = recurrenceBlueprint.recurNumber ?? recurrence.recurNumber
         ..recurUnit = recurrenceBlueprint.recurUnit ?? recurrence.name
@@ -138,7 +135,7 @@ class TestMockHelper {
     TaskItem taskItem = new TaskItem((t) => t
       ..name = blueprint.name
       ..id = original.id
-      ..personId = original.personId
+      ..personDocId = original.personDocId
       ..description = blueprint.description
       ..project = blueprint.project
       ..context = blueprint.context

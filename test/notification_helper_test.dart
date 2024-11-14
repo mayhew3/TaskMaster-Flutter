@@ -6,6 +6,7 @@ import 'package:taskmaster/timezone_helper.dart';
 import 'package:test/test.dart';
 
 import 'mocks/mock_data.dart';
+import 'mocks/mock_data_builder.dart';
 import 'mocks/mock_flutter_plugin.dart';
 import 'mocks/mock_pending_notification_request.dart';
 import 'mocks/mock_timezone_helper.dart';
@@ -22,14 +23,14 @@ void main() {
   setUp(() {
     futureDue = TaskItem((t) => t
       ..id = 30
-      ..personId = 1
+      ..personDocId = MockTaskItemBuilder.me
       ..name = 'Barf a Penny'
       ..offCycle = false
       ..dueDate = DateTime.now().add(Duration(days: 4)));
 
     futureUrgentDue = TaskItem((t) => t
       ..id = 31
-      ..personId = 1
+      ..personDocId = MockTaskItemBuilder.me
       ..name = 'Give a Penny'
       ..offCycle = false
       ..dueDate = DateTime.now().add(Duration(days: 4))
@@ -38,7 +39,7 @@ void main() {
 
     pastUrgentDue = TaskItem((t) => t
       ..id = 32
-      ..personId = 1
+      ..personDocId = MockTaskItemBuilder.me
       ..name = 'Take a Penny'
       ..offCycle = false
       ..dueDate = DateTime.now().subtract(Duration(days: 2))
@@ -47,7 +48,7 @@ void main() {
 
     straddledUrgentDue = TaskItem((t) => t
       ..id = 33
-      ..personId = 1
+      ..personDocId = MockTaskItemBuilder.me
       ..name = 'Eat a Penny'
       ..offCycle = false
       ..dueDate = DateTime.now().add(Duration(days: 7))
@@ -120,7 +121,7 @@ void main() {
     if (recurrenceBlueprint != null && recurrence != null) {
       recurrenceCopy = new TaskRecurrence((r) => r
         ..id = recurrence.id
-        ..personId = recurrence.personId
+        ..personDocId = recurrence.personDocId
         ..name = recurrenceBlueprint.name ?? recurrence.name
         ..recurNumber = recurrenceBlueprint.recurNumber ?? recurrence.recurNumber
         ..recurUnit = recurrenceBlueprint.recurUnit ?? recurrence.name
@@ -133,7 +134,7 @@ void main() {
     TaskItem taskItem = new TaskItem((t) => t
       ..name = original.name
       ..id = original.id
-      ..personId = 1
+      ..personDocId = MockTaskItemBuilder.me
       ..description = blueprint.description
       ..project = blueprint.project
       ..context = blueprint.context
@@ -259,7 +260,7 @@ void main() {
     var taskItem = futureDue;
     var scheduler = await _createHelper([taskItem]);
     expect(plugin.pendings.length, 3);
-    await scheduler.cancelNotificationsForTaskId(taskItem.id);
+    await scheduler.cancelNotificationsForTaskId(taskItem.docId);
     expect(plugin.pendings.length, 0);
   });
 
@@ -267,7 +268,7 @@ void main() {
     var taskItem = futureUrgentDue;
     var scheduler = await _createHelper([taskItem]);
     expect(plugin.pendings.length, 5);
-    await scheduler.cancelNotificationsForTaskId(taskItem.id);
+    await scheduler.cancelNotificationsForTaskId(taskItem.docId);
     expect(plugin.pendings.length, 0);
   });
 
