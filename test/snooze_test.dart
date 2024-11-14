@@ -15,7 +15,7 @@ void main() {
       ..newAnchor = DateTime.utc(2023, 2, 1));
 
     Map<String, dynamic> json = snooze.toJson();
-    expect(json.length, 10);
+    expect(json.length, 8);
     expect(json['taskDocId'], "4");
     expect(json['snoozeNumber'], 1);
     expect(json['snoozeUnits'], "days");

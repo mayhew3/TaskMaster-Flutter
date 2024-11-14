@@ -70,12 +70,12 @@ class TestMockHelper {
     return json.encode(taskObj);
   }
 
-  static TaskItem mockAddTask(TaskItemBlueprint blueprint, int id, int? recurrenceId) {
+  static TaskItem mockAddTask(TaskItemBlueprint blueprint, String id, String? recurrenceDocId) {
     var recurrenceBlueprint = blueprint.recurrenceBlueprint;
     TaskRecurrence? recurrenceCopy;
     if (recurrenceBlueprint != null) {
       recurrenceCopy = new TaskRecurrence((r) => r
-        ..id = recurrenceId
+        ..docId = recurrenceDocId
         ..personDocId = recurrenceBlueprint.personDocId
         ..name = recurrenceBlueprint.name
         ..recurNumber = recurrenceBlueprint.recurNumber
@@ -88,7 +88,7 @@ class TestMockHelper {
 
     TaskItem taskItem = new TaskItem((t) => t
       ..name = blueprint.name
-      ..id = id
+      ..docId = id
       ..personDocId = MockTaskItemBuilder.me
       ..description = blueprint.description
       ..project = blueprint.project
@@ -106,7 +106,7 @@ class TestMockHelper {
       ..recurNumber = blueprint.recurNumber
       ..recurUnit = blueprint.recurUnit
       ..recurWait = blueprint.recurWait
-      ..recurrenceId = blueprint.recurrenceId
+      ..recurrenceDocId = blueprint.recurrenceDocId
       ..recurIteration = blueprint.recurIteration
       ..recurrence = recurrenceCopy?.toBuilder()
     );
@@ -121,7 +121,7 @@ class TestMockHelper {
     TaskRecurrence? recurrenceCopy;
     if (recurrenceBlueprint != null && recurrence != null) {
       recurrenceCopy = new TaskRecurrence((r) => r
-        ..id = recurrence.id
+        ..docId = recurrence.docId
         ..personDocId = recurrence.personDocId
         ..name = recurrenceBlueprint.name ?? recurrence.name
         ..recurNumber = recurrenceBlueprint.recurNumber ?? recurrence.recurNumber
@@ -134,7 +134,7 @@ class TestMockHelper {
 
     TaskItem taskItem = new TaskItem((t) => t
       ..name = blueprint.name
-      ..id = original.id
+      ..docId = original.docId
       ..personDocId = original.personDocId
       ..description = blueprint.description
       ..project = blueprint.project
@@ -152,7 +152,7 @@ class TestMockHelper {
       ..recurNumber = blueprint.recurNumber
       ..recurUnit = blueprint.recurUnit
       ..recurWait = blueprint.recurWait
-      ..recurrenceId = blueprint.recurrenceId
+      ..recurrenceDocId = blueprint.recurrenceDocId
       ..recurIteration = blueprint.recurIteration
       ..recurrence = recurrenceCopy?.toBuilder()
     );

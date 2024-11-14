@@ -19,7 +19,6 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   @BuiltValueSerializer(serializeNulls: true)
   static Serializer<TaskItem> get serializer => _$taskItemSerializer;
 
-  int? get id;
   String get docId;
   DateTime get dateAdded;
 
@@ -47,7 +46,6 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   String? get recurUnit;
   bool? get recurWait;
 
-  int? get recurrenceId;
   String? get recurrenceDocId;
   int? get recurIteration;
 
@@ -114,7 +112,6 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
     required DateTime? dueDate,
   }) {
     return TaskItemRecurPreview((b) => b
-      ..id = 0 - new Random().nextInt(60000)
       ..docId = "ASKLJDH"
       ..personDocId = personDocId
       ..name = name

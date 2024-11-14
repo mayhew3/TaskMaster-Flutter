@@ -8,12 +8,10 @@ abstract class Snooze implements Built<Snooze, SnoozeBuilder> {
   @BuiltValueSerializer(serializeNulls: true)
   static Serializer<Snooze> get serializer => _$snoozeSerializer;
 
-  int? get id;
   String get docId;
 
   DateTime get dateAdded;
 
-  int? get taskId;
   String get taskDocId;
 
   int get snoozeNumber;

@@ -41,16 +41,6 @@ class _$SnoozeSerializer implements StructuredSerializer<Snooze> {
           specifiedType: const FullType(DateTime)),
     ];
     Object? value;
-    value = object.id;
-
-    result
-      ..add('id')
-      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
-    value = object.taskId;
-
-    result
-      ..add('taskId')
-      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
     value = object.previousAnchor;
 
     result
@@ -72,10 +62,6 @@ class _$SnoozeSerializer implements StructuredSerializer<Snooze> {
       iterator.moveNext();
       final Object? value = iterator.current;
       switch (key) {
-        case 'id':
-          result.id = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int?;
-          break;
         case 'docId':
           result.docId = serializers.deserialize(value,
               specifiedType: const FullType(String))! as String;
@@ -83,10 +69,6 @@ class _$SnoozeSerializer implements StructuredSerializer<Snooze> {
         case 'dateAdded':
           result.dateAdded = serializers.deserialize(value,
               specifiedType: const FullType(DateTime))! as DateTime;
-          break;
-        case 'taskId':
-          result.taskId = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int?;
           break;
         case 'taskDocId':
           result.taskDocId = serializers.deserialize(value,
@@ -121,13 +103,9 @@ class _$SnoozeSerializer implements StructuredSerializer<Snooze> {
 
 class _$Snooze extends Snooze {
   @override
-  final int? id;
-  @override
   final String docId;
   @override
   final DateTime dateAdded;
-  @override
-  final int? taskId;
   @override
   final String taskDocId;
   @override
@@ -145,10 +123,8 @@ class _$Snooze extends Snooze {
       (new SnoozeBuilder()..update(updates))._build();
 
   _$Snooze._(
-      {this.id,
-      required this.docId,
+      {required this.docId,
       required this.dateAdded,
-      this.taskId,
       required this.taskDocId,
       required this.snoozeNumber,
       required this.snoozeUnits,
@@ -179,10 +155,8 @@ class _$Snooze extends Snooze {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is Snooze &&
-        id == other.id &&
         docId == other.docId &&
         dateAdded == other.dateAdded &&
-        taskId == other.taskId &&
         taskDocId == other.taskDocId &&
         snoozeNumber == other.snoozeNumber &&
         snoozeUnits == other.snoozeUnits &&
@@ -194,10 +168,8 @@ class _$Snooze extends Snooze {
   @override
   int get hashCode {
     var _$hash = 0;
-    _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, docId.hashCode);
     _$hash = $jc(_$hash, dateAdded.hashCode);
-    _$hash = $jc(_$hash, taskId.hashCode);
     _$hash = $jc(_$hash, taskDocId.hashCode);
     _$hash = $jc(_$hash, snoozeNumber.hashCode);
     _$hash = $jc(_$hash, snoozeUnits.hashCode);
@@ -211,10 +183,8 @@ class _$Snooze extends Snooze {
   @override
   String toString() {
     return (newBuiltValueToStringHelper(r'Snooze')
-          ..add('id', id)
           ..add('docId', docId)
           ..add('dateAdded', dateAdded)
-          ..add('taskId', taskId)
           ..add('taskDocId', taskDocId)
           ..add('snoozeNumber', snoozeNumber)
           ..add('snoozeUnits', snoozeUnits)
@@ -228,10 +198,6 @@ class _$Snooze extends Snooze {
 class SnoozeBuilder implements Builder<Snooze, SnoozeBuilder> {
   _$Snooze? _$v;
 
-  int? _id;
-  int? get id => _$this._id;
-  set id(int? id) => _$this._id = id;
-
   String? _docId;
   String? get docId => _$this._docId;
   set docId(String? docId) => _$this._docId = docId;
@@ -239,10 +205,6 @@ class SnoozeBuilder implements Builder<Snooze, SnoozeBuilder> {
   DateTime? _dateAdded;
   DateTime? get dateAdded => _$this._dateAdded;
   set dateAdded(DateTime? dateAdded) => _$this._dateAdded = dateAdded;
-
-  int? _taskId;
-  int? get taskId => _$this._taskId;
-  set taskId(int? taskId) => _$this._taskId = taskId;
 
   String? _taskDocId;
   String? get taskDocId => _$this._taskDocId;
@@ -274,10 +236,8 @@ class SnoozeBuilder implements Builder<Snooze, SnoozeBuilder> {
   SnoozeBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
-      _id = $v.id;
       _docId = $v.docId;
       _dateAdded = $v.dateAdded;
-      _taskId = $v.taskId;
       _taskDocId = $v.taskDocId;
       _snoozeNumber = $v.snoozeNumber;
       _snoozeUnits = $v.snoozeUnits;
@@ -306,12 +266,10 @@ class SnoozeBuilder implements Builder<Snooze, SnoozeBuilder> {
   _$Snooze _build() {
     final _$result = _$v ??
         new _$Snooze._(
-            id: id,
             docId: BuiltValueNullFieldError.checkNotNull(
                 docId, r'Snooze', 'docId'),
             dateAdded: BuiltValueNullFieldError.checkNotNull(
                 dateAdded, r'Snooze', 'dateAdded'),
-            taskId: taskId,
             taskDocId: BuiltValueNullFieldError.checkNotNull(
                 taskDocId, r'Snooze', 'taskDocId'),
             snoozeNumber: BuiltValueNullFieldError.checkNotNull(

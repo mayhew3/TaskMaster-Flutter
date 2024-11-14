@@ -156,7 +156,7 @@ void main() {
       ..recurNumber = blueprint.recurNumber
       ..recurUnit = blueprint.recurUnit
       ..recurWait = blueprint.recurWait
-      ..recurrenceId = blueprint.recurrenceId
+      ..recurrenceDocId = blueprint.recurrenceDocId
       ..recurIteration = blueprint.recurIteration
       ..recurrence = recurrenceCopy?.toBuilder()
     );

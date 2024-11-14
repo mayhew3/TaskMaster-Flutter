@@ -50,12 +50,6 @@ class _$TaskRecurrenceSerializer
       serializers.serialize(object.anchorType,
           specifiedType: const FullType(String)),
     ];
-    Object? value;
-    value = object.id;
-
-    result
-      ..add('id')
-      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
 
     return result;
   }
@@ -72,10 +66,6 @@ class _$TaskRecurrenceSerializer
       iterator.moveNext();
       final Object? value = iterator.current;
       switch (key) {
-        case 'id':
-          result.id = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int?;
-          break;
         case 'docId':
           result.docId = serializers.deserialize(value,
               specifiedType: const FullType(String))! as String;
@@ -125,8 +115,6 @@ class _$TaskRecurrenceSerializer
 
 class _$TaskRecurrence extends TaskRecurrence {
   @override
-  final int? id;
-  @override
   final String docId;
   @override
   final DateTime dateAdded;
@@ -151,8 +139,7 @@ class _$TaskRecurrence extends TaskRecurrence {
       (new TaskRecurrenceBuilder()..update(updates))._build();
 
   _$TaskRecurrence._(
-      {this.id,
-      required this.docId,
+      {required this.docId,
       required this.dateAdded,
       required this.personDocId,
       required this.name,
@@ -195,7 +182,6 @@ class _$TaskRecurrence extends TaskRecurrence {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is TaskRecurrence &&
-        id == other.id &&
         docId == other.docId &&
         dateAdded == other.dateAdded &&
         personDocId == other.personDocId &&
@@ -211,7 +197,6 @@ class _$TaskRecurrence extends TaskRecurrence {
   @override
   int get hashCode {
     var _$hash = 0;
-    _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, docId.hashCode);
     _$hash = $jc(_$hash, dateAdded.hashCode);
     _$hash = $jc(_$hash, personDocId.hashCode);
@@ -229,7 +214,6 @@ class _$TaskRecurrence extends TaskRecurrence {
   @override
   String toString() {
     return (newBuiltValueToStringHelper(r'TaskRecurrence')
-          ..add('id', id)
           ..add('docId', docId)
           ..add('dateAdded', dateAdded)
           ..add('personDocId', personDocId)
@@ -247,10 +231,6 @@ class _$TaskRecurrence extends TaskRecurrence {
 class TaskRecurrenceBuilder
     implements Builder<TaskRecurrence, TaskRecurrenceBuilder> {
   _$TaskRecurrence? _$v;
-
-  int? _id;
-  int? get id => _$this._id;
-  set id(int? id) => _$this._id = id;
 
   String? _docId;
   String? get docId => _$this._docId;
@@ -298,7 +278,6 @@ class TaskRecurrenceBuilder
   TaskRecurrenceBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
-      _id = $v.id;
       _docId = $v.docId;
       _dateAdded = $v.dateAdded;
       _personDocId = $v.personDocId;
@@ -331,7 +310,6 @@ class TaskRecurrenceBuilder
   _$TaskRecurrence _build() {
     final _$result = _$v ??
         new _$TaskRecurrence._(
-            id: id,
             docId: BuiltValueNullFieldError.checkNotNull(
                 docId, r'TaskRecurrence', 'docId'),
             dateAdded: BuiltValueNullFieldError.checkNotNull(

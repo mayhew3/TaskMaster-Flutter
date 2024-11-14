@@ -43,7 +43,6 @@ class TaskItemBlueprint with DateHolder {
   String? recurUnit;
   bool? recurWait;
 
-  int? recurrenceId;
   String? recurrenceDocId;
   int? recurIteration;
 

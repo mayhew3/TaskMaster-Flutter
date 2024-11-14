@@ -31,21 +31,6 @@ class _$SprintAssignmentSerializer
           specifiedType: const FullType(String)),
     ];
     Object? value;
-    value = object.id;
-
-    result
-      ..add('id')
-      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
-    value = object.taskId;
-
-    result
-      ..add('taskId')
-      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
-    value = object.sprintId;
-
-    result
-      ..add('sprintId')
-      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
     value = object.retired;
 
     result
@@ -74,25 +59,13 @@ class _$SprintAssignmentSerializer
       iterator.moveNext();
       final Object? value = iterator.current;
       switch (key) {
-        case 'id':
-          result.id = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int?;
-          break;
         case 'docId':
           result.docId = serializers.deserialize(value,
               specifiedType: const FullType(String))! as String;
           break;
-        case 'taskId':
-          result.taskId = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int?;
-          break;
         case 'taskDocId':
           result.taskDocId = serializers.deserialize(value,
               specifiedType: const FullType(String))! as String;
-          break;
-        case 'sprintId':
-          result.sprintId = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int?;
           break;
         case 'sprintDocId':
           result.sprintDocId = serializers.deserialize(value,
@@ -115,15 +88,9 @@ class _$SprintAssignmentSerializer
 
 class _$SprintAssignment extends SprintAssignment {
   @override
-  final int? id;
-  @override
   final String docId;
   @override
-  final int? taskId;
-  @override
   final String taskDocId;
-  @override
-  final int? sprintId;
   @override
   final String sprintDocId;
   @override
@@ -136,11 +103,8 @@ class _$SprintAssignment extends SprintAssignment {
       (new SprintAssignmentBuilder()..update(updates))._build();
 
   _$SprintAssignment._(
-      {this.id,
-      required this.docId,
-      this.taskId,
+      {required this.docId,
       required this.taskDocId,
-      this.sprintId,
       required this.sprintDocId,
       this.retired,
       this.retiredDate})
@@ -164,11 +128,8 @@ class _$SprintAssignment extends SprintAssignment {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is SprintAssignment &&
-        id == other.id &&
         docId == other.docId &&
-        taskId == other.taskId &&
         taskDocId == other.taskDocId &&
-        sprintId == other.sprintId &&
         sprintDocId == other.sprintDocId &&
         retired == other.retired &&
         retiredDate == other.retiredDate;
@@ -177,11 +138,8 @@ class _$SprintAssignment extends SprintAssignment {
   @override
   int get hashCode {
     var _$hash = 0;
-    _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, docId.hashCode);
-    _$hash = $jc(_$hash, taskId.hashCode);
     _$hash = $jc(_$hash, taskDocId.hashCode);
-    _$hash = $jc(_$hash, sprintId.hashCode);
     _$hash = $jc(_$hash, sprintDocId.hashCode);
     _$hash = $jc(_$hash, retired.hashCode);
     _$hash = $jc(_$hash, retiredDate.hashCode);
@@ -192,11 +150,8 @@ class _$SprintAssignment extends SprintAssignment {
   @override
   String toString() {
     return (newBuiltValueToStringHelper(r'SprintAssignment')
-          ..add('id', id)
           ..add('docId', docId)
-          ..add('taskId', taskId)
           ..add('taskDocId', taskDocId)
-          ..add('sprintId', sprintId)
           ..add('sprintDocId', sprintDocId)
           ..add('retired', retired)
           ..add('retiredDate', retiredDate))
@@ -208,25 +163,13 @@ class SprintAssignmentBuilder
     implements Builder<SprintAssignment, SprintAssignmentBuilder> {
   _$SprintAssignment? _$v;
 
-  int? _id;
-  int? get id => _$this._id;
-  set id(int? id) => _$this._id = id;
-
   String? _docId;
   String? get docId => _$this._docId;
   set docId(String? docId) => _$this._docId = docId;
 
-  int? _taskId;
-  int? get taskId => _$this._taskId;
-  set taskId(int? taskId) => _$this._taskId = taskId;
-
   String? _taskDocId;
   String? get taskDocId => _$this._taskDocId;
   set taskDocId(String? taskDocId) => _$this._taskDocId = taskDocId;
-
-  int? _sprintId;
-  int? get sprintId => _$this._sprintId;
-  set sprintId(int? sprintId) => _$this._sprintId = sprintId;
 
   String? _sprintDocId;
   String? get sprintDocId => _$this._sprintDocId;
@@ -245,11 +188,8 @@ class SprintAssignmentBuilder
   SprintAssignmentBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
-      _id = $v.id;
       _docId = $v.docId;
-      _taskId = $v.taskId;
       _taskDocId = $v.taskDocId;
-      _sprintId = $v.sprintId;
       _sprintDocId = $v.sprintDocId;
       _retired = $v.retired;
       _retiredDate = $v.retiredDate;
@@ -275,13 +215,10 @@ class SprintAssignmentBuilder
   _$SprintAssignment _build() {
     final _$result = _$v ??
         new _$SprintAssignment._(
-            id: id,
             docId: BuiltValueNullFieldError.checkNotNull(
                 docId, r'SprintAssignment', 'docId'),
-            taskId: taskId,
             taskDocId: BuiltValueNullFieldError.checkNotNull(
                 taskDocId, r'SprintAssignment', 'taskDocId'),
-            sprintId: sprintId,
             sprintDocId: BuiltValueNullFieldError.checkNotNull(
                 sprintDocId, r'SprintAssignment', 'sprintDocId'),
             retired: retired,

@@ -278,8 +278,6 @@ class _$TaskItemRecurPreviewSerializer
 
 class _$TaskItemRecurPreview extends TaskItemRecurPreview {
   @override
-  final int? id;
-  @override
   final String docId;
   @override
   final String? personDocId;
@@ -335,8 +333,7 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
       (new TaskItemRecurPreviewBuilder()..update(updates))._build();
 
   _$TaskItemRecurPreview._(
-      {this.id,
-      required this.docId,
+      {required this.docId,
       this.personDocId,
       required this.name,
       this.description,
@@ -385,7 +382,6 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is TaskItemRecurPreview &&
-        id == other.id &&
         docId == other.docId &&
         personDocId == other.personDocId &&
         name == other.name &&
@@ -416,7 +412,6 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
   @override
   int get hashCode {
     var _$hash = 0;
-    _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, docId.hashCode);
     _$hash = $jc(_$hash, personDocId.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
@@ -449,7 +444,6 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
   @override
   String toString() {
     return (newBuiltValueToStringHelper(r'TaskItemRecurPreview')
-          ..add('id', id)
           ..add('docId', docId)
           ..add('personDocId', personDocId)
           ..add('name', name)
@@ -482,10 +476,6 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
 class TaskItemRecurPreviewBuilder
     implements Builder<TaskItemRecurPreview, TaskItemRecurPreviewBuilder> {
   _$TaskItemRecurPreview? _$v;
-
-  int? _id;
-  int? get id => _$this._id;
-  set id(int? id) => _$this._id = id;
 
   String? _docId;
   String? get docId => _$this._docId;
@@ -601,7 +591,6 @@ class TaskItemRecurPreviewBuilder
   TaskItemRecurPreviewBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
-      _id = $v.id;
       _docId = $v.docId;
       _personDocId = $v.personDocId;
       _name = $v.name;
@@ -651,7 +640,6 @@ class TaskItemRecurPreviewBuilder
     try {
       _$result = _$v ??
           new _$TaskItemRecurPreview._(
-              id: id,
               docId: BuiltValueNullFieldError.checkNotNull(
                   docId, r'TaskItemRecurPreview', 'docId'),
               personDocId: personDocId,

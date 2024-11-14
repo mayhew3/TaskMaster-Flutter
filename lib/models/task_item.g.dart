@@ -31,11 +31,6 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
           specifiedType: const FullType(bool)),
     ];
     Object? value;
-    value = object.id;
-
-    result
-      ..add('id')
-      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
     value = object.personDocId;
 
     result
@@ -126,11 +121,6 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
     result
       ..add('recurWait')
       ..add(serializers.serialize(value, specifiedType: const FullType(bool)));
-    value = object.recurrenceId;
-
-    result
-      ..add('recurrenceId')
-      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
     value = object.recurrenceDocId;
 
     result
@@ -175,10 +165,6 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
       iterator.moveNext();
       final Object? value = iterator.current;
       switch (key) {
-        case 'id':
-          result.id = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int?;
-          break;
         case 'docId':
           result.docId = serializers.deserialize(value,
               specifiedType: const FullType(String))! as String;
@@ -255,10 +241,6 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
           result.recurWait = serializers.deserialize(value,
               specifiedType: const FullType(bool)) as bool?;
           break;
-        case 'recurrenceId':
-          result.recurrenceId = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int?;
-          break;
         case 'recurrenceDocId':
           result.recurrenceDocId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String?;
@@ -292,8 +274,6 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
 }
 
 class _$TaskItem extends TaskItem {
-  @override
-  final int? id;
   @override
   final String docId;
   @override
@@ -333,8 +313,6 @@ class _$TaskItem extends TaskItem {
   @override
   final bool? recurWait;
   @override
-  final int? recurrenceId;
-  @override
   final String? recurrenceDocId;
   @override
   final int? recurIteration;
@@ -353,8 +331,7 @@ class _$TaskItem extends TaskItem {
       (new TaskItemBuilder()..update(updates))._build();
 
   _$TaskItem._(
-      {this.id,
-      required this.docId,
+      {required this.docId,
       required this.dateAdded,
       this.personDocId,
       required this.name,
@@ -373,7 +350,6 @@ class _$TaskItem extends TaskItem {
       this.recurNumber,
       this.recurUnit,
       this.recurWait,
-      this.recurrenceId,
       this.recurrenceDocId,
       this.recurIteration,
       this.retired,
@@ -401,7 +377,6 @@ class _$TaskItem extends TaskItem {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is TaskItem &&
-        id == other.id &&
         docId == other.docId &&
         dateAdded == other.dateAdded &&
         personDocId == other.personDocId &&
@@ -421,7 +396,6 @@ class _$TaskItem extends TaskItem {
         recurNumber == other.recurNumber &&
         recurUnit == other.recurUnit &&
         recurWait == other.recurWait &&
-        recurrenceId == other.recurrenceId &&
         recurrenceDocId == other.recurrenceDocId &&
         recurIteration == other.recurIteration &&
         retired == other.retired &&
@@ -434,7 +408,6 @@ class _$TaskItem extends TaskItem {
   @override
   int get hashCode {
     var _$hash = 0;
-    _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, docId.hashCode);
     _$hash = $jc(_$hash, dateAdded.hashCode);
     _$hash = $jc(_$hash, personDocId.hashCode);
@@ -454,7 +427,6 @@ class _$TaskItem extends TaskItem {
     _$hash = $jc(_$hash, recurNumber.hashCode);
     _$hash = $jc(_$hash, recurUnit.hashCode);
     _$hash = $jc(_$hash, recurWait.hashCode);
-    _$hash = $jc(_$hash, recurrenceId.hashCode);
     _$hash = $jc(_$hash, recurrenceDocId.hashCode);
     _$hash = $jc(_$hash, recurIteration.hashCode);
     _$hash = $jc(_$hash, retired.hashCode);
@@ -469,7 +441,6 @@ class _$TaskItem extends TaskItem {
   @override
   String toString() {
     return (newBuiltValueToStringHelper(r'TaskItem')
-          ..add('id', id)
           ..add('docId', docId)
           ..add('dateAdded', dateAdded)
           ..add('personDocId', personDocId)
@@ -489,7 +460,6 @@ class _$TaskItem extends TaskItem {
           ..add('recurNumber', recurNumber)
           ..add('recurUnit', recurUnit)
           ..add('recurWait', recurWait)
-          ..add('recurrenceId', recurrenceId)
           ..add('recurrenceDocId', recurrenceDocId)
           ..add('recurIteration', recurIteration)
           ..add('retired', retired)
@@ -503,10 +473,6 @@ class _$TaskItem extends TaskItem {
 
 class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   _$TaskItem? _$v;
-
-  int? _id;
-  int? get id => _$this._id;
-  set id(int? id) => _$this._id = id;
 
   String? _docId;
   String? get docId => _$this._docId;
@@ -585,10 +551,6 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   bool? get recurWait => _$this._recurWait;
   set recurWait(bool? recurWait) => _$this._recurWait = recurWait;
 
-  int? _recurrenceId;
-  int? get recurrenceId => _$this._recurrenceId;
-  set recurrenceId(int? recurrenceId) => _$this._recurrenceId = recurrenceId;
-
   String? _recurrenceDocId;
   String? get recurrenceDocId => _$this._recurrenceDocId;
   set recurrenceDocId(String? recurrenceDocId) =>
@@ -629,7 +591,6 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   TaskItemBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
-      _id = $v.id;
       _docId = $v.docId;
       _dateAdded = $v.dateAdded;
       _personDocId = $v.personDocId;
@@ -649,7 +610,6 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
       _recurNumber = $v.recurNumber;
       _recurUnit = $v.recurUnit;
       _recurWait = $v.recurWait;
-      _recurrenceId = $v.recurrenceId;
       _recurrenceDocId = $v.recurrenceDocId;
       _recurIteration = $v.recurIteration;
       _retired = $v.retired;
@@ -681,7 +641,6 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
     try {
       _$result = _$v ??
           new _$TaskItem._(
-              id: id,
               docId: BuiltValueNullFieldError.checkNotNull(
                   docId, r'TaskItem', 'docId'),
               dateAdded: BuiltValueNullFieldError.checkNotNull(
@@ -704,7 +663,6 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
               recurNumber: recurNumber,
               recurUnit: recurUnit,
               recurWait: recurWait,
-              recurrenceId: recurrenceId,
               recurrenceDocId: recurrenceDocId,
               recurIteration: recurIteration,
               retired: retired,
