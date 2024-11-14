@@ -4,35 +4,68 @@ import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/models/serializers.dart';
 
+import 'mock_data_builder.dart';
 import 'mock_recurrence_builder.dart';
 
 
 final DateTime pastSprintStart = DateTime.now().subtract(Duration(days: 10));
 final DateTime pastSprintAdded = DateTime.utc(2019, 6, 24, 8, 11, 56, 123);
 
+final String currentSprintId = "CURRENT_SPRINT";
+final String pastSprintId = "PAST_SPRINT";
+
 final Map<String, dynamic> pastSprintJSON = {
-  "id": 10,
+  "docId": pastSprintId,
   "dateAdded": pastSprintStart.toIso8601String(),
   "startDate": pastSprintStart.toIso8601String(),
   "endDate": pastSprintStart.add(Duration(days: 7)).toIso8601String(),
   "numUnits": 1,
   "unitName": "Weeks",
-  "personId": 1,
-  "sprintNumber": 5
+  "personDocId": MockTaskItemBuilder.me,
+  "sprintNumber": 5,
+  "sprintAssignments": [
+    {
+      "docId": "1234",
+      "taskDocId": "BIRTHDAY",
+      "sprintDocId": pastSprintId
+    },
+    {
+      "docId": "1233",
+      "taskDocId": "GLUTEN_FREE",
+      "sprintDocId": pastSprintId
+    }
+  ]
 };
 
 final DateTime currentSprintStart = DateTime.now().subtract(Duration(days: 3));
 final DateTime currentSprintAdded = DateTime.utc(2019, 7, 22, 1, 16, 8, 153);
 
 final Map<String, dynamic> currentSprintJSON = {
-  "id": 11,
+  "docId": currentSprintId,
   "dateAdded": currentSprintStart.toIso8601String(),
   "startDate": currentSprintStart.toIso8601String(),
   "endDate": currentSprintStart.add(Duration(days: 7)).toIso8601String(),
   "numUnits": 1,
   "unitName": "Weeks",
-  "personId": 1,
-  "sprintNumber": 6
+  "personDocId": MockTaskItemBuilder.me,
+  "sprintNumber": 6,
+  "sprintAssignments": [
+    {
+      "docId": "2346",
+      "taskDocId": "CAT_LITTER",
+      "sprintDocId": currentSprintId
+    },
+    {
+      "docId": "2345",
+      "taskDocId": "BIRTHDAY",
+      "sprintDocId": currentSprintId
+    },
+    {
+      "docId": "1233",
+      "taskDocId": "BURN_HOUSE",
+      "sprintDocId": currentSprintId
+    }
+  ]
 };
 
 Sprint pastSprint = serializers.deserializeWith(Sprint.serializer, pastSprintJSON)!;
@@ -46,8 +79,8 @@ final DateTime catEnd = DateTime.utc(2019, 11, 9, 2, 49, 43);
 final DateTime catAdded = DateTime.utc(2019, 9, 27, 4, 34, 48, 460);
 final DateTime catRetired = DateTime.utc(2019, 10, 18, 3, 14, 47, 666);
 final Map<String, dynamic> catLitterJSON = {
-  "id": 25,
-  "personId": 1,
+  "docId": "CAT_LITTER",
+  "personDocId": MockTaskItemBuilder.me,
   "name": "Cat Litter",
   "description": null,
   "project": "Maintenance",
@@ -66,22 +99,15 @@ final Map<String, dynamic> catLitterJSON = {
   "recurUnit": "Days",
   "recurWait": true,
   "recurIteration": 1,
-  "recurrenceId": 1,
+  "recurrenceDocId": "CAT_LITTER_RECUR",
   "dateAdded": catAdded.toIso8601String(),
-  "retired": 0,
+  "retired": null,
   "retiredDate": null,
-  "sprintAssignments": [
-    {
-      "id": 2346,
-      "taskId": 25,
-      "sprintId": currentSprint.id
-    }
-  ]
 };
 
 final Map<String, dynamic> catLitterRecurrenceJSON = {
-  "id": 1,
-  "personId": 1,
+  "docId": "CAT_LITTER_RECUR",
+  "personDocId": MockTaskItemBuilder.me,
   "name": "Cat Litter",
   "recurNumber": 10,
   "recurUnit": "Days",
@@ -90,7 +116,7 @@ final Map<String, dynamic> catLitterRecurrenceJSON = {
   "anchorDate": catAdded.toIso8601String(),
   "anchorType": "Target",
   "dateAdded": catAdded.toIso8601String(),
-  "retired": 0,
+  "retired": null,
   "retiredDate": null,
 };
 
@@ -98,8 +124,8 @@ final DateTime bdayDue = DateTime.now().add(Duration(days: 20)).toUtc();
 final DateTime bdayAdded = DateTime.utc(2019, 8, 30, 17, 32, 14, 674);
 
 final Map<String, dynamic> birthdayJSON = {
-  "id": 26,
-  "personId": 1,
+  "docId": "BIRTHDAY",
+  "personDocId": MockTaskItemBuilder.me,
   "name": "Hunter Birthday",
   "description": null,
   "project": "Friends",
@@ -118,30 +144,18 @@ final Map<String, dynamic> birthdayJSON = {
   "recurUnit": null,
   "recurWait": null,
   "recurIteration": null,
-  "recurrenceId": null,
+  "recurrenceDocId": null,
   "dateAdded": bdayAdded.toIso8601String(),
-  "retired": 0,
+  "retired": null,
   "retiredDate": null,
-  "sprintAssignments": [
-    {
-      "id": 1234,
-      "taskId": 26,
-      "sprintId": pastSprint.id
-    },
-    {
-      "id": 2345,
-      "taskId": 26,
-      "sprintId": currentSprint.id
-    }
-  ]
 };
 
 final DateTime futureStart = DateTime.now().add(Duration(days: 90));
 final DateTime futureAdded = DateTime.utc(2019, 6, 24, 8, 11, 56, 123);
 
 final Map<String, dynamic> futureJSON = {
-  "id": 27,
-  "personId": 1,
+  "docId": "BECOME_PRESIDENT",
+  "personDocId": MockTaskItemBuilder.me,
   "name": "Become President",
   "description": "It could happen",
   "project": "Projects",
@@ -160,19 +174,18 @@ final Map<String, dynamic> futureJSON = {
   "recurUnit": null,
   "recurWait": null,
   "recurIteration": null,
-  "recurrenceId": null,
+  "recurrenceDocId": null,
   "dateAdded": futureAdded.toIso8601String(),
-  "retired": 0,
+  "retired": null,
   "retiredDate": null,
-  "sprintAssignments": []
 };
 
 final DateTime pastStart = DateTime.now().subtract(Duration(days: 90));
 final DateTime pastAdded = DateTime.utc(2019, 6, 24, 8, 11, 56, 123);
 
 final Map<String, dynamic> pastJSON = {
-  "id": 28,
-  "personId": 1,
+  "docId": "GLUTEN_FREE",
+  "personDocId": MockTaskItemBuilder.me,
   "name": "Cut out Gluten",
   "description": "Because my tummy",
   "project": "Health",
@@ -191,17 +204,10 @@ final Map<String, dynamic> pastJSON = {
   "recurUnit": 'Weeks',
   "recurWait": false,
   "recurIteration": 1,
-  "recurrenceId": 1,
+  "recurrenceDocId": "CAT_LITTER_RECUR",
   "dateAdded": pastAdded.toIso8601String(),
-  "retired": 0,
+  "retired": null,
   "retiredDate": null,
-  "sprintAssignments": [
-    {
-      "id": 1233,
-      "taskId": 28,
-      "sprintId": pastSprint.id
-    }
-  ]
 };
 
 final DateTime burnTarget = DateTime.now().subtract(Duration(days: 10));
@@ -209,8 +215,8 @@ final DateTime burnComplete = DateTime.now().subtract(Duration(hours: 7));
 final DateTime burnAdded = DateTime.utc(2019, 6, 24, 8, 11, 56, 123);
 
 final Map<String, dynamic> burnJSON = {
-  "id": 29,
-  "personId": 1,
+  "docId": "BURN_HOUSE",
+  "personDocId": MockTaskItemBuilder.me,
   "name": "Burn Down the House",
   "description": "Because you're talking to my talking head",
   "project": "Organization",
@@ -229,17 +235,10 @@ final Map<String, dynamic> burnJSON = {
   "recurUnit": null,
   "recurWait": null,
   "recurIteration": null,
-  "recurrenceId": null,
+  "recurrenceDocId": null,
   "dateAdded": burnAdded.toIso8601String(),
-  "retired": 0,
+  "retired": null,
   "retiredDate": null,
-  "sprintAssignments": [
-    {
-      "id": 1233,
-      "taskId": 29,
-      "sprintId": currentSprint.id
-    }
-  ]
 };
 
 TaskItem catLitterTask = serializers.deserializeWith(TaskItem.serializer, catLitterJSON)!;

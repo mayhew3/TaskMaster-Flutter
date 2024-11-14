@@ -1,8 +1,10 @@
 import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/models/serializers.dart';
 
+import 'mock_data_builder.dart';
+
 class MockTaskRecurrenceBuilder {
-  int? id;
+  String? docId;
   late String name;
   late int recurNumber;
   late String recurUnit;
@@ -15,7 +17,7 @@ class MockTaskRecurrenceBuilder {
 
   TaskRecurrence create() {
     var taskRecurrence = {
-      id: id,
+      docId: docId,
       name: name,
       recurNumber: recurNumber,
       recurUnit: recurUnit,
@@ -41,6 +43,6 @@ class MockTaskRecurrenceBuilder {
 
   factory MockTaskRecurrenceBuilder.asDefault() {
     return MockTaskRecurrenceBuilder.asPreCommit()
-        ..id = 1;
+        ..docId = MockTaskItemBuilder.me;
   }
 }

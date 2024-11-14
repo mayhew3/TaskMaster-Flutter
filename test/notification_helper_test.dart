@@ -22,14 +22,16 @@ void main() {
 
   setUp(() {
     futureDue = TaskItem((t) => t
-      ..id = 30
+      ..docId = "30"
+      ..dateAdded = DateTime.now().toUtc()
       ..personDocId = MockTaskItemBuilder.me
       ..name = 'Barf a Penny'
       ..offCycle = false
       ..dueDate = DateTime.now().add(Duration(days: 4)));
 
     futureUrgentDue = TaskItem((t) => t
-      ..id = 31
+      ..docId = "31"
+      ..dateAdded = DateTime.now().toUtc()
       ..personDocId = MockTaskItemBuilder.me
       ..name = 'Give a Penny'
       ..offCycle = false
@@ -38,7 +40,8 @@ void main() {
     );
 
     pastUrgentDue = TaskItem((t) => t
-      ..id = 32
+      ..docId = "32"
+      ..dateAdded = DateTime.now().toUtc()
       ..personDocId = MockTaskItemBuilder.me
       ..name = 'Take a Penny'
       ..offCycle = false
@@ -47,7 +50,8 @@ void main() {
     );
 
     straddledUrgentDue = TaskItem((t) => t
-      ..id = 33
+      ..docId = "33"
+      ..dateAdded = DateTime.now().toUtc()
       ..personDocId = MockTaskItemBuilder.me
       ..name = 'Eat a Penny'
       ..offCycle = false
@@ -82,17 +86,17 @@ void main() {
     DateTime? twoHoursBefore = dueDate?.subtract(Duration(minutes: 120));
     DateTime? oneDayBefore = dueDate?.subtract(Duration(days: 1));
 
-    var dueRequest = requests.singleWhere((notification) => notification.payload == 'task:${taskItem.id}:due');
+    var dueRequest = requests.singleWhere((notification) => notification.payload == 'task:${taskItem.docId}:due');
     expect(dueRequest, isNot(null));
     expect(dueRequest.notificationDate, dueDate?.toLocal());
     expect(dueRequest.title, '${taskItem.name} (due)');
 
-    var twoHourRequest = requests.singleWhere((notification) => notification.payload == 'task:${taskItem.id}:dueTwoHours');
+    var twoHourRequest = requests.singleWhere((notification) => notification.payload == 'task:${taskItem.docId}:dueTwoHours');
     expect(twoHourRequest, isNot(null));
     expect(twoHourRequest.notificationDate, twoHoursBefore?.toLocal());
     expect(twoHourRequest.title, '${taskItem.name} (due 2 hours)');
 
-    var oneDayRequest = requests.singleWhere((notification) => notification.payload == 'task:${taskItem.id}:dueOneDay');
+    var oneDayRequest = requests.singleWhere((notification) => notification.payload == 'task:${taskItem.docId}:dueOneDay');
     expect(oneDayRequest, isNot(null));
     expect(oneDayRequest.notificationDate, oneDayBefore?.toLocal());
     expect(oneDayRequest.title, '${taskItem.name} (due 1 day)');
@@ -102,12 +106,12 @@ void main() {
     var urgentDate = taskItem.urgentDate;
     DateTime? twoHoursBefore = urgentDate?.subtract(Duration(minutes: 120));
 
-    var urgentRequest = requests.singleWhere((notification) => notification.payload == 'task:${taskItem.id}:urgent');
+    var urgentRequest = requests.singleWhere((notification) => notification.payload == 'task:${taskItem.docId}:urgent');
     expect(urgentRequest, isNot(null));
     expect(urgentRequest.notificationDate, urgentDate);
     expect(urgentRequest.title, '${taskItem.name} (urgent)');
 
-    var twoHourRequest = requests.singleWhere((notification) => notification.payload == 'task:${taskItem.id}:urgentTwoHours');
+    var twoHourRequest = requests.singleWhere((notification) => notification.payload == 'task:${taskItem.docId}:urgentTwoHours');
     expect(twoHourRequest, isNot(null));
     expect(twoHourRequest.notificationDate, twoHoursBefore);
     expect(twoHourRequest.title, '${taskItem.name} (urgent 2 hours)');
@@ -120,7 +124,7 @@ void main() {
     TaskRecurrence? recurrenceCopy;
     if (recurrenceBlueprint != null && recurrence != null) {
       recurrenceCopy = new TaskRecurrence((r) => r
-        ..id = recurrence.id
+        ..docId = recurrence.docId
         ..personDocId = recurrence.personDocId
         ..name = recurrenceBlueprint.name ?? recurrence.name
         ..recurNumber = recurrenceBlueprint.recurNumber ?? recurrence.recurNumber
@@ -133,7 +137,8 @@ void main() {
 
     TaskItem taskItem = new TaskItem((t) => t
       ..name = original.name
-      ..id = original.id
+      ..docId = original.docId
+      ..dateAdded = original.dateAdded
       ..personDocId = MockTaskItemBuilder.me
       ..description = blueprint.description
       ..project = blueprint.project

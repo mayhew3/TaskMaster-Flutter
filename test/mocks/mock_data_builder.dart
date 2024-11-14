@@ -9,7 +9,7 @@ class MockTaskItemBuilder with DateHolder {
 
   static const String me = "ADBC1234";
 
-  int? id;
+  String? docId;
   late String name;
   late String description;
   late String project;
@@ -29,7 +29,7 @@ class MockTaskItemBuilder with DateHolder {
   String? recurUnit;
   bool? recurWait;
   int? recurIteration;
-  int? recurrenceId;
+  String? recurrenceDocId;
 
   MockTaskRecurrenceBuilder? taskRecurrence;
 
@@ -37,8 +37,8 @@ class MockTaskItemBuilder with DateHolder {
 
   TaskItemBlueprint createBlueprint() {
 
-    if (id != null) {
-      throw Exception('Cannot create blueprint with id. Use create() instead.');
+    if (docId != null) {
+      throw Exception('Cannot create blueprint with docId. Use create() instead.');
     }
 
     TaskItemBlueprint taskItem = new TaskItemBlueprint();
@@ -60,19 +60,20 @@ class MockTaskItemBuilder with DateHolder {
     taskItem.recurUnit = recurUnit;
     taskItem.recurWait = recurWait;
     taskItem.recurIteration = recurIteration;
-    taskItem.recurrenceId = recurrenceId;
+    taskItem.recurrenceDocId = recurrenceDocId;
 
     return taskItem;
   }
 
   TaskItem create() {
 
-    if (id == null) {
-      throw Exception('Cannot create task item without id. Use createBlueprint() instead.');
+    if (docId == null) {
+      throw Exception('Cannot create task item without docId. Use createBlueprint() instead.');
     }
 
     var taskItemBuilder = new TaskItemBuilder()
-      ..id = id!
+      ..docId = docId!
+      ..dateAdded = DateTime.now().toUtc()
       ..personDocId = me
       ..name = name
       ..description = description
@@ -92,7 +93,7 @@ class MockTaskItemBuilder with DateHolder {
       ..recurUnit = recurUnit
       ..recurWait = recurWait
       ..recurIteration = recurIteration
-      ..recurrenceId = recurrenceId
+      ..recurrenceDocId = recurrenceDocId
       ..recurrence = taskRecurrence?.create().toBuilder()
     ;
 
@@ -117,7 +118,7 @@ class MockTaskItemBuilder with DateHolder {
 
   factory MockTaskItemBuilder.asDefault() {
     return MockTaskItemBuilder.asPreCommit()
-      ..id = 1;
+      ..docId = me;
   }
 
   factory MockTaskItemBuilder.withDates() {
@@ -135,14 +136,14 @@ class MockTaskItemBuilder with DateHolder {
   }
 
   MockTaskItemBuilder withRecur({bool recurWait = true}) {
-    recurrenceId = 1;
+    recurrenceDocId = MockTaskItemBuilder.me;
     recurNumber = 6;
     recurIteration = 1;
     recurUnit = 'Weeks';
     this.recurWait = recurWait;
 
     taskRecurrence = new MockTaskRecurrenceBuilder()
-      ..id = 1
+      ..docId = me
       ..name = name
       ..recurNumber = recurNumber!
       ..recurUnit = recurUnit!
