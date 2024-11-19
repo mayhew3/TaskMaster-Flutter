@@ -139,7 +139,7 @@ AppState onTaskItemsModified(AppState state, TasksModifiedAction action) {
         return taskItem;
       } else {
         return modifiedMatch.rebuild((t) => t
-          ..recurrence = taskItem.recurrence?.toBuilder()
+          ..recurrence = modifiedMatch.recurrenceDocId == null ? null : taskItem.recurrence?.toBuilder()
           ..pendingCompletion = false);
       }
     });
