@@ -8,9 +8,14 @@ abstract class SprintAssignment implements Built<SprintAssignment, SprintAssignm
   @BuiltValueSerializer(serializeNulls: true)
   static Serializer<SprintAssignment> get serializer => _$sprintAssignmentSerializer;
 
-  int get id;
-  int get taskId;
-  int get sprintId;
+  String get docId;
+
+  String get taskDocId;
+
+  String get sprintDocId;
+
+  String? get retired;
+  DateTime? get retiredDate;
 
   SprintAssignment._();
 

@@ -1,11 +1,10 @@
 
 import 'dart:math';
 
-import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 import 'package:taskmaster/models/models.dart';
-import 'package:taskmaster/models/sprint_assignment.dart';
+import 'package:taskmaster/models/serializers.dart';
 import 'package:taskmaster/models/sprint_display_task.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
@@ -20,8 +19,10 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   @BuiltValueSerializer(serializeNulls: true)
   static Serializer<TaskItem> get serializer => _$taskItemSerializer;
 
-  int get id;
-  int get personId;
+  String get docId;
+  DateTime get dateAdded;
+
+  String? get personDocId;
 
   String get name;
 
@@ -45,12 +46,13 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   String? get recurUnit;
   bool? get recurWait;
 
-  int? get recurrenceId;
+  String? get recurrenceDocId;
   int? get recurIteration;
 
-  bool get offCycle;
+  String? get retired;
+  DateTime? get retiredDate;
 
-  BuiltList<SprintAssignment> get sprintAssignments;
+  bool get offCycle;
 
   TaskRecurrence? get recurrence;
 
@@ -85,11 +87,13 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
     blueprint.dueDate = dueDate;
     blueprint.urgentDate = urgentDate;
     blueprint.gamePoints = gamePoints;
-    blueprint.personId = personId;
+    blueprint.offCycle = offCycle;
+    blueprint.personDocId = personDocId;
     blueprint.recurNumber = recurNumber;
     blueprint.recurUnit = recurUnit;
     blueprint.recurWait = recurWait;
-    blueprint.recurrenceId = recurrenceId;
+    // blueprint.recurrenceId = recurrenceId;
+    blueprint.recurrenceDocId = recurrenceDocId;
     blueprint.recurIteration = recurIteration;
 
     // blueprint.taskRecurrenceBlueprint = TaskRecurrenceBlueprint();
@@ -108,8 +112,8 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
     required DateTime? dueDate,
   }) {
     return TaskItemRecurPreview((b) => b
-      ..id = 0 - new Random().nextInt(60000)
-      ..personId = personId
+      ..docId = "ASKLJDH"
+      ..personDocId = personDocId
       ..name = name
       ..description = description
       ..project = project
@@ -122,11 +126,11 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
       ..urgentDate = urgentDate
       ..dueDate = dueDate
       ..gamePoints = gamePoints
-      ..personId = personId
       ..recurNumber = recurNumber
       ..recurUnit = recurUnit
       ..recurWait = recurWait
-      ..recurrenceId = recurrenceId
+      // ..recurrenceId = recurrenceId
+      ..recurrenceDocId = recurrenceDocId
       ..recurIteration = this.recurIteration! + 1
       ..recurrence = recurrence!.toBuilder()
       ..offCycle = offCycle
@@ -148,10 +152,11 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
           other.dueDate != dueDate ||
           other.urgentDate != urgentDate ||
           other.completionDate != completionDate ||
+          other.offCycle != offCycle ||
           other.recurNumber != recurNumber ||
           other.recurUnit != recurUnit ||
           other.recurWait != recurWait ||
-          other.recurrenceId != recurrenceId ||
+          other.recurrenceDocId != recurrenceDocId ||
           other.recurIteration != recurIteration ||
           (recurrence == null ? other.recurrence != null : recurrence!.hasChanges(other.recurrence));
   }
@@ -171,12 +176,20 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
           other.dueDate != dueDate ||
           other.urgentDate != urgentDate ||
           other.completionDate != completionDate ||
+          other.offCycle != offCycle ||
           other.recurNumber != recurNumber ||
           other.recurUnit != recurUnit ||
           other.recurWait != recurWait ||
-          other.recurrenceId != recurrenceId ||
+          other.recurrenceDocId != recurrenceDocId ||
           other.recurIteration != recurIteration ||
           (recurrence == null ? other.recurrenceBlueprint != null : recurrence!.hasChangesBlueprint(other.recurrenceBlueprint));
   }
 
+  dynamic toJson() {
+    return serializers.serializeWith(TaskItem.serializer, this);
+  }
+
+  static TaskItem fromJson(dynamic json) {
+    return serializers.deserializeWith(TaskItem.serializer, json)!;
+  }
 }

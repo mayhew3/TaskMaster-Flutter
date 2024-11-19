@@ -1,6 +1,7 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
+import 'package:taskmaster/firestore_migrator.dart';
 import 'package:taskmaster/helpers/recurrence_helper.dart';
 import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/snooze_blueprint.dart';
@@ -8,26 +9,33 @@ import 'package:taskmaster/models/task_item_recur_preview.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
-import 'package:taskmaster/redux/middleware/notification_helper.dart';
 import 'package:taskmaster/redux/selectors/selectors.dart';
 import 'package:taskmaster/routes.dart';
 import 'package:taskmaster/task_repository.dart';
 
+import '../../models/sprint_assignment.dart';
+import '../actions/sprint_actions.dart';
 import '../actions/task_item_actions.dart';
+
+const migration = String.fromEnvironment("MIGRATION_DROP");
+const migrationEmail = String.fromEnvironment("MIGRATION_EMAIL");
 
 List<Middleware<AppState>> createStoreTaskItemsMiddleware(
     TaskRepository repository,
     GlobalKey<NavigatorState> navigatorKey,
+    FirestoreMigrator migrator,
     ) {
   return [
-    TypedMiddleware<AppState, VerifyPersonAction>(_verifyPerson(repository)),
-    TypedMiddleware<AppState, LoadDataAction>(_loadData(repository, navigatorKey)),
+    TypedMiddleware<AppState, VerifyPersonAction>(_verifyPerson(repository, migrator)),
+    TypedMiddleware<AppState, LoadDataAction>(loadData(repository, navigatorKey)),
     TypedMiddleware<AppState, DataLoadedAction>(_dataLoaded(navigatorKey)),
-    TypedMiddleware<AppState, AddTaskItemAction>(_createNewTaskItem(repository)),
+    TypedMiddleware<AppState, AddTaskItemAction>(createNewTaskItem(repository)),
     TypedMiddleware<AppState, UpdateTaskItemAction>(_updateTaskItem(repository)),
     TypedMiddleware<AppState, DeleteTaskItemAction>(_deleteTaskItem(repository)),
-    TypedMiddleware<AppState, CompleteTaskItemAction>(_completeTaskItem(repository)),
+    TypedMiddleware<AppState, CompleteTaskItemAction>(completeTaskItem(repository)),
     TypedMiddleware<AppState, ExecuteSnooze>(_executeSnooze(repository)),
+    TypedMiddleware<AppState, GoOffline>(goOffline(repository)),
+    TypedMiddleware<AppState, GoOnline>(goOnline(repository)),
   ];
 }
 
@@ -35,48 +43,88 @@ Future<void> Function(
     Store<AppState>,
     VerifyPersonAction action,
     NextDispatcher next,
-    ) _verifyPerson(TaskRepository repository) {
+    ) _verifyPerson(TaskRepository repository, FirestoreMigrator migrator) {
   return (Store<AppState> store, VerifyPersonAction action, NextDispatcher next) async {
     next(action);
 
+    if (migration.isNotEmpty) {
+      String? email = migrationEmail.isEmpty ? null : migrationEmail;
+      await migrator.migrateFromApi(email: email);
+      print("Migration complete!");
+    }
+    
+    // await repository.dataFixAll();
+
     var email = store.state.currentUser!.email;
     print("Verify person account for " + email + "...");
-    var idToken = await store.state.getIdToken();
-    if (idToken == null) {
-      throw new Exception("Cannot load tasks without id token.");
-    }
 
     try {
-      var personId = await repository.getPersonId(email, idToken);
-      if (personId == null) {
+      var personDocId = await repository.getPersonIdFromFirestore(email);
+      if (personDocId == null) {
         store.dispatch(OnPersonRejectedAction());
       } else {
-        store.dispatch(OnPersonVerifiedAction(personId));
+        store.dispatch(OnPersonVerifiedFirestoreAction(personDocId));
       }
-    } catch (e) {
+    } catch (e, stack) {
       print("Error fetching person for email: $e");
+      print(stack);
       store.dispatch(OnPersonRejectedAction());
     }
 
   };
 }
 
-
+@visibleForTesting
 Future<void> Function(
     Store<AppState>,
     LoadDataAction action,
     NextDispatcher next,
-    ) _loadData(TaskRepository repository, GlobalKey<NavigatorState> navigatorKey) {
+    ) loadData(TaskRepository repository, GlobalKey<NavigatorState> navigatorKey) {
   return (Store<AppState> store, LoadDataAction action, NextDispatcher next) async {
     next(action);
-    navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.loading);
     var inputs = await getRequiredInputs(store, "load tasks");
-    print("Fetching tasks for person_id ${inputs.personId}...");
+    print("Fetching tasks for person_id ${inputs.personDocId}...");
     try {
-      var dataPayload = await repository.loadTasks(inputs.personId, inputs.idToken);
-      store.dispatch(DataLoadedAction(dataPayload: dataPayload));
-    } catch (e) {
+
+      print("Initializing data listeners...");
+
+      var sprintListener = repository.createListener<Sprint>(
+          collectionName: "sprints",
+          subCollectionName: "sprintAssignments",
+          personDocId: inputs.personDocId,
+          addCallback: (sprints) => store.dispatch(SprintsAddedAction(sprints)),
+          limit: 1,
+          serializer: Sprint.serializer);
+      var recurrenceListener = repository.createListener<TaskRecurrence>(
+          collectionName:  "taskRecurrences",
+          personDocId: inputs.personDocId,
+          addCallback: (taskRecurrences) => store.dispatch(TaskRecurrencesAddedAction(taskRecurrences)),
+          modifyCallback: (taskRecurrences) => store.dispatch(TaskRecurrencesModifiedAction(taskRecurrences)),
+          serializer: TaskRecurrence.serializer);
+      var taskListener = repository.createListener<TaskItem>(
+          collectionName: "tasks",
+          personDocId: inputs.personDocId,
+          addCallback: (taskItems) => store.dispatch(TasksAddedAction(taskItems)),
+          modifyCallback: (taskItems) => store.dispatch(TasksModifiedAction(taskItems)),
+          completionFilter: DateTime.now().subtract(Duration(days: 7)),
+          serializer: TaskItem.serializer);
+      var sprintAssignmentListener = repository.createListener<SprintAssignment>(
+          collectionName: "sprintAssignments",
+          personDocId: inputs.personDocId,
+          addCallback: (sprintAssignments) => store.dispatch(SprintAssignmentsAddedAction(sprintAssignments)),
+          serializer: SprintAssignment.serializer,
+          collectionGroup: true);
+
+      store.dispatch(ListenersInitializedAction(
+        taskListener: taskListener,
+        sprintListener: sprintListener,
+        taskRecurrenceListener: recurrenceListener,
+        sprintAssignmentListener: sprintAssignmentListener,
+      ));
+
+    } catch (e, stack) {
       print("Error fetching task list: $e");
+      print(stack);
       navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.loadFailed);
       store.dispatch(DataNotLoadedAction());
     }
@@ -96,32 +144,27 @@ Future<void> Function(
 
     navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.home);
 
-    var notificationHelper = new NotificationHelper(plugin: store.state.flutterLocalNotificationsPlugin, timezoneHelper: store.state.timezoneHelper);
-    await notificationHelper.syncNotificationForTasksAndSprint(store.state.taskItems.toList(), activeSprintSelector(store.state.sprints));
+    await store.state.notificationHelper.syncNotificationForTasksAndSprint(store.state.taskItems.toList(), activeSprintSelector(store.state.sprints));
   };
 }
 
+@visibleForTesting
 Future<void> Function(
     Store<AppState>,
     AddTaskItemAction action,
     NextDispatcher next,
-    ) _createNewTaskItem(TaskRepository repository) {
+    ) createNewTaskItem(TaskRepository repository) {
   return (Store<AppState> store, AddTaskItemAction action, NextDispatcher next) async {
     next(action);
 
     var inputs = await getRequiredInputs(store, "create task");
 
-    action.blueprint.personId = inputs.personId;
-    action.blueprint.recurrenceBlueprint?.personId = inputs.personId;
+    action.blueprint.personDocId = inputs.personDocId;
+    action.blueprint.recurrenceBlueprint?.personDocId = inputs.personDocId;
 
-    // var recurrence = await maybeAddRecurrence(action.recurrenceBlueprint, inputs, repository);
+    repository.addTask(action.blueprint);
 
-    // action.blueprint.recurrenceId = recurrence?.id;
-    var payload = await repository.addTask(action.blueprint, inputs.idToken);
-
-    updateNotificationForItem(store, payload.taskItem);
-
-    store.dispatch(TaskItemAddedAction(taskItem: payload.taskItem, taskRecurrence: payload.recurrence));
+    // updateNotificationForItem(store, payload.taskItem);
   };
 }
 
@@ -143,24 +186,23 @@ Future<void> Function(
     ) _updateTaskItem(TaskRepository repository) {
   return (Store<AppState> store, UpdateTaskItemAction action, NextDispatcher next) async {
     next(action);
-    var inputs = await getRequiredInputs(store, "update task");
-    action.blueprint.recurrenceBlueprint?.personId = inputs.personId;
-    var updated = await repository.updateTask(action.taskItem.id, action.blueprint, inputs.idToken);
+    action.blueprint.recurrenceBlueprint?.personDocId = action.taskItem.personDocId;
+    repository.updateTask(action.taskItem.docId, action.blueprint);
 
-    updateNotificationForItem(store, updated.taskItem);
+    // updateNotificationForItem(store, updated.taskItem);
 
-    store.dispatch(TaskItemUpdatedAction(updated.taskItem));
+    // store.dispatch(TaskItemUpdatedAction(updated.taskItem));
   };
 }
 
+@visibleForTesting
 Future<void> Function(
     Store<AppState>,
     CompleteTaskItemAction action,
     NextDispatcher next,
-    ) _completeTaskItem(TaskRepository repository) {
+    ) completeTaskItem(TaskRepository repository) {
   return (Store<AppState> store, CompleteTaskItemAction action, NextDispatcher next) async {
     next(action);
-    var inputs = await getRequiredInputs(store, "complete task");
     var completionDate = action.complete ? DateTime.timestamp() : null;
 
     var taskItem = action.taskItem;
@@ -174,14 +216,14 @@ Future<void> Function(
       nextScheduledTask = RecurrenceHelper.createNextIteration(taskItem, completionDate);
     }
 
-    var updated = await repository.updateTask(taskItem.id, blueprint, inputs.idToken);
+    var updated = await repository.updateTask(taskItem.docId, blueprint);
 
     updateNotificationForItem(store, updated.taskItem);
 
     if (recurrence != null && nextScheduledTask != null) {
       var recurrenceBlueprint = syncBlueprintToMostRecentTaskItem(updated.taskItem, nextScheduledTask, recurrence);
-      var updatedRecurrence = await repository.updateTaskRecurrence(recurrence.id, recurrenceBlueprint, inputs.idToken);
-      var addedTaskItem = (await repository.addRecurTask(nextScheduledTask, inputs.idToken)).taskItem;
+      var updatedRecurrence = await repository.updateTaskRecurrence(recurrence.docId, recurrenceBlueprint);
+      var addedTaskItem = repository.addRecurTask(nextScheduledTask);
       store.dispatch(RecurringTaskItemCompletedAction(updated.taskItem, addedTaskItem, updatedRecurrence, action.complete));
     } else {
       store.dispatch(TaskItemCompletedAction(updated.taskItem, action.complete));
@@ -197,14 +239,10 @@ Future<void> Function(
     ) _deleteTaskItem(TaskRepository repository) {
   return (Store<AppState> store, DeleteTaskItemAction action, NextDispatcher next) async {
     next(action);
-    var inputs = await getRequiredInputs(store, "delete task");
-    var taskItemId = action.taskItem.id;
 
-    await repository.deleteTask(action.taskItem, inputs.idToken);
+    repository.deleteTask(action.taskItem);
 
-    deleteNotificationForItem(store, taskItemId);
-
-    store.dispatch(TaskItemDeletedAction(taskItemId));
+    // deleteNotificationForItem(store, taskItemId);
   };
 }
 
@@ -215,27 +253,51 @@ Future<void> Function(
     ) _executeSnooze(TaskRepository repository) {
   return (Store<AppState> store, ExecuteSnooze action, NextDispatcher next) async {
     next(action);
-    var inputs = await getRequiredInputs(store, "snooze");
 
     RecurrenceHelper.generatePreview(action.blueprint, action.numUnits, action.unitSize, action.dateType);
 
     DateTime? originalValue = action.dateType.dateFieldGetter(action.taskItem);
     DateTime relevantDateField = action.dateType.dateFieldGetter(action.blueprint)!;
 
-    var updatedTask = await repository.updateTask(action.taskItem.id, action.blueprint, inputs.idToken);
+    var updatedTask = await repository.updateTask(action.taskItem.docId, action.blueprint);
 
     SnoozeBlueprint snooze = new SnoozeBlueprint(
-        taskId: updatedTask.taskItem.id,
+        taskDocId: updatedTask.taskItem.docId,
         snoozeNumber: action.numUnits,
         snoozeUnits: action.unitSize,
         snoozeAnchor: action.dateType.label,
         previousAnchor: originalValue,
         newAnchor: relevantDateField);
 
-    await repository.addSnooze(snooze, inputs.idToken);
+    repository.addSnooze(snooze);
     store.dispatch(SnoozeExecuted(updatedTask.taskItem));
   };
 }
+
+@visibleForTesting
+Future<void> Function(
+    Store<AppState>,
+    GoOffline action,
+    NextDispatcher next,
+    ) goOffline(TaskRepository repository) {
+  return (Store<AppState> store, GoOffline action, NextDispatcher next) async {
+    next(action);
+    repository.goOffline();
+  };
+}
+
+@visibleForTesting
+Future<void> Function(
+    Store<AppState>,
+    GoOnline action,
+    NextDispatcher next,
+    ) goOnline(TaskRepository repository) {
+  return (Store<AppState> store, GoOnline action, NextDispatcher next) async {
+    next(action);
+    repository.goOnline();
+  };
+}
+
 
 
 // create task iteration
@@ -244,7 +306,7 @@ bool hasNextIterationAlready(TaskItem taskItem, BuiltList<TaskItem> allTaskItems
   var recurIteration = taskItem.recurIteration!;
 
   Iterable<TaskItem> nextInLine = allTaskItems.where((TaskItem ti) =>
-          ti.recurrenceId == taskItem.recurrenceId &&
+          ti.recurrenceDocId == taskItem.recurrenceDocId &&
           ti.recurIteration! > recurIteration);
 
   return nextInLine.isNotEmpty;
@@ -262,11 +324,9 @@ TaskRecurrenceBlueprint syncBlueprintToMostRecentTaskItem(TaskItem updatedTaskIt
 }
 
 void updateNotificationForItem(Store<AppState> store, TaskItem taskItem) {
-  var notificationHelper = new NotificationHelper(plugin: store.state.flutterLocalNotificationsPlugin, timezoneHelper: store.state.timezoneHelper);
-  notificationHelper.updateNotificationForTask(taskItem);
+  store.state.notificationHelper.updateNotificationForTask(taskItem);
 }
 
-void deleteNotificationForItem(Store<AppState> store, int taskItemId) {
-  var notificationHelper = new NotificationHelper(plugin: store.state.flutterLocalNotificationsPlugin, timezoneHelper: store.state.timezoneHelper);
-  notificationHelper.cancelNotificationsForTaskId(taskItemId);
+void deleteNotificationForItem(Store<AppState> store, String taskItemId) {
+  store.state.notificationHelper.cancelNotificationsForTaskId(taskItemId);
 }

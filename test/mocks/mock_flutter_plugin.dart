@@ -22,14 +22,15 @@ class MockFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNo
   }
 
   @override
-  Future<void> zonedSchedule(int id,
+  Future<void> zonedSchedule(
+      int id,
       String? title,
       String? body,
       TZDateTime scheduledDate,
       NotificationDetails notificationDetails, {
-        required UILocalNotificationDateInterpretation
-        uiLocalNotificationDateInterpretation,
-        required bool androidAllowWhileIdle,
+        required UILocalNotificationDateInterpretation uiLocalNotificationDateInterpretation,
+        bool androidAllowWhileIdle = false,
+        AndroidScheduleMode? androidScheduleMode,
         String? payload,
         DateTimeComponents? matchDateTimeComponents,
       }) async {
@@ -39,12 +40,12 @@ class MockFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNo
 
   MockPendingNotificationRequest? findRequestFor(TaskItem taskItem, {bool? due}) {
     String dueStr = due == null || due ? 'due' : 'urgent';
-    String payload = 'task:${taskItem.id}:$dueStr';
+    String payload = 'task:${taskItem.docId}:$dueStr';
     var matching = pendings.where((notification) => notification.payload == payload).iterator;
     if (matching.moveNext()) {
       var goodOne = matching.current;
       if (matching.moveNext()) {
-        throw Exception("Multiple matches found for task item ${taskItem.id} and date $dueStr");
+        throw Exception("Multiple matches found for task item ${taskItem.docId} and date $dueStr");
       }
       return goodOne;
     } else {

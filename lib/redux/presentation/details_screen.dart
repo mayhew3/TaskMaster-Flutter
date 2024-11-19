@@ -18,7 +18,7 @@ import '../actions/task_item_actions.dart';
 import 'delayed_checkbox.dart';
 
 class DetailsScreen extends StatelessWidget {
-  final int taskItemId;
+  final String taskItemId;
 
   DetailsScreen({
     Key? key,

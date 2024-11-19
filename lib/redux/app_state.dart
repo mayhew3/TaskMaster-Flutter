@@ -1,12 +1,15 @@
+import 'dart:async';
+
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart' hide Builder;
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
 import 'package:taskmaster/redux/containers/filtered_task_items.dart';
 import 'package:taskmaster/redux/containers/planning_home.dart';
+import 'package:taskmaster/redux/middleware/notification_helper.dart';
 import 'package:taskmaster/redux/presentation/stats_counter.dart';
 
 import '../models/models.dart';
@@ -20,7 +23,15 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   BuiltList<Sprint> get sprints;
   BuiltList<TaskRecurrence> get taskRecurrences;
 
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? get taskListener;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? get sprintListener;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? get taskRecurrenceListener;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? get sprintAssignmentListener;
+
   // task item state
+  bool get tasksLoading;
+  bool get sprintsLoading;
+  bool get taskRecurrencesLoading;
   bool get isLoading;
   bool get loadFailed;
   BuiltList<TaskItem> get recentlyCompleted;
@@ -32,18 +43,14 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   VisibilityFilter get taskListFilter;
 
   // auth
-  int? get personId;
+  String? get personDocId;
   GoogleSignIn get googleSignIn;
   UserCredential? get firebaseUser;
   GoogleSignInAccount? get currentUser;
-  bool get tokenRetrieved;
-
-  Future<String?> getIdToken() async {
-    return await firebaseUser?.user?.getIdToken();
-  }
+  bool get offlineMode;
 
   bool isAuthenticated() {
-    return currentUser != null && tokenRetrieved;
+    return currentUser != null;
   }
 
   // date-time
@@ -51,15 +58,19 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
 
   // notifications
   int get nextId;
-  FlutterLocalNotificationsPlugin get flutterLocalNotificationsPlugin;
+  NotificationHelper get notificationHelper;
 
   AppState._();
   factory AppState([Function(AppStateBuilder) updates]) = _$AppState;
 
   factory AppState.init({bool loading = false}) => AppState((appState) async {
     var navItemBuilder = initializeNavItems();
+    var timezoneHelper = TimezoneHelper();
     return appState
       ..isLoading = loading
+      ..tasksLoading = true
+      ..sprintsLoading = true
+      ..taskRecurrencesLoading = true
       ..loadFailed = false
       ..taskItems = ListBuilder()
       ..sprints = ListBuilder()
@@ -68,12 +79,12 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
       ..sprintListFilter = VisibilityFilter.init(showScheduled: true, showCompleted: true, showActiveSprint: true).toBuilder()
       ..taskListFilter = VisibilityFilter.init().toBuilder()
       ..recentlyCompleted = ListBuilder()
-      ..tokenRetrieved = false
       ..googleSignIn = GoogleSignIn(scopes: ['email'])
-      ..timezoneHelper = TimezoneHelper()
+      ..timezoneHelper = timezoneHelper
       ..allNavItems = navItemBuilder
       ..nextId = 0
-      ..flutterLocalNotificationsPlugin = initializeNotificationPlugin()
+      ..offlineMode = false
+      ..notificationHelper = new NotificationHelper(plugin: NotificationHelper.initializeNotificationPlugin(), timezoneHelper: timezoneHelper)
     ;
   }
   );
@@ -95,26 +106,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
     ]);
   }
 
-  static FlutterLocalNotificationsPlugin initializeNotificationPlugin() {
-    // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
-    var initializationSettingsAndroid = AndroidInitializationSettings('app_icon');
-    var initializationSettingsIOS = DarwinInitializationSettings(
-        // onDidReceiveLocalNotification: _onDidReceiveLocalNotification
-    );
-    var initializationSettings = InitializationSettings(
-        android: initializationSettingsAndroid,
-        iOS: initializationSettingsIOS
-    );
-    var plugin = FlutterLocalNotificationsPlugin();
-    plugin.initialize(initializationSettings,
-      // onDidReceiveNotificationResponse: (response) => {}
-    );
-    // plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
-
-    return plugin;
-  }
-
   bool appIsReady() {
-    return isAuthenticated() && personId != null && timezoneHelper.timezoneInitialized;
+    return isAuthenticated() && personDocId != null && timezoneHelper.timezoneInitialized;
   }
 }

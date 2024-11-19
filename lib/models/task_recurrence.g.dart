@@ -20,11 +20,15 @@ class _$TaskRecurrenceSerializer
   Iterable<Object?> serialize(Serializers serializers, TaskRecurrence object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object?>[
-      'id',
-      serializers.serialize(object.id, specifiedType: const FullType(int)),
-      'personId',
-      serializers.serialize(object.personId,
-          specifiedType: const FullType(int)),
+      'docId',
+      serializers.serialize(object.docId,
+          specifiedType: const FullType(String)),
+      'dateAdded',
+      serializers.serialize(object.dateAdded,
+          specifiedType: const FullType(DateTime)),
+      'personDocId',
+      serializers.serialize(object.personDocId,
+          specifiedType: const FullType(String)),
       'name',
       serializers.serialize(object.name, specifiedType: const FullType(String)),
       'recurNumber',
@@ -62,13 +66,17 @@ class _$TaskRecurrenceSerializer
       iterator.moveNext();
       final Object? value = iterator.current;
       switch (key) {
-        case 'id':
-          result.id = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
+        case 'docId':
+          result.docId = serializers.deserialize(value,
+              specifiedType: const FullType(String))! as String;
           break;
-        case 'personId':
-          result.personId = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
+        case 'dateAdded':
+          result.dateAdded = serializers.deserialize(value,
+              specifiedType: const FullType(DateTime))! as DateTime;
+          break;
+        case 'personDocId':
+          result.personDocId = serializers.deserialize(value,
+              specifiedType: const FullType(String))! as String;
           break;
         case 'name':
           result.name = serializers.deserialize(value,
@@ -107,9 +115,11 @@ class _$TaskRecurrenceSerializer
 
 class _$TaskRecurrence extends TaskRecurrence {
   @override
-  final int id;
+  final String docId;
   @override
-  final int personId;
+  final DateTime dateAdded;
+  @override
+  final String personDocId;
   @override
   final String name;
   @override
@@ -129,8 +139,9 @@ class _$TaskRecurrence extends TaskRecurrence {
       (new TaskRecurrenceBuilder()..update(updates))._build();
 
   _$TaskRecurrence._(
-      {required this.id,
-      required this.personId,
+      {required this.docId,
+      required this.dateAdded,
+      required this.personDocId,
       required this.name,
       required this.recurNumber,
       required this.recurUnit,
@@ -139,9 +150,11 @@ class _$TaskRecurrence extends TaskRecurrence {
       required this.anchorDate,
       required this.anchorType})
       : super._() {
-    BuiltValueNullFieldError.checkNotNull(id, r'TaskRecurrence', 'id');
+    BuiltValueNullFieldError.checkNotNull(docId, r'TaskRecurrence', 'docId');
     BuiltValueNullFieldError.checkNotNull(
-        personId, r'TaskRecurrence', 'personId');
+        dateAdded, r'TaskRecurrence', 'dateAdded');
+    BuiltValueNullFieldError.checkNotNull(
+        personDocId, r'TaskRecurrence', 'personDocId');
     BuiltValueNullFieldError.checkNotNull(name, r'TaskRecurrence', 'name');
     BuiltValueNullFieldError.checkNotNull(
         recurNumber, r'TaskRecurrence', 'recurNumber');
@@ -169,8 +182,9 @@ class _$TaskRecurrence extends TaskRecurrence {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is TaskRecurrence &&
-        id == other.id &&
-        personId == other.personId &&
+        docId == other.docId &&
+        dateAdded == other.dateAdded &&
+        personDocId == other.personDocId &&
         name == other.name &&
         recurNumber == other.recurNumber &&
         recurUnit == other.recurUnit &&
@@ -183,8 +197,9 @@ class _$TaskRecurrence extends TaskRecurrence {
   @override
   int get hashCode {
     var _$hash = 0;
-    _$hash = $jc(_$hash, id.hashCode);
-    _$hash = $jc(_$hash, personId.hashCode);
+    _$hash = $jc(_$hash, docId.hashCode);
+    _$hash = $jc(_$hash, dateAdded.hashCode);
+    _$hash = $jc(_$hash, personDocId.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, recurNumber.hashCode);
     _$hash = $jc(_$hash, recurUnit.hashCode);
@@ -199,8 +214,9 @@ class _$TaskRecurrence extends TaskRecurrence {
   @override
   String toString() {
     return (newBuiltValueToStringHelper(r'TaskRecurrence')
-          ..add('id', id)
-          ..add('personId', personId)
+          ..add('docId', docId)
+          ..add('dateAdded', dateAdded)
+          ..add('personDocId', personDocId)
           ..add('name', name)
           ..add('recurNumber', recurNumber)
           ..add('recurUnit', recurUnit)
@@ -216,13 +232,17 @@ class TaskRecurrenceBuilder
     implements Builder<TaskRecurrence, TaskRecurrenceBuilder> {
   _$TaskRecurrence? _$v;
 
-  int? _id;
-  int? get id => _$this._id;
-  set id(int? id) => _$this._id = id;
+  String? _docId;
+  String? get docId => _$this._docId;
+  set docId(String? docId) => _$this._docId = docId;
 
-  int? _personId;
-  int? get personId => _$this._personId;
-  set personId(int? personId) => _$this._personId = personId;
+  DateTime? _dateAdded;
+  DateTime? get dateAdded => _$this._dateAdded;
+  set dateAdded(DateTime? dateAdded) => _$this._dateAdded = dateAdded;
+
+  String? _personDocId;
+  String? get personDocId => _$this._personDocId;
+  set personDocId(String? personDocId) => _$this._personDocId = personDocId;
 
   String? _name;
   String? get name => _$this._name;
@@ -258,8 +278,9 @@ class TaskRecurrenceBuilder
   TaskRecurrenceBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
-      _id = $v.id;
-      _personId = $v.personId;
+      _docId = $v.docId;
+      _dateAdded = $v.dateAdded;
+      _personDocId = $v.personDocId;
       _name = $v.name;
       _recurNumber = $v.recurNumber;
       _recurUnit = $v.recurUnit;
@@ -289,10 +310,12 @@ class TaskRecurrenceBuilder
   _$TaskRecurrence _build() {
     final _$result = _$v ??
         new _$TaskRecurrence._(
-            id: BuiltValueNullFieldError.checkNotNull(
-                id, r'TaskRecurrence', 'id'),
-            personId: BuiltValueNullFieldError.checkNotNull(
-                personId, r'TaskRecurrence', 'personId'),
+            docId: BuiltValueNullFieldError.checkNotNull(
+                docId, r'TaskRecurrence', 'docId'),
+            dateAdded: BuiltValueNullFieldError.checkNotNull(
+                dateAdded, r'TaskRecurrence', 'dateAdded'),
+            personDocId: BuiltValueNullFieldError.checkNotNull(
+                personDocId, r'TaskRecurrence', 'personDocId'),
             name: BuiltValueNullFieldError.checkNotNull(
                 name, r'TaskRecurrence', 'name'),
             recurNumber: BuiltValueNullFieldError.checkNotNull(
@@ -305,8 +328,7 @@ class TaskRecurrenceBuilder
                 recurIteration, r'TaskRecurrence', 'recurIteration'),
             anchorDate: BuiltValueNullFieldError.checkNotNull(
                 anchorDate, r'TaskRecurrence', 'anchorDate'),
-            anchorType: BuiltValueNullFieldError.checkNotNull(
-                anchorType, r'TaskRecurrence', 'anchorType'));
+            anchorType: BuiltValueNullFieldError.checkNotNull(anchorType, r'TaskRecurrence', 'anchorType'));
     replace(_$result);
     return _$result;
   }

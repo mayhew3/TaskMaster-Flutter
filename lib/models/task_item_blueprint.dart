@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:taskmaster/models/json_datetime_converter.dart';
 import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_date_type.dart';
@@ -11,7 +12,7 @@ import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 /// the star denotes the source file name.
 part 'task_item_blueprint.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable(includeIfNull: true)
 class TaskItemBlueprint with DateHolder {
 
   String? name;
@@ -25,23 +26,33 @@ class TaskItemBlueprint with DateHolder {
 
   int? gamePoints;
 
+  @JsonDateTimePassThroughConverter()
   DateTime? startDate;
+  @JsonDateTimePassThroughConverter()
   DateTime? targetDate;
+  @JsonDateTimePassThroughConverter()
   DateTime? dueDate;
+  @JsonDateTimePassThroughConverter()
   DateTime? urgentDate;
+  @JsonDateTimePassThroughConverter()
   DateTime? completionDate;
+
+  bool offCycle = false;
 
   int? recurNumber;
   String? recurUnit;
   bool? recurWait;
 
-  int? recurrenceId;
+  String? recurrenceDocId;
   int? recurIteration;
 
   @JsonKey(includeFromJson: false, includeToJson: true)
   TaskRecurrenceBlueprint? recurrenceBlueprint;
 
-  int? personId;
+  String? retired;
+  DateTime? retiredDate;
+
+  String? personDocId;
 
   @JsonKey(includeToJson: false)
   late int tmpId;
@@ -67,25 +78,26 @@ class TaskItemBlueprint with DateHolder {
 
   bool hasChanges(TaskItem other) {
     var allMismatch = other.name != name ||
-          other.description != description ||
-          other.project != project ||
-          other.context != context ||
-          other.urgency != urgency ||
-          other.priority != priority ||
-          other.duration != duration ||
-          other.gamePoints != gamePoints ||
-          other.startDate != startDate ||
-          other.targetDate != targetDate ||
-          other.dueDate != dueDate ||
-          other.urgentDate != urgentDate ||
-          other.completionDate != completionDate ||
-          other.recurNumber != recurNumber ||
-          other.recurUnit != recurUnit ||
-          other.recurWait != recurWait ||
-          other.recurrenceId != recurrenceId ||
-          other.recurIteration != recurIteration ||
+        other.description != description ||
+        other.project != project ||
+        other.context != context ||
+        other.urgency != urgency ||
+        other.priority != priority ||
+        other.duration != duration ||
+        other.gamePoints != gamePoints ||
+        other.startDate != startDate ||
+        other.targetDate != targetDate ||
+        other.dueDate != dueDate ||
+        other.urgentDate != urgentDate ||
+        other.completionDate != completionDate ||
+        other.offCycle != offCycle ||
+        other.recurNumber != recurNumber ||
+        other.recurUnit != recurUnit ||
+        other.recurWait != recurWait ||
+        other.recurrenceDocId != recurrenceDocId ||
+        other.recurIteration != recurIteration ||
         (recurrenceBlueprint == null ? other.recurrence != null : recurrenceBlueprint!.hasChanges(other.recurrence));
-    print("All mismatch: $allMismatch");
+    // print("All mismatch: $allMismatch");
     return
       allMismatch;
   }
@@ -105,10 +117,11 @@ class TaskItemBlueprint with DateHolder {
           other.dueDate != dueDate ||
           other.urgentDate != urgentDate ||
           other.completionDate != completionDate ||
+          other.offCycle != offCycle ||
           other.recurNumber != recurNumber ||
           other.recurUnit != recurUnit ||
           other.recurWait != recurWait ||
-          other.recurrenceId != recurrenceId ||
+          other.recurrenceDocId != recurrenceDocId ||
           other.recurIteration != recurIteration ||
           (recurrenceBlueprint == null ? other.recurrenceBlueprint != null : recurrenceBlueprint!.hasChangesBlueprint(other.recurrenceBlueprint));
   }

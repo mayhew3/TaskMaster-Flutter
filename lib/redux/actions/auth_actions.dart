@@ -10,9 +10,8 @@ class LogInAction {}
 class OnAuthenticatedAction {
   final GoogleSignInAccount account;
   final UserCredential userCredential;
-  final String? idToken;
 
-  OnAuthenticatedAction(this.account, this.userCredential, this.idToken);
+  OnAuthenticatedAction(this.account, this.userCredential);
 
   @override
   String toString() {
@@ -59,10 +58,14 @@ class VerifyPersonAction {
   VerifyPersonAction(this.email);
 }
 
-class OnPersonVerifiedAction {
-  final int personId;
+class OnPersonVerifiedFirestoreAction {
+  final String personDocId;
 
-  OnPersonVerifiedAction(this.personId);
+  OnPersonVerifiedFirestoreAction(this.personDocId);
 }
 
 class OnPersonRejectedAction {}
+
+class GoOffline {}
+
+class GoOnline {}

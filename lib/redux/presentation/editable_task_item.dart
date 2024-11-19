@@ -217,8 +217,8 @@ class EditableTaskItemWidget extends StatelessWidget {
     }
   }
 
-  int getKey() {
-    return taskItem.id;
+  String getKey() {
+    return taskItem.docId;
   }
 
   @override

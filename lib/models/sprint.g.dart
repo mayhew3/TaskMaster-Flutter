@@ -18,8 +18,9 @@ class _$SprintSerializer implements StructuredSerializer<Sprint> {
   Iterable<Object?> serialize(Serializers serializers, Sprint object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object?>[
-      'id',
-      serializers.serialize(object.id, specifiedType: const FullType(int)),
+      'docId',
+      serializers.serialize(object.docId,
+          specifiedType: const FullType(String)),
       'dateAdded',
       serializers.serialize(object.dateAdded,
           specifiedType: const FullType(DateTime)),
@@ -35,9 +36,16 @@ class _$SprintSerializer implements StructuredSerializer<Sprint> {
       'unitName',
       serializers.serialize(object.unitName,
           specifiedType: const FullType(String)),
-      'personId',
-      serializers.serialize(object.personId,
+      'personDocId',
+      serializers.serialize(object.personDocId,
+          specifiedType: const FullType(String)),
+      'sprintNumber',
+      serializers.serialize(object.sprintNumber,
           specifiedType: const FullType(int)),
+      'sprintAssignments',
+      serializers.serialize(object.sprintAssignments,
+          specifiedType: const FullType(
+              BuiltList, const [const FullType(SprintAssignment)])),
     ];
     Object? value;
     value = object.closeDate;
@@ -46,11 +54,18 @@ class _$SprintSerializer implements StructuredSerializer<Sprint> {
       ..add('closeDate')
       ..add(serializers.serialize(value,
           specifiedType: const FullType(DateTime)));
-    value = object.sprintNumber;
+    value = object.retired;
 
     result
-      ..add('sprintNumber')
-      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
+      ..add('retired')
+      ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)));
+    value = object.retiredDate;
+
+    result
+      ..add('retiredDate')
+      ..add(serializers.serialize(value,
+          specifiedType: const FullType(DateTime)));
 
     return result;
   }
@@ -66,9 +81,9 @@ class _$SprintSerializer implements StructuredSerializer<Sprint> {
       iterator.moveNext();
       final Object? value = iterator.current;
       switch (key) {
-        case 'id':
-          result.id = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
+        case 'docId':
+          result.docId = serializers.deserialize(value,
+              specifiedType: const FullType(String))! as String;
           break;
         case 'dateAdded':
           result.dateAdded = serializers.deserialize(value,
@@ -94,13 +109,27 @@ class _$SprintSerializer implements StructuredSerializer<Sprint> {
           result.unitName = serializers.deserialize(value,
               specifiedType: const FullType(String))! as String;
           break;
-        case 'personId':
-          result.personId = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
+        case 'personDocId':
+          result.personDocId = serializers.deserialize(value,
+              specifiedType: const FullType(String))! as String;
           break;
         case 'sprintNumber':
           result.sprintNumber = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int?;
+              specifiedType: const FullType(int))! as int;
+          break;
+        case 'retired':
+          result.retired = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String?;
+          break;
+        case 'retiredDate':
+          result.retiredDate = serializers.deserialize(value,
+              specifiedType: const FullType(DateTime)) as DateTime?;
+          break;
+        case 'sprintAssignments':
+          result.sprintAssignments.replace(serializers.deserialize(value,
+                  specifiedType: const FullType(
+                      BuiltList, const [const FullType(SprintAssignment)]))!
+              as BuiltList<Object?>);
           break;
       }
     }
@@ -111,7 +140,7 @@ class _$SprintSerializer implements StructuredSerializer<Sprint> {
 
 class _$Sprint extends Sprint {
   @override
-  final int id;
+  final String docId;
   @override
   final DateTime dateAdded;
   @override
@@ -125,31 +154,45 @@ class _$Sprint extends Sprint {
   @override
   final String unitName;
   @override
-  final int personId;
+  final String personDocId;
   @override
-  final int? sprintNumber;
+  final int sprintNumber;
+  @override
+  final String? retired;
+  @override
+  final DateTime? retiredDate;
+  @override
+  final BuiltList<SprintAssignment> sprintAssignments;
 
   factory _$Sprint([void Function(SprintBuilder)? updates]) =>
       (new SprintBuilder()..update(updates))._build();
 
   _$Sprint._(
-      {required this.id,
+      {required this.docId,
       required this.dateAdded,
       required this.startDate,
       required this.endDate,
       this.closeDate,
       required this.numUnits,
       required this.unitName,
-      required this.personId,
-      this.sprintNumber})
+      required this.personDocId,
+      required this.sprintNumber,
+      this.retired,
+      this.retiredDate,
+      required this.sprintAssignments})
       : super._() {
-    BuiltValueNullFieldError.checkNotNull(id, r'Sprint', 'id');
+    BuiltValueNullFieldError.checkNotNull(docId, r'Sprint', 'docId');
     BuiltValueNullFieldError.checkNotNull(dateAdded, r'Sprint', 'dateAdded');
     BuiltValueNullFieldError.checkNotNull(startDate, r'Sprint', 'startDate');
     BuiltValueNullFieldError.checkNotNull(endDate, r'Sprint', 'endDate');
     BuiltValueNullFieldError.checkNotNull(numUnits, r'Sprint', 'numUnits');
     BuiltValueNullFieldError.checkNotNull(unitName, r'Sprint', 'unitName');
-    BuiltValueNullFieldError.checkNotNull(personId, r'Sprint', 'personId');
+    BuiltValueNullFieldError.checkNotNull(
+        personDocId, r'Sprint', 'personDocId');
+    BuiltValueNullFieldError.checkNotNull(
+        sprintNumber, r'Sprint', 'sprintNumber');
+    BuiltValueNullFieldError.checkNotNull(
+        sprintAssignments, r'Sprint', 'sprintAssignments');
   }
 
   @override
@@ -163,29 +206,35 @@ class _$Sprint extends Sprint {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is Sprint &&
-        id == other.id &&
+        docId == other.docId &&
         dateAdded == other.dateAdded &&
         startDate == other.startDate &&
         endDate == other.endDate &&
         closeDate == other.closeDate &&
         numUnits == other.numUnits &&
         unitName == other.unitName &&
-        personId == other.personId &&
-        sprintNumber == other.sprintNumber;
+        personDocId == other.personDocId &&
+        sprintNumber == other.sprintNumber &&
+        retired == other.retired &&
+        retiredDate == other.retiredDate &&
+        sprintAssignments == other.sprintAssignments;
   }
 
   @override
   int get hashCode {
     var _$hash = 0;
-    _$hash = $jc(_$hash, id.hashCode);
+    _$hash = $jc(_$hash, docId.hashCode);
     _$hash = $jc(_$hash, dateAdded.hashCode);
     _$hash = $jc(_$hash, startDate.hashCode);
     _$hash = $jc(_$hash, endDate.hashCode);
     _$hash = $jc(_$hash, closeDate.hashCode);
     _$hash = $jc(_$hash, numUnits.hashCode);
     _$hash = $jc(_$hash, unitName.hashCode);
-    _$hash = $jc(_$hash, personId.hashCode);
+    _$hash = $jc(_$hash, personDocId.hashCode);
     _$hash = $jc(_$hash, sprintNumber.hashCode);
+    _$hash = $jc(_$hash, retired.hashCode);
+    _$hash = $jc(_$hash, retiredDate.hashCode);
+    _$hash = $jc(_$hash, sprintAssignments.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -193,15 +242,18 @@ class _$Sprint extends Sprint {
   @override
   String toString() {
     return (newBuiltValueToStringHelper(r'Sprint')
-          ..add('id', id)
+          ..add('docId', docId)
           ..add('dateAdded', dateAdded)
           ..add('startDate', startDate)
           ..add('endDate', endDate)
           ..add('closeDate', closeDate)
           ..add('numUnits', numUnits)
           ..add('unitName', unitName)
-          ..add('personId', personId)
-          ..add('sprintNumber', sprintNumber))
+          ..add('personDocId', personDocId)
+          ..add('sprintNumber', sprintNumber)
+          ..add('retired', retired)
+          ..add('retiredDate', retiredDate)
+          ..add('sprintAssignments', sprintAssignments))
         .toString();
   }
 }
@@ -209,9 +261,9 @@ class _$Sprint extends Sprint {
 class SprintBuilder implements Builder<Sprint, SprintBuilder> {
   _$Sprint? _$v;
 
-  int? _id;
-  int? get id => _$this._id;
-  set id(int? id) => _$this._id = id;
+  String? _docId;
+  String? get docId => _$this._docId;
+  set docId(String? docId) => _$this._docId = docId;
 
   DateTime? _dateAdded;
   DateTime? get dateAdded => _$this._dateAdded;
@@ -237,28 +289,45 @@ class SprintBuilder implements Builder<Sprint, SprintBuilder> {
   String? get unitName => _$this._unitName;
   set unitName(String? unitName) => _$this._unitName = unitName;
 
-  int? _personId;
-  int? get personId => _$this._personId;
-  set personId(int? personId) => _$this._personId = personId;
+  String? _personDocId;
+  String? get personDocId => _$this._personDocId;
+  set personDocId(String? personDocId) => _$this._personDocId = personDocId;
 
   int? _sprintNumber;
   int? get sprintNumber => _$this._sprintNumber;
   set sprintNumber(int? sprintNumber) => _$this._sprintNumber = sprintNumber;
+
+  String? _retired;
+  String? get retired => _$this._retired;
+  set retired(String? retired) => _$this._retired = retired;
+
+  DateTime? _retiredDate;
+  DateTime? get retiredDate => _$this._retiredDate;
+  set retiredDate(DateTime? retiredDate) => _$this._retiredDate = retiredDate;
+
+  ListBuilder<SprintAssignment>? _sprintAssignments;
+  ListBuilder<SprintAssignment> get sprintAssignments =>
+      _$this._sprintAssignments ??= new ListBuilder<SprintAssignment>();
+  set sprintAssignments(ListBuilder<SprintAssignment>? sprintAssignments) =>
+      _$this._sprintAssignments = sprintAssignments;
 
   SprintBuilder();
 
   SprintBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
-      _id = $v.id;
+      _docId = $v.docId;
       _dateAdded = $v.dateAdded;
       _startDate = $v.startDate;
       _endDate = $v.endDate;
       _closeDate = $v.closeDate;
       _numUnits = $v.numUnits;
       _unitName = $v.unitName;
-      _personId = $v.personId;
+      _personDocId = $v.personDocId;
       _sprintNumber = $v.sprintNumber;
+      _retired = $v.retired;
+      _retiredDate = $v.retiredDate;
+      _sprintAssignments = $v.sprintAssignments.toBuilder();
       _$v = null;
     }
     return this;
@@ -279,23 +348,41 @@ class SprintBuilder implements Builder<Sprint, SprintBuilder> {
   Sprint build() => _build();
 
   _$Sprint _build() {
-    final _$result = _$v ??
-        new _$Sprint._(
-            id: BuiltValueNullFieldError.checkNotNull(id, r'Sprint', 'id'),
-            dateAdded: BuiltValueNullFieldError.checkNotNull(
-                dateAdded, r'Sprint', 'dateAdded'),
-            startDate: BuiltValueNullFieldError.checkNotNull(
-                startDate, r'Sprint', 'startDate'),
-            endDate: BuiltValueNullFieldError.checkNotNull(
-                endDate, r'Sprint', 'endDate'),
-            closeDate: closeDate,
-            numUnits: BuiltValueNullFieldError.checkNotNull(
-                numUnits, r'Sprint', 'numUnits'),
-            unitName: BuiltValueNullFieldError.checkNotNull(
-                unitName, r'Sprint', 'unitName'),
-            personId: BuiltValueNullFieldError.checkNotNull(
-                personId, r'Sprint', 'personId'),
-            sprintNumber: sprintNumber);
+    _$Sprint _$result;
+    try {
+      _$result = _$v ??
+          new _$Sprint._(
+              docId: BuiltValueNullFieldError.checkNotNull(
+                  docId, r'Sprint', 'docId'),
+              dateAdded: BuiltValueNullFieldError.checkNotNull(
+                  dateAdded, r'Sprint', 'dateAdded'),
+              startDate: BuiltValueNullFieldError.checkNotNull(
+                  startDate, r'Sprint', 'startDate'),
+              endDate: BuiltValueNullFieldError.checkNotNull(
+                  endDate, r'Sprint', 'endDate'),
+              closeDate: closeDate,
+              numUnits: BuiltValueNullFieldError.checkNotNull(
+                  numUnits, r'Sprint', 'numUnits'),
+              unitName: BuiltValueNullFieldError.checkNotNull(
+                  unitName, r'Sprint', 'unitName'),
+              personDocId: BuiltValueNullFieldError.checkNotNull(
+                  personDocId, r'Sprint', 'personDocId'),
+              sprintNumber: BuiltValueNullFieldError.checkNotNull(
+                  sprintNumber, r'Sprint', 'sprintNumber'),
+              retired: retired,
+              retiredDate: retiredDate,
+              sprintAssignments: sprintAssignments.build());
+    } catch (_) {
+      late String _$failedField;
+      try {
+        _$failedField = 'sprintAssignments';
+        sprintAssignments.build();
+      } catch (e) {
+        throw new BuiltValueNestedFieldError(
+            r'Sprint', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

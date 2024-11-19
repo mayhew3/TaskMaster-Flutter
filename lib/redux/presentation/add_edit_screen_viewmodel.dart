@@ -9,6 +9,7 @@ part 'add_edit_screen_viewmodel.g.dart';
 
 abstract class AddEditScreenViewModel implements Built<AddEditScreenViewModel, AddEditScreenViewModelBuilder> {
   BuiltList<TaskItem> get allTaskItems;
+  BuiltList<TaskRecurrence> get allTaskRecurrences;
 
   AddEditScreenViewModel._();
 
@@ -17,6 +18,7 @@ abstract class AddEditScreenViewModel implements Built<AddEditScreenViewModel, A
   static AddEditScreenViewModel fromStore(Store<AppState> store) {
     return AddEditScreenViewModel((c) => c
       ..allTaskItems = store.state.taskItems.toBuilder()
+      ..allTaskRecurrences = store.state.taskRecurrences.toBuilder()
     );
   }
 }

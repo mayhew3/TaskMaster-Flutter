@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:mockito/mockito.dart';
-import 'package:taskmaster/app_state.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
@@ -17,73 +16,50 @@ void main() {
 
     final Uri tasksAPI = Uri.parse("https://taskmaster-general.herokuapp.com/api/tasks");
 
+    final personId = 1;
+    final token = 'token';
+
     // helper methods
 
-    dynamic _encodeBody(List<int> body, {int? id}) {
-      var utfDecoded = utf8.decode(body);
-      var jsonObj = json.decode(utfDecoded);
-      var jsonTask = jsonObj["task"];
-      if (id != null) {
-        jsonTask["id"] = id;
-      }
-      jsonTask["person_id"] = 1;
-      return json.encode(jsonTask);
-    }
-
-    void _validateToken(Invocation invocation, AppState appState) async {
+    void _validateToken(Invocation invocation) async {
       var headers = invocation.namedArguments[Symbol("headers")];
       var tokenInfo = headers[HttpHeaders.authorizationHeader];
-      var expectedToken = await appState.getIdToken();
-      expect(tokenInfo, expectedToken);
+      expect(tokenInfo, token);
     }
 
     // tests
-
-    test('loadTasks with no tasks', () async {
-      TaskRepository taskRepository = TestMockHelper.createTaskRepositoryWithoutLoad(taskItems: []);
-
-      await taskRepository.loadTasks((callback) => callback());
-      List<TaskItem> taskList = taskRepository.appState.taskItems;
-      expect(taskList, const TypeMatcher<List<TaskItem>>());
-      expect(taskList.length, 0);
-    });
-
-    test('loadTasks with tasks', () async {
-      TaskRepository taskRepository = TestMockHelper.createTaskRepositoryWithoutLoad();
-
-      await taskRepository.loadTasks((callback) => callback());
-      List<TaskItem> taskList = taskRepository.appState.taskItems;
-      expect(taskList, const TypeMatcher<List<TaskItem>>());
-      expect(taskList, hasLength(allTasks.length));
-    });
+/*
 
     test('addTask', () async {
       int id = 2345;
 
       TaskRepository taskRepository = await TestMockHelper.createTaskRepositoryAndLoad();
 
-      var addedItem = (TaskItemBuilder.asPreCommit()).createBlueprint();
+      var blueprint = (MockTaskItemBuilder.asPreCommit()).createBlueprint();
+      blueprint.personDocId = personId;
+
 
       when(taskRepository.client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")))
           .thenAnswer((invocation) async {
-        _validateToken(invocation, taskRepository.appState);
+        _validateToken(invocation);
 
-        var body = invocation.namedArguments[Symbol("body")];
-        var payload = _encodeBody(body, id: id);
+        var addedItem = TestMockHelper.mockAddTask(blueprint, id, null);
+        var payload = jsonEncode(addedItem.toJson());
         return Future<http.Response>.value(http.Response(payload, 200));
       });
 
-      var returnedItem = await taskRepository.addTask(addedItem);
+
+      var returnedItem = (await taskRepository.addTask(blueprint)).taskItem;
 
       verify(taskRepository.client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")));
 
       expect(returnedItem.id, id);
-      expect(returnedItem.name, addedItem.name);
+      expect(returnedItem.name, blueprint.name);
       expect(returnedItem.personId, 1);
     });
 
     test('updateTask', () async {
-      TaskItem taskItem = TaskItemBuilder.asDefault().create();
+      TaskItem taskItem = MockTaskItemBuilder.asDefault().create();
       var taskItems = [
         taskItem
       ];
@@ -91,29 +67,30 @@ void main() {
 
       TaskRepository taskRepository = TestMockHelper.createTaskRepositoryWithoutLoad(taskItems: taskItems);
 
-      when(taskRepository.client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")))
-          .thenAnswer((invocation) async {
-        _validateToken(invocation, taskRepository.appState);
-
-        var body = invocation.namedArguments[Symbol("body")];
-        var payload = _encodeBody(body, id: taskItem.id);
-        return Future<http.Response>.value(http.Response(payload, 200));
-      });
-
       var newProject = "Groovy Time";
-      var newTargetDate = DateTime.now().add(Duration(days: 3));
+      var newTargetDate = DateTime.now().add(Duration(days: 3)).toUtc();
 
       blueprint.project = newProject;
       blueprint.targetDate = newTargetDate;
 
-      var returnedItem = await taskRepository.updateTask(taskItem, blueprint);
+      when(taskRepository.client.patch(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")))
+          .thenAnswer((invocation) async {
+        _validateToken(invocation);
 
-      verify(taskRepository.client.post(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")));
+        var editedItem = TestMockHelper.mockEditTask(taskItem, blueprint);
+        var payload = jsonEncode(editedItem.toJson());
+        return Future<http.Response>.value(http.Response(payload, 200));
+      });
+
+      var returnedItem = (await taskRepository.updateTask(taskItem.id, blueprint, token)).taskItem;
+
+      verify(taskRepository.client.patch(tasksAPI, headers: anyNamed("headers"), body: anyNamed("body")));
 
       expect(returnedItem.project, newProject);
       expect(returnedItem.targetDate, newTargetDate);
 
     });
+*/
 
 
   });

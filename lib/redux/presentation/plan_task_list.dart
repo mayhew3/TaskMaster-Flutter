@@ -55,6 +55,8 @@ class PlanTaskListState extends State<PlanTaskList> {
 
   bool hasTiles = false;
 
+  bool popped = false;
+
   late final DateTime endDate;
 
   void validateState() {
@@ -148,19 +150,22 @@ class PlanTaskListState extends State<PlanTaskList> {
     if (sprint != null) {
       eligibleItems.addAll(taskItemsForSprintSelector(viewModel.allTaskItems, sprint));
     }
-    Set<int> recurIDs = new HashSet();
+    Set<String> recurIDs = new HashSet();
 
     for (var taskItem in eligibleItems) {
-      if (taskItem.recurrenceId != null) {
-        recurIDs.add(taskItem.recurrenceId!);
+      if (taskItem.recurrenceDocId != null) {
+        recurIDs.add(taskItem.recurrenceDocId!);
       }
     }
 
     for (var recurID in recurIDs) {
-      Iterable<TaskItem> recurItems = eligibleItems.where((var taskItem) => taskItem.recurrenceId == recurID);
+      Iterable<TaskItem> recurItems = eligibleItems.where((var taskItem) => taskItem.recurrenceDocId == recurID);
       List<TaskItem> sortedItems = recurItems.sorted((TaskItem t1, TaskItem t2) => t1.recurIteration!.compareTo(t2.recurIteration!));
       TaskItem newest = sortedItems.last;
       List<TaskItemRecurPreview> futureIterations = [];
+      if (newest.startDate != null && !newest.startDate!.isUtc) {
+        print("[createTemporaryIterations]: Task '${newest.name}' has non-UTC start date! ID: ${newest.docId}");
+      }
       if (newest.recurWait == false) {
         addNextIterations(newest, endDate, futureIterations);
       }
@@ -170,6 +175,9 @@ class PlanTaskListState extends State<PlanTaskList> {
 
 
   void addNextIterations(SprintDisplayTask newest, DateTime endDate, List<TaskItemRecurPreview> collector) {
+    if (newest.startDate != null && !newest.startDate!.isUtc) {
+      print("[addNextIterations]: Task '${newest.name}' has non-UTC start date! ID: ${newest.docId}");
+    }
     TaskItemRecurPreview nextIteration = RecurrenceHelper.createNextIteration(newest, DateTime.now());
     var willBeUrgentOrDue = nextIteration.isDueBefore(endDate) || nextIteration.isUrgentBefore(endDate);
     var willBeTargetOrStart = nextIteration.isTargetBefore(endDate) || nextIteration.isScheduledBefore(endDate);
@@ -209,7 +217,7 @@ class PlanTaskListState extends State<PlanTaskList> {
       new TaskDisplayGrouping(displayName: "Target Soon", displayOrder: 5, filter: (taskItem) => taskItem.isTargetBefore(endDate)),
       new TaskDisplayGrouping(displayName: "Starting Later", displayOrder: 7, filter: (taskItem) => taskItem.isScheduledAfter(endDate), ordering: startDateSort),
       new TaskDisplayGrouping(displayName: "Completed", displayOrder: 8, filter: (taskItem) => taskItem.isCompleted() &&
-              !viewModel.recentlyCompleted.any((t) => t.id == taskItem.id), ordering: completionDateSort),
+              !viewModel.recentlyCompleted.any((t) => t.docId == taskItem.docId), ordering: completionDateSort),
       // must come last to take all the other tasks
       new TaskDisplayGrouping(displayName: "Tasks", displayOrder: 6, filter: (_) => true),
     ];
@@ -295,7 +303,7 @@ class PlanTaskListState extends State<PlanTaskList> {
           endDate: endDate,
           numUnits: widget.numUnits!,
           unitName: widget.unitName!,
-          personId: viewModel.personId
+          personDocId: viewModel.personDocId
       );
       print("Submitting");
       store.dispatch(CreateSprintWithTaskItems(sprintBlueprint: sprint,
@@ -313,16 +321,22 @@ class PlanTaskListState extends State<PlanTaskList> {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, PlanTaskListViewModel>(
         onWillChange: (prev, current) {
-          if (activeSprint == null) {
-            if (prev != null && current.activeSprint != null) {
-              Navigator.pop(context);
-            }
-          } else {
-            if (prev != null) {
-              var currentCount = taskItemsForSprintSelector(current.allTaskItems, current.activeSprint!).length;
-              var prevCount = taskItemsForSprintSelector(prev.allTaskItems, prev.activeSprint!).length;
-              if (currentCount > prevCount) {
+          if (!popped) {
+            if (activeSprint == null) {
+              if (prev != null && current.activeSprint != null) {
+                popped = true;
                 Navigator.pop(context);
+              }
+            } else {
+              if (prev != null) {
+                var currentCount = taskItemsForSprintSelector(
+                    current.allTaskItems, current.activeSprint!).length;
+                var prevCount = taskItemsForSprintSelector(
+                    prev.allTaskItems, prev.activeSprint!).length;
+                if (currentCount > prevCount) {
+                  popped = true;
+                  Navigator.pop(context);
+                }
               }
             }
           }

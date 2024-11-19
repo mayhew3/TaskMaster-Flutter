@@ -19,6 +19,12 @@ class CreateSprintWithTaskItems {
   }
 }
 
+class SprintsAddedAction {
+  final Iterable<Sprint> addedSprints;
+
+  SprintsAddedAction(this.addedSprints);
+}
+
 class SprintCreatedAction {
   final Sprint sprint;
   final BuiltList<TaskItem> addedTasks;
@@ -46,7 +52,7 @@ class AddTaskItemsToExistingSprint {
 }
 
 class TaskItemsAddedToExistingSprint {
-  final int sprintId;
+  final String sprintId;
   final BuiltList<TaskItem> addedTasks;
   final BuiltList<SprintAssignment> sprintAssignments;
 

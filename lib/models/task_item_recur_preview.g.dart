@@ -24,9 +24,6 @@ class _$TaskItemRecurPreviewSerializer
       Serializers serializers, TaskItemRecurPreview object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object?>[
-      'personId',
-      serializers.serialize(object.personId,
-          specifiedType: const FullType(int)),
       'name',
       serializers.serialize(object.name, specifiedType: const FullType(String)),
       'offCycle',
@@ -38,6 +35,12 @@ class _$TaskItemRecurPreviewSerializer
               BuiltList, const [const FullType(SprintAssignment)])),
     ];
     Object? value;
+    value = object.personDocId;
+
+    result
+      ..add('personDocId')
+      ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)));
     value = object.description;
 
     result
@@ -122,11 +125,24 @@ class _$TaskItemRecurPreviewSerializer
     result
       ..add('recurWait')
       ..add(serializers.serialize(value, specifiedType: const FullType(bool)));
-    value = object.recurrenceId;
+    value = object.retired;
 
     result
-      ..add('recurrenceId')
-      ..add(serializers.serialize(value, specifiedType: const FullType(int)));
+      ..add('retired')
+      ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)));
+    value = object.retiredDate;
+
+    result
+      ..add('retiredDate')
+      ..add(serializers.serialize(value,
+          specifiedType: const FullType(DateTime)));
+    value = object.recurrenceDocId;
+
+    result
+      ..add('recurrenceDocId')
+      ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)));
     value = object.recurIteration;
 
     result
@@ -154,9 +170,9 @@ class _$TaskItemRecurPreviewSerializer
       iterator.moveNext();
       final Object? value = iterator.current;
       switch (key) {
-        case 'personId':
-          result.personId = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
+        case 'personDocId':
+          result.personDocId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String?;
           break;
         case 'name':
           result.name = serializers.deserialize(value,
@@ -222,9 +238,17 @@ class _$TaskItemRecurPreviewSerializer
           result.recurWait = serializers.deserialize(value,
               specifiedType: const FullType(bool)) as bool?;
           break;
-        case 'recurrenceId':
-          result.recurrenceId = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int?;
+        case 'retired':
+          result.retired = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String?;
+          break;
+        case 'retiredDate':
+          result.retiredDate = serializers.deserialize(value,
+              specifiedType: const FullType(DateTime)) as DateTime?;
+          break;
+        case 'recurrenceDocId':
+          result.recurrenceDocId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String?;
           break;
         case 'recurIteration':
           result.recurIteration = serializers.deserialize(value,
@@ -254,9 +278,9 @@ class _$TaskItemRecurPreviewSerializer
 
 class _$TaskItemRecurPreview extends TaskItemRecurPreview {
   @override
-  final int id;
+  final String docId;
   @override
-  final int personId;
+  final String? personDocId;
   @override
   final String name;
   @override
@@ -290,7 +314,11 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
   @override
   final bool? recurWait;
   @override
-  final int? recurrenceId;
+  final String? retired;
+  @override
+  final DateTime? retiredDate;
+  @override
+  final String? recurrenceDocId;
   @override
   final int? recurIteration;
   @override
@@ -305,8 +333,8 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
       (new TaskItemRecurPreviewBuilder()..update(updates))._build();
 
   _$TaskItemRecurPreview._(
-      {required this.id,
-      required this.personId,
+      {required this.docId,
+      this.personDocId,
       required this.name,
       this.description,
       this.project,
@@ -323,15 +351,16 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
       this.recurNumber,
       this.recurUnit,
       this.recurWait,
-      this.recurrenceId,
+      this.retired,
+      this.retiredDate,
+      this.recurrenceDocId,
       this.recurIteration,
       required this.offCycle,
       required this.sprintAssignments,
       this.recurrence})
       : super._() {
-    BuiltValueNullFieldError.checkNotNull(id, r'TaskItemRecurPreview', 'id');
     BuiltValueNullFieldError.checkNotNull(
-        personId, r'TaskItemRecurPreview', 'personId');
+        docId, r'TaskItemRecurPreview', 'docId');
     BuiltValueNullFieldError.checkNotNull(
         name, r'TaskItemRecurPreview', 'name');
     BuiltValueNullFieldError.checkNotNull(
@@ -353,8 +382,8 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is TaskItemRecurPreview &&
-        id == other.id &&
-        personId == other.personId &&
+        docId == other.docId &&
+        personDocId == other.personDocId &&
         name == other.name &&
         description == other.description &&
         project == other.project &&
@@ -371,7 +400,9 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
         recurNumber == other.recurNumber &&
         recurUnit == other.recurUnit &&
         recurWait == other.recurWait &&
-        recurrenceId == other.recurrenceId &&
+        retired == other.retired &&
+        retiredDate == other.retiredDate &&
+        recurrenceDocId == other.recurrenceDocId &&
         recurIteration == other.recurIteration &&
         offCycle == other.offCycle &&
         sprintAssignments == other.sprintAssignments &&
@@ -381,8 +412,8 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
   @override
   int get hashCode {
     var _$hash = 0;
-    _$hash = $jc(_$hash, id.hashCode);
-    _$hash = $jc(_$hash, personId.hashCode);
+    _$hash = $jc(_$hash, docId.hashCode);
+    _$hash = $jc(_$hash, personDocId.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
     _$hash = $jc(_$hash, project.hashCode);
@@ -399,7 +430,9 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
     _$hash = $jc(_$hash, recurNumber.hashCode);
     _$hash = $jc(_$hash, recurUnit.hashCode);
     _$hash = $jc(_$hash, recurWait.hashCode);
-    _$hash = $jc(_$hash, recurrenceId.hashCode);
+    _$hash = $jc(_$hash, retired.hashCode);
+    _$hash = $jc(_$hash, retiredDate.hashCode);
+    _$hash = $jc(_$hash, recurrenceDocId.hashCode);
     _$hash = $jc(_$hash, recurIteration.hashCode);
     _$hash = $jc(_$hash, offCycle.hashCode);
     _$hash = $jc(_$hash, sprintAssignments.hashCode);
@@ -411,8 +444,8 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
   @override
   String toString() {
     return (newBuiltValueToStringHelper(r'TaskItemRecurPreview')
-          ..add('id', id)
-          ..add('personId', personId)
+          ..add('docId', docId)
+          ..add('personDocId', personDocId)
           ..add('name', name)
           ..add('description', description)
           ..add('project', project)
@@ -429,7 +462,9 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
           ..add('recurNumber', recurNumber)
           ..add('recurUnit', recurUnit)
           ..add('recurWait', recurWait)
-          ..add('recurrenceId', recurrenceId)
+          ..add('retired', retired)
+          ..add('retiredDate', retiredDate)
+          ..add('recurrenceDocId', recurrenceDocId)
           ..add('recurIteration', recurIteration)
           ..add('offCycle', offCycle)
           ..add('sprintAssignments', sprintAssignments)
@@ -442,13 +477,13 @@ class TaskItemRecurPreviewBuilder
     implements Builder<TaskItemRecurPreview, TaskItemRecurPreviewBuilder> {
   _$TaskItemRecurPreview? _$v;
 
-  int? _id;
-  int? get id => _$this._id;
-  set id(int? id) => _$this._id = id;
+  String? _docId;
+  String? get docId => _$this._docId;
+  set docId(String? docId) => _$this._docId = docId;
 
-  int? _personId;
-  int? get personId => _$this._personId;
-  set personId(int? personId) => _$this._personId = personId;
+  String? _personDocId;
+  String? get personDocId => _$this._personDocId;
+  set personDocId(String? personDocId) => _$this._personDocId = personDocId;
 
   String? _name;
   String? get name => _$this._name;
@@ -515,9 +550,18 @@ class TaskItemRecurPreviewBuilder
   bool? get recurWait => _$this._recurWait;
   set recurWait(bool? recurWait) => _$this._recurWait = recurWait;
 
-  int? _recurrenceId;
-  int? get recurrenceId => _$this._recurrenceId;
-  set recurrenceId(int? recurrenceId) => _$this._recurrenceId = recurrenceId;
+  String? _retired;
+  String? get retired => _$this._retired;
+  set retired(String? retired) => _$this._retired = retired;
+
+  DateTime? _retiredDate;
+  DateTime? get retiredDate => _$this._retiredDate;
+  set retiredDate(DateTime? retiredDate) => _$this._retiredDate = retiredDate;
+
+  String? _recurrenceDocId;
+  String? get recurrenceDocId => _$this._recurrenceDocId;
+  set recurrenceDocId(String? recurrenceDocId) =>
+      _$this._recurrenceDocId = recurrenceDocId;
 
   int? _recurIteration;
   int? get recurIteration => _$this._recurIteration;
@@ -547,8 +591,8 @@ class TaskItemRecurPreviewBuilder
   TaskItemRecurPreviewBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
-      _id = $v.id;
-      _personId = $v.personId;
+      _docId = $v.docId;
+      _personDocId = $v.personDocId;
       _name = $v.name;
       _description = $v.description;
       _project = $v.project;
@@ -565,7 +609,9 @@ class TaskItemRecurPreviewBuilder
       _recurNumber = $v.recurNumber;
       _recurUnit = $v.recurUnit;
       _recurWait = $v.recurWait;
-      _recurrenceId = $v.recurrenceId;
+      _retired = $v.retired;
+      _retiredDate = $v.retiredDate;
+      _recurrenceDocId = $v.recurrenceDocId;
       _recurIteration = $v.recurIteration;
       _offCycle = $v.offCycle;
       _sprintAssignments = $v.sprintAssignments.toBuilder();
@@ -594,10 +640,9 @@ class TaskItemRecurPreviewBuilder
     try {
       _$result = _$v ??
           new _$TaskItemRecurPreview._(
-              id: BuiltValueNullFieldError.checkNotNull(
-                  id, r'TaskItemRecurPreview', 'id'),
-              personId: BuiltValueNullFieldError.checkNotNull(
-                  personId, r'TaskItemRecurPreview', 'personId'),
+              docId: BuiltValueNullFieldError.checkNotNull(
+                  docId, r'TaskItemRecurPreview', 'docId'),
+              personDocId: personDocId,
               name: BuiltValueNullFieldError.checkNotNull(
                   name, r'TaskItemRecurPreview', 'name'),
               description: description,
@@ -615,7 +660,9 @@ class TaskItemRecurPreviewBuilder
               recurNumber: recurNumber,
               recurUnit: recurUnit,
               recurWait: recurWait,
-              recurrenceId: recurrenceId,
+              retired: retired,
+              retiredDate: retiredDate,
+              recurrenceDocId: recurrenceDocId,
               recurIteration: recurIteration,
               offCycle: BuiltValueNullFieldError.checkNotNull(
                   offCycle, r'TaskItemRecurPreview', 'offCycle'),

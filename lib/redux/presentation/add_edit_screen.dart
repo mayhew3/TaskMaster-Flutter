@@ -50,9 +50,12 @@ class AddEditScreenState extends State<AddEditScreen> {
   TaskItemBlueprint blankBlueprint = TaskItemBlueprint();
   late TaskRecurrenceBlueprint taskRecurrenceBlueprint;
 
+  bool popped = false;
+
   @override
   void initState() {
     super.initState();
+
 
     taskItem = widget.taskItem;
     // var taskRecurrence = taskItem?.taskRecurrencePreview;
@@ -61,7 +64,7 @@ class AddEditScreenState extends State<AddEditScreen> {
     var existingRecurrence = taskItem?.recurrence;
     taskRecurrenceBlueprint = (existingRecurrence == null) ? TaskRecurrenceBlueprint() : existingRecurrence.createBlueprint();
 
-    _initialRepeatOn = taskItem?.recurrenceId != null;
+    _initialRepeatOn = taskItem?.recurrenceDocId != null;
     _repeatOn = _initialRepeatOn;
 
     possibleProjects = ListBuilder<String>([
@@ -170,7 +173,7 @@ class AddEditScreenState extends State<AddEditScreen> {
     taskItemBlueprint.recurWait = null;
     taskItemBlueprint.recurIteration = null;
     taskItemBlueprint.recurrenceBlueprint = null;
-    taskItemBlueprint.recurrenceId = null;
+    taskItemBlueprint.recurrenceDocId = null;
   }
 
   void updateRecurrenceBlueprint() {
@@ -182,7 +185,7 @@ class AddEditScreenState extends State<AddEditScreen> {
     taskRecurrenceBlueprint.anchorDate = taskItemBlueprint.getAnchorDate();
     taskRecurrenceBlueprint.anchorType = taskItemBlueprint.getAnchorDateType()!.label;
     taskItemBlueprint.recurrenceBlueprint = taskRecurrenceBlueprint;
-    taskItemBlueprint.recurrenceId = taskItem?.recurrence?.id;
+    taskItemBlueprint.recurrenceDocId = taskItem?.recurrence?.docId;
   }
 
   bool hasChanges() {
@@ -222,14 +225,30 @@ class AddEditScreenState extends State<AddEditScreen> {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, AddEditScreenViewModel>(
         onWillChange: (prev, current) {
-          if (editMode()) {
-            var latest = taskItemSelector(current.allTaskItems, taskItem!.id);
-            if (latest != null && latest.hasChanges(taskItem!)) {
-              Navigator.pop(context);
-            }
-          } else {
-            if (prev != null && current.allTaskItems.length > prev.allTaskItems.length) {
-              Navigator.pop(context);
+          if (!popped) {
+            if (editMode()) {
+              var latestTask = taskItemSelector(
+                  current.allTaskItems, taskItem!.docId);
+              var latestRecurrence = taskRecurrenceSelector(
+                  current.allTaskRecurrences, taskItem!.recurrence?.docId);
+              var hasTaskChanges = latestTask != null &&
+                  latestTask.hasChanges(taskItem!);
+              var recurrenceAddedOrRemoved = prev != null &&
+                  current.allTaskRecurrences.length !=
+                      prev.allTaskRecurrences.length;
+              var hasRecurrenceChanges = latestRecurrence != null &&
+                  latestRecurrence.hasChanges(taskItem!.recurrence);
+              if (hasTaskChanges || hasRecurrenceChanges ||
+                  recurrenceAddedOrRemoved) {
+                popped = true;
+                Navigator.pop(context);
+              }
+            } else {
+              if (prev != null &&
+                  current.allTaskItems.length > prev.allTaskItems.length) {
+                popped = true;
+                Navigator.pop(context);
+              }
             }
           }
         },

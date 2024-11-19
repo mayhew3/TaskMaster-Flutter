@@ -15,7 +15,7 @@ VisibilityFilter taskFilterSelector(AppState state) => state.taskListFilter;
 
 BuiltList<TaskItem> tasksForRecurrenceSelector(AppState state, TaskRecurrence taskRecurrence) {
   return ListBuilder<TaskItem>(state.taskItems.where((taskItem) {
-    return taskItem.recurrenceId == taskRecurrence.id;
+    return taskItem.recurrenceDocId == taskRecurrence.docId;
   })).build();
 }
 
@@ -27,17 +27,21 @@ int numCompletedSelector(BuiltList<TaskItem> taskItems) =>
 
 ListBuilder<TaskItem> filteredTaskItemsSelector(BuiltList<TaskItem> taskItems, BuiltList<TaskItem> recentlyCompleted, Sprint? sprint, VisibilityFilter visibilityFilter) {
   var filteredTasks = taskItems.where((taskItem) {
+    if (taskItem.retired != null) {
+      return false;
+    }
+
     var startDate = taskItem.startDate;
 
     var completedPredicate = taskItem.completionDate == null || visibilityFilter.showCompleted;
     var scheduledPredicate = startDate == null || startDate.isBefore(DateTime.now()) || visibilityFilter.showScheduled;
-    var isRecentlyCompleted = recentlyCompleted.map((t) => t.id).contains(taskItem.id);
+    var isRecentlyCompleted = recentlyCompleted.map((t) => t.docId).contains(taskItem.docId);
 
     var withoutSprint = (completedPredicate && scheduledPredicate) || isRecentlyCompleted;
 
     if (sprint != null) {
       var taskItemsForSprint = taskItemsForSprintSelector(taskItems, sprint);
-      var sprintPredicate = taskItemsForSprint.map((t) => t.id).contains(taskItem.id);
+      var sprintPredicate = taskItemsForSprint.map((t) => t.docId).contains(taskItem.docId);
       return withoutSprint && sprintPredicate;
     } else {
       return withoutSprint;
@@ -46,9 +50,20 @@ ListBuilder<TaskItem> filteredTaskItemsSelector(BuiltList<TaskItem> taskItems, B
   return ListBuilder<TaskItem>(filteredTasks);
 }
 
-TaskItem? taskItemSelector(BuiltList<TaskItem> taskItems, int id) {
+TaskItem? taskItemSelector(BuiltList<TaskItem> taskItems, String id) {
   try {
-    return taskItems.firstWhere((taskItem) => taskItem.id == id);
+    return taskItems.firstWhere((taskItem) => taskItem.docId == id);
+  } catch (e) {
+    return null;
+  }
+}
+
+TaskRecurrence? taskRecurrenceSelector(BuiltList<TaskRecurrence> taskRecurrences, String? id) {
+  if (id == null) {
+    return null;
+  }
+  try {
+    return taskRecurrences.firstWhere((recurrence) => recurrence.docId == id);
   } catch (e) {
     return null;
   }
@@ -72,18 +87,25 @@ Sprint? lastCompletedSprintSelector(BuiltList<Sprint> sprints) {
 }
 
 BuiltList<Sprint> sprintsForTaskItemSelector(BuiltList<Sprint> sprints, TaskItem taskItem) {
-  return sprints.where((s) => taskItem.sprintAssignments.where((sa) => sa.sprintId == s.id).isNotEmpty).toBuiltList();
+  return sprints.where((s) => s.sprintAssignments.where((sa) => sa.taskDocId == taskItem.docId).isNotEmpty).toBuiltList();
 }
 
 BuiltList<TaskItem> taskItemsForSprintSelector(BuiltList<TaskItem> taskItems, Sprint sprint) {
-  return taskItems.where((t) => t.sprintAssignments.where((sa) => sa.sprintId == sprint.id).isNotEmpty).toBuiltList();
+  return taskItems.where((t) => sprint.sprintAssignments.where((sa) => sa.taskDocId == t.docId).isNotEmpty).toBuiltList();
+}
+
+BuiltList<TaskItem> nonRetiredTaskItems(BuiltList<TaskItem> allTaskItems) {
+  return allTaskItems.where((t) => t.retired == null).toBuiltList();
 }
 
 BuiltList<TaskItem> taskItemsForPlacingOnNewSprint(BuiltList<TaskItem> allTaskItems, DateTime endDate) {
   var taskItems = allTaskItems.toList();
-  return taskItems.where((taskItem) {
-    return !taskItem.isScheduledAfter(endDate) && !taskItem.isCompleted();
-  }).toBuiltList();
+  var taskItemsNotUtc = taskItems.where((t) => t.startDate != null && !t.startDate!.isUtc);
+  print("[taskItemsForPlacingOnNewSprint]: ${taskItemsNotUtc.length} of all task items that are not utc.");
+  var forScheduling = taskItems.where((taskItem) => !taskItem.isScheduledAfter(endDate) && !taskItem.isCompleted());
+  var taskItemsScheduleNotUtc = forScheduling.where((t) => t.startDate != null && !t.startDate!.isUtc);
+  print("[taskItemsForPlacingOnNewSprint]: ${taskItemsScheduleNotUtc.length} of scheduled task items that are not utc.");
+  return forScheduling.toBuiltList();
 }
 
 BuiltList<TaskItem> taskItemsForPlacingOnExistingSprint(BuiltList<TaskItem> allTaskItems, Sprint sprint) {
@@ -94,24 +116,19 @@ BuiltList<TaskItem> taskItemsForPlacingOnExistingSprint(BuiltList<TaskItem> allT
 }
 
 bool taskItemIsInSprint(SprintDisplayTask taskItem, Sprint? sprint) {
-  return sprint != null && taskItem.sprintAssignments.where((sa) => sa.sprintId == sprint.id).isNotEmpty;
+  return sprint != null && sprint.sprintAssignments.where((sa) => sa.taskDocId == taskItem.docId).isNotEmpty;
 }
 
-Future<({int personId, String idToken})> getRequiredInputs(Store<AppState> store, String actionDesc) async {
+Future<({String personDocId})> getRequiredInputs(Store<AppState> store, String actionDesc) async {
 
-  var personId = store.state.personId;
-  if (personId == null) {
+  var personDocId = store.state.personDocId;
+  if (personDocId == null) {
     throw new Exception("Cannot $actionDesc without person id.");
   }
 
-  var idToken = await store.state.getIdToken();
-  if (idToken == null) {
-    throw new Exception("Cannot $actionDesc without id token.");
-  }
-
-  return (personId: personId, idToken: idToken);
+  return (personDocId: personDocId);
 }
 
 TaskRecurrence? recurrenceForTaskItem(BuiltList<TaskRecurrence> recurrences, TaskItem taskItem) {
-  return recurrences.where((r) => r.id == taskItem.recurrenceId).singleOrNull;
+  return recurrences.where((r) => r.docId == taskItem.recurrenceDocId).singleOrNull;
 }

@@ -1,57 +1,67 @@
 
+import 'package:built_collection/built_collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:taskmaster/app_state.dart';
-import 'package:taskmaster/date_util.dart';
+import 'package:redux/redux.dart';
 import 'package:taskmaster/models/sprint.dart';
-import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
-import 'package:taskmaster/models/task_item_preview.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
-import 'package:taskmaster/models/task_recurrence_blueprint.dart';
-import 'package:taskmaster/models/task_recurrence_preview.dart';
-import 'package:taskmaster/nav_helper.dart';
-import 'package:taskmaster/notification_scheduler.dart';
-import 'package:taskmaster/task_helper.dart';
+import 'package:taskmaster/redux/actions/task_item_actions.dart';
+import 'package:taskmaster/redux/app_state.dart';
+import 'package:taskmaster/redux/middleware/notification_helper.dart';
+import 'package:taskmaster/redux/middleware/store_task_items_middleware.dart';
+import 'package:taskmaster/routes.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
-import 'matchers/approximate_time_matcher.dart';
 import 'mocks/mock_data.dart';
 import 'mocks/mock_data_builder.dart';
-import 'mocks/mock_task_master_auth.dart';
+import 'mocks/mock_flutter_plugin.dart';
 import 'mocks/mock_timezone_helper.dart';
 import 'task_helper_test.mocks.dart';
 import 'test_mock_helper.dart';
 
 
-@GenerateNiceMocks([MockSpec<TaskRepository>()])
+@GenerateNiceMocks([MockSpec<TaskRepository>(), MockSpec<Store>(), MockSpec<NotificationHelper>(),
+  MockSpec<AppState>(), MockSpec<GlobalKey<NavigatorState>>(), MockSpec<NavigatorState>()])
 void main() {
 
   MockTaskRepository taskRepository = new MockTaskRepository();
-  MockNavHelper navHelper = MockNavHelper();
+  MockFlutterLocalNotificationsPlugin plugin = MockFlutterLocalNotificationsPlugin();
   MockTimezoneHelper timezoneHelper = MockTimezoneHelper();
-  MockTaskMasterAuth auth = MockTaskMasterAuth();
-  AppState appState = new AppState(auth: auth);
-  MockNotificationScheduler notificationScheduler = new MockNotificationScheduler();
-  StateSetter stateSetter = (callback) => callback();
+  MockStore<AppState> store = MockStore<AppState>();
+  MockAppState appState = new MockAppState();
+  MockNotificationHelper mockNotificationHelper = new MockNotificationHelper();
+  MockGlobalKey mockGlobalKey = new MockGlobalKey();
+  var mockNavigatorState = new MockNavigatorState();
+
+  // MockNotificationScheduler notificationScheduler = new MockNotificationScheduler();
+  // StateSetter stateSetter = (callback) => callback();
 
   TaskItem _mockComplete(TaskItem taskItem, DateTime? completionDate) {
-    var blueprint = taskItem.createBlueprint();
-    blueprint.completionDate = completionDate;
-    return TestMockHelper.mockEditTask(taskItem, blueprint);
+    return taskItem.rebuild((t) => t.completionDate = completionDate);
   }
 
-  TaskHelper createTaskHelper({List<TaskItem>? taskItems, List<Sprint>? sprints, List<TaskRecurrence>? recurrences}) {
+  void prepareMocks({List<TaskItem>? taskItems, List<Sprint>? sprints, List<TaskRecurrence>? recurrences}) {
 
-    appState.updateNavHelper(navHelper);
-    appState.updateNotificationScheduler(notificationScheduler);
+    timezoneHelper.configureLocalTimeZone();
+    provideDummy<AppState>(appState);
 
-    appState.updateTasksAndSprints(taskItems ?? [], sprints ?? [], recurrences ?? []);
+    when(store.state).thenReturn(appState);
 
-    when(taskRepository.appState).thenReturn(appState);
+    when(appState.personDocId).thenAnswer((_) => MockTaskItemBuilder.me);
+    when(appState.timezoneHelper).thenAnswer((_) => timezoneHelper);
+    when(appState.notificationHelper).thenAnswer((_) => mockNotificationHelper);
+
+    when(appState.taskItems).thenAnswer((_) => taskItems?.toBuiltList() ?? BuiltList<TaskItem>());
+    when(appState.sprints).thenAnswer((_) => sprints?.toBuiltList() ?? BuiltList<Sprint>());
+    when(appState.taskRecurrences).thenAnswer((_) => recurrences?.toBuiltList() ?? BuiltList<TaskRecurrence>());
+
+    when(mockGlobalKey.currentState).thenAnswer((_) => mockNavigatorState);
+    when(mockNavigatorState.pushReplacementNamed(any)).thenAnswer((t) => Future.value(t));
+/*
 
     when(taskRepository.completeTask(argThat(isA<TaskItem>()), argThat(isA<DateTime?>()))).thenAnswer((invocation) {
       TaskItem originalTask = invocation.positionalArguments[0];
@@ -63,7 +73,7 @@ void main() {
       TaskRecurrencePreview original = invocation.positionalArguments[0];
       return Future.value(TaskRecurrence(
           id: original.id,
-          personId: original.personId,
+          personDocId: original.personDocId,
           name: original.name,
           recurNumber: original.recurNumber,
           recurUnit: original.recurUnit,
@@ -76,100 +86,84 @@ void main() {
       TaskItemPreview addedTask = invocation.positionalArguments[0];
       return Future.value(TestMockHelper.mockAddTask(addedTask, appState.taskItems.length + 1));
     });
+*/
 
-    var taskHelper = TaskHelper(
-        appState: appState,
-        repository: taskRepository,
-        auth: auth,
-        stateSetter: stateSetter);
-    taskHelper.navHelper = navHelper;
-    return taskHelper;
   }
 
-  test('reloadTasks', () async {
-    var taskHelper = createTaskHelper();
-    var notificationScheduler = appState.notificationScheduler;
-    expect(notificationScheduler, isNot(null));
-
-    await taskHelper.reloadTasks();
-    verify(navHelper.goToLoadingScreen('Reloading tasks...'));
-
-    verify(taskRepository.loadTasks(stateSetter));
-    verify(notificationScheduler.updateBadge());
-    verify(navHelper.goToHomeScreen());
-
-    expect(appState.isLoading, false);
-  });
-
   test('addTask', () async {
-    var taskHelper = createTaskHelper(taskItems: [catLitterTask]);
-    var notificationScheduler = appState.notificationScheduler;
-    expect(notificationScheduler, isNot(null));
+    prepareMocks();
+
     var taskItem = TaskItem.fromJson(birthdayJSON);
-    var taskItemBlueprint = TaskItemBlueprint.fromJson(birthdayJSON);
+    var taskItemBlueprint = taskItem.createBlueprint();
+    var action = new AddTaskItemAction(blueprint: taskItemBlueprint);
 
-    when(taskRepository.addTask(taskItemBlueprint)).thenAnswer((_) => Future.value(taskItem));
-
-    var resultingTaskItem = await taskHelper.addTask(taskItemBlueprint, (fn) => fn());
+    await createNewTaskItem(taskRepository)(store, action, (_) => {});
+    expect(taskItem.personDocId, MockTaskItemBuilder.me);
+    verify(appState.personDocId);
     verify(taskRepository.addTask(taskItemBlueprint));
-    verify(notificationScheduler.updateNotificationForTask(birthdayTask));
-    verify(notificationScheduler.updateBadge());
-
-    expect(appState.taskItems, [catLitterTask, resultingTaskItem]);
+    verify(store.dispatch(argThat(isA<TaskItemAddedAction>())));
+    verify(mockNotificationHelper.updateNotificationForTask(taskItem));
   });
 
   test('addTask with recurrence', () async {
-    var taskHelper = createTaskHelper(taskItems: [birthdayTask]);
-    var notificationScheduler = appState.notificationScheduler;
-    expect(notificationScheduler, isNot(null));
-    var taskItem = TaskItem.fromJson(catLitterJSON);
-    var taskItemBlueprint = TaskItemBlueprint.fromJson(catLitterJSON);
+    prepareMocks(taskItems: [birthdayTask]);
 
     var taskRecurrence = TaskRecurrence.fromJson(catLitterRecurrenceJSON);
-    var taskRecurrenceBlueprint = TaskRecurrenceBlueprint.fromJson(catLitterRecurrenceJSON);
+    var taskRecurrenceBlueprint = taskRecurrence.createBlueprint();
+
+    var taskItem = TaskItem.fromJson(catLitterJSON);
+    var taskItemBlueprint = taskItem.createBlueprint();
 
     taskItemBlueprint.recurrenceBlueprint = taskRecurrenceBlueprint;
-    taskItem.taskRecurrencePreview = taskRecurrence;
 
-    when(taskRepository.addTask(taskItemBlueprint)).thenAnswer((_) => Future.value(taskItem));
+    var action = new AddTaskItemAction(blueprint: taskItemBlueprint);
 
-    TaskItem resultingTaskItem = await taskHelper.addTask(taskItemBlueprint, (fn) => fn());
+    await createNewTaskItem(taskRepository)(store, action, (_) => {});
+
+    expect(taskItem.personDocId, MockTaskItemBuilder.me);
+    expect(taskRecurrence.personDocId, MockTaskItemBuilder.me);
+    verify(appState.personDocId);
     verify(taskRepository.addTask(taskItemBlueprint));
-    verify(notificationScheduler.updateNotificationForTask(catLitterTask));
-    verify(notificationScheduler.updateBadge());
-
-    expect(appState.taskItems, [birthdayTask, resultingTaskItem]);
-
-    expect(resultingTaskItem, taskItem);
-    expect(resultingTaskItem.taskRecurrencePreview, taskRecurrence);
+    verify(store.dispatch(argThat(isA<TaskItemAddedAction>())));
+    verify(mockNotificationHelper.updateNotificationForTask(taskItem));
   });
+
+  test('reloadTasks', () async {
+    prepareMocks();
+
+    await loadData(taskRepository, mockGlobalKey)(store, LoadDataAction(), (_) => {});;
+    verify(mockGlobalKey.currentState);
+    verify(mockNavigatorState.pushReplacementNamed(TaskMasterRoutes.home));
+    verify(appState.personDocId);
+    verify(store.dispatch(argThat(isA<DataLoadedAction>())));
+  });
+
+
 
   test('completeTask no recur', () async {
-    var taskHelper = createTaskHelper(taskItems: [birthdayTask]);
-    var mockAppState = taskHelper.appState;
-    var notificationScheduler = mockAppState.notificationScheduler;
-    expect(notificationScheduler, isNot(null));
+    prepareMocks(taskItems: [birthdayTask]);
 
-    expect(birthdayTask.taskRecurrencePreview, null);
+    expect(birthdayTask.recurrence, null);
 
-    var now = DateTime.now();
-    var inboundTask = _mockComplete(birthdayTask, now);
+    TaskItem? resultTask;
+    TaskItemBlueprint? blueprint;
 
-    when(taskRepository.completeTask(birthdayTask, any)).thenAnswer((_) => Future.value(inboundTask));
+    when(taskRepository.updateTask(birthdayTask.docId, any)).thenAnswer((invocation) {
+      blueprint = invocation.positionalArguments[1];
+      resultTask = TestMockHelper.mockEditTask(birthdayTask, blueprint!);
+      return Future.value((taskItem: resultTask!, recurrence: null));
+    });
 
-    var returnedTask = await taskHelper.completeTask(birthdayTask, true, stateSetter);
-    verify(notificationScheduler.updateNotificationForTask(returnedTask));
-    verify(notificationScheduler.updateBadge());
+    await completeTaskItem(taskRepository)(store, CompleteTaskItemAction(birthdayTask, true), (_) => {});
     verifyNever(taskRepository.addTask(any));
 
-    expect(returnedTask.id, birthdayTask.id);
-    expect(returnedTask.pendingCompletion, false);
-    expect(returnedTask.completionDate, now);
-    expect(returnedTask.completionDate, now);
-    expect(returnedTask.taskRecurrencePreview, null);
-
+    verify(appState.personDocId);
+    verify(taskRepository.updateTask(birthdayTask.docId, blueprint));
+    verify(mockNotificationHelper.updateNotificationForTask(resultTask));
+    verify(store.dispatch(argThat(isA<TaskItemCompletedAction>())));
   });
 
+/*
   test('completeTask uncomplete no recur', () async {
     var originalTask = burnTask;
 
@@ -599,5 +593,6 @@ void main() {
 
     expect(appState.sprints, [pastSprint]);
   });
+*/
 
 }

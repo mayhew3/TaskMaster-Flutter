@@ -5,7 +5,6 @@ import 'package:taskmaster/redux/actions/sprint_actions.dart';
 import 'package:taskmaster/task_repository.dart';
 
 import '../app_state.dart';
-import '../selectors/selectors.dart';
 
 List<Middleware<AppState>> createStoreSprintsMiddleware(TaskRepository repository) {
   return [
@@ -22,16 +21,21 @@ Future<void> Function(
   return (Store<AppState> store, CreateSprintWithTaskItems action, NextDispatcher next) async {
     next(action);
 
-    var inputs = await getRequiredInputs(store, "create sprint");
-
     try {
-      var payload = await repository.addSprintWithTaskItems(action.sprintBlueprint, action.taskItems, action.taskItemRecurPreviews, inputs.idToken);
+      action.sprintBlueprint.sprintNumber = computeSprintNumber(store);
+      var payload = await repository.addSprintWithTaskItems(action.sprintBlueprint, action.taskItems, action.taskItemRecurPreviews);
       store.dispatch(SprintCreatedAction(sprint: payload.sprint, addedTasks: payload.addedTasks, sprintAssignments: payload.sprintAssignments));
     } catch (e) {
       print("Error creating new sprint: $e");
     }
 
   };
+}
+
+int computeSprintNumber(Store<AppState> store) {
+  var sorted = store.state.sprints.toList();
+  sorted.sort((s1, s2) => s2.sprintNumber.compareTo(s1.sprintNumber));
+  return sorted.first.sprintNumber + 1;
 }
 
 Future<void> Function(
@@ -42,11 +46,9 @@ Future<void> Function(
   return (Store<AppState> store, AddTaskItemsToExistingSprint action, NextDispatcher next) async {
     next(action);
 
-    var inputs = await getRequiredInputs(store, "create sprint");
-
     try {
-      var payload = await repository.addTasksToSprint(action.taskItems, action.taskItemRecurPreviews, action.sprint, inputs.idToken);
-      store.dispatch(TaskItemsAddedToExistingSprint(sprintId: action.sprint.id, addedTasks: payload.addedTasks, sprintAssignments: payload.sprintAssignments));
+      var payload = await repository.addTasksToSprint(action.taskItems, action.taskItemRecurPreviews, action.sprint);
+      store.dispatch(TaskItemsAddedToExistingSprint(sprintId: action.sprint.docId, addedTasks: payload.addedTasks, sprintAssignments: payload.sprintAssignments));
     } catch (e) {
       print("Error creating new sprint: $e");
     }

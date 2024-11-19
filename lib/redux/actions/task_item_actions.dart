@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
 
@@ -18,6 +22,50 @@ class DataLoadedAction {
   String toString() {
     return 'DataLoadedAction{dataPayload: $dataPayload}';
   }
+}
+
+class ListenersInitializedAction {
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>> taskListener;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>> sprintListener;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>> taskRecurrenceListener;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>> sprintAssignmentListener;
+
+  ListenersInitializedAction({
+    required this.taskListener,
+    required this.sprintListener,
+    required this.taskRecurrenceListener,
+    required this.sprintAssignmentListener,
+  });
+}
+
+class TasksAddedAction {
+  final Iterable<TaskItem> addedItems;
+
+  TasksAddedAction(this.addedItems);
+}
+
+class SprintAssignmentsAddedAction {
+  final Iterable<SprintAssignment> addedSprintAssignments;
+
+  SprintAssignmentsAddedAction(this.addedSprintAssignments);
+}
+
+class TaskRecurrencesAddedAction {
+  final Iterable<TaskRecurrence> addedRecurrences;
+
+  TaskRecurrencesAddedAction(this.addedRecurrences);
+}
+
+class TasksModifiedAction {
+  final Iterable<TaskItem> modifiedItems;
+
+  TasksModifiedAction(this.modifiedItems);
+}
+
+class TaskRecurrencesModifiedAction {
+  final Iterable<TaskRecurrence> modifiedRecurrences;
+
+  TaskRecurrencesModifiedAction(this.modifiedRecurrences);
 }
 
 class UpdateTaskItemAction {
@@ -72,10 +120,10 @@ class DeleteTaskItemAction {
   }
 }
 
-class TaskItemDeletedAction {
-  final int deletedTaskId;
+class TasksDeletedAction {
+  final Iterable<String> deletedTaskIds;
 
-  TaskItemDeletedAction(this.deletedTaskId);
+  TasksDeletedAction(this.deletedTaskIds);
 }
 
 class AddTaskItemAction {

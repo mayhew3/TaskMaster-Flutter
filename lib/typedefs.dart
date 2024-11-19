@@ -13,7 +13,6 @@ import 'models/task_item_blueprint.dart';
 
 
 typedef UserUpdater(GoogleSignInAccount? account);
-typedef IdTokenUpdater(String? idToken);
 
 typedef EndLoadingCallback(BuildContext context);
 

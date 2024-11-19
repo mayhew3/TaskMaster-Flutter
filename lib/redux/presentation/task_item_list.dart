@@ -18,7 +18,6 @@ import '../../models/task_colors.dart';
 import '../../models/task_display_grouping.dart';
 import 'editable_task_item.dart';
 import 'header_list_item.dart';
-import 'loading_indicator.dart';
 
 class TaskItemList extends StatefulWidget {
   final BuiltList<TaskItem> taskItems;
@@ -62,27 +61,7 @@ class TaskItemListState extends State<TaskItemList> {
             padding: EdgeInsets.only(top: 7.0),
             child: Builder(
               builder: (context) {
-                if (viewModel.isLoading) {
-                  return LoadingIndicator(key: TaskMasterKeys.tasksLoading);
-                } else if (viewModel.loadFailed) {
-                  return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: <Widget>[
-                          const Text(
-                              "Could not load tasks from server. Please try again."),
-                          ElevatedButton(
-                            child: const Text('RETRY'),
-                            onPressed: () {
-                              StoreProvider.of<AppState>(context).dispatch(LoadDataAction());
-                            },
-                          ),
-                        ],
-                      )
-                  );
-                } else {
-                  return _buildListView(context, viewModel);
-                }
+                return _buildListView(context, viewModel);
               },
             ),
           );
@@ -122,7 +101,7 @@ class TaskItemListState extends State<TaskItemList> {
         await Navigator.of(context).push(
           MaterialPageRoute(builder: (_) {
             return DetailsScreen(
-              taskItemId: taskItem.id,
+              taskItemId: taskItem.docId,
             );
           }),
         );
@@ -273,7 +252,7 @@ class TaskItemListState extends State<TaskItemList> {
 
     final List<TaskDisplayGrouping> groupings = [
       new TaskDisplayGrouping(displayName: "Completed", displayOrder: 6, filter: (taskItem) => taskItem.isCompleted()
-          && !viewModel.recentlyCompleted.any((t) => t.id == taskItem.id), ordering: completionDateSort),
+          && !viewModel.recentlyCompleted.any((t) => t.docId == taskItem.docId), ordering: completionDateSort),
       new TaskDisplayGrouping(displayName: "Past Due", displayOrder: 1, filter: (taskItem) => taskItem.isPastDue()),
       new TaskDisplayGrouping(displayName: "Urgent", displayOrder: 2, filter: (taskItem) => taskItem.isUrgent()),
       new TaskDisplayGrouping(displayName: "Target", displayOrder: 3, filter: (taskItem) => taskItem.isTarget()),

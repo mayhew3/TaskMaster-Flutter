@@ -1,15 +1,12 @@
 
 
-import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/redux/actions/task_item_actions.dart';
 import 'package:taskmaster/routes.dart';
 
-import '../../firebase_options.dart';
 import '../actions/auth_actions.dart';
 import '../app_state.dart';
 
@@ -21,7 +18,6 @@ List<Middleware<AppState>> createAuthenticationMiddleware(
     TypedMiddleware<AppState, LogInAction>(_manualLogin(navigatorKey)),
     TypedMiddleware<AppState, LogOutAction>(_manualLogout(navigatorKey)),
     TypedMiddleware<AppState, InitTimezoneHelperAction>(_initTimezoneHelper(navigatorKey)),
-    TypedMiddleware<AppState, OnPersonVerifiedAction>(_onPersonVerified(navigatorKey)),
     TypedMiddleware<AppState, OnPersonRejectedAction>(_onPersonRejected(navigatorKey)),
   ];
 }
@@ -36,8 +32,10 @@ void Function(
     next(action);
     try {
       await store.state.googleSignIn.signIn();
-      await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.splash);
-    } catch (error) {
+      await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.home);
+    } catch (error, stackTrace) {
+      print("Error signing in: $error");
+      print(stackTrace);
       store.dispatch(OnLoginFailAction(error));
     }
   };
@@ -69,11 +67,6 @@ void Function(
     print("_initTimezoneHelper!");
     next(action);
     await store.state.timezoneHelper.configureLocalTimeZone();
-    if (store.state.appIsReady()) {
-      store.dispatch(LoadDataAction());
-      await navigatorKey.currentState!.pushReplacementNamed(
-          TaskMasterRoutes.loading);
-    }
   };
 }
 
@@ -96,9 +89,6 @@ void Function(
     ) _tryToSilentlySignIn(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {
     next(action);
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform
-    );
     print("_tryToSilentlySignIn called.");
     store.state.googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) async {
       print("onCurrentUserChanged.");
@@ -121,36 +111,15 @@ void Function(
         );
 
         var firebaseUser = await FirebaseAuth.instance.signInWithCredential(credential);
-        String? idToken = await firebaseUser.user!.getIdToken();
 
-        store.dispatch(OnAuthenticatedAction(account, firebaseUser, idToken));
+        store.dispatch(OnAuthenticatedAction(account, firebaseUser));
         store.dispatch(VerifyPersonAction(account.email));
-        if (store.state.appIsReady()) {
-          store.dispatch(LoadDataAction());
-          await navigatorKey.currentState!.pushReplacementNamed(
-              TaskMasterRoutes.loading);
-        }
       }
     });
     var account = await store.state.googleSignIn.signInSilently();
     if (account == null) {
+      print("Sign in silently failed. Returning to login screen.");
       await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.login);
-    }
-  };
-}
-
-void Function(
-    Store<AppState> store,
-    OnPersonVerifiedAction action,
-    NextDispatcher next,
-    ) _onPersonVerified(GlobalKey<NavigatorState> navigatorKey,) {
-  return (store, action, next) async {
-    next(action);
-
-    if (store.state.appIsReady()) {
-      store.dispatch(LoadDataAction());
-      await navigatorKey.currentState!.pushReplacementNamed(
-          TaskMasterRoutes.loading);
     }
   };
 }

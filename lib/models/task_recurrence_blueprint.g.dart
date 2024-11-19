@@ -9,26 +9,44 @@ part of 'task_recurrence_blueprint.dart';
 TaskRecurrenceBlueprint _$TaskRecurrenceBlueprintFromJson(
         Map<String, dynamic> json) =>
     TaskRecurrenceBlueprint()
-      ..personId = (json['person_id'] as num?)?.toInt()
+      ..personDocId = json['personDocId'] as String?
       ..name = json['name'] as String?
-      ..recurNumber = (json['recur_number'] as num?)?.toInt()
-      ..recurUnit = json['recur_unit'] as String?
-      ..recurWait = json['recur_wait'] as bool?
-      ..recurIteration = (json['recur_iteration'] as num?)?.toInt()
-      ..anchorDate = json['anchor_date'] == null
+      ..recurNumber = (json['recurNumber'] as num?)?.toInt()
+      ..recurUnit = json['recurUnit'] as String?
+      ..recurWait = json['recurWait'] as bool?
+      ..recurIteration = (json['recurIteration'] as num?)?.toInt()
+      ..anchorDate = _$JsonConverterFromJson<DateTime, DateTime>(
+          json['anchorDate'], const JsonDateTimePassThroughConverter().fromJson)
+      ..anchorType = json['anchorType'] as String?
+      ..retired = json['retired'] as String?
+      ..retiredDate = json['retiredDate'] == null
           ? null
-          : DateTime.parse(json['anchor_date'] as String)
-      ..anchorType = json['anchor_type'] as String?;
+          : DateTime.parse(json['retiredDate'] as String);
 
 Map<String, dynamic> _$TaskRecurrenceBlueprintToJson(
         TaskRecurrenceBlueprint instance) =>
     <String, dynamic>{
-      'person_id': instance.personId,
+      'personDocId': instance.personDocId,
       'name': instance.name,
-      'recur_number': instance.recurNumber,
-      'recur_unit': instance.recurUnit,
-      'recur_wait': instance.recurWait,
-      'recur_iteration': instance.recurIteration,
-      'anchor_date': instance.anchorDate?.toIso8601String(),
-      'anchor_type': instance.anchorType,
+      'recurNumber': instance.recurNumber,
+      'recurUnit': instance.recurUnit,
+      'recurWait': instance.recurWait,
+      'recurIteration': instance.recurIteration,
+      'anchorDate': _$JsonConverterToJson<DateTime, DateTime>(
+          instance.anchorDate, const JsonDateTimePassThroughConverter().toJson),
+      'anchorType': instance.anchorType,
+      'retired': instance.retired,
+      'retiredDate': instance.retiredDate?.toIso8601String(),
     };
+
+Value? _$JsonConverterFromJson<Json, Value>(
+  Object? json,
+  Value? Function(Json json) fromJson,
+) =>
+    json == null ? null : fromJson(json as Json);
+
+Json? _$JsonConverterToJson<Json, Value>(
+  Value? value,
+  Json? Function(Value value) toJson,
+) =>
+    value == null ? null : toJson(value);

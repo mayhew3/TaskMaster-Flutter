@@ -22,29 +22,29 @@ class TaskItemItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dismissible(
-      key: TaskMasterKeys.taskItem(taskItem.id),
+      key: TaskMasterKeys.taskItem(taskItem.docId),
       onDismissed: onDismissed,
       child: ListTile(
         onTap: onTap,
         leading: Checkbox(
-          key: TaskMasterKeys.taskItemCheckbox(taskItem.id),
+          key: TaskMasterKeys.taskItemCheckbox(taskItem.docId),
           value: taskItem.completionDate != null,
           onChanged: onCheckboxChanged,
         ),
         title: Hero(
-          tag: '${taskItem.id}__heroTag',
+          tag: '${taskItem.docId}__heroTag',
           child: Container(
             width: MediaQuery.of(context).size.width,
             child: Text(
               taskItem.name,
-              key: TaskMasterKeys.taskItemTask(taskItem.id),
+              key: TaskMasterKeys.taskItemTask(taskItem.docId),
               style: Theme.of(context).textTheme.headlineMedium,
             ),
           ),
         ),
         subtitle: Text(
           taskItem.context ?? '',
-          key: TaskMasterKeys.taskItemNote(taskItem.id),
+          key: TaskMasterKeys.taskItemNote(taskItem.docId),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.headlineSmall,

@@ -1,5 +1,8 @@
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+import 'package:taskmaster/models/serializers.dart';
+import 'package:taskmaster/models/sprint_assignment.dart';
 
 /// This allows the `Sprint` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
@@ -10,7 +13,7 @@ abstract class Sprint implements Built<Sprint, SprintBuilder> {
   @BuiltValueSerializer(serializeNulls: true)
   static Serializer<Sprint> get serializer => _$sprintSerializer;
 
-  int get id;
+  String get docId;
 
   DateTime get dateAdded;
 
@@ -22,11 +25,20 @@ abstract class Sprint implements Built<Sprint, SprintBuilder> {
   int get numUnits;
   String get unitName;
 
-  int get personId;
+  String get personDocId;
 
-  int? get sprintNumber;
+  int get sprintNumber;
+
+  String? get retired;
+  DateTime? get retiredDate;
+
+  BuiltList<SprintAssignment> get sprintAssignments;
 
   Sprint._();
 
   factory Sprint([void Function(SprintBuilder) updates]) = _$Sprint;
+
+  dynamic toJson() {
+    return serializers.serializeWith(Sprint.serializer, this);
+  }
 }

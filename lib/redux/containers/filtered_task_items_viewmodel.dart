@@ -16,9 +16,8 @@ abstract class FilteredTaskItemsViewModel implements Built<FilteredTaskItemsView
   bool get loading;
   bool get showCompleted;
   bool get showScheduled;
+  bool get offlineMode;
   TimezoneHelper get timezoneHelper;
-  // Function(TaskItem) onRemove;
-  // Function(TaskItem) onUndoRemove;
 
   FilteredTaskItemsViewModel._();
 
@@ -31,6 +30,7 @@ abstract class FilteredTaskItemsViewModel implements Built<FilteredTaskItemsView
       ..showCompleted = store.state.taskListFilter.showCompleted
       ..showScheduled = store.state.taskListFilter.showScheduled
       ..timezoneHelper = store.state.timezoneHelper
+      ..offlineMode = store.state.offlineMode
     );
   }
 

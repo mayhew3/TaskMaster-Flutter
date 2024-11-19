@@ -2,10 +2,14 @@
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
-import 'package:taskmaster/models/task_recurrence.dart';
 
-class TaskItemBuilder extends DateHolder {
-  int? id;
+import 'mock_recurrence_builder.dart';
+
+class MockTaskItemBuilder with DateHolder {
+
+  static const String me = "ADBC1234";
+
+  String? docId;
   late String name;
   late String description;
   late String project;
@@ -19,18 +23,24 @@ class TaskItemBuilder extends DateHolder {
   DateTime? urgentDate;
   DateTime? dueDate;
   DateTime? completionDate;
+  late bool offCycle;
   late int gamePoints;
   int? recurNumber;
   String? recurUnit;
   bool? recurWait;
   int? recurIteration;
-  int? recurrenceId;
+  String? recurrenceDocId;
 
-  TaskRecurrence? taskRecurrence;
+  MockTaskRecurrenceBuilder? taskRecurrence;
 
-  TaskItemBuilder();
+  MockTaskItemBuilder();
 
   TaskItemBlueprint createBlueprint() {
+
+    if (docId != null) {
+      throw Exception('Cannot create blueprint with docId. Use create() instead.');
+    }
+
     TaskItemBlueprint taskItem = new TaskItemBlueprint();
 
     taskItem.name = name;
@@ -44,50 +54,56 @@ class TaskItemBuilder extends DateHolder {
     taskItem.targetDate = targetDate;
     taskItem.urgentDate = urgentDate;
     taskItem.dueDate = dueDate;
+    taskItem.offCycle = offCycle;
     taskItem.gamePoints = gamePoints;
     taskItem.recurNumber = recurNumber;
     taskItem.recurUnit = recurUnit;
     taskItem.recurWait = recurWait;
     taskItem.recurIteration = recurIteration;
-    taskItem.recurrenceId = recurrenceId;
+    taskItem.recurrenceDocId = recurrenceDocId;
 
     return taskItem;
   }
 
   TaskItem create() {
-    TaskItem taskItem = new TaskItem(
-      id: id!,
-      personId: 1,
-      name: name,
-      description: description,
-      project: project,
-      context: context,
-      urgency: urgency,
-      priority: priority,
-      duration: duration,
-      gamePoints: gamePoints,
-      startDate: startDate,
-      targetDate: targetDate,
-      urgentDate: urgentDate,
-      dueDate: dueDate,
-      completionDate: completionDate,
-      recurNumber: recurNumber,
-      recurUnit: recurUnit,
-      recurWait: recurWait,
-      recurIteration: recurIteration,
-      recurrenceId: recurrenceId,
-    );
 
-    TaskRecurrence? tmpTaskRecurrence = taskRecurrence;
-    if (tmpTaskRecurrence != null) {
-      tmpTaskRecurrence.addToTaskItems(taskItem);
+    if (docId == null) {
+      throw Exception('Cannot create task item without docId. Use createBlueprint() instead.');
     }
+
+    var taskItemBuilder = new TaskItemBuilder()
+      ..docId = docId!
+      ..dateAdded = DateTime.now().toUtc()
+      ..personDocId = me
+      ..name = name
+      ..description = description
+      ..project = project
+      ..context = context
+      ..urgency = urgency
+      ..priority = priority
+      ..duration = duration
+      ..gamePoints = gamePoints
+      ..startDate = startDate
+      ..targetDate = targetDate
+      ..urgentDate = urgentDate
+      ..dueDate = dueDate
+      ..completionDate = completionDate
+      ..offCycle = offCycle
+      ..recurNumber = recurNumber
+      ..recurUnit = recurUnit
+      ..recurWait = recurWait
+      ..recurIteration = recurIteration
+      ..recurrenceDocId = recurrenceDocId
+      ..recurrence = taskRecurrence?.create().toBuilder()
+    ;
+
+    var taskItem = taskItemBuilder.build();
 
     return taskItem;
   }
 
-  factory TaskItemBuilder.asPreCommit() {
-    return TaskItemBuilder()
+  factory MockTaskItemBuilder.asPreCommit() {
+    return MockTaskItemBuilder()
       ..name = 'Test Task'
       ..project = 'Maintenance'
       ..description = 'A thing for me to do.'
@@ -96,45 +112,46 @@ class TaskItemBuilder extends DateHolder {
       ..priority = 5
       ..duration = 15
       ..dateAdded = DateTime.now()
+      ..offCycle = false
       ..gamePoints = 1;
   }
 
-  factory TaskItemBuilder.asDefault() {
-    return TaskItemBuilder.asPreCommit()
-      ..id = 1;
+  factory MockTaskItemBuilder.asDefault() {
+    return MockTaskItemBuilder.asPreCommit()
+      ..docId = me;
   }
 
-  factory TaskItemBuilder.withDates() {
+  factory MockTaskItemBuilder.withDates() {
     var now = DateTime.now();
-    return TaskItemBuilder.asDefault()
+    return MockTaskItemBuilder.asDefault()
         ..startDate = now.subtract(Duration(days: 4))
         ..targetDate = now.add(Duration(days: 1))
         ..urgentDate = now.add(Duration(days: 5))
         ..dueDate = now.add(Duration(days: 8));
   }
 
-  TaskItemBuilder asCompleted() {
+  MockTaskItemBuilder asCompleted() {
     completionDate = DateTime.now();
     return this;
   }
 
-  TaskItemBuilder withRecur({bool recurWait = true}) {
-    recurrenceId = 1;
+  MockTaskItemBuilder withRecur({bool recurWait = true}) {
+    recurrenceDocId = MockTaskItemBuilder.me;
     recurNumber = 6;
     recurIteration = 1;
     recurUnit = 'Weeks';
     this.recurWait = recurWait;
 
-    taskRecurrence = new TaskRecurrence(
-        id: 1,
-        personId: 1,
-        name: name,
-        recurNumber: recurNumber!,
-        recurUnit: recurUnit!,
-        recurWait: recurWait,
-        recurIteration: recurIteration!,
-        anchorDate: getAnchorDate()!,
-        anchorType: getAnchorDateType()!.label);
+    taskRecurrence = new MockTaskRecurrenceBuilder()
+      ..docId = me
+      ..name = name
+      ..recurNumber = recurNumber!
+      ..recurUnit = recurUnit!
+      ..recurWait = recurWait
+      ..recurIteration = recurIteration!
+      ..anchorDate = getAnchorDate()!
+      ..anchorType = getAnchorDateType()!.label
+    ;
 
     return this;
   }

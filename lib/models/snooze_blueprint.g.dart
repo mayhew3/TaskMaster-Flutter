@@ -8,36 +8,52 @@ part of 'snooze_blueprint.dart';
 
 SnoozeBlueprint _$SnoozeBlueprintFromJson(Map<String, dynamic> json) =>
     SnoozeBlueprint(
-      taskId: (json['task_id'] as num).toInt(),
-      snoozeNumber: (json['snooze_number'] as num).toInt(),
-      snoozeUnits: json['snooze_units'] as String,
-      snoozeAnchor: json['snooze_anchor'] as String,
-      previousAnchor: json['previous_anchor'] == null
-          ? null
-          : DateTime.parse(json['previous_anchor'] as String),
-      newAnchor: DateTime.parse(json['new_anchor'] as String),
+      taskId: (json['taskId'] as num?)?.toInt(),
+      taskDocId: json['taskDocId'] as String,
+      snoozeNumber: (json['snoozeNumber'] as num).toInt(),
+      snoozeUnits: json['snoozeUnits'] as String,
+      snoozeAnchor: json['snoozeAnchor'] as String,
+      previousAnchor: _$JsonConverterFromJson<DateTime, DateTime>(
+          json['previousAnchor'],
+          const JsonDateTimePassThroughConverter().fromJson),
+      newAnchor: const JsonDateTimePassThroughConverter()
+          .fromJson(json['newAnchor'] as DateTime),
     )
       ..id = (json['id'] as num?)?.toInt()
-      ..dateAdded = json['date_added'] == null
+      ..dateAdded = json['dateAdded'] == null
           ? null
-          : DateTime.parse(json['date_added'] as String);
+          : DateTime.parse(json['dateAdded'] as String)
+      ..retired = json['retired'] as String?
+      ..retiredDate = json['retiredDate'] == null
+          ? null
+          : DateTime.parse(json['retiredDate'] as String);
 
-Map<String, dynamic> _$SnoozeBlueprintToJson(SnoozeBlueprint instance) {
-  final val = <String, dynamic>{};
+Map<String, dynamic> _$SnoozeBlueprintToJson(SnoozeBlueprint instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'dateAdded': instance.dateAdded?.toIso8601String(),
+      'taskId': instance.taskId,
+      'taskDocId': instance.taskDocId,
+      'snoozeNumber': instance.snoozeNumber,
+      'snoozeUnits': instance.snoozeUnits,
+      'snoozeAnchor': instance.snoozeAnchor,
+      'previousAnchor': _$JsonConverterToJson<DateTime, DateTime>(
+          instance.previousAnchor,
+          const JsonDateTimePassThroughConverter().toJson),
+      'newAnchor':
+          const JsonDateTimePassThroughConverter().toJson(instance.newAnchor),
+      'retired': instance.retired,
+      'retiredDate': instance.retiredDate?.toIso8601String(),
+    };
 
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
+Value? _$JsonConverterFromJson<Json, Value>(
+  Object? json,
+  Value? Function(Json json) fromJson,
+) =>
+    json == null ? null : fromJson(json as Json);
 
-  writeNotNull('id', instance.id);
-  writeNotNull('date_added', instance.dateAdded?.toIso8601String());
-  val['task_id'] = instance.taskId;
-  val['snooze_number'] = instance.snoozeNumber;
-  val['snooze_units'] = instance.snoozeUnits;
-  val['snooze_anchor'] = instance.snoozeAnchor;
-  writeNotNull('previous_anchor', instance.previousAnchor?.toIso8601String());
-  val['new_anchor'] = instance.newAnchor.toIso8601String();
-  return val;
-}
+Json? _$JsonConverterToJson<Json, Value>(
+  Value? value,
+  Json? Function(Value value) toJson,
+) =>
+    value == null ? null : toJson(value);

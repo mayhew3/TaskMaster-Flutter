@@ -14,6 +14,22 @@ class _$AppState extends AppState {
   @override
   final BuiltList<TaskRecurrence> taskRecurrences;
   @override
+  final StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? taskListener;
+  @override
+  final StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? sprintListener;
+  @override
+  final StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      taskRecurrenceListener;
+  @override
+  final StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      sprintAssignmentListener;
+  @override
+  final bool tasksLoading;
+  @override
+  final bool sprintsLoading;
+  @override
+  final bool taskRecurrencesLoading;
+  @override
   final bool isLoading;
   @override
   final bool loadFailed;
@@ -28,7 +44,7 @@ class _$AppState extends AppState {
   @override
   final VisibilityFilter taskListFilter;
   @override
-  final int? personId;
+  final String? personDocId;
   @override
   final GoogleSignIn googleSignIn;
   @override
@@ -36,13 +52,13 @@ class _$AppState extends AppState {
   @override
   final GoogleSignInAccount? currentUser;
   @override
-  final bool tokenRetrieved;
+  final bool offlineMode;
   @override
   final TimezoneHelper timezoneHelper;
   @override
   final int nextId;
   @override
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+  final NotificationHelper notificationHelper;
 
   factory _$AppState([void Function(AppStateBuilder)? updates]) =>
       (new AppStateBuilder()..update(updates))._build();
@@ -51,6 +67,13 @@ class _$AppState extends AppState {
       {required this.taskItems,
       required this.sprints,
       required this.taskRecurrences,
+      this.taskListener,
+      this.sprintListener,
+      this.taskRecurrenceListener,
+      this.sprintAssignmentListener,
+      required this.tasksLoading,
+      required this.sprintsLoading,
+      required this.taskRecurrencesLoading,
       required this.isLoading,
       required this.loadFailed,
       required this.recentlyCompleted,
@@ -58,19 +81,25 @@ class _$AppState extends AppState {
       required this.allNavItems,
       required this.sprintListFilter,
       required this.taskListFilter,
-      this.personId,
+      this.personDocId,
       required this.googleSignIn,
       this.firebaseUser,
       this.currentUser,
-      required this.tokenRetrieved,
+      required this.offlineMode,
       required this.timezoneHelper,
       required this.nextId,
-      required this.flutterLocalNotificationsPlugin})
+      required this.notificationHelper})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(taskItems, r'AppState', 'taskItems');
     BuiltValueNullFieldError.checkNotNull(sprints, r'AppState', 'sprints');
     BuiltValueNullFieldError.checkNotNull(
         taskRecurrences, r'AppState', 'taskRecurrences');
+    BuiltValueNullFieldError.checkNotNull(
+        tasksLoading, r'AppState', 'tasksLoading');
+    BuiltValueNullFieldError.checkNotNull(
+        sprintsLoading, r'AppState', 'sprintsLoading');
+    BuiltValueNullFieldError.checkNotNull(
+        taskRecurrencesLoading, r'AppState', 'taskRecurrencesLoading');
     BuiltValueNullFieldError.checkNotNull(isLoading, r'AppState', 'isLoading');
     BuiltValueNullFieldError.checkNotNull(
         loadFailed, r'AppState', 'loadFailed');
@@ -86,12 +115,12 @@ class _$AppState extends AppState {
     BuiltValueNullFieldError.checkNotNull(
         googleSignIn, r'AppState', 'googleSignIn');
     BuiltValueNullFieldError.checkNotNull(
-        tokenRetrieved, r'AppState', 'tokenRetrieved');
+        offlineMode, r'AppState', 'offlineMode');
     BuiltValueNullFieldError.checkNotNull(
         timezoneHelper, r'AppState', 'timezoneHelper');
     BuiltValueNullFieldError.checkNotNull(nextId, r'AppState', 'nextId');
-    BuiltValueNullFieldError.checkNotNull(flutterLocalNotificationsPlugin,
-        r'AppState', 'flutterLocalNotificationsPlugin');
+    BuiltValueNullFieldError.checkNotNull(
+        notificationHelper, r'AppState', 'notificationHelper');
   }
 
   @override
@@ -108,6 +137,13 @@ class _$AppState extends AppState {
         taskItems == other.taskItems &&
         sprints == other.sprints &&
         taskRecurrences == other.taskRecurrences &&
+        taskListener == other.taskListener &&
+        sprintListener == other.sprintListener &&
+        taskRecurrenceListener == other.taskRecurrenceListener &&
+        sprintAssignmentListener == other.sprintAssignmentListener &&
+        tasksLoading == other.tasksLoading &&
+        sprintsLoading == other.sprintsLoading &&
+        taskRecurrencesLoading == other.taskRecurrencesLoading &&
         isLoading == other.isLoading &&
         loadFailed == other.loadFailed &&
         recentlyCompleted == other.recentlyCompleted &&
@@ -115,15 +151,14 @@ class _$AppState extends AppState {
         allNavItems == other.allNavItems &&
         sprintListFilter == other.sprintListFilter &&
         taskListFilter == other.taskListFilter &&
-        personId == other.personId &&
+        personDocId == other.personDocId &&
         googleSignIn == other.googleSignIn &&
         firebaseUser == other.firebaseUser &&
         currentUser == other.currentUser &&
-        tokenRetrieved == other.tokenRetrieved &&
+        offlineMode == other.offlineMode &&
         timezoneHelper == other.timezoneHelper &&
         nextId == other.nextId &&
-        flutterLocalNotificationsPlugin ==
-            other.flutterLocalNotificationsPlugin;
+        notificationHelper == other.notificationHelper;
   }
 
   @override
@@ -132,6 +167,13 @@ class _$AppState extends AppState {
     _$hash = $jc(_$hash, taskItems.hashCode);
     _$hash = $jc(_$hash, sprints.hashCode);
     _$hash = $jc(_$hash, taskRecurrences.hashCode);
+    _$hash = $jc(_$hash, taskListener.hashCode);
+    _$hash = $jc(_$hash, sprintListener.hashCode);
+    _$hash = $jc(_$hash, taskRecurrenceListener.hashCode);
+    _$hash = $jc(_$hash, sprintAssignmentListener.hashCode);
+    _$hash = $jc(_$hash, tasksLoading.hashCode);
+    _$hash = $jc(_$hash, sprintsLoading.hashCode);
+    _$hash = $jc(_$hash, taskRecurrencesLoading.hashCode);
     _$hash = $jc(_$hash, isLoading.hashCode);
     _$hash = $jc(_$hash, loadFailed.hashCode);
     _$hash = $jc(_$hash, recentlyCompleted.hashCode);
@@ -139,14 +181,14 @@ class _$AppState extends AppState {
     _$hash = $jc(_$hash, allNavItems.hashCode);
     _$hash = $jc(_$hash, sprintListFilter.hashCode);
     _$hash = $jc(_$hash, taskListFilter.hashCode);
-    _$hash = $jc(_$hash, personId.hashCode);
+    _$hash = $jc(_$hash, personDocId.hashCode);
     _$hash = $jc(_$hash, googleSignIn.hashCode);
     _$hash = $jc(_$hash, firebaseUser.hashCode);
     _$hash = $jc(_$hash, currentUser.hashCode);
-    _$hash = $jc(_$hash, tokenRetrieved.hashCode);
+    _$hash = $jc(_$hash, offlineMode.hashCode);
     _$hash = $jc(_$hash, timezoneHelper.hashCode);
     _$hash = $jc(_$hash, nextId.hashCode);
-    _$hash = $jc(_$hash, flutterLocalNotificationsPlugin.hashCode);
+    _$hash = $jc(_$hash, notificationHelper.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -157,6 +199,13 @@ class _$AppState extends AppState {
           ..add('taskItems', taskItems)
           ..add('sprints', sprints)
           ..add('taskRecurrences', taskRecurrences)
+          ..add('taskListener', taskListener)
+          ..add('sprintListener', sprintListener)
+          ..add('taskRecurrenceListener', taskRecurrenceListener)
+          ..add('sprintAssignmentListener', sprintAssignmentListener)
+          ..add('tasksLoading', tasksLoading)
+          ..add('sprintsLoading', sprintsLoading)
+          ..add('taskRecurrencesLoading', taskRecurrencesLoading)
           ..add('isLoading', isLoading)
           ..add('loadFailed', loadFailed)
           ..add('recentlyCompleted', recentlyCompleted)
@@ -164,15 +213,14 @@ class _$AppState extends AppState {
           ..add('allNavItems', allNavItems)
           ..add('sprintListFilter', sprintListFilter)
           ..add('taskListFilter', taskListFilter)
-          ..add('personId', personId)
+          ..add('personDocId', personDocId)
           ..add('googleSignIn', googleSignIn)
           ..add('firebaseUser', firebaseUser)
           ..add('currentUser', currentUser)
-          ..add('tokenRetrieved', tokenRetrieved)
+          ..add('offlineMode', offlineMode)
           ..add('timezoneHelper', timezoneHelper)
           ..add('nextId', nextId)
-          ..add('flutterLocalNotificationsPlugin',
-              flutterLocalNotificationsPlugin))
+          ..add('notificationHelper', notificationHelper))
         .toString();
   }
 }
@@ -196,6 +244,54 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _$this._taskRecurrences ??= new ListBuilder<TaskRecurrence>();
   set taskRecurrences(ListBuilder<TaskRecurrence>? taskRecurrences) =>
       _$this._taskRecurrences = taskRecurrences;
+
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _taskListener;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? get taskListener =>
+      _$this._taskListener;
+  set taskListener(
+          StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+              taskListener) =>
+      _$this._taskListener = taskListener;
+
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _sprintListener;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? get sprintListener =>
+      _$this._sprintListener;
+  set sprintListener(
+          StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+              sprintListener) =>
+      _$this._sprintListener = sprintListener;
+
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      _taskRecurrenceListener;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      get taskRecurrenceListener => _$this._taskRecurrenceListener;
+  set taskRecurrenceListener(
+          StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+              taskRecurrenceListener) =>
+      _$this._taskRecurrenceListener = taskRecurrenceListener;
+
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      _sprintAssignmentListener;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      get sprintAssignmentListener => _$this._sprintAssignmentListener;
+  set sprintAssignmentListener(
+          StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+              sprintAssignmentListener) =>
+      _$this._sprintAssignmentListener = sprintAssignmentListener;
+
+  bool? _tasksLoading;
+  bool? get tasksLoading => _$this._tasksLoading;
+  set tasksLoading(bool? tasksLoading) => _$this._tasksLoading = tasksLoading;
+
+  bool? _sprintsLoading;
+  bool? get sprintsLoading => _$this._sprintsLoading;
+  set sprintsLoading(bool? sprintsLoading) =>
+      _$this._sprintsLoading = sprintsLoading;
+
+  bool? _taskRecurrencesLoading;
+  bool? get taskRecurrencesLoading => _$this._taskRecurrencesLoading;
+  set taskRecurrencesLoading(bool? taskRecurrencesLoading) =>
+      _$this._taskRecurrencesLoading = taskRecurrencesLoading;
 
   bool? _isLoading;
   bool? get isLoading => _$this._isLoading;
@@ -234,9 +330,9 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   set taskListFilter(VisibilityFilterBuilder? taskListFilter) =>
       _$this._taskListFilter = taskListFilter;
 
-  int? _personId;
-  int? get personId => _$this._personId;
-  set personId(int? personId) => _$this._personId = personId;
+  String? _personDocId;
+  String? get personDocId => _$this._personDocId;
+  set personDocId(String? personDocId) => _$this._personDocId = personDocId;
 
   GoogleSignIn? _googleSignIn;
   GoogleSignIn? get googleSignIn => _$this._googleSignIn;
@@ -253,10 +349,9 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   set currentUser(GoogleSignInAccount? currentUser) =>
       _$this._currentUser = currentUser;
 
-  bool? _tokenRetrieved;
-  bool? get tokenRetrieved => _$this._tokenRetrieved;
-  set tokenRetrieved(bool? tokenRetrieved) =>
-      _$this._tokenRetrieved = tokenRetrieved;
+  bool? _offlineMode;
+  bool? get offlineMode => _$this._offlineMode;
+  set offlineMode(bool? offlineMode) => _$this._offlineMode = offlineMode;
 
   TimezoneHelper? _timezoneHelper;
   TimezoneHelper? get timezoneHelper => _$this._timezoneHelper;
@@ -267,12 +362,10 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   int? get nextId => _$this._nextId;
   set nextId(int? nextId) => _$this._nextId = nextId;
 
-  FlutterLocalNotificationsPlugin? _flutterLocalNotificationsPlugin;
-  FlutterLocalNotificationsPlugin? get flutterLocalNotificationsPlugin =>
-      _$this._flutterLocalNotificationsPlugin;
-  set flutterLocalNotificationsPlugin(
-          FlutterLocalNotificationsPlugin? flutterLocalNotificationsPlugin) =>
-      _$this._flutterLocalNotificationsPlugin = flutterLocalNotificationsPlugin;
+  NotificationHelper? _notificationHelper;
+  NotificationHelper? get notificationHelper => _$this._notificationHelper;
+  set notificationHelper(NotificationHelper? notificationHelper) =>
+      _$this._notificationHelper = notificationHelper;
 
   AppStateBuilder();
 
@@ -282,6 +375,13 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _taskItems = $v.taskItems.toBuilder();
       _sprints = $v.sprints.toBuilder();
       _taskRecurrences = $v.taskRecurrences.toBuilder();
+      _taskListener = $v.taskListener;
+      _sprintListener = $v.sprintListener;
+      _taskRecurrenceListener = $v.taskRecurrenceListener;
+      _sprintAssignmentListener = $v.sprintAssignmentListener;
+      _tasksLoading = $v.tasksLoading;
+      _sprintsLoading = $v.sprintsLoading;
+      _taskRecurrencesLoading = $v.taskRecurrencesLoading;
       _isLoading = $v.isLoading;
       _loadFailed = $v.loadFailed;
       _recentlyCompleted = $v.recentlyCompleted.toBuilder();
@@ -289,14 +389,14 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _allNavItems = $v.allNavItems.toBuilder();
       _sprintListFilter = $v.sprintListFilter.toBuilder();
       _taskListFilter = $v.taskListFilter.toBuilder();
-      _personId = $v.personId;
+      _personDocId = $v.personDocId;
       _googleSignIn = $v.googleSignIn;
       _firebaseUser = $v.firebaseUser;
       _currentUser = $v.currentUser;
-      _tokenRetrieved = $v.tokenRetrieved;
+      _offlineMode = $v.offlineMode;
       _timezoneHelper = $v.timezoneHelper;
       _nextId = $v.nextId;
-      _flutterLocalNotificationsPlugin = $v.flutterLocalNotificationsPlugin;
+      _notificationHelper = $v.notificationHelper;
       _$v = null;
     }
     return this;
@@ -324,6 +424,16 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               taskItems: taskItems.build(),
               sprints: sprints.build(),
               taskRecurrences: taskRecurrences.build(),
+              taskListener: taskListener,
+              sprintListener: sprintListener,
+              taskRecurrenceListener: taskRecurrenceListener,
+              sprintAssignmentListener: sprintAssignmentListener,
+              tasksLoading: BuiltValueNullFieldError.checkNotNull(
+                  tasksLoading, r'AppState', 'tasksLoading'),
+              sprintsLoading: BuiltValueNullFieldError.checkNotNull(
+                  sprintsLoading, r'AppState', 'sprintsLoading'),
+              taskRecurrencesLoading: BuiltValueNullFieldError.checkNotNull(
+                  taskRecurrencesLoading, r'AppState', 'taskRecurrencesLoading'),
               isLoading: BuiltValueNullFieldError.checkNotNull(
                   isLoading, r'AppState', 'isLoading'),
               loadFailed: BuiltValueNullFieldError.checkNotNull(
@@ -333,22 +443,17 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               allNavItems: allNavItems.build(),
               sprintListFilter: sprintListFilter.build(),
               taskListFilter: taskListFilter.build(),
-              personId: personId,
+              personDocId: personDocId,
               googleSignIn: BuiltValueNullFieldError.checkNotNull(
                   googleSignIn, r'AppState', 'googleSignIn'),
               firebaseUser: firebaseUser,
               currentUser: currentUser,
-              tokenRetrieved: BuiltValueNullFieldError.checkNotNull(
-                  tokenRetrieved, r'AppState', 'tokenRetrieved'),
+              offlineMode: BuiltValueNullFieldError.checkNotNull(
+                  offlineMode, r'AppState', 'offlineMode'),
               timezoneHelper: BuiltValueNullFieldError.checkNotNull(
                   timezoneHelper, r'AppState', 'timezoneHelper'),
-              nextId: BuiltValueNullFieldError.checkNotNull(
-                  nextId, r'AppState', 'nextId'),
-              flutterLocalNotificationsPlugin:
-                  BuiltValueNullFieldError.checkNotNull(
-                      flutterLocalNotificationsPlugin,
-                      r'AppState',
-                      'flutterLocalNotificationsPlugin'));
+              nextId: BuiltValueNullFieldError.checkNotNull(nextId, r'AppState', 'nextId'),
+              notificationHelper: BuiltValueNullFieldError.checkNotNull(notificationHelper, r'AppState', 'notificationHelper'));
     } catch (_) {
       late String _$failedField;
       try {

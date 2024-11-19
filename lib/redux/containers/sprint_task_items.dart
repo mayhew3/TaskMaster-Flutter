@@ -7,6 +7,7 @@ import 'package:taskmaster/redux/containers/tab_selector.dart';
 import '../actions/task_item_actions.dart';
 import '../app_state.dart';
 import '../presentation/filter_button.dart';
+import '../presentation/refresh_button.dart';
 import '../presentation/task_item_list.dart';
 import '../presentation/task_main_menu.dart';
 
@@ -32,10 +33,7 @@ class SprintTaskItems extends StatelessWidget {
                 toggleScheduled: () => StoreProvider.of<AppState>(context).dispatch(ToggleSprintListShowScheduledAction()),
                 toggleCompleted: () => StoreProvider.of<AppState>(context).dispatch(ToggleSprintListShowCompletedAction()),
               ),
-              IconButton(
-                  icon: Icon(Icons.refresh),
-                  onPressed: () => StoreProvider.of<AppState>(context).dispatch(LoadDataAction())
-              ),
+              RefreshButton(),
             ],
           ),
           body: TaskItemList(
