@@ -218,6 +218,7 @@ class TaskRepository {
         blueprintJson.remove('recurrenceBlueprint');
       } else {
         var recurrenceDoc = firestore.collection("taskRecurrences").doc();
+        recurrenceDocId = recurrenceDoc.id;
         var recurrenceJson = recurrenceBlueprint.toJson();
 
         recurrenceJson['dateAdded'] = DateTime.now().toUtc();
@@ -228,6 +229,7 @@ class TaskRepository {
         recurrenceJson['dateAdded'] = recurSnap.get('dateAdded');
         updatedRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson);
         blueprintJson.remove('recurrenceBlueprint');
+        blueprintJson['recurrenceDocId'] = recurrenceDocId;
       }
     }
 
