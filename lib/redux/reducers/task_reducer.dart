@@ -35,7 +35,7 @@ AppState listenersInitialized(AppState state, ListenersInitializedAction action)
     ..taskListener = action.taskListener
     ..sprintListener = action.sprintListener
     ..taskRecurrenceListener = action.taskRecurrenceListener
-    ..sprintAssignmentListener = action.sprintAssignmentListener
+    ..sprintAssignmentListeners = action.sprintAssignmentListeners
   );
 }
 
@@ -234,7 +234,7 @@ AppState _onDataNotLoaded(AppState state, dynamic action) {
   state.taskListener?.cancel();
   state.sprintListener?.cancel();
   state.taskRecurrenceListener?.cancel();
-  state.sprintAssignmentListener?.cancel();
+  state.sprintAssignmentListeners?.values.forEach((listener) => listener.cancel());
   cancelAllNotifications(state);
   return state.rebuild((s) => s
     ..taskItems = ListBuilder()
@@ -244,7 +244,7 @@ AppState _onDataNotLoaded(AppState state, dynamic action) {
     ..taskListener = null
     ..sprintListener = null
     ..taskRecurrenceListener = null
-    ..sprintAssignmentListener = null
+    ..sprintAssignmentListeners = Map()
     ..tasksLoading = true
     ..sprintsLoading = true
     ..taskRecurrencesLoading = true

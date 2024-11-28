@@ -88,38 +88,37 @@ Future<void> Function(
 
       print("Initializing data listeners...");
 
-      var sprintListener = repository.createListener<Sprint>(
+      var sprintListener = repository.createListener<Sprint, SprintAssignment>(
           collectionName: "sprints",
-          subCollectionName: "sprintAssignments",
           personDocId: inputs.personDocId,
           addCallback: (sprints) => store.dispatch(SprintsAddedAction(sprints)),
           limit: 1,
-          serializer: Sprint.serializer);
-      var recurrenceListener = repository.createListener<TaskRecurrence>(
+          serializer: Sprint.serializer,
+          subCollectionName: "sprintAssignments",
+          subAddCallback: (sprintAssignments) => store.dispatch(SprintAssignmentsAddedAction(sprintAssignments)),
+          subSerializer: SprintAssignment.serializer,
+      );
+      var recurrenceListener = repository.createListener<TaskRecurrence, SprintAssignment>(
           collectionName:  "taskRecurrences",
           personDocId: inputs.personDocId,
           addCallback: (taskRecurrences) => store.dispatch(TaskRecurrencesAddedAction(taskRecurrences)),
           modifyCallback: (taskRecurrences) => store.dispatch(TaskRecurrencesModifiedAction(taskRecurrences)),
-          serializer: TaskRecurrence.serializer);
-      var taskListener = repository.createListener<TaskItem>(
+          serializer: TaskRecurrence.serializer,
+      );
+      var taskListener = repository.createListener<TaskItem, SprintAssignment>(
           collectionName: "tasks",
           personDocId: inputs.personDocId,
           addCallback: (taskItems) => store.dispatch(TasksAddedAction(taskItems)),
           modifyCallback: (taskItems) => store.dispatch(TasksModifiedAction(taskItems)),
           completionFilter: DateTime.now().subtract(Duration(days: 7)),
-          serializer: TaskItem.serializer);
-      var sprintAssignmentListener = repository.createListener<SprintAssignment>(
-          collectionName: "sprintAssignments",
-          personDocId: inputs.personDocId,
-          addCallback: (sprintAssignments) => store.dispatch(SprintAssignmentsAddedAction(sprintAssignments)),
-          serializer: SprintAssignment.serializer,
-          collectionGroup: true);
+          serializer: TaskItem.serializer,
+      );
 
       store.dispatch(ListenersInitializedAction(
-        taskListener: taskListener,
-        sprintListener: sprintListener,
-        taskRecurrenceListener: recurrenceListener,
-        sprintAssignmentListener: sprintAssignmentListener,
+        taskListener: taskListener.mainListener,
+        sprintListener: sprintListener.mainListener,
+        taskRecurrenceListener: recurrenceListener.mainListener,
+        sprintAssignmentListeners: sprintListener.sprintAssignmentListeners,
       ));
 
     } catch (e, stack) {

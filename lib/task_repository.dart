@@ -39,9 +39,8 @@ class TaskRepository {
     firestore.enableNetwork().then((_) => print('Online mode.'));
   }
 
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>> createListener<T>({
+  ({StreamSubscription<QuerySnapshot<Map<String, dynamic>>> mainListener, Map<String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>> sprintAssignmentListeners}) createListener<T, S>({
     required String collectionName,
-    String? subCollectionName,
     required String personDocId,
     required Function(Iterable<T>) addCallback,
     Function(Iterable<T>)? modifyCallback,
@@ -49,9 +48,12 @@ class TaskRepository {
     required Serializer<T> serializer,
     int? limit,
     DateTime? completionFilter,
-    bool collectionGroup = false,
+    String? subCollectionName,
+    Function(Iterable<S>)? subAddCallback,
+    Serializer<S>? subSerializer,
   }) {
-    var collectionRef = collectionGroup ? firestore.collectionGroup(collectionName) : firestore.collection(collectionName);
+    var sprintAssignmentListeners = Map<String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>();
+    var collectionRef = firestore.collection(collectionName);
     var completionQuery = completionFilter != null ?
       collectionRef.where(
         Filter.or(
@@ -84,7 +86,6 @@ class TaskRepository {
       var deserialTimes = [];
 
       List<T> finalList = [];
-      // todo: fix performance
       for (var doc in addedDocs) {
 
         var json = doc.data()!;
@@ -95,16 +96,28 @@ class TaskRepository {
         rollingTime = gapTime;
 
         json['docId'] = doc.id;
+        var sprintNumber = json['sprintNumber'];
 
-        if (subCollectionName != null) {
-          var subDocs = (await doc.reference.collection(subCollectionName).get()).docs;
-          if (subDocs.isNotEmpty) {
-            json[subCollectionName] = subDocs.map((sd) {
-              var subJson = sd.data();
-              subJson['docId'] = sd.id;
-              return subJson;
-            });
+        if (subCollectionName != null && subSerializer != null && subAddCallback != null) {
+          var subCollection = doc.reference.collection(subCollectionName);
+          var subListener = subCollection.snapshots().listen((subEvent) async {
+            var subDocs = subEvent.docChanges.where((dc) => dc.type == DocumentChangeType.added).map((dc) => dc.doc);
+            if (subDocs.isNotEmpty) {
+              var subObjects = subDocs.map((sd) {
+                var subJson = sd.data();
+                subJson?['docId'] = sd.id;
+                var deserialized = serializers.deserializeWith(subSerializer, subJson)!;
+                return deserialized;
+              });
+              log.finer("SprintAssignments added! Sprint $sprintNumber, ${subObjects.length} objects.");
+              subAddCallback(subObjects);
+            }
+          });
+          var existingListener = sprintAssignmentListeners[doc.id];
+          if (existingListener != null) {
+            existingListener.cancel();
           }
+          sprintAssignmentListeners[doc.id] = subListener;
         }
 
         gapTime = DateTime.now();
@@ -162,7 +175,7 @@ class TaskRepository {
       }
 
     });
-    return listener;
+    return (mainListener: listener, sprintAssignmentListeners: sprintAssignmentListeners);
   }
 
   void addTask(TaskItemBlueprint blueprint) async {
