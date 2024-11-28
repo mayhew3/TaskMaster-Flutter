@@ -1,5 +1,6 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:logging/logging.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/redux/actions/auth_actions.dart';
@@ -7,6 +8,8 @@ import 'package:taskmaster/redux/actions/auth_actions.dart';
 import '../../models/task_item.dart';
 import '../actions/task_item_actions.dart';
 import '../app_state.dart';
+
+final log = Logger('TaskReducer');
 
 final taskItemsReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, TasksDeletedAction>(onDeleteTaskItems),
@@ -130,6 +133,7 @@ AppState onTaskItemsAdded(AppState state, TasksAddedAction action) {
 
 @visibleForTesting
 AppState onTaskItemsModified(AppState state, TasksModifiedAction action) {
+  var recurrences = state.taskRecurrences;
   action.modifiedItems.forEach((t) => updateNotificationForItem(state, t));
 
   var listBuilder = state.taskItems.toBuilder()
@@ -138,11 +142,19 @@ AppState onTaskItemsModified(AppState state, TasksModifiedAction action) {
       if (modifiedMatch == null) {
         return taskItem;
       } else {
-        return modifiedMatch.rebuild((t) => t
-          ..recurrence = taskItem.recurrence?.toBuilder()
-          ..pendingCompletion = false);
+        return modifiedMatch.rebuild((t) {
+          var recurrence = modifiedMatch.recurrenceDocId == null ?
+            null :
+            taskItem.recurrence == null ?
+              recurrences.where((r) => r.docId == modifiedMatch.recurrenceDocId).singleOrNull?.toBuilder() :
+              taskItem.recurrence?.toBuilder();
+          return t
+          ..recurrence = recurrence
+          ..pendingCompletion = false;
+        });
       }
     });
+
   return state.rebuild((s) => s
     ..taskItems = listBuilder
   );
@@ -152,8 +164,12 @@ AppState onTaskItemsModified(AppState state, TasksModifiedAction action) {
 AppState onTaskRecurrencesAdded(AppState state, TaskRecurrencesAddedAction action) {
   var rebuiltRecurrenceList = state.taskRecurrences.toBuilder()..addAll(action.addedRecurrences);
 
-  var withRecurrences = state.taskItems.map((taskItem) => taskItem.rebuild((t) => t
-    ..recurrence = rebuiltRecurrenceList.build().where((r) => r.docId == t.recurrenceDocId).singleOrNull?.toBuilder()
+  var withRecurrences = state.taskItems.map((taskItem) => taskItem.rebuild((t) {
+    var matchingRecurrences = rebuiltRecurrenceList.build().where((r) => r.docId == t.recurrenceDocId);
+    var recurrenceBuilder = matchingRecurrences.singleOrNull?.toBuilder();
+    return t
+    ..recurrence = recurrenceBuilder;
+  }
   ));
 
   return state.rebuild((s) => s

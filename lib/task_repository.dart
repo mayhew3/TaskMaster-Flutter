@@ -205,15 +205,32 @@ class TaskRepository {
     var recurrenceBlueprint = blueprint.recurrenceBlueprint;
     TaskRecurrence? updatedRecurrence;
     if (recurrenceBlueprint != null) {
-      var recurrenceDoc = firestore.collection("taskRecurrences").doc(blueprint.recurrenceDocId);
-      var recurrenceJson = recurrenceBlueprint.toJson();
-      recurrenceDoc.update(recurrenceJson);
+      var recurrenceDocId = blueprint.recurrenceDocId;
+      if (recurrenceDocId != null) {
+        var recurrenceDoc = firestore.collection("taskRecurrences").doc(recurrenceDocId);
+        var recurrenceJson = recurrenceBlueprint.toJson();
+        recurrenceDoc.update(recurrenceJson);
 
-      var recurSnap = await recurrenceDoc.get();
-      recurrenceJson['docId'] = blueprint.recurrenceDocId;
-      recurrenceJson['dateAdded'] = recurSnap.get('dateAdded');
-      updatedRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson);
-      blueprintJson.remove('recurrenceBlueprint');
+        var recurSnap = await recurrenceDoc.get();
+        recurrenceJson['docId'] = recurrenceDocId;
+        recurrenceJson['dateAdded'] = recurSnap.get('dateAdded');
+        updatedRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson);
+        blueprintJson.remove('recurrenceBlueprint');
+      } else {
+        var recurrenceDoc = firestore.collection("taskRecurrences").doc();
+        recurrenceDocId = recurrenceDoc.id;
+        var recurrenceJson = recurrenceBlueprint.toJson();
+
+        recurrenceJson['dateAdded'] = DateTime.now().toUtc();
+        recurrenceDoc.set(recurrenceJson);
+
+        var recurSnap = await recurrenceDoc.get();
+        recurrenceJson['docId'] = recurrenceDocId;
+        recurrenceJson['dateAdded'] = recurSnap.get('dateAdded');
+        updatedRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson);
+        blueprintJson.remove('recurrenceBlueprint');
+        blueprintJson['recurrenceDocId'] = recurrenceDocId;
+      }
     }
 
     var doc = firestore.collection("tasks").doc(taskItemDocId);
