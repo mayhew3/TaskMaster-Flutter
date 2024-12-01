@@ -34,7 +34,7 @@ class MockFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNo
         String? payload,
         DateTimeComponents? matchDateTimeComponents,
       }) async {
-    MockPendingNotificationRequest request = new MockPendingNotificationRequest(id, payload, title, scheduledDate);
+    MockPendingNotificationRequest request = MockPendingNotificationRequest(id, payload, title, scheduledDate);
     pendings.add(request);
   }
 
@@ -45,7 +45,7 @@ class MockFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNo
     if (matching.moveNext()) {
       var goodOne = matching.current;
       if (matching.moveNext()) {
-        throw Exception("Multiple matches found for task item ${taskItem.docId} and date $dueStr");
+        throw Exception('Multiple matches found for task item ${taskItem.docId} and date $dueStr');
       }
       return goodOne;
     } else {

@@ -10,7 +10,7 @@ import '../../models/sprint.dart';
 final sprintsReducer = <AppState Function(AppState, dynamic)>[
   // TypedReducer<AppState, SprintCreatedAction>(_sprintCreated),
   // TypedReducer<AppState, TaskItemsAddedToExistingSprint>(_taskItemsAddedToExistingSprint),
-  TypedReducer<AppState, SprintsAddedAction>(sprintsAdded),
+  TypedReducer<AppState, SprintsAddedAction>(sprintsAdded).call,
 ];
 /*
 

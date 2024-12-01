@@ -23,8 +23,8 @@ class TestMockHelper {
 
   static TaskRepository createTaskRepositoryWithoutLoad({List<TaskItem>? taskItems, List<Sprint>? sprints}) {
     String email = 'scorpy@gmail.com';
-    GoogleSignInAccount googleUser = new MockGoogleSignInAccount();
-    var mockFirebaseFirestore = new MockFirebaseFirestore();
+    GoogleSignInAccount googleUser = MockGoogleSignInAccount();
+    var mockFirebaseFirestore = MockFirebaseFirestore();
 
     TaskRepository taskRepository = TaskRepository(firestore: mockFirebaseFirestore);
 
@@ -73,7 +73,7 @@ class TestMockHelper {
     var recurrenceBlueprint = blueprint.recurrenceBlueprint;
     TaskRecurrence? recurrenceCopy;
     if (recurrenceBlueprint != null) {
-      recurrenceCopy = new TaskRecurrence((r) => r
+      recurrenceCopy = TaskRecurrence((r) => r
         ..docId = recurrenceDocId
         ..personDocId = recurrenceBlueprint.personDocId
         ..name = recurrenceBlueprint.name
@@ -85,7 +85,7 @@ class TestMockHelper {
         ..anchorType = recurrenceBlueprint.anchorType);
     }
 
-    TaskItem taskItem = new TaskItem((t) => t
+    TaskItem taskItem = TaskItem((t) => t
       ..name = blueprint.name
       ..docId = id
       ..personDocId = MockTaskItemBuilder.me
@@ -119,7 +119,7 @@ class TestMockHelper {
     var recurrence = original.recurrence;
     TaskRecurrence? recurrenceCopy;
     if (recurrenceBlueprint != null && recurrence != null) {
-      recurrenceCopy = new TaskRecurrence((r) => r
+      recurrenceCopy = TaskRecurrence((r) => r
         ..docId = recurrence.docId
         ..personDocId = recurrence.personDocId
         ..name = recurrenceBlueprint.name ?? recurrence.name
@@ -131,7 +131,7 @@ class TestMockHelper {
         ..anchorType = recurrenceBlueprint.anchorType ?? recurrence.anchorType);
     }
 
-    TaskItem taskItem = new TaskItem((t) => t
+    TaskItem taskItem = TaskItem((t) => t
       ..name = blueprint.name
       ..docId = original.docId
       ..personDocId = original.personDocId

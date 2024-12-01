@@ -8,9 +8,9 @@ import 'package:taskmaster/redux/presentation/task_main_menu.dart';
 
 class StatsCounter extends StatelessWidget {
 
-  StatsCounter({
-    Key? key,
-  }) : super(key: key);
+  const StatsCounter({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +57,7 @@ class StatsCounter extends StatelessWidget {
                   Padding(
                     padding: EdgeInsets.only(bottom: 24.0),
                     child: Text(
-                      "${viewModel.numActive}",
+                      '${viewModel.numActive}',
                       style: Theme
                           .of(context)
                           .textTheme

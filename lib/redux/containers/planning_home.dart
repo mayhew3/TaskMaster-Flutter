@@ -7,7 +7,7 @@ import 'package:taskmaster/redux/presentation/new_sprint.dart';
 import '../app_state.dart';
 
 class PlanningHome extends StatelessWidget {
-  PlanningHome({Key? key}) : super(key: key);
+  const PlanningHome({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -5,7 +5,7 @@ import '../actions/task_item_actions.dart';
 import '../app_state.dart';
 
 final tabsReducer = <AppState Function(AppState, dynamic)>[
-  TypedReducer<AppState, UpdateTabAction>(_activeTabReducer),
+  TypedReducer<AppState, UpdateTabAction>(_activeTabReducer).call,
 ];
 
 AppState _activeTabReducer(AppState state, UpdateTabAction action) {

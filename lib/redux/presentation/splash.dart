@@ -8,7 +8,7 @@ class SplashScreen extends StatelessWidget {
 
   const SplashScreen({
     required this.message,
-    Key? key}) : super(key: key);
+    super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -16,7 +16,7 @@ class RecurrenceHelper {
       var recurIteration = taskItem.recurIteration;
 
       if (recurIteration == null) {
-        throw new Exception(
+        throw Exception(
             'Recurrence has a value, so recur_iteration should be non-null!');
       }
 
@@ -26,7 +26,7 @@ class RecurrenceHelper {
 
       DateTime? anchorDate = taskItem.getAnchorDate();
       if (anchorDate == null) {
-        throw new Exception('Recur_number exists without anchor date!');
+        throw Exception('Recur_number exists without anchor date!');
       }
       DateTime nextAnchorDate;
 
@@ -48,7 +48,7 @@ class RecurrenceHelper {
 
       return nextScheduledTask;
     } else {
-      throw Exception("No recurrence on task item!");
+      throw Exception('No recurrence on task item!');
     }
   }
 
@@ -64,7 +64,9 @@ class RecurrenceHelper {
       dateType.dateFieldSetter(taskItemEdit, adjustedDate);
     } else {
       Duration difference = adjustedDate.difference(relevantDate);
-      TaskDateTypes.allTypes.forEach((taskDateType) => taskItemEdit.incrementDateIfExists(taskDateType, difference));
+      for (var taskDateType in TaskDateTypes.allTypes) {
+        taskItemEdit.incrementDateIfExists(taskDateType, difference);
+      }
     }
 
   }

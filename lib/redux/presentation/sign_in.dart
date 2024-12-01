@@ -9,7 +9,7 @@ class SignInScreen extends StatelessWidget {
 
   const SignInScreen({
     this.errorMessage,
-    Key? key}) : super(key: key);
+    super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +21,7 @@ class SignInScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
-            Text(errorMessage == null ? "You are not currently signed in." : errorMessage!),
+            Text(errorMessage == null ? 'You are not currently signed in.' : errorMessage!),
             ElevatedButton(
               child: const Text('SIGN IN'),
               onPressed: () {

@@ -10,7 +10,7 @@ import '../actions/task_item_actions.dart';
 import '../app_state.dart';
 
 class LoadFailedScreen extends StatelessWidget {
-  LoadFailedScreen({Key? key}) : super(key: key);
+  const LoadFailedScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,7 @@ class LoadFailedScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
               const Text(
-                  "Could not load tasks from server. Please try again."),
+                  'Could not load tasks from server. Please try again.'),
               ElevatedButton(
                 child: const Text('RETRY'),
                 onPressed: () {

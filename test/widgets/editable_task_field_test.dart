@@ -6,12 +6,12 @@ import 'package:taskmaster/redux/presentation/editable_task_field.dart';
 void main() {
 
   String? fieldValue;
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  Future<MaterialApp> _createApp(WidgetTester tester, {bool? isRequired, FormFieldValidator<String>? validator}) async {
+  Future<MaterialApp> createApp(WidgetTester tester, {bool? isRequired, FormFieldValidator<String>? validator}) async {
 
     Form form = Form(
-          key: _formKey,
+          key: formKey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           child: EditableTaskField(
             initialText: 'Fart',
@@ -32,16 +32,16 @@ void main() {
     return app;
   }
 
-  Finder _findTextField() {
+  Finder findTextField() {
     return find.byType(TextFormField);
   }
 
-  FormState? _getForm() {
-    return _formKey.currentState;
+  FormState? getForm() {
+    return formKey.currentState;
   }
 
   testWidgets('has label', (WidgetTester tester) async {
-    await _createApp(tester);
+    await createApp(tester);
 
     var labelFinder = find.text('Type');
 
@@ -50,9 +50,9 @@ void main() {
   });
 
   testWidgets('change text', (WidgetTester tester) async {
-    await _createApp(tester);
+    await createApp(tester);
 
-    var formField = _findTextField();
+    var formField = findTextField();
 
     var valueFinder = find.text('Fart');
 
@@ -67,50 +67,50 @@ void main() {
 
     expect(newValueFinder, findsOneWidget);
 
-    final form = _getForm();
+    final form = getForm();
     form!.save();
 
     expect(fieldValue, 'Lesser Gunk');
   });
 
   testWidgets('validation passes null ok', (WidgetTester tester) async {
-    await _createApp(tester, isRequired: false);
+    await createApp(tester, isRequired: false);
 
-    var textField = _findTextField();
+    var textField = findTextField();
     await tester.enterText(textField, '');
 
-    var form = _getForm();
+    var form = getForm();
     expect(form!.validate(), true);
   });
 
   testWidgets('validation fails null not ok', (WidgetTester tester) async {
-    await _createApp(tester, isRequired: true);
+    await createApp(tester, isRequired: true);
 
-    var textField = _findTextField();
+    var textField = findTextField();
     await tester.enterText(textField, '');
 
-    var form = _getForm();
+    var form = getForm();
     expect(form!.validate(), false);
   });
 
   testWidgets('validation passes null not ok', (WidgetTester tester) async {
-    await _createApp(tester, isRequired: true);
+    await createApp(tester, isRequired: true);
 
-    var textField = _findTextField();
+    var textField = findTextField();
     await tester.enterText(textField, 'Real Text');
 
-    var form = _getForm();
+    var form = getForm();
     expect(form!.validate(), true);
   });
 
   testWidgets('validation fails if validator fails', (WidgetTester tester) async {
-    var validator = (value) => 'Required';
-    await _createApp(tester, validator: validator);
+    validator(value) => 'Required';
+    await createApp(tester, validator: validator);
 
-    var textField = _findTextField();
+    var textField = findTextField();
     await tester.enterText(textField, '39');
 
-    var form = _getForm();
+    var form = getForm();
     expect(form!.validate(), false);
   });
 

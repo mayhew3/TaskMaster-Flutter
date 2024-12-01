@@ -17,6 +17,8 @@ import 'editable_task_field.dart';
 import 'nullable_dropdown.dart';
 
 class NewSprint extends StatefulWidget {
+  const NewSprint({super.key});
+
   @override
   State<StatefulWidget> createState() => _NewSprintState();
 }
@@ -130,7 +132,7 @@ class _NewSprintState extends State<NewSprint> {
       String dateString = oneYearAgo.isAfter(lastEndDate) ?
       ' over a year ago.' :
       DateUtil.formatMediumMaybeHidingYear(lastEndDate, viewModel.timezoneHelper);
-      return Text('Last Sprint Ended: ' + dateString);
+      return Text('Last Sprint Ended: $dateString');
     }
   }
 

@@ -10,8 +10,8 @@ void main() {
 
     test('fromJSON', () {
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
-      expect(catLitter.docId, "CAT_LITTER");
-      expect(catLitter.name, "Cat Litter");
+      expect(catLitter.docId, 'CAT_LITTER');
+      expect(catLitter.name, 'Cat Litter');
       expect(catLitter.startDate, null);
       expect(catLitter.targetDate, catTarget);
       expect(catLitter.completionDate, catEnd);

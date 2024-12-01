@@ -26,7 +26,7 @@ class DatePassThroughSerializer implements PrimitiveSerializer<DateTime> {
     } else if (serialized is Timestamp) {
       return DateTime.fromMillisecondsSinceEpoch(serialized.millisecondsSinceEpoch).toUtc();
     } else {
-      throw Exception("Attempt to deserialize date that is neither string or DateTime: ${serialized.runtimeType}");
+      throw Exception('Attempt to deserialize date that is neither string or DateTime: ${serialized.runtimeType}');
     }
   }
 

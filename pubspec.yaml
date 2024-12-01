@@ -61,6 +61,7 @@ dev_dependencies:
   json_serializable: ^6.5.4
 
   cloud_firestore_platform_interface: any
+  flutter_lints: ^5.0.0
 flutter_icons:
   ios: true
   android: true

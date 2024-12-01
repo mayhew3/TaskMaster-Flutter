@@ -16,9 +16,9 @@ import 'filtered_task_items_viewmodel.dart';
 
 class FilteredTaskItems extends StatelessWidget {
 
-  FilteredTaskItems({
-    Key? key,
-  }) : super(key: key);
+  const FilteredTaskItems({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

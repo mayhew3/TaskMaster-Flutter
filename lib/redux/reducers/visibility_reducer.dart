@@ -4,9 +4,9 @@ import '../actions/task_item_actions.dart';
 import '../app_state.dart';
 
 final sprintVisibilityReducer = <AppState Function(AppState, dynamic)>[
-  TypedReducer<AppState, UpdateSprintFilterAction>(_sprintFilterReducer),
-  TypedReducer<AppState, ToggleSprintListShowScheduledAction>(_toggleSprintListShowScheduled),
-  TypedReducer<AppState, ToggleSprintListShowCompletedAction>(_toggleSprintListShowCompleted),
+  TypedReducer<AppState, UpdateSprintFilterAction>(_sprintFilterReducer).call,
+  TypedReducer<AppState, ToggleSprintListShowScheduledAction>(_toggleSprintListShowScheduled).call,
+  TypedReducer<AppState, ToggleSprintListShowCompletedAction>(_toggleSprintListShowCompleted).call,
 ];
 
 AppState _sprintFilterReducer(
@@ -23,9 +23,9 @@ AppState _toggleSprintListShowCompleted(AppState state, ToggleSprintListShowComp
 }
 
 final taskVisibilityReducer = <AppState Function(AppState, dynamic)>[
-  TypedReducer<AppState, UpdateTaskFilterAction>(_taskFilterReducer),
-  TypedReducer<AppState, ToggleTaskListShowScheduledAction>(_toggleTaskListShowScheduled),
-  TypedReducer<AppState, ToggleTaskListShowCompletedAction>(_toggleTaskListShowCompleted),
+  TypedReducer<AppState, UpdateTaskFilterAction>(_taskFilterReducer).call,
+  TypedReducer<AppState, ToggleTaskListShowScheduledAction>(_toggleTaskListShowScheduled).call,
+  TypedReducer<AppState, ToggleTaskListShowCompletedAction>(_toggleTaskListShowCompleted).call,
 ];
 
 AppState _taskFilterReducer(

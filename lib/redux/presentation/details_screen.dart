@@ -20,7 +20,7 @@ import 'delayed_checkbox.dart';
 class DetailsScreen extends StatelessWidget {
   final String taskItemId;
 
-  DetailsScreen({
+  const DetailsScreen({
     Key? key,
     required this.taskItemId,
   }) : super(key: key ?? TaskMasterKeys.taskItemDetailsScreen);
@@ -32,10 +32,10 @@ class DetailsScreen extends StatelessWidget {
           var taskItem = viewModel.taskItem;
           return Scaffold(
             appBar: AppBar(
-              title: Text("Task Item Details"),
+              title: Text('Task Item Details'),
               actions: [
                 IconButton(
-                  tooltip: "Delete Task Item",
+                  tooltip: 'Delete Task Item',
                   key: TaskMasterKeys.deleteTaskItemButton,
                   icon: Icon(Icons.delete),
                   onPressed: () {
@@ -149,7 +149,7 @@ class DetailsScreen extends StatelessWidget {
             ),
             floatingActionButton: FloatingActionButton(
               key: TaskMasterKeys.editTaskItemFab,
-              tooltip: "Edit Task Item",
+              tooltip: 'Edit Task Item',
               child: Icon(Icons.edit),
               onPressed: () {
                 Navigator.of(context).push(
@@ -167,7 +167,7 @@ class DetailsScreen extends StatelessWidget {
           );
         },
         converter: (Store<AppState> store) {
-          return DetailsScreenViewModel.fromStore(store, this.taskItemId);
+          return DetailsScreenViewModel.fromStore(store, taskItemId);
         },
     );
 
@@ -182,10 +182,10 @@ class DetailsScreen extends StatelessWidget {
     var jiffy = Jiffy.parseFromDateTime(localTime);
     var isToday = jiffy.yMMMd == Jiffy.now().yMMMd;
     var isThisYear = jiffy.year == Jiffy.now().year;
-    var jiffyTime = jiffy.format(pattern: "h:mm a");
-    var jiffyDate = isThisYear ? jiffy.format(pattern: "MMMM do") : jiffy.format(pattern: "MMMM do, yyyy");
+    var jiffyTime = jiffy.format(pattern: 'h:mm a');
+    var jiffyDate = isThisYear ? jiffy.format(pattern: 'MMMM do') : jiffy.format(pattern: 'MMMM do, yyyy');
     var formattedDate = isToday ?
-    jiffyTime + ' today' :
+    '$jiffyTime today' :
     jiffyDate;
     return formattedDate;
   }
@@ -194,7 +194,7 @@ class DetailsScreen extends StatelessWidget {
     if (dateTime == null) {
       return null;
     }
-    return "(" + timeago.format(dateTime, allowFromNow: true) + ")";
+    return '(${timeago.format(dateTime, allowFromNow: true)})';
   }
 
   String formatNumber(num? number) {
@@ -247,7 +247,7 @@ class DetailsScreen extends StatelessWidget {
     }
     var recurNumber = recurrence.recurNumber;
     var recurWait = recurrence.recurWait;
-    return 'Every ' + recurNumber.toString() + ' ' + getFormattedRecurUnit(recurrence) + (recurWait ? ' (after completion)' : '');
+    return 'Every $recurNumber ${getFormattedRecurUnit(recurrence)}${recurWait ? ' (after completion)' : ''}';
   }
 
   String getFormattedRecurUnit(TaskRecurrence taskRecurrence) {

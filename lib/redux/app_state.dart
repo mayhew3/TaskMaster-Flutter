@@ -84,8 +84,8 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
       ..allNavItems = navItemBuilder
       ..nextId = 0
       ..offlineMode = false
-      ..sprintAssignmentListeners = Map()
-      ..notificationHelper = new NotificationHelper(plugin: NotificationHelper.initializeNotificationPlugin(), timezoneHelper: timezoneHelper)
+      ..sprintAssignmentListeners = <String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>{}
+      ..notificationHelper = NotificationHelper(plugin: NotificationHelper.initializeNotificationPlugin(), timezoneHelper: timezoneHelper)
     ;
   }
   );

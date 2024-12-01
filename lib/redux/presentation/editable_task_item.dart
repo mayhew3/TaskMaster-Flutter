@@ -20,8 +20,8 @@ class EditableTaskItemWidget extends StatelessWidget {
   final Sprint? sprint;
   final bool highlightSprint;
 
-  EditableTaskItemWidget({
-    Key? key,
+  const EditableTaskItemWidget({
+    super.key,
     required this.taskItem,
     this.sprint,
     required this.highlightSprint,
@@ -31,7 +31,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     this.onDismissed,
     this.onLongPress,
     this.onForcePress,
-  }) : super(key: key);
+  });
 
   bool hasPassed(DateTime? dateTime) {
     return dateTime == null ? false : dateTime.isBefore(DateTime.timestamp());
@@ -73,11 +73,11 @@ class EditableTaskItemWidget extends StatelessWidget {
     if (dateValue == null) {
       return '';
     } else if ('now' == formatted) {
-      return label + ' just now';
+      return '$label just now';
     } else if (isPast) {
-      return label + ' ' + formatted + ' ago';
+      return '$label $formatted ago';
     } else {
-      return label + ' in ' + formatted;
+      return '$label in $formatted';
     }
   }
 
@@ -86,9 +86,9 @@ class EditableTaskItemWidget extends StatelessWidget {
     if (dueDate == null) {
       return '';
     } else if (taskItem.isPastDue()) {
-      return 'Due ' + formatDateTime(dueDate) + ' ago';
+      return 'Due ${formatDateTime(dueDate)} ago';
     } else {
-      return 'Due in ' + formatDateTime(dueDate);
+      return 'Due in ${formatDateTime(dueDate)}';
     }
   }
 
@@ -139,7 +139,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     for (TaskDateType taskDateType in TaskDateTypes.allTypes) {
       if (!taskItem.isCompleted() &&
           taskDateType.inListBeforeDisplayThreshold(taskItem) &&
-          dateWarnings.length < 1) {
+          dateWarnings.isEmpty) {
         dateWarnings.add(_getDateFromNow(taskDateType));
       }
     }
@@ -148,7 +148,7 @@ class EditableTaskItemWidget extends StatelessWidget {
       if (!taskItem.isCompleted() &&
           taskDateType.inListAfterDisplayThreshold(taskItem) &&
           TaskDateTypes.start != taskDateType &&
-          dateWarnings.length < 1) {
+          dateWarnings.isEmpty) {
         dateWarnings.add(_getDateFromNow(taskDateType));
       }
     }

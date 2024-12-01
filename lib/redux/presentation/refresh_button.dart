@@ -5,9 +5,9 @@ import '../actions/task_item_actions.dart';
 import '../app_state.dart';
 
 class RefreshButton extends StatelessWidget {
-  RefreshButton({
-    Key? key,
-  }) : super(key: key);
+  const RefreshButton({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

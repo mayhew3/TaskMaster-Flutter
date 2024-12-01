@@ -57,7 +57,7 @@ mixin DateHolder {
   }
 
   bool isCompleted() {
-    return this.completionDate != null;
+    return completionDate != null;
   }
 
   DateTime? getLastDateBefore(TaskDateType taskDateType) {

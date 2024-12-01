@@ -7,7 +7,7 @@ import 'mock_recurrence_builder.dart';
 
 class MockTaskItemBuilder with DateHolder {
 
-  static const String me = "ADBC1234";
+  static const String me = 'ADBC1234';
 
   String? docId;
   late String name;
@@ -18,16 +18,22 @@ class MockTaskItemBuilder with DateHolder {
   late int priority;
   late int duration;
   late DateTime dateAdded;
+  @override
   DateTime? startDate;
+  @override
   DateTime? targetDate;
+  @override
   DateTime? urgentDate;
+  @override
   DateTime? dueDate;
+  @override
   DateTime? completionDate;
   late bool offCycle;
   late int gamePoints;
   int? recurNumber;
   String? recurUnit;
   bool? recurWait;
+  @override
   int? recurIteration;
   String? recurrenceDocId;
 
@@ -41,7 +47,7 @@ class MockTaskItemBuilder with DateHolder {
       throw Exception('Cannot create blueprint with docId. Use create() instead.');
     }
 
-    TaskItemBlueprint taskItem = new TaskItemBlueprint();
+    TaskItemBlueprint taskItem = TaskItemBlueprint();
 
     taskItem.name = name;
     taskItem.description = description;
@@ -71,7 +77,7 @@ class MockTaskItemBuilder with DateHolder {
       throw Exception('Cannot create task item without docId. Use createBlueprint() instead.');
     }
 
-    var taskItemBuilder = new TaskItemBuilder()
+    var taskItemBuilder = TaskItemBuilder()
       ..docId = docId!
       ..dateAdded = DateTime.now().toUtc()
       ..personDocId = me
@@ -142,7 +148,7 @@ class MockTaskItemBuilder with DateHolder {
     recurUnit = 'Weeks';
     this.recurWait = recurWait;
 
-    taskRecurrence = new MockTaskRecurrenceBuilder()
+    taskRecurrence = MockTaskRecurrenceBuilder()
       ..docId = me
       ..name = name
       ..recurNumber = recurNumber!

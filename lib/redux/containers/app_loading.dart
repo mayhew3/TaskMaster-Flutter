@@ -12,7 +12,7 @@ import '../selectors/selectors.dart';
 class AppLoading extends StatelessWidget {
   final Widget Function(BuildContext context, bool isLoading) builder;
 
-  AppLoading({Key? key, required this.builder}) : super(key: key);
+  const AppLoading({super.key, required this.builder});
 
   @override
   Widget build(BuildContext context) {

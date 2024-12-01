@@ -28,19 +28,19 @@ import 'test_mock_helper.dart';
   MockSpec<AppState>(), MockSpec<GlobalKey<NavigatorState>>(), MockSpec<NavigatorState>()])
 void main() {
 
-  MockTaskRepository taskRepository = new MockTaskRepository();
+  MockTaskRepository taskRepository = MockTaskRepository();
   MockFlutterLocalNotificationsPlugin plugin = MockFlutterLocalNotificationsPlugin();
   MockTimezoneHelper timezoneHelper = MockTimezoneHelper();
   MockStore<AppState> store = MockStore<AppState>();
-  MockAppState appState = new MockAppState();
-  MockNotificationHelper mockNotificationHelper = new MockNotificationHelper();
-  MockGlobalKey mockGlobalKey = new MockGlobalKey();
-  var mockNavigatorState = new MockNavigatorState();
+  MockAppState appState = MockAppState();
+  MockNotificationHelper mockNotificationHelper = MockNotificationHelper();
+  MockGlobalKey mockGlobalKey = MockGlobalKey();
+  var mockNavigatorState = MockNavigatorState();
 
   // MockNotificationScheduler notificationScheduler = new MockNotificationScheduler();
   // StateSetter stateSetter = (callback) => callback();
 
-  TaskItem _mockComplete(TaskItem taskItem, DateTime? completionDate) {
+  TaskItem mockComplete(TaskItem taskItem, DateTime? completionDate) {
     return taskItem.rebuild((t) => t.completionDate = completionDate);
   }
 
@@ -95,7 +95,7 @@ void main() {
 
     var taskItem = TaskItem.fromJson(birthdayJSON);
     var taskItemBlueprint = taskItem.createBlueprint();
-    var action = new AddTaskItemAction(blueprint: taskItemBlueprint);
+    var action = AddTaskItemAction(blueprint: taskItemBlueprint);
 
     await createNewTaskItem(taskRepository)(store, action, (_) => {});
     expect(taskItem.personDocId, MockTaskItemBuilder.me);
@@ -116,7 +116,7 @@ void main() {
 
     taskItemBlueprint.recurrenceBlueprint = taskRecurrenceBlueprint;
 
-    var action = new AddTaskItemAction(blueprint: taskItemBlueprint);
+    var action = AddTaskItemAction(blueprint: taskItemBlueprint);
 
     await createNewTaskItem(taskRepository)(store, action, (_) => {});
 
@@ -131,7 +131,7 @@ void main() {
   test('reloadTasks', () async {
     prepareMocks();
 
-    await loadData(taskRepository, mockGlobalKey)(store, LoadDataAction(), (_) => {});;
+    await loadData(taskRepository, mockGlobalKey)(store, LoadDataAction(), (_) => {});
     verify(mockGlobalKey.currentState);
     verify(mockNavigatorState.pushReplacementNamed(TaskMasterRoutes.home));
     verify(appState.personDocId);

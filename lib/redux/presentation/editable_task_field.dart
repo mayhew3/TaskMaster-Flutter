@@ -12,7 +12,7 @@ class EditableTaskField extends StatefulWidget {
   final FormFieldValidator<String>? validator;
 
   const EditableTaskField({
-    Key? key,
+    super.key,
     required this.initialText,
     required this.labelText,
     required this.fieldSetter,
@@ -21,11 +21,11 @@ class EditableTaskField extends StatefulWidget {
     this.isRequired = false,
     this.wordCaps = false,
     this.validator,
-  }) : super(key: key);
+  });
 
   @override
   State<StatefulWidget> createState() {
-    return EditableTaskFieldState(initialText: this.initialText);
+    return EditableTaskFieldState(initialText: initialText);
   }
 }
 
@@ -54,7 +54,7 @@ class EditableTaskFieldState extends State<EditableTaskField> {
           filled: false,
           border: OutlineInputBorder(),
         ),
-        initialValue: this.initialText,
+        initialValue: initialText,
         onChanged: widget.onChanged,
         onSaved: widget.fieldSetter,
         validator: (value) {

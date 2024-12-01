@@ -24,10 +24,10 @@ class AddEditScreen extends StatefulWidget {
   final TimezoneHelper timezoneHelper;
 
   const AddEditScreen({
-    Key? key,
+    super.key,
     this.taskItem,
     required this.timezoneHelper,
-  }) : super(key: key);
+  });
 
   @override
   State<StatefulWidget> createState() => AddEditScreenState();
@@ -144,13 +144,13 @@ class AddEditScreenState extends State<AddEditScreen> {
     var typesPreceding = TaskDateTypes.getTypesPreceding(taskDateType);
     var allDates = typesPreceding.map((type) => type.dateFieldGetter(taskItemBlueprint)).whereType<DateTime>();
 
-    return allDates.length == 0 ? null : DateUtil.maxDate(allDates);
+    return allDates.isEmpty ? null : DateUtil.maxDate(allDates);
   }
 
   // todo: write some tests
   DateTime _getPreviousDateOrNow(TaskDateType taskDateType) {
     var lastDate = getLastDateBefore(taskDateType);
-    return lastDate == null ? DateTime.now() : lastDate;
+    return lastDate ?? DateTime.now();
   }
 
   // todo: write some tests
@@ -255,7 +255,7 @@ class AddEditScreenState extends State<AddEditScreen> {
         builder: (context, viewModel) {
           return Scaffold(
             appBar: AppBar(
-              title: Text("Task Details"),
+              title: Text('Task Details'),
             ),
             body: Padding(
               padding: EdgeInsets.all(8.0),

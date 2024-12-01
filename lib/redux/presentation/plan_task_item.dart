@@ -18,8 +18,8 @@ class PlanTaskItemWidget extends StatelessWidget {
   final Sprint? sprint;
   final bool highlightSprint;
 
-  PlanTaskItemWidget({
-    Key? key,
+  const PlanTaskItemWidget({
+    super.key,
     required this.sprintDisplayTask,
     this.endDate,
     this.sprint,
@@ -27,10 +27,10 @@ class PlanTaskItemWidget extends StatelessWidget {
     this.onTaskCompleteToggle,
     this.onTaskAssignmentToggle,
     this.initialCheckState,
-  }) : super(key: key);
+  });
 
   bool hasPassed(DateTime? dateTime) {
-    return dateTime == null ? false : dateTime.isBefore(this.endDate!);
+    return dateTime == null ? false : dateTime.isBefore(endDate!);
   }
 
   Color getBackgroundColor() {
@@ -61,11 +61,11 @@ class PlanTaskItemWidget extends StatelessWidget {
     if (dateValue == null) {
       return '';
     } else if ('now' == formatted) {
-      return label + ' just now';
+      return '$label just now';
     } else if (isPast) {
-      return label + ' ' + formatted + ' ago';
+      return '$label $formatted ago';
     } else {
-      return label + ' in ' + formatted;
+      return '$label in $formatted';
     }
   }
 
@@ -74,9 +74,9 @@ class PlanTaskItemWidget extends StatelessWidget {
     if (dueDate == null) {
       return '';
     } else if (sprintDisplayTask.isPastDue()) {
-      return 'Due ' + formatDateTime(dueDate) + ' ago';
+      return 'Due ${formatDateTime(dueDate)} ago';
     } else {
-      return 'Due in ' + formatDateTime(dueDate);
+      return 'Due in ${formatDateTime(dueDate)}';
     }
   }
 
@@ -129,7 +129,7 @@ class PlanTaskItemWidget extends StatelessWidget {
       if (hasPassed(dateValue) &&
           dateValue != null &&
           dateValue.isAfter(DateTime.now()) &&
-          dateWarnings.length < 1) {
+          dateWarnings.isEmpty) {
         dateWarnings.add(_getDateFromNow(taskDateType));
       }
     }

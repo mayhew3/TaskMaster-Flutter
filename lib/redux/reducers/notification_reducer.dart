@@ -4,7 +4,7 @@ import 'package:taskmaster/redux/actions/notification_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
 
 final notificationsReducer = <AppState Function(AppState, dynamic)>[
-  TypedReducer<AppState, UpdateNotificationBadge>(_updateNotificationBadge)
+  TypedReducer<AppState, UpdateNotificationBadge>(_updateNotificationBadge).call
 ];
 
 AppState _updateNotificationBadge(AppState state, UpdateNotificationBadge action) {

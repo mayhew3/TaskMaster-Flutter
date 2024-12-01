@@ -14,11 +14,11 @@ List<Middleware<AppState>> createAuthenticationMiddleware(
     GlobalKey<NavigatorState> navigatorKey,
     ) {
   return [
-    TypedMiddleware<AppState, TryToSilentlySignInAction>(_tryToSilentlySignIn(navigatorKey)),
-    TypedMiddleware<AppState, LogInAction>(_manualLogin(navigatorKey)),
-    TypedMiddleware<AppState, LogOutAction>(_manualLogout(navigatorKey)),
-    TypedMiddleware<AppState, InitTimezoneHelperAction>(_initTimezoneHelper(navigatorKey)),
-    TypedMiddleware<AppState, OnPersonRejectedAction>(_onPersonRejected(navigatorKey)),
+    TypedMiddleware<AppState, TryToSilentlySignInAction>(_tryToSilentlySignIn(navigatorKey)).call,
+    TypedMiddleware<AppState, LogInAction>(_manualLogin(navigatorKey)).call,
+    TypedMiddleware<AppState, LogOutAction>(_manualLogout(navigatorKey)).call,
+    TypedMiddleware<AppState, InitTimezoneHelperAction>(_initTimezoneHelper(navigatorKey)).call,
+    TypedMiddleware<AppState, OnPersonRejectedAction>(_onPersonRejected(navigatorKey)).call,
   ];
 }
 
@@ -28,13 +28,13 @@ void Function(
     NextDispatcher next,
     ) _manualLogin(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {
-    print("_manualLogin!");
+    print('_manualLogin!');
     next(action);
     try {
       await store.state.googleSignIn.signIn();
       await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.home);
     } catch (error, stackTrace) {
-      print("Error signing in: $error");
+      print('Error signing in: $error');
       print(stackTrace);
       store.dispatch(OnLoginFailAction(error));
     }
@@ -47,7 +47,7 @@ void Function(
     NextDispatcher next,
     ) _manualLogout(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {
-    print("_manualLogout!");
+    print('_manualLogout!');
     navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.logout);
     try {
       await store.state.googleSignIn.disconnect();
@@ -64,7 +64,7 @@ void Function(
     NextDispatcher next,
     ) _initTimezoneHelper(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {
-    print("_initTimezoneHelper!");
+    print('_initTimezoneHelper!');
     next(action);
     await store.state.timezoneHelper.configureLocalTimeZone();
   };
@@ -76,7 +76,7 @@ void Function(
     NextDispatcher next,
     ) _onPersonRejected(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {
-    print("_onPersonRejected!");
+    print('_onPersonRejected!');
     next(action);
     await store.state.googleSignIn.disconnect();
   };
@@ -89,19 +89,19 @@ void Function(
     ) _tryToSilentlySignIn(GlobalKey<NavigatorState> navigatorKey,) {
   return (store, action, next) async {
     next(action);
-    print("_tryToSilentlySignIn called.");
+    print('_tryToSilentlySignIn called.');
     store.state.googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) async {
-      print("onCurrentUserChanged.");
+      print('onCurrentUserChanged.');
       if (account == null) {
-        print("onCurrentUserChanged: account null.");
+        print('onCurrentUserChanged: account null.');
         store.dispatch(OnLogoutSuccessAction());
         await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.login);
       } else {
-        print("onCurrentUserChanged: account exists!");
+        print('onCurrentUserChanged: account exists!');
         var authentication = await account.authentication;
 
         if (authentication.idToken == null) {
-          store.dispatch(OnLoginFailAction("No idToken returned."));
+          store.dispatch(OnLoginFailAction('No idToken returned.'));
           await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.login);
         }
 
@@ -118,7 +118,7 @@ void Function(
     });
     var account = await store.state.googleSignIn.signInSilently();
     if (account == null) {
-      print("Sign in silently failed. Returning to login screen.");
+      print('Sign in silently failed. Returning to login screen.');
       await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.login);
     }
   };

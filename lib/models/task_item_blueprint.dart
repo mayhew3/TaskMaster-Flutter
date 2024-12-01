@@ -26,14 +26,19 @@ class TaskItemBlueprint with DateHolder {
 
   int? gamePoints;
 
+  @override
   @JsonDateTimePassThroughConverter()
   DateTime? startDate;
+  @override
   @JsonDateTimePassThroughConverter()
   DateTime? targetDate;
+  @override
   @JsonDateTimePassThroughConverter()
   DateTime? dueDate;
+  @override
   @JsonDateTimePassThroughConverter()
   DateTime? urgentDate;
+  @override
   @JsonDateTimePassThroughConverter()
   DateTime? completionDate;
 
@@ -44,6 +49,7 @@ class TaskItemBlueprint with DateHolder {
   bool? recurWait;
 
   String? recurrenceDocId;
+  @override
   int? recurIteration;
 
   @JsonKey(includeFromJson: false, includeToJson: true)
@@ -58,7 +64,7 @@ class TaskItemBlueprint with DateHolder {
   late int tmpId;
 
   TaskItemBlueprint() {
-    tmpId = new Random().nextInt(60000);
+    tmpId = Random().nextInt(60000);
   }
 
   /// `toJson` is the convention for a class to declare support for serialization

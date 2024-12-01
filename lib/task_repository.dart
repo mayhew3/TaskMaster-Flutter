@@ -27,7 +27,7 @@ class TaskRepository {
   });
 
   Future<String?> getPersonIdFromFirestore(String email) async {
-    var withEmail = await firestore.collection("persons").where("email", isEqualTo: email).get();
+    var withEmail = await firestore.collection('persons').where('email', isEqualTo: email).get();
     return withEmail.docs.firstOrNull?.id;
   }
 
@@ -52,21 +52,21 @@ class TaskRepository {
     Function(Iterable<S>)? subAddCallback,
     Serializer<S>? subSerializer,
   }) {
-    var sprintAssignmentListeners = Map<String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>();
+    var sprintAssignmentListeners = <String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>{};
     var collectionRef = firestore.collection(collectionName);
     var completionQuery = completionFilter != null ?
       collectionRef.where(
         Filter.or(
-          Filter("completionDate", isNull: true),
-          Filter("completionDate", isGreaterThan: completionFilter),
+          Filter('completionDate', isNull: true),
+          Filter('completionDate', isGreaterThan: completionFilter),
         ),
       ) :
       collectionRef;
     var limitQuery = limit == null ?
       completionQuery :
-      completionQuery.orderBy("sprintNumber", descending: true)
+      completionQuery.orderBy('sprintNumber', descending: true)
           .limit(limit);
-    var snapshots = limitQuery.where("personDocId", isEqualTo: personDocId).snapshots();
+    var snapshots = limitQuery.where('personDocId', isEqualTo: personDocId).snapshots();
     var listener = snapshots.listen((event) async {
       log.fine('$collectionName snapshots event!');
 
@@ -106,10 +106,10 @@ class TaskRepository {
               var subObjects = subDocs.map((sd) {
                 var subJson = sd.data();
                 subJson?['docId'] = sd.id;
-                var deserialized = serializers.deserializeWith(subSerializer, subJson)!;
+                var deserialized = serializers.deserializeWith(subSerializer, subJson) as S;
                 return deserialized;
               });
-              log.finer("SprintAssignments added! Sprint $sprintNumber, ${subObjects.length} objects.");
+              log.finer('SprintAssignments added! Sprint $sprintNumber, ${subObjects.length} objects.');
               subAddCallback(subObjects);
             }
           });
@@ -125,7 +125,7 @@ class TaskRepository {
         subCollectionTime = subCollectionTime + gapTime.difference(rollingTime);
         rollingTime = gapTime;
 
-        var deserialized = serializers.deserializeWith(serializer, json)!;
+        var deserialized = serializers.deserializeWith(serializer, json) as T;
         finalList.add(deserialized);
 
         gapTime = DateTime.now();
@@ -134,7 +134,7 @@ class TaskRepository {
         rollingTime = gapTime;
 
         if (i % 10 == 0) {
-          log.finer("Processed $i/$totalCount (${(i/totalCount*100).toStringAsFixed(1)}%)");
+          log.finer('Processed $i/$totalCount (${(i/totalCount*100).toStringAsFixed(1)}%)');
         }
 
         i++;
@@ -143,14 +143,14 @@ class TaskRepository {
       if (totalCount > 0) {
         Duration totalDuration = DateTime.now().difference(startingTime);
         log.fine(
-            "Total duration for $collectionName add over $totalCount items: $totalDuration (${totalDuration ~/ totalCount} per item)");
-        log.fine(" - data(): $dataTime (${(dataTime.inMilliseconds / totalDuration.inMilliseconds * 100).toStringAsFixed(1)}%)");
-        log.fine(" - subCollection: $subCollectionTime (${(subCollectionTime
+            'Total duration for $collectionName add over $totalCount items: $totalDuration (${totalDuration ~/ totalCount} per item)');
+        log.fine(' - data(): $dataTime (${(dataTime.inMilliseconds / totalDuration.inMilliseconds * 100).toStringAsFixed(1)}%)');
+        log.fine(' - subCollection: $subCollectionTime (${(subCollectionTime
             .inMilliseconds / totalDuration.inMilliseconds * 100)
-            .toStringAsFixed(1)}%)");
+            .toStringAsFixed(1)}%)');
         log.fine(
-            " - deserialize: $deserialTime (${(deserialTime.inMilliseconds /
-                totalDuration.inMilliseconds * 100).toStringAsFixed(1)}%)");
+            ' - deserialize: $deserialTime (${(deserialTime.inMilliseconds /
+                totalDuration.inMilliseconds * 100).toStringAsFixed(1)}%)');
       }
 
       if (finalList.isNotEmpty) {
@@ -166,7 +166,7 @@ class TaskRepository {
           var json = doc.data()!;
           json['docId'] = doc.id;
 
-          var deserialized = serializers.deserializeWith(serializer, json)!;
+          var deserialized = serializers.deserializeWith(serializer, json) as T;
           modifyList.add(deserialized);
         }
         if (modifyList.isNotEmpty) {
@@ -183,7 +183,7 @@ class TaskRepository {
 
     var recurrenceBlueprint = blueprint.recurrenceBlueprint;
     if (recurrenceBlueprint != null) {
-      var recurrenceDoc = firestore.collection("taskRecurrences").doc();
+      var recurrenceDoc = firestore.collection('taskRecurrences').doc();
       var recurrenceJson = recurrenceBlueprint.toJson();
       recurrenceJson['dateAdded'] = DateTime.now().toUtc();
       recurrenceDoc.set(recurrenceJson);
@@ -191,7 +191,7 @@ class TaskRepository {
       blueprintJson.remove('recurrenceBlueprint');
     }
 
-    var addedTaskDoc = firestore.collection("tasks").doc();
+    var addedTaskDoc = firestore.collection('tasks').doc();
     var taskId = addedTaskDoc.id;
     blueprintJson['dateAdded'] = DateTime.now().toUtc();
     addedTaskDoc.set(blueprintJson);
@@ -201,7 +201,7 @@ class TaskRepository {
   TaskItem addRecurTask(TaskItemRecurPreview blueprint) {
     Map<String, Object?> blueprintJson = serializers.serializeWith(TaskItemRecurPreview.serializer, blueprint)! as Map<String, Object?>;
 
-    var addedTaskDoc = firestore.collection("tasks").doc();
+    var addedTaskDoc = firestore.collection('tasks').doc();
     var taskId = addedTaskDoc.id;
     blueprintJson['dateAdded'] = DateTime.now().toUtc();
     addedTaskDoc.set(blueprintJson);
@@ -220,7 +220,7 @@ class TaskRepository {
     if (recurrenceBlueprint != null) {
       var recurrenceDocId = blueprint.recurrenceDocId;
       if (recurrenceDocId != null) {
-        var recurrenceDoc = firestore.collection("taskRecurrences").doc(recurrenceDocId);
+        var recurrenceDoc = firestore.collection('taskRecurrences').doc(recurrenceDocId);
         var recurrenceJson = recurrenceBlueprint.toJson();
         recurrenceDoc.update(recurrenceJson);
 
@@ -230,7 +230,7 @@ class TaskRepository {
         updatedRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson);
         blueprintJson.remove('recurrenceBlueprint');
       } else {
-        var recurrenceDoc = firestore.collection("taskRecurrences").doc();
+        var recurrenceDoc = firestore.collection('taskRecurrences').doc();
         recurrenceDocId = recurrenceDoc.id;
         var recurrenceJson = recurrenceBlueprint.toJson();
 
@@ -246,7 +246,7 @@ class TaskRepository {
       }
     }
 
-    var doc = firestore.collection("tasks").doc(taskItemDocId);
+    var doc = firestore.collection('tasks').doc(taskItemDocId);
     doc.update(blueprintJson);
 
     var snapshot = await doc.get();
@@ -271,7 +271,7 @@ class TaskRepository {
 
     try {
       await firestore.runTransaction((transaction) async {
-        var addedSprintDoc = firestore.collection("sprints").doc();
+        var addedSprintDoc = firestore.collection('sprints').doc();
         var sprintId = addedSprintDoc.id;
         blueprintJson['dateAdded'] = DateTime.now().toUtc();
         transaction.set(addedSprintDoc, blueprintJson);
@@ -281,7 +281,7 @@ class TaskRepository {
 
         for (var toAdd in newTaskItemsList) {
           toAdd as Map<String, Object?>;
-          var addedTaskDoc = firestore.collection("tasks").doc();
+          var addedTaskDoc = firestore.collection('tasks').doc();
           var taskId = addedTaskDoc.id;
           toAdd['dateAdded'] = DateTime.now().toUtc();
           transaction.set(addedTaskDoc, toAdd);
@@ -292,21 +292,21 @@ class TaskRepository {
         }
 
         var sprintAssignmentsCollection = addedSprintDoc
-            .collection("sprintAssignments");
+            .collection('sprintAssignments');
 
         for (var existingId in existingIds) {
           var sprintAssignment = sprintAssignmentsCollection.doc();
           var sprintAssignmentId = sprintAssignment.id;
           var sprintAssignmentJson = {
-            "taskDocId": existingId,
-            "sprintDocId": sprintId,
-            "personDocId": personDocId,
-            "dateAdded": DateTime.now().toUtc(),
-            "retired": null,
-            "retiredDate": null,
+            'taskDocId': existingId,
+            'sprintDocId': sprintId,
+            'personDocId': personDocId,
+            'dateAdded': DateTime.now().toUtc(),
+            'retired': null,
+            'retiredDate': null,
           };
           transaction.set(sprintAssignment, sprintAssignmentJson);
-          sprintAssignmentJson["docId"] = sprintAssignmentId;
+          sprintAssignmentJson['docId'] = sprintAssignmentId;
           sprintAssignments.add(serializers.deserializeWith(
               SprintAssignment.serializer, sprintAssignmentJson)!);
         }
@@ -314,21 +314,21 @@ class TaskRepository {
 
 
       if (addedSprint == null) {
-        throw Exception("No added sprint!");
+        throw Exception('No added sprint!');
       } else {
         return (sprint: addedSprint!, addedTasks: addedTasks
             .build(), sprintAssignments: sprintAssignments.build());
       }
     } catch (e) {
-      print("Error adding sprint: $e");
-      throw e;
+      print('Error adding sprint: $e');
+      rethrow;
     }
   }
 
   Future<TaskRecurrence> updateTaskRecurrence(String taskRecurrenceDocId, TaskRecurrenceBlueprint blueprint) async {
     var blueprintJson = blueprint.toJson();
 
-    var doc = firestore.collection("taskRecurrences").doc(taskRecurrenceDocId);
+    var doc = firestore.collection('taskRecurrences').doc(taskRecurrenceDocId);
     doc.update(blueprintJson);
 
     var snapshot = await doc.get();
@@ -353,11 +353,11 @@ class TaskRepository {
     try {
       await firestore.runTransaction((transaction) async {
         var sprintId = sprint.docId;
-        var sprintDocRef = firestore.collection("sprints").doc(sprint.docId);
+        var sprintDocRef = firestore.collection('sprints').doc(sprint.docId);
 
         for (var toAdd in newTaskItemsList) {
           toAdd as Map<String, Object?>;
-          var addedTaskDoc = firestore.collection("tasks").doc();
+          var addedTaskDoc = firestore.collection('tasks').doc();
           var taskId = addedTaskDoc.id;
           toAdd['dateAdded'] = DateTime.now().toUtc();
           transaction.set(addedTaskDoc, toAdd);
@@ -368,21 +368,21 @@ class TaskRepository {
         }
 
         var sprintAssignmentsCollection = sprintDocRef
-            .collection("sprintAssignments");
+            .collection('sprintAssignments');
 
         for (var existingId in existingIds) {
           var sprintAssignment = sprintAssignmentsCollection.doc();
           var sprintAssignmentId = sprintAssignment.id;
           var sprintAssignmentJson = {
-            "taskDocId": existingId,
-            "sprintDocId": sprintId,
-            "personDocId": personDocId,
-            "dateAdded": DateTime.now().toUtc(),
-            "retired": null,
-            "retiredDate": null,
+            'taskDocId': existingId,
+            'sprintDocId': sprintId,
+            'personDocId': personDocId,
+            'dateAdded': DateTime.now().toUtc(),
+            'retired': null,
+            'retiredDate': null,
           };
           transaction.set(sprintAssignment, sprintAssignmentJson);
-          sprintAssignmentJson["docId"] = sprintAssignmentId;
+          sprintAssignmentJson['docId'] = sprintAssignmentId;
           sprintAssignments.add(serializers.deserializeWith(
               SprintAssignment.serializer, sprintAssignmentJson)!);
         }
@@ -391,21 +391,21 @@ class TaskRepository {
       return (addedTasks: addedTasks.build(), sprintAssignments: sprintAssignments.build());
 
     } catch (e) {
-      print("Error adding sprint: $e");
-      throw e;
+      print('Error adding sprint: $e');
+      rethrow;
     }
 
   }
 
   void deleteTask(TaskItem taskItem) async {
-    var doc = firestore.collection("tasks").doc(taskItem.docId);
-    doc.update({"retired": taskItem.docId, "retiredDate": DateTime.now().toUtc()});
+    var doc = firestore.collection('tasks').doc(taskItem.docId);
+    doc.update({'retired': taskItem.docId, 'retiredDate': DateTime.now().toUtc()});
   }
 
   void addSnooze(SnoozeBlueprint snooze) async {
     var blueprintJson = snooze.toJson();
 
-    var addedSnoozeDoc = firestore.collection("snoozes").doc();
+    var addedSnoozeDoc = firestore.collection('snoozes').doc();
     blueprintJson['dateAdded'] = DateTime.now().toUtc();
     addedSnoozeDoc.set(blueprintJson);
   }
@@ -415,11 +415,11 @@ class TaskRepository {
   // HELPER METHODS
 
   Future<void> dataFixAll() async {
-    await dataFixCollection(collectionName: "persons");
-    await dataFixCollection(collectionName: "snoozes");
-    await dataFixCollection(collectionName: "sprints");
-    await dataFixCollection(collectionName: "taskRecurrences");
-    await dataFixCollection(collectionName: "tasks", subCollectionName: "sprintAssignments");
+    await dataFixCollection(collectionName: 'persons');
+    await dataFixCollection(collectionName: 'snoozes');
+    await dataFixCollection(collectionName: 'sprints');
+    await dataFixCollection(collectionName: 'taskRecurrences');
+    await dataFixCollection(collectionName: 'tasks', subCollectionName: 'sprintAssignments');
   }
 
   Future<void> dataFixCollection({required String collectionName, String? subCollectionName}) async {
@@ -496,9 +496,9 @@ class TaskRepository {
       }
       currIndex++;
       var percent = (currIndex / totalCount * 100).toStringAsFixed(1);
-      var stringsMsg = stringsUpdated.isEmpty ? '' : " Updated string dates: " + stringsUpdated.join(", ") + ".";
-      var datesMsg = datesUpdated.isEmpty ? '' : " Updates non-UTC dates: " + datesUpdated.join(", ") + ".";
-      print('Processed $collectionName $currIndex/$totalCount ($percent%). Updated $updatedDate/$currIndex.' + stringsMsg + datesMsg + " ID: $taskId");
+      var stringsMsg = stringsUpdated.isEmpty ? '' : " Updated string dates: ${stringsUpdated.join(", ")}.";
+      var datesMsg = datesUpdated.isEmpty ? '' : " Updates non-UTC dates: ${datesUpdated.join(", ")}.";
+      print('Processed $collectionName $currIndex/$totalCount ($percent%). Updated $updatedDate/$currIndex.$stringsMsg$datesMsg ID: $taskId');
     }
     print('Finished processing $collectionName. Updated $updated/$currIndex retired values, $updatedDate/$currIndex dates.');
   }

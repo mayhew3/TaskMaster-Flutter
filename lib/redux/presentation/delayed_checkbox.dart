@@ -14,20 +14,20 @@ class DelayedCheckbox extends StatelessWidget {
   final String taskName;
 
   const DelayedCheckbox({
-    Key? key,
+    super.key,
     required this.checkCycleWaiter,
     required this.initialState,
     this.checkedColor,
     this.inactiveIcon,
     required this.taskName,
-  }) : super(key: key);
+  });
 
   Color? getColor(BuildContext context) {
     final ThemeData themeData = Theme.of(context);
     Map<CheckState, Color> colorMap = {
       CheckState.inactive: Color.fromARGB(0, 0, 0, 0),
       CheckState.pending: TaskColors.pendingCheckbox,
-      CheckState.checked: checkedColor ?? themeData.checkboxTheme.fillColor!.resolve(Set.from([WidgetState.selected])) ?? TaskColors.cardColor,
+      CheckState.checked: checkedColor ?? themeData.checkboxTheme.fillColor!.resolve({WidgetState.selected}) ?? TaskColors.cardColor,
     };
     return colorMap[initialState];
   }

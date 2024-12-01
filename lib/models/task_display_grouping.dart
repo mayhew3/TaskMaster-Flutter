@@ -12,7 +12,9 @@ class TaskDisplayGrouping {
 
   void stealItemsThatMatch(List<SprintDisplayTask> otherList) {
     taskItems = otherList.where(filter).toList(growable: false);
-    taskItems.forEach((task) => otherList.remove(task));
+    for (var task in taskItems) {
+      otherList.remove(task);
+    }
     if (ordering != null) {
       taskItems.sort(ordering);
     }
