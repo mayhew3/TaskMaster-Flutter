@@ -18,14 +18,17 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   @BuiltValueSerializer(serializeNulls: true)
   static Serializer<TaskItem> get serializer => _$taskItemSerializer;
 
+  @override
   String get docId;
   DateTime get dateAdded;
 
   String? get personDocId;
 
+  @override
   String get name;
 
   String? get description;
+  @override
   String? get project;
   String? get context;
 
@@ -35,10 +38,15 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
 
   int? get gamePoints;
 
+  @override
   DateTime? get startDate;
+  @override
   DateTime? get targetDate;
+  @override
   DateTime? get dueDate;
+  @override
   DateTime? get urgentDate;
+  @override
   DateTime? get completionDate;
 
   int? get recurNumber;
@@ -46,6 +54,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   bool? get recurWait;
 
   String? get recurrenceDocId;
+  @override
   int? get recurIteration;
 
   String? get retired;
@@ -53,6 +62,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
 
   bool get offCycle;
 
+  @override
   TaskRecurrence? get recurrence;
 
   // internal fields
@@ -100,10 +110,12 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
     return blueprint;
   }
 
+  @override
   bool isPreview() {
     return false;
   }
 
+  @override
   TaskItemRecurPreview createNextRecurPreview({
     required DateTime? startDate,
     required DateTime? targetDate,
@@ -111,7 +123,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
     required DateTime? dueDate,
   }) {
     return TaskItemRecurPreview((b) => b
-      ..docId = "ASKLJDH"
+      ..docId = 'ASKLJDH'
       ..personDocId = personDocId
       ..name = name
       ..description = description
@@ -130,7 +142,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
       ..recurWait = recurWait
       // ..recurrenceId = recurrenceId
       ..recurrenceDocId = recurrenceDocId
-      ..recurIteration = this.recurIteration! + 1
+      ..recurIteration = recurIteration! + 1
       ..recurrence = recurrence!.toBuilder()
       ..offCycle = offCycle
     );

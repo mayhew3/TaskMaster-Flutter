@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:built_collection/built_collection.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:logging/logging.dart';
 import 'package:redux/redux.dart';
@@ -12,21 +15,21 @@ import '../app_state.dart';
 final log = Logger('TaskReducer');
 
 final taskItemsReducer = <AppState Function(AppState, dynamic)>[
-  TypedReducer<AppState, TasksDeletedAction>(onDeleteTaskItems),
-  TypedReducer<AppState, CompleteTaskItemAction>(_completeTaskItem),
-  TypedReducer<AppState, RecurringTaskItemCompletedAction>(_onCompleteRecurringTaskItem),
-  TypedReducer<AppState, TaskItemCompletedAction>(_onCompleteTaskItem),
-  TypedReducer<AppState, DataNotLoadedAction>(_onDataNotLoaded),
-  TypedReducer<AppState, LogOutAction>(_onDataNotLoaded),
-  TypedReducer<AppState, ClearRecentlyCompletedAction>(_clearRecentlyCompleted),
-  TypedReducer<AppState, SnoozeExecuted>(_onSnoozeExecuted),
-  TypedReducer<AppState, GoOffline>(goOffline),
-  TypedReducer<AppState, GoOnline>(goOnline),
-  TypedReducer<AppState, TasksAddedAction>(onTaskItemsAdded),
-  TypedReducer<AppState, TaskRecurrencesAddedAction>(onTaskRecurrencesAdded),
-  TypedReducer<AppState, TasksModifiedAction>(onTaskItemsModified),
-  TypedReducer<AppState, TaskRecurrencesModifiedAction>(onTaskRecurrencesModified),
-  TypedReducer<AppState, SprintAssignmentsAddedAction>(onSprintAssignmentsAdded),
+  TypedReducer<AppState, TasksDeletedAction>(onDeleteTaskItems).call,
+  TypedReducer<AppState, CompleteTaskItemAction>(_completeTaskItem).call,
+  TypedReducer<AppState, RecurringTaskItemCompletedAction>(_onCompleteRecurringTaskItem).call,
+  TypedReducer<AppState, TaskItemCompletedAction>(_onCompleteTaskItem).call,
+  TypedReducer<AppState, DataNotLoadedAction>(_onDataNotLoaded).call,
+  TypedReducer<AppState, LogOutAction>(_onDataNotLoaded).call,
+  TypedReducer<AppState, ClearRecentlyCompletedAction>(_clearRecentlyCompleted).call,
+  TypedReducer<AppState, SnoozeExecuted>(_onSnoozeExecuted).call,
+  TypedReducer<AppState, GoOffline>(goOffline).call,
+  TypedReducer<AppState, GoOnline>(goOnline).call,
+  TypedReducer<AppState, TasksAddedAction>(onTaskItemsAdded).call,
+  TypedReducer<AppState, TaskRecurrencesAddedAction>(onTaskRecurrencesAdded).call,
+  TypedReducer<AppState, TasksModifiedAction>(onTaskItemsModified).call,
+  TypedReducer<AppState, TaskRecurrencesModifiedAction>(onTaskRecurrencesModified).call,
+  TypedReducer<AppState, SprintAssignmentsAddedAction>(onSprintAssignmentsAdded).call,
 ];
 
 @visibleForTesting
@@ -35,7 +38,7 @@ AppState listenersInitialized(AppState state, ListenersInitializedAction action)
     ..taskListener = action.taskListener
     ..sprintListener = action.sprintListener
     ..taskRecurrenceListener = action.taskRecurrenceListener
-    ..sprintAssignmentListener = action.sprintAssignmentListener
+    ..sprintAssignmentListeners = action.sprintAssignmentListeners
   );
 }
 
@@ -79,7 +82,7 @@ AppState _onCompleteTaskItem(AppState state, TaskItemCompletedAction action) {
       ..pendingCompletion = false
       ..completionDate = action.taskItem.completionDate
     ) : taskItem);
-  var recentListBuilder;
+  ListBuilder<TaskItem> recentListBuilder;
   if (action.complete) {
     recentListBuilder = state.recentlyCompleted.toBuilder()
       ..add(listBuilder
@@ -115,7 +118,9 @@ AppState onTaskItemsAdded(AppState state, TasksAddedAction action) {
 
   var nonExistingItems = action.addedItems.where((t) => !state.taskItems.map((ti) => ti.docId).contains(t.docId));
 
-  nonExistingItems.forEach((t) => updateNotificationForItem(state, t));
+  for (var t in nonExistingItems) {
+    updateNotificationForItem(state, t);
+  }
 
   var withRecurrences = nonExistingItems.map((taskItem) => taskItem.rebuild((t) => t
     ..recurrence = recurrences.where((r) => r.docId == t.recurrenceDocId).singleOrNull?.toBuilder()
@@ -134,7 +139,9 @@ AppState onTaskItemsAdded(AppState state, TasksAddedAction action) {
 @visibleForTesting
 AppState onTaskItemsModified(AppState state, TasksModifiedAction action) {
   var recurrences = state.taskRecurrences;
-  action.modifiedItems.forEach((t) => updateNotificationForItem(state, t));
+  for (var t in action.modifiedItems) {
+    updateNotificationForItem(state, t);
+  }
 
   var listBuilder = state.taskItems.toBuilder()
     ..map((taskItem) {
@@ -230,11 +237,11 @@ AppState onSprintAssignmentsAdded(AppState state, SprintAssignmentsAddedAction a
 }
 
 AppState _onDataNotLoaded(AppState state, dynamic action) {
-  print("Removing data and listeners.");
+  print('Removing data and listeners.');
   state.taskListener?.cancel();
   state.sprintListener?.cancel();
   state.taskRecurrenceListener?.cancel();
-  state.sprintAssignmentListener?.cancel();
+  state.sprintAssignmentListeners?.values.forEach((listener) => listener.cancel());
   cancelAllNotifications(state);
   return state.rebuild((s) => s
     ..taskItems = ListBuilder()
@@ -244,7 +251,7 @@ AppState _onDataNotLoaded(AppState state, dynamic action) {
     ..taskListener = null
     ..sprintListener = null
     ..taskRecurrenceListener = null
-    ..sprintAssignmentListener = null
+    ..sprintAssignmentListeners = <String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>{}
     ..tasksLoading = true
     ..sprintsLoading = true
     ..taskRecurrencesLoading = true

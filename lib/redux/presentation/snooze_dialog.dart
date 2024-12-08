@@ -19,7 +19,7 @@ class SnoozeDialog extends StatefulWidget {
 
   final TaskItem taskItem;
 
-  SnoozeDialog({
+  const SnoozeDialog({super.key, 
     required this.taskItem,
   });
 
@@ -31,8 +31,8 @@ class SnoozeDialog extends StatefulWidget {
 class SnoozeDialogState extends State<SnoozeDialog> {
   static final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  var dateFormatThisYear = new DateFormat('EEE MMM d');
-  var dateFormatOtherYear = new DateFormat('EEE MMM d yyyy');
+  var dateFormatThisYear = DateFormat('EEE MMM d');
+  var dateFormatOtherYear = DateFormat('EEE MMM d yyyy');
 
   late TaskItemBlueprint blueprint;
 
@@ -61,12 +61,12 @@ class SnoozeDialogState extends State<SnoozeDialog> {
 
   void buildDateTypeList() {
     var listBuilder = ListBuilder<String>();
-    TaskDateTypes.allTypes.forEach((dateType) {
+    for (var dateType in TaskDateTypes.allTypes) {
       var dateFieldOfType = dateType.dateFieldGetter(blueprint);
       if (dateFieldOfType != null) {
         listBuilder.add(dateType.label);
       }
-    });
+    }
     if (listBuilder.isEmpty) {
       listBuilder.addAll([
         'Start',
@@ -83,8 +83,8 @@ class SnoozeDialogState extends State<SnoozeDialog> {
       numUnits = ParseHelper.parseInt(value);
       updateTaskItemWithPreview();
     } catch (e) {
-      String valueStr = value == null ? '' : value;
-      print('Invalid number: ' + valueStr);
+      String valueStr = value ?? '';
+      print('Invalid number: $valueStr');
     }
   }
 
@@ -149,7 +149,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
       ),
     ];
 
-    TaskDateTypes.allTypes.forEach((dateType) {
+    for (var dateType in TaskDateTypes.allTypes) {
       DateTime? dateFieldOfType = dateType.dateFieldGetter(blueprint);
       var dateTypeString = dateType.label;
       var actualDate = dateFieldOfType;
@@ -160,10 +160,10 @@ class SnoozeDialogState extends State<SnoozeDialog> {
             .year == localDate.year) ?
         dateFormatThisYear.format(localDate) :
         dateFormatOtherYear.format(localDate);
-        Text text = Text(dateTypeString + ': ' + dateFormatted);
+        Text text = Text('$dateTypeString: $dateFormatted');
         widgets.add(text);
       }
-    });
+    }
 
     return widgets;
   }

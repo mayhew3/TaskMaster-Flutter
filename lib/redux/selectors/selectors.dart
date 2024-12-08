@@ -101,10 +101,10 @@ BuiltList<TaskItem> nonRetiredTaskItems(BuiltList<TaskItem> allTaskItems) {
 BuiltList<TaskItem> taskItemsForPlacingOnNewSprint(BuiltList<TaskItem> allTaskItems, DateTime endDate) {
   var taskItems = allTaskItems.toList();
   var taskItemsNotUtc = taskItems.where((t) => t.startDate != null && !t.startDate!.isUtc);
-  print("[taskItemsForPlacingOnNewSprint]: ${taskItemsNotUtc.length} of all task items that are not utc.");
+  print('[taskItemsForPlacingOnNewSprint]: ${taskItemsNotUtc.length} of all task items that are not utc.');
   var forScheduling = taskItems.where((taskItem) => !taskItem.isScheduledAfter(endDate) && !taskItem.isCompleted());
   var taskItemsScheduleNotUtc = forScheduling.where((t) => t.startDate != null && !t.startDate!.isUtc);
-  print("[taskItemsForPlacingOnNewSprint]: ${taskItemsScheduleNotUtc.length} of scheduled task items that are not utc.");
+  print('[taskItemsForPlacingOnNewSprint]: ${taskItemsScheduleNotUtc.length} of scheduled task items that are not utc.');
   return forScheduling.toBuiltList();
 }
 
@@ -123,7 +123,7 @@ Future<({String personDocId})> getRequiredInputs(Store<AppState> store, String a
 
   var personDocId = store.state.personDocId;
   if (personDocId == null) {
-    throw new Exception("Cannot $actionDesc without person id.");
+    throw Exception('Cannot $actionDesc without person id.');
   }
 
   return (personDocId: personDocId);

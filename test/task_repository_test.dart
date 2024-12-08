@@ -1,28 +1,20 @@
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
-import 'package:mockito/mockito.dart';
-import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
-import 'mocks/mock_data.dart';
-import 'mocks/mock_data_builder.dart';
-import 'test_mock_helper.dart';
 
 void main() {
   group('TaskRepository', () {
 
-    final Uri tasksAPI = Uri.parse("https://taskmaster-general.herokuapp.com/api/tasks");
+    final Uri tasksAPI = Uri.parse('https://taskmaster-general.herokuapp.com/api/tasks');
 
     final personId = 1;
     final token = 'token';
 
     // helper methods
 
-    void _validateToken(Invocation invocation) async {
-      var headers = invocation.namedArguments[Symbol("headers")];
+    void validateToken(Invocation invocation) async {
+      var headers = invocation.namedArguments[Symbol('headers')];
       var tokenInfo = headers[HttpHeaders.authorizationHeader];
       expect(tokenInfo, token);
     }

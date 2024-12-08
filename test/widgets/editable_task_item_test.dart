@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
 
-  Future<MaterialApp> _createApp(WidgetTester tester) async {
+  Future<MaterialApp> createApp(WidgetTester tester) async {
 
     var app = MaterialApp(
       home: Scaffold(
@@ -15,7 +15,7 @@ void main() {
   }
 
   testWidgets('has label', (WidgetTester tester) async {
-    await _createApp(tester);
+    await createApp(tester);
 /*
 
     var labelFinder = find.text('Type');

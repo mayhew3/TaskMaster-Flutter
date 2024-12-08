@@ -25,7 +25,7 @@ class HomeScreenState extends State<HomeScreen> {
     return StoreConnector<AppState, HomeScreenViewModel>(
         builder: (context, viewModel) {
           if (!viewModel.appIsReady()) {
-            return SplashScreen(message: "Signing in...");
+            return SplashScreen(message: 'Signing in...');
           } else if (viewModel.isLoading()) {
             return LoadingIndicator();
           } else {

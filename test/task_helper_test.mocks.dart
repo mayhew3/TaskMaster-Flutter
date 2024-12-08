@@ -363,10 +363,15 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
       );
 
   @override
-  _i4.StreamSubscription<
-      _i2.QuerySnapshot<Map<String, dynamic>>> createListener<T>({
+  ({
+    _i4
+    .StreamSubscription<_i2.QuerySnapshot<Map<String, dynamic>>> mainListener,
+    Map<
+        String,
+        _i4.StreamSubscription<
+            _i2.QuerySnapshot<Map<String, dynamic>>>> sprintAssignmentListeners
+  }) createListener<T, S>({
     required String? collectionName,
-    String? subCollectionName,
     required String? personDocId,
     required dynamic Function(Iterable<T>)? addCallback,
     dynamic Function(Iterable<T>)? modifyCallback,
@@ -374,7 +379,9 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
     required _i20.Serializer<T>? serializer,
     int? limit,
     DateTime? completionFilter,
-    bool? collectionGroup = false,
+    String? subCollectionName,
+    dynamic Function(Iterable<S>)? subAddCallback,
+    _i20.Serializer<S>? subSerializer,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -382,7 +389,6 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
           [],
           {
             #collectionName: collectionName,
-            #subCollectionName: subCollectionName,
             #personDocId: personDocId,
             #addCallback: addCallback,
             #modifyCallback: modifyCallback,
@@ -390,50 +396,70 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
             #serializer: serializer,
             #limit: limit,
             #completionFilter: completionFilter,
-            #collectionGroup: collectionGroup,
+            #subCollectionName: subCollectionName,
+            #subAddCallback: subAddCallback,
+            #subSerializer: subSerializer,
           },
         ),
-        returnValue:
-            _FakeStreamSubscription_2<_i2.QuerySnapshot<Map<String, dynamic>>>(
-          this,
-          Invocation.method(
-            #createListener,
-            [],
-            {
-              #collectionName: collectionName,
-              #subCollectionName: subCollectionName,
-              #personDocId: personDocId,
-              #addCallback: addCallback,
-              #modifyCallback: modifyCallback,
-              #deleteCallback: deleteCallback,
-              #serializer: serializer,
-              #limit: limit,
-              #completionFilter: completionFilter,
-              #collectionGroup: collectionGroup,
-            },
+        returnValue: (
+          mainListener: _FakeStreamSubscription_2<
+              _i2.QuerySnapshot<Map<String, dynamic>>>(
+            this,
+            Invocation.method(
+              #createListener,
+              [],
+              {
+                #collectionName: collectionName,
+                #personDocId: personDocId,
+                #addCallback: addCallback,
+                #modifyCallback: modifyCallback,
+                #deleteCallback: deleteCallback,
+                #serializer: serializer,
+                #limit: limit,
+                #completionFilter: completionFilter,
+                #subCollectionName: subCollectionName,
+                #subAddCallback: subAddCallback,
+                #subSerializer: subSerializer,
+              },
+            ),
           ),
+          sprintAssignmentListeners: <String,
+              _i4.StreamSubscription<_i2.QuerySnapshot<Map<String, dynamic>>>>{}
         ),
-        returnValueForMissingStub:
-            _FakeStreamSubscription_2<_i2.QuerySnapshot<Map<String, dynamic>>>(
-          this,
-          Invocation.method(
-            #createListener,
-            [],
-            {
-              #collectionName: collectionName,
-              #subCollectionName: subCollectionName,
-              #personDocId: personDocId,
-              #addCallback: addCallback,
-              #modifyCallback: modifyCallback,
-              #deleteCallback: deleteCallback,
-              #serializer: serializer,
-              #limit: limit,
-              #completionFilter: completionFilter,
-              #collectionGroup: collectionGroup,
-            },
+        returnValueForMissingStub: (
+          mainListener: _FakeStreamSubscription_2<
+              _i2.QuerySnapshot<Map<String, dynamic>>>(
+            this,
+            Invocation.method(
+              #createListener,
+              [],
+              {
+                #collectionName: collectionName,
+                #personDocId: personDocId,
+                #addCallback: addCallback,
+                #modifyCallback: modifyCallback,
+                #deleteCallback: deleteCallback,
+                #serializer: serializer,
+                #limit: limit,
+                #completionFilter: completionFilter,
+                #subCollectionName: subCollectionName,
+                #subAddCallback: subAddCallback,
+                #subSerializer: subSerializer,
+              },
+            ),
           ),
+          sprintAssignmentListeners: <String,
+              _i4.StreamSubscription<_i2.QuerySnapshot<Map<String, dynamic>>>>{}
         ),
-      ) as _i4.StreamSubscription<_i2.QuerySnapshot<Map<String, dynamic>>>);
+      ) as ({
+        _i4.StreamSubscription<
+            _i2.QuerySnapshot<Map<String, dynamic>>> mainListener,
+        Map<
+            String,
+            _i4.StreamSubscription<
+                _i2
+                .QuerySnapshot<Map<String, dynamic>>>> sprintAssignmentListeners
+      }));
 
   @override
   void addTask(_i21.TaskItemBlueprint? blueprint) => super.noSuchMethod(

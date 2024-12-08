@@ -20,7 +20,7 @@ abstract class PlanningHomeViewModel implements Built<PlanningHomeViewModel, Pla
     return PlanningHomeViewModel((c) {
       var activeSprint = activeSprintSelector(store.state.sprints);
       if (activeSprint != null) {
-        c..activeSprint = activeSprint.toBuilder();
+        c.activeSprint = activeSprint.toBuilder();
       }
       c
         ..isLoading = store.state.isLoading

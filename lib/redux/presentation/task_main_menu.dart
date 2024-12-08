@@ -7,9 +7,9 @@ import 'package:taskmaster/redux/presentation/task_main_menu_viewmodel.dart';
 
 class TaskMainMenu extends Drawer {
 
-  TaskMainMenu({
-    Key? key,
-  }) : super(key: key);
+  const TaskMainMenu({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -21,10 +21,10 @@ class TaskMainMenu extends Drawer {
                 padding: EdgeInsets.zero,
                 children: <Widget>[
                   DrawerHeader(
-                    child: Text('Actions'),
                     decoration: BoxDecoration(
                         color: TaskColors.pendingBackground
                     ),
+                    child: Text('Actions'),
                   ),
                   ListTile(
                     title: Text('Sign Out'),

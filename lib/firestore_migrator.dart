@@ -21,16 +21,16 @@ class FirestoreMigrator {
 
   Future<void> migrateFromApi({String? email}) async {
     var uri = email != null ?
-      getUriWithParameters("/api/allTasks", {'email': email}) :
-      getUri("/api/allTasks");
+      getUriWithParameters('/api/allTasks', {'email': email}) :
+      getUri('/api/allTasks');
 
-    final response = await this.client.get(uri,
+    final response = await client.get(uri,
       headers: {HttpHeaders.contentTypeHeader: 'application/json'},
     );
 
     if (response.statusCode == 200) {
       try {
-        this.jsonObj = json.decode(response.body);
+        jsonObj = json.decode(response.body);
         await _executeMigration();
       } catch(exception, stackTrace) {
         print(exception);
@@ -52,8 +52,8 @@ class FirestoreMigrator {
   }
 
   Uri getUriWithParameters(String path, Map<String, dynamic>? queryParameters) {
-    if (serverEnv == "") {
-      throw new Exception('Missing required SERVER environment variable.');
+    if (serverEnv == '') {
+      throw Exception('Missing required SERVER environment variable.');
     }
     switch(serverEnv) {
       case 'local':
@@ -63,7 +63,7 @@ class FirestoreMigrator {
       case 'heroku':
         return Uri.https('taskmaster-general.herokuapp.com', path, queryParameters);
       default:
-        throw new Exception('Unknown SERVER environment variable: ' + serverEnv);
+        throw Exception('Unknown SERVER environment variable: $serverEnv');
     }
   }
 
@@ -77,11 +77,11 @@ class FirestoreMigrator {
       List<DocumentSnapshot<Map<String, dynamic>>> recurrences,
       List<DocumentSnapshot<Map<String, dynamic>>> persons,
       ) async {
-    var taskCollection = firestore.collection("tasks");
+    var taskCollection = firestore.collection('tasks');
     var querySnapshot = await taskCollection.get();
 
     if (dropFirst) {
-      querySnapshot = await dropTable(querySnapshot, taskCollection, "sprintAssignments");
+      querySnapshot = await dropTable(querySnapshot, taskCollection, 'sprintAssignments');
     }
 
     List<DocumentSnapshot<Map<String, dynamic>>> taskRefs = [];
@@ -132,7 +132,7 @@ class FirestoreMigrator {
       print('Processed task $currIndex/$taskCount} ($percent%).');
     }
 
-    print("Finished processing tasks.");
+    print('Finished processing tasks.');
 
     return (tasks: taskRefs, sprintAssignments: allSprintAssignmentObjs);
   }
@@ -155,7 +155,7 @@ class FirestoreMigrator {
       List<DocumentSnapshot<Map<String, dynamic>>> persons,
       List<Map<String, Object?>> sprintAssignments,
       ) async {
-    var sprintCollection = firestore.collection("sprints");
+    var sprintCollection = firestore.collection('sprints');
     var querySnapshot = await sprintCollection.get();
 
     if (dropFirst) {
@@ -182,7 +182,7 @@ class FirestoreMigrator {
 
         var sprintAssignmentsForSprint = sprintAssignments.where((sa) => sa['sprintId'] == sprintObj['id']);
 
-        var assignmentCollection = documentReference.collection("sprintAssignments");
+        var assignmentCollection = documentReference.collection('sprintAssignments');
 
         for (var sprintAssignmentObj in sprintAssignmentsForSprint) {
           createSprintAssignment(sprintAssignmentObj, assignmentCollection, sprintDocId, personDocId);
@@ -206,14 +206,14 @@ class FirestoreMigrator {
       print('Processed sprint $currIndex/$sprintCount} ($percent%).');
     }
 
-    print("Finished processing sprints.");
+    print('Finished processing sprints.');
     return sprintRefs;
   }
 
   Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncSnoozes(
       List<DocumentSnapshot<Map<String, dynamic>>> tasks,
       ) async {
-    var snoozeCollection = firestore.collection("snoozes");
+    var snoozeCollection = firestore.collection('snoozes');
     var querySnapshot = await snoozeCollection.get();
 
     if (dropFirst) {
@@ -252,12 +252,12 @@ class FirestoreMigrator {
       print('Processed snooze $currIndex/$snoozeCount} ($percent%).');
     }
 
-    print("Finished processing snoozes.");
+    print('Finished processing snoozes.');
     return snoozeRefs;
   }
 
   Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncPersons() async {
-    var personCollection = firestore.collection("persons");
+    var personCollection = firestore.collection('persons');
     var querySnapshot = await personCollection.get();
 
     if (dropFirst) {
@@ -292,12 +292,12 @@ class FirestoreMigrator {
       print('Processed person $currIndex/$personCount} ($percent%).');
     }
 
-    print("Finished processing persons.");
+    print('Finished processing persons.');
     return personRefs;
   }
 
   Future<List<DocumentSnapshot<Map<String, dynamic>>>> syncRecurrences(List<DocumentSnapshot<Map<String, dynamic>>> persons,) async {
-    var recurrenceCollection = firestore.collection("taskRecurrences");
+    var recurrenceCollection = firestore.collection('taskRecurrences');
     var querySnapshot = await recurrenceCollection.get();
 
     if (dropFirst) {
@@ -333,7 +333,7 @@ class FirestoreMigrator {
       print('Processed recurrence $currIndex/$recurrenceCount (${percent.toStringAsFixed(1)}%).');
     }
 
-    print("Finished processing recurrences.");
+    print('Finished processing recurrences.');
     return recurrenceRefs;
   }
 
@@ -344,7 +344,7 @@ class FirestoreMigrator {
       ) async {
     var totalCount = querySnapshot.docs.length;
     var collectionPath = collectionReference.path;
-    print("Dropping collection $collectionPath with $totalCount documents...");
+    print('Dropping collection $collectionPath with $totalCount documents...');
     var dropCount = 0;
     for (var document in querySnapshot.docs) {
 
@@ -364,19 +364,19 @@ class FirestoreMigrator {
       dropCount++;
 
       var percent = (dropCount / totalCount * 100).toStringAsFixed(1);
-      var msg = "Dropped document $dropCount/$totalCount ($percent%) from collection $collectionPath";
+      var msg = 'Dropped document $dropCount/$totalCount ($percent%) from collection $collectionPath';
       if (subDocCount > 0) {
         msg += ", including $subDocCount in subcollection '$subCollectionName'";
       }
       print(msg);
     }
-    print("All documents dropped from collection $collectionPath.");
+    print('All documents dropped from collection $collectionPath.');
     return await collectionReference.get();
   }
 
   dynamic maybeConvertDate(MapEntry<String, dynamic> jsonValue) {
     var value = jsonValue.value;
-    if (!(value is String)) {
+    if (value is! String) {
       return jsonValue;
     }
     try {
@@ -390,7 +390,7 @@ class FirestoreMigrator {
   BuiltList<Map<String, dynamic>> convertDates(List jsonObjs) {
     var destinationList = ListBuilder<Map<String, dynamic>>();
     for (var jsonObj in jsonObjs) {
-      var destinationMap = new Map<String, dynamic>();
+      var destinationMap = <String, dynamic>{};
       for (var entry in jsonObj.entries) {
         var addedEntry = maybeConvertDate(entry);
         destinationMap.addEntries([addedEntry]);

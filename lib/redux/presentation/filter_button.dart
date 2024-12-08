@@ -7,12 +7,12 @@ class FilterButton extends StatelessWidget {
   final Function toggleScheduled;
   final Function toggleCompleted;
 
-  const FilterButton({Key? key,
+  const FilterButton({super.key,
     required this.scheduledGetter,
     required this.completedGetter,
     required this.toggleScheduled,
     required this.toggleCompleted
-  }) : super(key: key);
+  });
 
   void toggleFilter(String key) {
     if (key == 'scheduled') {
@@ -31,12 +31,12 @@ class FilterButton extends StatelessWidget {
         CheckedPopupMenuItem<String>(
           checked: scheduledGetter(),
           value: 'scheduled',
-          child: Text("Show Scheduled"),
+          child: Text('Show Scheduled'),
         ),
         CheckedPopupMenuItem<String>(
           checked: completedGetter(),
           value: 'completed',
-          child: Text("Show Completed"),
+          child: Text('Show Completed'),
         ),
       ],
     );

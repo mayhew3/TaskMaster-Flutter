@@ -23,7 +23,7 @@ class TimezoneHelper {
 
   tz.TZDateTime getLocalTime(DateTime dateTime) {
     if (!_timezoneInitialized) {
-      throw new Exception("Cannot get local time before timezone is initialized.");
+      throw Exception('Cannot get local time before timezone is initialized.');
     }
     return tz.TZDateTime.from(dateTime, tz.local);
   }

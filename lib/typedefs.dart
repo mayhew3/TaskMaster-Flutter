@@ -12,27 +12,27 @@ import 'package:taskmaster/redux/presentation/delayed_checkbox.dart';
 import 'models/task_item_blueprint.dart';
 
 
-typedef UserUpdater(GoogleSignInAccount? account);
+typedef UserUpdater = Function(GoogleSignInAccount? account);
 
-typedef EndLoadingCallback(BuildContext context);
+typedef EndLoadingCallback = Function(BuildContext context);
 
-typedef TaskItemRefresher(TaskItem taskItem);
+typedef TaskItemRefresher = Function(TaskItem taskItem);
 
-typedef void StateCallback();
-typedef void MyStateSetter(StateCallback stateCallback);
+typedef StateCallback = void Function();
+typedef MyStateSetter = void Function(StateCallback stateCallback);
 
-typedef TabSelector BottomNavigationBarGetter();
+typedef BottomNavigationBarGetter = TabSelector Function();
 
-typedef List<TaskItem> TaskListGetter();
+typedef TaskListGetter = List<TaskItem> Function();
 
-typedef CheckState? CheckCycleWaiter(CheckState startingState);
+typedef CheckCycleWaiter = CheckState? Function(CheckState startingState);
 
-typedef DateTime? DateFieldGetter(DateHolder dateHolder);
-typedef void DateFieldSetter(TaskItemBlueprint blueprint, DateTime? newDate);
+typedef DateFieldGetter = DateTime? Function(DateHolder dateHolder);
+typedef DateFieldSetter = void Function(TaskItemBlueprint blueprint, DateTime? newDate);
 
-typedef Widget WidgetGetter();
-typedef bool TaskItemFilter(SprintDisplayTask sprintDisplayTask);
-typedef int TaskItemOrdering(SprintDisplayTask a, SprintDisplayTask b);
+typedef WidgetGetter = Widget Function();
+typedef TaskItemFilter = bool Function(SprintDisplayTask sprintDisplayTask);
+typedef TaskItemOrdering = int Function(SprintDisplayTask a, SprintDisplayTask b);
 
-typedef Future<Response> GetApiOperation(Uri uri, {Map<String, String>? headers});
-typedef Future<Response> BodyApiOperation(Uri uri, {Map<String, String>? headers, Object? body, Encoding? encoding});
+typedef GetApiOperation = Future<Response> Function(Uri uri, {Map<String, String>? headers});
+typedef BodyApiOperation = Future<Response> Function(Uri uri, {Map<String, String>? headers, Object? body, Encoding? encoding});

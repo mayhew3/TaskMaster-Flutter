@@ -48,12 +48,12 @@ class DateUtil {
       case 'Weeks': return Jiffy.parseFromDateTime(dateTime).add(weeks: recurNumber).dateTime;
       case 'Months': return Jiffy.parseFromDateTime(dateTime).add(months: recurNumber).dateTime;
       case 'Years': return Jiffy.parseFromDateTime(dateTime).add(years: recurNumber).dateTime;
-      default: throw new Exception('Unknown recur_unit: ' + recurUnit);
+      default: throw Exception('Unknown recur_unit: $recurUnit');
     }
   }
 
   static DateTime combineDateAndTime(DateTime dateToUse, DateTime timeToUse) {
-    return new DateTime(dateToUse.year, dateToUse.month, dateToUse.day, timeToUse.hour, timeToUse.minute);
+    return DateTime(dateToUse.year, dateToUse.month, dateToUse.day, timeToUse.hour, timeToUse.minute);
   }
 
   static DateTime withoutMillis(DateTime originalDate) {

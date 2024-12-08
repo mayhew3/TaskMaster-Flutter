@@ -1,7 +1,7 @@
 import 'dart:collection';
 
 import 'package:built_collection/built_collection.dart';
-import "package:collection/collection.dart";
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:taskmaster/helpers/recurrence_helper.dart';
@@ -63,7 +63,7 @@ class PlanTaskListState extends State<PlanTaskList> {
     if (activeSprint != null &&
         (widget.numUnits != null || widget.unitName != null || widget.startDate != null)) {
       throw Exception(
-          "Expected all of numUnits, unitName, and startDate to be null if there is an active sprint.");
+          'Expected all of numUnits, unitName, and startDate to be null if there is an active sprint.');
     }
   }
 
@@ -150,7 +150,7 @@ class PlanTaskListState extends State<PlanTaskList> {
     if (sprint != null) {
       eligibleItems.addAll(taskItemsForSprintSelector(viewModel.allTaskItems, sprint));
     }
-    Set<String> recurIDs = new HashSet();
+    Set<String> recurIDs = HashSet();
 
     for (var taskItem in eligibleItems) {
       if (taskItem.recurrenceDocId != null) {
@@ -206,31 +206,35 @@ class PlanTaskListState extends State<PlanTaskList> {
 
     Sprint? lastCompletedSprint = viewModel.lastSprint;
 
-    var startDateSort = (SprintDisplayTask a, SprintDisplayTask b) => a.startDate!.compareTo(b.startDate!);
-    var completionDateSort = (SprintDisplayTask a, SprintDisplayTask b) => a.completionDate!.compareTo(b.completionDate!);
+    startDateSort(SprintDisplayTask a, SprintDisplayTask b) => a.startDate!.compareTo(b.startDate!);
+    completionDateSort(SprintDisplayTask a, SprintDisplayTask b) => a.completionDate!.compareTo(b.completionDate!);
 
     final List<TaskDisplayGrouping> groupings = [
-      new TaskDisplayGrouping(displayName: "Last Sprint", displayOrder: 1, filter: (taskItem) => (taskItem is TaskItem) && taskItemIsInSprint(taskItem, lastCompletedSprint)),
-      new TaskDisplayGrouping(displayName: "Older Sprints", displayOrder: 2, filter: (taskItem) => wasInEarlierSprint(taskItem, viewModel)),
-      new TaskDisplayGrouping(displayName: "Due Soon", displayOrder: 3, filter: (taskItem) => taskItem.isDueBefore(endDate)),
-      new TaskDisplayGrouping(displayName: "Urgent Soon", displayOrder: 4, filter: (taskItem) => taskItem.isUrgentBefore(endDate)),
-      new TaskDisplayGrouping(displayName: "Target Soon", displayOrder: 5, filter: (taskItem) => taskItem.isTargetBefore(endDate)),
-      new TaskDisplayGrouping(displayName: "Starting Later", displayOrder: 7, filter: (taskItem) => taskItem.isScheduledAfter(endDate), ordering: startDateSort),
-      new TaskDisplayGrouping(displayName: "Completed", displayOrder: 8, filter: (taskItem) => taskItem.isCompleted() &&
+      TaskDisplayGrouping(displayName: 'Last Sprint', displayOrder: 1, filter: (taskItem) => (taskItem is TaskItem) && taskItemIsInSprint(taskItem, lastCompletedSprint)),
+      TaskDisplayGrouping(displayName: 'Older Sprints', displayOrder: 2, filter: (taskItem) => wasInEarlierSprint(taskItem, viewModel)),
+      TaskDisplayGrouping(displayName: 'Due Soon', displayOrder: 3, filter: (taskItem) => taskItem.isDueBefore(endDate)),
+      TaskDisplayGrouping(displayName: 'Urgent Soon', displayOrder: 4, filter: (taskItem) => taskItem.isUrgentBefore(endDate)),
+      TaskDisplayGrouping(displayName: 'Target Soon', displayOrder: 5, filter: (taskItem) => taskItem.isTargetBefore(endDate)),
+      TaskDisplayGrouping(displayName: 'Starting Later', displayOrder: 7, filter: (taskItem) => taskItem.isScheduledAfter(endDate), ordering: startDateSort),
+      TaskDisplayGrouping(displayName: 'Completed', displayOrder: 8, filter: (taskItem) => taskItem.isCompleted() &&
               !viewModel.recentlyCompleted.any((t) => t.docId == taskItem.docId), ordering: completionDateSort),
       // must come last to take all the other tasks
-      new TaskDisplayGrouping(displayName: "Tasks", displayOrder: 6, filter: (_) => true),
+      TaskDisplayGrouping(displayName: 'Tasks', displayOrder: 6, filter: (_) => true),
     ];
 
     List<StatelessWidget> tiles = [];
 
-    groupings.forEach((g) => g.stealItemsThatMatch(otherTasks));
+    for (var g in groupings) {
+      g.stealItemsThatMatch(otherTasks);
+    }
     groupings.sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
 
     for (var grouping in groupings) {
       if (grouping.taskItems.isNotEmpty) {
         tiles.add(HeadingItem(grouping.displayName));
-        grouping.taskItems.forEach((task) => _addTaskTile(tiles: tiles, task: task, viewModel: viewModel));
+        for (var task in grouping.taskItems) {
+          _addTaskTile(tiles: tiles, task: task, viewModel: viewModel);
+        }
       }
     }
 
@@ -305,7 +309,7 @@ class PlanTaskListState extends State<PlanTaskList> {
           unitName: widget.unitName!,
           personDocId: viewModel.personDocId
       );
-      print("Submitting");
+      print('Submitting');
       store.dispatch(CreateSprintWithTaskItems(sprintBlueprint: sprint,
           taskItems: taskItemQueue.toBuiltList(),
           taskItemRecurPreviews: taskItemRecurPreviewQueue.toBuiltList()));
@@ -344,7 +348,7 @@ class PlanTaskListState extends State<PlanTaskList> {
         },
         builder: (context, viewModel) {
           if (!initialized) {
-            activeSprint = viewModel.activeSprint == null ? null : viewModel.activeSprint;
+            activeSprint = viewModel.activeSprint;
             validateState();
             endDate = getEndDate();
             preSelectUrgentAndDueAndPreviousSprint(viewModel);

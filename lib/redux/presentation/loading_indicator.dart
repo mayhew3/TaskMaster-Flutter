@@ -12,7 +12,7 @@ import '../../keys.dart';
 import '../app_state.dart';
 
 class LoadingIndicator extends StatelessWidget {
-  LoadingIndicator({Key? key}) : super(key: key);
+  const LoadingIndicator({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +31,7 @@ class LoadingIndicator extends StatelessWidget {
                       key: TaskMasterKeys.tasksLoading,
                       color: TaskColors.highlight,
                     ),
-                    const Text("Loading tasks..."),
+                    const Text('Loading tasks...'),
                   ],
                 )
             ),

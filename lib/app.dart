@@ -23,7 +23,7 @@ import 'package:http/http.dart' as http;
 class TaskMasterApp extends StatefulWidget {
 
   const TaskMasterApp({
-    Key? key}) : super(key: key);
+    super.key});
 
   @override
   TaskMasterAppState createState() => TaskMasterAppState();
@@ -41,7 +41,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     var firestore = FirebaseFirestore.instance;
 
     if (serverEnv == 'local') {
-      firestore.useFirestoreEmulator("127.0.0.1", 8085);
+      firestore.useFirestoreEmulator('127.0.0.1', 8085);
       firestore.settings = const Settings(
         persistenceEnabled: false,
       );
@@ -71,7 +71,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
         var urgentCount = appState.taskItems.where((taskItem) => (taskItem.isUrgent() || taskItem.isPastDue()) && taskItem.completionDate == null).length;
         FlutterAppBadger.isAppBadgeSupported().then((supported) {
           if (supported) {
-            print("Updating badge count to $urgentCount");
+            print('Updating badge count to $urgentCount');
             FlutterAppBadger.updateBadgeCount(urgentCount);
           }
         }
@@ -96,13 +96,13 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     return StoreProvider(
       store: store,
       child: MaterialApp(
-        title: "TaskMaster 3000",
+        title: 'TaskMaster 3000',
         navigatorKey: _navigatorKey,
         theme: taskMasterTheme,
         initialRoute: TaskMasterRoutes.home,
         routes: <String, WidgetBuilder>{
           TaskMasterRoutes.logout: (context) {
-            return SplashScreen(message: "Signing out...");
+            return SplashScreen(message: 'Signing out...');
           },
           TaskMasterRoutes.login: (context) {
             return SignInScreen();

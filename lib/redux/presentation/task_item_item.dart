@@ -12,7 +12,7 @@ class TaskItemItem extends StatelessWidget {
   final ValueChanged<bool?> onCheckboxChanged;
   final TaskItem taskItem;
 
-  TaskItemItem({
+  const TaskItemItem({super.key, 
     required this.onDismissed,
     required this.onTap,
     required this.onCheckboxChanged,
@@ -33,7 +33,7 @@ class TaskItemItem extends StatelessWidget {
         ),
         title: Hero(
           tag: '${taskItem.docId}__heroTag',
-          child: Container(
+          child: SizedBox(
             width: MediaQuery.of(context).size.width,
             child: Text(
               taskItem.name,

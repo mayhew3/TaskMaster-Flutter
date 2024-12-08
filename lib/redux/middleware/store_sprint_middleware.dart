@@ -8,8 +8,8 @@ import '../app_state.dart';
 
 List<Middleware<AppState>> createStoreSprintsMiddleware(TaskRepository repository) {
   return [
-    TypedMiddleware<AppState, CreateSprintWithTaskItems>(_createSprintWithTaskItems(repository)),
-    TypedMiddleware<AppState, AddTaskItemsToExistingSprint>(_addTaskItemsToExistingSprint(repository)),
+    TypedMiddleware<AppState, CreateSprintWithTaskItems>(_createSprintWithTaskItems(repository)).call,
+    TypedMiddleware<AppState, AddTaskItemsToExistingSprint>(_addTaskItemsToExistingSprint(repository)).call,
   ];
 }
 
@@ -26,7 +26,7 @@ Future<void> Function(
       var payload = await repository.addSprintWithTaskItems(action.sprintBlueprint, action.taskItems, action.taskItemRecurPreviews);
       store.dispatch(SprintCreatedAction(sprint: payload.sprint, addedTasks: payload.addedTasks, sprintAssignments: payload.sprintAssignments));
     } catch (e) {
-      print("Error creating new sprint: $e");
+      print('Error creating new sprint: $e');
     }
 
   };
@@ -50,7 +50,7 @@ Future<void> Function(
       var payload = await repository.addTasksToSprint(action.taskItems, action.taskItemRecurPreviews, action.sprint);
       store.dispatch(TaskItemsAddedToExistingSprint(sprintId: action.sprint.docId, addedTasks: payload.addedTasks, sprintAssignments: payload.sprintAssignments));
     } catch (e) {
-      print("Error creating new sprint: $e");
+      print('Error creating new sprint: $e');
     }
 
   };

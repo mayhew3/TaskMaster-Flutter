@@ -14,9 +14,9 @@ import '../presentation/task_main_menu.dart';
 
 class SprintTaskItems extends StatelessWidget {
 
-  SprintTaskItems({
-    Key? key,
-  }) : super(key: key);
+  const SprintTaskItems({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

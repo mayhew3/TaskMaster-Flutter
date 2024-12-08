@@ -12,7 +12,7 @@ class ReadOnlyTaskField extends StatelessWidget {
   final bool hasShadow;
 
   const ReadOnlyTaskField({
-    Key? key,
+    super.key,
     required this.textToShow,
     required this.headerName,
     this.optionalSubText,
@@ -20,10 +20,10 @@ class ReadOnlyTaskField extends StatelessWidget {
     this.optionalBackgroundColor,
     this.optionalOutlineColor,
     this.hasShadow = true,
-  }) : super(key: key);
+  });
 
   Color getBackgroundColor() {
-    return this.optionalBackgroundColor ?? TaskColors.cardColor;
+    return optionalBackgroundColor ?? TaskColors.cardColor;
   }
 
   ShapeBorder _getBorder() {

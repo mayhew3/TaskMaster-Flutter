@@ -8,18 +8,28 @@ mixin SprintDisplayTask implements DateHolder {
 
   String? get project;
 
+  @override
   DateTime? get startDate;
+  @override
   DateTime? get targetDate;
+  @override
   DateTime? get urgentDate;
+  @override
   DateTime? get dueDate;
+  @override
   DateTime? get completionDate;
 
   TaskRecurrence? get recurrence;
+  @override
   int? get recurIteration;
 
+  @override
   DateTime? getAnchorDate();
+  @override
   bool isScheduled();
+  @override
   bool isPastDue();
+  @override
   bool isCompleted();
 
   bool isPreview();

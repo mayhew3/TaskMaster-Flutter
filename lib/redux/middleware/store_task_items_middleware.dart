@@ -17,8 +17,8 @@ import '../../models/sprint_assignment.dart';
 import '../actions/sprint_actions.dart';
 import '../actions/task_item_actions.dart';
 
-const migration = String.fromEnvironment("MIGRATION_DROP");
-const migrationEmail = String.fromEnvironment("MIGRATION_EMAIL");
+const migration = String.fromEnvironment('MIGRATION_DROP');
+const migrationEmail = String.fromEnvironment('MIGRATION_EMAIL');
 
 List<Middleware<AppState>> createStoreTaskItemsMiddleware(
     TaskRepository repository,
@@ -26,16 +26,16 @@ List<Middleware<AppState>> createStoreTaskItemsMiddleware(
     FirestoreMigrator migrator,
     ) {
   return [
-    TypedMiddleware<AppState, VerifyPersonAction>(_verifyPerson(repository, migrator)),
-    TypedMiddleware<AppState, LoadDataAction>(loadData(repository, navigatorKey)),
-    TypedMiddleware<AppState, DataLoadedAction>(_dataLoaded(navigatorKey)),
-    TypedMiddleware<AppState, AddTaskItemAction>(createNewTaskItem(repository)),
-    TypedMiddleware<AppState, UpdateTaskItemAction>(_updateTaskItem(repository)),
-    TypedMiddleware<AppState, DeleteTaskItemAction>(_deleteTaskItem(repository)),
-    TypedMiddleware<AppState, CompleteTaskItemAction>(completeTaskItem(repository)),
-    TypedMiddleware<AppState, ExecuteSnooze>(_executeSnooze(repository)),
-    TypedMiddleware<AppState, GoOffline>(goOffline(repository)),
-    TypedMiddleware<AppState, GoOnline>(goOnline(repository)),
+    TypedMiddleware<AppState, VerifyPersonAction>(_verifyPerson(repository, migrator)).call,
+    TypedMiddleware<AppState, LoadDataAction>(loadData(repository, navigatorKey)).call,
+    TypedMiddleware<AppState, DataLoadedAction>(_dataLoaded(navigatorKey)).call,
+    TypedMiddleware<AppState, AddTaskItemAction>(createNewTaskItem(repository)).call,
+    TypedMiddleware<AppState, UpdateTaskItemAction>(_updateTaskItem(repository)).call,
+    TypedMiddleware<AppState, DeleteTaskItemAction>(_deleteTaskItem(repository)).call,
+    TypedMiddleware<AppState, CompleteTaskItemAction>(completeTaskItem(repository)).call,
+    TypedMiddleware<AppState, ExecuteSnooze>(_executeSnooze(repository)).call,
+    TypedMiddleware<AppState, GoOffline>(goOffline(repository)).call,
+    TypedMiddleware<AppState, GoOnline>(goOnline(repository)).call,
   ];
 }
 
@@ -50,13 +50,13 @@ Future<void> Function(
     if (migration.isNotEmpty) {
       String? email = migrationEmail.isEmpty ? null : migrationEmail;
       await migrator.migrateFromApi(email: email);
-      print("Migration complete!");
+      print('Migration complete!');
     }
     
     // await repository.dataFixAll();
 
     var email = store.state.currentUser!.email;
-    print("Verify person account for " + email + "...");
+    print('Verify person account for $email...');
 
     try {
       var personDocId = await repository.getPersonIdFromFirestore(email);
@@ -66,7 +66,7 @@ Future<void> Function(
         store.dispatch(OnPersonVerifiedFirestoreAction(personDocId));
       }
     } catch (e, stack) {
-      print("Error fetching person for email: $e");
+      print('Error fetching person for email: $e');
       print(stack);
       store.dispatch(OnPersonRejectedAction());
     }
@@ -82,48 +82,47 @@ Future<void> Function(
     ) loadData(TaskRepository repository, GlobalKey<NavigatorState> navigatorKey) {
   return (Store<AppState> store, LoadDataAction action, NextDispatcher next) async {
     next(action);
-    var inputs = await getRequiredInputs(store, "load tasks");
-    print("Fetching tasks for person_id ${inputs.personDocId}...");
+    var inputs = await getRequiredInputs(store, 'load tasks');
+    print('Fetching tasks for person_id ${inputs.personDocId}...');
     try {
 
-      print("Initializing data listeners...");
+      print('Initializing data listeners...');
 
-      var sprintListener = repository.createListener<Sprint>(
-          collectionName: "sprints",
-          subCollectionName: "sprintAssignments",
+      var sprintListener = repository.createListener<Sprint, SprintAssignment>(
+          collectionName: 'sprints',
           personDocId: inputs.personDocId,
           addCallback: (sprints) => store.dispatch(SprintsAddedAction(sprints)),
           limit: 1,
-          serializer: Sprint.serializer);
-      var recurrenceListener = repository.createListener<TaskRecurrence>(
-          collectionName:  "taskRecurrences",
+          serializer: Sprint.serializer,
+          subCollectionName: 'sprintAssignments',
+          subAddCallback: (sprintAssignments) => store.dispatch(SprintAssignmentsAddedAction(sprintAssignments)),
+          subSerializer: SprintAssignment.serializer,
+      );
+      var recurrenceListener = repository.createListener<TaskRecurrence, SprintAssignment>(
+          collectionName:  'taskRecurrences',
           personDocId: inputs.personDocId,
           addCallback: (taskRecurrences) => store.dispatch(TaskRecurrencesAddedAction(taskRecurrences)),
           modifyCallback: (taskRecurrences) => store.dispatch(TaskRecurrencesModifiedAction(taskRecurrences)),
-          serializer: TaskRecurrence.serializer);
-      var taskListener = repository.createListener<TaskItem>(
-          collectionName: "tasks",
+          serializer: TaskRecurrence.serializer,
+      );
+      var taskListener = repository.createListener<TaskItem, SprintAssignment>(
+          collectionName: 'tasks',
           personDocId: inputs.personDocId,
           addCallback: (taskItems) => store.dispatch(TasksAddedAction(taskItems)),
           modifyCallback: (taskItems) => store.dispatch(TasksModifiedAction(taskItems)),
           completionFilter: DateTime.now().subtract(Duration(days: 7)),
-          serializer: TaskItem.serializer);
-      var sprintAssignmentListener = repository.createListener<SprintAssignment>(
-          collectionName: "sprintAssignments",
-          personDocId: inputs.personDocId,
-          addCallback: (sprintAssignments) => store.dispatch(SprintAssignmentsAddedAction(sprintAssignments)),
-          serializer: SprintAssignment.serializer,
-          collectionGroup: true);
+          serializer: TaskItem.serializer,
+      );
 
       store.dispatch(ListenersInitializedAction(
-        taskListener: taskListener,
-        sprintListener: sprintListener,
-        taskRecurrenceListener: recurrenceListener,
-        sprintAssignmentListener: sprintAssignmentListener,
+        taskListener: taskListener.mainListener,
+        sprintListener: sprintListener.mainListener,
+        taskRecurrenceListener: recurrenceListener.mainListener,
+        sprintAssignmentListeners: sprintListener.sprintAssignmentListeners,
       ));
 
     } catch (e, stack) {
-      print("Error fetching task list: $e");
+      print('Error fetching task list: $e');
       print(stack);
       navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.loadFailed);
       store.dispatch(DataNotLoadedAction());
@@ -140,7 +139,7 @@ Future<void> Function(
   return (Store<AppState> store, DataLoadedAction action, NextDispatcher next) async {
     next(action);
     var taskItemCount = store.state.taskItems.length;
-    print("Data loaded. Task item count: $taskItemCount");
+    print('Data loaded. Task item count: $taskItemCount');
 
     navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.home);
 
@@ -157,7 +156,7 @@ Future<void> Function(
   return (Store<AppState> store, AddTaskItemAction action, NextDispatcher next) async {
     next(action);
 
-    var inputs = await getRequiredInputs(store, "create task");
+    var inputs = await getRequiredInputs(store, 'create task');
 
     action.blueprint.personDocId = inputs.personDocId;
     action.blueprint.recurrenceBlueprint?.personDocId = inputs.personDocId;
@@ -261,7 +260,7 @@ Future<void> Function(
 
     var updatedTask = await repository.updateTask(action.taskItem.docId, action.blueprint);
 
-    SnoozeBlueprint snooze = new SnoozeBlueprint(
+    SnoozeBlueprint snooze = SnoozeBlueprint(
         taskDocId: updatedTask.taskItem.docId,
         snoozeNumber: action.numUnits,
         snoozeUnits: action.unitSize,

@@ -18,14 +18,17 @@ abstract class TaskItemRecurPreview with DateHolder, SprintDisplayTask implement
   @BuiltValueSerializer(serializeNulls: true)
   static Serializer<TaskItemRecurPreview> get serializer => _$taskItemRecurPreviewSerializer;
 
+  @override
   @BuiltValueField(serialize: false)
   String get docId;
 
   String? get personDocId;
 
+  @override
   String get name;
 
   String? get description;
+  @override
   String? get project;
   String? get context;
 
@@ -35,10 +38,15 @@ abstract class TaskItemRecurPreview with DateHolder, SprintDisplayTask implement
 
   int? get gamePoints;
 
+  @override
   DateTime? get startDate;
+  @override
   DateTime? get targetDate;
+  @override
   DateTime? get dueDate;
+  @override
   DateTime? get urgentDate;
+  @override
   DateTime? get completionDate;
 
   int? get recurNumber;
@@ -50,12 +58,14 @@ abstract class TaskItemRecurPreview with DateHolder, SprintDisplayTask implement
 
   String? get recurrenceDocId;
 
+  @override
   int? get recurIteration;
 
   bool get offCycle;
 
   BuiltList<SprintAssignment> get sprintAssignments;
 
+  @override
   TaskRecurrence? get recurrence;
 
   TaskItemRecurPreview._();
@@ -64,16 +74,17 @@ abstract class TaskItemRecurPreview with DateHolder, SprintDisplayTask implement
   @BuiltValueHook(initializeBuilder: true)
   static void _setDefaults(TaskItemRecurPreviewBuilder b) =>
       b
-        ..docId = (0 - new Random().nextInt(60000)).toString()
+        ..docId = (0 - Random().nextInt(60000)).toString()
   ;
 
+  @override
   TaskItemRecurPreview createNextRecurPreview({
     required DateTime? startDate,
     required DateTime? targetDate,
     required DateTime? urgentDate,
     required DateTime? dueDate,
   }) {
-    return this.rebuild((t) => t
+    return rebuild((t) => t
       ..startDate = startDate
       ..targetDate = targetDate
       ..urgentDate = urgentDate
@@ -82,6 +93,7 @@ abstract class TaskItemRecurPreview with DateHolder, SprintDisplayTask implement
     );
   }
 
+  @override
   bool isPreview() {
     return true;
   }

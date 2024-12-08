@@ -10,7 +10,7 @@ import '../../keys.dart';
 import '../app_state.dart';
 
 class TabSelector extends StatelessWidget {
-  TabSelector({Key? key}) : super(key: key);
+  const TabSelector({super.key});
 
   @override
   Widget build(BuildContext context) {

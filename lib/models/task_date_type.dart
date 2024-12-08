@@ -4,6 +4,7 @@ import 'package:taskmaster/models/sprint_display_task.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/typedefs.dart';
+import 'package:collection/collection.dart';
 
 class TaskDateTypes {
   static final TaskDateType start = TaskDateType(
@@ -66,7 +67,7 @@ class TaskDateTypes {
   }
 
   static TaskDateType? getTypeWithLabel(String? label) {
-    return allTypes.singleWhere((dateType) => dateType.label == label, orElse: null);
+    return allTypes.singleWhereOrNull((dateType) => dateType.label == label);
   }
 }
 
@@ -86,7 +87,7 @@ class TaskDateType {
   });
 
   bool inListBeforeDisplayThreshold(SprintDisplayTask dateHolder) {
-    DateTime? dateFieldValue = this.dateFieldGetter(dateHolder);
+    DateTime? dateFieldValue = dateFieldGetter(dateHolder);
     if (dateFieldValue == null ||
         dateFieldValue.isBefore(DateTime.now())) {
       return false;
@@ -95,13 +96,13 @@ class TaskDateType {
     if (listThresholdInDays < 0) {
       return true;
     } else {
-      DateTime inXDays = DateTime.timestamp().add(Duration(days: this.listThresholdInDays));
+      DateTime inXDays = DateTime.timestamp().add(Duration(days: listThresholdInDays));
       return dateFieldValue.isBefore(inXDays);
     }
   }
 
   bool inListAfterDisplayThreshold(SprintDisplayTask dateHolder) {
-    DateTime? dateFieldValue = this.dateFieldGetter(dateHolder);
+    DateTime? dateFieldValue = dateFieldGetter(dateHolder);
     if (dateFieldValue == null ||
         dateFieldValue.isAfter(DateTime.now())) {
       return false;

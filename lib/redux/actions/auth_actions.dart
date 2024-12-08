@@ -15,7 +15,7 @@ class OnAuthenticatedAction {
 
   @override
   String toString() {
-    return "OnAuthenticated{account: ${account.displayName}";
+    return 'OnAuthenticated{account: ${account.displayName}';
   }
 }
 
@@ -26,7 +26,7 @@ class OnLogoutSuccessAction {
 
   @override
   String toString() {
-    return "LogOut{user: null}";
+    return 'LogOut{user: null}';
   }
 }
 
@@ -37,7 +37,7 @@ class OnLoginFailAction {
 
   @override
   String toString() {
-    return "OnLoginFail{There was an error logging in: $error}";
+    return 'OnLoginFail{There was an error logging in: $error}';
   }
 }
 
@@ -48,7 +48,7 @@ class OnLogoutFailAction {
 
   @override
   String toString() {
-    return "OnLogoutFail{There was an error logging out: $error}";
+    return 'OnLogoutFail{There was an error logging out: $error}';
   }
 }
 

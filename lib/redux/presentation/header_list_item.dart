@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class HeadingItem extends StatelessWidget {
   final String heading;
 
-  HeadingItem(this.heading);
+  const HeadingItem(this.heading, {super.key});
 
   @override
   Widget build(BuildContext context) {

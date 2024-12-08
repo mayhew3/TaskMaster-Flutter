@@ -11,14 +11,14 @@ class NullableDropdown extends StatefulWidget {
   final FormFieldValidator? validator;
 
   const NullableDropdown({
-    Key? key,
+    super.key,
     this.initialValue,
     required this.labelText,
     required this.possibleValues,
     required this.valueSetter,
     this.onChanged,
     this.validator,
-  }) : super(key: key);
+  });
 
   @override
   State<StatefulWidget> createState() => NullableDropdownState();

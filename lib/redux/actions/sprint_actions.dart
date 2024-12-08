@@ -15,7 +15,7 @@ class CreateSprintWithTaskItems {
 
   @override
   String toString() {
-    return "CreateSprint{sprintBlueprint: $sprintBlueprint, taskItems: $taskItems, taskItemRecurPreviews: $taskItemRecurPreviews";
+    return 'CreateSprint{sprintBlueprint: $sprintBlueprint, taskItems: $taskItems, taskItemRecurPreviews: $taskItemRecurPreviews';
   }
 }
 
@@ -34,7 +34,7 @@ class SprintCreatedAction {
 
   @override
   String toString() {
-    return "SprintCreatedAction{sprint: $sprint, addedTasks: $addedTasks, sprintAssignments: $sprintAssignments";
+    return 'SprintCreatedAction{sprint: $sprint, addedTasks: $addedTasks, sprintAssignments: $sprintAssignments';
   }
 }
 
@@ -47,7 +47,7 @@ class AddTaskItemsToExistingSprint {
 
   @override
   String toString() {
-    return "AddTaskItemsToExistingSprint{sprint: $sprint, taskItems: $taskItems, taskItemRecurPreviews: $taskItemRecurPreviews";
+    return 'AddTaskItemsToExistingSprint{sprint: $sprint, taskItems: $taskItems, taskItemRecurPreviews: $taskItemRecurPreviews';
   }
 }
 
@@ -60,6 +60,6 @@ class TaskItemsAddedToExistingSprint {
 
   @override
   String toString() {
-    return "TaskItemsAddedToExistingSprint{sprint: $sprintId, addedTasks: $addedTasks, sprintAssignments: $sprintAssignments";
+    return 'TaskItemsAddedToExistingSprint{sprint: $sprintId, addedTasks: $addedTasks, sprintAssignments: $sprintAssignments';
   }
 }

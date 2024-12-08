@@ -4,10 +4,10 @@ import 'package:taskmaster/redux/app_state.dart';
 import '../actions/task_item_actions.dart';
 
 final loadingReducer = <AppState Function(AppState, dynamic)>[
-  TypedReducer<AppState, LogOutAction>(_setLogoutStarted),
-  TypedReducer<AppState, LoadDataAction>(_setLoadStarted),
-  TypedReducer<AppState, DataNotLoadedAction>(_setLoadFailed),
-  TypedReducer<AppState, DataLoadedAction>(_setLoadSucceeded),
+  TypedReducer<AppState, LogOutAction>(_setLogoutStarted).call,
+  TypedReducer<AppState, LoadDataAction>(_setLoadStarted).call,
+  TypedReducer<AppState, DataNotLoadedAction>(_setLoadFailed).call,
+  TypedReducer<AppState, DataLoadedAction>(_setLoadSucceeded).call,
 ];
 
 AppState _setLogoutStarted(AppState state, LogOutAction action) {

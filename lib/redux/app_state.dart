@@ -26,7 +26,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? get taskListener;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? get sprintListener;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? get taskRecurrenceListener;
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? get sprintAssignmentListener;
+  Map<String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>? get sprintAssignmentListeners;
 
   // task item state
   bool get tasksLoading;
@@ -84,7 +84,8 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
       ..allNavItems = navItemBuilder
       ..nextId = 0
       ..offlineMode = false
-      ..notificationHelper = new NotificationHelper(plugin: NotificationHelper.initializeNotificationPlugin(), timezoneHelper: timezoneHelper)
+      ..sprintAssignmentListeners = <String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>{}
+      ..notificationHelper = NotificationHelper(plugin: NotificationHelper.initializeNotificationPlugin(), timezoneHelper: timezoneHelper)
     ;
   }
   );

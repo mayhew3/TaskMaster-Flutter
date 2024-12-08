@@ -6,10 +6,10 @@ import '../actions/auth_actions.dart';
 import '../app_state.dart';
 
 final authReducers = <AppState Function(AppState, dynamic)>[
-  TypedReducer<AppState, OnAuthenticatedAction>(_onAuthenticated),
-  TypedReducer<AppState, OnLogoutSuccessAction>(_onLogout),
-  TypedReducer<AppState, OnLogoutFailAction>(_onLogoutFail),
-  TypedReducer<AppState, OnPersonVerifiedFirestoreAction>(_onPersonVerifiedFirestore),
+  TypedReducer<AppState, OnAuthenticatedAction>(_onAuthenticated).call,
+  TypedReducer<AppState, OnLogoutSuccessAction>(_onLogout).call,
+  TypedReducer<AppState, OnLogoutFailAction>(_onLogoutFail).call,
+  TypedReducer<AppState, OnPersonVerifiedFirestoreAction>(_onPersonVerifiedFirestore).call,
 ];
 
 AppState _onAuthenticated(AppState state, OnAuthenticatedAction action) {

@@ -25,13 +25,13 @@ class TaskItemList extends StatefulWidget {
 
   final String? subHeader;
   final String? subSubHeader;
-  TaskItemList({
-    Key? key,
+  const TaskItemList({
+    super.key,
     this.subHeader,
     this.subSubHeader,
     required this.taskItems,
     required this.sprintMode,
-  }) : super(key: key);
+  });
 
   @override
   State<StatefulWidget> createState() => TaskItemListState();
@@ -50,10 +50,10 @@ class TaskItemListState extends State<TaskItemList> {
     return StoreConnector<AppState, TaskItemListViewModel>(
         builder: (context, viewModel) {
           if (!initialized) {
-            this.showActive = widget.sprintMode;
-            this.activeSprint = viewModel.activeSprint;
-            this.activeSprintItems =
-            this.activeSprint == null ? null : taskItemsForSprintSelector(
+            showActive = widget.sprintMode;
+            activeSprint = viewModel.activeSprint;
+            activeSprintItems =
+            activeSprint == null ? null : taskItemsForSprintSelector(
                 viewModel.taskItems, activeSprint!);
             initialized = true;
           }
@@ -87,12 +87,12 @@ class TaskItemListState extends State<TaskItemList> {
     required List<StatelessWidget> tiles,
     required TaskItemListViewModel viewModel
   }) {
-    var snoozeDialog = (TaskItem taskItem) {
+    snoozeDialog(TaskItem taskItem) {
       HapticFeedback.mediumImpact();
       showDialog<void>(context: context, builder: (context) => SnoozeDialog(
         taskItem: taskItem,
       ));
-    };
+    }
     var taskCard = EditableTaskItemWidget(
       taskItem: taskItem,
       sprint: viewModel.activeSprint,
@@ -131,10 +131,10 @@ class TaskItemListState extends State<TaskItemList> {
     var endDate = sprint.endDate;
     var currentDay = DateTime.timestamp().difference(startDate).inDays + 1;
     var totalDays = endDate.difference(startDate).inDays;
-    var sprintStr = "Active Sprint - Day " + currentDay.toString() + " of " + totalDays.toString();
+    var sprintStr = 'Active Sprint - Day $currentDay of $totalDays';
 
     var completed = activeSprintItems!.where((taskItem) => taskItem.completionDate != null);
-    var taskStr = completed.length.toString() + "/" + activeSprintItems!.length.toString() + " Tasks Complete";
+    var taskStr = '${completed.length}/${activeSprintItems!.length} Tasks Complete';
 
     return Card(
       color: Color.fromARGB(100, 100, 20, 20),
@@ -188,7 +188,7 @@ class TaskItemListState extends State<TaskItemList> {
                 child: GestureDetector(
                   onTap: () => setState(() => showActive = !showActive),
                   child: Text(
-                    showActive ? "Hide Tasks" : "Show Tasks",
+                    showActive ? 'Hide Tasks' : 'Show Tasks',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.white70,
@@ -247,18 +247,18 @@ class TaskItemListState extends State<TaskItemList> {
     // widget.appState.notificationScheduler.updateHomeScreenContext(context);
     List<TaskItem> otherTasks = getFilteredTasks(widget.taskItems);
 
-    var startDateSort = (SprintDisplayTask a, SprintDisplayTask b) => a.startDate!.compareTo(b.startDate!);
-    var completionDateSort = (SprintDisplayTask a, SprintDisplayTask b) => a.completionDate!.compareTo(b.completionDate!);
+    startDateSort(SprintDisplayTask a, SprintDisplayTask b) => a.startDate!.compareTo(b.startDate!);
+    completionDateSort(SprintDisplayTask a, SprintDisplayTask b) => a.completionDate!.compareTo(b.completionDate!);
 
     final List<TaskDisplayGrouping> groupings = [
-      new TaskDisplayGrouping(displayName: "Completed", displayOrder: 6, filter: (taskItem) => taskItem.isCompleted()
+      TaskDisplayGrouping(displayName: 'Completed', displayOrder: 6, filter: (taskItem) => taskItem.isCompleted()
           && !viewModel.recentlyCompleted.any((t) => t.docId == taskItem.docId), ordering: completionDateSort),
-      new TaskDisplayGrouping(displayName: "Past Due", displayOrder: 1, filter: (taskItem) => taskItem.isPastDue()),
-      new TaskDisplayGrouping(displayName: "Urgent", displayOrder: 2, filter: (taskItem) => taskItem.isUrgent()),
-      new TaskDisplayGrouping(displayName: "Target", displayOrder: 3, filter: (taskItem) => taskItem.isTarget()),
-      new TaskDisplayGrouping(displayName: "Scheduled", displayOrder: 5, filter: (taskItem) => taskItem.isScheduled(), ordering: startDateSort),
+      TaskDisplayGrouping(displayName: 'Past Due', displayOrder: 1, filter: (taskItem) => taskItem.isPastDue()),
+      TaskDisplayGrouping(displayName: 'Urgent', displayOrder: 2, filter: (taskItem) => taskItem.isUrgent()),
+      TaskDisplayGrouping(displayName: 'Target', displayOrder: 3, filter: (taskItem) => taskItem.isTarget()),
+      TaskDisplayGrouping(displayName: 'Scheduled', displayOrder: 5, filter: (taskItem) => taskItem.isScheduled(), ordering: startDateSort),
       // must come last to take all the other tasks
-      new TaskDisplayGrouping(displayName: "Tasks", displayOrder: 4, filter: (_) => true),
+      TaskDisplayGrouping(displayName: 'Tasks', displayOrder: 4, filter: (_) => true),
     ];
 
     List<StatelessWidget> tiles = [];
@@ -270,13 +270,17 @@ class TaskItemListState extends State<TaskItemList> {
       }
     }
 
-    groupings.forEach((g) => g.stealItemsThatMatch(otherTasks));
+    for (var g in groupings) {
+      g.stealItemsThatMatch(otherTasks);
+    }
     groupings.sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
 
     for (var grouping in groupings) {
       if (grouping.taskItems.isNotEmpty) {
         tiles.add(HeadingItem(grouping.displayName));
-        grouping.taskItems.forEach((task) => _addTaskTile(taskItem: (task as TaskItem), context: context, tiles: tiles, viewModel: viewModel));
+        for (var task in grouping.taskItems) {
+          _addTaskTile(taskItem: (task as TaskItem), context: context, tiles: tiles, viewModel: viewModel);
+        }
       }
     }
 
@@ -317,7 +321,7 @@ class TaskItemListState extends State<TaskItemList> {
                 GestureDetector(
                   onTap: () => _openPlanning(context),
                   child: Text(
-                      "Add More...",
+                      'Add More...',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0)
                   ),
                 )
