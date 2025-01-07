@@ -36,9 +36,15 @@ class SnoozeDialogState extends State<SnoozeDialog> {
 
   late TaskItemBlueprint blueprint;
 
+  final BuiltList<String> possibleScheduledOptions = ListBuilder<String>([
+    'This Task Only',
+    'Change Schedule'
+  ]).build();
+
   int? numUnits = 3;
   String unitName = 'Days';
-  String? taskDateType;
+  late String taskDateType;
+  late String scheduledOption;
 
   final BuiltList<String> possibleRecurUnits = ListBuilder<String>([
     'Days',
@@ -55,6 +61,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
     blueprint = widget.taskItem.createBlueprint();
     buildDateTypeList();
     taskDateType = possibleDateTypes[0];
+    scheduledOption = possibleScheduledOptions[0];
 
     onNumUnitsChanged('3');
   }
@@ -142,10 +149,19 @@ class SnoozeDialogState extends State<SnoozeDialog> {
         labelText: 'For Date',
         possibleValues: possibleDateTypes,
         onChanged: (value) => updateTaskItemWithPreview(),
-        valueSetter: (value) => taskDateType = value,
+        valueSetter: (value) => taskDateType = value!,
         validator: (value) {
           return null;
         },
+      ),
+      Visibility(
+        visible: widget.taskItem.recurrence?.recurWait == false,
+        child: NullableDropdown(
+            initialValue: scheduledOption,
+            labelText: 'Change',
+            possibleValues: possibleScheduledOptions,
+            valueSetter: (value) => scheduledOption = value!,
+        ),
       ),
     ];
 
