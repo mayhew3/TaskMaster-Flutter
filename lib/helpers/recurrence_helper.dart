@@ -12,6 +12,8 @@ class RecurrenceHelper {
   static TaskItemRecurPreview createNextIteration(SprintDisplayTask taskItem, DateTime completionDate) {
     var recurrence = taskItem.recurrence;
 
+    // todo: handle offCycle
+
     if (recurrence != null) {
       var recurIteration = taskItem.recurIteration;
 
@@ -56,6 +58,9 @@ class RecurrenceHelper {
 
   static void generatePreview(TaskItemBlueprint taskItemEdit, int numUnits, String unitSize, TaskDateType dateType) {
     DateTime snoozeDate = DateTime.now();
+
+    // todo: maintain existing time
+
     DateTime adjustedDate = _getAdjustedDate(snoozeDate, numUnits, unitSize);
 
     DateTime? relevantDate = dateType.dateFieldGetter(taskItemEdit);

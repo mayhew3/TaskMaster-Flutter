@@ -200,7 +200,6 @@ class ExecuteSnooze {
   final int numUnits;
   final String unitSize;
   final TaskDateType dateType;
-  final bool offCycle;
 
   ExecuteSnooze({
     required this.taskItem,
@@ -208,7 +207,6 @@ class ExecuteSnooze {
     required this.numUnits,
     required this.unitSize,
     required this.dateType,
-    required this.offCycle
   });
 }
 

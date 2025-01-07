@@ -101,11 +101,10 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
     blueprint.recurNumber = recurNumber;
     blueprint.recurUnit = recurUnit;
     blueprint.recurWait = recurWait;
-    // blueprint.recurrenceId = recurrenceId;
     blueprint.recurrenceDocId = recurrenceDocId;
     blueprint.recurIteration = recurIteration;
 
-    // blueprint.taskRecurrenceBlueprint = TaskRecurrenceBlueprint();
+    blueprint.recurrenceBlueprint = recurrence?.createBlueprint();
 
     return blueprint;
   }

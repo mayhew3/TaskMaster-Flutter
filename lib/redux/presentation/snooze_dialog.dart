@@ -44,7 +44,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
   int? numUnits = 3;
   String unitName = 'Days';
   late String taskDateType;
-  late String scheduledOption;
+  String? scheduledOption;
 
   final BuiltList<String> possibleRecurUnits = ListBuilder<String>([
     'Days',
@@ -61,9 +61,15 @@ class SnoozeDialogState extends State<SnoozeDialog> {
     blueprint = widget.taskItem.createBlueprint();
     buildDateTypeList();
     taskDateType = possibleDateTypes[0];
-    scheduledOption = possibleScheduledOptions[0];
+    scheduledOption = requireScheduleOption() ?
+      possibleScheduledOptions[0] :
+      null;
 
     onNumUnitsChanged('3');
+  }
+
+  bool requireScheduleOption() {
+    return blueprint.recurrenceBlueprint?.recurWait == false && !blueprint.offCycle;
   }
 
   void buildDateTypeList() {
@@ -99,6 +105,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
     var typeWithLabel = TaskDateTypes.getTypeWithLabel(taskDateType);
     if (numUnits != null && typeWithLabel != null) {
       setState(() {
+        blueprint.offCycle = scheduledOption == possibleScheduledOptions[0];
         RecurrenceHelper.generatePreview(blueprint, numUnits!, unitName, typeWithLabel);
       });
     }
@@ -155,7 +162,7 @@ class SnoozeDialogState extends State<SnoozeDialog> {
         },
       ),
       Visibility(
-        visible: widget.taskItem.recurrence?.recurWait == false,
+        visible: scheduledOption != null,
         child: NullableDropdown(
             initialValue: scheduledOption,
             labelText: 'Change',
@@ -230,7 +237,6 @@ class SnoozeDialogState extends State<SnoozeDialog> {
                           numUnits: numUnits!,
                           unitSize: unitName,
                           dateType: typeWithLabel,
-                          offCycle: false,
                         ));
                       }
                       Navigator.pop(context);
