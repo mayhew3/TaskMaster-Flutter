@@ -26,6 +26,7 @@ class RecurrenceHelper {
       var recurUnit = recurrence.recurUnit;
       var recurWait = recurrence.recurWait;
 
+      // todo: use recurrence anchor date, not calculated from task item
       DateTime? anchorDate = taskItem.getAnchorDate();
       if (anchorDate == null) {
         throw Exception('Recur_number exists without anchor date!');

@@ -271,6 +271,8 @@ Future<void> Function(
     repository.addSnooze(snooze);
     store.dispatch(SnoozeExecuted(updatedTask.taskItem));
 
+    // todo: update recurrence anchor date, if scheduled, and not off cycle
+
     // todo: check if there are any later recurrences already, and shift them if
     // todo: offCycle is false and recurWait is false
   };
