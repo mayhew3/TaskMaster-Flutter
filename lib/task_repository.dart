@@ -224,11 +224,7 @@ class TaskRepository {
         var recurrenceJson = recurrenceBlueprint.toJson();
         recurrenceDoc.update(recurrenceJson);
 
-        var recurSnap = await recurrenceDoc.get();
-        recurrenceJson['docId'] = recurrenceDocId;
-        recurrenceJson['dateAdded'] = recurSnap.get('dateAdded');
-        updatedRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson);
-        blueprintJson.remove('recurrenceBlueprint');
+        updatedRecurrence = await updateRecurrence(recurrenceDoc, recurrenceJson, recurrenceDocId, updatedRecurrence, blueprintJson);
       } else {
         var recurrenceDoc = firestore.collection('taskRecurrences').doc();
         recurrenceDocId = recurrenceDoc.id;
@@ -237,11 +233,7 @@ class TaskRepository {
         recurrenceJson['dateAdded'] = DateTime.now().toUtc();
         recurrenceDoc.set(recurrenceJson);
 
-        var recurSnap = await recurrenceDoc.get();
-        recurrenceJson['docId'] = recurrenceDocId;
-        recurrenceJson['dateAdded'] = recurSnap.get('dateAdded');
-        updatedRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson);
-        blueprintJson.remove('recurrenceBlueprint');
+        updatedRecurrence = await updateRecurrence(recurrenceDoc, recurrenceJson, recurrenceDocId, updatedRecurrence, blueprintJson);
         blueprintJson['recurrenceDocId'] = recurrenceDocId;
       }
     }
@@ -255,6 +247,21 @@ class TaskRepository {
     var updatedTask = serializers.deserializeWith(TaskItem.serializer, blueprintJson)!;
 
     return (taskItem: updatedTask, recurrence: updatedRecurrence);
+  }
+
+  Future<TaskRecurrence?> updateRecurrence(
+      DocumentReference<Map<String, dynamic>> recurrenceDoc,
+      Map<String, dynamic> recurrenceJson,
+      String recurrenceDocId,
+      TaskRecurrence? updatedRecurrence,
+      Map<String, dynamic> blueprintJson
+      ) async {
+    var recurSnap = await recurrenceDoc.get();
+    recurrenceJson['docId'] = recurrenceDocId;
+    recurrenceJson['dateAdded'] = recurSnap.get('dateAdded');
+    updatedRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson);
+    blueprintJson.remove('recurrenceBlueprint');
+    return updatedRecurrence;
   }
 
   Future<({Sprint sprint, BuiltList<TaskItem> addedTasks, BuiltList<SprintAssignment> sprintAssignments})> addSprintWithTaskItems(SprintBlueprint blueprint, BuiltList<TaskItem> existingItems, BuiltList<TaskItemRecurPreview> newItems) async {
