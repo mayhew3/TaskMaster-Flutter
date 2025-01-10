@@ -33,7 +33,7 @@ List<Middleware<AppState>> createStoreTaskItemsMiddleware(
     TypedMiddleware<AppState, UpdateTaskItemAction>(_updateTaskItem(repository)).call,
     TypedMiddleware<AppState, DeleteTaskItemAction>(_deleteTaskItem(repository)).call,
     TypedMiddleware<AppState, CompleteTaskItemAction>(completeTaskItem(repository)).call,
-    TypedMiddleware<AppState, ExecuteSnooze>(_executeSnooze(repository)).call,
+    TypedMiddleware<AppState, ExecuteSnooze>(executeSnooze(repository)).call,
     TypedMiddleware<AppState, GoOffline>(goOffline(repository)).call,
     TypedMiddleware<AppState, GoOnline>(goOnline(repository)).call,
   ];
@@ -245,11 +245,12 @@ Future<void> Function(
   };
 }
 
+@visibleForTesting
 Future<void> Function(
     Store<AppState>,
     ExecuteSnooze action,
     NextDispatcher next,
-    ) _executeSnooze(TaskRepository repository) {
+    ) executeSnooze(TaskRepository repository) {
   return (Store<AppState> store, ExecuteSnooze action, NextDispatcher next) async {
     next(action);
 
