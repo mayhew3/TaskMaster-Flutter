@@ -69,7 +69,9 @@ class RecurrenceHelper {
     if (relevantDate == null) {
       dateType.dateFieldSetter(taskItemEdit, adjustedDate);
     } else {
-      Duration difference = adjustedDate.difference(relevantDate);
+      var diff = Jiffy.parseFromDateTime(adjustedDate).diff(Jiffy.parseFromDateTime(relevantDate), unit: Unit.day, asFloat: true);
+      var rounded = num.parse(diff.toStringAsFixed(0)) as int;
+      Duration difference = Duration(days: rounded);
       for (var taskDateType in TaskDateTypes.allTypes) {
         taskItemEdit.incrementDateIfExists(taskDateType, difference);
       }

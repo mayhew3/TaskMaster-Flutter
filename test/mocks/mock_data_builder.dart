@@ -130,10 +130,10 @@ class MockTaskItemBuilder with DateHolder {
   factory MockTaskItemBuilder.withDates() {
     var now = DateTime.now();
     return MockTaskItemBuilder.asDefault()
-        ..startDate = now.subtract(Duration(days: 4))
-        ..targetDate = now.add(Duration(days: 1))
-        ..urgentDate = now.add(Duration(days: 5))
-        ..dueDate = now.add(Duration(days: 8));
+        ..startDate = now.subtract(Duration(days: 4, hours: 5))
+        ..targetDate = now.add(Duration(days: 1, hours: 5))
+        ..urgentDate = now.add(Duration(days: 5, hours: 6))
+        ..dueDate = now.add(Duration(days: 8, hours: 8));
   }
 
   MockTaskItemBuilder asCompleted() {
