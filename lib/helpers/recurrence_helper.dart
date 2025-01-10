@@ -26,11 +26,7 @@ class RecurrenceHelper {
       var recurUnit = recurrence.recurUnit;
       var recurWait = recurrence.recurWait;
 
-      // todo: use recurrence anchor date, not calculated from task item
-      DateTime? anchorDate = taskItem.getAnchorDate();
-      if (anchorDate == null) {
-        throw Exception('Recur_number exists without anchor date!');
-      }
+      DateTime? anchorDate = recurrence.anchorDate;
       DateTime nextAnchorDate;
 
       if (recurWait) {
@@ -59,8 +55,6 @@ class RecurrenceHelper {
 
   static void generatePreview(TaskItemBlueprint taskItemEdit, int numUnits, String unitSize, TaskDateType dateType) {
     DateTime snoozeDate = DateTime.now();
-
-    // todo: maintain existing time
 
     DateTime adjustedDate = _getAdjustedDate(snoozeDate, numUnits, unitSize);
 
