@@ -148,7 +148,7 @@ void main() {
     TaskItem? resultTask;
     TaskItemBlueprint? blueprint;
 
-    when(taskRepository.updateTask(birthdayTask.docId, any)).thenAnswer((invocation) {
+    when(taskRepository.updateTaskAndRecurrence(birthdayTask.docId, any)).thenAnswer((invocation) {
       blueprint = invocation.positionalArguments[1];
       resultTask = TestMockHelper.mockEditTask(birthdayTask, blueprint!);
       return Future.value((taskItem: resultTask!, recurrence: null));
@@ -158,7 +158,7 @@ void main() {
     verifyNever(taskRepository.addTask(any));
 
     verify(appState.personDocId);
-    verify(taskRepository.updateTask(birthdayTask.docId, blueprint));
+    verify(taskRepository.updateTaskAndRecurrence(birthdayTask.docId, blueprint));
     verify(mockNotificationHelper.updateNotificationForTask(resultTask));
     verify(store.dispatch(argThat(isA<TaskItemCompletedAction>())));
   });

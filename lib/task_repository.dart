@@ -212,41 +212,58 @@ class TaskRepository {
     return updatedTask;
   }
 
-  Future<({TaskItem taskItem, TaskRecurrence? recurrence})> updateTask(String taskItemDocId, TaskItemBlueprint blueprint) async {
+  Future<({TaskItem taskItem, TaskRecurrence? recurrence})> updateTaskAndRecurrence(String taskItemDocId, TaskItemBlueprint blueprint) async {
     var blueprintJson = blueprint.toJson();
 
-    var recurrenceBlueprint = blueprint.recurrenceBlueprint;
+    TaskItem? updatedTask;
     TaskRecurrence? updatedRecurrence;
-    if (recurrenceBlueprint != null) {
-      var recurrenceDocId = blueprint.recurrenceDocId;
-      if (recurrenceDocId != null) {
-        var recurrenceDoc = firestore.collection('taskRecurrences').doc(recurrenceDocId);
-        var recurrenceJson = recurrenceBlueprint.toJson();
-        recurrenceDoc.update(recurrenceJson);
 
-        updatedRecurrence = await updateRecurrence(recurrenceDoc, recurrenceJson, recurrenceDocId, updatedRecurrence, blueprintJson);
+    try {
+      await firestore.runTransaction((transaction) async {
+
+        var taskDoc = firestore.collection('tasks').doc(taskItemDocId);
+
+        var recurrenceBlueprint = blueprint.recurrenceBlueprint;
+        if (recurrenceBlueprint != null) {
+          var recurrenceDocId = blueprint.recurrenceDocId;
+          if (recurrenceDocId != null) {
+            var recurrenceDoc = firestore.collection('taskRecurrences').doc(recurrenceDocId);
+            var recurrenceJson = recurrenceBlueprint.toJson();
+            recurrenceDoc.update(recurrenceJson);
+
+            updatedRecurrence = await updateRecurrence(recurrenceDoc, recurrenceJson, recurrenceDocId, updatedRecurrence, blueprintJson);
+          } else {
+            var recurrenceDoc = firestore.collection('taskRecurrences').doc();
+            recurrenceDocId = recurrenceDoc.id;
+            var recurrenceJson = recurrenceBlueprint.toJson();
+
+            recurrenceJson['dateAdded'] = DateTime.now().toUtc();
+            recurrenceDoc.set(recurrenceJson);
+
+            updatedRecurrence = await updateRecurrence(recurrenceDoc, recurrenceJson, recurrenceDocId, updatedRecurrence, blueprintJson);
+            blueprintJson['recurrenceDocId'] = recurrenceDocId;
+          }
+        }
+
+        taskDoc.update(blueprintJson);
+
+        var snapshot = await taskDoc.get();
+        blueprintJson['docId'] = taskDoc.id;
+        blueprintJson['dateAdded'] = snapshot.get('dateAdded');
+        updatedTask = serializers.deserializeWith(TaskItem.serializer, blueprintJson)!;
+      });
+
+      if (updatedTask == null) {
+        throw Exception('No updated task!');
       } else {
-        var recurrenceDoc = firestore.collection('taskRecurrences').doc();
-        recurrenceDocId = recurrenceDoc.id;
-        var recurrenceJson = recurrenceBlueprint.toJson();
-
-        recurrenceJson['dateAdded'] = DateTime.now().toUtc();
-        recurrenceDoc.set(recurrenceJson);
-
-        updatedRecurrence = await updateRecurrence(recurrenceDoc, recurrenceJson, recurrenceDocId, updatedRecurrence, blueprintJson);
-        blueprintJson['recurrenceDocId'] = recurrenceDocId;
+        return (taskItem: updatedTask!, recurrence: updatedRecurrence);
       }
+
+    } catch (e) {
+      log.warning('Error updating task and recurrence: $e');
+      rethrow;
     }
 
-    var doc = firestore.collection('tasks').doc(taskItemDocId);
-    doc.update(blueprintJson);
-
-    var snapshot = await doc.get();
-    blueprintJson['docId'] = doc.id;
-    blueprintJson['dateAdded'] = snapshot.get('dateAdded');
-    var updatedTask = serializers.deserializeWith(TaskItem.serializer, blueprintJson)!;
-
-    return (taskItem: updatedTask, recurrence: updatedRecurrence);
   }
 
   Future<TaskRecurrence?> updateRecurrence(
@@ -327,7 +344,7 @@ class TaskRepository {
             .build(), sprintAssignments: sprintAssignments.build());
       }
     } catch (e) {
-      print('Error adding sprint: $e');
+      log.warning('Error adding sprint: $e');
       rethrow;
     }
   }

@@ -124,7 +124,9 @@ class MockTaskItemBuilder with DateHolder {
 
   factory MockTaskItemBuilder.asDefault() {
     return MockTaskItemBuilder.asPreCommit()
-      ..docId = me;
+      ..docId = me
+      ..dateAdded = DateTime.now()
+    ;
   }
 
   factory MockTaskItemBuilder.withDates() {

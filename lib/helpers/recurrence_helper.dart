@@ -1,6 +1,9 @@
 
 import 'package:jiffy/jiffy.dart';
+import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/task_item_recur_preview.dart';
+import 'package:taskmaster/redux/actions/task_item_actions.dart';
+import 'package:taskmaster/task_repository.dart';
 
 import '../date_util.dart';
 import '../models/sprint_display_task.dart';
@@ -11,8 +14,6 @@ class RecurrenceHelper {
 
   static TaskItemRecurPreview createNextIteration(SprintDisplayTask taskItem, DateTime completionDate) {
     var recurrence = taskItem.recurrence;
-
-    // todo: handle offCycle
 
     if (recurrence != null) {
       var recurIteration = taskItem.recurIteration;
@@ -70,6 +71,21 @@ class RecurrenceHelper {
         taskItemEdit.incrementDateIfExists(taskDateType, difference);
       }
     }
+
+  }
+
+  static Future<TaskItem> updateTaskAndMaybeRecurrence(TaskRepository repository, ExecuteSnooze action) async {
+
+    var recurrence = action.blueprint.recurrenceBlueprint;
+    if (recurrence != null) {
+      var recurWait = recurrence.recurWait;
+      var offCycle = action.blueprint.offCycle;
+      if (recurWait != null && recurWait && !offCycle) {
+        recurrence.anchorDate = action.blueprint.getAnchorDate();
+      }
+    }
+
+    return (await repository.updateTaskAndRecurrence(action.taskItem.docId, action.blueprint)).taskItem;
 
   }
 

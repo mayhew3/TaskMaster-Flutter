@@ -1,35 +1,23 @@
 
-import 'package:built_collection/built_collection.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:redux/redux.dart';
 import 'package:taskmaster/date_util.dart';
 import 'package:taskmaster/helpers/recurrence_helper.dart';
-import 'package:taskmaster/models/snooze.dart';
-import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
-import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/redux/actions/task_item_actions.dart';
-import 'package:taskmaster/redux/app_state.dart';
-import 'package:taskmaster/redux/middleware/notification_helper.dart';
-import 'package:taskmaster/redux/middleware/store_task_items_middleware.dart';
-import 'package:taskmaster/routes.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
-import 'mocks/mock_data.dart';
 import 'mocks/mock_data_builder.dart';
-import 'mocks/mock_flutter_plugin.dart';
-import 'mocks/mock_timezone_helper.dart';
 import 'task_helper_test.mocks.dart';
 import 'test_mock_helper.dart';
 
+@GenerateNiceMocks([MockSpec<TaskRepository>()])
 void main() {
 
-  test('previewSnooze moves target and due dates', () {
+  test('generatePreview moves target and due dates', () {
     var blueprint = MockTaskItemBuilder.withDates()
       .create().createBlueprint();
 
@@ -52,7 +40,7 @@ void main() {
 
   });
 
-  test('previewSnooze on task without a start date adds a start date', () {
+  test('generatePreview on task without a start date adds a start date', () {
     var taskItem = MockTaskItemBuilder
         .asDefault()
         .create().createBlueprint();
@@ -65,5 +53,33 @@ void main() {
     expect(diffDue, 4, reason: 'Expect Start date to be 4 days from now.');
 
   });
+
+
+  test('updateTaskAndMaybeRecurrence with no recurrence', () {
+    var mockTaskRepository = MockTaskRepository();
+
+    var taskItem = MockTaskItemBuilder
+        .asDefault()
+        .create();
+    var blueprint = taskItem.createBlueprint();
+
+    var action = ExecuteSnooze(taskItem: taskItem, blueprint: blueprint, numUnits: 3, unitSize: 'Days', dateType: TaskDateTypes.due);
+
+    TaskItem? resultTask;
+    TaskItemBlueprint? resultingBlueprint;
+
+    when(mockTaskRepository.updateTaskAndRecurrence(taskItem.docId, any)).thenAnswer((invocation) {
+      resultingBlueprint = invocation.positionalArguments[1];
+      resultTask = TestMockHelper.mockEditTask(taskItem, resultingBlueprint!);
+      return Future.value((taskItem: resultTask!, recurrence: null));
+    });
+
+    RecurrenceHelper.updateTaskAndMaybeRecurrence(mockTaskRepository, action);
+
+    expect(resultingBlueprint, blueprint);
+    verify(mockTaskRepository.updateTaskAndRecurrence(taskItem.docId, resultingBlueprint));
+
+  });
+
 
 }

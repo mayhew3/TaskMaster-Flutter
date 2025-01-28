@@ -186,7 +186,7 @@ Future<void> Function(
   return (Store<AppState> store, UpdateTaskItemAction action, NextDispatcher next) async {
     next(action);
     action.blueprint.recurrenceBlueprint?.personDocId = action.taskItem.personDocId;
-    repository.updateTask(action.taskItem.docId, action.blueprint);
+    repository.updateTaskAndRecurrence(action.taskItem.docId, action.blueprint);
 
     // updateNotificationForItem(store, updated.taskItem);
 
@@ -215,7 +215,7 @@ Future<void> Function(
       nextScheduledTask = RecurrenceHelper.createNextIteration(taskItem, completionDate);
     }
 
-    var updated = await repository.updateTask(taskItem.docId, blueprint);
+    var updated = await repository.updateTaskAndRecurrence(taskItem.docId, blueprint);
 
     updateNotificationForItem(store, updated.taskItem);
 
@@ -256,26 +256,26 @@ Future<void> Function(
 
     RecurrenceHelper.generatePreview(action.blueprint, action.numUnits, action.unitSize, action.dateType);
 
-    DateTime? originalValue = action.dateType.dateFieldGetter(action.taskItem);
-    DateTime relevantDateField = action.dateType.dateFieldGetter(action.blueprint)!;
+    DateTime? originalValue = action.taskItem.getAnchorDate();
 
-    var updatedTask = await repository.updateTask(action.taskItem.docId, action.blueprint);
+    var updatedTask = await RecurrenceHelper.updateTaskAndMaybeRecurrence(repository, action);
+
+    var newAnchorDate = action.dateType.dateFieldGetter(updatedTask)!;
+
+    // todo: check if there are any later recurrences already, and shift them if
+    // todo: offCycle is false and recurWait is false
 
     SnoozeBlueprint snooze = SnoozeBlueprint(
-        taskDocId: updatedTask.taskItem.docId,
+        taskDocId: updatedTask.docId,
         snoozeNumber: action.numUnits,
         snoozeUnits: action.unitSize,
         snoozeAnchor: action.dateType.label,
         previousAnchor: originalValue,
-        newAnchor: relevantDateField);
+        newAnchor: newAnchorDate);
 
     repository.addSnooze(snooze);
-    store.dispatch(SnoozeExecuted(updatedTask.taskItem));
+    store.dispatch(SnoozeExecuted(updatedTask));
 
-    // todo: update recurrence anchor date, if scheduled, and not off cycle
-
-    // todo: check if there are any later recurrences already, and shift them if
-    // todo: offCycle is false and recurWait is false
   };
 }
 

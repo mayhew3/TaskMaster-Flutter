@@ -494,49 +494,78 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
       ) as _i5.TaskItem);
 
   @override
-  _i4.Future<
-      ({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})> updateTask(
+  _i4.Future<({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})>
+      updateTaskAndRecurrence(
     String? taskItemDocId,
     _i21.TaskItemBlueprint? blueprint,
   ) =>
+          (super.noSuchMethod(
+            Invocation.method(
+              #updateTaskAndRecurrence,
+              [
+                taskItemDocId,
+                blueprint,
+              ],
+            ),
+            returnValue: _i4.Future<
+                ({
+                  _i8.TaskRecurrence? recurrence,
+                  _i5.TaskItem taskItem
+                })>.value((
+              recurrence: null,
+              taskItem: _FakeTaskItem_3(
+                this,
+                Invocation.method(
+                  #updateTaskAndRecurrence,
+                  [
+                    taskItemDocId,
+                    blueprint,
+                  ],
+                ),
+              )
+            )),
+            returnValueForMissingStub: _i4.Future<
+                ({
+                  _i8.TaskRecurrence? recurrence,
+                  _i5.TaskItem taskItem
+                })>.value((
+              recurrence: null,
+              taskItem: _FakeTaskItem_3(
+                this,
+                Invocation.method(
+                  #updateTaskAndRecurrence,
+                  [
+                    taskItemDocId,
+                    blueprint,
+                  ],
+                ),
+              )
+            )),
+          ) as _i4.Future<
+              ({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})>);
+
+  @override
+  _i4.Future<_i8.TaskRecurrence?> updateRecurrence(
+    _i2.DocumentReference<Map<String, dynamic>>? recurrenceDoc,
+    Map<String, dynamic>? recurrenceJson,
+    String? recurrenceDocId,
+    _i8.TaskRecurrence? updatedRecurrence,
+    Map<String, dynamic>? blueprintJson,
+  ) =>
       (super.noSuchMethod(
         Invocation.method(
-          #updateTask,
+          #updateRecurrence,
           [
-            taskItemDocId,
-            blueprint,
+            recurrenceDoc,
+            recurrenceJson,
+            recurrenceDocId,
+            updatedRecurrence,
+            blueprintJson,
           ],
         ),
-        returnValue: _i4.Future<
-            ({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})>.value((
-          recurrence: null,
-          taskItem: _FakeTaskItem_3(
-            this,
-            Invocation.method(
-              #updateTask,
-              [
-                taskItemDocId,
-                blueprint,
-              ],
-            ),
-          )
-        )),
-        returnValueForMissingStub: _i4.Future<
-            ({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})>.value((
-          recurrence: null,
-          taskItem: _FakeTaskItem_3(
-            this,
-            Invocation.method(
-              #updateTask,
-              [
-                taskItemDocId,
-                blueprint,
-              ],
-            ),
-          )
-        )),
-      ) as _i4
-          .Future<({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})>);
+        returnValue: _i4.Future<_i8.TaskRecurrence?>.value(),
+        returnValueForMissingStub: _i4.Future<_i8.TaskRecurrence?>.value(),
+      ) as _i4.Future<_i8.TaskRecurrence?>);
 
   @override
   _i4.Future<
