@@ -17,6 +17,9 @@ import 'test_mock_helper.dart';
 @GenerateNiceMocks([MockSpec<TaskRepository>()])
 void main() {
 
+
+  // generatePreview()
+
   test('generatePreview moves target and due dates', () {
     var blueprint = MockTaskItemBuilder.withDates()
       .create().createBlueprint();
@@ -55,6 +58,8 @@ void main() {
   });
 
 
+  // updateTaskAndMaybeRecurrence()
+
   test('updateTaskAndMaybeRecurrence with no recurrence', () {
     var mockTaskRepository = MockTaskRepository();
 
@@ -79,6 +84,18 @@ void main() {
     expect(resultingBlueprint, blueprint);
     verify(mockTaskRepository.updateTaskAndRecurrence(taskItem.docId, resultingBlueprint));
 
+  });
+
+  test('updateTaskAndMaybeRecurrence with On Complete recurrence', () {
+    expect(1, 0, reason: 'To implement');
+  });
+
+  test('updateTaskAndMaybeRecurrence with On Schedule recurrence, off cycle', () {
+    expect(1, 0, reason: 'To implement');
+  });
+
+  test('updateTaskAndMaybeRecurrence with On Schedule recurrence, on cycle', () {
+    expect(1, 0, reason: 'To implement');
   });
 
 
