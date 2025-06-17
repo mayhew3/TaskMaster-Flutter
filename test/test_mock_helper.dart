@@ -121,6 +121,7 @@ class TestMockHelper {
     if (recurrenceBlueprint != null && recurrence != null) {
       recurrenceCopy = TaskRecurrence((r) => r
         ..docId = recurrence.docId
+        ..dateAdded = recurrence.dateAdded
         ..personDocId = recurrence.personDocId
         ..name = recurrenceBlueprint.name ?? recurrence.name
         ..recurNumber = recurrenceBlueprint.recurNumber ?? recurrence.recurNumber

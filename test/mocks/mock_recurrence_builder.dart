@@ -16,17 +16,19 @@ class MockTaskRecurrenceBuilder {
   MockTaskRecurrenceBuilder();
 
   TaskRecurrence create() {
-    var taskRecurrence = {
-      docId: docId,
-      name: name,
-      recurNumber: recurNumber,
-      recurUnit: recurUnit,
-      recurWait: recurWait,
-      recurIteration: recurIteration,
-      anchorDate: anchorDate,
-      anchorType: anchorType
+    var taskRecurrenceMap = {
+      'docId': docId,
+      'dateAdded': DateTime.now().toUtc(),
+      'name': name,
+      'personDocId': MockTaskItemBuilder.me,
+      'recurNumber': recurNumber,
+      'recurUnit': recurUnit,
+      'recurWait': recurWait,
+      'recurIteration': recurIteration,
+      'anchorDate': anchorDate,
+      'anchorType': anchorType
     };
-    return serializers.deserializeWith(TaskRecurrence.serializer, taskRecurrence)!;
+    return serializers.deserializeWith(TaskRecurrence.serializer, taskRecurrenceMap)!;
   }
 
   factory MockTaskRecurrenceBuilder.asPreCommit() {

@@ -28,7 +28,7 @@ class MockTaskItemBuilder with DateHolder {
   DateTime? dueDate;
   @override
   DateTime? completionDate;
-  late bool offCycle;
+  late bool _offCycle;
   late int gamePoints;
   int? recurNumber;
   String? recurUnit;
@@ -60,7 +60,7 @@ class MockTaskItemBuilder with DateHolder {
     taskItem.targetDate = targetDate;
     taskItem.urgentDate = urgentDate;
     taskItem.dueDate = dueDate;
-    taskItem.offCycle = offCycle;
+    taskItem.offCycle = _offCycle;
     taskItem.gamePoints = gamePoints;
     taskItem.recurNumber = recurNumber;
     taskItem.recurUnit = recurUnit;
@@ -94,7 +94,7 @@ class MockTaskItemBuilder with DateHolder {
       ..urgentDate = urgentDate
       ..dueDate = dueDate
       ..completionDate = completionDate
-      ..offCycle = offCycle
+      ..offCycle = _offCycle
       ..recurNumber = recurNumber
       ..recurUnit = recurUnit
       ..recurWait = recurWait
@@ -118,7 +118,7 @@ class MockTaskItemBuilder with DateHolder {
       ..priority = 5
       ..duration = 15
       ..dateAdded = DateTime.now()
-      ..offCycle = false
+      .._offCycle = false
       ..gamePoints = 1;
   }
 
@@ -129,13 +129,14 @@ class MockTaskItemBuilder with DateHolder {
     ;
   }
 
-  factory MockTaskItemBuilder.withDates() {
-    var now = DateTime.now();
+  factory MockTaskItemBuilder.withDates({bool offCycle = false}) {
+    var now = DateTime.now().toUtc();
     return MockTaskItemBuilder.asDefault()
         ..startDate = now.subtract(Duration(days: 4, hours: 5))
         ..targetDate = now.add(Duration(days: 1, hours: 5))
         ..urgentDate = now.add(Duration(days: 5, hours: 6))
-        ..dueDate = now.add(Duration(days: 8, hours: 8));
+        ..dueDate = now.add(Duration(days: 8, hours: 8))
+        .._offCycle = offCycle;
   }
 
   MockTaskItemBuilder asCompleted() {
