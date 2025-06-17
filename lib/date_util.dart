@@ -64,4 +64,8 @@ class DateUtil {
     return Jiffy.parseFromDateTime(originalDate).startOf(Unit.minute).dateTime;
   }
 
+  static DateTime nowUtcWithoutMillis() {
+    return withoutMillis(DateTime.now().toUtc());
+  }
+
 }

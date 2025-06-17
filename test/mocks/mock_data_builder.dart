@@ -1,4 +1,5 @@
 
+import 'package:taskmaster/date_util.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
@@ -130,12 +131,11 @@ class MockTaskItemBuilder with DateHolder {
   }
 
   factory MockTaskItemBuilder.withDates({bool offCycle = false}) {
-    var now = DateTime.now().toUtc();
     return MockTaskItemBuilder.asDefault()
-        ..startDate = now.subtract(Duration(days: 4, hours: 5))
-        ..targetDate = now.add(Duration(days: 1, hours: 5))
-        ..urgentDate = now.add(Duration(days: 5, hours: 6))
-        ..dueDate = now.add(Duration(days: 8, hours: 8))
+        ..startDate = DateUtil.nowUtcWithoutMillis().subtract(Duration(days: 4, hours: 5))
+        ..targetDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 1, hours: 5))
+        ..urgentDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 5, hours: 6))
+        ..dueDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 8, hours: 8))
         .._offCycle = offCycle;
   }
 

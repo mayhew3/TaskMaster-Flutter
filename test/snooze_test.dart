@@ -1,4 +1,5 @@
 
+import 'package:taskmaster/date_util.dart';
 import 'package:taskmaster/models/snooze.dart';
 import 'package:test/test.dart';
 
@@ -7,7 +8,7 @@ void main() {
   test('to json', () async {
     Snooze snooze = Snooze((s) => s
       ..docId = '3'
-      ..dateAdded = DateTime.now().toUtc()
+      ..dateAdded = DateUtil.nowUtcWithoutMillis()
       ..taskDocId = '4'
       ..snoozeNumber = 1
       ..snoozeUnits = 'days'
