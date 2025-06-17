@@ -1,4 +1,4 @@
-
+import 'package:meta/meta.dart'; // Make sure this import is present
 import 'package:jiffy/jiffy.dart';
 import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/task_item_recur_preview.dart';
@@ -31,19 +31,19 @@ class RecurrenceHelper {
       DateTime nextAnchorDate;
 
       if (recurWait) {
-        nextAnchorDate = _getAdjustedDate(completionDate, recurNumber, recurUnit);
+        nextAnchorDate = getAdjustedDate(completionDate, recurNumber, recurUnit);
       } else {
-        nextAnchorDate = _getAdjustedDate(anchorDate, recurNumber, recurUnit);
+        nextAnchorDate = getAdjustedDate(anchorDate, recurNumber, recurUnit);
       }
 
-      DateTime dateWithTime = _getClosestDateForTime(anchorDate, nextAnchorDate);
+      DateTime dateWithTime = getClosestDateForTime(anchorDate, nextAnchorDate);
       Duration duration = dateWithTime.difference(anchorDate);
 
       TaskItemRecurPreview nextScheduledTask = taskItem.createNextRecurPreview(
-        startDate: _addToDate(taskItem.startDate, duration),
-        targetDate: _addToDate(taskItem.targetDate, duration),
-        urgentDate: _addToDate(taskItem.urgentDate, duration),
-        dueDate: _addToDate(taskItem.dueDate, duration),
+        startDate: addToDate(taskItem.startDate, duration),
+        targetDate: addToDate(taskItem.targetDate, duration),
+        urgentDate: addToDate(taskItem.urgentDate, duration),
+        dueDate: addToDate(taskItem.dueDate, duration),
       );
 
       return nextScheduledTask;
@@ -57,7 +57,7 @@ class RecurrenceHelper {
   static void generatePreview(TaskItemBlueprint taskItemEdit, int numUnits, String unitSize, TaskDateType dateType) {
     DateTime snoozeDate = DateTime.now();
 
-    DateTime adjustedDate = _getAdjustedDate(snoozeDate, numUnits, unitSize);
+    DateTime adjustedDate = getAdjustedDate(snoozeDate, numUnits, unitSize);
 
     DateTime? relevantDate = dateType.dateFieldGetter(taskItemEdit);
 
@@ -92,15 +92,18 @@ class RecurrenceHelper {
 
   // private helper methods
 
-  static DateTime? _addToDate(DateTime? previousDate, Duration duration) {
+  @visibleForTesting
+  static DateTime? addToDate(DateTime? previousDate, Duration duration) {
     return previousDate?.add(duration);
   }
 
-  static DateTime _getAdjustedDate(DateTime dateTime, int recurNumber, String recurUnit) {
+  @visibleForTesting
+  static DateTime getAdjustedDate(DateTime dateTime, int recurNumber, String recurUnit) {
     return DateUtil.adjustToDate(dateTime, recurNumber, recurUnit);
   }
 
-  static DateTime _applyTimeToDate(DateTime dateWithTime, DateTime targetDate) {
+  @visibleForTesting
+  static DateTime applyTimeToDate(DateTime dateWithTime, DateTime targetDate) {
     var jiffy = Jiffy.parseFromMap({
       Unit.year: targetDate.year,
       Unit.month: targetDate.month,
@@ -113,10 +116,11 @@ class RecurrenceHelper {
     return jiffy.dateTime;
   }
 
-  static DateTime _getClosestDateForTime(DateTime dateWithTime, DateTime targetDate) {
-    DateTime prev = _applyTimeToDate(dateWithTime, Jiffy.parseFromDateTime(targetDate).subtract(days:1).dateTime);
-    DateTime current = _applyTimeToDate(dateWithTime, targetDate);
-    DateTime next = _applyTimeToDate(dateWithTime, Jiffy.parseFromDateTime(targetDate).add(days:1).dateTime);
+  @visibleForTesting
+  static DateTime getClosestDateForTime(DateTime dateWithTime, DateTime targetDate) {
+    DateTime prev = applyTimeToDate(dateWithTime, Jiffy.parseFromDateTime(targetDate).subtract(days:1).dateTime);
+    DateTime current = applyTimeToDate(dateWithTime, targetDate);
+    DateTime next = applyTimeToDate(dateWithTime, Jiffy.parseFromDateTime(targetDate).add(days:1).dateTime);
 
     var prevDiff = prev.difference(targetDate).abs();
     var currDiff = current.difference(targetDate).abs();
