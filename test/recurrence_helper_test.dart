@@ -226,6 +226,7 @@ void main() {
           .withRecur(recurWait: true) // Mimics "On Complete"
           .create();
       final completionDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 5));
+      // save off diffs between due date and the other dates, assert they remain consistent on the new iteration
 
       final result = RecurrenceHelper.createNextIteration(taskItem, completionDate);
 
@@ -243,6 +244,22 @@ void main() {
 
       expect(daysBetween(taskItem.dueDate!, result.dueDate!), 42);
     });
+
+    test('on scheduled dates (off cycle) increments dates', () {
+      var taskItem = MockTaskItemBuilder
+          .withDates(offCycle: true)
+          .withRecur(recurWait: false) // Mimics "On Schedule"
+          .create();
+      final completionDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 5));
+
+      final result = RecurrenceHelper.createNextIteration(taskItem, completionDate);
+
+      expect(daysBetween(taskItem.dueDate!, result.dueDate!), 37);
+    });
+
+    // test different anchor dates
+    // test calling this method on a task item with no recurrence
+    // test exception for no recur_iteration
 
   });
 

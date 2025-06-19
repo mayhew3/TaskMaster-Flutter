@@ -37,7 +37,14 @@ class RecurrenceHelper {
       }
 
       DateTime dateWithTime = getClosestDateForTime(anchorDate, nextAnchorDate);
-      Duration duration = dateWithTime.difference(anchorDate);
+
+      // todo: refactor this. I don't love that we're basing the recurrence interval
+      // todo: on the task item's date. Really we should get the new anchor date based
+      // todo: on the previous anchor date, and increment the non-anchor dates to match
+      // todo: the original task item. There are probably multiple places we could use
+      // todo: this method to sync to another task items start/target/urgent/due diffs.
+      // todo: change createNextRecurPreview to take an anchor date and a task item?
+      Duration duration = dateWithTime.difference(taskItem.getAnchorDate()!);
 
       TaskItemRecurPreview nextScheduledTask = taskItem.createNextRecurPreview(
         startDate: addToDate(taskItem.startDate, duration),

@@ -162,6 +162,10 @@ class MockTaskItemBuilder with DateHolder {
       ..anchorType = getAnchorDateType()!.label
     ;
 
+    if (_offCycle) {
+      dueDate = dueDate!.add(Duration(days: 5));
+    }
+
     return this;
   }
 
