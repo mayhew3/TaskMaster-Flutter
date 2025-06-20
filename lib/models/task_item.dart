@@ -6,6 +6,7 @@ import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/serializers.dart';
 import 'package:taskmaster/models/sprint_display_task.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
+import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_item_recur_preview.dart';
 
@@ -116,11 +117,9 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
 
   @override
   TaskItemRecurPreview createNextRecurPreview({
-    required DateTime? startDate,
-    required DateTime? targetDate,
-    required DateTime? urgentDate,
-    required DateTime? dueDate,
+    required Map<TaskDateType, DateTime> dates,
   }) {
+
     return TaskItemRecurPreview((b) => b
       ..docId = 'ASKLJDH'
       ..personDocId = personDocId
@@ -131,15 +130,14 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
       ..urgency = urgency
       ..priority = priority
       ..duration = duration
-      ..startDate = startDate
-      ..targetDate = targetDate
-      ..urgentDate = urgentDate
-      ..dueDate = dueDate
+      ..startDate = dates[TaskDateTypes.start]
+      ..targetDate = dates[TaskDateTypes.target]
+      ..urgentDate = dates[TaskDateTypes.urgent]
+      ..dueDate = dates[TaskDateTypes.due]
       ..gamePoints = gamePoints
       ..recurNumber = recurNumber
       ..recurUnit = recurUnit
       ..recurWait = recurWait
-      // ..recurrenceId = recurrenceId
       ..recurrenceDocId = recurrenceDocId
       ..recurIteration = recurIteration! + 1
       ..recurrence = recurrence!.toBuilder()

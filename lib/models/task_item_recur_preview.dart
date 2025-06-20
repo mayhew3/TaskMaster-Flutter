@@ -8,6 +8,7 @@ import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/sprint_display_task.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
+import 'package:taskmaster/models/task_date_type.dart';
 
 /// This allows the `TaskItemRecurPreview` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
@@ -79,16 +80,13 @@ abstract class TaskItemRecurPreview with DateHolder, SprintDisplayTask implement
 
   @override
   TaskItemRecurPreview createNextRecurPreview({
-    required DateTime? startDate,
-    required DateTime? targetDate,
-    required DateTime? urgentDate,
-    required DateTime? dueDate,
+    required Map<TaskDateType, DateTime> dates,
   }) {
     return rebuild((t) => t
-      ..startDate = startDate
-      ..targetDate = targetDate
-      ..urgentDate = urgentDate
-      ..dueDate = dueDate
+      ..startDate = dates[TaskDateTypes.start]
+      ..targetDate = dates[TaskDateTypes.target]
+      ..urgentDate = dates[TaskDateTypes.urgent]
+      ..dueDate = dates[TaskDateTypes.due]
       ..recurIteration = t.recurIteration! + 1
     );
   }

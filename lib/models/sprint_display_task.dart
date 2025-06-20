@@ -1,5 +1,6 @@
 import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
+import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item_recur_preview.dart';
 
 mixin SprintDisplayTask implements DateHolder {
@@ -35,9 +36,6 @@ mixin SprintDisplayTask implements DateHolder {
   bool isPreview();
 
   TaskItemRecurPreview createNextRecurPreview({
-    required DateTime? startDate,
-    required DateTime? targetDate,
-    required DateTime? urgentDate,
-    required DateTime? dueDate,
+    required Map<TaskDateType, DateTime> dates,
   });
 }

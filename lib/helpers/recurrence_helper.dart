@@ -36,21 +36,8 @@ class RecurrenceHelper {
         nextAnchorDate = getAdjustedDate(anchorDate, recurNumber, recurUnit);
       }
 
-      DateTime dateWithTime = getClosestDateForTime(anchorDate, nextAnchorDate);
-
-      // todo: refactor this. I don't love that we're basing the recurrence interval
-      // todo: on the task item's date. Really we should get the new anchor date based
-      // todo: on the previous anchor date, and increment the non-anchor dates to match
-      // todo: the original task item. There are probably multiple places we could use
-      // todo: this method to sync to another task items start/target/urgent/due diffs.
-      // todo: change createNextRecurPreview to take an anchor date and a task item?
-      Duration duration = dateWithTime.difference(taskItem.getAnchorDate()!);
-
       TaskItemRecurPreview nextScheduledTask = taskItem.createNextRecurPreview(
-        startDate: addToDate(taskItem.startDate, duration),
-        targetDate: addToDate(taskItem.targetDate, duration),
-        urgentDate: addToDate(taskItem.urgentDate, duration),
-        dueDate: addToDate(taskItem.dueDate, duration),
+        dates: incrementWithMatchingDateIntervals(taskItem, anchorDate, nextAnchorDate, taskItem.getAnchorDateType()!),
       );
 
       return nextScheduledTask;
@@ -142,5 +129,29 @@ class RecurrenceHelper {
     }
   }
 
+  static Map<TaskDateType, DateTime> incrementWithMatchingDateIntervals(SprintDisplayTask taskItem, DateTime originalAnchorDate, DateTime newAnchorDate, TaskDateType taskDateType) {
+    Map<TaskDateType, DateTime> originalDateSet = new Map();
+    for (var dateType in TaskDateTypes.allTypes) {
+      DateTime? dateValue = dateType.dateFieldGetter(taskItem);
+      if (dateValue != null) {
+        originalDateSet[dateType] = dateValue;
+      }
+    }
+
+    var resultSet = new Map<TaskDateType, DateTime>();
+    var taskAnchorDate = originalDateSet[taskDateType];
+    if (taskAnchorDate == null) {
+      throw new Exception('Expected supplied date set to include date with taskDateType');
+    }
+    for (var dateType in TaskDateTypes.allTypes) {
+      var dateValue = originalDateSet[dateType];
+      if (dateValue != null) {
+        var difference = dateValue.difference(taskAnchorDate);
+        var newDateValue = newAnchorDate.add(difference);
+        resultSet[dateType] = newDateValue;
+      }
+    }
+    return resultSet;
+  }
 
 }
