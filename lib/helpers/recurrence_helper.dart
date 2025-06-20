@@ -37,7 +37,7 @@ class RecurrenceHelper {
       }
 
       TaskItemRecurPreview nextScheduledTask = taskItem.createNextRecurPreview(
-        dates: incrementWithMatchingDateIntervals(taskItem, anchorDate, nextAnchorDate, taskItem.getAnchorDateType()!),
+        dates: incrementWithMatchingDateIntervals(taskItem, anchorDate, nextAnchorDate),
       );
 
       return nextScheduledTask;
@@ -129,7 +129,12 @@ class RecurrenceHelper {
     }
   }
 
-  static Map<TaskDateType, DateTime> incrementWithMatchingDateIntervals(SprintDisplayTask taskItem, DateTime originalAnchorDate, DateTime newAnchorDate, TaskDateType taskDateType) {
+  static Map<TaskDateType, DateTime> incrementWithMatchingDateIntervals(SprintDisplayTask taskItem, DateTime originalAnchorDate, DateTime newAnchorDate) {
+    TaskDateType? taskDateType = taskItem.getAnchorDateType();
+    if (taskDateType == null) {
+      throw new Exception('Expected task to have an anchor date type');
+    }
+
     Map<TaskDateType, DateTime> originalDateSet = new Map();
     for (var dateType in TaskDateTypes.allTypes) {
       DateTime? dateValue = dateType.dateFieldGetter(taskItem);
