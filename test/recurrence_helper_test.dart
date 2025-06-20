@@ -306,8 +306,10 @@ void main() {
       final result = RecurrenceHelper.incrementWithMatchingDateIntervals(
           taskItem, originalAnchorDate, newAnchorDate);
 
-      expect(result[TaskDateTypes.start], DateTime(2024, 1, 15, 8, 0, 0));
-      expect(result[TaskDateTypes.target], DateTime(2024, 1, 17, 12, 0, 0));
+      expect(result[TaskDateTypes.start]!.difference(newAnchorDate),
+          originalStartDate.difference(originalAnchorDate));
+      expect(result[TaskDateTypes.target]!.difference(newAnchorDate),
+          originalTargetDate.difference(originalAnchorDate));
       expect(result[TaskDateTypes.urgent], newAnchorDate);
       expect(result[TaskDateTypes.due], isNull);
       expect(result[TaskDateTypes.completed], isNull);
