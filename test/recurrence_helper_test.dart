@@ -263,141 +263,129 @@ void main() {
 
   });
 
+
   group('incrementWithMatchingDateIntervals', () {
+
     test('should increment dates with due date as anchor', () {
-      final originalStartDate = DateTime(2024, 1, 10, 8, 0, 0);
-      final originalTargetDate = DateTime(2024, 1, 12, 12, 0, 0);
-      final originalUrgentDate = DateTime(2024, 1, 13, 14, 0, 0);
-      final originalAnchorDate = DateTime(2024, 1, 15, 10, 0, 0); // Due Date
-      final newAnchorDate = DateTime(2024, 1, 22, 10, 0, 0); // 7 days later
-
-      final builder = MockTaskItemBuilder.asDefault();
-      builder.startDate = originalStartDate;
-      builder.targetDate = originalTargetDate;
-      builder.urgentDate = originalUrgentDate;
-      builder.dueDate = originalAnchorDate;
-      builder.completionDate = null;
+      final builder = MockTaskItemBuilder.withDates();
+      // No need to nullify other dates; dueDate from withDates() is the default anchor if present.
       final taskItem = builder.create();
 
-      final result = RecurrenceHelper.incrementWithMatchingDateIntervals(
-          taskItem, originalAnchorDate, newAnchorDate);
-
-      expect(result[TaskDateTypes.start], DateTime(2024, 1, 17, 8, 0, 0));
-      expect(result[TaskDateTypes.target], DateTime(2024, 1, 19, 12, 0, 0));
-      expect(result[TaskDateTypes.urgent], DateTime(2024, 1, 20, 14, 0, 0));
-      expect(result[TaskDateTypes.due], newAnchorDate);
-      expect(result[TaskDateTypes.completed], isNull);
-    });
-
-    test('should increment dates with urgent date as anchor', () {
-      final originalStartDate = DateTime(2024, 1, 8, 8, 0, 0);
-      final originalTargetDate = DateTime(2024, 1, 10, 12, 0, 0);
-      final originalAnchorDate = DateTime(2024, 1, 13, 14, 0, 0); // Urgent Date
-      final newAnchorDate = DateTime(2024, 1, 20, 14, 0, 0); // 7 days later
-
-      final builder = MockTaskItemBuilder.asDefault();
-      builder.startDate = originalStartDate;
-      builder.targetDate = originalTargetDate;
-      builder.urgentDate = originalAnchorDate;
-      builder.dueDate = null; // Due date is null
-      builder.completionDate = null;
-      final taskItem = builder.create();
+      final originalAnchorDate = taskItem.dueDate!;
+      final newAnchorDate = originalAnchorDate.add(Duration(days: 7));
 
       final result = RecurrenceHelper.incrementWithMatchingDateIntervals(
           taskItem, originalAnchorDate, newAnchorDate);
 
       expect(result[TaskDateTypes.start]!.difference(newAnchorDate),
-          originalStartDate.difference(originalAnchorDate));
+          taskItem.startDate!.difference(originalAnchorDate));
       expect(result[TaskDateTypes.target]!.difference(newAnchorDate),
-          originalTargetDate.difference(originalAnchorDate));
+          taskItem.targetDate!.difference(originalAnchorDate));
+      expect(result[TaskDateTypes.urgent]!.difference(newAnchorDate),
+          taskItem.urgentDate!.difference(originalAnchorDate));
+      expect(result[TaskDateTypes.due], newAnchorDate);
+      expect(result[TaskDateTypes.completed], isNull); // completionDate is null from withDates()
+    });
+
+    test('should increment dates with urgent date as anchor', () {
+      final builder = MockTaskItemBuilder
+          .withDates();
+      builder.dueDate = null; // Due date is null
+      final taskItem = builder.create();
+
+      final originalAnchorDate = taskItem.urgentDate!;
+      final newAnchorDate = originalAnchorDate.add(Duration(days: 7));
+
+      final result = RecurrenceHelper.incrementWithMatchingDateIntervals(
+          taskItem, originalAnchorDate, newAnchorDate);
+
+      expect(result[TaskDateTypes.start]!.difference(newAnchorDate),
+          taskItem.startDate!.difference(originalAnchorDate));
+      expect(result[TaskDateTypes.target]!.difference(newAnchorDate),
+          taskItem.targetDate!.difference(originalAnchorDate));
       expect(result[TaskDateTypes.urgent], newAnchorDate);
       expect(result[TaskDateTypes.due], isNull);
       expect(result[TaskDateTypes.completed], isNull);
     });
 
     test('should increment dates with target date as anchor', () {
-      final originalStartDate = DateTime(2024, 1, 10, 8, 0, 0);
-      final originalAnchorDate = DateTime(2024, 1, 12, 12, 0, 0); // Target Date
-      final newAnchorDate = DateTime(2024, 1, 19, 12, 0, 0); // 7 days later
-
-      final builder = MockTaskItemBuilder.asDefault();
-      builder.startDate = originalStartDate;
-      builder.targetDate = originalAnchorDate;
-      builder.urgentDate = null; // Urgent date is null
-      builder.dueDate = null; // Due date is null
-      builder.completionDate = null;
+      final builder = MockTaskItemBuilder.withDates();
+      builder.dueDate = null;    // Ensure targetDate is the anchor
+      builder.urgentDate = null;
       final taskItem = builder.create();
+
+      final originalAnchorDate = taskItem.targetDate!;
+      final newAnchorDate = originalAnchorDate.add(Duration(days: 7));
 
       final result = RecurrenceHelper.incrementWithMatchingDateIntervals(
           taskItem, originalAnchorDate, newAnchorDate);
 
-      expect(result[TaskDateTypes.start], DateTime(2024, 1, 17, 8, 0, 0));
+      expect(result[TaskDateTypes.start]!.difference(newAnchorDate),
+          taskItem.startDate!.difference(originalAnchorDate));
       expect(result[TaskDateTypes.target], newAnchorDate);
-      expect(result[TaskDateTypes.urgent], isNull);
-      expect(result[TaskDateTypes.due], isNull);
+      expect(result[TaskDateTypes.urgent], isNull); // Was explicitly nulled
+      expect(result[TaskDateTypes.due], isNull);    // Was explicitly nulled
       expect(result[TaskDateTypes.completed], isNull);
     });
 
     test('should increment dates with start date as anchor', () {
-      final originalAnchorDate = DateTime(2024, 1, 10, 8, 0, 0); // Start Date
-      final newAnchorDate = DateTime(2024, 1, 17, 8, 0, 0); // 7 days later
-
-      final builder = MockTaskItemBuilder.asDefault();
-      builder.startDate = originalAnchorDate;
+      final builder = MockTaskItemBuilder.withDates();
+      builder.dueDate = null;    // Ensure startDate is the anchor
+      builder.urgentDate = null;
       builder.targetDate = null;
-      builder.urgentDate = null; // Urgent date is null
-      builder.dueDate = null; // Due date is null
-      builder.completionDate = null;
       final taskItem = builder.create();
+
+      final originalAnchorDate = taskItem.startDate!;
+      final newAnchorDate = originalAnchorDate.add(Duration(days: 7));
 
       final result = RecurrenceHelper.incrementWithMatchingDateIntervals(
           taskItem, originalAnchorDate, newAnchorDate);
 
       expect(result[TaskDateTypes.start], newAnchorDate);
-      expect(result[TaskDateTypes.target], isNull);
-      expect(result[TaskDateTypes.urgent], isNull);
-      expect(result[TaskDateTypes.due], isNull);
+      expect(result[TaskDateTypes.target], isNull); // Was explicitly nulled
+      expect(result[TaskDateTypes.urgent], isNull); // Was explicitly nulled
+      expect(result[TaskDateTypes.due], isNull);    // Was explicitly nulled
       expect(result[TaskDateTypes.completed], isNull);
     });
 
     test('should handle null non-anchor dates gracefully', () {
-      final originalTargetDate = DateTime(2024, 1, 12, 12, 0, 0);
-      final originalUrgentDate = DateTime(2024, 1, 13, 14, 0, 0);
-      final originalAnchorDate = DateTime(2024, 1, 15, 10, 0, 0); // Due Date
-      final newAnchorDate = DateTime(2024, 1, 22, 10, 0, 0); // 7 days later
-
-      final builder = MockTaskItemBuilder.asDefault();
-      builder.startDate = null; // Start date is null
-      builder.targetDate = originalTargetDate;
-      builder.urgentDate = originalUrgentDate;
-      builder.dueDate = originalAnchorDate;
-      builder.completionDate = null;
+      final builder = MockTaskItemBuilder.withDates();
+      builder.startDate = null; // Make startDate a null non-anchor date
       final taskItem = builder.create();
+
+      final originalAnchorDate = taskItem.dueDate!;
+      final newAnchorDate = originalAnchorDate.add(Duration(days: 7));
 
       final result = RecurrenceHelper.incrementWithMatchingDateIntervals(
           taskItem, originalAnchorDate, newAnchorDate);
 
-      expect(result[TaskDateTypes.start], isNull);
-      expect(result[TaskDateTypes.target], DateTime(2024, 1, 19, 12, 0, 0));
-      expect(result[TaskDateTypes.urgent], DateTime(2024, 1, 20, 14, 0, 0));
-      expect(result[TaskDateTypes.due], newAnchorDate);
+      expect(result[TaskDateTypes.start], isNull); // Was explicitly nulled
+
+      expect(result[TaskDateTypes.target]!.difference(newAnchorDate),
+          taskItem.targetDate!.difference(originalAnchorDate));
+      expect(result[TaskDateTypes.urgent]!.difference(newAnchorDate),
+          taskItem.urgentDate!.difference(originalAnchorDate));
+      expect(result[TaskDateTypes.due], newAnchorDate); // Anchor date
       expect(result[TaskDateTypes.completed], isNull);
     });
 
     test('should throw exception if task item has no anchor date', () {
-      final originalAnchorDate = DateTime(2024, 1, 15, 10, 0, 0);
-      final newAnchorDate = DateTime(2024, 1, 22, 10, 0, 0);
-
-      final builder = MockTaskItemBuilder.asDefault();
+      final builder = MockTaskItemBuilder.asDefault(); // Start with a blank slate
       builder.startDate = null;
       builder.targetDate = null;
       builder.urgentDate = null;
       builder.dueDate = null;
+      // completionDate is already null by default with asDefault()
       final taskItem = builder.create();
+
+      // These dates are nominal as the function should throw before using them to calculate shifts,
+      // because taskItem.getAnchorDateType()! (or similar internal logic) should fail.
+      final nominalOriginalAnchorDate = DateTime(2024, 1, 15, 10, 0, 0);
+      final nominalNewAnchorDate = nominalOriginalAnchorDate.add(Duration(days: 7));
 
       expect(
               () => RecurrenceHelper.incrementWithMatchingDateIntervals(
-              taskItem, originalAnchorDate, newAnchorDate),
+              taskItem, nominalOriginalAnchorDate, nominalNewAnchorDate),
           throwsException);
     });
 
@@ -425,6 +413,7 @@ void main() {
       expect(result[TaskDateTypes.due], newAnchorDate);
       expect(result[TaskDateTypes.completed], isNull);
     });
+
   });
 
 }
