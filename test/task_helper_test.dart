@@ -5,6 +5,7 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/models/sprint.dart';
+import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
@@ -101,8 +102,6 @@ void main() {
     expect(taskItem.personDocId, MockTaskItemBuilder.me);
     verify(appState.personDocId);
     verify(taskRepository.addTask(taskItemBlueprint));
-    verify(store.dispatch(argThat(isA<TaskItemAddedAction>())));
-    verify(mockNotificationHelper.updateNotificationForTask(taskItem));
   });
 
   test('addTask with recurrence', () async {
@@ -124,18 +123,39 @@ void main() {
     expect(taskRecurrence.personDocId, MockTaskItemBuilder.me);
     verify(appState.personDocId);
     verify(taskRepository.addTask(taskItemBlueprint));
-    verify(store.dispatch(argThat(isA<TaskItemAddedAction>())));
-    verify(mockNotificationHelper.updateNotificationForTask(taskItem));
   });
 
   test('reloadTasks', () async {
     prepareMocks();
 
     await loadData(taskRepository, mockGlobalKey)(store, LoadDataAction(), (_) => {});
-    verify(mockGlobalKey.currentState);
-    verify(mockNavigatorState.pushReplacementNamed(TaskMasterRoutes.home));
     verify(appState.personDocId);
-    verify(store.dispatch(argThat(isA<DataLoadedAction>())));
+    verify(taskRepository.createListener(
+        collectionName: 'sprints',
+        personDocId: MockTaskItemBuilder.me,
+        addCallback: anyNamed('addCallback'),
+        limit: 1,
+        serializer: Sprint.serializer,
+        subCollectionName: 'sprintAssignments',
+        subSerializer: SprintAssignment.serializer,
+        subAddCallback: anyNamed('subAddCallback'),
+    ));
+    verify(taskRepository.createListener(
+        collectionName: 'taskRecurrences',
+        personDocId: MockTaskItemBuilder.me,
+        addCallback: anyNamed('addCallback'),
+        serializer: TaskRecurrence.serializer,
+        modifyCallback: anyNamed('modifyCallback'),
+    ));
+    verify(taskRepository.createListener(
+        collectionName: 'tasks',
+        personDocId: MockTaskItemBuilder.me,
+        addCallback: anyNamed('addCallback'),
+        serializer: TaskItem.serializer,
+        completionFilter: anyNamed('completionFilter'),
+        modifyCallback: anyNamed('modifyCallback'),
+    ));
+    verify(store.dispatch(argThat(isA<ListenersInitializedAction>())));
   });
 
 
@@ -157,7 +177,6 @@ void main() {
     await completeTaskItem(taskRepository)(store, CompleteTaskItemAction(birthdayTask, true), (_) => {});
     verifyNever(taskRepository.addTask(any));
 
-    verify(appState.personDocId);
     verify(taskRepository.updateTaskAndRecurrence(birthdayTask.docId, blueprint));
     verify(mockNotificationHelper.updateNotificationForTask(resultTask));
     verify(store.dispatch(argThat(isA<TaskItemCompletedAction>())));

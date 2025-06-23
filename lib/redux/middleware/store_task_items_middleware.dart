@@ -162,8 +162,6 @@ Future<void> Function(
     action.blueprint.recurrenceBlueprint?.personDocId = inputs.personDocId;
 
     repository.addTask(action.blueprint);
-
-    // updateNotificationForItem(store, payload.taskItem);
   };
 }
 
