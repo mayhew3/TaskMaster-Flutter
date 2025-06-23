@@ -416,4 +416,109 @@ void main() {
 
   });
 
+  
+  group('addToDate', () {
+    
+    test('should add duration to a non-null date', () {
+      final date = DateTime(2024, 1, 1, 10, 0, 0);
+      final duration = Duration(days: 5, hours: 2);
+      final expectedDate = DateTime(2024, 1, 6, 12, 0, 0);
+      expect(RecurrenceHelper.addToDate(date, duration), expectedDate);
+    });
+
+    test('should return same date when adding zero duration to a non-null date', () {
+      final date = DateTime(2024, 1, 1, 10, 0, 0);
+      final duration = Duration.zero;
+      expect(RecurrenceHelper.addToDate(date, duration), date);
+    });
+
+    test('should return null when adding duration to a null date', () {
+      final DateTime? date = null;
+      final duration = Duration(days: 5, hours: 2);
+      expect(RecurrenceHelper.addToDate(date, duration), isNull);
+    });
+
+    test('should return null when adding zero duration to a null date', () {
+      final DateTime? date = null;
+      final duration = Duration.zero;
+      expect(RecurrenceHelper.addToDate(date, duration), isNull);
+    });
+    
+  });
+
+  
+  group('getAdjustedDate', () {
+    final baseDate = DateTime(2024, 1, 15, 14, 30, 0); // January 15, 2024, 2:30 PM
+
+    // Test adding units
+    test('should add days to date', () {
+      expect(RecurrenceHelper.getAdjustedDate(baseDate, 5, 'Days'), DateTime(2024, 1, 20, 14, 30, 0));
+      expect(RecurrenceHelper.getAdjustedDate(baseDate, 1, 'Days'), DateTime(2024, 1, 16, 14, 30, 0));
+    });
+
+    test('should add weeks to date', () {
+      expect(RecurrenceHelper.getAdjustedDate(baseDate, 2, 'Weeks'), DateTime(2024, 1, 29, 14, 30, 0));
+       expect(RecurrenceHelper.getAdjustedDate(baseDate, 1, 'Weeks'), DateTime(2024, 1, 22, 14, 30, 0));
+    });
+
+    test('should add months to date', () {
+      expect(RecurrenceHelper.getAdjustedDate(baseDate, 1, 'Months'), DateTime(2024, 2, 15, 14, 30, 0));
+      // Handles month overflow
+      final endOfMonth = DateTime(2024, 1, 31, 0, 0, 0); // Ensure time is 00:00:00 for direct comparison
+      expect(RecurrenceHelper.getAdjustedDate(endOfMonth, 1, 'Months'), DateTime(2024, 2, 29, 0, 0, 0)); 
+    });
+
+    test('should add years to date', () {
+      expect(RecurrenceHelper.getAdjustedDate(baseDate, 3, 'Years'), DateTime(2027, 1, 15, 14, 30, 0));
+      expect(RecurrenceHelper.getAdjustedDate(baseDate, 1, 'Years'), DateTime(2025, 1, 15, 14, 30, 0));
+    });
+
+    // Test subtracting units (negative numUnits)
+    test('should subtract days from date', () {
+      expect(RecurrenceHelper.getAdjustedDate(baseDate, -5, 'Days'), DateTime(2024, 1, 10, 14, 30, 0));
+    });
+
+    test('should subtract weeks from date', () {
+      expect(RecurrenceHelper.getAdjustedDate(baseDate, -2, 'Weeks'), DateTime(2024, 1, 1, 14, 30, 0));
+    });
+
+    test('should subtract months from date', () {
+      expect(RecurrenceHelper.getAdjustedDate(baseDate, -1, 'Months'), DateTime(2023, 12, 15, 14, 30, 0));
+    });
+
+    test('should subtract years from date', () {
+      expect(RecurrenceHelper.getAdjustedDate(baseDate, -3, 'Years'), DateTime(2021, 1, 15, 14, 30, 0));
+    });
+
+    // Test zero units
+    test('should return same date when numUnits is zero', () {
+      expect(RecurrenceHelper.getAdjustedDate(baseDate, 0, 'Days'), baseDate);
+      expect(RecurrenceHelper.getAdjustedDate(baseDate, 0, 'Weeks'), baseDate);
+      expect(RecurrenceHelper.getAdjustedDate(baseDate, 0, 'Months'), baseDate);
+      expect(RecurrenceHelper.getAdjustedDate(baseDate, 0, 'Years'), baseDate);
+    });
+
+    // Test invalid unit
+    test('should throw argument error for invalid unit', () {
+       expect(() => RecurrenceHelper.getAdjustedDate(baseDate, 1, 'Fortnights'), throwsArgumentError);
+    });
+  });
+
+  
+  group('applyTimeToDate', () {
+    final dateOnly = DateTime(2024, 5, 15).toUtc(); // May 15, 2024, 00:00:00
+    final dateWithTime = DateTime(2024, 5, 15, 10, 30, 45, 123).toUtc();
+    final timeHolder = DateTime(2000, 8, 1, 16, 45, 50, 567).toUtc(); // Different date, specific time
+    final combinationDate = DateTime(2024, 5, 15, 16, 45, 50, 567).toUtc();
+
+    test('should apply time from timeHolder to date', () {
+      final result = RecurrenceHelper.applyTimeToDate(timeHolder, dateOnly);
+      expect(result, combinationDate);
+
+      final result2 = RecurrenceHelper.applyTimeToDate(timeHolder, dateWithTime);
+      expect(result2, combinationDate);
+    });
+
+  });
+
 }

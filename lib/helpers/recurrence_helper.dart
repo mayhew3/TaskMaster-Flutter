@@ -93,6 +93,10 @@ class RecurrenceHelper {
 
   @visibleForTesting
   static DateTime getAdjustedDate(DateTime dateTime, int recurNumber, String recurUnit) {
+    List<String> acceptableUnits = ['Days', 'Weeks', 'Months', 'Years'];
+    if (!acceptableUnits.contains(recurUnit)) {
+      throw new ArgumentError('Recurrence unit must be one of: $acceptableUnits');
+    }
     return DateUtil.adjustToDate(dateTime, recurNumber, recurUnit);
   }
 
@@ -104,29 +108,13 @@ class RecurrenceHelper {
       Unit.day: targetDate.day,
       Unit.hour: dateWithTime.hour,
       Unit.minute: dateWithTime.minute,
-      Unit.second: dateWithTime.second},
+      Unit.second: dateWithTime.second,
+      Unit.millisecond: dateWithTime.millisecond,
+      Unit.microsecond: dateWithTime.microsecond,
+    },
       isUtc: true,
     );
     return jiffy.dateTime;
-  }
-
-  @visibleForTesting
-  static DateTime getClosestDateForTime(DateTime dateWithTime, DateTime targetDate) {
-    DateTime prev = applyTimeToDate(dateWithTime, Jiffy.parseFromDateTime(targetDate).subtract(days:1).dateTime);
-    DateTime current = applyTimeToDate(dateWithTime, targetDate);
-    DateTime next = applyTimeToDate(dateWithTime, Jiffy.parseFromDateTime(targetDate).add(days:1).dateTime);
-
-    var prevDiff = prev.difference(targetDate).abs();
-    var currDiff = current.difference(targetDate).abs();
-    var nextDiff = next.difference(targetDate).abs();
-
-    if (prevDiff < currDiff && prevDiff < nextDiff) {
-      return prev;
-    } else if (currDiff < nextDiff) {
-      return current;
-    } else {
-      return next;
-    }
   }
 
   static Map<TaskDateType, DateTime> incrementWithMatchingDateIntervals(SprintDisplayTask taskItem, DateTime originalAnchorDate, DateTime newAnchorDate) {
