@@ -99,6 +99,20 @@ class RecurrenceHelper {
     }
     return DateUtil.adjustToDate(dateTime, recurNumber, recurUnit);
   }
+  /*
+  @visibleForTesting
+  static DateTime getLastExpectedAnchorDate(SprintDisplayTask taskItem, int recurNumber, String recurUnit) {
+
+  }
+  */
+  @visibleForTesting
+  static DateTime getNextDateInSequenceAfterDate(DateTime anchorDate, int recurNumber, String recurUnit, DateTime minimumDate) {
+    DateTime nextDate = anchorDate;
+    while (nextDate.isBefore(minimumDate)) {
+      nextDate = getAdjustedDate(nextDate, recurNumber, recurUnit);
+    }
+    return nextDate;
+  }
 
   @visibleForTesting
   static DateTime applyTimeToDate(DateTime dateWithTime, DateTime targetDate) {

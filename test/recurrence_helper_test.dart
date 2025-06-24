@@ -257,10 +257,23 @@ void main() {
       expect(daysBetween(taskItem.dueDate!, result.dueDate!), 37);
     });
 
+    test('on scheduled dates with past anchor date picks date after most recent task', () {
+      var taskItem = MockTaskItemBuilder
+          .withDates(offCycle: false)
+          .withRecur(recurWait: false, anchorOffsetInDays: -720) // Mimics "On Schedule"
+          .create();
+      final completionDate = DateUtil.nowUtcWithoutMillis();
+
+      final result = RecurrenceHelper.createNextIteration(taskItem, completionDate);
+
+      expect(result.dueDate, greaterThan(taskItem.dueDate!));
+    });
+
     // test different anchor dates
     // test calling this method on a task item with no recurrence
     // test exception for no recur_iteration
-
+    // test calling this method on a recur preview
+    // test snoozing to offCycle, removing due date, then creating
   });
 
 
