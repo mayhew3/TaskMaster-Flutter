@@ -7,6 +7,7 @@ part of 'serializers.dart';
 // **************************************************************************
 
 Serializers _$serializers = (new Serializers().toBuilder()
+      ..add(AnchorDate.serializer)
       ..add(Snooze.serializer)
       ..add(Sprint.serializer)
       ..add(SprintAssignment.serializer)

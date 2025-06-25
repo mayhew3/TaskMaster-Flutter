@@ -63,9 +63,6 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
 
   bool get offCycle;
 
-  // todo: populate this maybe?
-  DateTime? get originalAnchorDate;
-
   @override
   TaskRecurrence? get recurrence;
 

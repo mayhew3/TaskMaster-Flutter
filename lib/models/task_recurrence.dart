@@ -1,6 +1,7 @@
 
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+import 'package:taskmaster/models/anchor_date.dart';
 import 'package:taskmaster/models/serializers.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 
@@ -27,8 +28,7 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
 
   int get recurIteration;
 
-  DateTime get anchorDate;
-  String get anchorType;
+  AnchorDate get anchorDate;
 
   TaskRecurrence._();
 
@@ -36,6 +36,9 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
 
   TaskRecurrenceBlueprint createBlueprint() {
     TaskRecurrenceBlueprint blueprint = TaskRecurrenceBlueprint();
+    var anchorDateBuilder = AnchorDateBuilder()
+      ..dateValue = anchorDate.dateValue
+      ..dateType = anchorDate.dateType;
 
     blueprint.personDocId = personDocId;
     blueprint.name = name;
@@ -43,8 +46,7 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
     blueprint.recurUnit = recurUnit;
     blueprint.recurWait = recurWait;
     blueprint.recurIteration = recurIteration;
-    blueprint.anchorDate = anchorDate;
-    blueprint.anchorType = anchorType;
+    blueprint.anchorDate = anchorDateBuilder.build();
 
     return blueprint;
   }
@@ -58,8 +60,8 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
         other.recurUnit != recurUnit ||
         other.recurWait != recurWait ||
         other.recurIteration != recurIteration ||
-        other.anchorDate != anchorDate ||
-        other.anchorType != anchorType;
+        other.anchorDate.dateValue != anchorDate.dateValue ||
+        other.anchorDate.dateType != anchorDate.dateType;
   }
 
   bool hasChangesBlueprint(TaskRecurrenceBlueprint? other) {
@@ -71,8 +73,8 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
         other.recurUnit != recurUnit ||
         other.recurWait != recurWait ||
         other.recurIteration != recurIteration ||
-        other.anchorDate != anchorDate ||
-        other.anchorType != anchorType;
+        other.anchorDate?.dateValue != anchorDate.dateValue ||
+        other.anchorDate?.dateType != anchorDate.dateType;
   }
 
   static TaskRecurrence fromJson(dynamic json) {

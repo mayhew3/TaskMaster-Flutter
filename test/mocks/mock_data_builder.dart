@@ -1,5 +1,6 @@
 
 import 'package:taskmaster/date_util.dart';
+import 'package:taskmaster/models/anchor_date.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
@@ -151,6 +152,10 @@ class MockTaskItemBuilder with DateHolder {
     recurUnit = 'Weeks';
     this.recurWait = recurWait;
 
+    var anchorDateBuilder = AnchorDateBuilder()
+      ..dateValue = getAnchorDate()!.dateValue.add(Duration(days: anchorOffsetInDays))
+      ..dateType = getAnchorDate()!.dateType;
+
     taskRecurrence = MockTaskRecurrenceBuilder()
       ..docId = me
       ..name = name
@@ -158,8 +163,7 @@ class MockTaskItemBuilder with DateHolder {
       ..recurUnit = recurUnit!
       ..recurWait = recurWait
       ..recurIteration = recurIteration!
-      ..anchorDate = getAnchorDate()!.add(Duration(days: anchorOffsetInDays))
-      ..anchorType = getAnchorDateType()!.label
+      ..anchorDate = anchorDateBuilder.build()
     ;
 
     if (_offCycle) {

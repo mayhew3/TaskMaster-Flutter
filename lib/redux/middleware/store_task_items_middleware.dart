@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/firestore_migrator.dart';
 import 'package:taskmaster/helpers/recurrence_helper.dart';
+import 'package:taskmaster/models/anchor_date.dart';
 import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/snooze_blueprint.dart';
 import 'package:taskmaster/models/task_item_recur_preview.dart';
@@ -254,7 +255,7 @@ Future<void> Function(
 
     RecurrenceHelper.generatePreview(action.blueprint, action.numUnits, action.unitSize, action.dateType);
 
-    DateTime? originalValue = action.taskItem.getAnchorDate();
+    AnchorDate? originalValue = action.taskItem.getAnchorDate();
 
     var updatedTask = await RecurrenceHelper.updateTaskAndMaybeRecurrence(repository, action);
 
@@ -268,7 +269,7 @@ Future<void> Function(
         snoozeNumber: action.numUnits,
         snoozeUnits: action.unitSize,
         snoozeAnchor: action.dateType.label,
-        previousAnchor: originalValue,
+        previousAnchor: originalValue?.dateValue,
         newAnchor: newAnchorDate);
 
     repository.addSnooze(snooze);

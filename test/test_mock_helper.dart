@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:taskmaster/models/anchor_date.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
@@ -73,6 +74,9 @@ class TestMockHelper {
     var recurrenceBlueprint = blueprint.recurrenceBlueprint;
     TaskRecurrence? recurrenceCopy;
     if (recurrenceBlueprint != null) {
+      var anchorDateBuilder = AnchorDateBuilder()
+        ..dateValue = recurrenceBlueprint.anchorDate!.dateValue
+        ..dateType = recurrenceBlueprint.anchorDate!.dateType;
       recurrenceCopy = TaskRecurrence((r) => r
         ..docId = recurrenceDocId
         ..personDocId = recurrenceBlueprint.personDocId
@@ -81,8 +85,7 @@ class TestMockHelper {
         ..recurUnit = recurrenceBlueprint.recurUnit
         ..recurWait = recurrenceBlueprint.recurWait
         ..recurIteration = recurrenceBlueprint.recurIteration
-        ..anchorDate = recurrenceBlueprint.anchorDate
-        ..anchorType = recurrenceBlueprint.anchorType);
+        ..anchorDate = anchorDateBuilder);
     }
 
     TaskItem taskItem = TaskItem((t) => t
@@ -119,6 +122,9 @@ class TestMockHelper {
     var recurrence = original.recurrence;
     TaskRecurrence? recurrenceCopy;
     if (recurrenceBlueprint != null && recurrence != null) {
+      var anchorDateBuilder = AnchorDateBuilder()
+        ..dateValue = recurrence.anchorDate.dateValue
+        ..dateType = recurrence.anchorDate.dateType;
       recurrenceCopy = TaskRecurrence((r) => r
         ..docId = recurrence.docId
         ..dateAdded = recurrence.dateAdded
@@ -128,8 +134,7 @@ class TestMockHelper {
         ..recurUnit = recurrenceBlueprint.recurUnit ?? recurrence.name
         ..recurWait = recurrenceBlueprint.recurWait ?? recurrence.recurWait
         ..recurIteration = recurrenceBlueprint.recurIteration ?? recurrence.recurIteration
-        ..anchorDate = recurrenceBlueprint.anchorDate ?? recurrence.anchorDate
-        ..anchorType = recurrenceBlueprint.anchorType ?? recurrence.anchorType);
+        ..anchorDate = anchorDateBuilder);
     }
 
     TaskItem taskItem = TaskItem((t) => t

@@ -1,9 +1,8 @@
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:taskmaster/models/anchor_date.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
-
-import 'json_datetime_converter.dart';
 
 part 'task_recurrence_blueprint.g.dart';
 
@@ -20,9 +19,8 @@ class TaskRecurrenceBlueprint {
 
   int? recurIteration;
 
-  @JsonDateTimePassThroughConverter()
-  DateTime? anchorDate;
-  String? anchorType;
+  @JsonKey(includeFromJson: false, includeToJson: true)
+  AnchorDate? anchorDate;
 
   String? retired;
   DateTime? retiredDate;
@@ -64,8 +62,8 @@ class TaskRecurrenceBlueprint {
         other.recurUnit != recurUnit ||
         other.recurWait != recurWait ||
         other.recurIteration != recurIteration ||
-        other.anchorDate != anchorDate ||
-        other.anchorType != anchorType;
+        other.anchorDate.dateValue != anchorDate?.dateValue ||
+        other.anchorDate.dateType != anchorDate?.dateType;
   }
 
   bool hasChangesBlueprint(TaskRecurrenceBlueprint? other) {
@@ -77,8 +75,8 @@ class TaskRecurrenceBlueprint {
         other.recurUnit != recurUnit ||
         other.recurWait != recurWait ||
         other.recurIteration != recurIteration ||
-        other.anchorDate != anchorDate ||
-        other.anchorType != anchorType;
+        other.anchorDate?.dateValue != anchorDate?.dateValue ||
+        other.anchorDate?.dateType != anchorDate?.dateType;
   }
 
 }

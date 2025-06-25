@@ -1,5 +1,6 @@
 import 'package:meta/meta.dart'; // Make sure this import is present
 import 'package:jiffy/jiffy.dart';
+import 'package:taskmaster/models/anchor_date.dart';
 import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/task_item_recur_preview.dart';
 import 'package:taskmaster/redux/actions/task_item_actions.dart';
@@ -27,7 +28,7 @@ class RecurrenceHelper {
       var recurUnit = recurrence.recurUnit;
       var recurWait = recurrence.recurWait;
 
-      DateTime? anchorDate = recurrence.anchorDate;
+      DateTime? anchorDate = recurrence.anchorDate.dateValue;
       DateTime nextAnchorDate;
 
       if (recurWait) {
@@ -75,7 +76,11 @@ class RecurrenceHelper {
       var recurWait = recurrence.recurWait;
       var offCycle = action.blueprint.offCycle;
       if (recurWait != null && recurWait && !offCycle) {
-        recurrence.anchorDate = action.blueprint.getAnchorDate();
+        var originalAnchorDate = action.blueprint.getAnchorDate();
+        var anchorDateBuilder = originalAnchorDate == null ? null : (AnchorDateBuilder()
+          ..dateValue = originalAnchorDate.dateValue
+          ..dateType = originalAnchorDate.dateType);
+        recurrence.anchorDate = anchorDateBuilder?.build();
       }
     }
 

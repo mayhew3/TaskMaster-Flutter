@@ -1,3 +1,4 @@
+import 'package:taskmaster/models/anchor_date.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
@@ -118,6 +119,9 @@ void main() {
     var recurrence = original.recurrence;
     TaskRecurrence? recurrenceCopy;
     if (recurrenceBlueprint != null && recurrence != null) {
+      var anchorDateBuilder = AnchorDateBuilder()
+        ..dateValue = recurrence.anchorDate.dateValue
+        ..dateType = recurrence.anchorDate.dateType;
       recurrenceCopy = TaskRecurrence((r) => r
         ..docId = recurrence.docId
         ..personDocId = recurrence.personDocId
@@ -126,8 +130,7 @@ void main() {
         ..recurUnit = recurrenceBlueprint.recurUnit ?? recurrence.name
         ..recurWait = recurrenceBlueprint.recurWait ?? recurrence.recurWait
         ..recurIteration = recurrenceBlueprint.recurIteration ?? recurrence.recurIteration
-        ..anchorDate = recurrenceBlueprint.anchorDate ?? recurrence.anchorDate
-        ..anchorType = recurrenceBlueprint.anchorType ?? recurrence.anchorType);
+        ..anchorDate = anchorDateBuilder);
     }
 
     TaskItem taskItem = TaskItem((t) => t

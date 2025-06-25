@@ -144,12 +144,6 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
       ..add('retiredDate')
       ..add(serializers.serialize(value,
           specifiedType: const FullType(DateTime)));
-    value = object.originalAnchorDate;
-
-    result
-      ..add('originalAnchorDate')
-      ..add(serializers.serialize(value,
-          specifiedType: const FullType(DateTime)));
     value = object.recurrence;
 
     result
@@ -267,10 +261,6 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
           result.offCycle = serializers.deserialize(value,
               specifiedType: const FullType(bool))! as bool;
           break;
-        case 'originalAnchorDate':
-          result.originalAnchorDate = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime)) as DateTime?;
-          break;
         case 'recurrence':
           result.recurrence.replace(serializers.deserialize(value,
                   specifiedType: const FullType(TaskRecurrence))!
@@ -333,8 +323,6 @@ class _$TaskItem extends TaskItem {
   @override
   final bool offCycle;
   @override
-  final DateTime? originalAnchorDate;
-  @override
   final TaskRecurrence? recurrence;
   @override
   final bool pendingCompletion;
@@ -367,7 +355,6 @@ class _$TaskItem extends TaskItem {
       this.retired,
       this.retiredDate,
       required this.offCycle,
-      this.originalAnchorDate,
       this.recurrence,
       required this.pendingCompletion})
       : super._() {
@@ -414,7 +401,6 @@ class _$TaskItem extends TaskItem {
         retired == other.retired &&
         retiredDate == other.retiredDate &&
         offCycle == other.offCycle &&
-        originalAnchorDate == other.originalAnchorDate &&
         recurrence == other.recurrence &&
         pendingCompletion == other.pendingCompletion;
   }
@@ -446,7 +432,6 @@ class _$TaskItem extends TaskItem {
     _$hash = $jc(_$hash, retired.hashCode);
     _$hash = $jc(_$hash, retiredDate.hashCode);
     _$hash = $jc(_$hash, offCycle.hashCode);
-    _$hash = $jc(_$hash, originalAnchorDate.hashCode);
     _$hash = $jc(_$hash, recurrence.hashCode);
     _$hash = $jc(_$hash, pendingCompletion.hashCode);
     _$hash = $jf(_$hash);
@@ -480,7 +465,6 @@ class _$TaskItem extends TaskItem {
           ..add('retired', retired)
           ..add('retiredDate', retiredDate)
           ..add('offCycle', offCycle)
-          ..add('originalAnchorDate', originalAnchorDate)
           ..add('recurrence', recurrence)
           ..add('pendingCompletion', pendingCompletion))
         .toString();
@@ -589,11 +573,6 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   bool? get offCycle => _$this._offCycle;
   set offCycle(bool? offCycle) => _$this._offCycle = offCycle;
 
-  DateTime? _originalAnchorDate;
-  DateTime? get originalAnchorDate => _$this._originalAnchorDate;
-  set originalAnchorDate(DateTime? originalAnchorDate) =>
-      _$this._originalAnchorDate = originalAnchorDate;
-
   TaskRecurrenceBuilder? _recurrence;
   TaskRecurrenceBuilder get recurrence =>
       _$this._recurrence ??= new TaskRecurrenceBuilder();
@@ -636,7 +615,6 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
       _retired = $v.retired;
       _retiredDate = $v.retiredDate;
       _offCycle = $v.offCycle;
-      _originalAnchorDate = $v.originalAnchorDate;
       _recurrence = $v.recurrence?.toBuilder();
       _pendingCompletion = $v.pendingCompletion;
       _$v = null;
@@ -691,7 +669,6 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
               retiredDate: retiredDate,
               offCycle: BuiltValueNullFieldError.checkNotNull(
                   offCycle, r'TaskItem', 'offCycle'),
-              originalAnchorDate: originalAnchorDate,
               recurrence: _recurrence?.build(),
               pendingCompletion: BuiltValueNullFieldError.checkNotNull(
                   pendingCompletion, r'TaskItem', 'pendingCompletion'));

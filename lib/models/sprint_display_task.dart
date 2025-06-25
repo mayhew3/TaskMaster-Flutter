@@ -3,6 +3,8 @@ import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item_recur_preview.dart';
 
+import 'anchor_date.dart';
+
 mixin SprintDisplayTask implements DateHolder {
   String get docId;
   String get name;
@@ -25,7 +27,7 @@ mixin SprintDisplayTask implements DateHolder {
   int? get recurIteration;
 
   @override
-  DateTime? getAnchorDate();
+  AnchorDate? getAnchorDate();
   @override
   bool isScheduled();
   @override
