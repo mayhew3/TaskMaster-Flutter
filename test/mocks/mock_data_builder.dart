@@ -167,7 +167,7 @@ class MockTaskItemBuilder with DateHolder {
       ..recurWait = recurWait
       ..recurIteration = recurIteration!
       ..anchorDate = anchorDateBuilder.build()
-      ..nextIterationDate = nextIterationBuilder.build()
+      ..nextIterationDate = recurWait ? nextIterationBuilder.build() : null
     ;
 
     if (_offCycle) {

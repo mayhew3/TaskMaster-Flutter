@@ -257,7 +257,7 @@ Future<void> Function(
 
     AnchorDate? originalValue = action.taskItem.getAnchorDate();
 
-    var updatedTask = await RecurrenceHelper.updateTaskAndMaybeRecurrence(repository, action);
+    var updatedTask = await RecurrenceHelper.updateTaskAndMaybeRecurrenceForSnooze(repository, action);
 
     var newAnchorDate = action.dateType.dateFieldGetter(updatedTask)!;
 

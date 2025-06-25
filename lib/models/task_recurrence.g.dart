@@ -46,10 +46,14 @@ class _$TaskRecurrenceSerializer
       'anchorDate',
       serializers.serialize(object.anchorDate,
           specifiedType: const FullType(AnchorDate)),
-      'nextIterationDate',
-      serializers.serialize(object.nextIterationDate,
-          specifiedType: const FullType(AnchorDate)),
     ];
+    Object? value;
+    value = object.nextIterationDate;
+
+    result
+      ..add('nextIterationDate')
+      ..add(serializers.serialize(value,
+          specifiedType: const FullType(AnchorDate)));
 
     return result;
   }
@@ -133,7 +137,7 @@ class _$TaskRecurrence extends TaskRecurrence {
   @override
   final AnchorDate anchorDate;
   @override
-  final AnchorDate nextIterationDate;
+  final AnchorDate? nextIterationDate;
 
   factory _$TaskRecurrence([void Function(TaskRecurrenceBuilder)? updates]) =>
       (new TaskRecurrenceBuilder()..update(updates))._build();
@@ -148,7 +152,7 @@ class _$TaskRecurrence extends TaskRecurrence {
       required this.recurWait,
       required this.recurIteration,
       required this.anchorDate,
-      required this.nextIterationDate})
+      this.nextIterationDate})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(docId, r'TaskRecurrence', 'docId');
     BuiltValueNullFieldError.checkNotNull(
@@ -166,8 +170,6 @@ class _$TaskRecurrence extends TaskRecurrence {
         recurIteration, r'TaskRecurrence', 'recurIteration');
     BuiltValueNullFieldError.checkNotNull(
         anchorDate, r'TaskRecurrence', 'anchorDate');
-    BuiltValueNullFieldError.checkNotNull(
-        nextIterationDate, r'TaskRecurrence', 'nextIterationDate');
   }
 
   @override
@@ -291,7 +293,7 @@ class TaskRecurrenceBuilder
       _recurWait = $v.recurWait;
       _recurIteration = $v.recurIteration;
       _anchorDate = $v.anchorDate.toBuilder();
-      _nextIterationDate = $v.nextIterationDate.toBuilder();
+      _nextIterationDate = $v.nextIterationDate?.toBuilder();
       _$v = null;
     }
     return this;
@@ -333,14 +335,14 @@ class TaskRecurrenceBuilder
               recurIteration: BuiltValueNullFieldError.checkNotNull(
                   recurIteration, r'TaskRecurrence', 'recurIteration'),
               anchorDate: anchorDate.build(),
-              nextIterationDate: nextIterationDate.build());
+              nextIterationDate: _nextIterationDate?.build());
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'anchorDate';
         anchorDate.build();
         _$failedField = 'nextIterationDate';
-        nextIterationDate.build();
+        _nextIterationDate?.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             r'TaskRecurrence', _$failedField, e.toString());

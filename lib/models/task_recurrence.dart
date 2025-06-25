@@ -29,7 +29,7 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
   int get recurIteration;
 
   AnchorDate get anchorDate;
-  AnchorDate get nextIterationDate;
+  AnchorDate? get nextIterationDate;
 
   TaskRecurrence._();
 

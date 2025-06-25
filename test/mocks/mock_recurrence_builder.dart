@@ -13,7 +13,7 @@ class MockTaskRecurrenceBuilder {
   late bool recurWait;
   late int recurIteration;
   late AnchorDate anchorDate;
-  late AnchorDate nextIterationDate;
+  late AnchorDate? nextIterationDate;
 
   MockTaskRecurrenceBuilder();
 
@@ -31,9 +31,9 @@ class MockTaskRecurrenceBuilder {
         'dateValue': anchorDate.dateValue,
         'dateType': anchorDate.dateType.label,
       },
-      'nextIterationDate': {
-        'dateValue': nextIterationDate.dateValue,
-        'dateType': nextIterationDate.dateType.label,
+      'nextIterationDate': nextIterationDate == null ? null : {
+        'dateValue': nextIterationDate!.dateValue,
+        'dateType': nextIterationDate!.dateType.label,
       },
     };
     return serializers.deserializeWith(TaskRecurrence.serializer, taskRecurrenceMap)!;
