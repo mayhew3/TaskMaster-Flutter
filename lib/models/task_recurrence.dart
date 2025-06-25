@@ -40,6 +40,9 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
     var anchorDateBuilder = AnchorDateBuilder()
       ..dateValue = anchorDate.dateValue
       ..dateType = anchorDate.dateType;
+    var nextIterationDateBuilder = AnchorDateBuilder()
+      ..dateValue = nextIterationDate.dateValue
+      ..dateType = nextIterationDate.dateType;
 
     blueprint.personDocId = personDocId;
     blueprint.name = name;
@@ -48,6 +51,7 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
     blueprint.recurWait = recurWait;
     blueprint.recurIteration = recurIteration;
     blueprint.anchorDate = anchorDateBuilder.build();
+    blueprint.nextIterationDate = nextIterationDateBuilder.build();
 
     return blueprint;
   }
@@ -61,8 +65,8 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
         other.recurUnit != recurUnit ||
         other.recurWait != recurWait ||
         other.recurIteration != recurIteration ||
-        other.anchorDate.dateValue != anchorDate.dateValue ||
-        other.anchorDate.dateType != anchorDate.dateType;
+        other.anchorDate != anchorDate ||
+        other.nextIterationDate != nextIterationDate;
   }
 
   bool hasChangesBlueprint(TaskRecurrenceBlueprint? other) {
@@ -74,8 +78,8 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
         other.recurUnit != recurUnit ||
         other.recurWait != recurWait ||
         other.recurIteration != recurIteration ||
-        other.anchorDate?.dateValue != anchorDate.dateValue ||
-        other.anchorDate?.dateType != anchorDate.dateType;
+        other.anchorDate != anchorDate ||
+        other.nextIterationDate != nextIterationDate;
   }
 
   static TaskRecurrence fromJson(dynamic json) {

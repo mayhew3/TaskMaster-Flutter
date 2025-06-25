@@ -115,14 +115,17 @@ void main() {
           .withRecur(recurWait: false) // Mimics "On Complete"
           .create();
       var originalAnchorDate = taskItem.recurrence!.anchorDate;
+      var originalNextIterationDate = taskItem.recurrence!.nextIterationDate;
       var blueprint = taskItem.createBlueprint();
       blueprint.incrementDateIfExists(TaskDateTypes.due, Duration(days: 3));
 
-      var action = ExecuteSnooze(taskItem: taskItem,
+      var action = ExecuteSnooze(
+          taskItem: taskItem,
           blueprint: blueprint,
           numUnits: 3,
           unitSize: 'Days',
-          dateType: TaskDateTypes.due);
+          dateType: TaskDateTypes.due
+      );
 
       TaskItem? resultTask;
       TaskItemBlueprint? resultingBlueprint;
@@ -141,10 +144,11 @@ void main() {
           taskItem.docId, resultingBlueprint));
       expect(resultingBlueprint!.recurrenceBlueprint!.anchorDate,
           originalAnchorDate);
+      expect(resultingBlueprint!.recurrenceBlueprint!.nextIterationDate,
+          greaterThan(originalNextIterationDate));
     });
 
-    test(
-        'updateTaskAndMaybeRecurrence with On Schedule recurrence, on cycle', () {
+    test('updateTaskAndMaybeRecurrence with On Schedule recurrence, on cycle', () {
       var mockTaskRepository = MockTaskRepository();
 
       var taskItem = MockTaskItemBuilder
@@ -179,23 +183,26 @@ void main() {
       expect(resultingBlueprint!.recurrenceBlueprint!.anchorDate, isNot(originalAnchorDate));
     });
 
-    test(
-        'updateTaskAndMaybeRecurrence with On Schedule recurrence, off cycle', () {
+    test('updateTaskAndMaybeRecurrence with On Schedule recurrence, off cycle', () {
       var mockTaskRepository = MockTaskRepository();
 
       var taskItem = MockTaskItemBuilder
-          .withDates(offCycle: true)
+          .withDates()
           .withRecur(recurWait: true) // Mimics "On Schedule"
           .create();
       var originalAnchorDate = taskItem.recurrence!.anchorDate;
+      var originalNextIterationDate = taskItem.recurrence!.nextIterationDate;
       var blueprint = taskItem.createBlueprint();
+      blueprint.offCycle = true; // Snooze should knock task off cycle
       blueprint.incrementDateIfExists(TaskDateTypes.due, Duration(days: 3));
 
-      var action = ExecuteSnooze(taskItem: taskItem,
+      var action = ExecuteSnooze(
+          taskItem: taskItem,
           blueprint: blueprint,
           numUnits: 3,
           unitSize: 'Days',
-          dateType: TaskDateTypes.due);
+          dateType: TaskDateTypes.due
+      );
 
       TaskItem? resultTask;
       TaskItemBlueprint? resultingBlueprint;
@@ -213,6 +220,7 @@ void main() {
       verify(mockTaskRepository.updateTaskAndRecurrence(
           taskItem.docId, resultingBlueprint));
       expect(resultingBlueprint!.recurrenceBlueprint!.anchorDate, originalAnchorDate);
+      expect(resultingBlueprint!.recurrenceBlueprint!.nextIterationDate, originalNextIterationDate);
     });
 
   });

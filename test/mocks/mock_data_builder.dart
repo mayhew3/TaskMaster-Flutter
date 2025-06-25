@@ -136,8 +136,7 @@ class MockTaskItemBuilder with DateHolder {
         ..startDate = DateUtil.nowUtcWithoutMillis().subtract(Duration(days: 4 - daysOffset, hours: 5))
         ..targetDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 1 + daysOffset, hours: 5))
         ..urgentDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 5 + daysOffset, hours: 6))
-        ..dueDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 8 + daysOffset, hours: 8))
-        .._offCycle = offCycle;
+        ..dueDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 8 + daysOffset, hours: 8));
   }
 
   MockTaskItemBuilder asCompleted() {

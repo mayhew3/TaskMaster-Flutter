@@ -27,4 +27,15 @@ abstract class AnchorDate implements Built<AnchorDate, AnchorDateBuilder> {
   dynamic toJson() {
     return serializers.serializeWith(AnchorDate.serializer, this);
   }
+
+  @override
+  int get hashCode => dateValue.hashCode ^ dateType.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AnchorDate &&
+          runtimeType == other.runtimeType &&
+          dateValue == other.dateValue &&
+          dateType == other.dateType;
 }

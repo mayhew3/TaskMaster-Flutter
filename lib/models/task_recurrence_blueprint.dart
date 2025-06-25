@@ -64,8 +64,8 @@ class TaskRecurrenceBlueprint {
         other.recurUnit != recurUnit ||
         other.recurWait != recurWait ||
         other.recurIteration != recurIteration ||
-        other.anchorDate.dateValue != anchorDate?.dateValue ||
-        other.anchorDate.dateType != anchorDate?.dateType;
+        other.anchorDate != anchorDate ||
+        other.nextIterationDate != nextIterationDate;
   }
 
   bool hasChangesBlueprint(TaskRecurrenceBlueprint? other) {
@@ -77,8 +77,8 @@ class TaskRecurrenceBlueprint {
         other.recurUnit != recurUnit ||
         other.recurWait != recurWait ||
         other.recurIteration != recurIteration ||
-        other.anchorDate?.dateValue != anchorDate?.dateValue ||
-        other.anchorDate?.dateType != anchorDate?.dateType;
+        other.anchorDate != anchorDate ||
+        other.nextIterationDate != nextIterationDate;
   }
 
 }
