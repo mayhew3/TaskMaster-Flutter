@@ -9,9 +9,12 @@ import 'package:taskmaster/models/snooze.dart';
 import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/task_item_recur_preview.dart';
 
+import 'anchor_date.dart';
+
 part 'serializers.g.dart';
 
 @SerializersFor([
+  AnchorDate,
   Snooze,
   Sprint,
   SprintAssignment,
