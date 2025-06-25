@@ -2,7 +2,6 @@ import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 import 'package:taskmaster/models/serializers.dart';
 import 'package:taskmaster/models/task_date_type.dart';
-import 'package:taskmaster/models/task_date_type_converter.dart';
 
 import 'json_datetime_converter.dart';
 
@@ -15,7 +14,6 @@ abstract class AnchorDate implements Built<AnchorDate, AnchorDateBuilder> {
   @JsonDateTimePassThroughConverter()
   DateTime get dateValue;
 
-  @TaskDateTypeConverter()
   TaskDateType get dateType;
 
   AnchorDate._();
