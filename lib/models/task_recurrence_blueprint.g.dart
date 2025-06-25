@@ -30,6 +30,7 @@ Map<String, dynamic> _$TaskRecurrenceBlueprintToJson(
       'recurWait': instance.recurWait,
       'recurIteration': instance.recurIteration,
       'anchorDate': instance.anchorDate,
+      'nextIterationDate': instance.nextIterationDate,
       'retired': instance.retired,
       'retiredDate': instance.retiredDate?.toIso8601String(),
     };

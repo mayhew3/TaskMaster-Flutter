@@ -21,6 +21,8 @@ class TaskRecurrenceBlueprint {
 
   @JsonKey(includeFromJson: false, includeToJson: true)
   AnchorDate? anchorDate;
+  @JsonKey(includeFromJson: false, includeToJson: true)
+  AnchorDate? nextIterationDate;
 
   String? retired;
   DateTime? retiredDate;
