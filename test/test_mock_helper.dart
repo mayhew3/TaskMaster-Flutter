@@ -74,9 +74,6 @@ class TestMockHelper {
     var recurrenceBlueprint = blueprint.recurrenceBlueprint;
     TaskRecurrence? recurrenceCopy;
     if (recurrenceBlueprint != null) {
-      var anchorDateBuilder = AnchorDateBuilder()
-        ..dateValue = recurrenceBlueprint.anchorDate!.dateValue
-        ..dateType = recurrenceBlueprint.anchorDate!.dateType;
       recurrenceCopy = TaskRecurrence((r) => r
         ..docId = recurrenceDocId
         ..personDocId = recurrenceBlueprint.personDocId
@@ -85,7 +82,8 @@ class TestMockHelper {
         ..recurUnit = recurrenceBlueprint.recurUnit
         ..recurWait = recurrenceBlueprint.recurWait
         ..recurIteration = recurrenceBlueprint.recurIteration
-        ..anchorDate = anchorDateBuilder);
+        ..anchorDate = recurrenceBlueprint.anchorDate!.toBuilder()
+      );
     }
 
     TaskItem taskItem = TaskItem((t) => t
@@ -122,9 +120,6 @@ class TestMockHelper {
     var recurrence = original.recurrence;
     TaskRecurrence? recurrenceCopy;
     if (recurrenceBlueprint != null && recurrence != null) {
-      var anchorDateBuilder = AnchorDateBuilder()
-        ..dateValue = recurrence.anchorDate.dateValue
-        ..dateType = recurrence.anchorDate.dateType;
       recurrenceCopy = TaskRecurrence((r) => r
         ..docId = recurrence.docId
         ..dateAdded = recurrence.dateAdded
@@ -134,7 +129,9 @@ class TestMockHelper {
         ..recurUnit = recurrenceBlueprint.recurUnit ?? recurrence.name
         ..recurWait = recurrenceBlueprint.recurWait ?? recurrence.recurWait
         ..recurIteration = recurrenceBlueprint.recurIteration ?? recurrence.recurIteration
-        ..anchorDate = anchorDateBuilder);
+        ..anchorDate = recurrenceBlueprint.anchorDate?.toBuilder() ?? recurrence.anchorDate.toBuilder()
+        ..nextIterationDate = recurrenceBlueprint.nextIterationDate?.toBuilder() ?? recurrence.nextIterationDate.toBuilder()
+      );
     }
 
     TaskItem taskItem = TaskItem((t) => t

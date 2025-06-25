@@ -119,9 +119,6 @@ void main() {
     var recurrence = original.recurrence;
     TaskRecurrence? recurrenceCopy;
     if (recurrenceBlueprint != null && recurrence != null) {
-      var anchorDateBuilder = AnchorDateBuilder()
-        ..dateValue = recurrence.anchorDate.dateValue
-        ..dateType = recurrence.anchorDate.dateType;
       recurrenceCopy = TaskRecurrence((r) => r
         ..docId = recurrence.docId
         ..personDocId = recurrence.personDocId
@@ -130,7 +127,8 @@ void main() {
         ..recurUnit = recurrenceBlueprint.recurUnit ?? recurrence.name
         ..recurWait = recurrenceBlueprint.recurWait ?? recurrence.recurWait
         ..recurIteration = recurrenceBlueprint.recurIteration ?? recurrence.recurIteration
-        ..anchorDate = anchorDateBuilder);
+        ..anchorDate = recurrence.anchorDate.toBuilder()
+      );
     }
 
     TaskItem taskItem = TaskItem((t) => t

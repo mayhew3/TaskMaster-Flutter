@@ -37,21 +37,14 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
 
   TaskRecurrenceBlueprint createBlueprint() {
     TaskRecurrenceBlueprint blueprint = TaskRecurrenceBlueprint();
-    var anchorDateBuilder = AnchorDateBuilder()
-      ..dateValue = anchorDate.dateValue
-      ..dateType = anchorDate.dateType;
-    var nextIterationDateBuilder = AnchorDateBuilder()
-      ..dateValue = nextIterationDate.dateValue
-      ..dateType = nextIterationDate.dateType;
-
     blueprint.personDocId = personDocId;
     blueprint.name = name;
     blueprint.recurNumber = recurNumber;
     blueprint.recurUnit = recurUnit;
     blueprint.recurWait = recurWait;
     blueprint.recurIteration = recurIteration;
-    blueprint.anchorDate = anchorDateBuilder.build();
-    blueprint.nextIterationDate = nextIterationDateBuilder.build();
+    blueprint.anchorDate = anchorDate;
+    blueprint.nextIterationDate = nextIterationDate;
 
     return blueprint;
   }

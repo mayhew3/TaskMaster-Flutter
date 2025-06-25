@@ -178,16 +178,12 @@ class AddEditScreenState extends State<AddEditScreen> {
   }
 
   void updateRecurrenceBlueprint() {
-    var anchorDate = taskItemBlueprint.getAnchorDate();
-    var anchorDateBuilder = anchorDate == null ? null : (AnchorDateBuilder()
-      ..dateValue = anchorDate.dateValue
-      ..dateType = anchorDate.dateType);
     taskRecurrenceBlueprint.recurIteration = taskItemBlueprint.recurIteration;
     taskRecurrenceBlueprint.recurNumber = taskItemBlueprint.recurNumber;
     taskRecurrenceBlueprint.recurWait = taskItemBlueprint.recurWait;
     taskRecurrenceBlueprint.recurUnit = taskItemBlueprint.recurUnit;
     taskRecurrenceBlueprint.name = taskItemBlueprint.name;
-    taskRecurrenceBlueprint.anchorDate = anchorDateBuilder?.build();
+    taskRecurrenceBlueprint.anchorDate = taskItemBlueprint.getAnchorDate();
     taskItemBlueprint.recurrenceBlueprint = taskRecurrenceBlueprint;
     taskItemBlueprint.recurrenceDocId = taskItem?.recurrence?.docId;
   }

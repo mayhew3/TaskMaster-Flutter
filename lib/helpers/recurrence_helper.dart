@@ -76,11 +76,7 @@ class RecurrenceHelper {
       var recurWait = recurrence.recurWait;
       var offCycle = action.blueprint.offCycle;
       if (recurWait != null && recurWait && !offCycle) {
-        var originalAnchorDate = action.blueprint.getAnchorDate();
-        var anchorDateBuilder = originalAnchorDate == null ? null : (AnchorDateBuilder()
-          ..dateValue = originalAnchorDate.dateValue
-          ..dateType = originalAnchorDate.dateType);
-        recurrence.anchorDate = anchorDateBuilder?.build();
+        recurrence.anchorDate = action.blueprint.getAnchorDate();
       }
     }
 
