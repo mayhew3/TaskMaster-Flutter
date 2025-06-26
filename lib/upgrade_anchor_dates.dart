@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:logging/logging.dart';
@@ -38,6 +40,7 @@ Future<void> main() async {
 
   print('Migration complete!');
 
+  exit(0);
 }
 
 Future<void> executeUpdate(FirebaseFirestore firestore, http.Client client) async {
@@ -46,10 +49,15 @@ Future<void> executeUpdate(FirebaseFirestore firestore, http.Client client) asyn
 
   var problems = querySnapshot.docs.where((t) => t.data()['anchorDate'] is Timestamp);
 
-  for (var doc in querySnapshot.docs) {
+  for (var doc in problems) {
     var data = doc.data();
     var anchorDate = data['anchorDate'];
-    print(anchorDate);
+    var anchorType = data['anchorType'];
+    var newAnchorDate = {
+      'dateValue': anchorDate,
+      'dateType': anchorType,
+    };
+    doc.reference.update({'anchorDate': newAnchorDate, 'anchorType': FieldValue.delete()});
   }
 
   print('Problem rows: ${problems.length}/${querySnapshot.docs.length}');
