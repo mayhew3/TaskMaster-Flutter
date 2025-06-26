@@ -43,6 +43,12 @@ Future<void> main() async {
   exit(0);
 }
 
+extension StringExtension on String {
+  String capitalize() {
+    return '${this[0].toUpperCase()}${this.substring(1).toLowerCase()}';
+  }
+}
+
 Future<void> executeUpdate(FirebaseFirestore firestore, http.Client client) async {
   var recurrenceCollection = firestore.collection('taskRecurrences');
   var querySnapshot = await recurrenceCollection.get();
@@ -58,15 +64,8 @@ Future<void> executeUpdate(FirebaseFirestore firestore, http.Client client) asyn
     var tasksForRecurrence = tasks.where((t) => t.data()['recurrenceDocId'] == doc.id).toList();
     tasksForRecurrence.sort((a, b) => b.data()['recurIteration'].compareTo(a.data()['recurIteration']));
 
-    var anchorType = recurrence['anchorType'];
+    String anchorType = recurrence['anchorType'];
     var fullAnchorName = anchorType.toLowerCase() + 'Date';
-    if (tasksForRecurrence.isEmpty) {
-      // todo: log all empty ones, and maybe delete them?
-
-      doc.reference.update({'anchorDate': null, 'anchorType': FieldValue.delete()});
-      updatedToNull++;
-      continue;
-    }
 
     var withAnchor = tasksForRecurrence.where((t) => t.data()[fullAnchorName] != null).toList();
 
@@ -80,13 +79,19 @@ Future<void> executeUpdate(FirebaseFirestore firestore, http.Client client) asyn
     var iterations = withAnchor.map((t) => t.data()['recurIteration']).toList();
 */
 
-    var mostRecentTask = withAnchor.first.data();
-    var anchorDate = mostRecentTask[fullAnchorName];
+    var mostRecentTask = tasksForRecurrence.isEmpty ? null : withAnchor.first.data();
+    var anchorDate = mostRecentTask == null ? recurrence['anchorDate'] : mostRecentTask[fullAnchorName];
+    var recurIteration = mostRecentTask == null ? recurrence['recurIteration'] : mostRecentTask['recurIteration'];
+
+    if (anchorDate == null) {
+      updatedToNull++;
+    }
+
     var newAnchorDate = {
       'dateValue': anchorDate,
-      'dateType': anchorType,
+      'dateType': anchorType.capitalize(),
     };
-    doc.reference.update({'anchorDate': newAnchorDate, 'anchorType': FieldValue.delete(), 'recurIteration': mostRecentTask['recurIteration']});
+    doc.reference.update({'anchorDate': newAnchorDate, 'anchorType': FieldValue.delete(), 'recurIteration': recurIteration});
   }
 
   print('Problem rows: ${problems.length}/${querySnapshot.docs.length}. Null rows: $updatedToNull.');
