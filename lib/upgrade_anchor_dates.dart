@@ -61,6 +61,8 @@ Future<void> executeUpdate(FirebaseFirestore firestore, http.Client client) asyn
     var anchorType = recurrence['anchorType'];
     var fullAnchorName = anchorType.toLowerCase() + 'Date';
     if (tasksForRecurrence.isEmpty) {
+      // todo: log all empty ones, and maybe delete them?
+
       doc.reference.update({'anchorDate': null, 'anchorType': FieldValue.delete()});
       updatedToNull++;
       continue;
