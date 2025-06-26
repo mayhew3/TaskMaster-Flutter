@@ -153,7 +153,7 @@ class _$TaskItemRecurPreviewSerializer
     result
       ..add('recurrence')
       ..add(serializers.serialize(value,
-          specifiedType: const FullType(TaskRecurrence)));
+          specifiedType: const FullType(TaskRecurrenceBlueprint)));
 
     return result;
   }
@@ -265,9 +265,9 @@ class _$TaskItemRecurPreviewSerializer
               as BuiltList<Object?>);
           break;
         case 'recurrence':
-          result.recurrence.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(TaskRecurrence))!
-              as TaskRecurrence);
+          result.recurrence = serializers.deserialize(value,
+                  specifiedType: const FullType(TaskRecurrenceBlueprint))
+              as TaskRecurrenceBlueprint?;
           break;
       }
     }
@@ -326,7 +326,7 @@ class _$TaskItemRecurPreview extends TaskItemRecurPreview {
   @override
   final BuiltList<SprintAssignment> sprintAssignments;
   @override
-  final TaskRecurrence? recurrence;
+  final TaskRecurrenceBlueprint? recurrence;
 
   factory _$TaskItemRecurPreview(
           [void Function(TaskItemRecurPreviewBuilder)? updates]) =>
@@ -578,10 +578,9 @@ class TaskItemRecurPreviewBuilder
   set sprintAssignments(ListBuilder<SprintAssignment>? sprintAssignments) =>
       _$this._sprintAssignments = sprintAssignments;
 
-  TaskRecurrenceBuilder? _recurrence;
-  TaskRecurrenceBuilder get recurrence =>
-      _$this._recurrence ??= new TaskRecurrenceBuilder();
-  set recurrence(TaskRecurrenceBuilder? recurrence) =>
+  TaskRecurrenceBlueprint? _recurrence;
+  TaskRecurrenceBlueprint? get recurrence => _$this._recurrence;
+  set recurrence(TaskRecurrenceBlueprint? recurrence) =>
       _$this._recurrence = recurrence;
 
   TaskItemRecurPreviewBuilder() {
@@ -615,7 +614,7 @@ class TaskItemRecurPreviewBuilder
       _recurIteration = $v.recurIteration;
       _offCycle = $v.offCycle;
       _sprintAssignments = $v.sprintAssignments.toBuilder();
-      _recurrence = $v.recurrence?.toBuilder();
+      _recurrence = $v.recurrence;
       _$v = null;
     }
     return this;
@@ -667,14 +666,12 @@ class TaskItemRecurPreviewBuilder
               offCycle: BuiltValueNullFieldError.checkNotNull(
                   offCycle, r'TaskItemRecurPreview', 'offCycle'),
               sprintAssignments: sprintAssignments.build(),
-              recurrence: _recurrence?.build());
+              recurrence: recurrence);
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'sprintAssignments';
         sprintAssignments.build();
-        _$failedField = 'recurrence';
-        _recurrence?.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             r'TaskItemRecurPreview', _$failedField, e.toString());

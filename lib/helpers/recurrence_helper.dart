@@ -24,22 +24,30 @@ class RecurrenceHelper {
             'Recurrence has a value, so recur_iteration should be non-null!');
       }
 
-      var recurNumber = recurrence.recurNumber;
-      var recurUnit = recurrence.recurUnit;
-      var recurWait = recurrence.recurWait;
+      var recurNumber = recurrence.recurNumber!;
+      var recurUnit = recurrence.recurUnit!;
+      var recurWait = recurrence.recurWait!;
 
-      DateTime? anchorDate = recurrence.anchorDate.dateValue;
+      AnchorDate anchorDate = recurrence.anchorDate!;
       DateTime nextAnchorDate;
 
       if (recurWait) {
         nextAnchorDate = getAdjustedDate(completionDate, recurNumber, recurUnit);
       } else {
-        nextAnchorDate = getAdjustedDate(anchorDate, recurNumber, recurUnit);
+        nextAnchorDate = getAdjustedDate(anchorDate.dateValue, recurNumber, recurUnit);
       }
 
       TaskItemRecurPreview nextScheduledTask = taskItem.createNextRecurPreview(
-        dates: incrementWithMatchingDateIntervals(taskItem, anchorDate, nextAnchorDate),
+        dates: incrementWithMatchingDateIntervals(taskItem, anchorDate.dateValue, nextAnchorDate),
       );
+
+      var recurrenceBlueprint = nextScheduledTask.recurrence!;
+
+      var anchorDateBuilder = AnchorDateBuilder()
+        ..dateValue = nextAnchorDate
+        ..dateType = anchorDate.dateType;
+      recurrenceBlueprint.anchorDate = anchorDateBuilder.build();
+      recurrenceBlueprint.recurIteration = recurIteration + 1;
 
       return nextScheduledTask;
     } else {
@@ -100,12 +108,7 @@ class RecurrenceHelper {
     }
     return DateUtil.adjustToDate(dateTime, recurNumber, recurUnit);
   }
-  /*
-  @visibleForTesting
-  static DateTime getLastExpectedAnchorDate(SprintDisplayTask taskItem, int recurNumber, String recurUnit) {
 
-  }
-  */
   @visibleForTesting
   static DateTime getNextDateInSequenceAfterDate(DateTime anchorDate, int recurNumber, String recurUnit, DateTime minimumDate) {
     DateTime nextDate = anchorDate;

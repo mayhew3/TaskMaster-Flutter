@@ -1,4 +1,4 @@
-import 'package:taskmaster/models/models.dart';
+import 'package:taskmaster/models/sprint_display_task_recurrence.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item_recur_preview.dart';
@@ -22,7 +22,7 @@ mixin SprintDisplayTask implements DateHolder {
   @override
   DateTime? get completionDate;
 
-  TaskRecurrence? get recurrence;
+  SprintDisplayTaskRecurrence? get recurrence;
   @override
   int? get recurIteration;
 

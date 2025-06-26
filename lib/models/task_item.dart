@@ -5,6 +5,7 @@ import 'package:built_value/serializer.dart';
 import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/serializers.dart';
 import 'package:taskmaster/models/sprint_display_task.dart';
+import 'package:taskmaster/models/sprint_display_task_recurrence.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
@@ -140,7 +141,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
       ..recurWait = recurWait
       ..recurrenceDocId = recurrenceDocId
       ..recurIteration = recurIteration! + 1
-      ..recurrence = recurrence!.toBuilder()
+      ..recurrence = recurrence!.createBlueprint()
       ..offCycle = offCycle
     );
   }

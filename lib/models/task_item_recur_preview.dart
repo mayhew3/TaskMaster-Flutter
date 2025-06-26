@@ -7,8 +7,10 @@ import 'package:built_value/serializer.dart';
 import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/sprint_display_task.dart';
+import 'package:taskmaster/models/sprint_display_task_recurrence.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_date_type.dart';
+import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 
 /// This allows the `TaskItemRecurPreview` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
@@ -67,7 +69,7 @@ abstract class TaskItemRecurPreview with DateHolder, SprintDisplayTask implement
   BuiltList<SprintAssignment> get sprintAssignments;
 
   @override
-  TaskRecurrence? get recurrence;
+  TaskRecurrenceBlueprint? get recurrence;
 
   TaskItemRecurPreview._();
   factory TaskItemRecurPreview([Function(TaskItemRecurPreviewBuilder) updates]) = _$TaskItemRecurPreview;

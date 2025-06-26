@@ -244,7 +244,7 @@ void main() {
       final result = RecurrenceHelper.createNextIteration(taskItem, completionDate);
 
       expect(daysBetween(taskItem.dueDate!, result.dueDate!), 42);
-      expect(daysBetween(result.recurrence!.anchorDate.dateValue, originalRecurrenceAnchorDate), 42);
+      expect(daysBetween(originalRecurrenceAnchorDate, result.recurrence!.anchorDate!.dateValue), 42);
       expect(result.recurrence!.recurIteration, originalRecurIteration + 1);
     });
 
@@ -260,7 +260,7 @@ void main() {
       final result = RecurrenceHelper.createNextIteration(taskItem, completionDate);
 
       expect(daysBetween(taskItem.dueDate!, result.dueDate!), 37);
-      expect(daysBetween(result.recurrence!.anchorDate.dateValue, originalRecurrenceAnchorDate), 42);
+      expect(daysBetween(originalRecurrenceAnchorDate, result.recurrence!.anchorDate!.dateValue), 42);
       expect(result.recurrence!.recurIteration, originalRecurIteration + 1);
     });
 
