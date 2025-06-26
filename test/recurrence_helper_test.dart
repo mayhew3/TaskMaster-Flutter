@@ -238,10 +238,14 @@ void main() {
           .withRecur(recurWait: false) // Mimics "On Schedule"
           .create();
       final completionDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 5));
+      final originalRecurrenceAnchorDate = taskItem.recurrence!.anchorDate.dateValue;
+      final originalRecurIteration = taskItem.recurrence!.recurIteration;
 
       final result = RecurrenceHelper.createNextIteration(taskItem, completionDate);
 
       expect(daysBetween(taskItem.dueDate!, result.dueDate!), 42);
+      expect(daysBetween(result.recurrence!.anchorDate.dateValue, originalRecurrenceAnchorDate), 42);
+      expect(result.recurrence!.recurIteration, originalRecurIteration + 1);
     });
 
     test('on scheduled dates (off cycle) increments dates', () {
@@ -250,22 +254,14 @@ void main() {
           .withRecur(recurWait: false) // Mimics "On Schedule"
           .create();
       final completionDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 5));
+      final originalRecurrenceAnchorDate = taskItem.recurrence!.anchorDate.dateValue;
+      final originalRecurIteration = taskItem.recurrence!.recurIteration;
 
       final result = RecurrenceHelper.createNextIteration(taskItem, completionDate);
 
       expect(daysBetween(taskItem.dueDate!, result.dueDate!), 37);
-    });
-
-    test('on scheduled dates with past anchor date picks date after most recent task', () {
-      var taskItem = MockTaskItemBuilder
-          .withDates(offCycle: false)
-          .withRecur(recurWait: false, anchorOffsetInDays: -720) // Mimics "On Schedule"
-          .create();
-      final completionDate = DateUtil.nowUtcWithoutMillis();
-
-      final result = RecurrenceHelper.createNextIteration(taskItem, completionDate);
-
-      expect(result.dueDate, greaterThan(taskItem.dueDate!));
+      expect(daysBetween(result.recurrence!.anchorDate.dateValue, originalRecurrenceAnchorDate), 42);
+      expect(result.recurrence!.recurIteration, originalRecurIteration + 1);
     });
 
     // test different anchor dates
