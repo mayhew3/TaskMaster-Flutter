@@ -29,7 +29,6 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
   int get recurIteration;
 
   AnchorDate get anchorDate;
-  AnchorDate? get nextIterationDate;
 
   TaskRecurrence._();
 
@@ -44,7 +43,6 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
     blueprint.recurWait = recurWait;
     blueprint.recurIteration = recurIteration;
     blueprint.anchorDate = anchorDate;
-    blueprint.nextIterationDate = nextIterationDate;
 
     return blueprint;
   }
@@ -58,8 +56,7 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
         other.recurUnit != recurUnit ||
         other.recurWait != recurWait ||
         other.recurIteration != recurIteration ||
-        other.anchorDate != anchorDate ||
-        other.nextIterationDate != nextIterationDate;
+        other.anchorDate != anchorDate;
   }
 
   bool hasChangesBlueprint(TaskRecurrenceBlueprint? other) {
@@ -71,8 +68,7 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
         other.recurUnit != recurUnit ||
         other.recurWait != recurWait ||
         other.recurIteration != recurIteration ||
-        other.anchorDate != anchorDate ||
-        other.nextIterationDate != nextIterationDate;
+        other.anchorDate != anchorDate;
   }
 
   static TaskRecurrence fromJson(dynamic json) {

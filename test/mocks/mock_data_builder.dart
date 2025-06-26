@@ -155,10 +155,6 @@ class MockTaskItemBuilder with DateHolder {
       ..dateValue = getAnchorDate()!.dateValue.add(Duration(days: anchorOffsetInDays))
       ..dateType = getAnchorDate()!.dateType;
 
-    var nextIterationBuilder = AnchorDateBuilder()
-      ..dateValue = getAnchorDate()!.dateValue.add(Duration(days: recurNumber! * 7))
-      ..dateType = getAnchorDate()!.dateType;
-
     taskRecurrence = MockTaskRecurrenceBuilder()
       ..docId = me
       ..name = name
@@ -167,7 +163,6 @@ class MockTaskItemBuilder with DateHolder {
       ..recurWait = recurWait
       ..recurIteration = recurIteration!
       ..anchorDate = anchorDateBuilder.build()
-      ..nextIterationDate = recurWait ? nextIterationBuilder.build() : null
     ;
 
     if (_offCycle) {

@@ -21,8 +21,6 @@ class TaskRecurrenceBlueprint {
 
   @JsonKey(includeFromJson: false, includeToJson: true)
   AnchorDate? anchorDate;
-  @JsonKey(includeFromJson: false, includeToJson: true)
-  AnchorDate? nextIterationDate;
 
   String? retired;
   DateTime? retiredDate;
@@ -64,8 +62,7 @@ class TaskRecurrenceBlueprint {
         other.recurUnit != recurUnit ||
         other.recurWait != recurWait ||
         other.recurIteration != recurIteration ||
-        other.anchorDate != anchorDate ||
-        other.nextIterationDate != nextIterationDate;
+        other.anchorDate != anchorDate;
   }
 
   bool hasChangesBlueprint(TaskRecurrenceBlueprint? other) {
@@ -77,8 +74,7 @@ class TaskRecurrenceBlueprint {
         other.recurUnit != recurUnit ||
         other.recurWait != recurWait ||
         other.recurIteration != recurIteration ||
-        other.anchorDate != anchorDate ||
-        other.nextIterationDate != nextIterationDate;
+        other.anchorDate != anchorDate;
   }
 
 }

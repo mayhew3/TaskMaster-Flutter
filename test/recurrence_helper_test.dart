@@ -140,7 +140,6 @@ void main() {
       expect(resultingBlueprint, blueprint);
       verify(mockTaskRepository.updateTaskAndRecurrence(taskItem.docId, resultingBlueprint));
       expect(resultingBlueprint!.recurrenceBlueprint!.anchorDate, originalAnchorDate);
-      expect(resultingBlueprint!.recurrenceBlueprint!.nextIterationDate, isNull);
     });
 
     test('updateTaskAndMaybeRecurrenceForSnooze with On Schedule recurrence, on cycle', () {
@@ -151,7 +150,6 @@ void main() {
           .withRecur(recurWait: true) // Mimics "On Schedule"
           .create();
       var originalAnchorDate = taskItem.recurrence!.anchorDate;
-      var originalNextIteration = taskItem.recurrence!.nextIterationDate;
       var blueprint = taskItem.createBlueprint();
       blueprint.incrementDateIfExists(TaskDateTypes.due, Duration(days: 3));
 
@@ -177,8 +175,6 @@ void main() {
       verify(mockTaskRepository.updateTaskAndRecurrence(
           taskItem.docId, resultingBlueprint));
       expect(resultingBlueprint!.recurrenceBlueprint!.anchorDate, isNot(originalAnchorDate));
-      expect(resultingBlueprint!.recurrenceBlueprint!.nextIterationDate!.dateValue
-          .difference(originalNextIteration!.dateValue).inDays, 3);
     });
 
     test('updateTaskAndMaybeRecurrenceForSnooze with On Schedule recurrence, off cycle', () {
@@ -189,7 +185,6 @@ void main() {
           .withRecur(recurWait: true) // Mimics "On Schedule"
           .create();
       var originalAnchorDate = taskItem.recurrence!.anchorDate;
-      var originalNextIterationDate = taskItem.recurrence!.nextIterationDate;
       var blueprint = taskItem.createBlueprint();
       blueprint.offCycle = true; // Snooze should knock task off cycle
       blueprint.incrementDateIfExists(TaskDateTypes.due, Duration(days: 3));
@@ -217,7 +212,6 @@ void main() {
       expect(resultingBlueprint, blueprint);
       verify(mockTaskRepository.updateTaskAndRecurrence(taskItem.docId, resultingBlueprint));
       expect(resultingBlueprint!.recurrenceBlueprint!.anchorDate, originalAnchorDate);
-      expect(resultingBlueprint!.recurrenceBlueprint!.nextIterationDate, originalNextIterationDate);
     });
 
   });

@@ -130,7 +130,6 @@ class TestMockHelper {
         ..recurWait = recurrenceBlueprint.recurWait ?? recurrence.recurWait
         ..recurIteration = recurrenceBlueprint.recurIteration ?? recurrence.recurIteration
         ..anchorDate = recurrenceBlueprint.anchorDate?.toBuilder() ?? recurrence.anchorDate.toBuilder()
-        ..nextIterationDate = recurrenceBlueprint.nextIterationDate?.toBuilder() ?? recurrence.nextIterationDate?.toBuilder()
       );
     }
 

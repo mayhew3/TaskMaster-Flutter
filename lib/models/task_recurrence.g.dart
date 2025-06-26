@@ -47,13 +47,6 @@ class _$TaskRecurrenceSerializer
       serializers.serialize(object.anchorDate,
           specifiedType: const FullType(AnchorDate)),
     ];
-    Object? value;
-    value = object.nextIterationDate;
-
-    result
-      ..add('nextIterationDate')
-      ..add(serializers.serialize(value,
-          specifiedType: const FullType(AnchorDate)));
 
     return result;
   }
@@ -106,10 +99,6 @@ class _$TaskRecurrenceSerializer
           result.anchorDate.replace(serializers.deserialize(value,
               specifiedType: const FullType(AnchorDate))! as AnchorDate);
           break;
-        case 'nextIterationDate':
-          result.nextIterationDate.replace(serializers.deserialize(value,
-              specifiedType: const FullType(AnchorDate))! as AnchorDate);
-          break;
       }
     }
 
@@ -136,8 +125,6 @@ class _$TaskRecurrence extends TaskRecurrence {
   final int recurIteration;
   @override
   final AnchorDate anchorDate;
-  @override
-  final AnchorDate? nextIterationDate;
 
   factory _$TaskRecurrence([void Function(TaskRecurrenceBuilder)? updates]) =>
       (new TaskRecurrenceBuilder()..update(updates))._build();
@@ -151,8 +138,7 @@ class _$TaskRecurrence extends TaskRecurrence {
       required this.recurUnit,
       required this.recurWait,
       required this.recurIteration,
-      required this.anchorDate,
-      this.nextIterationDate})
+      required this.anchorDate})
       : super._() {
     BuiltValueNullFieldError.checkNotNull(docId, r'TaskRecurrence', 'docId');
     BuiltValueNullFieldError.checkNotNull(
@@ -192,8 +178,7 @@ class _$TaskRecurrence extends TaskRecurrence {
         recurUnit == other.recurUnit &&
         recurWait == other.recurWait &&
         recurIteration == other.recurIteration &&
-        anchorDate == other.anchorDate &&
-        nextIterationDate == other.nextIterationDate;
+        anchorDate == other.anchorDate;
   }
 
   @override
@@ -208,7 +193,6 @@ class _$TaskRecurrence extends TaskRecurrence {
     _$hash = $jc(_$hash, recurWait.hashCode);
     _$hash = $jc(_$hash, recurIteration.hashCode);
     _$hash = $jc(_$hash, anchorDate.hashCode);
-    _$hash = $jc(_$hash, nextIterationDate.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -224,8 +208,7 @@ class _$TaskRecurrence extends TaskRecurrence {
           ..add('recurUnit', recurUnit)
           ..add('recurWait', recurWait)
           ..add('recurIteration', recurIteration)
-          ..add('anchorDate', anchorDate)
-          ..add('nextIterationDate', nextIterationDate))
+          ..add('anchorDate', anchorDate))
         .toString();
   }
 }
@@ -273,12 +256,6 @@ class TaskRecurrenceBuilder
   set anchorDate(AnchorDateBuilder? anchorDate) =>
       _$this._anchorDate = anchorDate;
 
-  AnchorDateBuilder? _nextIterationDate;
-  AnchorDateBuilder get nextIterationDate =>
-      _$this._nextIterationDate ??= new AnchorDateBuilder();
-  set nextIterationDate(AnchorDateBuilder? nextIterationDate) =>
-      _$this._nextIterationDate = nextIterationDate;
-
   TaskRecurrenceBuilder();
 
   TaskRecurrenceBuilder get _$this {
@@ -293,7 +270,6 @@ class TaskRecurrenceBuilder
       _recurWait = $v.recurWait;
       _recurIteration = $v.recurIteration;
       _anchorDate = $v.anchorDate.toBuilder();
-      _nextIterationDate = $v.nextIterationDate?.toBuilder();
       _$v = null;
     }
     return this;
@@ -334,15 +310,12 @@ class TaskRecurrenceBuilder
                   recurWait, r'TaskRecurrence', 'recurWait'),
               recurIteration: BuiltValueNullFieldError.checkNotNull(
                   recurIteration, r'TaskRecurrence', 'recurIteration'),
-              anchorDate: anchorDate.build(),
-              nextIterationDate: _nextIterationDate?.build());
+              anchorDate: anchorDate.build());
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'anchorDate';
         anchorDate.build();
-        _$failedField = 'nextIterationDate';
-        _nextIterationDate?.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             r'TaskRecurrence', _$failedField, e.toString());

@@ -31,10 +31,6 @@ class MockTaskRecurrenceBuilder {
         'dateValue': anchorDate.dateValue,
         'dateType': anchorDate.dateType.label,
       },
-      'nextIterationDate': nextIterationDate == null ? null : {
-        'dateValue': nextIterationDate!.dateValue,
-        'dateType': nextIterationDate!.dateType.label,
-      },
     };
     return serializers.deserializeWith(TaskRecurrence.serializer, taskRecurrenceMap)!;
   }
@@ -43,9 +39,6 @@ class MockTaskRecurrenceBuilder {
     var anchorDateBuilder = AnchorDateBuilder()
       ..dateValue = DateTime.now().toUtc()
       ..dateType = TaskDateTypes.target;
-    var nextIterationBuilder = AnchorDateBuilder()
-      ..dateValue = DateTime.now().toUtc().add(Duration(days: 42))
-      ..dateType = TaskDateTypes.target;
     return MockTaskRecurrenceBuilder()
       ..name = 'Test Recurrence'
       ..recurNumber = 6
@@ -53,7 +46,6 @@ class MockTaskRecurrenceBuilder {
       ..recurUnit = 'Weeks'
       ..recurWait = false
       ..anchorDate = anchorDateBuilder.build()
-      ..nextIterationDate = nextIterationBuilder.build()
     ;
   }
 
