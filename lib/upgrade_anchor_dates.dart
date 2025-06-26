@@ -44,6 +44,13 @@ Future<void> executeUpdate(FirebaseFirestore firestore, http.Client client) asyn
   var recurrenceCollection = firestore.collection('taskRecurrences');
   var querySnapshot = await recurrenceCollection.get();
 
-  var problems = querySnapshot.docs.where((t) => t.data()['anchorDate'] is DateTime);
-  print('Problem rows: ${querySnapshot.docs.length}');
+  var problems = querySnapshot.docs.where((t) => t.data()['anchorDate'] is Timestamp);
+
+  for (var doc in querySnapshot.docs) {
+    var data = doc.data();
+    var anchorDate = data['anchorDate'];
+    print(anchorDate);
+  }
+
+  print('Problem rows: ${problems.length}/${querySnapshot.docs.length}');
 }
