@@ -48,17 +48,44 @@ Future<void> executeUpdate(FirebaseFirestore firestore, http.Client client) asyn
   var querySnapshot = await recurrenceCollection.get();
 
   var problems = querySnapshot.docs.where((t) => t.data()['anchorDate'] is Timestamp);
+  var docSnapshot = await firestore.collection('tasks').get();
+  var tasks = docSnapshot.docs;
+  var updatedToNull = 0;
 
   for (var doc in problems) {
-    var data = doc.data();
-    var anchorDate = data['anchorDate'];
-    var anchorType = data['anchorType'];
+    var recurrence = doc.data();
+
+    var tasksForRecurrence = tasks.where((t) => t.data()['recurrenceDocId'] == doc.id).toList();
+    tasksForRecurrence.sort((a, b) => b.data()['recurIteration'].compareTo(a.data()['recurIteration']));
+
+    var anchorType = recurrence['anchorType'];
+    var fullAnchorName = anchorType.toLowerCase() + 'Date';
+    if (tasksForRecurrence.isEmpty) {
+      doc.reference.update({'anchorDate': null, 'anchorType': FieldValue.delete()});
+      updatedToNull++;
+      continue;
+    }
+
+    var withAnchor = tasksForRecurrence.where((t) => t.data()[fullAnchorName] != null).toList();
+
+    // DEBUG ONLY
+    /*
+    var datesOnly = withAnchor.map((t) {
+      Timestamp timestamp = t.data()[fullAnchorName];
+      var millisecondsSinceEpoch = timestamp.millisecondsSinceEpoch;
+      return DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch);
+    }).toList();
+    var iterations = withAnchor.map((t) => t.data()['recurIteration']).toList();
+*/
+
+    var mostRecentTask = withAnchor.first.data();
+    var anchorDate = mostRecentTask[fullAnchorName];
     var newAnchorDate = {
       'dateValue': anchorDate,
       'dateType': anchorType,
     };
-    doc.reference.update({'anchorDate': newAnchorDate, 'anchorType': FieldValue.delete()});
+    doc.reference.update({'anchorDate': newAnchorDate, 'anchorType': FieldValue.delete(), 'recurIteration': mostRecentTask['recurIteration']});
   }
 
-  print('Problem rows: ${problems.length}/${querySnapshot.docs.length}');
+  print('Problem rows: ${problems.length}/${querySnapshot.docs.length}. Null rows: $updatedToNull.');
 }
