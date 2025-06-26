@@ -133,11 +133,35 @@ class MockTaskItemBuilder with DateHolder {
 
   factory MockTaskItemBuilder.withDates({bool offCycle = false, int daysOffset = 0,}) {
     return MockTaskItemBuilder.asDefault()
-        ..startDate = DateUtil.nowUtcWithoutMillis().subtract(Duration(days: 4 - daysOffset, hours: 5))
-        ..targetDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 1 + daysOffset, hours: 5))
-        ..urgentDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 5 + daysOffset, hours: 6))
-        ..dueDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 8 + daysOffset, hours: 8))
-        .._offCycle = offCycle;
+      ..startDate = DateUtil.nowUtcWithoutMillis().subtract(Duration(days: 4 - daysOffset, hours: 5))
+      ..targetDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 1 + daysOffset, hours: 5))
+      ..urgentDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 5 + daysOffset, hours: 6))
+      ..dueDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 8 + daysOffset, hours: 8))
+      .._offCycle = offCycle;
+  }
+
+  MockTaskItemBuilder withStartDateAnchor({bool offCycle = false, int daysOffset = 0,}) {
+    return this
+      ..startDate = DateUtil.nowUtcWithoutMillis().subtract(Duration(days: 4 - daysOffset, hours: 5))
+      .._offCycle = offCycle;
+  }
+
+  MockTaskItemBuilder withTargetDateAnchor({bool offCycle = false, int daysOffset = 0,}) {
+    return this
+      ..withStartDateAnchor(offCycle: offCycle, daysOffset: daysOffset)
+      ..targetDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 1 + daysOffset, hours: 5));
+  }
+
+  MockTaskItemBuilder withUrgentDateAnchor({bool offCycle = false, int daysOffset = 0,}) {
+    return this
+      ..withTargetDateAnchor(offCycle: offCycle, daysOffset: daysOffset)
+      ..urgentDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 5 + daysOffset, hours: 6));
+  }
+
+  MockTaskItemBuilder withDueDateAnchor({bool offCycle = false, int daysOffset = 0,}) {
+    return this
+      ..withUrgentDateAnchor(offCycle: offCycle, daysOffset: daysOffset)
+      ..dueDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 8 + daysOffset, hours: 8));
   }
 
   MockTaskItemBuilder asCompleted() {
@@ -167,7 +191,10 @@ class MockTaskItemBuilder with DateHolder {
     ;
 
     if (_offCycle) {
-      dueDate = dueDate!.add(Duration(days: 5));
+      dueDate = dueDate?.add(Duration(days: 5));
+      urgentDate = urgentDate?.add(Duration(days: 5));
+      targetDate = targetDate?.add(Duration(days: 5));
+      startDate = startDate?.add(Duration(days: 5));
     }
 
     return this;

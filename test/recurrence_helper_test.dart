@@ -264,6 +264,24 @@ void main() {
       expect(result.recurrence!.recurIteration, originalRecurIteration + 1);
     });
 
+    test('on scheduled dates (off cycle) increments dates (urgent anchor)', () {
+      var taskItem = MockTaskItemBuilder
+          .asDefault()
+          .withUrgentDateAnchor(offCycle: true)
+          .withRecur(recurWait: false) // Mimics "On Schedule"
+          .create();
+      final completionDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 5));
+      final originalRecurrenceAnchorDate = taskItem.recurrence!.anchorDate.dateValue;
+      final originalRecurIteration = taskItem.recurrence!.recurIteration;
+
+      final result = RecurrenceHelper.createNextIteration(taskItem, completionDate);
+
+      expect(result.dueDate, isNull);
+      expect(daysBetween(taskItem.urgentDate!, result.urgentDate!), 37);
+      expect(daysBetween(originalRecurrenceAnchorDate, result.recurrence!.anchorDate!.dateValue), 42);
+      expect(result.recurrence!.recurIteration, originalRecurIteration + 1);
+    });
+
     // test different anchor dates
     // test calling this method on a task item with no recurrence
     // test exception for no recur_iteration
