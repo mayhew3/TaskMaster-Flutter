@@ -53,7 +53,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
 
   int? get recurNumber;
   String? get recurUnit;
-  bool? get recurWait;
+  bool? get recurWait; // true = On Complete
 
   String? get recurrenceDocId;
   @override

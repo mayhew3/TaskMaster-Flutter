@@ -111,7 +111,7 @@ void main() {
 
       var taskItem = MockTaskItemBuilder
           .withDates()
-          .withRecur(recurWait: false) // Mimics "On Complete"
+          .withRecur(recurWait: true) // Mimics "On Complete"
           .create();
       var originalAnchorDate = taskItem.recurrence!.anchorDate;
       var blueprint = taskItem.createBlueprint();
@@ -147,7 +147,7 @@ void main() {
 
       var taskItem = MockTaskItemBuilder
           .withDates()
-          .withRecur(recurWait: true) // Mimics "On Schedule"
+          .withRecur(recurWait: false) // Mimics "On Schedule"
           .create();
       var originalAnchorDate = taskItem.recurrence!.anchorDate;
       var blueprint = taskItem.createBlueprint();
@@ -182,7 +182,7 @@ void main() {
 
       var taskItem = MockTaskItemBuilder
           .withDates()
-          .withRecur(recurWait: true) // Mimics "On Schedule"
+          .withRecur(recurWait: false) // Mimics "On Schedule"
           .create();
       var originalAnchorDate = taskItem.recurrence!.anchorDate;
       var blueprint = taskItem.createBlueprint();

@@ -25,7 +25,7 @@ abstract class TaskRecurrence with SprintDisplayTaskRecurrence implements Built<
 
   int get recurNumber;
   String get recurUnit;
-  bool get recurWait;
+  bool get recurWait; // true = On Complete
 
   int get recurIteration;
 
