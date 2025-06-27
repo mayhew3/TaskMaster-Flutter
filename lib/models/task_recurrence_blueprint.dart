@@ -8,6 +8,19 @@ import 'package:taskmaster/models/task_recurrence.dart';
 
 part 'task_recurrence_blueprint.g.dart';
 
+/*
+* Blueprints use the JsonSerializable annotation to serialize and deserialize
+* instead of the built_value annotation. It's a bit annoying I have to use two
+* different serialization frameworks, but I can mix built_value with another
+* framework, and blueprints need to be editable, so built and not-built need to
+* use different ones.
+*
+* One key difference to note is how to handle included objects. If the included
+* object on a JsonSerializable is ALSO a JsonSerializable, we can just use the
+* JsonKey annotation, like the recurrenceBlueprint below. If the included object
+* is NOT, however, I need a separate JsonConverter class to handle it (see
+* JsonAnchorDateConverter as an example.)
+* */
 @JsonSerializable(includeIfNull: true)
 class TaskRecurrenceBlueprint with SprintDisplayTaskRecurrence {
 
