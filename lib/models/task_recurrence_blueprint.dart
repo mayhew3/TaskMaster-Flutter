@@ -1,6 +1,7 @@
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/anchor_date.dart';
+import 'package:taskmaster/models/json_anchordate_converter.dart';
 import 'package:taskmaster/models/sprint_display_task_recurrence.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
@@ -20,7 +21,7 @@ class TaskRecurrenceBlueprint with SprintDisplayTaskRecurrence {
 
   int? recurIteration;
 
-  @JsonKey(includeFromJson: false, includeToJson: true)
+  @JsonAnchorDateConverter()
   AnchorDate? anchorDate;
 
   String? retired;
