@@ -116,7 +116,7 @@ BuiltList<TaskItem> taskItemsForPlacingOnExistingSprint(BuiltList<TaskItem> allT
 }
 
 bool taskItemIsInSprint(SprintDisplayTask taskItem, Sprint? sprint) {
-  return sprint != null && sprint.sprintAssignments.where((sa) => sa.taskDocId == taskItem.docId).isNotEmpty;
+  return sprint != null && sprint.sprintAssignments.where((sa) => sa.taskDocId == taskItem.getSprintDisplayTaskKey()).isNotEmpty;
 }
 
 Future<({String personDocId})> getRequiredInputs(Store<AppState> store, String actionDesc) async {

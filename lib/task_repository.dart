@@ -199,7 +199,9 @@ class TaskRepository {
   }
 
   TaskItem addRecurTask(TaskItemRecurPreview blueprint) {
-    Map<String, Object?> blueprintJson = serializers.serializeWith(TaskItemRecurPreview.serializer, blueprint)! as Map<String, Object?>;
+    Map<String, dynamic> blueprintJson = blueprint.toJson();
+    blueprintJson.remove('recurrence');
+    blueprintJson['offCycle'] = false;
 
     var addedTaskDoc = firestore.collection('tasks').doc();
     var taskId = addedTaskDoc.id;
@@ -282,7 +284,7 @@ class TaskRepository {
   }
 
   Future<({Sprint sprint, BuiltList<TaskItem> addedTasks, BuiltList<SprintAssignment> sprintAssignments})> addSprintWithTaskItems(SprintBlueprint blueprint, BuiltList<TaskItem> existingItems, BuiltList<TaskItemRecurPreview> newItems) async {
-    var newTaskItemsList = newItems.map((t) => serializers.serializeWith(TaskItemRecurPreview.serializer, t)).toList();
+    var newTaskItemsList = newItems.map((t) => t.toJson()).toList();
 
     var personDocId = blueprint.personDocId;
 
@@ -365,7 +367,7 @@ class TaskRepository {
 
 
   Future<({BuiltList<TaskItem> addedTasks, BuiltList<SprintAssignment> sprintAssignments})> addTasksToSprint(BuiltList<TaskItem> existingItems, BuiltList<TaskItemRecurPreview> newItems, Sprint sprint) async {
-    var newTaskItemsList = newItems.map((t) => serializers.serializeWith(TaskItemRecurPreview.serializer, t)).toList();
+    var newTaskItemsList = newItems.map((t) => t.toJson()).toList();
 
     var personDocId = sprint.personDocId;
 

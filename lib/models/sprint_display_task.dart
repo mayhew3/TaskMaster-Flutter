@@ -6,7 +6,6 @@ import 'package:taskmaster/models/task_item_recur_preview.dart';
 import 'anchor_date.dart';
 
 mixin SprintDisplayTask implements DateHolder {
-  String get docId;
   String get name;
 
   String? get project;
@@ -40,4 +39,6 @@ mixin SprintDisplayTask implements DateHolder {
   TaskItemRecurPreview createNextRecurPreview({
     required Map<TaskDateType, DateTime> dates,
   });
+
+  String getSprintDisplayTaskKey();
 }

@@ -4,35 +4,34 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i4;
-import 'dart:ui' as _i29;
+import 'dart:ui' as _i28;
 
 import 'package:built_collection/built_collection.dart' as _i6;
-import 'package:built_value/serializer.dart' as _i20;
+import 'package:built_value/serializer.dart' as _i19;
 import 'package:cloud_firestore/cloud_firestore.dart' as _i2;
 import 'package:flutter/foundation.dart' as _i17;
 import 'package:flutter/material.dart' as _i16;
-import 'package:flutter/scheduler.dart' as _i18;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     as _i9;
 import 'package:google_sign_in/google_sign_in.dart' as _i13;
 import 'package:logging/logging.dart' as _i3;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i28;
-import 'package:redux/src/store.dart' as _i27;
+import 'package:mockito/src/dummies.dart' as _i27;
+import 'package:redux/src/store.dart' as _i26;
 import 'package:taskmaster/models/models.dart' as _i12;
-import 'package:taskmaster/models/snooze_blueprint.dart' as _i26;
+import 'package:taskmaster/models/snooze_blueprint.dart' as _i25;
 import 'package:taskmaster/models/sprint.dart' as _i7;
-import 'package:taskmaster/models/sprint_assignment.dart' as _i23;
-import 'package:taskmaster/models/sprint_blueprint.dart' as _i24;
+import 'package:taskmaster/models/sprint_assignment.dart' as _i22;
+import 'package:taskmaster/models/sprint_blueprint.dart' as _i23;
 import 'package:taskmaster/models/task_item.dart' as _i5;
-import 'package:taskmaster/models/task_item_blueprint.dart' as _i21;
-import 'package:taskmaster/models/task_item_recur_preview.dart' as _i22;
+import 'package:taskmaster/models/task_item_blueprint.dart' as _i20;
+import 'package:taskmaster/models/task_item_recur_preview.dart' as _i21;
 import 'package:taskmaster/models/task_recurrence.dart' as _i8;
-import 'package:taskmaster/models/task_recurrence_blueprint.dart' as _i25;
+import 'package:taskmaster/models/task_recurrence_blueprint.dart' as _i24;
 import 'package:taskmaster/models/top_nav_item.dart' as _i11;
 import 'package:taskmaster/redux/app_state.dart' as _i15;
 import 'package:taskmaster/redux/middleware/notification_helper.dart' as _i14;
-import 'package:taskmaster/task_repository.dart' as _i19;
+import 'package:taskmaster/task_repository.dart' as _i18;
 import 'package:taskmaster/timezone_helper.dart' as _i10;
 
 // ignore_for_file: type=lint
@@ -290,23 +289,10 @@ class _FakeDiagnosticsNode_20 extends _i1.SmartFake
       super.toString();
 }
 
-class _FakeTicker_21 extends _i1.SmartFake implements _i18.Ticker {
-  _FakeTicker_21(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-
-  @override
-  String toString({bool? debugIncludeStack = false}) => super.toString();
-}
-
 /// A class which mocks [TaskRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
+class MockTaskRepository extends _i1.Mock implements _i18.TaskRepository {
   @override
   _i2.FirebaseFirestore get firestore => (super.noSuchMethod(
         Invocation.getter(#firestore),
@@ -376,12 +362,12 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
     required dynamic Function(Iterable<T>)? addCallback,
     dynamic Function(Iterable<T>)? modifyCallback,
     dynamic Function(Iterable<T>)? deleteCallback,
-    required _i20.Serializer<T>? serializer,
+    required _i19.Serializer<T>? serializer,
     int? limit,
     DateTime? completionFilter,
     String? subCollectionName,
     dynamic Function(Iterable<S>)? subAddCallback,
-    _i20.Serializer<S>? subSerializer,
+    _i19.Serializer<S>? subSerializer,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -462,7 +448,7 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
       }));
 
   @override
-  void addTask(_i21.TaskItemBlueprint? blueprint) => super.noSuchMethod(
+  void addTask(_i20.TaskItemBlueprint? blueprint) => super.noSuchMethod(
         Invocation.method(
           #addTask,
           [blueprint],
@@ -471,7 +457,7 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
       );
 
   @override
-  _i5.TaskItem addRecurTask(_i22.TaskItemRecurPreview? blueprint) =>
+  _i5.TaskItem addRecurTask(_i21.TaskItemRecurPreview? blueprint) =>
       (super.noSuchMethod(
         Invocation.method(
           #addRecurTask,
@@ -497,7 +483,7 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
   _i4.Future<({_i8.TaskRecurrence? recurrence, _i5.TaskItem taskItem})>
       updateTaskAndRecurrence(
     String? taskItemDocId,
-    _i21.TaskItemBlueprint? blueprint,
+    _i20.TaskItemBlueprint? blueprint,
   ) =>
           (super.noSuchMethod(
             Invocation.method(
@@ -572,11 +558,11 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
       ({
         _i6.BuiltList<_i5.TaskItem> addedTasks,
         _i7.Sprint sprint,
-        _i6.BuiltList<_i23.SprintAssignment> sprintAssignments
+        _i6.BuiltList<_i22.SprintAssignment> sprintAssignments
       })> addSprintWithTaskItems(
-    _i24.SprintBlueprint? blueprint,
+    _i23.SprintBlueprint? blueprint,
     _i6.BuiltList<_i5.TaskItem>? existingItems,
-    _i6.BuiltList<_i22.TaskItemRecurPreview>? newItems,
+    _i6.BuiltList<_i21.TaskItemRecurPreview>? newItems,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -591,7 +577,7 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
             ({
               _i6.BuiltList<_i5.TaskItem> addedTasks,
               _i7.Sprint sprint,
-              _i6.BuiltList<_i23.SprintAssignment> sprintAssignments
+              _i6.BuiltList<_i22.SprintAssignment> sprintAssignments
             })>.value((
           addedTasks: _FakeBuiltList_4<_i5.TaskItem>(
             this,
@@ -615,7 +601,7 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
               ],
             ),
           ),
-          sprintAssignments: _FakeBuiltList_4<_i23.SprintAssignment>(
+          sprintAssignments: _FakeBuiltList_4<_i22.SprintAssignment>(
             this,
             Invocation.method(
               #addSprintWithTaskItems,
@@ -631,7 +617,7 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
             ({
               _i6.BuiltList<_i5.TaskItem> addedTasks,
               _i7.Sprint sprint,
-              _i6.BuiltList<_i23.SprintAssignment> sprintAssignments
+              _i6.BuiltList<_i22.SprintAssignment> sprintAssignments
             })>.value((
           addedTasks: _FakeBuiltList_4<_i5.TaskItem>(
             this,
@@ -655,7 +641,7 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
               ],
             ),
           ),
-          sprintAssignments: _FakeBuiltList_4<_i23.SprintAssignment>(
+          sprintAssignments: _FakeBuiltList_4<_i22.SprintAssignment>(
             this,
             Invocation.method(
               #addSprintWithTaskItems,
@@ -671,13 +657,13 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
           ({
             _i6.BuiltList<_i5.TaskItem> addedTasks,
             _i7.Sprint sprint,
-            _i6.BuiltList<_i23.SprintAssignment> sprintAssignments
+            _i6.BuiltList<_i22.SprintAssignment> sprintAssignments
           })>);
 
   @override
   _i4.Future<_i8.TaskRecurrence> updateTaskRecurrence(
     String? taskRecurrenceDocId,
-    _i25.TaskRecurrenceBlueprint? blueprint,
+    _i24.TaskRecurrenceBlueprint? blueprint,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -714,10 +700,10 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
   _i4.Future<
       ({
         _i6.BuiltList<_i5.TaskItem> addedTasks,
-        _i6.BuiltList<_i23.SprintAssignment> sprintAssignments
+        _i6.BuiltList<_i22.SprintAssignment> sprintAssignments
       })> addTasksToSprint(
     _i6.BuiltList<_i5.TaskItem>? existingItems,
-    _i6.BuiltList<_i22.TaskItemRecurPreview>? newItems,
+    _i6.BuiltList<_i21.TaskItemRecurPreview>? newItems,
     _i7.Sprint? sprint,
   ) =>
       (super.noSuchMethod(
@@ -732,7 +718,7 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
         returnValue: _i4.Future<
             ({
               _i6.BuiltList<_i5.TaskItem> addedTasks,
-              _i6.BuiltList<_i23.SprintAssignment> sprintAssignments
+              _i6.BuiltList<_i22.SprintAssignment> sprintAssignments
             })>.value((
           addedTasks: _FakeBuiltList_4<_i5.TaskItem>(
             this,
@@ -745,7 +731,7 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
               ],
             ),
           ),
-          sprintAssignments: _FakeBuiltList_4<_i23.SprintAssignment>(
+          sprintAssignments: _FakeBuiltList_4<_i22.SprintAssignment>(
             this,
             Invocation.method(
               #addTasksToSprint,
@@ -760,7 +746,7 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
         returnValueForMissingStub: _i4.Future<
             ({
               _i6.BuiltList<_i5.TaskItem> addedTasks,
-              _i6.BuiltList<_i23.SprintAssignment> sprintAssignments
+              _i6.BuiltList<_i22.SprintAssignment> sprintAssignments
             })>.value((
           addedTasks: _FakeBuiltList_4<_i5.TaskItem>(
             this,
@@ -773,7 +759,7 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
               ],
             ),
           ),
-          sprintAssignments: _FakeBuiltList_4<_i23.SprintAssignment>(
+          sprintAssignments: _FakeBuiltList_4<_i22.SprintAssignment>(
             this,
             Invocation.method(
               #addTasksToSprint,
@@ -788,7 +774,7 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
       ) as _i4.Future<
           ({
             _i6.BuiltList<_i5.TaskItem> addedTasks,
-            _i6.BuiltList<_i23.SprintAssignment> sprintAssignments
+            _i6.BuiltList<_i22.SprintAssignment> sprintAssignments
           })>);
 
   @override
@@ -801,7 +787,7 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
       );
 
   @override
-  void addSnooze(_i26.SnoozeBlueprint? snooze) => super.noSuchMethod(
+  void addSnooze(_i25.SnoozeBlueprint? snooze) => super.noSuchMethod(
         Invocation.method(
           #addSnooze,
           [snooze],
@@ -841,15 +827,15 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
 /// A class which mocks [Store].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockStore<State> extends _i1.Mock implements _i27.Store<State> {
+class MockStore<State> extends _i1.Mock implements _i26.Store<State> {
   @override
-  _i27.Reducer<State> get reducer => (super.noSuchMethod(
+  _i26.Reducer<State> get reducer => (super.noSuchMethod(
         Invocation.getter(#reducer),
         returnValue: (
           State state,
           dynamic action,
         ) =>
-            _i28.dummyValue<State>(
+            _i27.dummyValue<State>(
           this,
           Invocation.getter(#reducer),
         ),
@@ -857,14 +843,14 @@ class MockStore<State> extends _i1.Mock implements _i27.Store<State> {
           State state,
           dynamic action,
         ) =>
-            _i28.dummyValue<State>(
+            _i27.dummyValue<State>(
           this,
           Invocation.getter(#reducer),
         ),
-      ) as _i27.Reducer<State>);
+      ) as _i26.Reducer<State>);
 
   @override
-  set reducer(_i27.Reducer<State>? _reducer) => super.noSuchMethod(
+  set reducer(_i26.Reducer<State>? _reducer) => super.noSuchMethod(
         Invocation.setter(
           #reducer,
           _reducer,
@@ -875,11 +861,11 @@ class MockStore<State> extends _i1.Mock implements _i27.Store<State> {
   @override
   State get state => (super.noSuchMethod(
         Invocation.getter(#state),
-        returnValue: _i28.dummyValue<State>(
+        returnValue: _i27.dummyValue<State>(
           this,
           Invocation.getter(#state),
         ),
-        returnValueForMissingStub: _i28.dummyValue<State>(
+        returnValueForMissingStub: _i27.dummyValue<State>(
           this,
           Invocation.getter(#state),
         ),
@@ -1462,7 +1448,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
           [routeName],
           {#arguments: arguments},
         ),
-        returnValue: _i28.dummyValue<String>(
+        returnValue: _i27.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePushNamed,
@@ -1470,7 +1456,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             {#arguments: arguments},
           ),
         ),
-        returnValueForMissingStub: _i28.dummyValue<String>(
+        returnValueForMissingStub: _i27.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePushNamed,
@@ -1514,7 +1500,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             #arguments: arguments,
           },
         ),
-        returnValue: _i28.dummyValue<String>(
+        returnValue: _i27.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePushReplacementNamed,
@@ -1525,7 +1511,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             },
           ),
         ),
-        returnValueForMissingStub: _i28.dummyValue<String>(
+        returnValueForMissingStub: _i27.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePushReplacementNamed,
@@ -1572,7 +1558,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             #arguments: arguments,
           },
         ),
-        returnValue: _i28.dummyValue<String>(
+        returnValue: _i27.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePopAndPushNamed,
@@ -1583,7 +1569,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             },
           ),
         ),
-        returnValueForMissingStub: _i28.dummyValue<String>(
+        returnValueForMissingStub: _i27.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePopAndPushNamed,
@@ -1630,7 +1616,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
           ],
           {#arguments: arguments},
         ),
-        returnValue: _i28.dummyValue<String>(
+        returnValue: _i27.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePushNamedAndRemoveUntil,
@@ -1641,7 +1627,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             {#arguments: arguments},
           ),
         ),
-        returnValueForMissingStub: _i28.dummyValue<String>(
+        returnValueForMissingStub: _i27.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePushNamedAndRemoveUntil,
@@ -1676,7 +1662,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
           [routeBuilder],
           {#arguments: arguments},
         ),
-        returnValue: _i28.dummyValue<String>(
+        returnValue: _i27.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePush,
@@ -1684,7 +1670,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             {#arguments: arguments},
           ),
         ),
-        returnValueForMissingStub: _i28.dummyValue<String>(
+        returnValueForMissingStub: _i27.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePush,
@@ -1724,7 +1710,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             #arguments: arguments,
           },
         ),
-        returnValue: _i28.dummyValue<String>(
+        returnValue: _i27.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePushReplacement,
@@ -1735,7 +1721,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             },
           ),
         ),
-        returnValueForMissingStub: _i28.dummyValue<String>(
+        returnValueForMissingStub: _i27.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePushReplacement,
@@ -1780,7 +1766,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
           ],
           {#arguments: arguments},
         ),
-        returnValue: _i28.dummyValue<String>(
+        returnValue: _i27.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePushAndRemoveUntil,
@@ -1791,7 +1777,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             {#arguments: arguments},
           ),
         ),
-        returnValueForMissingStub: _i28.dummyValue<String>(
+        returnValueForMissingStub: _i27.dummyValue<String>(
           this,
           Invocation.method(
             #restorablePushAndRemoveUntil,
@@ -1837,7 +1823,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             #arguments: arguments,
           },
         ),
-        returnValue: _i28.dummyValue<String>(
+        returnValue: _i27.dummyValue<String>(
           this,
           Invocation.method(
             #restorableReplace,
@@ -1849,7 +1835,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             },
           ),
         ),
-        returnValueForMissingStub: _i28.dummyValue<String>(
+        returnValueForMissingStub: _i27.dummyValue<String>(
           this,
           Invocation.method(
             #restorableReplace,
@@ -1896,7 +1882,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             #arguments: arguments,
           },
         ),
-        returnValue: _i28.dummyValue<String>(
+        returnValue: _i27.dummyValue<String>(
           this,
           Invocation.method(
             #restorableReplaceRouteBelow,
@@ -1908,7 +1894,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
             },
           ),
         ),
-        returnValueForMissingStub: _i28.dummyValue<String>(
+        returnValueForMissingStub: _i27.dummyValue<String>(
           this,
           Invocation.method(
             #restorableReplaceRouteBelow,
@@ -2038,7 +2024,7 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
       );
 
   @override
-  void setState(_i29.VoidCallback? fn) => super.noSuchMethod(
+  void setState(_i28.VoidCallback? fn) => super.noSuchMethod(
         Invocation.method(
           #setState,
           [fn],
@@ -2067,14 +2053,14 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
           #toStringShort,
           [],
         ),
-        returnValue: _i28.dummyValue<String>(
+        returnValue: _i27.dummyValue<String>(
           this,
           Invocation.method(
             #toStringShort,
             [],
           ),
         ),
-        returnValueForMissingStub: _i28.dummyValue<String>(
+        returnValueForMissingStub: _i27.dummyValue<String>(
           this,
           Invocation.method(
             #toStringShort,
@@ -2120,28 +2106,6 @@ class MockNavigatorState extends _i1.Mock implements _i16.NavigatorState {
           ),
         ),
       ) as _i16.DiagnosticsNode);
-
-  @override
-  _i18.Ticker createTicker(_i18.TickerCallback? onTick) => (super.noSuchMethod(
-        Invocation.method(
-          #createTicker,
-          [onTick],
-        ),
-        returnValue: _FakeTicker_21(
-          this,
-          Invocation.method(
-            #createTicker,
-            [onTick],
-          ),
-        ),
-        returnValueForMissingStub: _FakeTicker_21(
-          this,
-          Invocation.method(
-            #createTicker,
-            [onTick],
-          ),
-        ),
-      ) as _i18.Ticker);
 
   @override
   void registerForRestoration(

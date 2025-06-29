@@ -176,7 +176,7 @@ class PlanTaskListState extends State<PlanTaskList> {
 
   void addNextIterations(SprintDisplayTask newest, DateTime endDate, List<TaskItemRecurPreview> collector) {
     if (newest.startDate != null && !newest.startDate!.isUtc) {
-      print("[addNextIterations]: Task '${newest.name}' has non-UTC start date! ID: ${newest.docId}");
+      print("[addNextIterations]: Task '${newest.name}' has non-UTC start date! Iteration: ${newest.recurIteration}");
     }
     TaskItemRecurPreview nextIteration = RecurrenceHelper.createNextIteration(newest, DateTime.now());
     var willBeUrgentOrDue = nextIteration.isDueBefore(endDate) || nextIteration.isUrgentBefore(endDate);
@@ -217,7 +217,7 @@ class PlanTaskListState extends State<PlanTaskList> {
       TaskDisplayGrouping(displayName: 'Target Soon', displayOrder: 5, filter: (taskItem) => taskItem.isTargetBefore(endDate)),
       TaskDisplayGrouping(displayName: 'Starting Later', displayOrder: 7, filter: (taskItem) => taskItem.isScheduledAfter(endDate), ordering: startDateSort),
       TaskDisplayGrouping(displayName: 'Completed', displayOrder: 8, filter: (taskItem) => taskItem.isCompleted() &&
-              !viewModel.recentlyCompleted.any((t) => t.docId == taskItem.docId), ordering: completionDateSort),
+              !viewModel.recentlyCompleted.any((t) => t.docId == taskItem.getSprintDisplayTaskKey()), ordering: completionDateSort),
       // must come last to take all the other tasks
       TaskDisplayGrouping(displayName: 'Tasks', displayOrder: 6, filter: (_) => true),
     ];
