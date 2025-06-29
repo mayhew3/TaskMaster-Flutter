@@ -201,7 +201,6 @@ class TaskRepository {
   TaskItem addRecurTask(TaskItemRecurPreview blueprint) {
     Map<String, dynamic> blueprintJson = blueprint.toJson();
     blueprintJson.remove('recurrence');
-    blueprintJson['offCycle'] = false;
 
     var addedTaskDoc = firestore.collection('tasks').doc();
     var taskId = addedTaskDoc.id;

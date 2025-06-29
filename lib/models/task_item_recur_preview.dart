@@ -1,6 +1,4 @@
 
-import 'dart:math';
-
 import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/sprint_display_task.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
@@ -28,6 +26,8 @@ part 'task_item_recur_preview.g.dart';
 * */
 @JsonSerializable(includeIfNull: true)
 class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
+
+  String key;
 
   String? personDocId;
 
@@ -68,11 +68,13 @@ class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
   @override
   int? recurIteration;
 
+  bool offCycle;
+
   @override
   @JsonKey(includeFromJson: false, includeToJson: true)
   TaskRecurrenceBlueprint? recurrence;
 
-  TaskItemRecurPreview(this.name);
+  TaskItemRecurPreview(this.name): key = 'TEMP_' + randomString(10), offCycle = false;
 
   @override
   TaskItemRecurPreview createNextRecurPreview({
@@ -112,7 +114,7 @@ class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
 
   @override
   String getSprintDisplayTaskKey() {
-    return randomString(10);
+    return key;
   }
 
 }

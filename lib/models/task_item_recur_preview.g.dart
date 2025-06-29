@@ -11,6 +11,7 @@ TaskItemRecurPreview _$TaskItemRecurPreviewFromJson(
     TaskItemRecurPreview(
       json['name'] as String,
     )
+      ..key = json['key'] as String
       ..personDocId = json['personDocId'] as String?
       ..description = json['description'] as String?
       ..project = json['project'] as String?
@@ -42,11 +43,13 @@ TaskItemRecurPreview _$TaskItemRecurPreviewFromJson(
           ? null
           : DateTime.parse(json['retiredDate'] as String)
       ..recurrenceDocId = json['recurrenceDocId'] as String?
-      ..recurIteration = (json['recurIteration'] as num?)?.toInt();
+      ..recurIteration = (json['recurIteration'] as num?)?.toInt()
+      ..offCycle = json['offCycle'] as bool;
 
 Map<String, dynamic> _$TaskItemRecurPreviewToJson(
         TaskItemRecurPreview instance) =>
     <String, dynamic>{
+      'key': instance.key,
       'personDocId': instance.personDocId,
       'name': instance.name,
       'description': instance.description,
@@ -68,5 +71,6 @@ Map<String, dynamic> _$TaskItemRecurPreviewToJson(
       'retiredDate': instance.retiredDate?.toIso8601String(),
       'recurrenceDocId': instance.recurrenceDocId,
       'recurIteration': instance.recurIteration,
+      'offCycle': instance.offCycle,
       'recurrence': instance.recurrence,
     };
