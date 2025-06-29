@@ -91,7 +91,7 @@ Future<void> executeUpdate(FirebaseFirestore firestore, http.Client client) asyn
       'dateValue': anchorDate,
       'dateType': anchorType.capitalize(),
     };
-    doc.reference.update({'anchorDate': newAnchorDate, 'anchorType': FieldValue.delete(), 'recurIteration': recurIteration});
+    await doc.reference.update({'anchorDate': newAnchorDate, 'anchorType': FieldValue.delete(), 'recurIteration': recurIteration});
   }
 
   print('Problem rows: ${problems.length}/${querySnapshot.docs.length}. Null rows: $updatedToNull.');
