@@ -50,15 +50,17 @@ extension StringExtension on String {
 }
 
 Future<void> executeUpdate(FirebaseFirestore firestore, http.Client client) async {
-  var taskSnapshot = await firestore.collection('tasks').get();
+  var taskSnapshot = await firestore.collection('tasks');
+  var originalCount = (await taskSnapshot.get()).docs.length;
 
-  var problems = taskSnapshot.docs.where((t) => t.data()['recurrence'] != null);
+  var problems = (await taskSnapshot.where('recurrence', isNotEqualTo: '').get()).docs;
 
   for (var doc in problems) {
-    doc.reference.update({'recurrence': null});
-    var recurrence = doc.data()['recurrence'];
-    var poop = 0;
+    await doc.reference.update({'recurrence': FieldValue.delete(), 'gamePoints': FieldValue.delete()});
+    var data = await doc.data();
+    var recurrence = data['recurrence'];
+    print('Updated fields: "recurrence": $recurrence, "gamePoints": ${data['gamePoints']}');
   }
 
-  print('Problem rows: ${problems.length}/${taskSnapshot.docs.length}.');
+  print('Problem rows: ${problems.length}/${originalCount}.');
 }
