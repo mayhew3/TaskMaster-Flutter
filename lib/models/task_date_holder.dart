@@ -70,8 +70,11 @@ mixin DateHolder {
 
   AnchorDate? getAnchorDate() {
     var anchorDateType = getAnchorDateType();
+    if (anchorDateType == null) {
+      return null;
+    }
     var anchorDateBuilder = AnchorDateBuilder()
-      ..dateValue = anchorDateType?.dateFieldGetter(this)
+      ..dateValue = anchorDateType.dateFieldGetter(this)!.toUtc()
       ..dateType = anchorDateType
     ;
     return anchorDateBuilder.build();

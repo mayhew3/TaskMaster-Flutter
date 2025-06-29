@@ -71,7 +71,7 @@ class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
   bool offCycle;
 
   @override
-  @JsonKey(includeFromJson: false, includeToJson: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   TaskRecurrenceBlueprint? recurrence;
 
   TaskItemRecurPreview(this.name): key = 'TEMP_' + randomString(10), offCycle = false;

@@ -72,5 +72,4 @@ Map<String, dynamic> _$TaskItemRecurPreviewToJson(
       'recurrenceDocId': instance.recurrenceDocId,
       'recurIteration': instance.recurIteration,
       'offCycle': instance.offCycle,
-      'recurrence': instance.recurrence,
     };

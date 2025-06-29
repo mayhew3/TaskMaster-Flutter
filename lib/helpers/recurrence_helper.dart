@@ -44,7 +44,7 @@ class RecurrenceHelper {
       var recurrenceBlueprint = nextScheduledTask.recurrence!;
 
       var anchorDateBuilder = AnchorDateBuilder()
-        ..dateValue = nextAnchorDate
+        ..dateValue = nextAnchorDate.toUtc()
         ..dateType = anchorDate.dateType;
       recurrenceBlueprint.anchorDate = anchorDateBuilder.build();
       recurrenceBlueprint.recurIteration = recurIteration + 1;

@@ -125,8 +125,13 @@ class TaskRepository {
         subCollectionTime = subCollectionTime + gapTime.difference(rollingTime);
         rollingTime = gapTime;
 
-        var deserialized = serializers.deserializeWith(serializer, json) as T;
-        finalList.add(deserialized);
+        try {
+          var deserialized = serializers.deserializeWith(serializer, json) as T;
+          finalList.add(deserialized);
+        } on DeserializationError catch (e) {
+          log.warning('Error deserializing $collectionName, \'${json['name']}\': $e');
+          continue;
+        }
 
         gapTime = DateTime.now();
         deserialTimes.add(gapTime.difference(rollingTime));
@@ -200,7 +205,6 @@ class TaskRepository {
 
   TaskItem addRecurTask(TaskItemRecurPreview blueprint) {
     Map<String, dynamic> blueprintJson = blueprint.toJson();
-    blueprintJson.remove('recurrence');
 
     var addedTaskDoc = firestore.collection('tasks').doc();
     var taskId = addedTaskDoc.id;

@@ -63,6 +63,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   bool get offCycle;
 
   @override
+  @BuiltValueField(serialize: false)
   TaskRecurrence? get recurrence;
 
   // internal fields
