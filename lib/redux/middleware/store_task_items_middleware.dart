@@ -257,15 +257,15 @@ Future<void> Function(
 
     AnchorDate? originalValue = action.taskItem.getAnchorDate();
 
-    var updatedTask = await RecurrenceHelper.updateTaskAndMaybeRecurrenceForSnooze(repository, action);
+    var result = await RecurrenceHelper.updateTaskAndMaybeRecurrenceForSnooze(repository, action);
 
-    var newAnchorDate = action.dateType.dateFieldGetter(updatedTask)!;
+    var newAnchorDate = action.dateType.dateFieldGetter(result.taskItem)!;
 
     // todo: check if there are any later recurrences already, and shift them if
     // todo: offCycle is false and recurWait is false
 
     SnoozeBlueprint snooze = SnoozeBlueprint(
-        taskDocId: updatedTask.docId,
+        taskDocId: result.taskItem.docId,
         snoozeNumber: action.numUnits,
         snoozeUnits: action.unitSize,
         snoozeAnchor: action.dateType.label,
@@ -273,7 +273,7 @@ Future<void> Function(
         newAnchor: newAnchorDate);
 
     repository.addSnooze(snooze);
-    store.dispatch(SnoozeExecuted(updatedTask));
+    store.dispatch(SnoozeExecuted(result));
 
   };
 }

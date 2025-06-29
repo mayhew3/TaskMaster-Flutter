@@ -259,8 +259,14 @@ AppState _onDataNotLoaded(AppState state, dynamic action) {
 }
 
 AppState _onSnoozeExecuted(AppState state, SnoozeExecuted action) {
+  var updatedTask = action.updates.taskItem.rebuild((t) => t
+    ..recurrence = action.updates.recurrence?.toBuilder()
+  );
+
   var listBuilder = state.taskItems.toBuilder()
-    ..map((taskItem) => taskItem.docId == action.taskItem.docId ? action.taskItem : taskItem);
+    ..map((taskItem) {
+      return taskItem.docId == updatedTask.docId ? updatedTask : taskItem;
+    });
   return state.rebuild((s) => s
     ..taskItems = listBuilder
   );

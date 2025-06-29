@@ -77,7 +77,7 @@ class RecurrenceHelper {
 
   }
 
-  static Future<TaskItem> updateTaskAndMaybeRecurrenceForSnooze(TaskRepository repository, ExecuteSnooze action) async {
+  static Future<({TaskRecurrence? recurrence, TaskItem taskItem})> updateTaskAndMaybeRecurrenceForSnooze(TaskRepository repository, ExecuteSnooze action) async {
 
     var recurrence = action.blueprint.recurrenceBlueprint;
     if (recurrence != null) {
@@ -88,7 +88,7 @@ class RecurrenceHelper {
       }
     }
 
-    return (await repository.updateTaskAndRecurrence(action.taskItem.docId, action.blueprint)).taskItem;
+    return (await repository.updateTaskAndRecurrence(action.taskItem.docId, action.blueprint));
 
   }
 

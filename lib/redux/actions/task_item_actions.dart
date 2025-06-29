@@ -211,7 +211,7 @@ class ExecuteSnooze {
 }
 
 class SnoozeExecuted {
-  final TaskItem taskItem;
+  final ({TaskRecurrence? recurrence, TaskItem taskItem}) updates;
 
-  SnoozeExecuted(this.taskItem);
+  SnoozeExecuted(this.updates);
 }
