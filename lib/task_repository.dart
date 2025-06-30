@@ -125,8 +125,13 @@ class TaskRepository {
         subCollectionTime = subCollectionTime + gapTime.difference(rollingTime);
         rollingTime = gapTime;
 
-        var deserialized = serializers.deserializeWith(serializer, json) as T;
-        finalList.add(deserialized);
+        try {
+          var deserialized = serializers.deserializeWith(serializer, json) as T;
+          finalList.add(deserialized);
+        } on DeserializationError catch (e) {
+          log.warning('Error deserializing $collectionName, \'${json['name']}\': $e');
+          continue;
+        }
 
         gapTime = DateTime.now();
         deserialTimes.add(gapTime.difference(rollingTime));
@@ -199,7 +204,7 @@ class TaskRepository {
   }
 
   TaskItem addRecurTask(TaskItemRecurPreview blueprint) {
-    Map<String, Object?> blueprintJson = serializers.serializeWith(TaskItemRecurPreview.serializer, blueprint)! as Map<String, Object?>;
+    Map<String, dynamic> blueprintJson = blueprint.toJson();
 
     var addedTaskDoc = firestore.collection('tasks').doc();
     var taskId = addedTaskDoc.id;
@@ -212,53 +217,77 @@ class TaskRepository {
     return updatedTask;
   }
 
-  Future<({TaskItem taskItem, TaskRecurrence? recurrence})> updateTask(String taskItemDocId, TaskItemBlueprint blueprint) async {
+  Future<({TaskItem taskItem, TaskRecurrence? recurrence})> updateTaskAndRecurrence(String taskItemDocId, TaskItemBlueprint blueprint) async {
     var blueprintJson = blueprint.toJson();
 
-    var recurrenceBlueprint = blueprint.recurrenceBlueprint;
+    TaskItem? updatedTask;
     TaskRecurrence? updatedRecurrence;
-    if (recurrenceBlueprint != null) {
-      var recurrenceDocId = blueprint.recurrenceDocId;
-      if (recurrenceDocId != null) {
-        var recurrenceDoc = firestore.collection('taskRecurrences').doc(recurrenceDocId);
-        var recurrenceJson = recurrenceBlueprint.toJson();
-        recurrenceDoc.update(recurrenceJson);
 
-        var recurSnap = await recurrenceDoc.get();
-        recurrenceJson['docId'] = recurrenceDocId;
-        recurrenceJson['dateAdded'] = recurSnap.get('dateAdded');
-        updatedRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson);
-        blueprintJson.remove('recurrenceBlueprint');
+    try {
+      await firestore.runTransaction((transaction) async {
+
+        var taskDoc = firestore.collection('tasks').doc(taskItemDocId);
+
+        var recurrenceBlueprint = blueprint.recurrenceBlueprint;
+        if (recurrenceBlueprint != null) {
+          var recurrenceDocId = blueprint.recurrenceDocId;
+          if (recurrenceDocId != null) {
+            var recurrenceDoc = firestore.collection('taskRecurrences').doc(recurrenceDocId);
+            var recurrenceJson = recurrenceBlueprint.toJson();
+            recurrenceDoc.update(recurrenceJson);
+
+            updatedRecurrence = await updateRecurrence(recurrenceDoc, recurrenceJson, recurrenceDocId, updatedRecurrence, blueprintJson);
+          } else {
+            var recurrenceDoc = firestore.collection('taskRecurrences').doc();
+            recurrenceDocId = recurrenceDoc.id;
+            var recurrenceJson = recurrenceBlueprint.toJson();
+
+            recurrenceJson['dateAdded'] = DateTime.now().toUtc();
+            recurrenceDoc.set(recurrenceJson);
+
+            updatedRecurrence = await updateRecurrence(recurrenceDoc, recurrenceJson, recurrenceDocId, updatedRecurrence, blueprintJson);
+            blueprintJson['recurrenceDocId'] = recurrenceDocId;
+          }
+        }
+
+        taskDoc.update(blueprintJson);
+
+        var snapshot = await taskDoc.get();
+        blueprintJson['docId'] = taskDoc.id;
+        blueprintJson['dateAdded'] = snapshot.get('dateAdded');
+        updatedTask = serializers.deserializeWith(TaskItem.serializer, blueprintJson)!;
+      });
+
+      if (updatedTask == null) {
+        throw Exception('No updated task!');
       } else {
-        var recurrenceDoc = firestore.collection('taskRecurrences').doc();
-        recurrenceDocId = recurrenceDoc.id;
-        var recurrenceJson = recurrenceBlueprint.toJson();
-
-        recurrenceJson['dateAdded'] = DateTime.now().toUtc();
-        recurrenceDoc.set(recurrenceJson);
-
-        var recurSnap = await recurrenceDoc.get();
-        recurrenceJson['docId'] = recurrenceDocId;
-        recurrenceJson['dateAdded'] = recurSnap.get('dateAdded');
-        updatedRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson);
-        blueprintJson.remove('recurrenceBlueprint');
-        blueprintJson['recurrenceDocId'] = recurrenceDocId;
+        return (taskItem: updatedTask!, recurrence: updatedRecurrence);
       }
+
+    } catch (e) {
+      log.warning('Error updating task and recurrence: $e');
+      rethrow;
     }
 
-    var doc = firestore.collection('tasks').doc(taskItemDocId);
-    doc.update(blueprintJson);
+  }
 
-    var snapshot = await doc.get();
-    blueprintJson['docId'] = doc.id;
-    blueprintJson['dateAdded'] = snapshot.get('dateAdded');
-    var updatedTask = serializers.deserializeWith(TaskItem.serializer, blueprintJson)!;
-
-    return (taskItem: updatedTask, recurrence: updatedRecurrence);
+  Future<TaskRecurrence?> updateRecurrence(
+      DocumentReference<Map<String, dynamic>> recurrenceDoc,
+      Map<String, dynamic> recurrenceJson,
+      String recurrenceDocId,
+      TaskRecurrence? updatedRecurrence,
+      Map<String, dynamic> blueprintJson
+      ) async {
+    var recurSnap = await recurrenceDoc.get();
+    recurrenceJson['docId'] = recurrenceDocId;
+    recurrenceJson['dateAdded'] = recurSnap.get('dateAdded');
+    updatedRecurrence = serializers.deserializeWith(TaskRecurrence.serializer, recurrenceJson);
+    blueprintJson.remove('recurrenceBlueprint');
+    return updatedRecurrence;
   }
 
   Future<({Sprint sprint, BuiltList<TaskItem> addedTasks, BuiltList<SprintAssignment> sprintAssignments})> addSprintWithTaskItems(SprintBlueprint blueprint, BuiltList<TaskItem> existingItems, BuiltList<TaskItemRecurPreview> newItems) async {
-    var newTaskItemsList = newItems.map((t) => serializers.serializeWith(TaskItemRecurPreview.serializer, t)).toList();
+    var newTaskItemsList = newItems.map((t) => t.toJson()).toList();
 
     var personDocId = blueprint.personDocId;
 
@@ -320,7 +349,7 @@ class TaskRepository {
             .build(), sprintAssignments: sprintAssignments.build());
       }
     } catch (e) {
-      print('Error adding sprint: $e');
+      log.warning('Error adding sprint: $e');
       rethrow;
     }
   }
@@ -341,7 +370,7 @@ class TaskRepository {
 
 
   Future<({BuiltList<TaskItem> addedTasks, BuiltList<SprintAssignment> sprintAssignments})> addTasksToSprint(BuiltList<TaskItem> existingItems, BuiltList<TaskItemRecurPreview> newItems, Sprint sprint) async {
-    var newTaskItemsList = newItems.map((t) => serializers.serializeWith(TaskItemRecurPreview.serializer, t)).toList();
+    var newTaskItemsList = newItems.map((t) => t.toJson()).toList();
 
     var personDocId = sprint.personDocId;
 

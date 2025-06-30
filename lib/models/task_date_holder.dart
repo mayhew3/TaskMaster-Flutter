@@ -1,3 +1,4 @@
+import 'package:taskmaster/models/anchor_date.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 
 import '../date_util.dart';
@@ -67,8 +68,16 @@ mixin DateHolder {
     return DateUtil.maxDate(pastDates);
   }
 
-  DateTime? getAnchorDate() {
-    return getAnchorDateType()?.dateFieldGetter(this);
+  AnchorDate? getAnchorDate() {
+    var anchorDateType = getAnchorDateType();
+    if (anchorDateType == null) {
+      return null;
+    }
+    var anchorDateBuilder = AnchorDateBuilder()
+      ..dateValue = anchorDateType.dateFieldGetter(this)!.toUtc()
+      ..dateType = anchorDateType
+    ;
+    return anchorDateBuilder.build();
   }
 
   TaskDateType? getAnchorDateType() {

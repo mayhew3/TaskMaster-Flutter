@@ -1,3 +1,4 @@
+import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:test/test.dart';
@@ -100,7 +101,9 @@ void main() {
     test('getAnchorDate targetDate when only date', () {
       TaskItem catLitter = TaskItem.fromJson(catLitterJSON);
       var expected = catLitter.targetDate;
-      expect(catLitter.getAnchorDate(), expected);
+      var anchorDate = catLitter.getAnchorDate();
+      expect(anchorDate?.dateValue, expected);
+      expect(anchorDate?.dateType, TaskDateTypes.target);
     });
 
     test('getAnchorDate targetDate instead of start date', () {
@@ -108,7 +111,9 @@ void main() {
       TaskItemBlueprint blueprint = catLitter.createBlueprint();
       blueprint.startDate = catTarget.subtract(Duration(days: 3));
       var expected = catLitter.targetDate;
-      expect(blueprint.getAnchorDate(), expected);
+      var anchorDate = blueprint.getAnchorDate();
+      expect(anchorDate?.dateValue, expected);
+      expect(anchorDate?.dateType, TaskDateTypes.target);
     });
 
     test('getAnchorDate urgentDate', () {
@@ -116,7 +121,9 @@ void main() {
       var expected = catTarget.add(Duration(days: 4));
       TaskItemBlueprint blueprint = catLitter.createBlueprint();
       blueprint.urgentDate = expected;
-      expect(blueprint.getAnchorDate(), expected);
+      var anchorDate = blueprint.getAnchorDate();
+      expect(anchorDate?.dateValue, expected);
+      expect(anchorDate?.dateType, TaskDateTypes.urgent);
     });
 
     test('getAnchorDate dueDate', () {
@@ -125,7 +132,9 @@ void main() {
       var blueprint = catLitter.createBlueprint();
       blueprint.urgentDate = catTarget.add(Duration(days: 3));
       blueprint.dueDate = expected;
-      expect(blueprint.getAnchorDate(), expected);
+      var anchorDate = blueprint.getAnchorDate();
+      expect(anchorDate?.dateValue, expected);
+      expect(anchorDate?.dateType, TaskDateTypes.due);
     });
 
   });

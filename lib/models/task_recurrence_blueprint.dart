@@ -1,14 +1,28 @@
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:taskmaster/models/anchor_date.dart';
+import 'package:taskmaster/models/json_anchordate_converter.dart';
+import 'package:taskmaster/models/sprint_display_task_recurrence.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
 
-import 'json_datetime_converter.dart';
-
 part 'task_recurrence_blueprint.g.dart';
 
+/*
+* Blueprints use the JsonSerializable annotation to serialize and deserialize
+* instead of the built_value annotation. It's a bit annoying I have to use two
+* different serialization frameworks, but I can mix built_value with another
+* framework, and blueprints need to be editable, so built and not-built need to
+* use different ones.
+*
+* One key difference to note is how to handle included objects. If the included
+* object on a JsonSerializable is ALSO a JsonSerializable, we can just use the
+* JsonKey annotation, like the recurrenceBlueprint below. If the included object
+* is NOT, however, I need a separate JsonConverter class to handle it (see
+* JsonAnchorDateConverter as an example.)
+* */
 @JsonSerializable(includeIfNull: true)
-class TaskRecurrenceBlueprint {
+class TaskRecurrenceBlueprint with SprintDisplayTaskRecurrence {
 
   String? personDocId;
 
@@ -20,9 +34,8 @@ class TaskRecurrenceBlueprint {
 
   int? recurIteration;
 
-  @JsonDateTimePassThroughConverter()
-  DateTime? anchorDate;
-  String? anchorType;
+  @JsonAnchorDateConverter()
+  AnchorDate? anchorDate;
 
   String? retired;
   DateTime? retiredDate;
@@ -64,8 +77,7 @@ class TaskRecurrenceBlueprint {
         other.recurUnit != recurUnit ||
         other.recurWait != recurWait ||
         other.recurIteration != recurIteration ||
-        other.anchorDate != anchorDate ||
-        other.anchorType != anchorType;
+        other.anchorDate != anchorDate;
   }
 
   bool hasChangesBlueprint(TaskRecurrenceBlueprint? other) {
@@ -77,8 +89,7 @@ class TaskRecurrenceBlueprint {
         other.recurUnit != recurUnit ||
         other.recurWait != recurWait ||
         other.recurIteration != recurIteration ||
-        other.anchorDate != anchorDate ||
-        other.anchorType != anchorType;
+        other.anchorDate != anchorDate;
   }
 
 }

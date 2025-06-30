@@ -201,7 +201,7 @@ class PlanTaskItemWidget extends StatelessWidget {
   String getKey() {
     // var taskItemTmp = sprintDisplayTask;
     // return taskItemTmp is TaskItem ? taskItemTmp.id : taskItemTmp.tmpId;
-    return sprintDisplayTask.docId;
+    return sprintDisplayTask.getSprintDisplayTaskKey();
   }
 
   @override

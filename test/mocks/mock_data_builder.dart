@@ -1,4 +1,6 @@
 
+import 'package:taskmaster/date_util.dart';
+import 'package:taskmaster/models/anchor_date.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
@@ -28,7 +30,7 @@ class MockTaskItemBuilder with DateHolder {
   DateTime? dueDate;
   @override
   DateTime? completionDate;
-  late bool offCycle;
+  late bool _offCycle;
   late int gamePoints;
   int? recurNumber;
   String? recurUnit;
@@ -60,7 +62,7 @@ class MockTaskItemBuilder with DateHolder {
     taskItem.targetDate = targetDate;
     taskItem.urgentDate = urgentDate;
     taskItem.dueDate = dueDate;
-    taskItem.offCycle = offCycle;
+    taskItem.offCycle = _offCycle;
     taskItem.gamePoints = gamePoints;
     taskItem.recurNumber = recurNumber;
     taskItem.recurUnit = recurUnit;
@@ -94,7 +96,7 @@ class MockTaskItemBuilder with DateHolder {
       ..urgentDate = urgentDate
       ..dueDate = dueDate
       ..completionDate = completionDate
-      ..offCycle = offCycle
+      ..offCycle = _offCycle
       ..recurNumber = recurNumber
       ..recurUnit = recurUnit
       ..recurWait = recurWait
@@ -118,22 +120,48 @@ class MockTaskItemBuilder with DateHolder {
       ..priority = 5
       ..duration = 15
       ..dateAdded = DateTime.now()
-      ..offCycle = false
+      .._offCycle = false
       ..gamePoints = 1;
   }
 
   factory MockTaskItemBuilder.asDefault() {
     return MockTaskItemBuilder.asPreCommit()
-      ..docId = me;
+      ..docId = me
+      ..dateAdded = DateTime.now()
+    ;
   }
 
-  factory MockTaskItemBuilder.withDates() {
-    var now = DateTime.now();
+  factory MockTaskItemBuilder.withDates({bool offCycle = false, int daysOffset = 0,}) {
     return MockTaskItemBuilder.asDefault()
-        ..startDate = now.subtract(Duration(days: 4))
-        ..targetDate = now.add(Duration(days: 1))
-        ..urgentDate = now.add(Duration(days: 5))
-        ..dueDate = now.add(Duration(days: 8));
+      ..startDate = DateUtil.nowUtcWithoutMillis().subtract(Duration(days: 4 - daysOffset, hours: 5))
+      ..targetDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 1 + daysOffset, hours: 5))
+      ..urgentDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 5 + daysOffset, hours: 6))
+      ..dueDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 8 + daysOffset, hours: 8))
+      .._offCycle = offCycle;
+  }
+
+  MockTaskItemBuilder withStartDateAnchor({bool offCycle = false, int daysOffset = 0,}) {
+    return this
+      ..startDate = DateUtil.nowUtcWithoutMillis().subtract(Duration(days: 4 - daysOffset, hours: 5))
+      .._offCycle = offCycle;
+  }
+
+  MockTaskItemBuilder withTargetDateAnchor({bool offCycle = false, int daysOffset = 0,}) {
+    return this
+      ..withStartDateAnchor(offCycle: offCycle, daysOffset: daysOffset)
+      ..targetDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 1 + daysOffset, hours: 5));
+  }
+
+  MockTaskItemBuilder withUrgentDateAnchor({bool offCycle = false, int daysOffset = 0,}) {
+    return this
+      ..withTargetDateAnchor(offCycle: offCycle, daysOffset: daysOffset)
+      ..urgentDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 5 + daysOffset, hours: 6));
+  }
+
+  MockTaskItemBuilder withDueDateAnchor({bool offCycle = false, int daysOffset = 0,}) {
+    return this
+      ..withUrgentDateAnchor(offCycle: offCycle, daysOffset: daysOffset)
+      ..dueDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 8 + daysOffset, hours: 8));
   }
 
   MockTaskItemBuilder asCompleted() {
@@ -141,12 +169,16 @@ class MockTaskItemBuilder with DateHolder {
     return this;
   }
 
-  MockTaskItemBuilder withRecur({bool recurWait = true}) {
+  MockTaskItemBuilder withRecur({bool recurWait = true, int anchorOffsetInDays = 0}) {
     recurrenceDocId = MockTaskItemBuilder.me;
     recurNumber = 6;
     recurIteration = 1;
     recurUnit = 'Weeks';
     this.recurWait = recurWait;
+
+    var anchorDateBuilder = AnchorDateBuilder()
+      ..dateValue = getAnchorDate()!.dateValue.add(Duration(days: anchorOffsetInDays))
+      ..dateType = getAnchorDate()!.dateType;
 
     taskRecurrence = MockTaskRecurrenceBuilder()
       ..docId = me
@@ -155,9 +187,15 @@ class MockTaskItemBuilder with DateHolder {
       ..recurUnit = recurUnit!
       ..recurWait = recurWait
       ..recurIteration = recurIteration!
-      ..anchorDate = getAnchorDate()!
-      ..anchorType = getAnchorDateType()!.label
+      ..anchorDate = anchorDateBuilder.build()
     ;
+
+    if (_offCycle) {
+      dueDate = dueDate?.add(Duration(days: 5));
+      urgentDate = urgentDate?.add(Duration(days: 5));
+      targetDate = targetDate?.add(Duration(days: 5));
+      startDate = startDate?.add(Duration(days: 5));
+    }
 
     return this;
   }

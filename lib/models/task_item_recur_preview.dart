@@ -1,101 +1,120 @@
 
-import 'dart:math';
-
-import 'package:built_collection/built_collection.dart';
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
-import 'package:taskmaster/models/models.dart';
-import 'package:taskmaster/models/sprint_assignment.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/sprint_display_task.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
+import 'package:taskmaster/models/task_date_type.dart';
+import 'package:taskmaster/models/task_recurrence_blueprint.dart';
+import 'package:random_string/random_string.dart';
 
 /// This allows the `TaskItemRecurPreview` class to access private members in
 /// the generated file. The value for this is *.g.dart, where
 /// the star denotes the source file name.
 part 'task_item_recur_preview.g.dart';
 
-abstract class TaskItemRecurPreview with DateHolder, SprintDisplayTask implements Built<TaskItemRecurPreview, TaskItemRecurPreviewBuilder> {
-  @BuiltValueSerializer(serializeNulls: true)
-  static Serializer<TaskItemRecurPreview> get serializer => _$taskItemRecurPreviewSerializer;
+/*
+* Blueprints use the JsonSerializable annotation to serialize and deserialize
+* instead of the built_value annotation. It's a bit annoying I have to use two
+* different serialization frameworks, but I can mix built_value with another
+* framework, and blueprints need to be editable, so built and not-built need to
+* use different ones.
+*
+* One key difference to note is how to handle included objects. If the included
+* object on a JsonSerializable is ALSO a JsonSerializable, we can just use the
+* JsonKey annotation, like the recurrenceBlueprint below. If the included object
+* is NOT, however, I need a separate JsonConverter class to handle it (see
+* JsonAnchorDateConverter as an example.)
+* */
+@JsonSerializable(includeIfNull: true)
+class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
+
+  String key;
+
+  String? personDocId;
 
   @override
-  @BuiltValueField(serialize: false)
-  String get docId;
+  String name;
 
-  String? get personDocId;
+  String? description;
+  @override
+  String? project;
+  String? context;
+
+  int? urgency;
+  int? priority;
+  int? duration;
+
+  int? gamePoints;
 
   @override
-  String get name;
-
-  String? get description;
+  DateTime? startDate;
   @override
-  String? get project;
-  String? get context;
-
-  int? get urgency;
-  int? get priority;
-  int? get duration;
-
-  int? get gamePoints;
-
+  DateTime? targetDate;
   @override
-  DateTime? get startDate;
+  DateTime? dueDate;
   @override
-  DateTime? get targetDate;
+  DateTime? urgentDate;
   @override
-  DateTime? get dueDate;
-  @override
-  DateTime? get urgentDate;
-  @override
-  DateTime? get completionDate;
+  DateTime? completionDate;
 
-  int? get recurNumber;
-  String? get recurUnit;
-  bool? get recurWait;
+  int? recurNumber;
+  String? recurUnit;
+  bool? recurWait;
 
-  String? get retired;
-  DateTime? get retiredDate;
+  String? retired;
+  DateTime? retiredDate;
 
-  String? get recurrenceDocId;
+  String? recurrenceDocId;
 
   @override
-  int? get recurIteration;
+  int? recurIteration;
 
-  bool get offCycle;
-
-  BuiltList<SprintAssignment> get sprintAssignments;
+  bool offCycle;
 
   @override
-  TaskRecurrence? get recurrence;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  TaskRecurrenceBlueprint? recurrence;
 
-  TaskItemRecurPreview._();
-  factory TaskItemRecurPreview([Function(TaskItemRecurPreviewBuilder) updates]) = _$TaskItemRecurPreview;
-
-  @BuiltValueHook(initializeBuilder: true)
-  static void _setDefaults(TaskItemRecurPreviewBuilder b) =>
-      b
-        ..docId = (0 - Random().nextInt(60000)).toString()
-  ;
+  TaskItemRecurPreview(this.name): key = 'TEMP_' + randomString(10), offCycle = false;
 
   @override
   TaskItemRecurPreview createNextRecurPreview({
-    required DateTime? startDate,
-    required DateTime? targetDate,
-    required DateTime? urgentDate,
-    required DateTime? dueDate,
+    required Map<TaskDateType, DateTime> dates,
   }) {
-    return rebuild((t) => t
-      ..startDate = startDate
-      ..targetDate = targetDate
-      ..urgentDate = urgentDate
-      ..dueDate = dueDate
-      ..recurIteration = t.recurIteration! + 1
-    );
+    return new TaskItemRecurPreview(name)
+      ..personDocId = personDocId
+      ..name = name
+      ..description = description
+      ..project = project
+      ..context = context
+      ..urgency = urgency
+      ..priority = priority
+      ..duration = duration
+      ..startDate = dates[TaskDateTypes.start]
+      ..targetDate = dates[TaskDateTypes.target]
+      ..urgentDate = dates[TaskDateTypes.urgent]
+      ..dueDate = dates[TaskDateTypes.due]
+      ..gamePoints = gamePoints
+      ..recurNumber = recurNumber
+      ..recurUnit = recurUnit
+      ..recurWait = recurWait
+      ..recurrenceDocId = recurrenceDocId
+      ..recurIteration = recurIteration! + 1
+      ..recurrence = recurrence;
   }
 
   @override
   bool isPreview() {
     return true;
+  }
+
+  /// `toJson` is the convention for a class to declare support for serialization
+  /// to JSON. The implementation simply calls the private, generated
+  /// helper method `_$TaskItemFormToJson`.
+  Map<String, dynamic> toJson() => _$TaskItemRecurPreviewToJson(this);
+
+  @override
+  String getSprintDisplayTaskKey() {
+    return key;
   }
 
 }

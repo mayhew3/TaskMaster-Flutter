@@ -113,8 +113,10 @@ final Map<String, dynamic> catLitterRecurrenceJSON = {
   'recurUnit': 'Days',
   'recurWait': true,
   'recurIteration': 1,
-  'anchorDate': catAdded.toIso8601String(),
-  'anchorType': 'Target',
+  'anchorDate': {
+    'dateValue': catAdded.toIso8601String(),
+    'dateType': 'Target'
+  },
   'dateAdded': catAdded.toIso8601String(),
   'retired': null,
   'retiredDate': null,

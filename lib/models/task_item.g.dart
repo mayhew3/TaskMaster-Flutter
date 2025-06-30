@@ -144,12 +144,6 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
       ..add('retiredDate')
       ..add(serializers.serialize(value,
           specifiedType: const FullType(DateTime)));
-    value = object.recurrence;
-
-    result
-      ..add('recurrence')
-      ..add(serializers.serialize(value,
-          specifiedType: const FullType(TaskRecurrence)));
 
     return result;
   }
@@ -260,11 +254,6 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
         case 'offCycle':
           result.offCycle = serializers.deserialize(value,
               specifiedType: const FullType(bool))! as bool;
-          break;
-        case 'recurrence':
-          result.recurrence.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(TaskRecurrence))!
-              as TaskRecurrence);
           break;
       }
     }

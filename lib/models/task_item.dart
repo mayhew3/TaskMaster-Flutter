@@ -6,6 +6,7 @@ import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/serializers.dart';
 import 'package:taskmaster/models/sprint_display_task.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
+import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_item_recur_preview.dart';
 
@@ -18,7 +19,6 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   @BuiltValueSerializer(serializeNulls: true)
   static Serializer<TaskItem> get serializer => _$taskItemSerializer;
 
-  @override
   String get docId;
   DateTime get dateAdded;
 
@@ -51,7 +51,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
 
   int? get recurNumber;
   String? get recurUnit;
-  bool? get recurWait;
+  bool? get recurWait; // true = On Complete
 
   String? get recurrenceDocId;
   @override
@@ -63,6 +63,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   bool get offCycle;
 
   @override
+  @BuiltValueField(serialize: false)
   TaskRecurrence? get recurrence;
 
   // internal fields
@@ -79,6 +80,11 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
 
   DateTime? getFinishedCompletionDate() {
     return pendingCompletion ? null : completionDate;
+  }
+
+  @override
+  String getSprintDisplayTaskKey() {
+    return docId;
   }
 
   TaskItemBlueprint createBlueprint() {
@@ -101,11 +107,10 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
     blueprint.recurNumber = recurNumber;
     blueprint.recurUnit = recurUnit;
     blueprint.recurWait = recurWait;
-    // blueprint.recurrenceId = recurrenceId;
     blueprint.recurrenceDocId = recurrenceDocId;
     blueprint.recurIteration = recurIteration;
 
-    // blueprint.taskRecurrenceBlueprint = TaskRecurrenceBlueprint();
+    blueprint.recurrenceBlueprint = recurrence?.createBlueprint();
 
     return blueprint;
   }
@@ -117,13 +122,10 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
 
   @override
   TaskItemRecurPreview createNextRecurPreview({
-    required DateTime? startDate,
-    required DateTime? targetDate,
-    required DateTime? urgentDate,
-    required DateTime? dueDate,
+    required Map<TaskDateType, DateTime> dates,
   }) {
-    return TaskItemRecurPreview((b) => b
-      ..docId = 'ASKLJDH'
+
+    return new TaskItemRecurPreview(name)
       ..personDocId = personDocId
       ..name = name
       ..description = description
@@ -132,20 +134,18 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
       ..urgency = urgency
       ..priority = priority
       ..duration = duration
-      ..startDate = startDate
-      ..targetDate = targetDate
-      ..urgentDate = urgentDate
-      ..dueDate = dueDate
+      ..startDate = dates[TaskDateTypes.start]
+      ..targetDate = dates[TaskDateTypes.target]
+      ..urgentDate = dates[TaskDateTypes.urgent]
+      ..dueDate = dates[TaskDateTypes.due]
       ..gamePoints = gamePoints
       ..recurNumber = recurNumber
       ..recurUnit = recurUnit
       ..recurWait = recurWait
-      // ..recurrenceId = recurrenceId
       ..recurrenceDocId = recurrenceDocId
       ..recurIteration = recurIteration! + 1
-      ..recurrence = recurrence!.toBuilder()
-      ..offCycle = offCycle
-    );
+      ..recurrence = recurrence!.createBlueprint()
+    ;
   }
 
   bool hasChanges(TaskItem other) {

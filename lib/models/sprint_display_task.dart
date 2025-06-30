@@ -1,9 +1,11 @@
-import 'package:taskmaster/models/models.dart';
+import 'package:taskmaster/models/sprint_display_task_recurrence.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
+import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item_recur_preview.dart';
 
+import 'anchor_date.dart';
+
 mixin SprintDisplayTask implements DateHolder {
-  String get docId;
   String get name;
 
   String? get project;
@@ -19,12 +21,12 @@ mixin SprintDisplayTask implements DateHolder {
   @override
   DateTime? get completionDate;
 
-  TaskRecurrence? get recurrence;
+  SprintDisplayTaskRecurrence? get recurrence;
   @override
   int? get recurIteration;
 
   @override
-  DateTime? getAnchorDate();
+  AnchorDate? getAnchorDate();
   @override
   bool isScheduled();
   @override
@@ -35,9 +37,8 @@ mixin SprintDisplayTask implements DateHolder {
   bool isPreview();
 
   TaskItemRecurPreview createNextRecurPreview({
-    required DateTime? startDate,
-    required DateTime? targetDate,
-    required DateTime? urgentDate,
-    required DateTime? dueDate,
+    required Map<TaskDateType, DateTime> dates,
   });
+
+  String getSprintDisplayTaskKey();
 }

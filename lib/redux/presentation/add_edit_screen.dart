@@ -13,6 +13,7 @@ import 'package:taskmaster/redux/selectors/selectors.dart';
 import 'package:taskmaster/timezone_helper.dart';
 
 import '../../date_util.dart';
+import '../../models/anchor_date.dart';
 import '../../models/task_item.dart';
 import '../../models/task_item_blueprint.dart';
 import 'clearable_date_time_field.dart';
@@ -183,7 +184,6 @@ class AddEditScreenState extends State<AddEditScreen> {
     taskRecurrenceBlueprint.recurUnit = taskItemBlueprint.recurUnit;
     taskRecurrenceBlueprint.name = taskItemBlueprint.name;
     taskRecurrenceBlueprint.anchorDate = taskItemBlueprint.getAnchorDate();
-    taskRecurrenceBlueprint.anchorType = taskItemBlueprint.getAnchorDateType()!.label;
     taskItemBlueprint.recurrenceBlueprint = taskRecurrenceBlueprint;
     taskItemBlueprint.recurrenceDocId = taskItem?.recurrence?.docId;
   }

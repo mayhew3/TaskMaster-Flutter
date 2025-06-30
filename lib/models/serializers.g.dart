@@ -7,15 +7,12 @@ part of 'serializers.dart';
 // **************************************************************************
 
 Serializers _$serializers = (new Serializers().toBuilder()
+      ..add(AnchorDate.serializer)
       ..add(Snooze.serializer)
       ..add(Sprint.serializer)
       ..add(SprintAssignment.serializer)
       ..add(TaskItem.serializer)
-      ..add(TaskItemRecurPreview.serializer)
       ..add(TaskRecurrence.serializer)
-      ..addBuilderFactory(
-          const FullType(BuiltList, const [const FullType(SprintAssignment)]),
-          () => new ListBuilder<SprintAssignment>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(SprintAssignment)]),
           () => new ListBuilder<SprintAssignment>()))

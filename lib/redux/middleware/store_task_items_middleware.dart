@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/firestore_migrator.dart';
 import 'package:taskmaster/helpers/recurrence_helper.dart';
+import 'package:taskmaster/models/anchor_date.dart';
 import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/snooze_blueprint.dart';
 import 'package:taskmaster/models/task_item_recur_preview.dart';
@@ -33,7 +34,7 @@ List<Middleware<AppState>> createStoreTaskItemsMiddleware(
     TypedMiddleware<AppState, UpdateTaskItemAction>(_updateTaskItem(repository)).call,
     TypedMiddleware<AppState, DeleteTaskItemAction>(_deleteTaskItem(repository)).call,
     TypedMiddleware<AppState, CompleteTaskItemAction>(completeTaskItem(repository)).call,
-    TypedMiddleware<AppState, ExecuteSnooze>(_executeSnooze(repository)).call,
+    TypedMiddleware<AppState, ExecuteSnooze>(executeSnooze(repository)).call,
     TypedMiddleware<AppState, GoOffline>(goOffline(repository)).call,
     TypedMiddleware<AppState, GoOnline>(goOnline(repository)).call,
   ];
@@ -162,8 +163,6 @@ Future<void> Function(
     action.blueprint.recurrenceBlueprint?.personDocId = inputs.personDocId;
 
     repository.addTask(action.blueprint);
-
-    // updateNotificationForItem(store, payload.taskItem);
   };
 }
 
@@ -186,7 +185,7 @@ Future<void> Function(
   return (Store<AppState> store, UpdateTaskItemAction action, NextDispatcher next) async {
     next(action);
     action.blueprint.recurrenceBlueprint?.personDocId = action.taskItem.personDocId;
-    repository.updateTask(action.taskItem.docId, action.blueprint);
+    repository.updateTaskAndRecurrence(action.taskItem.docId, action.blueprint);
 
     // updateNotificationForItem(store, updated.taskItem);
 
@@ -215,7 +214,7 @@ Future<void> Function(
       nextScheduledTask = RecurrenceHelper.createNextIteration(taskItem, completionDate);
     }
 
-    var updated = await repository.updateTask(taskItem.docId, blueprint);
+    var updated = await repository.updateTaskAndRecurrence(taskItem.docId, blueprint);
 
     updateNotificationForItem(store, updated.taskItem);
 
@@ -245,31 +244,37 @@ Future<void> Function(
   };
 }
 
+@visibleForTesting
 Future<void> Function(
     Store<AppState>,
     ExecuteSnooze action,
     NextDispatcher next,
-    ) _executeSnooze(TaskRepository repository) {
+    ) executeSnooze(TaskRepository repository) {
   return (Store<AppState> store, ExecuteSnooze action, NextDispatcher next) async {
     next(action);
 
     RecurrenceHelper.generatePreview(action.blueprint, action.numUnits, action.unitSize, action.dateType);
 
-    DateTime? originalValue = action.dateType.dateFieldGetter(action.taskItem);
-    DateTime relevantDateField = action.dateType.dateFieldGetter(action.blueprint)!;
+    AnchorDate? originalValue = action.taskItem.getAnchorDate();
 
-    var updatedTask = await repository.updateTask(action.taskItem.docId, action.blueprint);
+    var result = await RecurrenceHelper.updateTaskAndMaybeRecurrenceForSnooze(repository, action);
+
+    var newAnchorDate = action.dateType.dateFieldGetter(result.taskItem)!;
+
+    // todo: check if there are any later recurrences already, and shift them if
+    // todo: offCycle is false and recurWait is false
 
     SnoozeBlueprint snooze = SnoozeBlueprint(
-        taskDocId: updatedTask.taskItem.docId,
+        taskDocId: result.taskItem.docId,
         snoozeNumber: action.numUnits,
         snoozeUnits: action.unitSize,
         snoozeAnchor: action.dateType.label,
-        previousAnchor: originalValue,
-        newAnchor: relevantDateField);
+        previousAnchor: originalValue?.dateValue,
+        newAnchor: newAnchorDate);
 
     repository.addSnooze(snooze);
-    store.dispatch(SnoozeExecuted(updatedTask.taskItem));
+    store.dispatch(SnoozeExecuted(result));
+
   };
 }
 

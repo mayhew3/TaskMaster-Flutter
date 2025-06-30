@@ -1,7 +1,9 @@
 
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+import 'package:taskmaster/models/anchor_date.dart';
 import 'package:taskmaster/models/serializers.dart';
+import 'package:taskmaster/models/sprint_display_task_recurrence.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 
 /// This allows the `TaskRecurrence` class to access private members in
@@ -9,7 +11,7 @@ import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 /// the star denotes the source file name.
 part 'task_recurrence.g.dart';
 
-abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBuilder> {
+abstract class TaskRecurrence with SprintDisplayTaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBuilder> {
   @BuiltValueSerializer(serializeNulls: true)
   static Serializer<TaskRecurrence> get serializer => _$taskRecurrenceSerializer;
 
@@ -23,12 +25,11 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
 
   int get recurNumber;
   String get recurUnit;
-  bool get recurWait;
+  bool get recurWait; // true = On Complete
 
   int get recurIteration;
 
-  DateTime get anchorDate;
-  String get anchorType;
+  AnchorDate get anchorDate;
 
   TaskRecurrence._();
 
@@ -36,7 +37,6 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
 
   TaskRecurrenceBlueprint createBlueprint() {
     TaskRecurrenceBlueprint blueprint = TaskRecurrenceBlueprint();
-
     blueprint.personDocId = personDocId;
     blueprint.name = name;
     blueprint.recurNumber = recurNumber;
@@ -44,7 +44,6 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
     blueprint.recurWait = recurWait;
     blueprint.recurIteration = recurIteration;
     blueprint.anchorDate = anchorDate;
-    blueprint.anchorType = anchorType;
 
     return blueprint;
   }
@@ -58,8 +57,7 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
         other.recurUnit != recurUnit ||
         other.recurWait != recurWait ||
         other.recurIteration != recurIteration ||
-        other.anchorDate != anchorDate ||
-        other.anchorType != anchorType;
+        other.anchorDate != anchorDate;
   }
 
   bool hasChangesBlueprint(TaskRecurrenceBlueprint? other) {
@@ -71,8 +69,7 @@ abstract class TaskRecurrence implements Built<TaskRecurrence, TaskRecurrenceBui
         other.recurUnit != recurUnit ||
         other.recurWait != recurWait ||
         other.recurIteration != recurIteration ||
-        other.anchorDate != anchorDate ||
-        other.anchorType != anchorType;
+        other.anchorDate != anchorDate;
   }
 
   static TaskRecurrence fromJson(dynamic json) {

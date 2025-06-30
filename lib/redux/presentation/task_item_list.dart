@@ -252,7 +252,7 @@ class TaskItemListState extends State<TaskItemList> {
 
     final List<TaskDisplayGrouping> groupings = [
       TaskDisplayGrouping(displayName: 'Completed', displayOrder: 6, filter: (taskItem) => taskItem.isCompleted()
-          && !viewModel.recentlyCompleted.any((t) => t.docId == taskItem.docId), ordering: completionDateSort),
+          && !viewModel.recentlyCompleted.any((t) => t.docId == taskItem.getSprintDisplayTaskKey()), ordering: completionDateSort),
       TaskDisplayGrouping(displayName: 'Past Due', displayOrder: 1, filter: (taskItem) => taskItem.isPastDue()),
       TaskDisplayGrouping(displayName: 'Urgent', displayOrder: 2, filter: (taskItem) => taskItem.isUrgent()),
       TaskDisplayGrouping(displayName: 'Target', displayOrder: 3, filter: (taskItem) => taskItem.isTarget()),
