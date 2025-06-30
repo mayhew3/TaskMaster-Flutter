@@ -6,7 +6,7 @@ part of 'sprint.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializer<Sprint> _$sprintSerializer = new _$SprintSerializer();
+Serializer<Sprint> _$sprintSerializer = _$SprintSerializer();
 
 class _$SprintSerializer implements StructuredSerializer<Sprint> {
   @override
@@ -15,65 +15,93 @@ class _$SprintSerializer implements StructuredSerializer<Sprint> {
   final String wireName = 'Sprint';
 
   @override
-  Iterable<Object?> serialize(Serializers serializers, Sprint object,
-      {FullType specifiedType = FullType.unspecified}) {
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    Sprint object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = <Object?>[
       'docId',
-      serializers.serialize(object.docId,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.docId,
+        specifiedType: const FullType(String),
+      ),
       'dateAdded',
-      serializers.serialize(object.dateAdded,
-          specifiedType: const FullType(DateTime)),
+      serializers.serialize(
+        object.dateAdded,
+        specifiedType: const FullType(DateTime),
+      ),
       'startDate',
-      serializers.serialize(object.startDate,
-          specifiedType: const FullType(DateTime)),
+      serializers.serialize(
+        object.startDate,
+        specifiedType: const FullType(DateTime),
+      ),
       'endDate',
-      serializers.serialize(object.endDate,
-          specifiedType: const FullType(DateTime)),
+      serializers.serialize(
+        object.endDate,
+        specifiedType: const FullType(DateTime),
+      ),
       'numUnits',
-      serializers.serialize(object.numUnits,
-          specifiedType: const FullType(int)),
+      serializers.serialize(
+        object.numUnits,
+        specifiedType: const FullType(int),
+      ),
       'unitName',
-      serializers.serialize(object.unitName,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.unitName,
+        specifiedType: const FullType(String),
+      ),
       'personDocId',
-      serializers.serialize(object.personDocId,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.personDocId,
+        specifiedType: const FullType(String),
+      ),
       'sprintNumber',
-      serializers.serialize(object.sprintNumber,
-          specifiedType: const FullType(int)),
+      serializers.serialize(
+        object.sprintNumber,
+        specifiedType: const FullType(int),
+      ),
       'sprintAssignments',
-      serializers.serialize(object.sprintAssignments,
-          specifiedType: const FullType(
-              BuiltList, const [const FullType(SprintAssignment)])),
+      serializers.serialize(
+        object.sprintAssignments,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(SprintAssignment),
+        ]),
+      ),
     ];
     Object? value;
     value = object.closeDate;
 
     result
       ..add('closeDate')
-      ..add(serializers.serialize(value,
-          specifiedType: const FullType(DateTime)));
+      ..add(
+        serializers.serialize(value, specifiedType: const FullType(DateTime)),
+      );
     value = object.retired;
 
     result
       ..add('retired')
       ..add(
-          serializers.serialize(value, specifiedType: const FullType(String)));
+        serializers.serialize(value, specifiedType: const FullType(String)),
+      );
     value = object.retiredDate;
 
     result
       ..add('retiredDate')
-      ..add(serializers.serialize(value,
-          specifiedType: const FullType(DateTime)));
+      ..add(
+        serializers.serialize(value, specifiedType: const FullType(DateTime)),
+      );
 
     return result;
   }
 
   @override
-  Sprint deserialize(Serializers serializers, Iterable<Object?> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new SprintBuilder();
+  Sprint deserialize(
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = SprintBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -82,54 +110,103 @@ class _$SprintSerializer implements StructuredSerializer<Sprint> {
       final Object? value = iterator.current;
       switch (key) {
         case 'docId':
-          result.docId = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.docId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'dateAdded':
-          result.dateAdded = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime))! as DateTime;
+          result.dateAdded =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(DateTime),
+                  )!
+                  as DateTime;
           break;
         case 'startDate':
-          result.startDate = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime))! as DateTime;
+          result.startDate =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(DateTime),
+                  )!
+                  as DateTime;
           break;
         case 'endDate':
-          result.endDate = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime))! as DateTime;
+          result.endDate =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(DateTime),
+                  )!
+                  as DateTime;
           break;
         case 'closeDate':
-          result.closeDate = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime)) as DateTime?;
+          result.closeDate =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(DateTime),
+                  )
+                  as DateTime?;
           break;
         case 'numUnits':
-          result.numUnits = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
+          result.numUnits =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
         case 'unitName':
-          result.unitName = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.unitName =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'personDocId':
-          result.personDocId = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.personDocId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'sprintNumber':
-          result.sprintNumber = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
+          result.sprintNumber =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
         case 'retired':
-          result.retired = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.retired =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'retiredDate':
-          result.retiredDate = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime)) as DateTime?;
+          result.retiredDate =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(DateTime),
+                  )
+                  as DateTime?;
           break;
         case 'sprintAssignments':
-          result.sprintAssignments.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      BuiltList, const [const FullType(SprintAssignment)]))!
-              as BuiltList<Object?>);
+          result.sprintAssignments.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(SprintAssignment),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
       }
     }
@@ -165,42 +242,28 @@ class _$Sprint extends Sprint {
   final BuiltList<SprintAssignment> sprintAssignments;
 
   factory _$Sprint([void Function(SprintBuilder)? updates]) =>
-      (new SprintBuilder()..update(updates))._build();
+      (SprintBuilder()..update(updates))._build();
 
-  _$Sprint._(
-      {required this.docId,
-      required this.dateAdded,
-      required this.startDate,
-      required this.endDate,
-      this.closeDate,
-      required this.numUnits,
-      required this.unitName,
-      required this.personDocId,
-      required this.sprintNumber,
-      this.retired,
-      this.retiredDate,
-      required this.sprintAssignments})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(docId, r'Sprint', 'docId');
-    BuiltValueNullFieldError.checkNotNull(dateAdded, r'Sprint', 'dateAdded');
-    BuiltValueNullFieldError.checkNotNull(startDate, r'Sprint', 'startDate');
-    BuiltValueNullFieldError.checkNotNull(endDate, r'Sprint', 'endDate');
-    BuiltValueNullFieldError.checkNotNull(numUnits, r'Sprint', 'numUnits');
-    BuiltValueNullFieldError.checkNotNull(unitName, r'Sprint', 'unitName');
-    BuiltValueNullFieldError.checkNotNull(
-        personDocId, r'Sprint', 'personDocId');
-    BuiltValueNullFieldError.checkNotNull(
-        sprintNumber, r'Sprint', 'sprintNumber');
-    BuiltValueNullFieldError.checkNotNull(
-        sprintAssignments, r'Sprint', 'sprintAssignments');
-  }
-
+  _$Sprint._({
+    required this.docId,
+    required this.dateAdded,
+    required this.startDate,
+    required this.endDate,
+    this.closeDate,
+    required this.numUnits,
+    required this.unitName,
+    required this.personDocId,
+    required this.sprintNumber,
+    this.retired,
+    this.retiredDate,
+    required this.sprintAssignments,
+  }) : super._();
   @override
   Sprint rebuild(void Function(SprintBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  SprintBuilder toBuilder() => new SprintBuilder()..replace(this);
+  SprintBuilder toBuilder() => SprintBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -307,7 +370,7 @@ class SprintBuilder implements Builder<Sprint, SprintBuilder> {
 
   ListBuilder<SprintAssignment>? _sprintAssignments;
   ListBuilder<SprintAssignment> get sprintAssignments =>
-      _$this._sprintAssignments ??= new ListBuilder<SprintAssignment>();
+      _$this._sprintAssignments ??= ListBuilder<SprintAssignment>();
   set sprintAssignments(ListBuilder<SprintAssignment>? sprintAssignments) =>
       _$this._sprintAssignments = sprintAssignments;
 
@@ -335,7 +398,6 @@ class SprintBuilder implements Builder<Sprint, SprintBuilder> {
 
   @override
   void replace(Sprint other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$Sprint;
   }
 
@@ -350,36 +412,65 @@ class SprintBuilder implements Builder<Sprint, SprintBuilder> {
   _$Sprint _build() {
     _$Sprint _$result;
     try {
-      _$result = _$v ??
-          new _$Sprint._(
-              docId: BuiltValueNullFieldError.checkNotNull(
-                  docId, r'Sprint', 'docId'),
-              dateAdded: BuiltValueNullFieldError.checkNotNull(
-                  dateAdded, r'Sprint', 'dateAdded'),
-              startDate: BuiltValueNullFieldError.checkNotNull(
-                  startDate, r'Sprint', 'startDate'),
-              endDate: BuiltValueNullFieldError.checkNotNull(
-                  endDate, r'Sprint', 'endDate'),
-              closeDate: closeDate,
-              numUnits: BuiltValueNullFieldError.checkNotNull(
-                  numUnits, r'Sprint', 'numUnits'),
-              unitName: BuiltValueNullFieldError.checkNotNull(
-                  unitName, r'Sprint', 'unitName'),
-              personDocId: BuiltValueNullFieldError.checkNotNull(
-                  personDocId, r'Sprint', 'personDocId'),
-              sprintNumber: BuiltValueNullFieldError.checkNotNull(
-                  sprintNumber, r'Sprint', 'sprintNumber'),
-              retired: retired,
-              retiredDate: retiredDate,
-              sprintAssignments: sprintAssignments.build());
+      _$result =
+          _$v ??
+          _$Sprint._(
+            docId: BuiltValueNullFieldError.checkNotNull(
+              docId,
+              r'Sprint',
+              'docId',
+            ),
+            dateAdded: BuiltValueNullFieldError.checkNotNull(
+              dateAdded,
+              r'Sprint',
+              'dateAdded',
+            ),
+            startDate: BuiltValueNullFieldError.checkNotNull(
+              startDate,
+              r'Sprint',
+              'startDate',
+            ),
+            endDate: BuiltValueNullFieldError.checkNotNull(
+              endDate,
+              r'Sprint',
+              'endDate',
+            ),
+            closeDate: closeDate,
+            numUnits: BuiltValueNullFieldError.checkNotNull(
+              numUnits,
+              r'Sprint',
+              'numUnits',
+            ),
+            unitName: BuiltValueNullFieldError.checkNotNull(
+              unitName,
+              r'Sprint',
+              'unitName',
+            ),
+            personDocId: BuiltValueNullFieldError.checkNotNull(
+              personDocId,
+              r'Sprint',
+              'personDocId',
+            ),
+            sprintNumber: BuiltValueNullFieldError.checkNotNull(
+              sprintNumber,
+              r'Sprint',
+              'sprintNumber',
+            ),
+            retired: retired,
+            retiredDate: retiredDate,
+            sprintAssignments: sprintAssignments.build(),
+          );
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'sprintAssignments';
         sprintAssignments.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            r'Sprint', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'Sprint',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

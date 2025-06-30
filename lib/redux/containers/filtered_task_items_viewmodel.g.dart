@@ -20,40 +20,26 @@ class _$FilteredTaskItemsViewModel extends FilteredTaskItemsViewModel {
   @override
   final TimezoneHelper timezoneHelper;
 
-  factory _$FilteredTaskItemsViewModel(
-          [void Function(FilteredTaskItemsViewModelBuilder)? updates]) =>
-      (new FilteredTaskItemsViewModelBuilder()..update(updates))._build();
+  factory _$FilteredTaskItemsViewModel([
+    void Function(FilteredTaskItemsViewModelBuilder)? updates,
+  ]) => (FilteredTaskItemsViewModelBuilder()..update(updates))._build();
 
-  _$FilteredTaskItemsViewModel._(
-      {required this.taskItems,
-      required this.loading,
-      required this.showCompleted,
-      required this.showScheduled,
-      required this.offlineMode,
-      required this.timezoneHelper})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        taskItems, r'FilteredTaskItemsViewModel', 'taskItems');
-    BuiltValueNullFieldError.checkNotNull(
-        loading, r'FilteredTaskItemsViewModel', 'loading');
-    BuiltValueNullFieldError.checkNotNull(
-        showCompleted, r'FilteredTaskItemsViewModel', 'showCompleted');
-    BuiltValueNullFieldError.checkNotNull(
-        showScheduled, r'FilteredTaskItemsViewModel', 'showScheduled');
-    BuiltValueNullFieldError.checkNotNull(
-        offlineMode, r'FilteredTaskItemsViewModel', 'offlineMode');
-    BuiltValueNullFieldError.checkNotNull(
-        timezoneHelper, r'FilteredTaskItemsViewModel', 'timezoneHelper');
-  }
-
+  _$FilteredTaskItemsViewModel._({
+    required this.taskItems,
+    required this.loading,
+    required this.showCompleted,
+    required this.showScheduled,
+    required this.offlineMode,
+    required this.timezoneHelper,
+  }) : super._();
   @override
   FilteredTaskItemsViewModel rebuild(
-          void Function(FilteredTaskItemsViewModelBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(FilteredTaskItemsViewModelBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   FilteredTaskItemsViewModelBuilder toBuilder() =>
-      new FilteredTaskItemsViewModelBuilder()..replace(this);
+      FilteredTaskItemsViewModelBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -100,7 +86,7 @@ class FilteredTaskItemsViewModelBuilder
 
   ListBuilder<TaskItem>? _taskItems;
   ListBuilder<TaskItem> get taskItems =>
-      _$this._taskItems ??= new ListBuilder<TaskItem>();
+      _$this._taskItems ??= ListBuilder<TaskItem>();
   set taskItems(ListBuilder<TaskItem>? taskItems) =>
       _$this._taskItems = taskItems;
 
@@ -145,7 +131,6 @@ class FilteredTaskItemsViewModelBuilder
 
   @override
   void replace(FilteredTaskItemsViewModel other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$FilteredTaskItemsViewModel;
   }
 
@@ -160,33 +145,47 @@ class FilteredTaskItemsViewModelBuilder
   _$FilteredTaskItemsViewModel _build() {
     _$FilteredTaskItemsViewModel _$result;
     try {
-      _$result = _$v ??
-          new _$FilteredTaskItemsViewModel._(
-              taskItems: taskItems.build(),
-              loading: BuiltValueNullFieldError.checkNotNull(
-                  loading, r'FilteredTaskItemsViewModel', 'loading'),
-              showCompleted: BuiltValueNullFieldError.checkNotNull(
-                  showCompleted,
-                  r'FilteredTaskItemsViewModel',
-                  'showCompleted'),
-              showScheduled: BuiltValueNullFieldError.checkNotNull(
-                  showScheduled,
-                  r'FilteredTaskItemsViewModel',
-                  'showScheduled'),
-              offlineMode: BuiltValueNullFieldError.checkNotNull(
-                  offlineMode, r'FilteredTaskItemsViewModel', 'offlineMode'),
-              timezoneHelper: BuiltValueNullFieldError.checkNotNull(
-                  timezoneHelper,
-                  r'FilteredTaskItemsViewModel',
-                  'timezoneHelper'));
+      _$result =
+          _$v ??
+          _$FilteredTaskItemsViewModel._(
+            taskItems: taskItems.build(),
+            loading: BuiltValueNullFieldError.checkNotNull(
+              loading,
+              r'FilteredTaskItemsViewModel',
+              'loading',
+            ),
+            showCompleted: BuiltValueNullFieldError.checkNotNull(
+              showCompleted,
+              r'FilteredTaskItemsViewModel',
+              'showCompleted',
+            ),
+            showScheduled: BuiltValueNullFieldError.checkNotNull(
+              showScheduled,
+              r'FilteredTaskItemsViewModel',
+              'showScheduled',
+            ),
+            offlineMode: BuiltValueNullFieldError.checkNotNull(
+              offlineMode,
+              r'FilteredTaskItemsViewModel',
+              'offlineMode',
+            ),
+            timezoneHelper: BuiltValueNullFieldError.checkNotNull(
+              timezoneHelper,
+              r'FilteredTaskItemsViewModel',
+              'timezoneHelper',
+            ),
+          );
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'taskItems';
         taskItems.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            r'FilteredTaskItemsViewModel', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'FilteredTaskItemsViewModel',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

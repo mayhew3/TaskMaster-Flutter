@@ -14,25 +14,23 @@ class _$NewSprintViewModel extends NewSprintViewModel {
   @override
   final Sprint? lastCompleted;
 
-  factory _$NewSprintViewModel(
-          [void Function(NewSprintViewModelBuilder)? updates]) =>
-      (new NewSprintViewModelBuilder()..update(updates))._build();
+  factory _$NewSprintViewModel([
+    void Function(NewSprintViewModelBuilder)? updates,
+  ]) => (NewSprintViewModelBuilder()..update(updates))._build();
 
-  _$NewSprintViewModel._(
-      {required this.timezoneHelper, this.activeSprint, this.lastCompleted})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        timezoneHelper, r'NewSprintViewModel', 'timezoneHelper');
-  }
-
+  _$NewSprintViewModel._({
+    required this.timezoneHelper,
+    this.activeSprint,
+    this.lastCompleted,
+  }) : super._();
   @override
   NewSprintViewModel rebuild(
-          void Function(NewSprintViewModelBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(NewSprintViewModelBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   NewSprintViewModelBuilder toBuilder() =>
-      new NewSprintViewModelBuilder()..replace(this);
+      NewSprintViewModelBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -73,14 +71,12 @@ class NewSprintViewModelBuilder
       _$this._timezoneHelper = timezoneHelper;
 
   SprintBuilder? _activeSprint;
-  SprintBuilder get activeSprint =>
-      _$this._activeSprint ??= new SprintBuilder();
+  SprintBuilder get activeSprint => _$this._activeSprint ??= SprintBuilder();
   set activeSprint(SprintBuilder? activeSprint) =>
       _$this._activeSprint = activeSprint;
 
   SprintBuilder? _lastCompleted;
-  SprintBuilder get lastCompleted =>
-      _$this._lastCompleted ??= new SprintBuilder();
+  SprintBuilder get lastCompleted => _$this._lastCompleted ??= SprintBuilder();
   set lastCompleted(SprintBuilder? lastCompleted) =>
       _$this._lastCompleted = lastCompleted;
 
@@ -99,7 +95,6 @@ class NewSprintViewModelBuilder
 
   @override
   void replace(NewSprintViewModel other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$NewSprintViewModel;
   }
 
@@ -114,12 +109,17 @@ class NewSprintViewModelBuilder
   _$NewSprintViewModel _build() {
     _$NewSprintViewModel _$result;
     try {
-      _$result = _$v ??
-          new _$NewSprintViewModel._(
-              timezoneHelper: BuiltValueNullFieldError.checkNotNull(
-                  timezoneHelper, r'NewSprintViewModel', 'timezoneHelper'),
-              activeSprint: _activeSprint?.build(),
-              lastCompleted: _lastCompleted?.build());
+      _$result =
+          _$v ??
+          _$NewSprintViewModel._(
+            timezoneHelper: BuiltValueNullFieldError.checkNotNull(
+              timezoneHelper,
+              r'NewSprintViewModel',
+              'timezoneHelper',
+            ),
+            activeSprint: _activeSprint?.build(),
+            lastCompleted: _lastCompleted?.build(),
+          );
     } catch (_) {
       late String _$failedField;
       try {
@@ -128,8 +128,11 @@ class NewSprintViewModelBuilder
         _$failedField = 'lastCompleted';
         _lastCompleted?.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            r'NewSprintViewModel', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'NewSprintViewModel',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

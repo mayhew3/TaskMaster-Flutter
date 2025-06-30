@@ -14,27 +14,23 @@ class _$PlanningHomeViewModel extends PlanningHomeViewModel {
   @override
   final bool loadFailed;
 
-  factory _$PlanningHomeViewModel(
-          [void Function(PlanningHomeViewModelBuilder)? updates]) =>
-      (new PlanningHomeViewModelBuilder()..update(updates))._build();
+  factory _$PlanningHomeViewModel([
+    void Function(PlanningHomeViewModelBuilder)? updates,
+  ]) => (PlanningHomeViewModelBuilder()..update(updates))._build();
 
-  _$PlanningHomeViewModel._(
-      {this.activeSprint, required this.isLoading, required this.loadFailed})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        isLoading, r'PlanningHomeViewModel', 'isLoading');
-    BuiltValueNullFieldError.checkNotNull(
-        loadFailed, r'PlanningHomeViewModel', 'loadFailed');
-  }
-
+  _$PlanningHomeViewModel._({
+    this.activeSprint,
+    required this.isLoading,
+    required this.loadFailed,
+  }) : super._();
   @override
   PlanningHomeViewModel rebuild(
-          void Function(PlanningHomeViewModelBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(PlanningHomeViewModelBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   PlanningHomeViewModelBuilder toBuilder() =>
-      new PlanningHomeViewModelBuilder()..replace(this);
+      PlanningHomeViewModelBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -70,8 +66,7 @@ class PlanningHomeViewModelBuilder
   _$PlanningHomeViewModel? _$v;
 
   SprintBuilder? _activeSprint;
-  SprintBuilder get activeSprint =>
-      _$this._activeSprint ??= new SprintBuilder();
+  SprintBuilder get activeSprint => _$this._activeSprint ??= SprintBuilder();
   set activeSprint(SprintBuilder? activeSprint) =>
       _$this._activeSprint = activeSprint;
 
@@ -98,7 +93,6 @@ class PlanningHomeViewModelBuilder
 
   @override
   void replace(PlanningHomeViewModel other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$PlanningHomeViewModel;
   }
 
@@ -113,21 +107,32 @@ class PlanningHomeViewModelBuilder
   _$PlanningHomeViewModel _build() {
     _$PlanningHomeViewModel _$result;
     try {
-      _$result = _$v ??
-          new _$PlanningHomeViewModel._(
-              activeSprint: _activeSprint?.build(),
-              isLoading: BuiltValueNullFieldError.checkNotNull(
-                  isLoading, r'PlanningHomeViewModel', 'isLoading'),
-              loadFailed: BuiltValueNullFieldError.checkNotNull(
-                  loadFailed, r'PlanningHomeViewModel', 'loadFailed'));
+      _$result =
+          _$v ??
+          _$PlanningHomeViewModel._(
+            activeSprint: _activeSprint?.build(),
+            isLoading: BuiltValueNullFieldError.checkNotNull(
+              isLoading,
+              r'PlanningHomeViewModel',
+              'isLoading',
+            ),
+            loadFailed: BuiltValueNullFieldError.checkNotNull(
+              loadFailed,
+              r'PlanningHomeViewModel',
+              'loadFailed',
+            ),
+          );
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'activeSprint';
         _activeSprint?.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            r'PlanningHomeViewModel', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'PlanningHomeViewModel',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

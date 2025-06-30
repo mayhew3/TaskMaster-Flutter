@@ -20,38 +20,26 @@ class _$TaskItemListViewModel extends TaskItemListViewModel {
   @override
   final CheckState? Function(TaskItem, CheckState) onCheckboxClicked;
 
-  factory _$TaskItemListViewModel(
-          [void Function(TaskItemListViewModelBuilder)? updates]) =>
-      (new TaskItemListViewModelBuilder()..update(updates))._build();
+  factory _$TaskItemListViewModel([
+    void Function(TaskItemListViewModelBuilder)? updates,
+  ]) => (TaskItemListViewModelBuilder()..update(updates))._build();
 
-  _$TaskItemListViewModel._(
-      {required this.taskItems,
-      required this.recentlyCompleted,
-      this.activeSprint,
-      required this.isLoading,
-      required this.loadFailed,
-      required this.onCheckboxClicked})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        taskItems, r'TaskItemListViewModel', 'taskItems');
-    BuiltValueNullFieldError.checkNotNull(
-        recentlyCompleted, r'TaskItemListViewModel', 'recentlyCompleted');
-    BuiltValueNullFieldError.checkNotNull(
-        isLoading, r'TaskItemListViewModel', 'isLoading');
-    BuiltValueNullFieldError.checkNotNull(
-        loadFailed, r'TaskItemListViewModel', 'loadFailed');
-    BuiltValueNullFieldError.checkNotNull(
-        onCheckboxClicked, r'TaskItemListViewModel', 'onCheckboxClicked');
-  }
-
+  _$TaskItemListViewModel._({
+    required this.taskItems,
+    required this.recentlyCompleted,
+    this.activeSprint,
+    required this.isLoading,
+    required this.loadFailed,
+    required this.onCheckboxClicked,
+  }) : super._();
   @override
   TaskItemListViewModel rebuild(
-          void Function(TaskItemListViewModelBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(TaskItemListViewModelBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   TaskItemListViewModelBuilder toBuilder() =>
-      new TaskItemListViewModelBuilder()..replace(this);
+      TaskItemListViewModelBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -98,19 +86,18 @@ class TaskItemListViewModelBuilder
 
   ListBuilder<TaskItem>? _taskItems;
   ListBuilder<TaskItem> get taskItems =>
-      _$this._taskItems ??= new ListBuilder<TaskItem>();
+      _$this._taskItems ??= ListBuilder<TaskItem>();
   set taskItems(ListBuilder<TaskItem>? taskItems) =>
       _$this._taskItems = taskItems;
 
   ListBuilder<TaskItem>? _recentlyCompleted;
   ListBuilder<TaskItem> get recentlyCompleted =>
-      _$this._recentlyCompleted ??= new ListBuilder<TaskItem>();
+      _$this._recentlyCompleted ??= ListBuilder<TaskItem>();
   set recentlyCompleted(ListBuilder<TaskItem>? recentlyCompleted) =>
       _$this._recentlyCompleted = recentlyCompleted;
 
   SprintBuilder? _activeSprint;
-  SprintBuilder get activeSprint =>
-      _$this._activeSprint ??= new SprintBuilder();
+  SprintBuilder get activeSprint => _$this._activeSprint ??= SprintBuilder();
   set activeSprint(SprintBuilder? activeSprint) =>
       _$this._activeSprint = activeSprint;
 
@@ -126,8 +113,8 @@ class TaskItemListViewModelBuilder
   CheckState? Function(TaskItem, CheckState)? get onCheckboxClicked =>
       _$this._onCheckboxClicked;
   set onCheckboxClicked(
-          CheckState? Function(TaskItem, CheckState)? onCheckboxClicked) =>
-      _$this._onCheckboxClicked = onCheckboxClicked;
+    CheckState? Function(TaskItem, CheckState)? onCheckboxClicked,
+  ) => _$this._onCheckboxClicked = onCheckboxClicked;
 
   TaskItemListViewModelBuilder();
 
@@ -147,7 +134,6 @@ class TaskItemListViewModelBuilder
 
   @override
   void replace(TaskItemListViewModel other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$TaskItemListViewModel;
   }
 
@@ -162,19 +148,28 @@ class TaskItemListViewModelBuilder
   _$TaskItemListViewModel _build() {
     _$TaskItemListViewModel _$result;
     try {
-      _$result = _$v ??
-          new _$TaskItemListViewModel._(
-              taskItems: taskItems.build(),
-              recentlyCompleted: recentlyCompleted.build(),
-              activeSprint: _activeSprint?.build(),
-              isLoading: BuiltValueNullFieldError.checkNotNull(
-                  isLoading, r'TaskItemListViewModel', 'isLoading'),
-              loadFailed: BuiltValueNullFieldError.checkNotNull(
-                  loadFailed, r'TaskItemListViewModel', 'loadFailed'),
-              onCheckboxClicked: BuiltValueNullFieldError.checkNotNull(
-                  onCheckboxClicked,
-                  r'TaskItemListViewModel',
-                  'onCheckboxClicked'));
+      _$result =
+          _$v ??
+          _$TaskItemListViewModel._(
+            taskItems: taskItems.build(),
+            recentlyCompleted: recentlyCompleted.build(),
+            activeSprint: _activeSprint?.build(),
+            isLoading: BuiltValueNullFieldError.checkNotNull(
+              isLoading,
+              r'TaskItemListViewModel',
+              'isLoading',
+            ),
+            loadFailed: BuiltValueNullFieldError.checkNotNull(
+              loadFailed,
+              r'TaskItemListViewModel',
+              'loadFailed',
+            ),
+            onCheckboxClicked: BuiltValueNullFieldError.checkNotNull(
+              onCheckboxClicked,
+              r'TaskItemListViewModel',
+              'onCheckboxClicked',
+            ),
+          );
     } catch (_) {
       late String _$failedField;
       try {
@@ -185,8 +180,11 @@ class TaskItemListViewModelBuilder
         _$failedField = 'activeSprint';
         _activeSprint?.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            r'TaskItemListViewModel', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'TaskItemListViewModel',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

@@ -7,7 +7,7 @@ part of 'sprint_assignment.dart';
 // **************************************************************************
 
 Serializer<SprintAssignment> _$sprintAssignmentSerializer =
-    new _$SprintAssignmentSerializer();
+    _$SprintAssignmentSerializer();
 
 class _$SprintAssignmentSerializer
     implements StructuredSerializer<SprintAssignment> {
@@ -17,18 +17,27 @@ class _$SprintAssignmentSerializer
   final String wireName = 'SprintAssignment';
 
   @override
-  Iterable<Object?> serialize(Serializers serializers, SprintAssignment object,
-      {FullType specifiedType = FullType.unspecified}) {
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    SprintAssignment object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = <Object?>[
       'docId',
-      serializers.serialize(object.docId,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.docId,
+        specifiedType: const FullType(String),
+      ),
       'taskDocId',
-      serializers.serialize(object.taskDocId,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.taskDocId,
+        specifiedType: const FullType(String),
+      ),
       'sprintDocId',
-      serializers.serialize(object.sprintDocId,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.sprintDocId,
+        specifiedType: const FullType(String),
+      ),
     ];
     Object? value;
     value = object.retired;
@@ -36,22 +45,26 @@ class _$SprintAssignmentSerializer
     result
       ..add('retired')
       ..add(
-          serializers.serialize(value, specifiedType: const FullType(String)));
+        serializers.serialize(value, specifiedType: const FullType(String)),
+      );
     value = object.retiredDate;
 
     result
       ..add('retiredDate')
-      ..add(serializers.serialize(value,
-          specifiedType: const FullType(DateTime)));
+      ..add(
+        serializers.serialize(value, specifiedType: const FullType(DateTime)),
+      );
 
     return result;
   }
 
   @override
   SprintAssignment deserialize(
-      Serializers serializers, Iterable<Object?> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new SprintAssignmentBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = SprintAssignmentBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -60,24 +73,44 @@ class _$SprintAssignmentSerializer
       final Object? value = iterator.current;
       switch (key) {
         case 'docId':
-          result.docId = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.docId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'taskDocId':
-          result.taskDocId = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.taskDocId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'sprintDocId':
-          result.sprintDocId = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.sprintDocId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'retired':
-          result.retired = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.retired =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'retiredDate':
-          result.retiredDate = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime)) as DateTime?;
+          result.retiredDate =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(DateTime),
+                  )
+                  as DateTime?;
           break;
       }
     }
@@ -98,31 +131,24 @@ class _$SprintAssignment extends SprintAssignment {
   @override
   final DateTime? retiredDate;
 
-  factory _$SprintAssignment(
-          [void Function(SprintAssignmentBuilder)? updates]) =>
-      (new SprintAssignmentBuilder()..update(updates))._build();
+  factory _$SprintAssignment([
+    void Function(SprintAssignmentBuilder)? updates,
+  ]) => (SprintAssignmentBuilder()..update(updates))._build();
 
-  _$SprintAssignment._(
-      {required this.docId,
-      required this.taskDocId,
-      required this.sprintDocId,
-      this.retired,
-      this.retiredDate})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(docId, r'SprintAssignment', 'docId');
-    BuiltValueNullFieldError.checkNotNull(
-        taskDocId, r'SprintAssignment', 'taskDocId');
-    BuiltValueNullFieldError.checkNotNull(
-        sprintDocId, r'SprintAssignment', 'sprintDocId');
-  }
-
+  _$SprintAssignment._({
+    required this.docId,
+    required this.taskDocId,
+    required this.sprintDocId,
+    this.retired,
+    this.retiredDate,
+  }) : super._();
   @override
   SprintAssignment rebuild(void Function(SprintAssignmentBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
   SprintAssignmentBuilder toBuilder() =>
-      new SprintAssignmentBuilder()..replace(this);
+      SprintAssignmentBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -200,7 +226,6 @@ class SprintAssignmentBuilder
 
   @override
   void replace(SprintAssignment other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$SprintAssignment;
   }
 
@@ -213,16 +238,27 @@ class SprintAssignmentBuilder
   SprintAssignment build() => _build();
 
   _$SprintAssignment _build() {
-    final _$result = _$v ??
-        new _$SprintAssignment._(
-            docId: BuiltValueNullFieldError.checkNotNull(
-                docId, r'SprintAssignment', 'docId'),
-            taskDocId: BuiltValueNullFieldError.checkNotNull(
-                taskDocId, r'SprintAssignment', 'taskDocId'),
-            sprintDocId: BuiltValueNullFieldError.checkNotNull(
-                sprintDocId, r'SprintAssignment', 'sprintDocId'),
-            retired: retired,
-            retiredDate: retiredDate);
+    final _$result =
+        _$v ??
+        _$SprintAssignment._(
+          docId: BuiltValueNullFieldError.checkNotNull(
+            docId,
+            r'SprintAssignment',
+            'docId',
+          ),
+          taskDocId: BuiltValueNullFieldError.checkNotNull(
+            taskDocId,
+            r'SprintAssignment',
+            'taskDocId',
+          ),
+          sprintDocId: BuiltValueNullFieldError.checkNotNull(
+            sprintDocId,
+            r'SprintAssignment',
+            'sprintDocId',
+          ),
+          retired: retired,
+          retiredDate: retiredDate,
+        );
     replace(_$result);
     return _$result;
   }

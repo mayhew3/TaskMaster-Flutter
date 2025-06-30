@@ -20,38 +20,26 @@ class _$SprintTaskItemsViewModel extends SprintTaskItemsViewModel {
   @override
   final TimezoneHelper timezoneHelper;
 
-  factory _$SprintTaskItemsViewModel(
-          [void Function(SprintTaskItemsViewModelBuilder)? updates]) =>
-      (new SprintTaskItemsViewModelBuilder()..update(updates))._build();
+  factory _$SprintTaskItemsViewModel([
+    void Function(SprintTaskItemsViewModelBuilder)? updates,
+  ]) => (SprintTaskItemsViewModelBuilder()..update(updates))._build();
 
-  _$SprintTaskItemsViewModel._(
-      {this.activeSprint,
-      required this.taskItems,
-      required this.loading,
-      required this.showCompleted,
-      required this.showScheduled,
-      required this.timezoneHelper})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        taskItems, r'SprintTaskItemsViewModel', 'taskItems');
-    BuiltValueNullFieldError.checkNotNull(
-        loading, r'SprintTaskItemsViewModel', 'loading');
-    BuiltValueNullFieldError.checkNotNull(
-        showCompleted, r'SprintTaskItemsViewModel', 'showCompleted');
-    BuiltValueNullFieldError.checkNotNull(
-        showScheduled, r'SprintTaskItemsViewModel', 'showScheduled');
-    BuiltValueNullFieldError.checkNotNull(
-        timezoneHelper, r'SprintTaskItemsViewModel', 'timezoneHelper');
-  }
-
+  _$SprintTaskItemsViewModel._({
+    this.activeSprint,
+    required this.taskItems,
+    required this.loading,
+    required this.showCompleted,
+    required this.showScheduled,
+    required this.timezoneHelper,
+  }) : super._();
   @override
   SprintTaskItemsViewModel rebuild(
-          void Function(SprintTaskItemsViewModelBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(SprintTaskItemsViewModelBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   SprintTaskItemsViewModelBuilder toBuilder() =>
-      new SprintTaskItemsViewModelBuilder()..replace(this);
+      SprintTaskItemsViewModelBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -97,14 +85,13 @@ class SprintTaskItemsViewModelBuilder
   _$SprintTaskItemsViewModel? _$v;
 
   SprintBuilder? _activeSprint;
-  SprintBuilder get activeSprint =>
-      _$this._activeSprint ??= new SprintBuilder();
+  SprintBuilder get activeSprint => _$this._activeSprint ??= SprintBuilder();
   set activeSprint(SprintBuilder? activeSprint) =>
       _$this._activeSprint = activeSprint;
 
   ListBuilder<TaskItem>? _taskItems;
   ListBuilder<TaskItem> get taskItems =>
-      _$this._taskItems ??= new ListBuilder<TaskItem>();
+      _$this._taskItems ??= ListBuilder<TaskItem>();
   set taskItems(ListBuilder<TaskItem>? taskItems) =>
       _$this._taskItems = taskItems;
 
@@ -145,7 +132,6 @@ class SprintTaskItemsViewModelBuilder
 
   @override
   void replace(SprintTaskItemsViewModel other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$SprintTaskItemsViewModel;
   }
 
@@ -160,20 +146,32 @@ class SprintTaskItemsViewModelBuilder
   _$SprintTaskItemsViewModel _build() {
     _$SprintTaskItemsViewModel _$result;
     try {
-      _$result = _$v ??
-          new _$SprintTaskItemsViewModel._(
-              activeSprint: _activeSprint?.build(),
-              taskItems: taskItems.build(),
-              loading: BuiltValueNullFieldError.checkNotNull(
-                  loading, r'SprintTaskItemsViewModel', 'loading'),
-              showCompleted: BuiltValueNullFieldError.checkNotNull(
-                  showCompleted, r'SprintTaskItemsViewModel', 'showCompleted'),
-              showScheduled: BuiltValueNullFieldError.checkNotNull(
-                  showScheduled, r'SprintTaskItemsViewModel', 'showScheduled'),
-              timezoneHelper: BuiltValueNullFieldError.checkNotNull(
-                  timezoneHelper,
-                  r'SprintTaskItemsViewModel',
-                  'timezoneHelper'));
+      _$result =
+          _$v ??
+          _$SprintTaskItemsViewModel._(
+            activeSprint: _activeSprint?.build(),
+            taskItems: taskItems.build(),
+            loading: BuiltValueNullFieldError.checkNotNull(
+              loading,
+              r'SprintTaskItemsViewModel',
+              'loading',
+            ),
+            showCompleted: BuiltValueNullFieldError.checkNotNull(
+              showCompleted,
+              r'SprintTaskItemsViewModel',
+              'showCompleted',
+            ),
+            showScheduled: BuiltValueNullFieldError.checkNotNull(
+              showScheduled,
+              r'SprintTaskItemsViewModel',
+              'showScheduled',
+            ),
+            timezoneHelper: BuiltValueNullFieldError.checkNotNull(
+              timezoneHelper,
+              r'SprintTaskItemsViewModel',
+              'timezoneHelper',
+            ),
+          );
     } catch (_) {
       late String _$failedField;
       try {
@@ -182,8 +180,11 @@ class SprintTaskItemsViewModelBuilder
         _$failedField = 'taskItems';
         taskItems.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            r'SprintTaskItemsViewModel', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'SprintTaskItemsViewModel',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

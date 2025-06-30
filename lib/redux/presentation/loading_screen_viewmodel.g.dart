@@ -7,20 +7,19 @@ part of 'loading_screen_viewmodel.dart';
 // **************************************************************************
 
 class _$LoadingScreenViewModel extends LoadingScreenViewModel {
-  factory _$LoadingScreenViewModel(
-          [void Function(LoadingScreenViewModelBuilder)? updates]) =>
-      (new LoadingScreenViewModelBuilder()..update(updates))._build();
+  factory _$LoadingScreenViewModel([
+    void Function(LoadingScreenViewModelBuilder)? updates,
+  ]) => (LoadingScreenViewModelBuilder()..update(updates))._build();
 
   _$LoadingScreenViewModel._() : super._();
-
   @override
   LoadingScreenViewModel rebuild(
-          void Function(LoadingScreenViewModelBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(LoadingScreenViewModelBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   LoadingScreenViewModelBuilder toBuilder() =>
-      new LoadingScreenViewModelBuilder()..replace(this);
+      LoadingScreenViewModelBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -47,7 +46,6 @@ class LoadingScreenViewModelBuilder
 
   @override
   void replace(LoadingScreenViewModel other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$LoadingScreenViewModel;
   }
 
@@ -60,7 +58,7 @@ class LoadingScreenViewModelBuilder
   LoadingScreenViewModel build() => _build();
 
   _$LoadingScreenViewModel _build() {
-    final _$result = _$v ?? new _$LoadingScreenViewModel._();
+    final _$result = _$v ?? _$LoadingScreenViewModel._();
     replace(_$result);
     return _$result;
   }

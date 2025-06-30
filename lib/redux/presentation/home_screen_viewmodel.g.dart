@@ -24,40 +24,28 @@ class _$HomeScreenViewModel extends HomeScreenViewModel {
   @override
   final TimezoneHelper timezoneHelper;
 
-  factory _$HomeScreenViewModel(
-          [void Function(HomeScreenViewModelBuilder)? updates]) =>
-      (new HomeScreenViewModelBuilder()..update(updates))._build();
+  factory _$HomeScreenViewModel([
+    void Function(HomeScreenViewModelBuilder)? updates,
+  ]) => (HomeScreenViewModelBuilder()..update(updates))._build();
 
-  _$HomeScreenViewModel._(
-      {required this.activeTab,
-      required this.tasksLoading,
-      required this.sprintsLoading,
-      required this.taskRecurrencesLoading,
-      this.currentUser,
-      this.firebaseUser,
-      this.personDocId,
-      required this.timezoneHelper})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        activeTab, r'HomeScreenViewModel', 'activeTab');
-    BuiltValueNullFieldError.checkNotNull(
-        tasksLoading, r'HomeScreenViewModel', 'tasksLoading');
-    BuiltValueNullFieldError.checkNotNull(
-        sprintsLoading, r'HomeScreenViewModel', 'sprintsLoading');
-    BuiltValueNullFieldError.checkNotNull(taskRecurrencesLoading,
-        r'HomeScreenViewModel', 'taskRecurrencesLoading');
-    BuiltValueNullFieldError.checkNotNull(
-        timezoneHelper, r'HomeScreenViewModel', 'timezoneHelper');
-  }
-
+  _$HomeScreenViewModel._({
+    required this.activeTab,
+    required this.tasksLoading,
+    required this.sprintsLoading,
+    required this.taskRecurrencesLoading,
+    this.currentUser,
+    this.firebaseUser,
+    this.personDocId,
+    required this.timezoneHelper,
+  }) : super._();
   @override
   HomeScreenViewModel rebuild(
-          void Function(HomeScreenViewModelBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(HomeScreenViewModelBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   HomeScreenViewModelBuilder toBuilder() =>
-      new HomeScreenViewModelBuilder()..replace(this);
+      HomeScreenViewModelBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -108,8 +96,7 @@ class HomeScreenViewModelBuilder
   _$HomeScreenViewModel? _$v;
 
   TopNavItemBuilder? _activeTab;
-  TopNavItemBuilder get activeTab =>
-      _$this._activeTab ??= new TopNavItemBuilder();
+  TopNavItemBuilder get activeTab => _$this._activeTab ??= TopNavItemBuilder();
   set activeTab(TopNavItemBuilder? activeTab) => _$this._activeTab = activeTab;
 
   bool? _tasksLoading;
@@ -165,7 +152,6 @@ class HomeScreenViewModelBuilder
 
   @override
   void replace(HomeScreenViewModel other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$HomeScreenViewModel;
   }
 
@@ -180,30 +166,45 @@ class HomeScreenViewModelBuilder
   _$HomeScreenViewModel _build() {
     _$HomeScreenViewModel _$result;
     try {
-      _$result = _$v ??
-          new _$HomeScreenViewModel._(
-              activeTab: activeTab.build(),
-              tasksLoading: BuiltValueNullFieldError.checkNotNull(
-                  tasksLoading, r'HomeScreenViewModel', 'tasksLoading'),
-              sprintsLoading: BuiltValueNullFieldError.checkNotNull(
-                  sprintsLoading, r'HomeScreenViewModel', 'sprintsLoading'),
-              taskRecurrencesLoading: BuiltValueNullFieldError.checkNotNull(
-                  taskRecurrencesLoading,
-                  r'HomeScreenViewModel',
-                  'taskRecurrencesLoading'),
-              currentUser: currentUser,
-              firebaseUser: firebaseUser,
-              personDocId: personDocId,
-              timezoneHelper: BuiltValueNullFieldError.checkNotNull(
-                  timezoneHelper, r'HomeScreenViewModel', 'timezoneHelper'));
+      _$result =
+          _$v ??
+          _$HomeScreenViewModel._(
+            activeTab: activeTab.build(),
+            tasksLoading: BuiltValueNullFieldError.checkNotNull(
+              tasksLoading,
+              r'HomeScreenViewModel',
+              'tasksLoading',
+            ),
+            sprintsLoading: BuiltValueNullFieldError.checkNotNull(
+              sprintsLoading,
+              r'HomeScreenViewModel',
+              'sprintsLoading',
+            ),
+            taskRecurrencesLoading: BuiltValueNullFieldError.checkNotNull(
+              taskRecurrencesLoading,
+              r'HomeScreenViewModel',
+              'taskRecurrencesLoading',
+            ),
+            currentUser: currentUser,
+            firebaseUser: firebaseUser,
+            personDocId: personDocId,
+            timezoneHelper: BuiltValueNullFieldError.checkNotNull(
+              timezoneHelper,
+              r'HomeScreenViewModel',
+              'timezoneHelper',
+            ),
+          );
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'activeTab';
         activeTab.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            r'HomeScreenViewModel', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'HomeScreenViewModel',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

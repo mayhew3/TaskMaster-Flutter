@@ -15,23 +15,19 @@ class _$TopNavItem extends TopNavItem {
   final WidgetGetter widgetGetter;
 
   factory _$TopNavItem([void Function(TopNavItemBuilder)? updates]) =>
-      (new TopNavItemBuilder()..update(updates))._build();
+      (TopNavItemBuilder()..update(updates))._build();
 
-  _$TopNavItem._(
-      {required this.label, required this.icon, required this.widgetGetter})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(label, r'TopNavItem', 'label');
-    BuiltValueNullFieldError.checkNotNull(icon, r'TopNavItem', 'icon');
-    BuiltValueNullFieldError.checkNotNull(
-        widgetGetter, r'TopNavItem', 'widgetGetter');
-  }
-
+  _$TopNavItem._({
+    required this.label,
+    required this.icon,
+    required this.widgetGetter,
+  }) : super._();
   @override
   TopNavItem rebuild(void Function(TopNavItemBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  TopNavItemBuilder toBuilder() => new TopNavItemBuilder()..replace(this);
+  TopNavItemBuilder toBuilder() => TopNavItemBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -94,7 +90,6 @@ class TopNavItemBuilder implements Builder<TopNavItem, TopNavItemBuilder> {
 
   @override
   void replace(TopNavItem other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$TopNavItem;
   }
 
@@ -107,14 +102,25 @@ class TopNavItemBuilder implements Builder<TopNavItem, TopNavItemBuilder> {
   TopNavItem build() => _build();
 
   _$TopNavItem _build() {
-    final _$result = _$v ??
-        new _$TopNavItem._(
-            label: BuiltValueNullFieldError.checkNotNull(
-                label, r'TopNavItem', 'label'),
-            icon: BuiltValueNullFieldError.checkNotNull(
-                icon, r'TopNavItem', 'icon'),
-            widgetGetter: BuiltValueNullFieldError.checkNotNull(
-                widgetGetter, r'TopNavItem', 'widgetGetter'));
+    final _$result =
+        _$v ??
+        _$TopNavItem._(
+          label: BuiltValueNullFieldError.checkNotNull(
+            label,
+            r'TopNavItem',
+            'label',
+          ),
+          icon: BuiltValueNullFieldError.checkNotNull(
+            icon,
+            r'TopNavItem',
+            'icon',
+          ),
+          widgetGetter: BuiltValueNullFieldError.checkNotNull(
+            widgetGetter,
+            r'TopNavItem',
+            'widgetGetter',
+          ),
+        );
     replace(_$result);
     return _$result;
   }

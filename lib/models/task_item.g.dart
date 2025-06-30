@@ -6,7 +6,7 @@ part of 'task_item.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializer<TaskItem> _$taskItemSerializer = new _$TaskItemSerializer();
+Serializer<TaskItem> _$taskItemSerializer = _$TaskItemSerializer();
 
 class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
   @override
@@ -15,20 +15,29 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
   final String wireName = 'TaskItem';
 
   @override
-  Iterable<Object?> serialize(Serializers serializers, TaskItem object,
-      {FullType specifiedType = FullType.unspecified}) {
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    TaskItem object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = <Object?>[
       'docId',
-      serializers.serialize(object.docId,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.docId,
+        specifiedType: const FullType(String),
+      ),
       'dateAdded',
-      serializers.serialize(object.dateAdded,
-          specifiedType: const FullType(DateTime)),
+      serializers.serialize(
+        object.dateAdded,
+        specifiedType: const FullType(DateTime),
+      ),
       'name',
       serializers.serialize(object.name, specifiedType: const FullType(String)),
       'offCycle',
-      serializers.serialize(object.offCycle,
-          specifiedType: const FullType(bool)),
+      serializers.serialize(
+        object.offCycle,
+        specifiedType: const FullType(bool),
+      ),
     ];
     Object? value;
     value = object.personDocId;
@@ -36,25 +45,29 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
     result
       ..add('personDocId')
       ..add(
-          serializers.serialize(value, specifiedType: const FullType(String)));
+        serializers.serialize(value, specifiedType: const FullType(String)),
+      );
     value = object.description;
 
     result
       ..add('description')
       ..add(
-          serializers.serialize(value, specifiedType: const FullType(String)));
+        serializers.serialize(value, specifiedType: const FullType(String)),
+      );
     value = object.project;
 
     result
       ..add('project')
       ..add(
-          serializers.serialize(value, specifiedType: const FullType(String)));
+        serializers.serialize(value, specifiedType: const FullType(String)),
+      );
     value = object.context;
 
     result
       ..add('context')
       ..add(
-          serializers.serialize(value, specifiedType: const FullType(String)));
+        serializers.serialize(value, specifiedType: const FullType(String)),
+      );
     value = object.urgency;
 
     result
@@ -79,32 +92,37 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
 
     result
       ..add('startDate')
-      ..add(serializers.serialize(value,
-          specifiedType: const FullType(DateTime)));
+      ..add(
+        serializers.serialize(value, specifiedType: const FullType(DateTime)),
+      );
     value = object.targetDate;
 
     result
       ..add('targetDate')
-      ..add(serializers.serialize(value,
-          specifiedType: const FullType(DateTime)));
+      ..add(
+        serializers.serialize(value, specifiedType: const FullType(DateTime)),
+      );
     value = object.dueDate;
 
     result
       ..add('dueDate')
-      ..add(serializers.serialize(value,
-          specifiedType: const FullType(DateTime)));
+      ..add(
+        serializers.serialize(value, specifiedType: const FullType(DateTime)),
+      );
     value = object.urgentDate;
 
     result
       ..add('urgentDate')
-      ..add(serializers.serialize(value,
-          specifiedType: const FullType(DateTime)));
+      ..add(
+        serializers.serialize(value, specifiedType: const FullType(DateTime)),
+      );
     value = object.completionDate;
 
     result
       ..add('completionDate')
-      ..add(serializers.serialize(value,
-          specifiedType: const FullType(DateTime)));
+      ..add(
+        serializers.serialize(value, specifiedType: const FullType(DateTime)),
+      );
     value = object.recurNumber;
 
     result
@@ -115,7 +133,8 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
     result
       ..add('recurUnit')
       ..add(
-          serializers.serialize(value, specifiedType: const FullType(String)));
+        serializers.serialize(value, specifiedType: const FullType(String)),
+      );
     value = object.recurWait;
 
     result
@@ -126,7 +145,8 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
     result
       ..add('recurrenceDocId')
       ..add(
-          serializers.serialize(value, specifiedType: const FullType(String)));
+        serializers.serialize(value, specifiedType: const FullType(String)),
+      );
     value = object.recurIteration;
 
     result
@@ -137,21 +157,26 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
     result
       ..add('retired')
       ..add(
-          serializers.serialize(value, specifiedType: const FullType(String)));
+        serializers.serialize(value, specifiedType: const FullType(String)),
+      );
     value = object.retiredDate;
 
     result
       ..add('retiredDate')
-      ..add(serializers.serialize(value,
-          specifiedType: const FullType(DateTime)));
+      ..add(
+        serializers.serialize(value, specifiedType: const FullType(DateTime)),
+      );
 
     return result;
   }
 
   @override
-  TaskItem deserialize(Serializers serializers, Iterable<Object?> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new TaskItemBuilder();
+  TaskItem deserialize(
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = TaskItemBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -160,100 +185,178 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
       final Object? value = iterator.current;
       switch (key) {
         case 'docId':
-          result.docId = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.docId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'dateAdded':
-          result.dateAdded = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime))! as DateTime;
+          result.dateAdded =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(DateTime),
+                  )!
+                  as DateTime;
           break;
         case 'personDocId':
-          result.personDocId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.personDocId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'name':
-          result.name = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.name =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'description':
-          result.description = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.description =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'project':
-          result.project = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.project =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'context':
-          result.context = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.context =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'urgency':
-          result.urgency = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int?;
+          result.urgency =
+              serializers.deserialize(value, specifiedType: const FullType(int))
+                  as int?;
           break;
         case 'priority':
-          result.priority = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int?;
+          result.priority =
+              serializers.deserialize(value, specifiedType: const FullType(int))
+                  as int?;
           break;
         case 'duration':
-          result.duration = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int?;
+          result.duration =
+              serializers.deserialize(value, specifiedType: const FullType(int))
+                  as int?;
           break;
         case 'gamePoints':
-          result.gamePoints = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int?;
+          result.gamePoints =
+              serializers.deserialize(value, specifiedType: const FullType(int))
+                  as int?;
           break;
         case 'startDate':
-          result.startDate = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime)) as DateTime?;
+          result.startDate =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(DateTime),
+                  )
+                  as DateTime?;
           break;
         case 'targetDate':
-          result.targetDate = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime)) as DateTime?;
+          result.targetDate =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(DateTime),
+                  )
+                  as DateTime?;
           break;
         case 'dueDate':
-          result.dueDate = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime)) as DateTime?;
+          result.dueDate =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(DateTime),
+                  )
+                  as DateTime?;
           break;
         case 'urgentDate':
-          result.urgentDate = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime)) as DateTime?;
+          result.urgentDate =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(DateTime),
+                  )
+                  as DateTime?;
           break;
         case 'completionDate':
-          result.completionDate = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime)) as DateTime?;
+          result.completionDate =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(DateTime),
+                  )
+                  as DateTime?;
           break;
         case 'recurNumber':
-          result.recurNumber = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int?;
+          result.recurNumber =
+              serializers.deserialize(value, specifiedType: const FullType(int))
+                  as int?;
           break;
         case 'recurUnit':
-          result.recurUnit = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.recurUnit =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'recurWait':
-          result.recurWait = serializers.deserialize(value,
-              specifiedType: const FullType(bool)) as bool?;
+          result.recurWait =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )
+                  as bool?;
           break;
         case 'recurrenceDocId':
-          result.recurrenceDocId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.recurrenceDocId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'recurIteration':
-          result.recurIteration = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int?;
+          result.recurIteration =
+              serializers.deserialize(value, specifiedType: const FullType(int))
+                  as int?;
           break;
         case 'retired':
-          result.retired = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String?;
+          result.retired =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'retiredDate':
-          result.retiredDate = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime)) as DateTime?;
+          result.retiredDate =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(DateTime),
+                  )
+                  as DateTime?;
           break;
         case 'offCycle':
-          result.offCycle = serializers.deserialize(value,
-              specifiedType: const FullType(bool))! as bool;
+          result.offCycle =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )!
+                  as bool;
           break;
       }
     }
@@ -317,50 +420,42 @@ class _$TaskItem extends TaskItem {
   final bool pendingCompletion;
 
   factory _$TaskItem([void Function(TaskItemBuilder)? updates]) =>
-      (new TaskItemBuilder()..update(updates))._build();
+      (TaskItemBuilder()..update(updates))._build();
 
-  _$TaskItem._(
-      {required this.docId,
-      required this.dateAdded,
-      this.personDocId,
-      required this.name,
-      this.description,
-      this.project,
-      this.context,
-      this.urgency,
-      this.priority,
-      this.duration,
-      this.gamePoints,
-      this.startDate,
-      this.targetDate,
-      this.dueDate,
-      this.urgentDate,
-      this.completionDate,
-      this.recurNumber,
-      this.recurUnit,
-      this.recurWait,
-      this.recurrenceDocId,
-      this.recurIteration,
-      this.retired,
-      this.retiredDate,
-      required this.offCycle,
-      this.recurrence,
-      required this.pendingCompletion})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(docId, r'TaskItem', 'docId');
-    BuiltValueNullFieldError.checkNotNull(dateAdded, r'TaskItem', 'dateAdded');
-    BuiltValueNullFieldError.checkNotNull(name, r'TaskItem', 'name');
-    BuiltValueNullFieldError.checkNotNull(offCycle, r'TaskItem', 'offCycle');
-    BuiltValueNullFieldError.checkNotNull(
-        pendingCompletion, r'TaskItem', 'pendingCompletion');
-  }
-
+  _$TaskItem._({
+    required this.docId,
+    required this.dateAdded,
+    this.personDocId,
+    required this.name,
+    this.description,
+    this.project,
+    this.context,
+    this.urgency,
+    this.priority,
+    this.duration,
+    this.gamePoints,
+    this.startDate,
+    this.targetDate,
+    this.dueDate,
+    this.urgentDate,
+    this.completionDate,
+    this.recurNumber,
+    this.recurUnit,
+    this.recurWait,
+    this.recurrenceDocId,
+    this.recurIteration,
+    this.retired,
+    this.retiredDate,
+    required this.offCycle,
+    this.recurrence,
+    required this.pendingCompletion,
+  }) : super._();
   @override
   TaskItem rebuild(void Function(TaskItemBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  TaskItemBuilder toBuilder() => new TaskItemBuilder()..replace(this);
+  TaskItemBuilder toBuilder() => TaskItemBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -564,7 +659,7 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
 
   TaskRecurrenceBuilder? _recurrence;
   TaskRecurrenceBuilder get recurrence =>
-      _$this._recurrence ??= new TaskRecurrenceBuilder();
+      _$this._recurrence ??= TaskRecurrenceBuilder();
   set recurrence(TaskRecurrenceBuilder? recurrence) =>
       _$this._recurrence = recurrence;
 
@@ -613,7 +708,6 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
 
   @override
   void replace(TaskItem other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$TaskItem;
   }
 
@@ -628,47 +722,67 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   _$TaskItem _build() {
     _$TaskItem _$result;
     try {
-      _$result = _$v ??
-          new _$TaskItem._(
-              docId: BuiltValueNullFieldError.checkNotNull(
-                  docId, r'TaskItem', 'docId'),
-              dateAdded: BuiltValueNullFieldError.checkNotNull(
-                  dateAdded, r'TaskItem', 'dateAdded'),
-              personDocId: personDocId,
-              name: BuiltValueNullFieldError.checkNotNull(
-                  name, r'TaskItem', 'name'),
-              description: description,
-              project: project,
-              context: context,
-              urgency: urgency,
-              priority: priority,
-              duration: duration,
-              gamePoints: gamePoints,
-              startDate: startDate,
-              targetDate: targetDate,
-              dueDate: dueDate,
-              urgentDate: urgentDate,
-              completionDate: completionDate,
-              recurNumber: recurNumber,
-              recurUnit: recurUnit,
-              recurWait: recurWait,
-              recurrenceDocId: recurrenceDocId,
-              recurIteration: recurIteration,
-              retired: retired,
-              retiredDate: retiredDate,
-              offCycle: BuiltValueNullFieldError.checkNotNull(
-                  offCycle, r'TaskItem', 'offCycle'),
-              recurrence: _recurrence?.build(),
-              pendingCompletion: BuiltValueNullFieldError.checkNotNull(
-                  pendingCompletion, r'TaskItem', 'pendingCompletion'));
+      _$result =
+          _$v ??
+          _$TaskItem._(
+            docId: BuiltValueNullFieldError.checkNotNull(
+              docId,
+              r'TaskItem',
+              'docId',
+            ),
+            dateAdded: BuiltValueNullFieldError.checkNotNull(
+              dateAdded,
+              r'TaskItem',
+              'dateAdded',
+            ),
+            personDocId: personDocId,
+            name: BuiltValueNullFieldError.checkNotNull(
+              name,
+              r'TaskItem',
+              'name',
+            ),
+            description: description,
+            project: project,
+            context: context,
+            urgency: urgency,
+            priority: priority,
+            duration: duration,
+            gamePoints: gamePoints,
+            startDate: startDate,
+            targetDate: targetDate,
+            dueDate: dueDate,
+            urgentDate: urgentDate,
+            completionDate: completionDate,
+            recurNumber: recurNumber,
+            recurUnit: recurUnit,
+            recurWait: recurWait,
+            recurrenceDocId: recurrenceDocId,
+            recurIteration: recurIteration,
+            retired: retired,
+            retiredDate: retiredDate,
+            offCycle: BuiltValueNullFieldError.checkNotNull(
+              offCycle,
+              r'TaskItem',
+              'offCycle',
+            ),
+            recurrence: _recurrence?.build(),
+            pendingCompletion: BuiltValueNullFieldError.checkNotNull(
+              pendingCompletion,
+              r'TaskItem',
+              'pendingCompletion',
+            ),
+          );
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'recurrence';
         _recurrence?.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            r'TaskItem', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'TaskItem',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

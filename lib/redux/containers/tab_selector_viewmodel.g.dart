@@ -14,31 +14,23 @@ class _$TabSelectorViewModel extends TabSelectorViewModel {
   @override
   final Function(int) onTabSelected;
 
-  factory _$TabSelectorViewModel(
-          [void Function(TabSelectorViewModelBuilder)? updates]) =>
-      (new TabSelectorViewModelBuilder()..update(updates))._build();
+  factory _$TabSelectorViewModel([
+    void Function(TabSelectorViewModelBuilder)? updates,
+  ]) => (TabSelectorViewModelBuilder()..update(updates))._build();
 
-  _$TabSelectorViewModel._(
-      {required this.activeTab,
-      required this.allTabs,
-      required this.onTabSelected})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        activeTab, r'TabSelectorViewModel', 'activeTab');
-    BuiltValueNullFieldError.checkNotNull(
-        allTabs, r'TabSelectorViewModel', 'allTabs');
-    BuiltValueNullFieldError.checkNotNull(
-        onTabSelected, r'TabSelectorViewModel', 'onTabSelected');
-  }
-
+  _$TabSelectorViewModel._({
+    required this.activeTab,
+    required this.allTabs,
+    required this.onTabSelected,
+  }) : super._();
   @override
   TabSelectorViewModel rebuild(
-          void Function(TabSelectorViewModelBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(TabSelectorViewModelBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   TabSelectorViewModelBuilder toBuilder() =>
-      new TabSelectorViewModelBuilder()..replace(this);
+      TabSelectorViewModelBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -75,13 +67,12 @@ class TabSelectorViewModelBuilder
   _$TabSelectorViewModel? _$v;
 
   TopNavItemBuilder? _activeTab;
-  TopNavItemBuilder get activeTab =>
-      _$this._activeTab ??= new TopNavItemBuilder();
+  TopNavItemBuilder get activeTab => _$this._activeTab ??= TopNavItemBuilder();
   set activeTab(TopNavItemBuilder? activeTab) => _$this._activeTab = activeTab;
 
   ListBuilder<TopNavItem>? _allTabs;
   ListBuilder<TopNavItem> get allTabs =>
-      _$this._allTabs ??= new ListBuilder<TopNavItem>();
+      _$this._allTabs ??= ListBuilder<TopNavItem>();
   set allTabs(ListBuilder<TopNavItem>? allTabs) => _$this._allTabs = allTabs;
 
   Function(int)? _onTabSelected;
@@ -104,7 +95,6 @@ class TabSelectorViewModelBuilder
 
   @override
   void replace(TabSelectorViewModel other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$TabSelectorViewModel;
   }
 
@@ -119,12 +109,17 @@ class TabSelectorViewModelBuilder
   _$TabSelectorViewModel _build() {
     _$TabSelectorViewModel _$result;
     try {
-      _$result = _$v ??
-          new _$TabSelectorViewModel._(
-              activeTab: activeTab.build(),
-              allTabs: allTabs.build(),
-              onTabSelected: BuiltValueNullFieldError.checkNotNull(
-                  onTabSelected, r'TabSelectorViewModel', 'onTabSelected'));
+      _$result =
+          _$v ??
+          _$TabSelectorViewModel._(
+            activeTab: activeTab.build(),
+            allTabs: allTabs.build(),
+            onTabSelected: BuiltValueNullFieldError.checkNotNull(
+              onTabSelected,
+              r'TabSelectorViewModel',
+              'onTabSelected',
+            ),
+          );
     } catch (_) {
       late String _$failedField;
       try {
@@ -133,8 +128,11 @@ class TabSelectorViewModelBuilder
         _$failedField = 'allTabs';
         allTabs.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            r'TabSelectorViewModel', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'TabSelectorViewModel',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }
