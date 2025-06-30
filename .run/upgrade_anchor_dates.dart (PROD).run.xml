@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="upgrade_anchor_dates.dart (PROD)" type="FlutterRunConfigurationType" factoryName="Flutter">
+    <option name="additionalArgs" value="--dart-define=SERVER=heroku --web-hostname localhost --web-port 3000" />
+    <option name="filePath" value="$PROJECT_DIR$/lib/upgrade/upgrade_anchor_dates.dart" />
+    <method v="2" />
+  </configuration>
+</component>
