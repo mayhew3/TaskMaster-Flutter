@@ -45,6 +45,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   // auth
   String? get personDocId;
   GoogleSignIn get googleSignIn;
+  bool get googleInitialized;
   UserCredential? get firebaseUser;
   GoogleSignInAccount? get currentUser;
   bool get offlineMode;
@@ -66,6 +67,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   factory AppState.init({bool loading = false}) => AppState((appState) async {
     var navItemBuilder = initializeNavItems();
     var timezoneHelper = TimezoneHelper();
+    var googleSignInInstance = GoogleSignIn.instance;
     return appState
       ..isLoading = loading
       ..tasksLoading = true
@@ -79,7 +81,8 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
       ..sprintListFilter = VisibilityFilter.init(showScheduled: true, showCompleted: true, showActiveSprint: true).toBuilder()
       ..taskListFilter = VisibilityFilter.init().toBuilder()
       ..recentlyCompleted = ListBuilder()
-      ..googleSignIn = GoogleSignIn(scopes: ['email'])
+      ..googleSignIn = googleSignInInstance
+      ..googleInitialized = false
       ..timezoneHelper = timezoneHelper
       ..allNavItems = navItemBuilder
       ..nextId = 0

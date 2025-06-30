@@ -60,9 +60,12 @@ class TaskMasterAppState extends State<TaskMasterApp> {
           ..addAll(createStoreSprintsMiddleware(taskRepository))
           // ..add(new LoggingMiddleware.printer())
     );
-    maybeKickOffSignIn();
-    configureTimezoneHelper();
-    setupBadgeUpdater();
+    store.state.googleSignIn.initialize().then((_) {
+      store.dispatch(GoogleInitializedAction());
+      maybeKickOffSignIn();
+      configureTimezoneHelper();
+      setupBadgeUpdater();
+    });
   }
 
   void setupBadgeUpdater() {
@@ -85,7 +88,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   }
 
   void maybeKickOffSignIn() {
-    if (!store.state.isAuthenticated()) {
+    if (!store.state.isAuthenticated() && store.state.googleInitialized) {
       store.dispatch(TryToSilentlySignInAction());
     }
   }

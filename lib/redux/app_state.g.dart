@@ -48,6 +48,8 @@ class _$AppState extends AppState {
   @override
   final GoogleSignIn googleSignIn;
   @override
+  final bool googleInitialized;
+  @override
   final UserCredential? firebaseUser;
   @override
   final GoogleSignInAccount? currentUser;
@@ -83,6 +85,7 @@ class _$AppState extends AppState {
     required this.taskListFilter,
     this.personDocId,
     required this.googleSignIn,
+    required this.googleInitialized,
     this.firebaseUser,
     this.currentUser,
     required this.offlineMode,
@@ -120,6 +123,7 @@ class _$AppState extends AppState {
         taskListFilter == other.taskListFilter &&
         personDocId == other.personDocId &&
         googleSignIn == other.googleSignIn &&
+        googleInitialized == other.googleInitialized &&
         firebaseUser == other.firebaseUser &&
         currentUser == other.currentUser &&
         offlineMode == other.offlineMode &&
@@ -150,6 +154,7 @@ class _$AppState extends AppState {
     _$hash = $jc(_$hash, taskListFilter.hashCode);
     _$hash = $jc(_$hash, personDocId.hashCode);
     _$hash = $jc(_$hash, googleSignIn.hashCode);
+    _$hash = $jc(_$hash, googleInitialized.hashCode);
     _$hash = $jc(_$hash, firebaseUser.hashCode);
     _$hash = $jc(_$hash, currentUser.hashCode);
     _$hash = $jc(_$hash, offlineMode.hashCode);
@@ -182,6 +187,7 @@ class _$AppState extends AppState {
           ..add('taskListFilter', taskListFilter)
           ..add('personDocId', personDocId)
           ..add('googleSignIn', googleSignIn)
+          ..add('googleInitialized', googleInitialized)
           ..add('firebaseUser', firebaseUser)
           ..add('currentUser', currentUser)
           ..add('offlineMode', offlineMode)
@@ -302,6 +308,11 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   set googleSignIn(GoogleSignIn? googleSignIn) =>
       _$this._googleSignIn = googleSignIn;
 
+  bool? _googleInitialized;
+  bool? get googleInitialized => _$this._googleInitialized;
+  set googleInitialized(bool? googleInitialized) =>
+      _$this._googleInitialized = googleInitialized;
+
   UserCredential? _firebaseUser;
   UserCredential? get firebaseUser => _$this._firebaseUser;
   set firebaseUser(UserCredential? firebaseUser) =>
@@ -354,6 +365,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _taskListFilter = $v.taskListFilter.toBuilder();
       _personDocId = $v.personDocId;
       _googleSignIn = $v.googleSignIn;
+      _googleInitialized = $v.googleInitialized;
       _firebaseUser = $v.firebaseUser;
       _currentUser = $v.currentUser;
       _offlineMode = $v.offlineMode;
@@ -426,6 +438,11 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               googleSignIn,
               r'AppState',
               'googleSignIn',
+            ),
+            googleInitialized: BuiltValueNullFieldError.checkNotNull(
+              googleInitialized,
+              r'AppState',
+              'googleInitialized',
             ),
             firebaseUser: firebaseUser,
             currentUser: currentUser,

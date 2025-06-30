@@ -1007,6 +1007,15 @@ class MockAppState extends _i1.Mock implements _i15.AppState {
           as _i13.GoogleSignIn);
 
   @override
+  bool get googleInitialized =>
+      (super.noSuchMethod(
+            Invocation.getter(#googleInitialized),
+            returnValue: false,
+            returnValueForMissingStub: false,
+          )
+          as bool);
+
+  @override
   bool get offlineMode =>
       (super.noSuchMethod(
             Invocation.getter(#offlineMode),
