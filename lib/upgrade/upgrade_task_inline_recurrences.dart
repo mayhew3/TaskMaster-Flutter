@@ -2,10 +2,11 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:logging/logging.dart';
-import 'package:http/http.dart' as http;
-import '../firebase_options.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:logging/logging.dart';
+
+import '../firebase_options.dart';
 
 Future<void> main() async {
 
@@ -43,24 +44,21 @@ Future<void> main() async {
   exit(0);
 }
 
-extension StringExtension on String {
-  String capitalize() {
-    return '${this[0].toUpperCase()}${this.substring(1).toLowerCase()}';
-  }
-}
-
 Future<void> executeUpdate(FirebaseFirestore firestore, http.Client client) async {
-  var taskSnapshot = await firestore.collection('tasks');
-  var originalCount = (await taskSnapshot.get()).docs.length;
+  var taskCollection = firestore.collection('tasks');
+  var originalCount = (await taskCollection.get()).docs.length;
 
-  var problems = (await taskSnapshot.where('recurrence', isNotEqualTo: '').get()).docs;
+  var problems = (await taskCollection.where('recurrence', isNotEqualTo: '').get()).docs;
 
   for (var doc in problems) {
-    await doc.reference.update({'recurrence': FieldValue.delete(), 'gamePoints': FieldValue.delete()});
-    var data = await doc.data();
-    var recurrence = data['recurrence'];
-    print('Updated fields: "recurrence": $recurrence, "gamePoints": ${data['gamePoints']}');
+    await doc.reference.update({'recurrence': FieldValue.delete()});
   }
 
-  print('Problem rows: ${problems.length}/${originalCount}.');
+  var problemsAfter = (await taskCollection.where('recurrence', isNotEqualTo: '').get()).docs;
+
+  if (problemsAfter.isNotEmpty) {
+    print('FIX FAILED! Problem rows before: ${problems.length}/${originalCount}, problem rows after: ${problemsAfter.length}/${originalCount}.');
+  } else {
+    print('Problem rows: ${problems.length}/${originalCount}.');
+  }
 }

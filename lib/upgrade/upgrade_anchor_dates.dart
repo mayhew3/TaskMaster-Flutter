@@ -2,10 +2,11 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:logging/logging.dart';
-import 'package:http/http.dart' as http;
-import '../firebase_options.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:logging/logging.dart';
+
+import '../firebase_options.dart';
 
 Future<void> main() async {
 
@@ -94,5 +95,11 @@ Future<void> executeUpdate(FirebaseFirestore firestore, http.Client client) asyn
     await doc.reference.update({'anchorDate': newAnchorDate, 'anchorType': FieldValue.delete(), 'recurIteration': recurIteration});
   }
 
-  print('Problem rows: ${problems.length}/${querySnapshot.docs.length}. Null rows: $updatedToNull.');
+  var problemsAfter = (await recurrenceCollection.get()).docs.where((t) => t.data()['anchorDate'] is Timestamp);
+
+  if (problemsAfter.isNotEmpty) {
+    print('FIX FAILED! Problem rows before: ${problems.length}/${querySnapshot.docs.length}, problem rows after: ${problemsAfter.length}/${querySnapshot.docs.length}.');
+  } else {
+    print('Problem rows: ${problems.length}/${querySnapshot.docs.length}. Null rows: $updatedToNull.');
+  }
 }
