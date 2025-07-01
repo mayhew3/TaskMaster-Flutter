@@ -31,7 +31,7 @@ void Function(
     print('_manualLogin!');
     next(action);
     try {
-      await signInWithGoogleFirebase(store, navigatorKey, true);
+      await signInWithGoogleFirebase(store, navigatorKey, false);
       await navigatorKey.currentState!.pushReplacementNamed(
           TaskMasterRoutes.home);
     } on GoogleSignInException catch (e) {
@@ -142,14 +142,17 @@ Future<void> signInWithGoogleFirebase(Store<AppState> store, GlobalKey<Navigator
 }
 
 Future<GoogleSignInAccount?> signInAndGetAccount(AppState state, bool silent) async {
-  try {
-    if (!state.googleInitialized) {
-      print('Unable to sign in to google because google is not initialized.');
-      return null;
-    }
+  print('signInAndGetAccount called with silent: $silent.');
 
+  if (!state.googleInitialized) {
+    print('Unable to sign in to google because google is not initialized.');
+    return null;
+  }
+
+  try {
     var result = silent ? state.googleSignIn.attemptLightweightAuthentication()
         : state.googleSignIn.authenticate(scopeHint: ['email']);
+
     if (result is Future<GoogleSignInAccount?>) {
       print('Successful authenticate! Returning Future...');
       var googleSignInAccount = await result;
