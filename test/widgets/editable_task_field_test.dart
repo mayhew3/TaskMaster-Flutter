@@ -8,21 +8,29 @@ void main() {
   String? fieldValue;
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  Future<MaterialApp> createApp(WidgetTester tester, {bool? isRequired, FormFieldValidator<String>? validator}) async {
-
+  // Modified createApp to include more parameters for flexibility
+  Future<MaterialApp> createApp(WidgetTester tester, {
+    String initialText = 'Fart', // Defaulted for existing tests
+    String labelText = 'Type',   // Defaulted for existing tests
+    bool? isRequired,
+    FormFieldValidator<String>? validator,
+    TextInputType inputType = TextInputType.text, // Defaulted
+    bool wordCaps = true, // Defaulted, can be overridden
+    ValueChanged<String?>? fieldSetterOverride, // Added for flexibility
+  }) async {
     Form form = Form(
-          key: formKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: EditableTaskField(
-            initialText: 'Fart',
-            labelText: 'Type',
-            fieldSetter: (value) => fieldValue = value,
-            inputType: TextInputType.text,
-            isRequired: isRequired ?? false,
-            validator: validator,
-            wordCaps: true,
-          ),
-        );
+      key: formKey,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      child: EditableTaskField(
+        initialText: initialText,
+        labelText: labelText,
+        fieldSetter: fieldSetterOverride ?? (value) => fieldValue = value,
+        inputType: inputType,
+        isRequired: isRequired ?? false,
+        validator: validator,
+        wordCaps: wordCaps, // Use the parameter
+      ),
+    );
     var app = MaterialApp(
       home: Scaffold(
         body: form,
@@ -112,6 +120,84 @@ void main() {
 
     var form = getForm();
     expect(form!.validate(), false);
+  });
+
+  // New tests:
+
+  testWidgets('displays initialText', (WidgetTester tester) async {
+    await createApp(tester, initialText: 'Specific Initial Text');
+    expect(find.text('Specific Initial Text'), findsOneWidget);
+  });
+
+  testWidgets('applies wordCaps: true', (WidgetTester tester) async {
+    await createApp(tester, wordCaps: true);
+    final textField = tester.widget<TextFormField>(findTextField());
+    expect(textField.textCapitalization, TextCapitalization.words);
+  });
+
+  testWidgets('applies wordCaps: false', (WidgetTester tester) async {
+    await createApp(tester, wordCaps: false);
+    final textField = tester.widget<TextFormField>(findTextField());
+    expect(textField.textCapitalization, TextCapitalization.none);
+  });
+
+  testWidgets('propagates inputType to TextFormField', (WidgetTester tester) async {
+    await createApp(tester, inputType: TextInputType.number);
+    final textField = tester.widget<TextFormField>(findTextField());
+    expect(textField.keyboardType, TextInputType.number);
+  });
+
+  testWidgets('validation passes with custom validator and no error text', (WidgetTester tester) async {
+    String? validationResult;
+    await createApp(
+      tester,
+      validator: (value) {
+        if (value == 'invalid') {
+          validationResult = 'Error!';
+          return validationResult;
+        }
+        validationResult = null;
+        return null;
+      },
+      isRequired: false, // Explicitly false for this test
+    );
+
+    var textField = findTextField();
+    await tester.enterText(textField, 'valid');
+    await tester.pump(); // Allow for validation to run
+
+    var form = getForm();
+    expect(form!.validate(), true);
+    expect(validationResult, isNull);
+    expect(find.text('Error!'), findsNothing); // Ensure no error text is shown
+  });
+
+
+  testWidgets('displays default error message when isRequired fails', (WidgetTester tester) async {
+    await createApp(tester, isRequired: true, labelText: 'Task Name'); // Use a specific label for clarity
+
+    var textField = findTextField();
+    await tester.enterText(textField, '');
+    await tester.pump(); // Allow for validation to run and error text to appear
+
+    var form = getForm();
+    expect(form!.validate(), false);
+    expect(find.text('Task Name is required'), findsOneWidget);
+  });
+
+  testWidgets('displays custom error message when custom validator fails', (WidgetTester tester) async {
+    await createApp(
+      tester,
+      validator: (value) => 'Custom error here',
+    );
+
+    var textField = findTextField();
+    await tester.enterText(textField, 'any text'); // Text to trigger validation
+    await tester.pump(); // Allow for validation to run
+
+    var form = getForm();
+    expect(form!.validate(), false);
+    expect(find.text('Custom error here'), findsOneWidget);
   });
 
 }
