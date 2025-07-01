@@ -142,11 +142,28 @@ Future<void> signInWithGoogleFirebase(Store<AppState> store, GlobalKey<Navigator
 }
 
 Future<GoogleSignInAccount?> signInAndGetAccount(AppState state, bool silent) async {
-  var result = silent ? state.googleSignIn.attemptLightweightAuthentication()
-      : state.googleSignIn.authenticate(scopeHint: ['email']);
-  if (result is Future<GoogleSignInAccount?>) {
-    return await result;
-  } else {
-    return result as GoogleSignInAccount?;
+  try {
+    if (!state.googleInitialized) {
+      print('Unable to sign in to google because google is not initialized.');
+      return null;
+    }
+
+    var result = silent ? state.googleSignIn.attemptLightweightAuthentication()
+        : state.googleSignIn.authenticate(scopeHint: ['email']);
+    if (result is Future<GoogleSignInAccount?>) {
+      print('Successful authenticate! Returning Future...');
+      var googleSignInAccount = await result;
+      print('Account: ${googleSignInAccount?.displayName}');
+      return googleSignInAccount;
+    } else {
+      print('result is not a future: $result}');
+      return result as GoogleSignInAccount?;
+    }
+  } on GoogleSignInException catch (e) {
+    print('Google Sign In error: code: ${e.code.name} description: ${e.description} details: ${e.details}');
+    return null;
+  } catch (error) {
+    print('Unexpected error signing in: $error');
+    return null;
   }
 }
