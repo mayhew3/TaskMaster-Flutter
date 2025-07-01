@@ -71,7 +71,10 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   void setupBadgeUpdater() {
     store.onChange.listen((appState) {
       if (appState.appIsReady() && appState.taskItems.isNotEmpty) {
-        var urgentCount = appState.taskItems.where((taskItem) => (taskItem.isUrgent() || taskItem.isPastDue()) && taskItem.completionDate == null).length;
+        var urgentTasks = appState.taskItems.where((taskItem) => (taskItem.isUrgent() || taskItem.isPastDue()) && taskItem.completionDate == null && taskItem.retired == null);
+        var taskIds = urgentTasks.map((taskItem) => {'id': taskItem.docId, 'name': taskItem.name}).toList();
+        print('Urgent tasks: $taskIds');
+        var urgentCount = urgentTasks.length;
         FlutterAppBadger.isAppBadgeSupported().then((supported) {
           if (supported) {
             print('Updating badge count to $urgentCount');
