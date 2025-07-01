@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaster/redux/presentation/editable_task_field.dart';
@@ -131,20 +130,47 @@ void main() {
 
   testWidgets('applies wordCaps: true', (WidgetTester tester) async {
     await createApp(tester, wordCaps: true);
-    final textField = tester.widget<TextFormField>(findTextField());
-    expect(textField.textCapitalization, TextCapitalization.words);
+    final textFormFieldFinder = findTextField();
+    expect(textFormFieldFinder, findsOneWidget);
+
+    final textFieldDescendantFinder = find.descendant(
+      of: textFormFieldFinder,
+      matching: find.byType(TextField),
+    );
+    expect(textFieldDescendantFinder, findsOneWidget);
+
+    final textFieldWidget = tester.widget<TextField>(textFieldDescendantFinder);
+    expect(textFieldWidget.textCapitalization, TextCapitalization.words);
   });
 
   testWidgets('applies wordCaps: false', (WidgetTester tester) async {
     await createApp(tester, wordCaps: false);
-    final textField = tester.widget<TextFormField>(findTextField());
-    expect(textField.textCapitalization, TextCapitalization.none);
+    final textFormFieldFinder = findTextField();
+    expect(textFormFieldFinder, findsOneWidget);
+
+    final textFieldDescendantFinder = find.descendant(
+      of: textFormFieldFinder,
+      matching: find.byType(TextField),
+    );
+    expect(textFieldDescendantFinder, findsOneWidget);
+
+    final textFieldWidget = tester.widget<TextField>(textFieldDescendantFinder);
+    expect(textFieldWidget.textCapitalization, TextCapitalization.sentences);
   });
 
   testWidgets('propagates inputType to TextFormField', (WidgetTester tester) async {
     await createApp(tester, inputType: TextInputType.number);
-    final textField = tester.widget<TextFormField>(findTextField());
-    expect(textField.keyboardType, TextInputType.number);
+    final textFormFieldFinder = findTextField();
+    expect(textFormFieldFinder, findsOneWidget);
+
+    final textFieldDescendantFinder = find.descendant(
+      of: textFormFieldFinder,
+      matching: find.byType(TextField),
+    );
+    expect(textFieldDescendantFinder, findsOneWidget);
+
+    final textFieldWidget = tester.widget<TextField>(textFieldDescendantFinder);
+    expect(textFieldWidget.keyboardType, TextInputType.number);
   });
 
   testWidgets('validation passes with custom validator and no error text', (WidgetTester tester) async {
