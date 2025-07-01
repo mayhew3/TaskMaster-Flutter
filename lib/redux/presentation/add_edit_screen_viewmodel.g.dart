@@ -12,27 +12,22 @@ class _$AddEditScreenViewModel extends AddEditScreenViewModel {
   @override
   final BuiltList<TaskRecurrence> allTaskRecurrences;
 
-  factory _$AddEditScreenViewModel(
-          [void Function(AddEditScreenViewModelBuilder)? updates]) =>
-      (new AddEditScreenViewModelBuilder()..update(updates))._build();
+  factory _$AddEditScreenViewModel([
+    void Function(AddEditScreenViewModelBuilder)? updates,
+  ]) => (AddEditScreenViewModelBuilder()..update(updates))._build();
 
-  _$AddEditScreenViewModel._(
-      {required this.allTaskItems, required this.allTaskRecurrences})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        allTaskItems, r'AddEditScreenViewModel', 'allTaskItems');
-    BuiltValueNullFieldError.checkNotNull(
-        allTaskRecurrences, r'AddEditScreenViewModel', 'allTaskRecurrences');
-  }
-
+  _$AddEditScreenViewModel._({
+    required this.allTaskItems,
+    required this.allTaskRecurrences,
+  }) : super._();
   @override
   AddEditScreenViewModel rebuild(
-          void Function(AddEditScreenViewModelBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(AddEditScreenViewModelBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   AddEditScreenViewModelBuilder toBuilder() =>
-      new AddEditScreenViewModelBuilder()..replace(this);
+      AddEditScreenViewModelBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -66,13 +61,13 @@ class AddEditScreenViewModelBuilder
 
   ListBuilder<TaskItem>? _allTaskItems;
   ListBuilder<TaskItem> get allTaskItems =>
-      _$this._allTaskItems ??= new ListBuilder<TaskItem>();
+      _$this._allTaskItems ??= ListBuilder<TaskItem>();
   set allTaskItems(ListBuilder<TaskItem>? allTaskItems) =>
       _$this._allTaskItems = allTaskItems;
 
   ListBuilder<TaskRecurrence>? _allTaskRecurrences;
   ListBuilder<TaskRecurrence> get allTaskRecurrences =>
-      _$this._allTaskRecurrences ??= new ListBuilder<TaskRecurrence>();
+      _$this._allTaskRecurrences ??= ListBuilder<TaskRecurrence>();
   set allTaskRecurrences(ListBuilder<TaskRecurrence>? allTaskRecurrences) =>
       _$this._allTaskRecurrences = allTaskRecurrences;
 
@@ -90,7 +85,6 @@ class AddEditScreenViewModelBuilder
 
   @override
   void replace(AddEditScreenViewModel other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$AddEditScreenViewModel;
   }
 
@@ -105,10 +99,12 @@ class AddEditScreenViewModelBuilder
   _$AddEditScreenViewModel _build() {
     _$AddEditScreenViewModel _$result;
     try {
-      _$result = _$v ??
-          new _$AddEditScreenViewModel._(
-              allTaskItems: allTaskItems.build(),
-              allTaskRecurrences: allTaskRecurrences.build());
+      _$result =
+          _$v ??
+          _$AddEditScreenViewModel._(
+            allTaskItems: allTaskItems.build(),
+            allTaskRecurrences: allTaskRecurrences.build(),
+          );
     } catch (_) {
       late String _$failedField;
       try {
@@ -117,8 +113,11 @@ class AddEditScreenViewModelBuilder
         _$failedField = 'allTaskRecurrences';
         allTaskRecurrences.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            r'AddEditScreenViewModel', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'AddEditScreenViewModel',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

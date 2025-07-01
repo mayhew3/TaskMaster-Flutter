@@ -14,30 +14,22 @@ class _$VisibilityFilter extends VisibilityFilter {
   @override
   final bool showActiveSprint;
 
-  factory _$VisibilityFilter(
-          [void Function(VisibilityFilterBuilder)? updates]) =>
-      (new VisibilityFilterBuilder()..update(updates))._build();
+  factory _$VisibilityFilter([
+    void Function(VisibilityFilterBuilder)? updates,
+  ]) => (VisibilityFilterBuilder()..update(updates))._build();
 
-  _$VisibilityFilter._(
-      {required this.showScheduled,
-      required this.showCompleted,
-      required this.showActiveSprint})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        showScheduled, r'VisibilityFilter', 'showScheduled');
-    BuiltValueNullFieldError.checkNotNull(
-        showCompleted, r'VisibilityFilter', 'showCompleted');
-    BuiltValueNullFieldError.checkNotNull(
-        showActiveSprint, r'VisibilityFilter', 'showActiveSprint');
-  }
-
+  _$VisibilityFilter._({
+    required this.showScheduled,
+    required this.showCompleted,
+    required this.showActiveSprint,
+  }) : super._();
   @override
   VisibilityFilter rebuild(void Function(VisibilityFilterBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
   VisibilityFilterBuilder toBuilder() =>
-      new VisibilityFilterBuilder()..replace(this);
+      VisibilityFilterBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -102,7 +94,6 @@ class VisibilityFilterBuilder
 
   @override
   void replace(VisibilityFilter other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$VisibilityFilter;
   }
 
@@ -115,14 +106,25 @@ class VisibilityFilterBuilder
   VisibilityFilter build() => _build();
 
   _$VisibilityFilter _build() {
-    final _$result = _$v ??
-        new _$VisibilityFilter._(
-            showScheduled: BuiltValueNullFieldError.checkNotNull(
-                showScheduled, r'VisibilityFilter', 'showScheduled'),
-            showCompleted: BuiltValueNullFieldError.checkNotNull(
-                showCompleted, r'VisibilityFilter', 'showCompleted'),
-            showActiveSprint: BuiltValueNullFieldError.checkNotNull(
-                showActiveSprint, r'VisibilityFilter', 'showActiveSprint'));
+    final _$result =
+        _$v ??
+        _$VisibilityFilter._(
+          showScheduled: BuiltValueNullFieldError.checkNotNull(
+            showScheduled,
+            r'VisibilityFilter',
+            'showScheduled',
+          ),
+          showCompleted: BuiltValueNullFieldError.checkNotNull(
+            showCompleted,
+            r'VisibilityFilter',
+            'showCompleted',
+          ),
+          showActiveSprint: BuiltValueNullFieldError.checkNotNull(
+            showActiveSprint,
+            r'VisibilityFilter',
+            'showActiveSprint',
+          ),
+        );
     replace(_$result);
     return _$result;
   }

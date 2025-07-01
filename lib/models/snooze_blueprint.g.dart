@@ -8,17 +8,19 @@ part of 'snooze_blueprint.dart';
 
 SnoozeBlueprint _$SnoozeBlueprintFromJson(Map<String, dynamic> json) =>
     SnoozeBlueprint(
-      taskId: (json['taskId'] as num?)?.toInt(),
-      taskDocId: json['taskDocId'] as String,
-      snoozeNumber: (json['snoozeNumber'] as num).toInt(),
-      snoozeUnits: json['snoozeUnits'] as String,
-      snoozeAnchor: json['snoozeAnchor'] as String,
-      previousAnchor: _$JsonConverterFromJson<DateTime, DateTime>(
+        taskId: (json['taskId'] as num?)?.toInt(),
+        taskDocId: json['taskDocId'] as String,
+        snoozeNumber: (json['snoozeNumber'] as num).toInt(),
+        snoozeUnits: json['snoozeUnits'] as String,
+        snoozeAnchor: json['snoozeAnchor'] as String,
+        previousAnchor: _$JsonConverterFromJson<DateTime, DateTime>(
           json['previousAnchor'],
-          const JsonDateTimePassThroughConverter().fromJson),
-      newAnchor: const JsonDateTimePassThroughConverter()
-          .fromJson(json['newAnchor'] as DateTime),
-    )
+          const JsonDateTimePassThroughConverter().fromJson,
+        ),
+        newAnchor: const JsonDateTimePassThroughConverter().fromJson(
+          json['newAnchor'] as DateTime,
+        ),
+      )
       ..id = (json['id'] as num?)?.toInt()
       ..dateAdded = json['dateAdded'] == null
           ? null
@@ -38,10 +40,12 @@ Map<String, dynamic> _$SnoozeBlueprintToJson(SnoozeBlueprint instance) =>
       'snoozeUnits': instance.snoozeUnits,
       'snoozeAnchor': instance.snoozeAnchor,
       'previousAnchor': _$JsonConverterToJson<DateTime, DateTime>(
-          instance.previousAnchor,
-          const JsonDateTimePassThroughConverter().toJson),
-      'newAnchor':
-          const JsonDateTimePassThroughConverter().toJson(instance.newAnchor),
+        instance.previousAnchor,
+        const JsonDateTimePassThroughConverter().toJson,
+      ),
+      'newAnchor': const JsonDateTimePassThroughConverter().toJson(
+        instance.newAnchor,
+      ),
       'retired': instance.retired,
       'retiredDate': instance.retiredDate?.toIso8601String(),
     };
@@ -49,11 +53,9 @@ Map<String, dynamic> _$SnoozeBlueprintToJson(SnoozeBlueprint instance) =>
 Value? _$JsonConverterFromJson<Json, Value>(
   Object? json,
   Value? Function(Json json) fromJson,
-) =>
-    json == null ? null : fromJson(json as Json);
+) => json == null ? null : fromJson(json as Json);
 
 Json? _$JsonConverterToJson<Json, Value>(
   Value? value,
   Json? Function(Value value) toJson,
-) =>
-    value == null ? null : toJson(value);
+) => value == null ? null : toJson(value);

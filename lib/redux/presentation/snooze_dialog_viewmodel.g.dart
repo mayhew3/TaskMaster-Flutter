@@ -10,23 +10,19 @@ class _$SnoozeDialogViewModel extends SnoozeDialogViewModel {
   @override
   final TimezoneHelper timezoneHelper;
 
-  factory _$SnoozeDialogViewModel(
-          [void Function(SnoozeDialogViewModelBuilder)? updates]) =>
-      (new SnoozeDialogViewModelBuilder()..update(updates))._build();
+  factory _$SnoozeDialogViewModel([
+    void Function(SnoozeDialogViewModelBuilder)? updates,
+  ]) => (SnoozeDialogViewModelBuilder()..update(updates))._build();
 
-  _$SnoozeDialogViewModel._({required this.timezoneHelper}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        timezoneHelper, r'SnoozeDialogViewModel', 'timezoneHelper');
-  }
-
+  _$SnoozeDialogViewModel._({required this.timezoneHelper}) : super._();
   @override
   SnoozeDialogViewModel rebuild(
-          void Function(SnoozeDialogViewModelBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(SnoozeDialogViewModelBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   SnoozeDialogViewModelBuilder toBuilder() =>
-      new SnoozeDialogViewModelBuilder()..replace(this);
+      SnoozeDialogViewModelBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -45,9 +41,9 @@ class _$SnoozeDialogViewModel extends SnoozeDialogViewModel {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'SnoozeDialogViewModel')
-          ..add('timezoneHelper', timezoneHelper))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'SnoozeDialogViewModel',
+    )..add('timezoneHelper', timezoneHelper)).toString();
   }
 }
 
@@ -73,7 +69,6 @@ class SnoozeDialogViewModelBuilder
 
   @override
   void replace(SnoozeDialogViewModel other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$SnoozeDialogViewModel;
   }
 
@@ -86,10 +81,15 @@ class SnoozeDialogViewModelBuilder
   SnoozeDialogViewModel build() => _build();
 
   _$SnoozeDialogViewModel _build() {
-    final _$result = _$v ??
-        new _$SnoozeDialogViewModel._(
-            timezoneHelper: BuiltValueNullFieldError.checkNotNull(
-                timezoneHelper, r'SnoozeDialogViewModel', 'timezoneHelper'));
+    final _$result =
+        _$v ??
+        _$SnoozeDialogViewModel._(
+          timezoneHelper: BuiltValueNullFieldError.checkNotNull(
+            timezoneHelper,
+            r'SnoozeDialogViewModel',
+            'timezoneHelper',
+          ),
+        );
     replace(_$result);
     return _$result;
   }

@@ -8,16 +8,15 @@ import 'mock_pending_notification_request.dart';
 class MockFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNotificationsPlugin {
   List<MockPendingNotificationRequest> pendings = [];
   late DidReceiveNotificationResponseCallback? onDidReceiveNotification;
-  late DidReceiveLocalNotificationCallback? onDidReceiveLocalNotification;
 
   @override
   Future<bool?> initialize(
       InitializationSettings initializationSettings,
-      { DidReceiveNotificationResponseCallback? onDidReceiveNotificationResponse,
-        DidReceiveBackgroundNotificationResponseCallback?
-        onDidReceiveBackgroundNotificationResponse, } ) async {
+      {
+        DidReceiveNotificationResponseCallback? onDidReceiveNotificationResponse,
+        DidReceiveBackgroundNotificationResponseCallback? onDidReceiveBackgroundNotificationResponse,
+      } ) async {
     onDidReceiveNotification = onDidReceiveNotificationResponse;
-    onDidReceiveLocalNotification = initializationSettings.iOS?.onDidReceiveLocalNotification;
     return Future.value(true);
   }
 
@@ -28,7 +27,6 @@ class MockFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNo
       String? body,
       TZDateTime scheduledDate,
       NotificationDetails notificationDetails, {
-        required UILocalNotificationDateInterpretation uiLocalNotificationDateInterpretation,
         bool androidAllowWhileIdle = false,
         AndroidScheduleMode? androidScheduleMode,
         String? payload,

@@ -7,6 +7,10 @@ class TryToSilentlySignInAction {
 
 class LogInAction {}
 
+class GoogleInitializedAction {
+  GoogleInitializedAction();
+}
+
 class OnAuthenticatedAction {
   final GoogleSignInAccount account;
   final UserCredential userCredential;

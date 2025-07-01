@@ -6,7 +6,7 @@ part of 'anchor_date.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializer<AnchorDate> _$anchorDateSerializer = new _$AnchorDateSerializer();
+Serializer<AnchorDate> _$anchorDateSerializer = _$AnchorDateSerializer();
 
 class _$AnchorDateSerializer implements StructuredSerializer<AnchorDate> {
   @override
@@ -15,24 +15,34 @@ class _$AnchorDateSerializer implements StructuredSerializer<AnchorDate> {
   final String wireName = 'AnchorDate';
 
   @override
-  Iterable<Object?> serialize(Serializers serializers, AnchorDate object,
-      {FullType specifiedType = FullType.unspecified}) {
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    AnchorDate object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = <Object?>[
       'dateValue',
-      serializers.serialize(object.dateValue,
-          specifiedType: const FullType(DateTime)),
+      serializers.serialize(
+        object.dateValue,
+        specifiedType: const FullType(DateTime),
+      ),
       'dateType',
-      serializers.serialize(object.dateType,
-          specifiedType: const FullType(TaskDateType)),
+      serializers.serialize(
+        object.dateType,
+        specifiedType: const FullType(TaskDateType),
+      ),
     ];
 
     return result;
   }
 
   @override
-  AnchorDate deserialize(Serializers serializers, Iterable<Object?> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new AnchorDateBuilder();
+  AnchorDate deserialize(
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = AnchorDateBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -41,12 +51,20 @@ class _$AnchorDateSerializer implements StructuredSerializer<AnchorDate> {
       final Object? value = iterator.current;
       switch (key) {
         case 'dateValue':
-          result.dateValue = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime))! as DateTime;
+          result.dateValue =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(DateTime),
+                  )!
+                  as DateTime;
           break;
         case 'dateType':
-          result.dateType = serializers.deserialize(value,
-              specifiedType: const FullType(TaskDateType))! as TaskDateType;
+          result.dateType =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(TaskDateType),
+                  )!
+                  as TaskDateType;
           break;
       }
     }
@@ -62,21 +80,15 @@ class _$AnchorDate extends AnchorDate {
   final TaskDateType dateType;
 
   factory _$AnchorDate([void Function(AnchorDateBuilder)? updates]) =>
-      (new AnchorDateBuilder()..update(updates))._build();
+      (AnchorDateBuilder()..update(updates))._build();
 
-  _$AnchorDate._({required this.dateValue, required this.dateType})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        dateValue, r'AnchorDate', 'dateValue');
-    BuiltValueNullFieldError.checkNotNull(dateType, r'AnchorDate', 'dateType');
-  }
-
+  _$AnchorDate._({required this.dateValue, required this.dateType}) : super._();
   @override
   AnchorDate rebuild(void Function(AnchorDateBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  AnchorDateBuilder toBuilder() => new AnchorDateBuilder()..replace(this);
+  AnchorDateBuilder toBuilder() => AnchorDateBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -129,7 +141,6 @@ class AnchorDateBuilder implements Builder<AnchorDate, AnchorDateBuilder> {
 
   @override
   void replace(AnchorDate other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$AnchorDate;
   }
 
@@ -142,12 +153,20 @@ class AnchorDateBuilder implements Builder<AnchorDate, AnchorDateBuilder> {
   AnchorDate build() => _build();
 
   _$AnchorDate _build() {
-    final _$result = _$v ??
-        new _$AnchorDate._(
-            dateValue: BuiltValueNullFieldError.checkNotNull(
-                dateValue, r'AnchorDate', 'dateValue'),
-            dateType: BuiltValueNullFieldError.checkNotNull(
-                dateType, r'AnchorDate', 'dateType'));
+    final _$result =
+        _$v ??
+        _$AnchorDate._(
+          dateValue: BuiltValueNullFieldError.checkNotNull(
+            dateValue,
+            r'AnchorDate',
+            'dateValue',
+          ),
+          dateType: BuiltValueNullFieldError.checkNotNull(
+            dateType,
+            r'AnchorDate',
+            'dateType',
+          ),
+        );
     replace(_$result);
     return _$result;
   }

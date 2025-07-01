@@ -6,7 +6,7 @@ part of 'snooze.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializer<Snooze> _$snoozeSerializer = new _$SnoozeSerializer();
+Serializer<Snooze> _$snoozeSerializer = _$SnoozeSerializer();
 
 class _$SnoozeSerializer implements StructuredSerializer<Snooze> {
   @override
@@ -15,46 +15,67 @@ class _$SnoozeSerializer implements StructuredSerializer<Snooze> {
   final String wireName = 'Snooze';
 
   @override
-  Iterable<Object?> serialize(Serializers serializers, Snooze object,
-      {FullType specifiedType = FullType.unspecified}) {
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    Snooze object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = <Object?>[
       'docId',
-      serializers.serialize(object.docId,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.docId,
+        specifiedType: const FullType(String),
+      ),
       'dateAdded',
-      serializers.serialize(object.dateAdded,
-          specifiedType: const FullType(DateTime)),
+      serializers.serialize(
+        object.dateAdded,
+        specifiedType: const FullType(DateTime),
+      ),
       'taskDocId',
-      serializers.serialize(object.taskDocId,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.taskDocId,
+        specifiedType: const FullType(String),
+      ),
       'snoozeNumber',
-      serializers.serialize(object.snoozeNumber,
-          specifiedType: const FullType(int)),
+      serializers.serialize(
+        object.snoozeNumber,
+        specifiedType: const FullType(int),
+      ),
       'snoozeUnits',
-      serializers.serialize(object.snoozeUnits,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.snoozeUnits,
+        specifiedType: const FullType(String),
+      ),
       'snoozeAnchor',
-      serializers.serialize(object.snoozeAnchor,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.snoozeAnchor,
+        specifiedType: const FullType(String),
+      ),
       'newAnchor',
-      serializers.serialize(object.newAnchor,
-          specifiedType: const FullType(DateTime)),
+      serializers.serialize(
+        object.newAnchor,
+        specifiedType: const FullType(DateTime),
+      ),
     ];
     Object? value;
     value = object.previousAnchor;
 
     result
       ..add('previousAnchor')
-      ..add(serializers.serialize(value,
-          specifiedType: const FullType(DateTime)));
+      ..add(
+        serializers.serialize(value, specifiedType: const FullType(DateTime)),
+      );
 
     return result;
   }
 
   @override
-  Snooze deserialize(Serializers serializers, Iterable<Object?> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new SnoozeBuilder();
+  Snooze deserialize(
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = SnoozeBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -63,36 +84,68 @@ class _$SnoozeSerializer implements StructuredSerializer<Snooze> {
       final Object? value = iterator.current;
       switch (key) {
         case 'docId':
-          result.docId = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.docId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'dateAdded':
-          result.dateAdded = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime))! as DateTime;
+          result.dateAdded =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(DateTime),
+                  )!
+                  as DateTime;
           break;
         case 'taskDocId':
-          result.taskDocId = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.taskDocId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'snoozeNumber':
-          result.snoozeNumber = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
+          result.snoozeNumber =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
         case 'snoozeUnits':
-          result.snoozeUnits = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.snoozeUnits =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'snoozeAnchor':
-          result.snoozeAnchor = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.snoozeAnchor =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'previousAnchor':
-          result.previousAnchor = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime)) as DateTime?;
+          result.previousAnchor =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(DateTime),
+                  )
+                  as DateTime?;
           break;
         case 'newAnchor':
-          result.newAnchor = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime))! as DateTime;
+          result.newAnchor =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(DateTime),
+                  )!
+                  as DateTime;
           break;
       }
     }
@@ -120,36 +173,24 @@ class _$Snooze extends Snooze {
   final DateTime newAnchor;
 
   factory _$Snooze([void Function(SnoozeBuilder)? updates]) =>
-      (new SnoozeBuilder()..update(updates))._build();
+      (SnoozeBuilder()..update(updates))._build();
 
-  _$Snooze._(
-      {required this.docId,
-      required this.dateAdded,
-      required this.taskDocId,
-      required this.snoozeNumber,
-      required this.snoozeUnits,
-      required this.snoozeAnchor,
-      this.previousAnchor,
-      required this.newAnchor})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(docId, r'Snooze', 'docId');
-    BuiltValueNullFieldError.checkNotNull(dateAdded, r'Snooze', 'dateAdded');
-    BuiltValueNullFieldError.checkNotNull(taskDocId, r'Snooze', 'taskDocId');
-    BuiltValueNullFieldError.checkNotNull(
-        snoozeNumber, r'Snooze', 'snoozeNumber');
-    BuiltValueNullFieldError.checkNotNull(
-        snoozeUnits, r'Snooze', 'snoozeUnits');
-    BuiltValueNullFieldError.checkNotNull(
-        snoozeAnchor, r'Snooze', 'snoozeAnchor');
-    BuiltValueNullFieldError.checkNotNull(newAnchor, r'Snooze', 'newAnchor');
-  }
-
+  _$Snooze._({
+    required this.docId,
+    required this.dateAdded,
+    required this.taskDocId,
+    required this.snoozeNumber,
+    required this.snoozeUnits,
+    required this.snoozeAnchor,
+    this.previousAnchor,
+    required this.newAnchor,
+  }) : super._();
   @override
   Snooze rebuild(void Function(SnoozeBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  SnoozeBuilder toBuilder() => new SnoozeBuilder()..replace(this);
+  SnoozeBuilder toBuilder() => SnoozeBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -251,7 +292,6 @@ class SnoozeBuilder implements Builder<Snooze, SnoozeBuilder> {
 
   @override
   void replace(Snooze other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$Snooze;
   }
 
@@ -264,23 +304,46 @@ class SnoozeBuilder implements Builder<Snooze, SnoozeBuilder> {
   Snooze build() => _build();
 
   _$Snooze _build() {
-    final _$result = _$v ??
-        new _$Snooze._(
-            docId: BuiltValueNullFieldError.checkNotNull(
-                docId, r'Snooze', 'docId'),
-            dateAdded: BuiltValueNullFieldError.checkNotNull(
-                dateAdded, r'Snooze', 'dateAdded'),
-            taskDocId: BuiltValueNullFieldError.checkNotNull(
-                taskDocId, r'Snooze', 'taskDocId'),
-            snoozeNumber: BuiltValueNullFieldError.checkNotNull(
-                snoozeNumber, r'Snooze', 'snoozeNumber'),
-            snoozeUnits: BuiltValueNullFieldError.checkNotNull(
-                snoozeUnits, r'Snooze', 'snoozeUnits'),
-            snoozeAnchor: BuiltValueNullFieldError.checkNotNull(
-                snoozeAnchor, r'Snooze', 'snoozeAnchor'),
-            previousAnchor: previousAnchor,
-            newAnchor: BuiltValueNullFieldError.checkNotNull(
-                newAnchor, r'Snooze', 'newAnchor'));
+    final _$result =
+        _$v ??
+        _$Snooze._(
+          docId: BuiltValueNullFieldError.checkNotNull(
+            docId,
+            r'Snooze',
+            'docId',
+          ),
+          dateAdded: BuiltValueNullFieldError.checkNotNull(
+            dateAdded,
+            r'Snooze',
+            'dateAdded',
+          ),
+          taskDocId: BuiltValueNullFieldError.checkNotNull(
+            taskDocId,
+            r'Snooze',
+            'taskDocId',
+          ),
+          snoozeNumber: BuiltValueNullFieldError.checkNotNull(
+            snoozeNumber,
+            r'Snooze',
+            'snoozeNumber',
+          ),
+          snoozeUnits: BuiltValueNullFieldError.checkNotNull(
+            snoozeUnits,
+            r'Snooze',
+            'snoozeUnits',
+          ),
+          snoozeAnchor: BuiltValueNullFieldError.checkNotNull(
+            snoozeAnchor,
+            r'Snooze',
+            'snoozeAnchor',
+          ),
+          previousAnchor: previousAnchor,
+          newAnchor: BuiltValueNullFieldError.checkNotNull(
+            newAnchor,
+            r'Snooze',
+            'newAnchor',
+          ),
+        );
     replace(_$result);
     return _$result;
   }

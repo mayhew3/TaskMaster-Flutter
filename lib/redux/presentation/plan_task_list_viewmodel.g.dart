@@ -20,36 +20,26 @@ class _$PlanTaskListViewModel extends PlanTaskListViewModel {
   @override
   final String personDocId;
 
-  factory _$PlanTaskListViewModel(
-          [void Function(PlanTaskListViewModelBuilder)? updates]) =>
-      (new PlanTaskListViewModelBuilder()..update(updates))._build();
+  factory _$PlanTaskListViewModel([
+    void Function(PlanTaskListViewModelBuilder)? updates,
+  ]) => (PlanTaskListViewModelBuilder()..update(updates))._build();
 
-  _$PlanTaskListViewModel._(
-      {required this.allTaskItems,
-      required this.allSprints,
-      required this.recentlyCompleted,
-      this.lastSprint,
-      this.activeSprint,
-      required this.personDocId})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        allTaskItems, r'PlanTaskListViewModel', 'allTaskItems');
-    BuiltValueNullFieldError.checkNotNull(
-        allSprints, r'PlanTaskListViewModel', 'allSprints');
-    BuiltValueNullFieldError.checkNotNull(
-        recentlyCompleted, r'PlanTaskListViewModel', 'recentlyCompleted');
-    BuiltValueNullFieldError.checkNotNull(
-        personDocId, r'PlanTaskListViewModel', 'personDocId');
-  }
-
+  _$PlanTaskListViewModel._({
+    required this.allTaskItems,
+    required this.allSprints,
+    required this.recentlyCompleted,
+    this.lastSprint,
+    this.activeSprint,
+    required this.personDocId,
+  }) : super._();
   @override
   PlanTaskListViewModel rebuild(
-          void Function(PlanTaskListViewModelBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(PlanTaskListViewModelBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   PlanTaskListViewModelBuilder toBuilder() =>
-      new PlanTaskListViewModelBuilder()..replace(this);
+      PlanTaskListViewModelBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -95,29 +85,28 @@ class PlanTaskListViewModelBuilder
 
   ListBuilder<TaskItem>? _allTaskItems;
   ListBuilder<TaskItem> get allTaskItems =>
-      _$this._allTaskItems ??= new ListBuilder<TaskItem>();
+      _$this._allTaskItems ??= ListBuilder<TaskItem>();
   set allTaskItems(ListBuilder<TaskItem>? allTaskItems) =>
       _$this._allTaskItems = allTaskItems;
 
   ListBuilder<Sprint>? _allSprints;
   ListBuilder<Sprint> get allSprints =>
-      _$this._allSprints ??= new ListBuilder<Sprint>();
+      _$this._allSprints ??= ListBuilder<Sprint>();
   set allSprints(ListBuilder<Sprint>? allSprints) =>
       _$this._allSprints = allSprints;
 
   ListBuilder<TaskItem>? _recentlyCompleted;
   ListBuilder<TaskItem> get recentlyCompleted =>
-      _$this._recentlyCompleted ??= new ListBuilder<TaskItem>();
+      _$this._recentlyCompleted ??= ListBuilder<TaskItem>();
   set recentlyCompleted(ListBuilder<TaskItem>? recentlyCompleted) =>
       _$this._recentlyCompleted = recentlyCompleted;
 
   SprintBuilder? _lastSprint;
-  SprintBuilder get lastSprint => _$this._lastSprint ??= new SprintBuilder();
+  SprintBuilder get lastSprint => _$this._lastSprint ??= SprintBuilder();
   set lastSprint(SprintBuilder? lastSprint) => _$this._lastSprint = lastSprint;
 
   SprintBuilder? _activeSprint;
-  SprintBuilder get activeSprint =>
-      _$this._activeSprint ??= new SprintBuilder();
+  SprintBuilder get activeSprint => _$this._activeSprint ??= SprintBuilder();
   set activeSprint(SprintBuilder? activeSprint) =>
       _$this._activeSprint = activeSprint;
 
@@ -143,7 +132,6 @@ class PlanTaskListViewModelBuilder
 
   @override
   void replace(PlanTaskListViewModel other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$PlanTaskListViewModel;
   }
 
@@ -158,15 +146,20 @@ class PlanTaskListViewModelBuilder
   _$PlanTaskListViewModel _build() {
     _$PlanTaskListViewModel _$result;
     try {
-      _$result = _$v ??
-          new _$PlanTaskListViewModel._(
-              allTaskItems: allTaskItems.build(),
-              allSprints: allSprints.build(),
-              recentlyCompleted: recentlyCompleted.build(),
-              lastSprint: _lastSprint?.build(),
-              activeSprint: _activeSprint?.build(),
-              personDocId: BuiltValueNullFieldError.checkNotNull(
-                  personDocId, r'PlanTaskListViewModel', 'personDocId'));
+      _$result =
+          _$v ??
+          _$PlanTaskListViewModel._(
+            allTaskItems: allTaskItems.build(),
+            allSprints: allSprints.build(),
+            recentlyCompleted: recentlyCompleted.build(),
+            lastSprint: _lastSprint?.build(),
+            activeSprint: _activeSprint?.build(),
+            personDocId: BuiltValueNullFieldError.checkNotNull(
+              personDocId,
+              r'PlanTaskListViewModel',
+              'personDocId',
+            ),
+          );
     } catch (_) {
       late String _$failedField;
       try {
@@ -181,8 +174,11 @@ class PlanTaskListViewModelBuilder
         _$failedField = 'activeSprint';
         _activeSprint?.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            r'PlanTaskListViewModel', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'PlanTaskListViewModel',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

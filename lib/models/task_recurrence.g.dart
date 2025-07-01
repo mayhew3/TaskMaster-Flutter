@@ -7,7 +7,7 @@ part of 'task_recurrence.dart';
 // **************************************************************************
 
 Serializer<TaskRecurrence> _$taskRecurrenceSerializer =
-    new _$TaskRecurrenceSerializer();
+    _$TaskRecurrenceSerializer();
 
 class _$TaskRecurrenceSerializer
     implements StructuredSerializer<TaskRecurrence> {
@@ -17,35 +17,54 @@ class _$TaskRecurrenceSerializer
   final String wireName = 'TaskRecurrence';
 
   @override
-  Iterable<Object?> serialize(Serializers serializers, TaskRecurrence object,
-      {FullType specifiedType = FullType.unspecified}) {
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    TaskRecurrence object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
     final result = <Object?>[
       'docId',
-      serializers.serialize(object.docId,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.docId,
+        specifiedType: const FullType(String),
+      ),
       'dateAdded',
-      serializers.serialize(object.dateAdded,
-          specifiedType: const FullType(DateTime)),
+      serializers.serialize(
+        object.dateAdded,
+        specifiedType: const FullType(DateTime),
+      ),
       'personDocId',
-      serializers.serialize(object.personDocId,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.personDocId,
+        specifiedType: const FullType(String),
+      ),
       'name',
       serializers.serialize(object.name, specifiedType: const FullType(String)),
       'recurNumber',
-      serializers.serialize(object.recurNumber,
-          specifiedType: const FullType(int)),
+      serializers.serialize(
+        object.recurNumber,
+        specifiedType: const FullType(int),
+      ),
       'recurUnit',
-      serializers.serialize(object.recurUnit,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.recurUnit,
+        specifiedType: const FullType(String),
+      ),
       'recurWait',
-      serializers.serialize(object.recurWait,
-          specifiedType: const FullType(bool)),
+      serializers.serialize(
+        object.recurWait,
+        specifiedType: const FullType(bool),
+      ),
       'recurIteration',
-      serializers.serialize(object.recurIteration,
-          specifiedType: const FullType(int)),
+      serializers.serialize(
+        object.recurIteration,
+        specifiedType: const FullType(int),
+      ),
       'anchorDate',
-      serializers.serialize(object.anchorDate,
-          specifiedType: const FullType(AnchorDate)),
+      serializers.serialize(
+        object.anchorDate,
+        specifiedType: const FullType(AnchorDate),
+      ),
     ];
 
     return result;
@@ -53,9 +72,11 @@ class _$TaskRecurrenceSerializer
 
   @override
   TaskRecurrence deserialize(
-      Serializers serializers, Iterable<Object?> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new TaskRecurrenceBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = TaskRecurrenceBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -64,40 +85,77 @@ class _$TaskRecurrenceSerializer
       final Object? value = iterator.current;
       switch (key) {
         case 'docId':
-          result.docId = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.docId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'dateAdded':
-          result.dateAdded = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime))! as DateTime;
+          result.dateAdded =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(DateTime),
+                  )!
+                  as DateTime;
           break;
         case 'personDocId':
-          result.personDocId = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.personDocId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'name':
-          result.name = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.name =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'recurNumber':
-          result.recurNumber = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
+          result.recurNumber =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
         case 'recurUnit':
-          result.recurUnit = serializers.deserialize(value,
-              specifiedType: const FullType(String))! as String;
+          result.recurUnit =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'recurWait':
-          result.recurWait = serializers.deserialize(value,
-              specifiedType: const FullType(bool))! as bool;
+          result.recurWait =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )!
+                  as bool;
           break;
         case 'recurIteration':
-          result.recurIteration = serializers.deserialize(value,
-              specifiedType: const FullType(int))! as int;
+          result.recurIteration =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
         case 'anchorDate':
-          result.anchorDate.replace(serializers.deserialize(value,
-              specifiedType: const FullType(AnchorDate))! as AnchorDate);
+          result.anchorDate.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(AnchorDate),
+                )!
+                as AnchorDate,
+          );
           break;
       }
     }
@@ -127,44 +185,25 @@ class _$TaskRecurrence extends TaskRecurrence {
   final AnchorDate anchorDate;
 
   factory _$TaskRecurrence([void Function(TaskRecurrenceBuilder)? updates]) =>
-      (new TaskRecurrenceBuilder()..update(updates))._build();
+      (TaskRecurrenceBuilder()..update(updates))._build();
 
-  _$TaskRecurrence._(
-      {required this.docId,
-      required this.dateAdded,
-      required this.personDocId,
-      required this.name,
-      required this.recurNumber,
-      required this.recurUnit,
-      required this.recurWait,
-      required this.recurIteration,
-      required this.anchorDate})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(docId, r'TaskRecurrence', 'docId');
-    BuiltValueNullFieldError.checkNotNull(
-        dateAdded, r'TaskRecurrence', 'dateAdded');
-    BuiltValueNullFieldError.checkNotNull(
-        personDocId, r'TaskRecurrence', 'personDocId');
-    BuiltValueNullFieldError.checkNotNull(name, r'TaskRecurrence', 'name');
-    BuiltValueNullFieldError.checkNotNull(
-        recurNumber, r'TaskRecurrence', 'recurNumber');
-    BuiltValueNullFieldError.checkNotNull(
-        recurUnit, r'TaskRecurrence', 'recurUnit');
-    BuiltValueNullFieldError.checkNotNull(
-        recurWait, r'TaskRecurrence', 'recurWait');
-    BuiltValueNullFieldError.checkNotNull(
-        recurIteration, r'TaskRecurrence', 'recurIteration');
-    BuiltValueNullFieldError.checkNotNull(
-        anchorDate, r'TaskRecurrence', 'anchorDate');
-  }
-
+  _$TaskRecurrence._({
+    required this.docId,
+    required this.dateAdded,
+    required this.personDocId,
+    required this.name,
+    required this.recurNumber,
+    required this.recurUnit,
+    required this.recurWait,
+    required this.recurIteration,
+    required this.anchorDate,
+  }) : super._();
   @override
   TaskRecurrence rebuild(void Function(TaskRecurrenceBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  TaskRecurrenceBuilder toBuilder() =>
-      new TaskRecurrenceBuilder()..replace(this);
+  TaskRecurrenceBuilder toBuilder() => TaskRecurrenceBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -252,7 +291,7 @@ class TaskRecurrenceBuilder
 
   AnchorDateBuilder? _anchorDate;
   AnchorDateBuilder get anchorDate =>
-      _$this._anchorDate ??= new AnchorDateBuilder();
+      _$this._anchorDate ??= AnchorDateBuilder();
   set anchorDate(AnchorDateBuilder? anchorDate) =>
       _$this._anchorDate = anchorDate;
 
@@ -277,7 +316,6 @@ class TaskRecurrenceBuilder
 
   @override
   void replace(TaskRecurrence other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$TaskRecurrence;
   }
 
@@ -292,33 +330,62 @@ class TaskRecurrenceBuilder
   _$TaskRecurrence _build() {
     _$TaskRecurrence _$result;
     try {
-      _$result = _$v ??
-          new _$TaskRecurrence._(
-              docId: BuiltValueNullFieldError.checkNotNull(
-                  docId, r'TaskRecurrence', 'docId'),
-              dateAdded: BuiltValueNullFieldError.checkNotNull(
-                  dateAdded, r'TaskRecurrence', 'dateAdded'),
-              personDocId: BuiltValueNullFieldError.checkNotNull(
-                  personDocId, r'TaskRecurrence', 'personDocId'),
-              name: BuiltValueNullFieldError.checkNotNull(
-                  name, r'TaskRecurrence', 'name'),
-              recurNumber: BuiltValueNullFieldError.checkNotNull(
-                  recurNumber, r'TaskRecurrence', 'recurNumber'),
-              recurUnit: BuiltValueNullFieldError.checkNotNull(
-                  recurUnit, r'TaskRecurrence', 'recurUnit'),
-              recurWait: BuiltValueNullFieldError.checkNotNull(
-                  recurWait, r'TaskRecurrence', 'recurWait'),
-              recurIteration: BuiltValueNullFieldError.checkNotNull(
-                  recurIteration, r'TaskRecurrence', 'recurIteration'),
-              anchorDate: anchorDate.build());
+      _$result =
+          _$v ??
+          _$TaskRecurrence._(
+            docId: BuiltValueNullFieldError.checkNotNull(
+              docId,
+              r'TaskRecurrence',
+              'docId',
+            ),
+            dateAdded: BuiltValueNullFieldError.checkNotNull(
+              dateAdded,
+              r'TaskRecurrence',
+              'dateAdded',
+            ),
+            personDocId: BuiltValueNullFieldError.checkNotNull(
+              personDocId,
+              r'TaskRecurrence',
+              'personDocId',
+            ),
+            name: BuiltValueNullFieldError.checkNotNull(
+              name,
+              r'TaskRecurrence',
+              'name',
+            ),
+            recurNumber: BuiltValueNullFieldError.checkNotNull(
+              recurNumber,
+              r'TaskRecurrence',
+              'recurNumber',
+            ),
+            recurUnit: BuiltValueNullFieldError.checkNotNull(
+              recurUnit,
+              r'TaskRecurrence',
+              'recurUnit',
+            ),
+            recurWait: BuiltValueNullFieldError.checkNotNull(
+              recurWait,
+              r'TaskRecurrence',
+              'recurWait',
+            ),
+            recurIteration: BuiltValueNullFieldError.checkNotNull(
+              recurIteration,
+              r'TaskRecurrence',
+              'recurIteration',
+            ),
+            anchorDate: anchorDate.build(),
+          );
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'anchorDate';
         anchorDate.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            r'TaskRecurrence', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'TaskRecurrence',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

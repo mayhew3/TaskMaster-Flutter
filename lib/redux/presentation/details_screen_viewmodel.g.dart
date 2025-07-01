@@ -12,27 +12,22 @@ class _$DetailsScreenViewModel extends DetailsScreenViewModel {
   @override
   final TimezoneHelper timezoneHelper;
 
-  factory _$DetailsScreenViewModel(
-          [void Function(DetailsScreenViewModelBuilder)? updates]) =>
-      (new DetailsScreenViewModelBuilder()..update(updates))._build();
+  factory _$DetailsScreenViewModel([
+    void Function(DetailsScreenViewModelBuilder)? updates,
+  ]) => (DetailsScreenViewModelBuilder()..update(updates))._build();
 
-  _$DetailsScreenViewModel._(
-      {required this.taskItem, required this.timezoneHelper})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        taskItem, r'DetailsScreenViewModel', 'taskItem');
-    BuiltValueNullFieldError.checkNotNull(
-        timezoneHelper, r'DetailsScreenViewModel', 'timezoneHelper');
-  }
-
+  _$DetailsScreenViewModel._({
+    required this.taskItem,
+    required this.timezoneHelper,
+  }) : super._();
   @override
   DetailsScreenViewModel rebuild(
-          void Function(DetailsScreenViewModelBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(DetailsScreenViewModelBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   DetailsScreenViewModelBuilder toBuilder() =>
-      new DetailsScreenViewModelBuilder()..replace(this);
+      DetailsScreenViewModelBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -65,7 +60,7 @@ class DetailsScreenViewModelBuilder
   _$DetailsScreenViewModel? _$v;
 
   TaskItemBuilder? _taskItem;
-  TaskItemBuilder get taskItem => _$this._taskItem ??= new TaskItemBuilder();
+  TaskItemBuilder get taskItem => _$this._taskItem ??= TaskItemBuilder();
   set taskItem(TaskItemBuilder? taskItem) => _$this._taskItem = taskItem;
 
   TimezoneHelper? _timezoneHelper;
@@ -87,7 +82,6 @@ class DetailsScreenViewModelBuilder
 
   @override
   void replace(DetailsScreenViewModel other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$DetailsScreenViewModel;
   }
 
@@ -102,19 +96,27 @@ class DetailsScreenViewModelBuilder
   _$DetailsScreenViewModel _build() {
     _$DetailsScreenViewModel _$result;
     try {
-      _$result = _$v ??
-          new _$DetailsScreenViewModel._(
-              taskItem: taskItem.build(),
-              timezoneHelper: BuiltValueNullFieldError.checkNotNull(
-                  timezoneHelper, r'DetailsScreenViewModel', 'timezoneHelper'));
+      _$result =
+          _$v ??
+          _$DetailsScreenViewModel._(
+            taskItem: taskItem.build(),
+            timezoneHelper: BuiltValueNullFieldError.checkNotNull(
+              timezoneHelper,
+              r'DetailsScreenViewModel',
+              'timezoneHelper',
+            ),
+          );
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'taskItem';
         taskItem.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            r'DetailsScreenViewModel', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'DetailsScreenViewModel',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

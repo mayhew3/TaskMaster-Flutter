@@ -12,27 +12,22 @@ class _$StatsCounterViewModel extends StatsCounterViewModel {
   @override
   final int numCompleted;
 
-  factory _$StatsCounterViewModel(
-          [void Function(StatsCounterViewModelBuilder)? updates]) =>
-      (new StatsCounterViewModelBuilder()..update(updates))._build();
+  factory _$StatsCounterViewModel([
+    void Function(StatsCounterViewModelBuilder)? updates,
+  ]) => (StatsCounterViewModelBuilder()..update(updates))._build();
 
-  _$StatsCounterViewModel._(
-      {required this.numActive, required this.numCompleted})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        numActive, r'StatsCounterViewModel', 'numActive');
-    BuiltValueNullFieldError.checkNotNull(
-        numCompleted, r'StatsCounterViewModel', 'numCompleted');
-  }
-
+  _$StatsCounterViewModel._({
+    required this.numActive,
+    required this.numCompleted,
+  }) : super._();
   @override
   StatsCounterViewModel rebuild(
-          void Function(StatsCounterViewModelBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(StatsCounterViewModelBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   StatsCounterViewModelBuilder toBuilder() =>
-      new StatsCounterViewModelBuilder()..replace(this);
+      StatsCounterViewModelBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -86,7 +81,6 @@ class StatsCounterViewModelBuilder
 
   @override
   void replace(StatsCounterViewModel other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$StatsCounterViewModel;
   }
 
@@ -99,12 +93,20 @@ class StatsCounterViewModelBuilder
   StatsCounterViewModel build() => _build();
 
   _$StatsCounterViewModel _build() {
-    final _$result = _$v ??
-        new _$StatsCounterViewModel._(
-            numActive: BuiltValueNullFieldError.checkNotNull(
-                numActive, r'StatsCounterViewModel', 'numActive'),
-            numCompleted: BuiltValueNullFieldError.checkNotNull(
-                numCompleted, r'StatsCounterViewModel', 'numCompleted'));
+    final _$result =
+        _$v ??
+        _$StatsCounterViewModel._(
+          numActive: BuiltValueNullFieldError.checkNotNull(
+            numActive,
+            r'StatsCounterViewModel',
+            'numActive',
+          ),
+          numCompleted: BuiltValueNullFieldError.checkNotNull(
+            numCompleted,
+            r'StatsCounterViewModel',
+            'numCompleted',
+          ),
+        );
     replace(_$result);
     return _$result;
   }

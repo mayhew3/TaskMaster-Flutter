@@ -189,10 +189,8 @@ class NotificationHelper {
         message,
         localTime,
         platformChannelSpecifics,
-        uiLocalNotificationDateInterpretation:
-        UILocalNotificationDateInterpretation.absoluteTime,
         payload: payload,
-        androidAllowWhileIdle: true);
+        androidScheduleMode: AndroidScheduleMode.exact);
     print(verificationMessage);
   }
 

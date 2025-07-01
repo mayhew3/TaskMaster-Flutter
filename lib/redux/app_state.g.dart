@@ -19,10 +19,10 @@ class _$AppState extends AppState {
   final StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? sprintListener;
   @override
   final StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
-      taskRecurrenceListener;
+  taskRecurrenceListener;
   @override
   final Map<String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>?
-      sprintAssignmentListeners;
+  sprintAssignmentListeners;
   @override
   final bool tasksLoading;
   @override
@@ -48,6 +48,8 @@ class _$AppState extends AppState {
   @override
   final GoogleSignIn googleSignIn;
   @override
+  final bool googleInitialized;
+  @override
   final UserCredential? firebaseUser;
   @override
   final GoogleSignInAccount? currentUser;
@@ -61,74 +63,42 @@ class _$AppState extends AppState {
   final NotificationHelper notificationHelper;
 
   factory _$AppState([void Function(AppStateBuilder)? updates]) =>
-      (new AppStateBuilder()..update(updates))._build();
+      (AppStateBuilder()..update(updates))._build();
 
-  _$AppState._(
-      {required this.taskItems,
-      required this.sprints,
-      required this.taskRecurrences,
-      this.taskListener,
-      this.sprintListener,
-      this.taskRecurrenceListener,
-      this.sprintAssignmentListeners,
-      required this.tasksLoading,
-      required this.sprintsLoading,
-      required this.taskRecurrencesLoading,
-      required this.isLoading,
-      required this.loadFailed,
-      required this.recentlyCompleted,
-      required this.activeTab,
-      required this.allNavItems,
-      required this.sprintListFilter,
-      required this.taskListFilter,
-      this.personDocId,
-      required this.googleSignIn,
-      this.firebaseUser,
-      this.currentUser,
-      required this.offlineMode,
-      required this.timezoneHelper,
-      required this.nextId,
-      required this.notificationHelper})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(taskItems, r'AppState', 'taskItems');
-    BuiltValueNullFieldError.checkNotNull(sprints, r'AppState', 'sprints');
-    BuiltValueNullFieldError.checkNotNull(
-        taskRecurrences, r'AppState', 'taskRecurrences');
-    BuiltValueNullFieldError.checkNotNull(
-        tasksLoading, r'AppState', 'tasksLoading');
-    BuiltValueNullFieldError.checkNotNull(
-        sprintsLoading, r'AppState', 'sprintsLoading');
-    BuiltValueNullFieldError.checkNotNull(
-        taskRecurrencesLoading, r'AppState', 'taskRecurrencesLoading');
-    BuiltValueNullFieldError.checkNotNull(isLoading, r'AppState', 'isLoading');
-    BuiltValueNullFieldError.checkNotNull(
-        loadFailed, r'AppState', 'loadFailed');
-    BuiltValueNullFieldError.checkNotNull(
-        recentlyCompleted, r'AppState', 'recentlyCompleted');
-    BuiltValueNullFieldError.checkNotNull(activeTab, r'AppState', 'activeTab');
-    BuiltValueNullFieldError.checkNotNull(
-        allNavItems, r'AppState', 'allNavItems');
-    BuiltValueNullFieldError.checkNotNull(
-        sprintListFilter, r'AppState', 'sprintListFilter');
-    BuiltValueNullFieldError.checkNotNull(
-        taskListFilter, r'AppState', 'taskListFilter');
-    BuiltValueNullFieldError.checkNotNull(
-        googleSignIn, r'AppState', 'googleSignIn');
-    BuiltValueNullFieldError.checkNotNull(
-        offlineMode, r'AppState', 'offlineMode');
-    BuiltValueNullFieldError.checkNotNull(
-        timezoneHelper, r'AppState', 'timezoneHelper');
-    BuiltValueNullFieldError.checkNotNull(nextId, r'AppState', 'nextId');
-    BuiltValueNullFieldError.checkNotNull(
-        notificationHelper, r'AppState', 'notificationHelper');
-  }
-
+  _$AppState._({
+    required this.taskItems,
+    required this.sprints,
+    required this.taskRecurrences,
+    this.taskListener,
+    this.sprintListener,
+    this.taskRecurrenceListener,
+    this.sprintAssignmentListeners,
+    required this.tasksLoading,
+    required this.sprintsLoading,
+    required this.taskRecurrencesLoading,
+    required this.isLoading,
+    required this.loadFailed,
+    required this.recentlyCompleted,
+    required this.activeTab,
+    required this.allNavItems,
+    required this.sprintListFilter,
+    required this.taskListFilter,
+    this.personDocId,
+    required this.googleSignIn,
+    required this.googleInitialized,
+    this.firebaseUser,
+    this.currentUser,
+    required this.offlineMode,
+    required this.timezoneHelper,
+    required this.nextId,
+    required this.notificationHelper,
+  }) : super._();
   @override
   AppState rebuild(void Function(AppStateBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  AppStateBuilder toBuilder() => new AppStateBuilder()..replace(this);
+  AppStateBuilder toBuilder() => AppStateBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -153,6 +123,7 @@ class _$AppState extends AppState {
         taskListFilter == other.taskListFilter &&
         personDocId == other.personDocId &&
         googleSignIn == other.googleSignIn &&
+        googleInitialized == other.googleInitialized &&
         firebaseUser == other.firebaseUser &&
         currentUser == other.currentUser &&
         offlineMode == other.offlineMode &&
@@ -183,6 +154,7 @@ class _$AppState extends AppState {
     _$hash = $jc(_$hash, taskListFilter.hashCode);
     _$hash = $jc(_$hash, personDocId.hashCode);
     _$hash = $jc(_$hash, googleSignIn.hashCode);
+    _$hash = $jc(_$hash, googleInitialized.hashCode);
     _$hash = $jc(_$hash, firebaseUser.hashCode);
     _$hash = $jc(_$hash, currentUser.hashCode);
     _$hash = $jc(_$hash, offlineMode.hashCode);
@@ -215,6 +187,7 @@ class _$AppState extends AppState {
           ..add('taskListFilter', taskListFilter)
           ..add('personDocId', personDocId)
           ..add('googleSignIn', googleSignIn)
+          ..add('googleInitialized', googleInitialized)
           ..add('firebaseUser', firebaseUser)
           ..add('currentUser', currentUser)
           ..add('offlineMode', offlineMode)
@@ -230,18 +203,17 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
 
   ListBuilder<TaskItem>? _taskItems;
   ListBuilder<TaskItem> get taskItems =>
-      _$this._taskItems ??= new ListBuilder<TaskItem>();
+      _$this._taskItems ??= ListBuilder<TaskItem>();
   set taskItems(ListBuilder<TaskItem>? taskItems) =>
       _$this._taskItems = taskItems;
 
   ListBuilder<Sprint>? _sprints;
-  ListBuilder<Sprint> get sprints =>
-      _$this._sprints ??= new ListBuilder<Sprint>();
+  ListBuilder<Sprint> get sprints => _$this._sprints ??= ListBuilder<Sprint>();
   set sprints(ListBuilder<Sprint>? sprints) => _$this._sprints = sprints;
 
   ListBuilder<TaskRecurrence>? _taskRecurrences;
   ListBuilder<TaskRecurrence> get taskRecurrences =>
-      _$this._taskRecurrences ??= new ListBuilder<TaskRecurrence>();
+      _$this._taskRecurrences ??= ListBuilder<TaskRecurrence>();
   set taskRecurrences(ListBuilder<TaskRecurrence>? taskRecurrences) =>
       _$this._taskRecurrences = taskRecurrences;
 
@@ -249,35 +221,33 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? get taskListener =>
       _$this._taskListener;
   set taskListener(
-          StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
-              taskListener) =>
-      _$this._taskListener = taskListener;
+    StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? taskListener,
+  ) => _$this._taskListener = taskListener;
 
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _sprintListener;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? get sprintListener =>
       _$this._sprintListener;
   set sprintListener(
-          StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
-              sprintListener) =>
-      _$this._sprintListener = sprintListener;
+    StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? sprintListener,
+  ) => _$this._sprintListener = sprintListener;
 
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
-      _taskRecurrenceListener;
+  _taskRecurrenceListener;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
-      get taskRecurrenceListener => _$this._taskRecurrenceListener;
+  get taskRecurrenceListener => _$this._taskRecurrenceListener;
   set taskRecurrenceListener(
-          StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
-              taskRecurrenceListener) =>
-      _$this._taskRecurrenceListener = taskRecurrenceListener;
+    StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+    taskRecurrenceListener,
+  ) => _$this._taskRecurrenceListener = taskRecurrenceListener;
 
   Map<String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>?
-      _sprintAssignmentListeners;
+  _sprintAssignmentListeners;
   Map<String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>?
-      get sprintAssignmentListeners => _$this._sprintAssignmentListeners;
+  get sprintAssignmentListeners => _$this._sprintAssignmentListeners;
   set sprintAssignmentListeners(
-          Map<String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>?
-              sprintAssignmentListeners) =>
-      _$this._sprintAssignmentListeners = sprintAssignmentListeners;
+    Map<String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>?
+    sprintAssignmentListeners,
+  ) => _$this._sprintAssignmentListeners = sprintAssignmentListeners;
 
   bool? _tasksLoading;
   bool? get tasksLoading => _$this._tasksLoading;
@@ -303,30 +273,29 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
 
   ListBuilder<TaskItem>? _recentlyCompleted;
   ListBuilder<TaskItem> get recentlyCompleted =>
-      _$this._recentlyCompleted ??= new ListBuilder<TaskItem>();
+      _$this._recentlyCompleted ??= ListBuilder<TaskItem>();
   set recentlyCompleted(ListBuilder<TaskItem>? recentlyCompleted) =>
       _$this._recentlyCompleted = recentlyCompleted;
 
   TopNavItemBuilder? _activeTab;
-  TopNavItemBuilder get activeTab =>
-      _$this._activeTab ??= new TopNavItemBuilder();
+  TopNavItemBuilder get activeTab => _$this._activeTab ??= TopNavItemBuilder();
   set activeTab(TopNavItemBuilder? activeTab) => _$this._activeTab = activeTab;
 
   ListBuilder<TopNavItem>? _allNavItems;
   ListBuilder<TopNavItem> get allNavItems =>
-      _$this._allNavItems ??= new ListBuilder<TopNavItem>();
+      _$this._allNavItems ??= ListBuilder<TopNavItem>();
   set allNavItems(ListBuilder<TopNavItem>? allNavItems) =>
       _$this._allNavItems = allNavItems;
 
   VisibilityFilterBuilder? _sprintListFilter;
   VisibilityFilterBuilder get sprintListFilter =>
-      _$this._sprintListFilter ??= new VisibilityFilterBuilder();
+      _$this._sprintListFilter ??= VisibilityFilterBuilder();
   set sprintListFilter(VisibilityFilterBuilder? sprintListFilter) =>
       _$this._sprintListFilter = sprintListFilter;
 
   VisibilityFilterBuilder? _taskListFilter;
   VisibilityFilterBuilder get taskListFilter =>
-      _$this._taskListFilter ??= new VisibilityFilterBuilder();
+      _$this._taskListFilter ??= VisibilityFilterBuilder();
   set taskListFilter(VisibilityFilterBuilder? taskListFilter) =>
       _$this._taskListFilter = taskListFilter;
 
@@ -338,6 +307,11 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   GoogleSignIn? get googleSignIn => _$this._googleSignIn;
   set googleSignIn(GoogleSignIn? googleSignIn) =>
       _$this._googleSignIn = googleSignIn;
+
+  bool? _googleInitialized;
+  bool? get googleInitialized => _$this._googleInitialized;
+  set googleInitialized(bool? googleInitialized) =>
+      _$this._googleInitialized = googleInitialized;
 
   UserCredential? _firebaseUser;
   UserCredential? get firebaseUser => _$this._firebaseUser;
@@ -391,6 +365,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _taskListFilter = $v.taskListFilter.toBuilder();
       _personDocId = $v.personDocId;
       _googleSignIn = $v.googleSignIn;
+      _googleInitialized = $v.googleInitialized;
       _firebaseUser = $v.firebaseUser;
       _currentUser = $v.currentUser;
       _offlineMode = $v.offlineMode;
@@ -404,7 +379,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
 
   @override
   void replace(AppState other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$AppState;
   }
 
@@ -419,41 +393,80 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   _$AppState _build() {
     _$AppState _$result;
     try {
-      _$result = _$v ??
-          new _$AppState._(
-              taskItems: taskItems.build(),
-              sprints: sprints.build(),
-              taskRecurrences: taskRecurrences.build(),
-              taskListener: taskListener,
-              sprintListener: sprintListener,
-              taskRecurrenceListener: taskRecurrenceListener,
-              sprintAssignmentListeners: sprintAssignmentListeners,
-              tasksLoading: BuiltValueNullFieldError.checkNotNull(
-                  tasksLoading, r'AppState', 'tasksLoading'),
-              sprintsLoading: BuiltValueNullFieldError.checkNotNull(
-                  sprintsLoading, r'AppState', 'sprintsLoading'),
-              taskRecurrencesLoading: BuiltValueNullFieldError.checkNotNull(
-                  taskRecurrencesLoading, r'AppState', 'taskRecurrencesLoading'),
-              isLoading: BuiltValueNullFieldError.checkNotNull(
-                  isLoading, r'AppState', 'isLoading'),
-              loadFailed: BuiltValueNullFieldError.checkNotNull(
-                  loadFailed, r'AppState', 'loadFailed'),
-              recentlyCompleted: recentlyCompleted.build(),
-              activeTab: activeTab.build(),
-              allNavItems: allNavItems.build(),
-              sprintListFilter: sprintListFilter.build(),
-              taskListFilter: taskListFilter.build(),
-              personDocId: personDocId,
-              googleSignIn: BuiltValueNullFieldError.checkNotNull(
-                  googleSignIn, r'AppState', 'googleSignIn'),
-              firebaseUser: firebaseUser,
-              currentUser: currentUser,
-              offlineMode: BuiltValueNullFieldError.checkNotNull(
-                  offlineMode, r'AppState', 'offlineMode'),
-              timezoneHelper: BuiltValueNullFieldError.checkNotNull(
-                  timezoneHelper, r'AppState', 'timezoneHelper'),
-              nextId: BuiltValueNullFieldError.checkNotNull(nextId, r'AppState', 'nextId'),
-              notificationHelper: BuiltValueNullFieldError.checkNotNull(notificationHelper, r'AppState', 'notificationHelper'));
+      _$result =
+          _$v ??
+          _$AppState._(
+            taskItems: taskItems.build(),
+            sprints: sprints.build(),
+            taskRecurrences: taskRecurrences.build(),
+            taskListener: taskListener,
+            sprintListener: sprintListener,
+            taskRecurrenceListener: taskRecurrenceListener,
+            sprintAssignmentListeners: sprintAssignmentListeners,
+            tasksLoading: BuiltValueNullFieldError.checkNotNull(
+              tasksLoading,
+              r'AppState',
+              'tasksLoading',
+            ),
+            sprintsLoading: BuiltValueNullFieldError.checkNotNull(
+              sprintsLoading,
+              r'AppState',
+              'sprintsLoading',
+            ),
+            taskRecurrencesLoading: BuiltValueNullFieldError.checkNotNull(
+              taskRecurrencesLoading,
+              r'AppState',
+              'taskRecurrencesLoading',
+            ),
+            isLoading: BuiltValueNullFieldError.checkNotNull(
+              isLoading,
+              r'AppState',
+              'isLoading',
+            ),
+            loadFailed: BuiltValueNullFieldError.checkNotNull(
+              loadFailed,
+              r'AppState',
+              'loadFailed',
+            ),
+            recentlyCompleted: recentlyCompleted.build(),
+            activeTab: activeTab.build(),
+            allNavItems: allNavItems.build(),
+            sprintListFilter: sprintListFilter.build(),
+            taskListFilter: taskListFilter.build(),
+            personDocId: personDocId,
+            googleSignIn: BuiltValueNullFieldError.checkNotNull(
+              googleSignIn,
+              r'AppState',
+              'googleSignIn',
+            ),
+            googleInitialized: BuiltValueNullFieldError.checkNotNull(
+              googleInitialized,
+              r'AppState',
+              'googleInitialized',
+            ),
+            firebaseUser: firebaseUser,
+            currentUser: currentUser,
+            offlineMode: BuiltValueNullFieldError.checkNotNull(
+              offlineMode,
+              r'AppState',
+              'offlineMode',
+            ),
+            timezoneHelper: BuiltValueNullFieldError.checkNotNull(
+              timezoneHelper,
+              r'AppState',
+              'timezoneHelper',
+            ),
+            nextId: BuiltValueNullFieldError.checkNotNull(
+              nextId,
+              r'AppState',
+              'nextId',
+            ),
+            notificationHelper: BuiltValueNullFieldError.checkNotNull(
+              notificationHelper,
+              r'AppState',
+              'notificationHelper',
+            ),
+          );
     } catch (_) {
       late String _$failedField;
       try {
@@ -475,8 +488,11 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
         _$failedField = 'taskListFilter';
         taskListFilter.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            r'AppState', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'AppState',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

@@ -31,10 +31,15 @@ void Function(
     print('_manualLogin!');
     next(action);
     try {
-      await store.state.googleSignIn.signIn();
-      await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.home);
+      await signInWithGoogleFirebase(store, navigatorKey, false);
+      await navigatorKey.currentState!.pushReplacementNamed(
+          TaskMasterRoutes.home);
+    } on GoogleSignInException catch (e) {
+      print('Google Sign In error: code: ${e.code.name} description:${e.description} details:${e.details}');
+      store.dispatch(OnLoginFailAction(e));
+      rethrow;
     } catch (error, stackTrace) {
-      print('Error signing in: $error');
+      print('Unexpected error signing in: $error');
       print(stackTrace);
       store.dispatch(OnLoginFailAction(error));
     }
@@ -51,6 +56,8 @@ void Function(
     navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.logout);
     try {
       await store.state.googleSignIn.disconnect();
+      store.dispatch(OnLogoutSuccessAction());
+      await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.login);
     } catch (error) {
       store.dispatch(OnLogoutFailAction(error));
     }
@@ -90,36 +97,76 @@ void Function(
   return (store, action, next) async {
     next(action);
     print('_tryToSilentlySignIn called.');
-    store.state.googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) async {
-      print('onCurrentUserChanged.');
-      if (account == null) {
-        print('onCurrentUserChanged: account null.');
-        store.dispatch(OnLogoutSuccessAction());
-        await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.login);
-      } else {
-        print('onCurrentUserChanged: account exists!');
-        var authentication = await account.authentication;
 
-        if (authentication.idToken == null) {
-          store.dispatch(OnLoginFailAction('No idToken returned.'));
-          await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.login);
-        }
-
-        final AuthCredential credential = GoogleAuthProvider.credential(
-          idToken: authentication.idToken,
-          accessToken: authentication.accessToken,
-        );
-
-        var firebaseUser = await FirebaseAuth.instance.signInWithCredential(credential);
-
-        store.dispatch(OnAuthenticatedAction(account, firebaseUser));
-        store.dispatch(VerifyPersonAction(account.email));
-      }
-    });
-    var account = await store.state.googleSignIn.signInSilently();
-    if (account == null) {
-      print('Sign in silently failed. Returning to login screen.');
-      await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.login);
-    }
+    await signInWithGoogleFirebase(store, navigatorKey, true);
   };
+}
+
+Future<void> signInWithGoogleFirebase(Store<AppState> store, GlobalKey<NavigatorState> navigatorKey, bool silent) async {
+  var account = await signInAndGetAccount(store.state, silent);
+  if (account == null) {
+    print('Sign in failed. Returning to login screen.');
+    await navigatorKey.currentState!.pushReplacementNamed(TaskMasterRoutes.login);
+  } else {
+    print('Signed in.');
+    var authClient = store.state.googleSignIn.authorizationClient;
+    var authorization = await authClient.authorizationForScopes(['email']);
+
+    if (authorization == null) {
+      store.dispatch(OnLoginFailAction('No authorization returned.'));
+      await navigatorKey.currentState!.pushReplacementNamed(
+          TaskMasterRoutes.login);
+      return;
+    }
+
+    var authentication = account.authentication;
+
+    var idToken = authentication.idToken;
+    if (idToken == null) {
+      store.dispatch(OnLoginFailAction('No idToken returned.'));
+      await navigatorKey.currentState!.pushReplacementNamed(
+          TaskMasterRoutes.login);
+      return;
+    }
+
+    final AuthCredential credential = GoogleAuthProvider.credential(
+      idToken: idToken,
+      accessToken: authorization.accessToken,
+    );
+
+    var firebaseUser = await FirebaseAuth.instance.signInWithCredential(credential);
+
+    store.dispatch(OnAuthenticatedAction(account, firebaseUser));
+    store.dispatch(VerifyPersonAction(account.email));
+  }
+}
+
+Future<GoogleSignInAccount?> signInAndGetAccount(AppState state, bool silent) async {
+  print('signInAndGetAccount called with silent: $silent.');
+
+  if (!state.googleInitialized) {
+    print('Unable to sign in to google because google is not initialized.');
+    return null;
+  }
+
+  try {
+    var result = silent ? state.googleSignIn.attemptLightweightAuthentication()
+        : state.googleSignIn.authenticate(scopeHint: ['email']);
+
+    if (result is Future<GoogleSignInAccount?>) {
+      print('Successful authenticate! Returning Future...');
+      var googleSignInAccount = await result;
+      print('Account: ${googleSignInAccount?.displayName}');
+      return googleSignInAccount;
+    } else {
+      print('result is not a future: $result}');
+      return result as GoogleSignInAccount?;
+    }
+  } on GoogleSignInException catch (e) {
+    print('Google Sign In error: code: ${e.code.name} description: ${e.description} details: ${e.details}');
+    return null;
+  } catch (error) {
+    print('Unexpected error signing in: $error');
+    return null;
+  }
 }
