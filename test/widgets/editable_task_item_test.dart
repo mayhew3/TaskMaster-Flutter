@@ -97,17 +97,43 @@ void main() {
     });
 
     testWidgets('hides project name when not provided', (WidgetTester tester) async {
-      final task = _buildTaskItem(project: null);
+      final taskName = 'Test Task Name'; // Default name from _buildTaskItem
+      // Ensure we are using the taskName that will be found
+      final task = _buildTaskItem(name: taskName, project: null);
       await _pumpEditableTaskItem(tester, taskItem: task);
-      final projectTextWidget = find.text(''); // Empty string for null project
-      final visibilityFinder = find.ancestor(
-        of: projectTextWidget,
+
+      // 1. Find the Text widget for the task name.
+      final taskNameFinder = find.text(taskName);
+      expect(taskNameFinder, findsOneWidget, reason: "Task name '$taskName' should be displayed.");
+
+      // 2. Find the Column that is the parent of the task name Text widget.
+      // This Column also contains the project's Visibility widget.
+      final columnFinder = find.ancestor(
+        of: taskNameFinder,
+        matching: find.byType(Column),
+      );
+      expect(columnFinder, findsOneWidget, reason: "Task name should be inside a Column.");
+
+      // 3. Find all Visibility widgets that are descendants of this Column.
+      // The project's Visibility widget is expected to be the first one among these,
+      // based on the structure in EditableTaskItemWidget (name, then project visibility, then date visibilities).
+      final visibilityWidgetsInColumn = find.descendant(
+        of: columnFinder,
         matching: find.byType(Visibility),
       );
-      expect(visibilityFinder, findsOneWidget);
-      final visibilityWidget = tester.widget<Visibility>(visibilityFinder);
-      expect(visibilityWidget.visible, isFalse);
+
+      // Ensure at least one Visibility widget is found (for the project).
+      // There might be others for date warnings.
+      expect(visibilityWidgetsInColumn, findsAtLeastNWidgets(1), reason: "Expected at least the project's Visibility widget in the column.");
+
+      // 4. Get the first Visibility widget from the found descendants.
+      // This assumes the project's Visibility widget is the first one encountered in tree order.
+      final projectVisibilityWidget = tester.widget<Visibility>(visibilityWidgetsInColumn.first);
+
+      // 5. Assert that this specific Visibility widget is not visible.
+      expect(projectVisibilityWidget.visible, isFalse, reason: "Project's Visibility widget should be invisible when project is null.");
     });
+
 
     testWidgets('displays DelayedCheckbox', (WidgetTester tester) async {
       final task = _buildTaskItem();
