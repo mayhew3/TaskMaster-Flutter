@@ -84,7 +84,7 @@ Future<void> _pumpEditableTaskItem(
 void main() {
   group('EditableTaskItemWidget Tests', () {
 
-    Card _getCardWidget(WidgetTester tester, String taskDocId) { // Added taskDocId parameter
+    Finder _getCardWidgetFinder(String taskDocId) {
       // 1. Define the key that matches the one in EditableTaskItemWidget.dart
       final cardKey = TaskMasterKeys.editableTaskItemCard(taskDocId);
 
@@ -92,7 +92,11 @@ void main() {
       final cardFinder = find.byKey(cardKey);
       expect(cardFinder, findsOneWidget,
           reason: "Expected to find one Card with key '$cardKey'");
+      return cardFinder;
+    }
 
+    Card _getCardWidget(WidgetTester tester, String taskDocId) {
+      Finder cardFinder = _getCardWidgetFinder(taskDocId);
       return tester.widget<Card>(cardFinder);
     }
 
@@ -233,10 +237,11 @@ void main() {
       final task = _buildTaskItem(); // Not scheduled by default _buildTaskItem
       await _pumpEditableTaskItem(tester, taskItem: task, highlightSprint: false);
 
-      final iconFinder = find.byIcon(Icons.assignment);
-      final visibilityFinder = find.ancestor(of: iconFinder, matching: find.byType(Visibility));
-      expect(visibilityFinder, findsOneWidget);
-      final visibilityWidget = tester.widget<Visibility>(visibilityFinder);
+      final iconKey = TaskMasterKeys.editableTaskItemCardProjectField(task.docId);
+      final iconFinder = find.byKey(iconKey);
+
+      expect(iconFinder, findsOneWidget);
+      final visibilityWidget = tester.widget<Visibility>(iconFinder);
       expect(visibilityWidget.visible, isFalse);
 
       final card = _getCardWidget(tester, task.docId);
@@ -307,7 +312,8 @@ void main() {
       });
       // The GestureDetector is a child of Dismissible. 
       // Tapping the Card itself should work if it's the direct child GestureRecogniser relies on.
-      await tester.tap(find.byType(Card)); 
+
+      await tester.tap(_getCardWidgetFinder(task.docId));
       expect(tapped, isTrue);
     });
 
@@ -317,7 +323,7 @@ void main() {
       await _pumpEditableTaskItem(tester, taskItem: task, onLongPress: () {
         longPressed = true;
       });
-      await tester.longPress(find.byType(Card));
+      await tester.longPress(_getCardWidgetFinder(task.docId));
       expect(longPressed, isTrue);
     });
     

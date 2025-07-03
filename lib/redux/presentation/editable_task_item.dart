@@ -263,8 +263,8 @@ class EditableTaskItemWidget extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                            taskItem.name,
-                            style: _getHeaderStyle(),
+                          taskItem.name,
+                          style: _getHeaderStyle(),
                         ),
                         Visibility(
                           key: TaskMasterKeys.editableTaskItemCardProjectField(getKey()),
@@ -281,8 +281,9 @@ class EditableTaskItemWidget extends StatelessWidget {
                 ),
                 _getDateWarnings(),
                 Visibility(
-                    visible: highlightSprint,
-                    child: Icon(Icons.assignment, color: TaskColors.sprintColor),
+                  key: TaskMasterKeys.editableTaskItemCardSprintIcon(getKey()),
+                  visible: highlightSprint,
+                  child: Icon(Icons.assignment, color: TaskColors.sprintColor),
                 ),
                 Container(
                   padding: EdgeInsets.only(
