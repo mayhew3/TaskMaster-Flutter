@@ -83,6 +83,19 @@ Future<void> _pumpEditableTaskItem(
 
 void main() {
   group('EditableTaskItemWidget Tests', () {
+
+    Card _getCardWidget(WidgetTester tester, String taskDocId) { // Added taskDocId parameter
+      // 1. Define the key that matches the one in EditableTaskItemWidget.dart
+      final cardKey = TaskMasterKeys.editableTaskItemCard(taskDocId);
+
+      // 2. Find the Card widget using its key.
+      final cardFinder = find.byKey(cardKey);
+      expect(cardFinder, findsOneWidget,
+          reason: "Expected to find one Card with key '$cardKey'");
+
+      return tester.widget<Card>(cardFinder);
+    }
+
     // --- Basic Display Tests ---
     testWidgets('displays task name', (WidgetTester tester) async {
       final task = _buildTaskItem(name: 'My Special Task');
@@ -94,6 +107,13 @@ void main() {
       final task = _buildTaskItem(project: 'My Awesome Project');
       await _pumpEditableTaskItem(tester, taskItem: task);
       expect(find.text('My Awesome Project'), findsOneWidget);
+
+      final textKey = TaskMasterKeys.editableTaskItemCardProjectField(task.docId);
+      final textFinder = find.byKey(textKey);
+
+      expect(textFinder, findsOneWidget);
+      var visibility = tester.widget<Visibility>(textFinder);
+      expect(visibility.visible, isTrue);
     });
 
     testWidgets('hides project name when not provided', (WidgetTester tester) async {
@@ -102,36 +122,12 @@ void main() {
       final task = _buildTaskItem(name: taskName, project: null);
       await _pumpEditableTaskItem(tester, taskItem: task);
 
-      // 1. Find the Text widget for the task name.
-      final taskNameFinder = find.text(taskName);
-      expect(taskNameFinder, findsOneWidget, reason: "Task name '$taskName' should be displayed.");
+      final textKey = TaskMasterKeys.editableTaskItemCardProjectField(task.docId);
+      final textFinder = find.byKey(textKey);
+      expect(textFinder, findsOneWidget);
 
-      // 2. Find the Column that is the parent of the task name Text widget.
-      // This Column also contains the project's Visibility widget.
-      final columnFinder = find.ancestor(
-        of: taskNameFinder,
-        matching: find.byType(Column),
-      );
-      expect(columnFinder, findsOneWidget, reason: "Task name should be inside a Column.");
-
-      // 3. Find all Visibility widgets that are descendants of this Column.
-      // The project's Visibility widget is expected to be the first one among these,
-      // based on the structure in EditableTaskItemWidget (name, then project visibility, then date visibilities).
-      final visibilityWidgetsInColumn = find.descendant(
-        of: columnFinder,
-        matching: find.byType(Visibility),
-      );
-
-      // Ensure at least one Visibility widget is found (for the project).
-      // There might be others for date warnings.
-      expect(visibilityWidgetsInColumn, findsAtLeastNWidgets(1), reason: "Expected at least the project's Visibility widget in the column.");
-
-      // 4. Get the first Visibility widget from the found descendants.
-      // This assumes the project's Visibility widget is the first one encountered in tree order.
-      final projectVisibilityWidget = tester.widget<Visibility>(visibilityWidgetsInColumn.first);
-
-      // 5. Assert that this specific Visibility widget is not visible.
-      expect(projectVisibilityWidget.visible, isFalse, reason: "Project's Visibility widget should be invisible when project is null.");
+      var visibility = tester.widget<Visibility>(textFinder);
+      expect(visibility.visible, isFalse);
     });
 
 
@@ -170,21 +166,16 @@ void main() {
       expect(checkbox.initialState, CheckState.checked);
     });
 
-    // --- Background Color Tests ---
-    Card _getCardWidget(WidgetTester tester) {
-      return tester.widget<Card>(find.byType(Card));
-    }
-
     testWidgets('background is pendingBackground when pending', (WidgetTester tester) async {
       final task = _buildTaskItem(pendingCompletion: true, completionDate: null);
       await _pumpEditableTaskItem(tester, taskItem: task);
-      expect(_getCardWidget(tester).color, TaskColors.pendingBackground);
+      expect(_getCardWidget(tester, task.docId).color, TaskColors.pendingBackground);
     });
 
     testWidgets('background is completedColor when completed', (WidgetTester tester) async {
       final task = _buildTaskItem(completionDate: DateTime(2024));
       await _pumpEditableTaskItem(tester, taskItem: task);
-      expect(_getCardWidget(tester).color, TaskColors.completedColor);
+      expect(_getCardWidget(tester, task.docId).color, TaskColors.completedColor);
     });
 
     // For due, urgent, target, scheduled colors, precise testing requires controlling DateTime.timestamp()
@@ -231,7 +222,7 @@ void main() {
       final visibilityWidget = tester.widget<Visibility>(visibilityFinder);
       expect(visibilityWidget.visible, isTrue);
       
-      final card = _getCardWidget(tester);
+      final card = _getCardWidget(tester, task.docId);
       expect(card.shape, isA<RoundedRectangleBorder>());
       final border = card.shape as RoundedRectangleBorder;
       expect(border.side.color, TaskColors.sprintColor);
@@ -248,7 +239,7 @@ void main() {
       final visibilityWidget = tester.widget<Visibility>(visibilityFinder);
       expect(visibilityWidget.visible, isFalse);
 
-      final card = _getCardWidget(tester);
+      final card = _getCardWidget(tester, task.docId);
       expect(card.shape, isA<RoundedRectangleBorder>());
       final border = card.shape as RoundedRectangleBorder;
       // Check if it's the default border (no side) when not scheduled
@@ -272,7 +263,7 @@ void main() {
       // We need to ensure task.isScheduled() is true for this taskItem.
       // This is a direct test of _getBorder()
       await _pumpEditableTaskItem(tester, taskItem: scheduledTask, highlightSprint: false);
-      final card = _getCardWidget(tester);
+      final card = _getCardWidget(tester, scheduledTask.docId);
       final border = card.shape as RoundedRectangleBorder;
       expect(border.side.color, TaskColors.scheduledOutline);
       expect(border.side.width, 1.0);
@@ -289,14 +280,14 @@ void main() {
     testWidgets('uses invisible shadow when task is scheduled', (WidgetTester tester) async {
       final scheduledTask = _buildTaskItem(startDate: DateTime(2099));
       await _pumpEditableTaskItem(tester, taskItem: scheduledTask);
-      final card = _getCardWidget(tester);
+      final card = _getCardWidget(tester, scheduledTask.docId);
       expect(card.shadowColor, TaskColors.invisible);
     });
     
     testWidgets('uses black shadow when task is not scheduled', (WidgetTester tester) async {
       final nonScheduledTask = _buildTaskItem(startDate: null); // Ensure not scheduled
       await _pumpEditableTaskItem(tester, taskItem: nonScheduledTask);
-      final card = _getCardWidget(tester);
+      final card = _getCardWidget(tester, nonScheduledTask.docId);
       expect(card.shadowColor, Colors.black);
     });
 

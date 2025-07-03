@@ -237,6 +237,7 @@ class EditableTaskItemWidget extends StatelessWidget {
           }
         },
         child: Card(
+          key: TaskMasterKeys.editableTaskItemCard(getKey()),
           shadowColor: _getShadowColor(),
           color: getBackgroundColor(),
           shape: _getBorder(),
@@ -266,6 +267,7 @@ class EditableTaskItemWidget extends StatelessWidget {
                             style: _getHeaderStyle(),
                         ),
                         Visibility(
+                          key: TaskMasterKeys.editableTaskItemCardProjectField(getKey()),
                           visible: taskItem.project != null,
                           child: Text(
                             taskItem.project == null ? '' : taskItem.project!,

@@ -35,4 +35,7 @@ class TaskMasterKeys {
   static const taskItemTab = Key('__taskItemTab__');
   static const statsTab = Key('__statsTab__');
 
+  // Task Item Card
+  static final editableTaskItemCard = (String id) => Key('__editableTaskItem_mainCard__${id}__');
+  static final editableTaskItemCardProjectField = (String id) => Key('__editableTaskItem_projectField__${id}__');
 }
