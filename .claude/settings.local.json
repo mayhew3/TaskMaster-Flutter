@@ -1,11 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git commit -m:*)",
-      "Bash(git add:*)",
-      "Bash(git log:*)",
-      "Bash(git status:*)",
-      "Bash(git diff:*)",
+      "Bash(git:*)",
       "Bash(flutter:*)",
       "Bash(tee:*)"
     ],
