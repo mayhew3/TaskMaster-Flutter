@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git commit -m \"$(cat <<''EOF''\nTM-82: Add recurring task integration tests (5 tests passing)\n\nCreated comprehensive integration tests for recurring task functionality:\n- Task linked to daily recurrence displays correctly\n- Task linked to weekly recurrence displays correctly  \n- Multiple recurring tasks display correctly\n- Non-recurring tasks display alongside recurring tasks\n- Task recurrence patterns are properly associated\n\nTests verify:\n- Tasks with recurrenceDocId link to TaskRecurrence documents\n- Daily, weekly, and monthly recurrence patterns render correctly\n- Mixed recurring and non-recurring tasks display together\n- Recurrence metadata (recurNumber, recurUnit, anchorDate) is properly configured\n\nAll 5 tests passing in ~1 second ✅\n\nUses correct TaskMaster model structure:\n- TaskRecurrence: recurNumber, recurUnit, recurWait, recurIteration, anchorDate\n- TaskItem: recurrenceDocId to link to TaskRecurrence\n- AnchorDate: dateValue + dateType for scheduling anchor points\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(git commit -m:*)",
+      "Bash(git add:*)",
+      "Bash(git log:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(flutter:*)",
+      "Bash(tee:*)"
     ],
     "deny": [],
     "ask": []
