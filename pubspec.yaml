@@ -63,6 +63,9 @@ dev_dependencies:
 
   cloud_firestore_platform_interface: any
   flutter_lints: ^6.0.0
+
+  # Testing dependencies
+  fake_cloud_firestore: ^3.0.3  # For realistic Firestore mocking in integration tests
 flutter_icons:
   ios: true
   android: true
