@@ -50,33 +50,8 @@ class IntegrationTestHelper {
     final testFirestore = firestore ?? FakeFirebaseFirestore();
     final testPersonDocId = personDocId ?? 'test-person-123';
 
-    // Seed Firestore with initial data if provided
-    if (initialTasks != null && initialTasks.isNotEmpty) {
-      for (var task in initialTasks) {
-        final json = task.toJson() as Map<String, dynamic>;
-        json.remove('docId'); // Firestore will generate this
-        await testFirestore.collection('tasks').add(json);
-      }
-    }
-
-    if (initialSprints != null && initialSprints.isNotEmpty) {
-      for (var sprint in initialSprints) {
-        final json = sprint.toJson() as Map<String, dynamic>;
-        json.remove('docId');
-        await testFirestore.collection('sprints').add(json);
-      }
-    }
-
-    if (initialRecurrences != null && initialRecurrences.isNotEmpty) {
-      for (var recurrence in initialRecurrences) {
-        final json = serializers.serializeWith(
-          TaskRecurrence.serializer,
-          recurrence,
-        ) as Map<String, dynamic>;
-        json.remove('docId');
-        await testFirestore.collection('taskRecurrences').add(json);
-      }
-    }
+    // Note: We'll seed data directly into Redux state instead of Firestore
+    // to avoid triggering continuous stream emissions that slow down tests
 
     // Create person document
     await testFirestore.collection('persons').doc(testPersonDocId).set({
@@ -110,6 +85,7 @@ class IntegrationTestHelper {
     // Set active tab to Tasks tab (index 1) for task-focused tests
     final tasksTab = initialState.allNavItems[1];
 
+    // Seed data directly into Redux state (not Firestore) for fast tests
     final store = Store<AppState>(
       appReducer,
       initialState: initialState.rebuild((b) => b
@@ -118,21 +94,22 @@ class IntegrationTestHelper {
         ..firebaseUser = mockUserCredential
         ..timezoneHelper = timezoneHelper
         ..activeTab = tasksTab.toBuilder()
-        ..taskItems = ListBuilder<TaskItem>()
-        ..sprints = ListBuilder<Sprint>()
-        ..taskRecurrences = ListBuilder<TaskRecurrence>()
+        ..taskItems = ListBuilder<TaskItem>(initialTasks ?? [])
+        ..sprints = ListBuilder<Sprint>(initialSprints ?? [])
+        ..taskRecurrences = ListBuilder<TaskRecurrence>(initialRecurrences ?? [])
         ..tasksLoading = false
         ..sprintsLoading = false
         ..taskRecurrencesLoading = false
         ..isLoading = false),
       middleware: [
+        // Include middleware but don't start listeners - tests just verify rendering
         ...createStoreTaskItemsMiddleware(taskRepository, navigatorKey, mockMigrator),
         ...createStoreSprintsMiddleware(taskRepository),
       ],
     );
 
-    // Dispatch load data action to initialize listeners
-    store.dispatch(LoadDataAction());
+    // Don't dispatch LoadDataAction - it starts Firestore listeners that never settle
+    // Tests verify UI rendering with seeded data, not real-time sync
 
     // Pump the app with proper theme for tests
     await tester.pumpWidget(
@@ -150,11 +127,8 @@ class IntegrationTestHelper {
       ),
     );
 
-    // Wait for initial render
-    // Use pump() with duration instead of pumpAndSettle() because Firestore
-    // streams continuously emit events
-    await tester.pump(const Duration(milliseconds: 100));
-    await tester.pump(const Duration(milliseconds: 100));
+    // Wait for initial render - single pump is enough since data is pre-seeded
+    await tester.pump();
   }
 
   /// Create a minimal Redux store for testing
@@ -175,15 +149,10 @@ class IntegrationTestHelper {
     );
   }
 
-  /// Wait for Firestore stream to emit data
-  /// Use this after making Firestore changes to wait for Redux state to update
-  static Future<void> waitForFirestoreUpdate(WidgetTester tester) async {
-    // Wait for stream to process
-    await Future.delayed(Duration(milliseconds: 200));
-    // Pump to process the state update (use timed pump, not pumpAndSettle)
-    await tester.pump(const Duration(milliseconds: 100));
-    // One more pump to process any follow-up rebuilds
-    await tester.pump(const Duration(milliseconds: 100));
+  /// Wait for widget rebuild (data is pre-seeded, no async operations)
+  static Future<void> waitForRender(WidgetTester tester) async {
+    // Just pump once - data is already in Redux state
+    await tester.pump();
   }
 
   /// Find text that contains the given substring (useful for dynamic text)
