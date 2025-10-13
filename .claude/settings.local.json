@@ -1,10 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(flutter:*)",
-      "Bash(tee:*)",
-      "Bash(git add:*)",
-      "Bash(git log:*)"
+      "Bash(git commit -m \"$(cat <<''EOF''\nTM-216: Optimize integration tests (All 5 passing, ~5sec)\n\nDramatically improved test performance by avoiding Firestore stream emissions:\n- Seed data directly into Redux state instead of Firestore\n- Don''t dispatch LoadDataAction that starts continuous stream listeners\n- Use single pump() instead of pumpAndSettle() or delayed waits\n- Renamed waitForFirestoreUpdate() to waitForRender() for clarity\n\nPerformance improvement: 5+ minutes → ~5 seconds ⚡\nTests passing: 5/5 ✅\n\nThese tests verify UI rendering with seeded state, not real-time sync.\nAfter Riverpod migration, tests will be even simpler with no middleware.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []

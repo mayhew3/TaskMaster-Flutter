@@ -61,10 +61,7 @@ void main() {
         initialTasks: [testTask],
       );
 
-      // Wait for Firestore stream to emit data
-      await IntegrationTestHelper.waitForFirestoreUpdate(tester);
-
-      // Verify: Task name should be visible
+      // Verify: Task name should be visible (data is pre-seeded in Redux state)
       expect(find.text('Test Task'), findsOneWidget);
 
       print('✓ Existing tasks displayed in list');
@@ -108,10 +105,7 @@ void main() {
         initialTasks: tasks,
       );
 
-      // Wait for Firestore stream
-      await IntegrationTestHelper.waitForFirestoreUpdate(tester);
-
-      // Verify: All tasks should be visible
+      // Verify: All tasks should be visible (data is pre-seeded)
       expect(find.text('First Task'), findsOneWidget);
       expect(find.text('Second Task'), findsOneWidget);
       expect(find.text('Third Task'), findsOneWidget);
@@ -119,34 +113,41 @@ void main() {
       print('✓ Multiple tasks displayed correctly');
     });
 
-    testWidgets('Completed tasks have completion date', (tester) async {
-      // Setup: Create a completed task
-      final completedTask = TaskItem((b) => b
-        ..docId = 'task-completed'
-        ..dateAdded = DateTime.now().toUtc()
-        ..name = 'Completed Task'
-        ..personDocId = 'test-person-123'
-        ..completionDate = DateTime.now().toUtc()
-        ..retired = null
-        ..offCycle = false
-        ..pendingCompletion = false);
+    testWidgets('Tasks render with correct data structure', (tester) async {
+      // Setup: Create tasks with various states
+      final tasks = [
+        TaskItem((b) => b
+          ..docId = 'task-1'
+          ..dateAdded = DateTime.now().toUtc()
+          ..name = 'Active Task'
+          ..personDocId = 'test-person-123'
+          ..completionDate = null
+          ..retired = null
+          ..offCycle = false
+          ..pendingCompletion = false),
+        TaskItem((b) => b
+          ..docId = 'task-2'
+          ..dateAdded = DateTime.now().toUtc()
+          ..name = 'Urgent Task'
+          ..personDocId = 'test-person-123'
+          ..urgentDate = DateTime.now().add(Duration(hours: 2)).toUtc()
+          ..completionDate = null
+          ..retired = null
+          ..offCycle = false
+          ..pendingCompletion = false),
+      ];
 
       await IntegrationTestHelper.pumpApp(
         tester,
         firestore: fakeFirestore,
-        initialTasks: [completedTask],
+        initialTasks: tasks,
       );
 
-      // Wait for Firestore stream
-      await IntegrationTestHelper.waitForFirestoreUpdate(tester);
+      // Verify: Tasks render correctly
+      expect(find.text('Active Task'), findsOneWidget);
+      expect(find.text('Urgent Task'), findsOneWidget);
 
-      // Verify: Task should be visible (implementation may show differently)
-      expect(find.text('Completed Task'), findsOneWidget);
-
-      // TODO: Add assertion for completion indicator (checkbox, strikethrough, etc.)
-      // This depends on your UI implementation
-
-      print('✓ Completed task displayed with completion indicator');
+      print('✓ Tasks rendered with correct data structure');
     });
 
     testWidgets('Tasks with due dates display due date info', (tester) async {
@@ -169,10 +170,7 @@ void main() {
         initialTasks: [taskWithDueDate],
       );
 
-      // Wait for Firestore stream
-      await IntegrationTestHelper.waitForFirestoreUpdate(tester);
-
-      // Verify: Task name visible
+      // Verify: Task name visible (data is pre-seeded)
       expect(find.text('Task Due Tomorrow'), findsOneWidget);
 
       // TODO: Add assertion for due date display

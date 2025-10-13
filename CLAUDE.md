@@ -107,7 +107,7 @@ flutter build ios
    - After compilation succeeds
 
 5. **Current active tickets**:
-   - `TM-216` - Write tests
+   - `TM-82` - Integration tests
 
 ## Architecture
 
