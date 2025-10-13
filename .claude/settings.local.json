@@ -3,7 +3,6 @@
     "allow": [
       "Bash(git:*)",
       "Bash(flutter:*)",
-      "Bash(echo:*)",
       "Bash(tee:*)"
     ],
     "deny": [],
