@@ -1,7 +1,6 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cd:*)",
       "Bash(git commit -m:*)",
       "Bash(git add:*)",
       "Bash(git log:*)",
