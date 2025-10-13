@@ -1,9 +1,11 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -20,10 +22,17 @@ import 'package:taskmaster/redux/middleware/store_task_items_middleware.dart';
 import 'package:taskmaster/redux/presentation/home_screen.dart';
 import 'package:taskmaster/redux/reducers/app_state_reducer.dart';
 import 'package:taskmaster/task_repository.dart';
+import 'package:taskmaster/timezone_helper.dart';
 
-// Generate mocks for FirestoreMigrator
+import '../mocks/mock_notification_helper.dart';
+import '../mocks/mock_timezone_helper.dart';
+
+// Generate mocks for FirestoreMigrator and auth
 @GenerateMocks([])
 class _MockFirestoreMigrator extends Mock implements FirestoreMigrator {}
+class _MockGoogleSignInAccount extends Mock implements GoogleSignInAccount {}
+class _MockUserCredential extends Mock implements UserCredential {}
+class _MockUser extends Mock implements User {}
 
 /// Helper class for integration tests
 /// Provides utilities for setting up test environment with mocked Firebase
@@ -80,14 +89,41 @@ class IntegrationTestHelper {
     final navigatorKey = GlobalKey<NavigatorState>();
     final mockMigrator = _MockFirestoreMigrator();
 
+    // Create mock auth objects for appIsReady() check
+    final mockUser = _MockUser();
+    final mockUserCredential = _MockUserCredential();
+    final mockGoogleAccount = _MockGoogleSignInAccount();
+
+    // Use mock TimezoneHelper to avoid platform channel initialization
+    final timezoneHelper = MockTimezoneHelper();
+
+    // Set up mock user credential to return mock user
+    when(mockUserCredential.user).thenReturn(mockUser);
+
     // Create store with real middleware and reducers
+    // Use mock notification helper to avoid platform initialization errors
+    final initialState = AppState.init(
+      loading: false,
+      notificationHelper: MockNotificationHelper(),
+    );
+
+    // Set active tab to Tasks tab (index 1) for task-focused tests
+    final tasksTab = initialState.allNavItems[1];
+
     final store = Store<AppState>(
       appReducer,
-      initialState: AppState.init(loading: false).rebuild((b) => b
+      initialState: initialState.rebuild((b) => b
         ..personDocId = testPersonDocId
+        ..currentUser = mockGoogleAccount
+        ..firebaseUser = mockUserCredential
+        ..timezoneHelper = timezoneHelper
+        ..activeTab = tasksTab.toBuilder()
         ..taskItems = ListBuilder<TaskItem>()
         ..sprints = ListBuilder<Sprint>()
         ..taskRecurrences = ListBuilder<TaskRecurrence>()
+        ..tasksLoading = false
+        ..sprintsLoading = false
+        ..taskRecurrencesLoading = false
         ..isLoading = false),
       middleware: [
         ...createStoreTaskItemsMiddleware(taskRepository, navigatorKey, mockMigrator),
@@ -98,19 +134,27 @@ class IntegrationTestHelper {
     // Dispatch load data action to initialize listeners
     store.dispatch(LoadDataAction());
 
-    // Pump the app
+    // Pump the app with proper theme for tests
     await tester.pumpWidget(
       StoreProvider<AppState>(
         store: store,
         child: MaterialApp(
           navigatorKey: navigatorKey,
+          theme: ThemeData(
+            checkboxTheme: CheckboxThemeData(
+              fillColor: WidgetStateProperty.all(Colors.blue),
+            ),
+          ),
           home: HomeScreen(),
         ),
       ),
     );
 
     // Wait for initial render
-    await tester.pumpAndSettle();
+    // Use pump() with duration instead of pumpAndSettle() because Firestore
+    // streams continuously emit events
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 100));
   }
 
   /// Create a minimal Redux store for testing
@@ -135,11 +179,11 @@ class IntegrationTestHelper {
   /// Use this after making Firestore changes to wait for Redux state to update
   static Future<void> waitForFirestoreUpdate(WidgetTester tester) async {
     // Wait for stream to process
-    await Future.delayed(Duration(milliseconds: 100));
-    // Pump to process the state update
-    await tester.pump();
-    // Wait for any animations/rebuilds
-    await tester.pumpAndSettle();
+    await Future.delayed(Duration(milliseconds: 200));
+    // Pump to process the state update (use timed pump, not pumpAndSettle)
+    await tester.pump(const Duration(milliseconds: 100));
+    // One more pump to process any follow-up rebuilds
+    await tester.pump(const Duration(milliseconds: 100));
   }
 
   /// Find text that contains the given substring (useful for dynamic text)
