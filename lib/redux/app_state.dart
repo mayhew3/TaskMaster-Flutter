@@ -64,7 +64,10 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   AppState._();
   factory AppState([Function(AppStateBuilder) updates]) = _$AppState;
 
-  factory AppState.init({bool loading = false}) => AppState((appState) async {
+  factory AppState.init({
+    bool loading = false,
+    NotificationHelper? notificationHelper,
+  }) => AppState((appState) async {
     var navItemBuilder = initializeNavItems();
     var timezoneHelper = TimezoneHelper();
     var googleSignInInstance = GoogleSignIn.instance;
@@ -88,7 +91,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
       ..nextId = 0
       ..offlineMode = false
       ..sprintAssignmentListeners = <String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>{}
-      ..notificationHelper = NotificationHelper(plugin: NotificationHelper.initializeNotificationPlugin(), timezoneHelper: timezoneHelper)
+      ..notificationHelper = notificationHelper ?? NotificationHelper(plugin: NotificationHelper.initializeNotificationPlugin(), timezoneHelper: timezoneHelper)
     ;
   }
   );

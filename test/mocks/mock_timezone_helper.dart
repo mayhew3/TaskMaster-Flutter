@@ -5,11 +5,18 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:intl/intl.dart';
 
 class MockTimezoneHelper extends Fake implements TimezoneHelper {
+  MockTimezoneHelper() {
+    // Initialize timezone data synchronously in constructor
+    tz.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('America/Los_Angeles'));
+  }
+
+  @override
+  bool get timezoneInitialized => true;
+
   @override
   Future<void> configureLocalTimeZone() async {
-    tz.initializeTimeZones();
-    String timezone = 'America/Los_Angeles';
-    tz.setLocalLocation(tz.getLocation(timezone));
+    // Already initialized in constructor
   }
 
   @override
