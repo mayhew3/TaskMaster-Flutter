@@ -2,6 +2,15 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## General Behaviors
+
+This file will live in the project root, but all supplemental helper files should go in the @.claude directory. Scan these files at startup along with this one.
+- Naming convention: ALL CAPS
+
+Try not to use language expressing certainty unless you are actually certain.
+- When investigating bugs, do not say things like "this fixes the issue," if the fix hasn't actually been verified yet. You can say things like "possibly fix" or "likely fix" if you have more certainty.
+- Don't mark an in-progress feature or task as complete until it has been confirmed to work.
+
 ## Project Overview
 
 TaskMaster is a Flutter task management application with recurring tasks, sprint planning, and Firebase/Firestore backend integration. The app currently uses Redux for state management and built_value for immutable data models.
