@@ -85,6 +85,18 @@ class IntegrationTestHelper {
     // Set active tab to Tasks tab (index 1) for task-focused tests
     final tasksTab = initialState.allNavItems[1];
 
+    // Link recurrences to tasks (like reducers do)
+    final recurrencesList = initialRecurrences ?? [];
+    final tasksWithRecurrences = (initialTasks ?? []).map((task) {
+      if (task.recurrenceDocId != null) {
+        final recurrence = recurrencesList.where((r) => r.docId == task.recurrenceDocId).singleOrNull;
+        if (recurrence != null) {
+          return task.rebuild((t) => t..recurrence = recurrence.toBuilder());
+        }
+      }
+      return task;
+    }).toList();
+
     // Seed data directly into Redux state (not Firestore) for fast tests
     final store = Store<AppState>(
       appReducer,
@@ -94,9 +106,9 @@ class IntegrationTestHelper {
         ..firebaseUser = mockUserCredential
         ..timezoneHelper = timezoneHelper
         ..activeTab = tasksTab.toBuilder()
-        ..taskItems = ListBuilder<TaskItem>(initialTasks ?? [])
+        ..taskItems = ListBuilder<TaskItem>(tasksWithRecurrences)
         ..sprints = ListBuilder<Sprint>(initialSprints ?? [])
-        ..taskRecurrences = ListBuilder<TaskRecurrence>(initialRecurrences ?? [])
+        ..taskRecurrences = ListBuilder<TaskRecurrence>(recurrencesList)
         ..tasksLoading = false
         ..sprintsLoading = false
         ..taskRecurrencesLoading = false

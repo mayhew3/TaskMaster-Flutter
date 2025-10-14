@@ -133,8 +133,8 @@ class TaskItemListState extends State<TaskItemList> {
     var totalDays = endDate.difference(startDate).inDays;
     var sprintStr = 'Active Sprint - Day $currentDay of $totalDays';
 
-    var completed = activeSprintItems!.where((taskItem) => taskItem.completionDate != null);
-    var taskStr = '${completed.length}/${activeSprintItems!.length} Tasks Complete';
+    var completed = activeSprintItems?.where((taskItem) => taskItem.completionDate != null) ?? [];
+    var taskStr = '${completed.length}/${activeSprintItems?.length ?? 0} Tasks Complete';
 
     return Card(
       color: Color.fromARGB(100, 100, 20, 20),
