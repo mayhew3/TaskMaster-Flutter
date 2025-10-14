@@ -1,6 +1,9 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/redux/app_state.dart';
 
 import 'integration_test_helper.dart';
 
@@ -379,6 +382,289 @@ void main() {
       expect(find.text('Off Cycle Task'), findsOneWidget);
 
       print('✓ OffCycle tasks are not filtered out');
+    });
+  });
+
+  group('Task Filtering Interactive Toggle Tests', () {
+    late FakeFirebaseFirestore fakeFirestore;
+
+    setUp(() {
+      fakeFirestore = FakeFirebaseFirestore();
+    });
+
+    testWidgets('Toggling showCompleted filter shows/hides completed tasks',
+        (tester) async {
+      // Setup: Mix of completed and active tasks
+      final now = DateTime.now().toUtc();
+
+      final activeTask = TaskItem((b) => b
+        ..docId = 'task-active'
+        ..dateAdded = now
+        ..name = 'Active Task'
+        ..personDocId = 'test-person-123'
+        ..completionDate = null
+        ..retired = null
+        ..offCycle = false
+        ..pendingCompletion = false);
+
+      final completedTask = TaskItem((b) => b
+        ..docId = 'task-completed'
+        ..dateAdded = now
+        ..name = 'Completed Task'
+        ..personDocId = 'test-person-123'
+        ..completionDate = now
+        ..retired = null
+        ..offCycle = false
+        ..pendingCompletion = false);
+
+      await IntegrationTestHelper.pumpApp(
+        tester,
+        firestore: fakeFirestore,
+        initialTasks: [activeTask, completedTask],
+      );
+
+      // Initial state: Completed task is filtered out
+      expect(find.text('Active Task'), findsOneWidget);
+      expect(find.text('Completed Task'), findsNothing);
+
+      // Step 1: Open filter menu
+      final filterButton = find.byIcon(Icons.filter_list);
+      expect(filterButton, findsOneWidget);
+      await tester.tap(filterButton);
+      await tester.pumpAndSettle();
+
+      // Step 2: Tap "Show Completed" to toggle it on
+      expect(find.text('Show Completed'), findsOneWidget);
+      await tester.tap(find.text('Show Completed'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      // Verify: Completed task now appears
+      expect(find.text('Active Task'), findsOneWidget);
+      expect(find.text('Completed Task'), findsOneWidget);
+
+      // Step 3: Open filter menu again and toggle off
+      await tester.tap(filterButton);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Show Completed'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      // Verify: Completed task hidden again
+      expect(find.text('Active Task'), findsOneWidget);
+      expect(find.text('Completed Task'), findsNothing);
+
+      print('✓ Toggling showCompleted filter shows/hides completed tasks');
+    });
+
+    testWidgets('Toggling showScheduled filter shows/hides scheduled tasks',
+        (tester) async {
+      // Setup: Mix of current and scheduled (future) tasks
+      final now = DateTime.now().toUtc();
+      final futureDate = now.add(Duration(days: 7));
+
+      final currentTask = TaskItem((b) => b
+        ..docId = 'task-current'
+        ..dateAdded = now
+        ..name = 'Current Task'
+        ..personDocId = 'test-person-123'
+        ..startDate = null  // No start date = shows now
+        ..completionDate = null
+        ..retired = null
+        ..offCycle = false
+        ..pendingCompletion = false);
+
+      final scheduledTask = TaskItem((b) => b
+        ..docId = 'task-scheduled'
+        ..dateAdded = now
+        ..name = 'Scheduled Task'
+        ..personDocId = 'test-person-123'
+        ..startDate = futureDate
+        ..completionDate = null
+        ..retired = null
+        ..offCycle = false
+        ..pendingCompletion = false);
+
+      await IntegrationTestHelper.pumpApp(
+        tester,
+        firestore: fakeFirestore,
+        initialTasks: [currentTask, scheduledTask],
+      );
+
+      // Initial state: Scheduled task is filtered out
+      expect(find.text('Current Task'), findsOneWidget);
+      expect(find.text('Scheduled Task'), findsNothing);
+
+      // Step 1: Open filter menu
+      final filterButton = find.byIcon(Icons.filter_list);
+      expect(filterButton, findsOneWidget);
+      await tester.tap(filterButton);
+      await tester.pumpAndSettle();
+
+      // Step 2: Tap "Show Scheduled" to toggle it on
+      expect(find.text('Show Scheduled'), findsOneWidget);
+      await tester.tap(find.text('Show Scheduled'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      // Verify: Scheduled task now appears
+      expect(find.text('Current Task'), findsOneWidget);
+      expect(find.text('Scheduled Task'), findsOneWidget);
+
+      // Step 3: Open filter menu again and toggle off
+      await tester.tap(filterButton);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Show Scheduled'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      // Verify: Scheduled task hidden again
+      expect(find.text('Current Task'), findsOneWidget);
+      expect(find.text('Scheduled Task'), findsNothing);
+
+      print('✓ Toggling showScheduled filter shows/hides scheduled tasks');
+    });
+
+    testWidgets('Both filters can be toggled independently', (tester) async {
+      // Setup: Active, completed, and scheduled tasks
+      final now = DateTime.now().toUtc();
+      final futureDate = now.add(Duration(days: 7));
+
+      final tasks = [
+        TaskItem((b) => b
+          ..docId = 'task-active'
+          ..dateAdded = now
+          ..name = 'Active Task'
+          ..personDocId = 'test-person-123'
+          ..completionDate = null
+          ..retired = null
+          ..offCycle = false
+          ..pendingCompletion = false),
+        TaskItem((b) => b
+          ..docId = 'task-completed'
+          ..dateAdded = now
+          ..name = 'Completed Task'
+          ..personDocId = 'test-person-123'
+          ..completionDate = now
+          ..retired = null
+          ..offCycle = false
+          ..pendingCompletion = false),
+        TaskItem((b) => b
+          ..docId = 'task-scheduled'
+          ..dateAdded = now
+          ..name = 'Scheduled Task'
+          ..personDocId = 'test-person-123'
+          ..startDate = futureDate
+          ..completionDate = null
+          ..retired = null
+          ..offCycle = false
+          ..pendingCompletion = false),
+      ];
+
+      await IntegrationTestHelper.pumpApp(
+        tester,
+        firestore: fakeFirestore,
+        initialTasks: tasks,
+      );
+
+      // Initial: Only active task visible
+      expect(find.text('Active Task'), findsOneWidget);
+      expect(find.text('Completed Task'), findsNothing);
+      expect(find.text('Scheduled Task'), findsNothing);
+
+      final filterButton = find.byIcon(Icons.filter_list);
+
+      // Step 1: Enable showCompleted
+      await tester.tap(filterButton);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Show Completed'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      // Verify: Active and completed visible
+      expect(find.text('Active Task'), findsOneWidget);
+      expect(find.text('Completed Task'), findsOneWidget);
+      expect(find.text('Scheduled Task'), findsNothing);
+
+      // Step 2: Enable showScheduled
+      await tester.tap(filterButton);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Show Scheduled'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      // Verify: All tasks visible
+      expect(find.text('Active Task'), findsOneWidget);
+      expect(find.text('Completed Task'), findsOneWidget);
+      expect(find.text('Scheduled Task'), findsOneWidget);
+
+      // Step 3: Disable showCompleted (keep showScheduled on)
+      await tester.tap(filterButton);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Show Completed'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      // Verify: Active and scheduled visible, completed hidden
+      expect(find.text('Active Task'), findsOneWidget);
+      expect(find.text('Completed Task'), findsNothing);
+      expect(find.text('Scheduled Task'), findsOneWidget);
+
+      print('✓ Both filters can be toggled independently');
+    });
+
+    testWidgets('Filter state persists across filter toggles', (tester) async {
+      // Setup: Tasks of different types
+      final now = DateTime.now().toUtc();
+
+      final tasks = [
+        TaskItem((b) => b
+          ..docId = 'task-1'
+          ..dateAdded = now
+          ..name = 'Task 1'
+          ..personDocId = 'test-person-123'
+          ..completionDate = null
+          ..retired = null
+          ..offCycle = false
+          ..pendingCompletion = false),
+        TaskItem((b) => b
+          ..docId = 'task-2'
+          ..dateAdded = now
+          ..name = 'Task 2 Completed'
+          ..personDocId = 'test-person-123'
+          ..completionDate = now
+          ..retired = null
+          ..offCycle = false
+          ..pendingCompletion = false),
+      ];
+
+      await IntegrationTestHelper.pumpApp(
+        tester,
+        firestore: fakeFirestore,
+        initialTasks: tasks,
+      );
+
+      final filterButton = find.byIcon(Icons.filter_list);
+      final store = StoreProvider.of<AppState>(
+        tester.element(find.byType(MaterialApp)),
+      );
+
+      // Initial filter state
+      expect(store.state.taskListFilter.showCompleted, false);
+      expect(store.state.taskListFilter.showScheduled, false);
+
+      // Toggle showCompleted on
+      await tester.tap(filterButton);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Show Completed'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      // Verify: State updated
+      expect(store.state.taskListFilter.showCompleted, true);
+
+      // Toggle showCompleted off
+      await tester.tap(filterButton);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Show Completed'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      // Verify: State back to false
+      expect(store.state.taskListFilter.showCompleted, false);
+
+      print('✓ Filter state persists across filter toggles');
     });
   });
 }

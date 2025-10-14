@@ -1,9 +1,14 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaster/models/anchor_date.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
+import 'package:taskmaster/redux/actions/task_item_actions.dart';
+import 'package:taskmaster/redux/app_state.dart';
+import 'package:taskmaster/redux/presentation/delayed_checkbox.dart';
 
 import 'integration_test_helper.dart';
 
@@ -270,12 +275,195 @@ void main() {
       print('✓ Monthly recurring task with due date displayed correctly');
     });
 
-    // TODO: Add interactive tests once we can dispatch actions
-    // These would test the actual completion flow:
-    //
-    // testWidgets('Completing recurring task creates next iteration', (tester) async {
-    //   // This requires middleware and Firestore to be fully functional
-    //   // Will be easier to test after Riverpod migration
-    // });
+    testWidgets('Completing recurring task creates next iteration',
+        (tester) async {
+      // Setup: Create a daily recurring task pattern
+      final now = DateTime.now().toUtc();
+      final tomorrow = now.add(Duration(days: 1));
+
+      final dailyRecurrence = TaskRecurrence((b) => b
+        ..docId = 'recurrence-complete-test'
+        ..personDocId = 'test-person-123'
+        ..name = 'Daily Exercise'
+        ..recurNumber = 1
+        ..recurUnit = 'days'
+        ..recurWait = false  // On Schedule (not On Complete)
+        ..recurIteration = 0
+        ..anchorDate = AnchorDate((a) => a
+          ..dateValue = now
+          ..dateType = TaskDateTypes.start).toBuilder()
+        ..dateAdded = now);
+
+      // Create a task linked to this recurrence
+      final recurringTask = TaskItem((b) => b
+        ..docId = 'task-to-complete'
+        ..dateAdded = now
+        ..name = 'Daily Exercise'
+        ..personDocId = 'test-person-123'
+        ..recurrenceDocId = 'recurrence-complete-test'
+        ..recurIteration = 1
+        ..startDate = now
+        ..targetDate = tomorrow
+        ..completionDate = null
+        ..retired = null
+        ..offCycle = false
+        ..pendingCompletion = false);
+
+      // Write task to Firestore so it can be updated
+      await writeTaskToFirestore(fakeFirestore, recurringTask, dailyRecurrence);
+
+      await IntegrationTestHelper.pumpApp(
+        tester,
+        firestore: fakeFirestore,
+        initialTasks: [recurringTask],
+        initialRecurrences: [dailyRecurrence],
+      );
+
+      // Verify: Task is visible
+      expect(find.text('Daily Exercise'), findsOneWidget);
+
+      // Step 1: Complete the task by tapping checkbox
+      final checkbox = find.byType(DelayedCheckbox).first;
+      expect(checkbox, findsOneWidget);
+      await tester.tap(checkbox);
+      await tester.pumpAndSettle();
+
+      // Sync completion and next iteration creation to Redux
+      await syncRecurringTaskCompletion(
+        tester,
+        fakeFirestore,
+        'task-to-complete',
+        dailyRecurrence,
+      );
+
+      // Verify: Original task is completed
+      final store = StoreProvider.of<AppState>(
+        tester.element(find.byType(MaterialApp)),
+      );
+      final completedTask = store.state.taskItems
+          .firstWhere((t) => t.docId == 'task-to-complete');
+      expect(completedTask.completionDate, isNotNull);
+      expect(completedTask.isCompleted(), true);
+
+      // Verify: Next iteration was created
+      final nextIterationTasks = store.state.taskItems.where(
+        (t) => t.recurrenceDocId == 'recurrence-complete-test' && t.docId != 'task-to-complete',
+      );
+      expect(nextIterationTasks.length, 1,
+          reason: 'Should have created one next iteration');
+
+      final nextTask = nextIterationTasks.first;
+
+      // Verify: Next task has correct recurrence metadata
+      expect(nextTask.name, 'Daily Exercise');
+      expect(nextTask.recurrenceDocId, 'recurrence-complete-test');
+      expect(nextTask.recurIteration, 2,
+          reason: 'Next iteration should increment from 1 to 2');
+      expect(nextTask.completionDate, null,
+          reason: 'Next iteration should not be completed');
+
+      // Verify: Next task has dates shifted by 1 day
+      expect(nextTask.startDate, isNotNull);
+      expect(nextTask.startDate!.difference(recurringTask.startDate!).inDays, 1,
+          reason: 'Start date should be 1 day later');
+      expect(nextTask.targetDate, isNotNull);
+      expect(nextTask.targetDate!.difference(recurringTask.targetDate!).inDays, 1,
+          reason: 'Target date should be 1 day later');
+
+      print('✓ Completing recurring task creates next iteration with correct dates');
+    });
   });
+}
+
+/// Helper: Write task and recurrence to Firestore
+Future<void> writeTaskToFirestore(
+  FakeFirebaseFirestore firestore,
+  TaskItem task,
+  TaskRecurrence recurrence,
+) async {
+  // Write recurrence first
+  final recurrenceDoc = firestore.collection('taskRecurrences').doc(recurrence.docId);
+  await recurrenceDoc.set({
+    'dateAdded': recurrence.dateAdded,
+    'name': recurrence.name,
+    'personDocId': recurrence.personDocId,
+    'recurNumber': recurrence.recurNumber,
+    'recurUnit': recurrence.recurUnit,
+    'recurWait': recurrence.recurWait,
+    'recurIteration': recurrence.recurIteration,
+    if (recurrence.anchorDate != null) 'anchorDate': {
+      'dateValue': recurrence.anchorDate!.dateValue,
+      'dateType': recurrence.anchorDate!.dateType.label,
+    },
+  });
+
+  // Write task
+  final taskDoc = firestore.collection('tasks').doc(task.docId);
+  await taskDoc.set({
+    'dateAdded': task.dateAdded,
+    'name': task.name,
+    'personDocId': task.personDocId,
+    'offCycle': task.offCycle,
+    'pendingCompletion': task.pendingCompletion,
+    if (task.recurrenceDocId != null) 'recurrenceDocId': task.recurrenceDocId,
+    if (task.recurIteration != null) 'recurIteration': task.recurIteration,
+    if (task.startDate != null) 'startDate': task.startDate,
+    if (task.targetDate != null) 'targetDate': task.targetDate,
+    if (task.completionDate != null) 'completionDate': task.completionDate,
+    if (task.retired != null) 'retired': task.retired,
+  });
+}
+
+/// Helper: Sync recurring task completion and next iteration to Redux
+Future<void> syncRecurringTaskCompletion(
+  WidgetTester tester,
+  FakeFirebaseFirestore firestore,
+  String taskId,
+  TaskRecurrence recurrence,
+) async {
+  // Wait for Firestore writes
+  await tester.pump(Duration(milliseconds: 100));
+
+  final store = StoreProvider.of<AppState>(
+    tester.element(find.byType(MaterialApp)),
+  );
+
+  // Read completed task from Firestore
+  final taskDoc = await firestore.collection('tasks').doc(taskId).get();
+  if (taskDoc.exists) {
+    final taskData = taskDoc.data()!;
+    taskData['docId'] = taskDoc.id;
+    final completedTask = TaskItem.fromJson(taskData);
+
+    // Read all tasks to find the next iteration (newest task with same recurrenceDocId)
+    final tasksSnapshot = await firestore.collection('tasks')
+        .where('recurrenceDocId', isEqualTo: recurrence.docId)
+        .get();
+
+    final allTasks = tasksSnapshot.docs.map((doc) {
+      final data = doc.data();
+      data['docId'] = doc.id;
+      return TaskItem.fromJson(data);
+    }).toList();
+
+    // Find the newly created task (highest recurIteration)
+    TaskItem? nextIterationTask;
+    if (allTasks.length > 1) {
+      allTasks.sort((a, b) => b.recurIteration!.compareTo(a.recurIteration!));
+      nextIterationTask = allTasks.first;
+    }
+
+    // Dispatch RecurringTaskItemCompletedAction with both tasks
+    if (nextIterationTask != null) {
+      // First mark original as completed
+      store.dispatch(TaskItemCompletedAction(completedTask, true));
+      // Then add the next iteration
+      store.dispatch(TasksAddedAction([nextIterationTask]));
+    } else {
+      // Non-recurring completion
+      store.dispatch(TaskItemCompletedAction(completedTask, true));
+    }
+
+    await tester.pumpAndSettle();
+  }
 }
