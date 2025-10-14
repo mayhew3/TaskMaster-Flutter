@@ -1,19 +1,18 @@
 # TaskMaster Test Coverage Analysis
 
 **Generated:** 2025-10-13
-**Last Updated:** 2025-10-13 (Bug Fixes Complete!)
-**Total Tests:** 298+ passing (all test types)
-**Breakdown:** 18 integration (sprint+recurring) + 132 widget + 148+ other (unit/model/etc)
-**Status:** Phase 1 COMPLETE ✅ | Phase 2 COMPLETE ✅ | Bug Fixes COMPLETE ✅
+**Last Updated:** 2025-10-14 (Recurring Task Date Calculation Fixed!)
+**Total Tests:** 299+ passing (all test types)
+**Breakdown:** 19 integration (65 total) + 132 widget + 148+ other (unit/model/etc)
+**Status:** Phase 1 COMPLETE ✅ | Phase 2 COMPLETE ✅ | Bug Fixes COMPLETE ✅ | Recurring Task Fix COMPLETE ✅
 
 ---
 
 ## Current Test Coverage
 
-### ✅ Integration Tests (18 critical tests - CI verified)
+### ✅ Integration Tests (19 critical tests - CI verified)
 - **Sprint Management** (13 tests) - Sprint creation, task assignment, multiple sprints, closed sprints
-- **Recurring Tasks** (5 tests) - Daily/weekly recurrence display, multiple recurring tasks
-  - Note: 1 additional test deferred for date calculation investigation (TODO in code)
+- **Recurring Tasks** (6 tests) - Daily/weekly recurrence display, multiple recurring tasks, recurring task completion with date calculation
 
 ### ✅ Additional Integration Tests (41 tests from Phase 1)
 - **Task Display Logic** (14 tests) - Task grouping, date prioritization, project grouping, context/description display
@@ -95,18 +94,19 @@
 
 ---
 
-#### 2b. Recurring Task Completion ⏸️ DEFERRED (1 test skipped)
+#### 2b. Recurring Task Completion ✅ COMPLETE (1 test)
 
-**Status:** DEFERRED - Test written but skipped due to date calculation issue
+**Status:** COMPLETE - Date calculation bug fixed!
 
-- [ ] **Completing Recurring Task Creates Next Iteration** (`recurring_task_test.dart`)
-  - Complete a recurring task (checkbox) ✅ (middleware works)
-  - Verify new task created ✅ (next iteration is created)
-  - ⚠️ Date calculation issue: Next iteration has same dates as original (needs investigation)
-  - TODO: Investigate TaskItemRecurPreview serialization/deserialization
+- [x] **Completing Recurring Task Creates Next Iteration** (`recurring_task_test.dart`)
+  - Complete a recurring task (checkbox) ✅
+  - Verify new task created ✅
+  - Verify dates increment correctly (startDate +1 day, targetDate +1 day) ✅
+  - Bug Fix: `incrementWithMatchingDateIntervals` was using task's anchor date instead of recurrence's anchor date
+  - Solution: Changed calculation to use `originalAnchorDate` parameter for correct date offsets
 
-**Completed:** 0 tests (1 test skipped with TODO)
-**Risk Mitigation:** MEDIUM - Core logic works but date increment needs debugging
+**Completed:** 1 test
+**Risk Mitigation:** HIGH - Recurring task creation and date calculation now fully validated
 
 ---
 
@@ -441,15 +441,21 @@
 
 **Current Status:**
 - ✅ Sprint tests: 13/13 passing
-- ✅ Recurring task tests: 5/6 passing (1 deferred for date calculation investigation)
+- ✅ Recurring task tests: 6/6 passing (date calculation bug fixed!)
 - ✅ Widget tests: 132 passing
 - ✅ Unit/model tests: 148+ passing
-- ✅ CI stability: Ensured with bug fixes
+- ✅ CI stability: All 65 integration tests passing
+- ✅ Recurring task bug fix: Date calculation corrected in RecurrenceHelper
 
-**Next Steps (Optional):**
-- 🔍 Investigate TaskItemRecurPreview date calculation issue (deferred test)
-- Phase 3-4 provide diminishing returns (NewSprint widget, snooze, tabs)
-- ✅ Consider proceeding with Redux → Riverpod migration
+**Bug Fix Details:**
+- **Issue**: Completing recurring tasks created next iteration with same dates (not incremented)
+- **Root Cause**: `incrementWithMatchingDateIntervals()` used task's anchor date instead of recurrence's anchor date
+- **Fix**: Changed to use `originalAnchorDate` parameter for calculating date offsets (lib/helpers/recurrence_helper.dart:159-166)
+- **Verification**: All 65 integration tests passing, including the new recurring task completion test
+
+**Next Steps:**
+- ✅ **Ready for Redux → Riverpod migration!**
+- Phase 3-4 (NewSprint widget, snooze, tabs) provide diminishing returns - optional
 - Tests provide solid safety net for refactoring
 
 **Skip Phase 5** unless you're going for 100% coverage for its own sake.

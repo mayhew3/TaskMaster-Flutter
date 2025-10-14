@@ -150,14 +150,14 @@ class RecurrenceHelper {
     }
 
     var resultSet = new Map<TaskDateType, DateTime>();
-    var taskAnchorDate = originalDateSet[taskDateType];
-    if (taskAnchorDate == null) {
-      throw new Exception('Expected supplied date set to include date with taskDateType');
-    }
+
+    // Use originalAnchorDate (from recurrence) instead of task's anchor date
+    // This ensures we calculate the correct offset from the original recurrence anchor
     for (var dateType in TaskDateTypes.allTypes) {
       var dateValue = originalDateSet[dateType];
       if (dateValue != null) {
-        var difference = dateValue.difference(taskAnchorDate);
+        // Calculate difference from the original anchor date (not task's anchor date!)
+        var difference = dateValue.difference(originalAnchorDate);
         var newDateValue = newAnchorDate.add(difference);
         resultSet[dateType] = newDateValue;
       }

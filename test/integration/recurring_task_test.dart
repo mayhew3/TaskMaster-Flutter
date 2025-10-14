@@ -277,10 +277,6 @@ void main() {
 
     testWidgets('Completing recurring task creates next iteration',
         (tester) async {
-      // TODO(TM-82): Fix date calculation issue - next iteration has same dates as original
-      // The middleware creates the next iteration but dates aren't being incremented by RecurrenceHelper
-      // This needs investigation of TaskItemRecurPreview serialization/deserialization
-      return; // Skip for now
       // Setup: Create a daily recurring task pattern
       final now = DateTime.now().toUtc();
       final tomorrow = now.add(Duration(days: 1));
@@ -359,14 +355,6 @@ void main() {
           reason: 'Should have created one next iteration');
 
       final nextTask = nextIterationTasks.first;
-
-      // Debug: Print actual dates
-      print('Original task startDate: ${recurringTask.startDate}');
-      print('Original task targetDate: ${recurringTask.targetDate}');
-      print('Next task startDate: ${nextTask.startDate}');
-      print('Next task targetDate: ${nextTask.targetDate}');
-      print('Start date difference in days: ${nextTask.startDate!.difference(recurringTask.startDate!).inDays}');
-      print('Target date difference in days: ${nextTask.targetDate!.difference(recurringTask.targetDate!).inDays}');
 
       // Verify: Next task has correct recurrence metadata
       expect(nextTask.name, 'Daily Exercise');
