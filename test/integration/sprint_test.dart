@@ -8,18 +8,21 @@ import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/redux/actions/sprint_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
+import 'package:taskmaster/redux/presentation/new_sprint.dart';
+import 'package:taskmaster/redux/containers/sprint_task_items.dart';
 
 import 'integration_test_helper.dart';
 
-/// Integration Test: Sprint Management Flow
+/// Integration Test: Sprint Management
 ///
-/// Tests the sprint functionality:
-/// 1. Display sprints in the app
-/// 2. Show sprint metadata (dates, units, sprint number)
-/// 3. Link tasks to sprints via sprint assignments
-/// 4. Display tasks within their assigned sprints
+/// Tests sprint planning functionality:
+/// 1. Sprint state management (creation, assignments, sequencing)
+/// 2. Sprint UI display (NewSprint form, active sprint tasks)
+/// 3. Sprint-task relationships (assignments, data integrity)
 ///
-/// This ensures sprint planning and tracking features work correctly.
+/// Note: The app only displays ONE active sprint at a time via the Plan tab:
+/// - No active sprint → Shows NewSprint form
+/// - Active sprint exists → Shows SprintTaskItems (tasks for that sprint)
 void main() {
   group('Sprint Integration Tests', () {
     late FakeFirebaseFirestore fakeFirestore;
@@ -28,9 +31,13 @@ void main() {
       fakeFirestore = FakeFirebaseFirestore();
     });
 
-    testWidgets('App displays empty state when no sprints exist',
+    // =======================================================================
+    // UI DISPLAY TESTS - Test actual screens shown to users
+    // =======================================================================
+
+    testWidgets('NewSprint form displays when no active sprint exists',
         (tester) async {
-      // Setup: Create app with no sprints
+      // Setup: Create app with no sprints (or only closed sprints)
       await IntegrationTestHelper.pumpApp(
         tester,
         firestore: fakeFirestore,
@@ -38,46 +45,23 @@ void main() {
         initialTasks: [],
       );
 
-      // Verify: App loads successfully without sprints
-      // Note: Exact UI depends on your implementation
-      print('✓ App handles empty sprint list');
+      await tester.pumpAndSettle();
+
+      // Navigate to Plan tab (where sprints are shown)
+      await tester.tap(find.text('Plan'));
+      await tester.pumpAndSettle();
+
+      // Verify: NewSprint form is visible (shows sprint creation UI)
+      expect(find.byType(NewSprint), findsOneWidget);
+
+      // Verify: SprintTaskItems is NOT shown (no active sprint)
+      expect(find.byType(SprintTaskItems), findsNothing);
     });
 
-    testWidgets('Sprint with basic metadata displays correctly',
+    testWidgets('SprintTaskItems displays when active sprint exists',
         (tester) async {
-      // Setup: Create a sprint with basic info
+      // Setup: Create an active sprint with tasks
       final now = DateTime.now().toUtc();
-      final weekFromNow = now.add(Duration(days: 7));
-
-      final sprint = Sprint((b) => b
-        ..docId = 'sprint-1'
-        ..dateAdded = now
-        ..startDate = now
-        ..endDate = weekFromNow
-        ..numUnits = 1
-        ..unitName = 'week'
-        ..personDocId = 'test-person-123'
-        ..sprintNumber = 1
-        ..retired = null
-        ..retiredDate = null
-        ..closeDate = null
-        ..sprintAssignments = ListBuilder<SprintAssignment>([]));
-
-      await IntegrationTestHelper.pumpApp(
-        tester,
-        firestore: fakeFirestore,
-        initialSprints: [sprint],
-        initialTasks: [],
-      );
-
-      // Verify: App loads with sprint data in state
-      print('✓ Sprint with basic metadata loaded correctly');
-    });
-
-    testWidgets('Sprint with tasks displays assigned tasks', (tester) async {
-      // Setup: Create sprint with tasks assigned to it
-      final now = DateTime.now().toUtc();
-      final weekFromNow = now.add(Duration(days: 7));
 
       final task1 = TaskItem((b) => b
         ..docId = 'task-1'
@@ -99,141 +83,6 @@ void main() {
         ..offCycle = false
         ..pendingCompletion = false);
 
-      final sprint = Sprint((b) => b
-        ..docId = 'sprint-1'
-        ..dateAdded = now
-        ..startDate = now
-        ..endDate = weekFromNow
-        ..numUnits = 1
-        ..unitName = 'week'
-        ..personDocId = 'test-person-123'
-        ..sprintNumber = 1
-        ..retired = null
-        ..retiredDate = null
-        ..closeDate = null
-        ..sprintAssignments = ListBuilder<SprintAssignment>([
-          SprintAssignment((a) => a
-            ..docId = 'assignment-1'
-            ..taskDocId = 'task-1'
-            ..sprintDocId = 'sprint-1'
-            ..retired = null
-            ..retiredDate = null),
-          SprintAssignment((a) => a
-            ..docId = 'assignment-2'
-            ..taskDocId = 'task-2'
-            ..sprintDocId = 'sprint-1'
-            ..retired = null
-            ..retiredDate = null),
-        ]));
-
-      await IntegrationTestHelper.pumpApp(
-        tester,
-        firestore: fakeFirestore,
-        initialSprints: [sprint],
-        initialTasks: [task1, task2],
-      );
-
-      // Verify: Data loaded successfully
-      // Note: UI filtering may hide sprint-assigned tasks from default task view
-      // This test verifies the data structure loads correctly
-
-      print('✓ Sprint with assigned tasks loaded correctly');
-    });
-
-    testWidgets('Multiple sprints with different durations display correctly',
-        (tester) async {
-      // Setup: Create multiple sprints with different units
-      final now = DateTime.now().toUtc();
-
-      final weekSprint = Sprint((b) => b
-        ..docId = 'sprint-week'
-        ..dateAdded = now
-        ..startDate = now
-        ..endDate = now.add(Duration(days: 7))
-        ..numUnits = 1
-        ..unitName = 'week'
-        ..personDocId = 'test-person-123'
-        ..sprintNumber = 1
-        ..retired = null
-        ..retiredDate = null
-        ..closeDate = null
-        ..sprintAssignments = ListBuilder<SprintAssignment>([]));
-
-      final twoWeekSprint = Sprint((b) => b
-        ..docId = 'sprint-two-weeks'
-        ..dateAdded = now.add(Duration(days: 7))
-        ..startDate = now.add(Duration(days: 7))
-        ..endDate = now.add(Duration(days: 21))
-        ..numUnits = 2
-        ..unitName = 'weeks'
-        ..personDocId = 'test-person-123'
-        ..sprintNumber = 2
-        ..retired = null
-        ..retiredDate = null
-        ..closeDate = null
-        ..sprintAssignments = ListBuilder<SprintAssignment>([]));
-
-      await IntegrationTestHelper.pumpApp(
-        tester,
-        firestore: fakeFirestore,
-        initialSprints: [weekSprint, twoWeekSprint],
-        initialTasks: [],
-      );
-
-      // Verify: Multiple sprints loaded successfully
-      print('✓ Multiple sprints with different durations loaded correctly');
-    });
-
-    testWidgets('Closed sprint displays with close date', (tester) async {
-      // Setup: Create a closed sprint
-      final now = DateTime.now().toUtc();
-      final startDate = now.subtract(Duration(days: 14));
-      final endDate = now.subtract(Duration(days: 7));
-      final closeDate = now.subtract(Duration(days: 6));
-
-      final closedSprint = Sprint((b) => b
-        ..docId = 'sprint-closed'
-        ..dateAdded = startDate
-        ..startDate = startDate
-        ..endDate = endDate
-        ..closeDate = closeDate
-        ..numUnits = 1
-        ..unitName = 'week'
-        ..personDocId = 'test-person-123'
-        ..sprintNumber = 1
-        ..retired = null
-        ..retiredDate = null
-        ..sprintAssignments = ListBuilder<SprintAssignment>([]));
-
-      await IntegrationTestHelper.pumpApp(
-        tester,
-        firestore: fakeFirestore,
-        initialSprints: [closedSprint],
-        initialTasks: [],
-      );
-
-      // Verify: Closed sprint loaded correctly
-      print('✓ Closed sprint with close date displayed correctly');
-    });
-
-    testWidgets('Active and completed sprints coexist', (tester) async {
-      // Setup: Create both active and closed sprints
-      final now = DateTime.now().toUtc();
-
-      final completedSprint = Sprint((b) => b
-        ..docId = 'sprint-completed'
-        ..dateAdded = now.subtract(Duration(days: 14))
-        ..startDate = now.subtract(Duration(days: 14))
-        ..endDate = now.subtract(Duration(days: 7))
-        ..closeDate = now.subtract(Duration(days: 6))
-        ..numUnits = 1
-        ..unitName = 'week'
-        ..personDocId = 'test-person-123'
-        ..sprintNumber = 1
-        ..retired = null
-        ..retiredDate = null
-        ..sprintAssignments = ListBuilder<SprintAssignment>([]));
-
       final activeSprint = Sprint((b) => b
         ..docId = 'sprint-active'
         ..dateAdded = now
@@ -242,141 +91,21 @@ void main() {
         ..numUnits = 1
         ..unitName = 'week'
         ..personDocId = 'test-person-123'
-        ..sprintNumber = 2
-        ..retired = null
-        ..retiredDate = null
-        ..closeDate = null
-        ..sprintAssignments = ListBuilder<SprintAssignment>([]));
-
-      await IntegrationTestHelper.pumpApp(
-        tester,
-        firestore: fakeFirestore,
-        initialSprints: [completedSprint, activeSprint],
-        initialTasks: [],
-      );
-
-      // Verify: Both sprints loaded correctly
-      print('✓ Active and completed sprints coexist correctly');
-    });
-
-    testWidgets('Tasks can be assigned to multiple sprints over time',
-        (tester) async {
-      // Setup: Same task appears in multiple sprints (carry-over scenario)
-      final now = DateTime.now().toUtc();
-
-      final task = TaskItem((b) => b
-        ..docId = 'task-carryover'
-        ..dateAdded = now.subtract(Duration(days: 14))
-        ..name = 'Carried Over Task'
-        ..personDocId = 'test-person-123'
-        ..completionDate = null
-        ..retired = null
-        ..offCycle = false
-        ..pendingCompletion = false);
-
-      final sprint1 = Sprint((b) => b
-        ..docId = 'sprint-1'
-        ..dateAdded = now.subtract(Duration(days: 14))
-        ..startDate = now.subtract(Duration(days: 14))
-        ..endDate = now.subtract(Duration(days: 7))
-        ..closeDate = now.subtract(Duration(days: 6))
-        ..numUnits = 1
-        ..unitName = 'week'
-        ..personDocId = 'test-person-123'
         ..sprintNumber = 1
         ..retired = null
         ..retiredDate = null
+        ..closeDate = null // No close date = active
         ..sprintAssignments = ListBuilder<SprintAssignment>([
           SprintAssignment((a) => a
             ..docId = 'assignment-1'
-            ..taskDocId = 'task-carryover'
-            ..sprintDocId = 'sprint-1'
-            ..retired = null
-            ..retiredDate = null),
-        ]));
-
-      final sprint2 = Sprint((b) => b
-        ..docId = 'sprint-2'
-        ..dateAdded = now
-        ..startDate = now
-        ..endDate = now.add(Duration(days: 7))
-        ..numUnits = 1
-        ..unitName = 'week'
-        ..personDocId = 'test-person-123'
-        ..sprintNumber = 2
-        ..retired = null
-        ..retiredDate = null
-        ..closeDate = null
-        ..sprintAssignments = ListBuilder<SprintAssignment>([
-          SprintAssignment((a) => a
-            ..docId = 'assignment-2'
-            ..taskDocId = 'task-carryover'
-            ..sprintDocId = 'sprint-2'
-            ..retired = null
-            ..retiredDate = null),
-        ]));
-
-      await IntegrationTestHelper.pumpApp(
-        tester,
-        firestore: fakeFirestore,
-        initialSprints: [sprint1, sprint2],
-        initialTasks: [task],
-      );
-
-      // Verify: Data loaded successfully with task assigned to multiple sprints
-      // Note: UI filtering may affect visibility in default view
-
-      print('✓ Task assigned to multiple sprints (carry-over) loaded correctly');
-    });
-
-    testWidgets('Sprint with mix of completed and incomplete tasks',
-        (tester) async {
-      // Setup: Sprint with some tasks completed, some not
-      final now = DateTime.now().toUtc();
-
-      final completedTask = TaskItem((b) => b
-        ..docId = 'task-completed'
-        ..dateAdded = now
-        ..name = 'Completed Sprint Task'
-        ..personDocId = 'test-person-123'
-        ..completionDate = now
-        ..retired = null
-        ..offCycle = false
-        ..pendingCompletion = false);
-
-      final incompleteTask = TaskItem((b) => b
-        ..docId = 'task-incomplete'
-        ..dateAdded = now
-        ..name = 'Incomplete Sprint Task'
-        ..personDocId = 'test-person-123'
-        ..completionDate = null
-        ..retired = null
-        ..offCycle = false
-        ..pendingCompletion = false);
-
-      final sprint = Sprint((b) => b
-        ..docId = 'sprint-mixed'
-        ..dateAdded = now
-        ..startDate = now
-        ..endDate = now.add(Duration(days: 7))
-        ..numUnits = 1
-        ..unitName = 'week'
-        ..personDocId = 'test-person-123'
-        ..sprintNumber = 1
-        ..retired = null
-        ..retiredDate = null
-        ..closeDate = null
-        ..sprintAssignments = ListBuilder<SprintAssignment>([
-          SprintAssignment((a) => a
-            ..docId = 'assignment-1'
-            ..taskDocId = 'task-completed'
-            ..sprintDocId = 'sprint-mixed'
+            ..taskDocId = 'task-1'
+            ..sprintDocId = 'sprint-active'
             ..retired = null
             ..retiredDate = null),
           SprintAssignment((a) => a
             ..docId = 'assignment-2'
-            ..taskDocId = 'task-incomplete'
-            ..sprintDocId = 'sprint-mixed'
+            ..taskDocId = 'task-2'
+            ..sprintDocId = 'sprint-active'
             ..retired = null
             ..retiredDate = null),
         ]));
@@ -384,15 +113,30 @@ void main() {
       await IntegrationTestHelper.pumpApp(
         tester,
         firestore: fakeFirestore,
-        initialSprints: [sprint],
-        initialTasks: [completedTask, incompleteTask],
+        initialSprints: [activeSprint],
+        initialTasks: [task1, task2],
       );
 
-      // Verify: Data loaded successfully
-      // Note: UI filtering may affect which tasks appear in default view
+      await tester.pumpAndSettle();
 
-      print('✓ Sprint with mix of completed and incomplete tasks loaded correctly');
+      // Navigate to Plan tab (where sprints are shown)
+      await tester.tap(find.text('Plan'));
+      await tester.pumpAndSettle();
+
+      // Verify: SprintTaskItems is shown (displays active sprint)
+      expect(find.byType(SprintTaskItems), findsOneWidget);
+
+      // Verify: NewSprint form is NOT shown (we have an active sprint)
+      expect(find.byType(NewSprint), findsNothing);
+
+      // Verify: Sprint tasks are visible
+      expect(find.text('Sprint Task 1'), findsOneWidget);
+      expect(find.text('Sprint Task 2'), findsOneWidget);
     });
+
+    // =======================================================================
+    // STATE MANAGEMENT TESTS - Test Redux state and data relationships
+    // =======================================================================
 
     testWidgets('Sprint creation via action adds sprint to state',
         (tester) async {
@@ -411,7 +155,7 @@ void main() {
       // Verify: No sprints initially
       expect(store.state.sprints.length, 0);
 
-      // Step 1: Create a new sprint via action dispatch
+      // Action: Create a new sprint via Redux action
       final now = DateTime.now().toUtc();
       final newSprint = Sprint((b) => b
         ..docId = 'sprint-new'
@@ -438,20 +182,19 @@ void main() {
         'sprintNumber': newSprint.sprintNumber,
       });
 
-      // Simulate Sprint addition action
+      // Dispatch action
       store.dispatch(SprintsAddedAction([newSprint]));
       await tester.pumpAndSettle();
 
-      // Verify: Sprint appears in state
+      // Verify: Sprint appears in state with correct data
       expect(store.state.sprints.length, 1);
       expect(store.state.sprints.first.docId, 'sprint-new');
       expect(store.state.sprints.first.numUnits, 1);
       expect(store.state.sprints.first.unitName, 'week');
-
-      print('✓ Sprint creation via action adds sprint to state');
+      expect(store.state.sprints.first.sprintNumber, 1);
     });
 
-    testWidgets('Sprint with tasks can be created and retrieved',
+    testWidgets('Sprint with tasks maintains task assignments',
         (tester) async {
       // Setup: Create tasks first
       final now = DateTime.now().toUtc();
@@ -487,7 +230,7 @@ void main() {
         tester.element(find.byType(MaterialApp)),
       );
 
-      // Step 1: Create a sprint with task assignments
+      // Action: Create a sprint with task assignments
       final sprint = Sprint((b) => b
         ..docId = 'sprint-with-tasks'
         ..dateAdded = now
@@ -519,19 +262,19 @@ void main() {
       store.dispatch(SprintsAddedAction([sprint]));
       await tester.pumpAndSettle();
 
-      // Verify: Sprint with assignments exists
+      // Verify: Sprint exists with correct task assignments
       expect(store.state.sprints.length, 1);
       final createdSprint = store.state.sprints.first;
       expect(createdSprint.sprintAssignments.length, 2);
       expect(createdSprint.sprintAssignments[0].taskDocId, 'task-sprint-1');
       expect(createdSprint.sprintAssignments[1].taskDocId, 'task-sprint-2');
-
-      print('✓ Sprint with tasks can be created and retrieved');
+      expect(createdSprint.sprintAssignments[0].sprintDocId, 'sprint-with-tasks');
+      expect(createdSprint.sprintAssignments[1].sprintDocId, 'sprint-with-tasks');
     });
 
-    testWidgets('Multiple sprints can be created in sequence',
+    testWidgets('Multiple sprints can exist in state sequentially',
         (tester) async {
-      // Setup: Start with one sprint
+      // Setup: Start with one closed sprint
       final now = DateTime.now().toUtc();
 
       final sprint1 = Sprint((b) => b
@@ -539,7 +282,7 @@ void main() {
         ..dateAdded = now.subtract(Duration(days: 14))
         ..startDate = now.subtract(Duration(days: 14))
         ..endDate = now.subtract(Duration(days: 7))
-        ..closeDate = now.subtract(Duration(days: 6))
+        ..closeDate = now.subtract(Duration(days: 6)) // Closed
         ..numUnits = 1
         ..unitName = 'week'
         ..personDocId = 'test-person-123'
@@ -562,7 +305,7 @@ void main() {
       // Verify: One sprint initially
       expect(store.state.sprints.length, 1);
 
-      // Step 1: Create second sprint
+      // Action: Create second sprint (new active sprint)
       final sprint2 = Sprint((b) => b
         ..docId = 'sprint-seq-2'
         ..dateAdded = now
@@ -574,22 +317,26 @@ void main() {
         ..sprintNumber = 2
         ..retired = null
         ..retiredDate = null
-        ..closeDate = null
+        ..closeDate = null // Active
         ..sprintAssignments = ListBuilder<SprintAssignment>([]));
 
       store.dispatch(SprintsAddedAction([sprint2]));
       await tester.pumpAndSettle();
 
-      // Verify: Both sprints exist
+      // Verify: Both sprints exist in state
       expect(store.state.sprints.length, 2);
       expect(store.state.sprints.any((s) => s.sprintNumber == 1), true);
       expect(store.state.sprints.any((s) => s.sprintNumber == 2), true);
 
-      print('✓ Multiple sprints can be created in sequence');
+      // Verify: Sprint numbers are correct
+      final sprintNumbers = store.state.sprints.map((s) => s.sprintNumber).toList();
+      expect(sprintNumbers.contains(1), true);
+      expect(sprintNumbers.contains(2), true);
     });
 
-    testWidgets('Sprint number increments correctly', (tester) async {
-      // Setup: Create sprints with sequential numbers
+    testWidgets('Sprint number increments correctly across sprints',
+        (tester) async {
+      // Setup: Create 3 sprints with sequential numbers
       final now = DateTime.now().toUtc();
 
       final sprints = List.generate(3, (index) {
@@ -604,6 +351,7 @@ void main() {
           ..sprintNumber = index + 1
           ..retired = null
           ..retiredDate = null
+          // First 2 are closed, last one is active
           ..closeDate = (index < 2) ? now.add(Duration(days: (index + 1) * 7 - 1)) : null
           ..sprintAssignments = ListBuilder<SprintAssignment>([]));
       });
@@ -619,11 +367,15 @@ void main() {
         tester.element(find.byType(MaterialApp)),
       );
 
-      // Verify: All sprints loaded with correct numbers
+      // Verify: All 3 sprints loaded
       expect(store.state.sprints.length, 3);
+
+      // Verify: Sprint numbers are sequential
       expect(store.state.sprints.map((s) => s.sprintNumber).toList(), [1, 2, 3]);
 
-      print('✓ Sprint number increments correctly');
+      // Verify: Closed sprints have closeDate, active sprint doesn't
+      expect(store.state.sprints.where((s) => s.closeDate != null).length, 2);
+      expect(store.state.sprints.where((s) => s.closeDate == null).length, 1);
     });
   });
 }

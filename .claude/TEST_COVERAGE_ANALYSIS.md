@@ -1,17 +1,17 @@
 # TaskMaster Test Coverage Analysis
 
 **Generated:** 2025-10-13
-**Last Updated:** 2025-10-14 (Recurring Task Date Calculation Fixed!)
+**Last Updated:** 2025-10-14 (Sprint Test Refactor Complete!)
 **Total Tests:** 299+ passing (all test types)
-**Breakdown:** 19 integration (65 total) + 132 widget + 148+ other (unit/model/etc)
-**Status:** Phase 1 COMPLETE ✅ | Phase 2 COMPLETE ✅ | Bug Fixes COMPLETE ✅ | Recurring Task Fix COMPLETE ✅
+**Breakdown:** 12 integration (59 total) + 132 widget + 148+ other (unit/model/etc)
+**Status:** Phase 1 COMPLETE ✅ | Phase 2 COMPLETE ✅ | Bug Fixes COMPLETE ✅ | Sprint Refactor COMPLETE ✅
 
 ---
 
 ## Current Test Coverage
 
-### ✅ Integration Tests (19 critical tests - CI verified)
-- **Sprint Management** (13 tests) - Sprint creation, task assignment, multiple sprints, closed sprints
+### ✅ Integration Tests (12 critical tests - CI verified)
+- **Sprint Management** (6 tests) - Sprint state management (4), sprint UI display (2)
 - **Recurring Tasks** (6 tests) - Daily/weekly recurrence display, multiple recurring tasks, recurring task completion with date calculation
 
 ### ✅ Additional Integration Tests (41 tests from Phase 1)
@@ -73,24 +73,29 @@
 
 ---
 
-#### 2. Sprint Creation & Task Assignment ✅ DONE (13 tests added)
+#### 2. Sprint Creation & Task Assignment ✅ DONE (6 tests - REFACTORED)
 
-- [x] **Sprint Creation Flow** (8 tests in `sprint_test.dart`)
-  - Navigate to sprint creation screen ✅
-  - Fill sprint form (dates, units, sprint number) ✅
-  - Save sprint via action dispatch ✅
-  - Verify sprint appears in plan view ✅
-  - Verify state updated ✅
+**Status:** REFACTORED - Deleted 8 empty/meaningless tests, replaced with 6 meaningful tests
 
-- [x] **Task Assignment to Sprint** (5 tests in `sprint_test.dart`)
-  - Sprint with task assignments ✅
-  - Verify SprintAssignment created ✅
-  - Verify task appears in sprint view ✅
-  - Task carry-over between sprints ✅
-  - Multiple sprints with sequential numbers ✅
+**Sprint UI Tests** (2 tests in `sprint_test.dart`):
+- [x] NewSprint form displays when no active sprint exists ✅
+- [x] SprintTaskItems displays when active sprint exists with tasks ✅
 
-**Completed:** 13 tests
-**Risk Mitigation:** MEDIUM - Sprint workflows fully covered
+**Sprint State Management Tests** (4 tests in `sprint_test.dart`):
+- [x] Sprint creation via action adds sprint to state ✅
+- [x] Sprint with tasks maintains task assignments ✅
+- [x] Multiple sprints can exist in state sequentially ✅
+- [x] Sprint number increments correctly across sprints ✅
+
+**Refactor Details:**
+- **Before:** 13 tests (8 empty with no assertions, 5 basic state tests)
+- **After:** 6 tests (2 UI tests, 4 state management tests, all meaningful)
+- **Deleted:** 8 tests based on false assumption that multi-sprint UI exists
+- **Reality:** App shows ONE active sprint at a time on Plan tab
+- **Improvement:** 100% meaningful tests (was 38% before)
+
+**Completed:** 6 tests (down from 13, but much higher quality)
+**Risk Mitigation:** MEDIUM - Sprint workflows validated with actual UI flows
 
 ---
 
@@ -327,7 +332,7 @@
 8. ✅ **BONUS:** Sprint Creation (13 tests - 1.5 hours)
 9. ✅ **BONUS:** Filter Toggles (4 tests - 30 min)
 
-**Completed:** 46 tests (15 + 13 + 13 + 4 + 1)
+**Completed:** 39 tests (15 + 6 + 13 + 4 + 1)
 **Time Invested:** ~7 hours
 **Value:** Core user journeys validated. Highest ROI achieved. ✅
 
@@ -357,9 +362,9 @@
 4. ✅ Cleaned up test data setup and removed redundant sync helpers
 
 **Issues Fixed:**
-- Sprint tests: 13/13 passing (null-safe operators for activeSprintItems)
-- Recurring tests: 5/6 passing (1 deferred with TODO for date calculation)
-- Overall: 18/19 tests passing in CI (95% pass rate)
+- Sprint tests: 6/6 passing (refactored to test actual UI flows)
+- Recurring tests: 6/6 passing (date calculation bug fixed)
+- Overall: 59/59 integration tests passing in CI (100% pass rate)
 
 **Completed:** 2 bug fixes, 1 enhancement, 1 deferred investigation
 **Time Invested:** ~2 hours
@@ -430,28 +435,39 @@
 
 ## Recommendation
 
-**✅ Phase 1, 2, & Bug Fixes COMPLETE!** You've achieved excellent test coverage:
-- ✅ Phase 1: All critical CRUD flows tested (46 tests)
+**✅ Phase 1, 2, & Test Quality Refactor COMPLETE!** You've achieved excellent test coverage:
+- ✅ Phase 1: All critical CRUD flows tested (39 tests)
 - ✅ Phase 2: Major form screens tested (23 tests)
 - ✅ Phase 2.5: CI bug fixes and stability improvements
-- **Total:** 69 new tests added + bug fixes
-- **CI Status:** 18/19 integration tests passing (95%)
+- ✅ Phase 2.75: Sprint test quality refactor (audit + cleanup)
+- **Total:** 62 new meaningful tests + bug fixes + quality improvements
+- **CI Status:** 59/59 integration tests passing (100%)
 - **Coverage:** 85-90% of user-facing bugs now caught
-- **Time Invested:** ~12 hours
+- **Time Invested:** ~13 hours
 
 **Current Status:**
-- ✅ Sprint tests: 13/13 passing
+- ✅ Sprint tests: 6/6 passing (refactored from 13, removed 8 empty tests)
 - ✅ Recurring task tests: 6/6 passing (date calculation bug fixed!)
 - ✅ Widget tests: 132 passing
 - ✅ Unit/model tests: 148+ passing
-- ✅ CI stability: All 65 integration tests passing
-- ✅ Recurring task bug fix: Date calculation corrected in RecurrenceHelper
+- ✅ CI stability: All 59 integration tests passing (100% pass rate)
+- ✅ Test quality: Comprehensive audit completed, empty tests removed
 
-**Bug Fix Details:**
+**Sprint Test Refactor Details:**
+- **Audit:** Created comprehensive TEST_AUDIT.md documenting test quality issues
+- **Finding:** 8/13 sprint tests (62%) had NO assertions, only print statements
+- **Root Cause:** Tests based on false assumption about multi-sprint UI (doesn't exist)
+- **Reality:** App shows ONE active sprint at a time on Plan tab (PlanningHome → NewSprint OR SprintTaskItems)
+- **Action:** Deleted 8 empty tests, replaced with 6 meaningful tests
+- **Result:** 100% meaningful sprint tests (was 38% before), all passing
+- **Files:** test/integration/sprint_test.dart, .claude/TEST_AUDIT.md
+
+**Recurring Task Bug Fix Details:**
 - **Issue**: Completing recurring tasks created next iteration with same dates (not incremented)
 - **Root Cause**: `incrementWithMatchingDateIntervals()` used task's anchor date instead of recurrence's anchor date
 - **Fix**: Changed to use `originalAnchorDate` parameter for calculating date offsets (lib/helpers/recurrence_helper.dart:159-166)
-- **Verification**: All 65 integration tests passing, including the new recurring task completion test
+- **Off-Cycle Fix**: Added conditional logic to preserve offset for off-cycle tasks (e.g., snoozed)
+- **Verification**: All 59 integration tests passing, including recurring task completion test
 
 **Next Steps:**
 - ✅ **Ready for Redux → Riverpod migration!**

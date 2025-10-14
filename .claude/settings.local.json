@@ -1,6 +1,9 @@
 {
   "permissions": {
     "allow": [
+      "Bash(done)",
+      "Bash(flutter test:*)",
+      "Bash(findstr:*)",
       "Bash(cat:*)",
       "Bash(git commit:*)",
       "Bash(git add:*)",
