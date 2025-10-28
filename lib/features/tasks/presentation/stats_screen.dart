@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../redux/containers/tab_selector.dart';
+import '../../../redux/presentation/task_main_menu.dart';
 import '../providers/task_filter_providers.dart';
 
 /// Riverpod version of the Stats screen
@@ -12,25 +14,32 @@ class StatsScreen extends ConsumerWidget {
     final activeCount = ref.watch(activeTaskCountProvider);
     final completedCount = ref.watch(completedTaskCountProvider);
 
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _StatCard(
-            label: 'Active Tasks',
-            count: activeCount,
-            color: Colors.blue,
-            icon: Icons.check_box_outline_blank,
-          ),
-          const SizedBox(height: 16),
-          _StatCard(
-            label: 'Completed Tasks',
-            count: completedCount,
-            color: Colors.green,
-            icon: Icons.check_box,
-          ),
-        ],
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Stats'),
       ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _StatCard(
+              label: 'Active Tasks',
+              count: activeCount,
+              color: Colors.blue,
+              icon: Icons.check_box_outline_blank,
+            ),
+            const SizedBox(height: 16),
+            _StatCard(
+              label: 'Completed Tasks',
+              count: completedCount,
+              color: Colors.green,
+              icon: Icons.check_box,
+            ),
+          ],
+        ),
+      ),
+      drawer: TaskMainMenu(),
+      bottomNavigationBar: TabSelector(),
     );
   }
 }

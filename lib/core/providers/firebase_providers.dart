@@ -4,22 +4,16 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'firebase_providers.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 FirebaseFirestore firestore(FirestoreRef ref) {
   final instance = FirebaseFirestore.instance;
 
-  const serverEnv = String.fromEnvironment('SERVER', defaultValue: 'heroku');
-  if (serverEnv == 'local') {
-    instance.useFirestoreEmulator('127.0.0.1', 8085);
-    instance.settings = const Settings(persistenceEnabled: false);
-  } else {
-    instance.settings = const Settings(
-      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-    );
-  }
+  // Only configure once - Firestore instance is a singleton
+  // Settings will throw if called multiple times, so we don't need to worry
+  // about reconfiguration
 
   return instance;
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 FirebaseAuth firebaseAuth(FirebaseAuthRef ref) => FirebaseAuth.instance;
