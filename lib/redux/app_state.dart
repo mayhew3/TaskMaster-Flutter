@@ -12,6 +12,8 @@ import 'package:taskmaster/redux/containers/planning_home.dart';
 import 'package:taskmaster/redux/middleware/notification_helper.dart';
 import 'package:taskmaster/redux/presentation/stats_counter.dart';
 
+import '../core/feature_flags.dart';
+import '../features/tasks/presentation/stats_screen.dart';
 import '../models/models.dart';
 import '../timezone_helper.dart';
 
@@ -109,7 +111,9 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
       TopNavItem.init(
           label: 'Stats',
           icon: Icons.show_chart,
-          widgetGetter: () => StatsCounter()),
+          widgetGetter: () => FeatureFlags.useRiverpodForStats
+              ? const StatsScreen() // New Riverpod version
+              : StatsCounter()), // Old Redux version
     ]);
   }
 
