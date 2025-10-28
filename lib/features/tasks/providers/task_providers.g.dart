@@ -6,7 +6,7 @@ part of 'task_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$tasksHash() => r'0953d2f2b664c5ced681f70020caea55c13e67ef';
+String _$tasksHash() => r'c77e3d7400cfc5cc78e11d6ccab5465cd8bf2806';
 
 /// Stream of all tasks for the current user
 ///
@@ -25,7 +25,7 @@ final tasksProvider = AutoDisposeStreamProvider<List<TaskItem>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TasksRef = AutoDisposeStreamProviderRef<List<TaskItem>>;
-String _$taskRecurrencesHash() => r'd7644d98f6db511ee653c2c8962565c8d12a1a46';
+String _$taskRecurrencesHash() => r'0a165dd53b7ffc319fb9c0e882a0717ca7cf5c68';
 
 /// Stream of task recurrences for the current user
 ///
