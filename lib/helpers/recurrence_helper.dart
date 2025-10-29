@@ -150,14 +150,17 @@ class RecurrenceHelper {
     }
 
     var resultSet = new Map<TaskDateType, DateTime>();
-    var taskAnchorDate = originalDateSet[taskDateType];
-    if (taskAnchorDate == null) {
-      throw new Exception('Expected supplied date set to include date with taskDateType');
-    }
+
+    // Determine which anchor date to use for calculating offsets:
+    // - Off cycle tasks: Use task's anchor date to preserve the offset from schedule
+    // - On cycle tasks: Use recurrence's anchor date for correct date increments
+    var taskAnchorDate = originalDateSet[taskDateType]!;
+    var baseAnchorDate = taskItem.offCycle ? taskAnchorDate : originalAnchorDate;
+
     for (var dateType in TaskDateTypes.allTypes) {
       var dateValue = originalDateSet[dateType];
       if (dateValue != null) {
-        var difference = dateValue.difference(taskAnchorDate);
+        var difference = dateValue.difference(baseAnchorDate);
         var newDateValue = newAnchorDate.add(difference);
         resultSet[dateType] = newDateValue;
       }

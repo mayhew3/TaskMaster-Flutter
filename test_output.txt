@@ -1,0 +1,163 @@
+00:00 +0: loading C:/Code/TaskMaster/TaskMaster-Flutter/test/app_state_test.dart
+00:00 +0: C:/Code/TaskMaster/TaskMaster-Flutter/test/models/task_item_test.dart: TaskItem fromJSON
+00:00 +1: C:/Code/TaskMaster/TaskMaster-Flutter/test/models/task_item_test.dart: TaskItem isCompleted
+00:00 +2: C:/Code/TaskMaster/TaskMaster-Flutter/test/models/task_item_test.dart: TaskItem isCompleted not completed
+00:00 +3: C:/Code/TaskMaster/TaskMaster-Flutter/test/models/task_item_test.dart: TaskItem isScheduled is false for past date
+00:00 +4: C:/Code/TaskMaster/TaskMaster-Flutter/test/models/task_item_test.dart: TaskItem isScheduled is false for null date
+00:00 +5: C:/Code/TaskMaster/TaskMaster-Flutter/test/models/task_item_test.dart: TaskItem isScheduled is true for future date
+00:00 +6: C:/Code/TaskMaster/TaskMaster-Flutter/test/models/task_item_test.dart: TaskItem isPastDue is true for past date
+00:00 +7: C:/Code/TaskMaster/TaskMaster-Flutter/test/models/task_item_test.dart: TaskItem isPastDue is false for null date
+00:00 +8: C:/Code/TaskMaster/TaskMaster-Flutter/test/models/task_item_test.dart: TaskItem isPastDue is false for future date
+00:00 +9: C:/Code/TaskMaster/TaskMaster-Flutter/test/models/task_item_test.dart: TaskItem isUrgent is true for past date
+00:00 +10: C:/Code/TaskMaster/TaskMaster-Flutter/test/models/task_item_test.dart: TaskItem isUrgent is false for null date
+00:00 +11: C:/Code/TaskMaster/TaskMaster-Flutter/test/models/task_item_test.dart: TaskItem isUrgent is false for future date
+00:00 +12: C:/Code/TaskMaster/TaskMaster-Flutter/test/models/task_item_test.dart: TaskItem getAnchorDate targetDate when only date
+00:00 +13: C:/Code/TaskMaster/TaskMaster-Flutter/test/models/task_item_test.dart: TaskItem getAnchorDate targetDate instead of start date
+00:00 +14: C:/Code/TaskMaster/TaskMaster-Flutter/test/models/task_item_test.dart: TaskItem getAnchorDate urgentDate
+00:00 +15: C:/Code/TaskMaster/TaskMaster-Flutter/test/models/task_item_test.dart: TaskItem getAnchorDate dueDate
+00:00 +16: C:/Code/TaskMaster/TaskMaster-Flutter/test/notification_helper_test.dart: construct with empty list
+00:00 +17: C:/Code/TaskMaster/TaskMaster-Flutter/test/notification_helper_test.dart: updateNotificationForTask first add
+Scheduled notification for Hunter Birthday (due 1 day) on Nov 1 at 12:24 AM
+Scheduled notification for Hunter Birthday (due 2 hours) on Nov 1 at 10:24 PM
+Scheduled notification for Hunter Birthday (due) on Nov 2 at 12:24 AM
+00:00 +18: C:/Code/TaskMaster/TaskMaster-Flutter/test/notification_helper_test.dart: updateNotificationForTask adds nothing if no urgent or due date
+00:00 +19: C:/Code/TaskMaster/TaskMaster-Flutter/test/notification_helper_test.dart: updateNotificationForTask adds nothing if urgent and due date are past
+00:00 +20: C:/Code/TaskMaster/TaskMaster-Flutter/test/notification_helper_test.dart: updateNotificationForTask adds five notifications for urgent and due date
+Scheduled notification for Give a Penny (due 1 day) on Oct 16 at 12:24 AM
+Scheduled notification for Give a Penny (due 2 hours) on Oct 16 at 10:24 PM
+Scheduled notification for Give a Penny (due) on Oct 17 at 12:24 AM
+Scheduled notification for Give a Penny (urgent 2 hours) on Oct 14 at 10:24 PM
+Scheduled notification for Give a Penny (urgent) on Oct 15 at 12:24 AM
+00:00 +21: C:/Code/TaskMaster/TaskMaster-Flutter/test/notification_helper_test.dart: updateNotificationForTask adds three notification for past urgent and future due date
+Scheduled notification for Eat a Penny (due 1 day) on Oct 19 at 12:24 AM
+Scheduled notification for Eat a Penny (due 2 hours) on Oct 19 at 10:24 PM
+Scheduled notification for Eat a Penny (due) on Oct 20 at 12:24 AM
+00:00 +22: C:/Code/TaskMaster/TaskMaster-Flutter/test/notification_helper_test.dart: updateNotificationForTask replaces old due notification
+Scheduled notification for Barf a Penny (due 1 day) on Oct 16 at 12:24 AM
+Scheduled notification for Barf a Penny (due 2 hours) on Oct 16 at 10:24 PM
+Scheduled notification for Barf a Penny (due) on Oct 17 at 12:24 AM
+Replaced notification for Barf a Penny (due 1 day) on Oct 20 at 12:24 AM
+Replaced notification for Barf a Penny (due 2 hours) on Oct 20 at 10:24 PM
+Replaced notification for Barf a Penny (due) on Oct 21 at 12:24 AM
+00:00 +23: C:/Code/TaskMaster/TaskMaster-Flutter/test/notification_helper_test.dart: updateNotificationForTask removes old due notification if due date moved back
+Scheduled notification for Barf a Penny (due 1 day) on Oct 16 at 12:24 AM
+Scheduled notification for Barf a Penny (due 2 hours) on Oct 16 at 10:24 PM
+Scheduled notification for Barf a Penny (due) on Oct 17 at 12:24 AM
+Notification removed for Barf a Penny (due 1 day)
+Notification removed for Barf a Penny (due 2 hours)
+Notification removed for Barf a Penny (due)
+00:00 +24: C:/Code/TaskMaster/TaskMaster-Flutter/test/notification_helper_test.dart: updateNotificationForTask replaces old urgent and due notifications
+Scheduled notification for Give a Penny (due 1 day) on Oct 16 at 12:24 AM
+Scheduled notification for Give a Penny (due 2 hours) on Oct 16 at 10:24 PM
+Scheduled notification for Give a Penny (due) on Oct 17 at 12:24 AM
+Scheduled notification for Give a Penny (urgent 2 hours) on Oct 14 at 10:24 PM
+Scheduled notification for Give a Penny (urgent) on Oct 15 at 12:24 AM
+Replaced notification for Give a Penny (due 1 day) on Oct 24 at 12:24 AM
+Replaced notification for Give a Penny (due 2 hours) on Oct 24 at 10:24 PM
+Replaced notification for Give a Penny (due) on Oct 25 at 12:24 AM
+Replaced notification for Give a Penny (urgent 2 hours) on Oct 16 at 10:24 PM
+Replaced notification for Give a Penny (urgent) on Oct 17 at 12:24 AM
+00:00 +25: C:/Code/TaskMaster/TaskMaster-Flutter/test/notification_helper_test.dart: cancelNotificationsForTaskId cancels due notification
+Scheduled notification for Barf a Penny (due 1 day) on Oct 16 at 12:24 AM
+Scheduled notification for Barf a Penny (due 2 hours) on Oct 16 at 10:24 PM
+Scheduled notification for Barf a Penny (due) on Oct 17 at 12:24 AM
+Removing task: task:30:dueOneDay
+Removing task: task:30:dueTwoHours
+Removing task: task:30:due
+00:00 +26: C:/Code/TaskMaster/TaskMaster-Flutter/test/notification_helper_test.dart: cancelNotificationsForTaskId cancels both urgent and due
+Scheduled notification for Give a Penny (due 1 day) on Oct 16 at 12:24 AM
+Scheduled notification for Give a Penny (due 2 hours) on Oct 16 at 10:24 PM
+Scheduled notification for Give a Penny (due) on Oct 17 at 12:24 AM
+Scheduled notification for Give a Penny (urgent 2 hours) on Oct 14 at 10:24 PM
+Scheduled notification for Give a Penny (urgent) on Oct 15 at 12:24 AM
+Removing task: task:31:dueOneDay
+Removing task: task:31:dueTwoHours
+Removing task: task:31:due
+Removing task: task:31:urgentTwoHours
+Removing task: task:31:urgent
+00:00 +27: C:/Code/TaskMaster/TaskMaster-Flutter/test/notification_helper_test.dart: cancelAllNotifications
+Scheduled notification for Give a Penny (due 1 day) on Oct 16 at 12:24 AM
+Scheduled notification for Hunter Birthday (due 1 day) on Nov 1 at 12:24 AM
+Scheduled notification for Give a Penny (due 2 hours) on Oct 16 at 10:24 PM
+Scheduled notification for Hunter Birthday (due 2 hours) on Nov 1 at 10:24 PM
+Scheduled notification for Give a Penny (due) on Oct 17 at 12:24 AM
+Scheduled notification for Hunter Birthday (due) on Nov 2 at 12:24 AM
+Scheduled notification for Give a Penny (urgent 2 hours) on Oct 14 at 10:24 PM
+Scheduled notification for Give a Penny (urgent) on Oct 15 at 12:24 AM
+Canceling all existing notifications and rebuilding...
+00:01 +28: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: generatePreview generatePreview moves target and due dates
+00:01 +29: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: generatePreview generatePreview on task without a start date adds a start date
+00:01 +30: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: updateTaskAndMaybeRecurrenceForSnooze updateTaskAndMaybeRecurrenceForSnooze with no recurrence
+00:01 +31: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: updateTaskAndMaybeRecurrenceForSnooze updateTaskAndMaybeRecurrenceForSnooze with On Complete recurrence
+00:01 +32: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: updateTaskAndMaybeRecurrenceForSnooze updateTaskAndMaybeRecurrenceForSnooze with On Schedule recurrence, on cycle
+00:01 +33: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: updateTaskAndMaybeRecurrenceForSnooze updateTaskAndMaybeRecurrenceForSnooze with On Schedule recurrence, off cycle
+00:01 +34: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: createNextIteration on complete increments dates
+00:01 +35: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: createNextIteration on scheduled dates increments dates
+00:01 +36: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: createNextIteration on scheduled dates (off cycle) increments dates
+00:01 +37: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: createNextIteration on scheduled dates (off cycle) increments dates (urgent anchor)
+00:01 +38: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: incrementWithMatchingDateIntervals should increment dates with due date as anchor
+00:01 +39: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: incrementWithMatchingDateIntervals should increment dates with urgent date as anchor
+00:01 +40: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: incrementWithMatchingDateIntervals should increment dates with target date as anchor
+00:01 +41: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: incrementWithMatchingDateIntervals should increment dates with start date as anchor
+00:01 +42: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: incrementWithMatchingDateIntervals should handle null non-anchor dates gracefully
+00:01 +43: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: incrementWithMatchingDateIntervals should throw exception if task item has no anchor date
+00:01 +44: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: incrementWithMatchingDateIntervals should preserve time of day for all dates
+00:01 +45: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: addToDate should add duration to a non-null date
+00:01 +46: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: addToDate should return same date when adding zero duration to a non-null date
+00:01 +47: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: addToDate should return null when adding duration to a null date
+00:01 +48: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: addToDate should return null when adding zero duration to a null date
+00:01 +49: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: getAdjustedDate should add days to date
+00:01 +50: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: getAdjustedDate should add weeks to date
+00:01 +51: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: getAdjustedDate should add months to date
+00:01 +52: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: getAdjustedDate should add years to date
+00:01 +53: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: getAdjustedDate should subtract days from date
+00:01 +54: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: getAdjustedDate should subtract weeks from date
+00:01 +55: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: getAdjustedDate should subtract months from date
+00:01 +56: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: getAdjustedDate should subtract years from date
+00:01 +57: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: getAdjustedDate should return same date when numUnits is zero
+00:01 +58: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: getAdjustedDate should throw argument error for invalid unit
+00:01 +59: C:/Code/TaskMaster/TaskMaster-Flutter/test/recurrence_helper_test.dart: applyTimeToDate should apply time from timeHolder to date
+00:02 +60: C:/Code/TaskMaster/TaskMaster-Flutter/test/snooze_test.dart: to json
+00:02 +61: C:/Code/TaskMaster/TaskMaster-Flutter/test/snooze_test.dart: from json
+00:02 +62: C:/Code/TaskMaster/TaskMaster-Flutter/test/task_helper_test.dart: addTask
+00:03 +63: C:/Code/TaskMaster/TaskMaster-Flutter/test/task_helper_test.dart: addTask with recurrence
+00:03 +64: C:/Code/TaskMaster/TaskMaster-Flutter/test/task_helper_test.dart: reloadTasks
+Fetching tasks for person_id ADBC1234...
+Initializing data listeners...
+00:03 +65: C:/Code/TaskMaster/TaskMaster-Flutter/test/task_helper_test.dart: completeTask no recur
+00:04 +66: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_field_test.dart: has label
+00:04 +67: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_field_test.dart: change text
+00:05 +68: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests displays task name
+00:05 +69: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests displays task name
+00:05 +70: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests displays task name
+00:05 +71: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests displays task name
+00:05 +72: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests displays task name
+00:05 +73: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests displays task name
+00:05 +74: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests displays task name
+00:05 +75: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests displays task name
+00:05 +76: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests displays task name
+00:05 +77: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests displays task name
+00:05 +78: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests displays task name
+00:05 +79: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests displays task name
+00:05 +80: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests displays project name when provided
+00:05 +81: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests hides project name when not provided
+00:05 +82: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests displays DelayedCheckbox
+00:05 +83: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests checkbox is in inactive state by default
+00:05 +84: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests checkbox is in checked state when task is completed
+00:05 +85: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests checkbox is in pending state when task is pending completion
+00:05 +86: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests checkbox is checked if completed, even if also pending
+00:05 +87: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests background is pendingBackground when pending
+00:05 +88: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests background is completedColor when completed
+00:05 +89: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests displays "Completed ..." when completed (simplified check)
+00:05 +90: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests displays "Due in ..." for future due date (simplified check)
+00:05 +91: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests shows sprint icon and border when highlightSprint is true
+00:05 +92: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests hides sprint icon and uses default/scheduled border when highlightSprint is false
+00:05 +93: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests uses scheduled border when task is scheduled and not sprint highlighted
+00:05 +94: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests uses scheduled text style when task is scheduled
+00:06 +95: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests uses invisible shadow when task is scheduled
+00:06 +96: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests uses black shadow when task is not scheduled
+00:06 +97: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests Dismissible is present with correct key
+00:06 +98: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests onTap callback is wired to GestureDetector
+00:06 +99: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests onLongPress callback is wired to GestureDetector
+00:06 +100: C:/Code/TaskMaster/TaskMaster-Flutter/test/widgets/editable_task_item_test.dart: EditableTaskItemWidget Tests onTaskCompleteToggle is wired to DelayedCheckbox's tap
+00:06 +101: All tests passed!

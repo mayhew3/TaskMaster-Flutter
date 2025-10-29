@@ -237,6 +237,7 @@ class EditableTaskItemWidget extends StatelessWidget {
           }
         },
         child: Card(
+          key: TaskMasterKeys.editableTaskItemCard(getKey()),
           shadowColor: _getShadowColor(),
           color: getBackgroundColor(),
           shape: _getBorder(),
@@ -262,10 +263,11 @@ class EditableTaskItemWidget extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                            taskItem.name,
-                            style: _getHeaderStyle(),
+                          taskItem.name,
+                          style: _getHeaderStyle(),
                         ),
                         Visibility(
+                          key: TaskMasterKeys.editableTaskItemCardProjectField(getKey()),
                           visible: taskItem.project != null,
                           child: Text(
                             taskItem.project == null ? '' : taskItem.project!,
@@ -279,8 +281,9 @@ class EditableTaskItemWidget extends StatelessWidget {
                 ),
                 _getDateWarnings(),
                 Visibility(
-                    visible: highlightSprint,
-                    child: Icon(Icons.assignment, color: TaskColors.sprintColor),
+                  key: TaskMasterKeys.editableTaskItemCardSprintIcon(getKey()),
+                  visible: highlightSprint,
+                  child: Icon(Icons.assignment, color: TaskColors.sprintColor),
                 ),
                 Container(
                   padding: EdgeInsets.only(
