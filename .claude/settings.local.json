@@ -15,7 +15,8 @@
       "Bash(flutter:*)",
       "Bash(tee:*)",
       "Bash(git checkout:*)",
-      "Bash(gcloud config:*)"
+      "Bash(gcloud config:*)",
+      "Bash(git filter-branch:*)"
     ],
     "deny": [],
     "ask": []
