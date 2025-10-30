@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_badger/flutter_app_badger.dart';
@@ -83,14 +82,14 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       return; // Only handle for local emulator
     }
 
-    final errorStr = error.toString();
+    final errorStr = error.toString().toLowerCase();
     print('🔍 Error string: $errorStr');
 
-    if (errorStr.contains('ECONNREFUSED') ||
+    if (errorStr.contains('econnrefused') ||
         errorStr.contains('failed to connect') ||
-        errorStr.contains('UNAVAILABLE') ||
-        errorStr.contains('Connection timeout') ||
-        errorStr.contains('TimeoutException')) {
+        errorStr.contains('unavailable') ||
+        errorStr.contains('connection timeout') ||
+        errorStr.contains('timeoutexception')) {
       print('');
       print('═══════════════════════════════════════════════════════════');
       print('❌❌❌ FIRESTORE EMULATOR CONNECTION FAILED ❌❌❌');
