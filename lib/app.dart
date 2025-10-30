@@ -41,11 +41,18 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     var firestore = FirebaseFirestore.instance;
 
     if (serverEnv == 'local') {
+      print('🔧 USING LOCAL FIRESTORE EMULATOR');
+      print('📡 Connecting to: 127.0.0.1:8085');
+      print('⚠️  Make sure Firebase emulator is running: firebase emulators:start');
       firestore.useFirestoreEmulator('127.0.0.1', 8085);
       firestore.settings = const Settings(
         persistenceEnabled: false,
       );
+
+      // Test emulator connection early
+      _testEmulatorConnection(firestore);
     } else {
+      print('☁️  USING PRODUCTION FIRESTORE (serverEnv: $serverEnv)');
       firestore.settings = const Settings(cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED);
     }
 
@@ -66,6 +73,50 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       configureTimezoneHelper();
       setupBadgeUpdater();
     });
+  }
+
+  void _testEmulatorConnection(FirebaseFirestore firestore) {
+    // Test connection by attempting a simple query
+    firestore
+        .collection('_emulator_health_check')
+        .limit(1)
+        .get(const GetOptions(source: Source.server))
+        .timeout(
+          const Duration(seconds: 3),
+          onTimeout: () {
+            print('');
+            print('❌❌❌ FIRESTORE EMULATOR CONNECTION FAILED ❌❌❌');
+            print('');
+            print('The app is configured to use the local Firestore emulator,');
+            print('but cannot connect to it at 127.0.0.1:8085');
+            print('');
+            print('To fix this:');
+            print('  1. Open a new terminal');
+            print('  2. Run: firebase emulators:start');
+            print('  3. Wait for "All emulators ready!"');
+            print('  4. Restart this app');
+            print('');
+            print('Or to use production Firebase instead:');
+            print('  flutter run  (without --dart-define=SERVER=local)');
+            print('');
+            throw Exception('Firestore emulator not running on port 8085');
+          },
+        )
+        .then((_) {
+          print('✅ Firestore emulator connection successful');
+        })
+        .catchError((error) {
+          if (error.toString().contains('ECONNREFUSED') ||
+              error.toString().contains('failed to connect')) {
+            print('');
+            print('❌❌❌ FIRESTORE EMULATOR CONNECTION REFUSED ❌❌❌');
+            print('');
+            print('Cannot connect to Firestore emulator at 127.0.0.1:8085');
+            print('');
+            print('Start the emulator with: firebase emulators:start');
+            print('');
+          }
+        });
   }
 
   void setupBadgeUpdater() {
