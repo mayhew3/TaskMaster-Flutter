@@ -50,9 +50,6 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       firestore.settings = const Settings(
         persistenceEnabled: false,
       );
-
-      // Monitor Firestore connection state
-      _monitorFirestoreConnection(firestore);
     } else {
       print('☁️  USING PRODUCTION FIRESTORE (serverEnv: $serverEnv)');
       firestore.settings = const Settings(cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED);
@@ -77,33 +74,6 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     });
   }
 
-  void _monitorFirestoreConnection(FirebaseFirestore firestore) {
-    // Wait a bit for auth to complete, then test connection
-    Future.delayed(const Duration(seconds: 2), () async {
-      if (_emulatorError != null) return; // Already detected error
-
-      try {
-        print('🔍 Testing Firestore emulator connection...');
-        // Force a server fetch (not from cache)
-        await firestore
-            .collection('_connection_test')
-            .limit(1)
-            .get(const GetOptions(source: Source.server))
-            .timeout(
-              const Duration(seconds: 3),
-              onTimeout: () {
-                print('⏱️ Connection test timed out');
-                handleFirestoreError('Connection timeout - emulator not responding');
-                throw TimeoutException('Firestore emulator connection timeout');
-              },
-            );
-        print('✅ Firestore emulator connection test passed');
-      } catch (e) {
-        print('❌ Firestore emulator connection test failed: $e');
-        handleFirestoreError(e);
-      }
-    });
-  }
 
   void handleFirestoreError(dynamic error) {
     print('🔍 handleFirestoreError called with: $error');

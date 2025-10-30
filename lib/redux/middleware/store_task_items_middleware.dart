@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:built_collection/built_collection.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:taskmaster/firestore_migrator.dart';
@@ -59,6 +61,32 @@ Future<void> Function(
 
     var email = store.state.currentUser!.email;
     print('Verify person account for $email...');
+
+    // If using local emulator, test connection before attempting to fetch data
+    if (const String.fromEnvironment('SERVER', defaultValue: 'heroku') == 'local') {
+      try {
+        print('🔍 Testing Firestore emulator connection...');
+        await repository.firestore
+            .collection('_connection_test')
+            .limit(1)
+            .get(const GetOptions(source: Source.server))
+            .timeout(
+              const Duration(seconds: 3),
+              onTimeout: () {
+                print('⏱️ Connection test timed out');
+                throw TimeoutException('Firestore emulator connection timeout');
+              },
+            );
+        print('✅ Firestore emulator connection test passed');
+      } catch (e) {
+        print('❌ Firestore emulator connection test failed: $e');
+        if (onFirestoreError != null) {
+          onFirestoreError(e);
+        }
+        store.dispatch(OnPersonRejectedAction());
+        return;
+      }
+    }
 
     try {
       var personDocId = await repository.getPersonIdFromFirestore(email);
