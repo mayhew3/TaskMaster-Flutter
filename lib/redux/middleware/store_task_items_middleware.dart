@@ -28,7 +28,7 @@ List<Middleware<AppState>> createStoreTaskItemsMiddleware(
     Function(dynamic)? onFirestoreError,
     ) {
   return [
-    TypedMiddleware<AppState, VerifyPersonAction>(_verifyPerson(repository, migrator)).call,
+    TypedMiddleware<AppState, VerifyPersonAction>(_verifyPerson(repository, migrator, onFirestoreError)).call,
     TypedMiddleware<AppState, LoadDataAction>(loadData(repository, navigatorKey, onFirestoreError)).call,
     TypedMiddleware<AppState, DataLoadedAction>(_dataLoaded(navigatorKey)).call,
     TypedMiddleware<AppState, AddTaskItemAction>(createNewTaskItem(repository)).call,
@@ -45,7 +45,7 @@ Future<void> Function(
     Store<AppState>,
     VerifyPersonAction action,
     NextDispatcher next,
-    ) _verifyPerson(TaskRepository repository, FirestoreMigrator migrator) {
+    ) _verifyPerson(TaskRepository repository, FirestoreMigrator migrator, Function(dynamic)? onFirestoreError) {
   return (Store<AppState> store, VerifyPersonAction action, NextDispatcher next) async {
     next(action);
 
@@ -54,7 +54,7 @@ Future<void> Function(
       await migrator.migrateFromApi(email: email);
       print('Migration complete!');
     }
-    
+
     // await repository.dataFixAll();
 
     var email = store.state.currentUser!.email;
@@ -70,6 +70,10 @@ Future<void> Function(
     } catch (e, stack) {
       print('Error fetching person for email: $e');
       print(stack);
+      // Call error handler if this is a connection error
+      if (onFirestoreError != null) {
+        onFirestoreError(e);
+      }
       store.dispatch(OnPersonRejectedAction());
     }
 

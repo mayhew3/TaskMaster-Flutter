@@ -74,9 +74,16 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   }
 
   void handleFirestoreError(dynamic error) {
-    if (serverEnv != 'local') return; // Only handle for local emulator
+    print('🔍 handleFirestoreError called with: $error');
+
+    if (serverEnv != 'local') {
+      print('⚠️  Not in local mode, ignoring error');
+      return; // Only handle for local emulator
+    }
 
     final errorStr = error.toString();
+    print('🔍 Error string: $errorStr');
+
     if (errorStr.contains('ECONNREFUSED') ||
         errorStr.contains('failed to connect') ||
         errorStr.contains('UNAVAILABLE')) {
@@ -92,10 +99,15 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       print('');
 
       if (mounted && _emulatorError == null) {
+        print('🔴 Setting error state to show red screen');
         setState(() {
           _emulatorError = errorStr;
         });
+      } else {
+        print('⚠️  Not setting error state: mounted=$mounted, _emulatorError=$_emulatorError');
       }
+    } else {
+      print('⚠️  Error does not match connection failure patterns');
     }
   }
 
