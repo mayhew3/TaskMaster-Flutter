@@ -13,11 +13,11 @@
 |-------|--------|----------|-------|-------|
 | **Phase 0: Foundation** | ✅ Complete | 100% | 291/291 | Riverpod infrastructure in place |
 | **Phase 1: First Screen** | ✅ Complete | 100% | 291/291 | Stats screen (Riverpod + Redux coexist) |
-| **Phase 2: Core Screens** | ⏸️ Not Started | 0% | - | Task List, Details, Sprint screens |
+| **Phase 2: Core Screens** | 🔄 In Progress | 33% | 291/291 | Task List ✅, Details, Add/Edit screens |
 | **Phase 3: Full Migration** | ⏸️ Not Started | 0% | - | All screens migrated |
 | **Phase 4: Cleanup** | ⏸️ Not Started | 0% | - | Delete Redux code |
 
-**Overall:** ~15% complete (Foundation + 1 screen out of ~8 screens)
+**Overall:** ~25% complete (Foundation + 2 screens out of ~8 screens)
 
 ---
 
@@ -195,28 +195,61 @@ flutter run
 
 ---
 
-## 🎯 Current Work: Phase 2 - Task List Screen
+## ✅ Phase 2: Task List Screen (Complete)
 
-### Status: Starting Implementation
+### Status: Implementation Complete
 
 **Date Started:** October 30, 2025
+**Date Completed:** October 30, 2025
+**Time Spent:** ~1 hour
 
-**Current Task:** Implement Task List Screen in Riverpod
+### Accomplishments
 
-The Task List screen is the most complex screen with:
-- Task filtering (completed/scheduled toggles)
-- Task grouping and sorting
-- Checkbox interactions for completion
-- Navigation to details/edit
-- Swipe to delete
+**Task List Screen Riverpod Implementation:**
+- ✅ Created TaskListScreen widget with grouped task display
+- ✅ Added groupedTasksProvider (6 categories: Past Due, Urgent, Target, Tasks, Scheduled, Completed)
+- ✅ Integrated with existing EditableTaskItemWidget
+- ✅ Task completion via CompleteTaskProvider
+- ✅ Navigation to details, snooze dialog on long-press
+- ✅ Swipe-to-delete functionality
+- ✅ Empty state handling
+- ✅ Feature flag wiring (USE_RIVERPOD_TASKS)
 
-**Implementation Plan:**
-1. Create task list providers (filters, sorted tasks)
-2. Create TaskListScreen widget
-3. Create TaskListItem widget
-4. Add USE_RIVERPOD_TASKS feature flag
-5. Wire up in home screen
-6. Test both versions side-by-side
+**Files Created:**
+- `lib/features/tasks/presentation/task_list_screen.dart` (147 lines)
+
+**Files Enhanced:**
+- `lib/features/tasks/providers/task_filter_providers.dart` (+70 lines)
+- `lib/redux/app_state.dart` (added feature flag wiring)
+
+### Testing
+
+**Run with Riverpod Tasks:**
+```bash
+flutter run --dart-define=USE_RIVERPOD_TASKS=true
+```
+
+**Run with Redux (default):**
+```bash
+flutter run
+```
+
+**All tests passing:** ✅ 291/291
+
+### Code Comparison
+
+**Redux Task List:**
+- `task_item_list.dart` - 378 lines
+- `task_item_list_viewmodel.dart` - 42 lines
+- Complex state management with StoreConnector
+- **Total:** ~420 lines across 2+ files
+
+**Riverpod Task List:**
+- `task_list_screen.dart` - 147 lines
+- Provider logic in `task_filter_providers.dart`
+- **Total:** ~217 lines (including providers)
+
+**Reduction:** ~48% less code, cleaner separation of concerns
 
 ---
 
