@@ -266,6 +266,7 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
     String? subCollectionName,
     dynamic Function(Iterable<S>)? subAddCallback,
     _i20.Serializer<S>? subSerializer,
+    dynamic Function(dynamic)? onError,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#createListener, [], {
@@ -280,6 +281,7 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
               #subCollectionName: subCollectionName,
               #subAddCallback: subAddCallback,
               #subSerializer: subSerializer,
+              #onError: onError,
             }),
             returnValue: (
               mainListener:
@@ -299,6 +301,7 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
                       #subCollectionName: subCollectionName,
                       #subAddCallback: subAddCallback,
                       #subSerializer: subSerializer,
+                      #onError: onError,
                     }),
                   ),
               sprintAssignmentListeners:
@@ -327,6 +330,7 @@ class MockTaskRepository extends _i1.Mock implements _i19.TaskRepository {
                       #subCollectionName: subCollectionName,
                       #subAddCallback: subAddCallback,
                       #subSerializer: subSerializer,
+                      #onError: onError,
                     }),
                   ),
               sprintAssignmentListeners:

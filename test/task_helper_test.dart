@@ -127,7 +127,7 @@ void main() {
   test('reloadTasks', () async {
     prepareMocks();
 
-    await loadData(taskRepository, mockGlobalKey)(store, LoadDataAction(), (_) => {});
+    await loadData(taskRepository, mockGlobalKey, null)(store, LoadDataAction(), (_) => {});
     verify(appState.personDocId);
     verify(taskRepository.createListener(
         collectionName: 'sprints',
