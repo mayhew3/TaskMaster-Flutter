@@ -13,7 +13,6 @@ import 'package:taskmaster/redux/actions/task_item_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/middleware/notification_helper.dart';
 import 'package:taskmaster/redux/middleware/store_task_items_middleware.dart';
-import 'package:taskmaster/routes.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 

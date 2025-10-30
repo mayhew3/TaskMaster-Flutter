@@ -275,9 +275,9 @@ void main() {
     });
 
     testWidgets('uses scheduled text style when task is scheduled', (WidgetTester tester) async {
-      final scheduledTask = _buildTaskItem(name: "Scheduled One", startDate: DateTime(2099)); 
+      final scheduledTask = _buildTaskItem(name: 'Scheduled One', startDate: DateTime(2099));
       await _pumpEditableTaskItem(tester, taskItem: scheduledTask);
-      final textWidget = tester.widget<Text>(find.text("Scheduled One"));
+      final textWidget = tester.widget<Text>(find.text('Scheduled One'));
       expect(textWidget.style?.color, TaskColors.scheduledText);
       expect(textWidget.style?.fontSize, 17.0);
     });

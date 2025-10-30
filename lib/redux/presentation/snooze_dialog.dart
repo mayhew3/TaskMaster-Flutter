@@ -195,10 +195,8 @@ class SnoozeDialogState extends State<SnoozeDialog> {
   Widget build(BuildContext context) {
     return StoreConnector(
         builder: (context, viewModel) {
-          return WillPopScope(
-            onWillPop: () async {
-              return true;
-            },
+          return PopScope(
+            canPop: true,
             child: AlertDialog(
               title: Text('Snooze Task'),
               content: Form(
