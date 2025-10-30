@@ -111,7 +111,7 @@ class IntegrationTestHelper {
         ..isLoading = false),
       middleware: [
         // Include middleware but don't start listeners - tests just verify rendering
-        ...createStoreTaskItemsMiddleware(taskRepository, navigatorKey, mockMigrator),
+        ...createStoreTaskItemsMiddleware(taskRepository, navigatorKey, mockMigrator, null),
         ...createStoreSprintsMiddleware(taskRepository),
       ],
     );
