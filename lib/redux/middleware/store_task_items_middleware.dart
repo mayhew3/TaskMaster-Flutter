@@ -25,10 +25,11 @@ List<Middleware<AppState>> createStoreTaskItemsMiddleware(
     TaskRepository repository,
     GlobalKey<NavigatorState> navigatorKey,
     FirestoreMigrator migrator,
+    Function(dynamic)? onFirestoreError,
     ) {
   return [
     TypedMiddleware<AppState, VerifyPersonAction>(_verifyPerson(repository, migrator)).call,
-    TypedMiddleware<AppState, LoadDataAction>(loadData(repository, navigatorKey)).call,
+    TypedMiddleware<AppState, LoadDataAction>(loadData(repository, navigatorKey, onFirestoreError)).call,
     TypedMiddleware<AppState, DataLoadedAction>(_dataLoaded(navigatorKey)).call,
     TypedMiddleware<AppState, AddTaskItemAction>(createNewTaskItem(repository)).call,
     TypedMiddleware<AppState, UpdateTaskItemAction>(_updateTaskItem(repository)).call,
@@ -80,7 +81,7 @@ Future<void> Function(
     Store<AppState>,
     LoadDataAction action,
     NextDispatcher next,
-    ) loadData(TaskRepository repository, GlobalKey<NavigatorState> navigatorKey) {
+    ) loadData(TaskRepository repository, GlobalKey<NavigatorState> navigatorKey, Function(dynamic)? onFirestoreError) {
   return (Store<AppState> store, LoadDataAction action, NextDispatcher next) async {
     next(action);
     var inputs = await getRequiredInputs(store, 'load tasks');
@@ -98,6 +99,7 @@ Future<void> Function(
           subCollectionName: 'sprintAssignments',
           subAddCallback: (sprintAssignments) => store.dispatch(SprintAssignmentsAddedAction(sprintAssignments)),
           subSerializer: SprintAssignment.serializer,
+          onError: onFirestoreError,
       );
       var recurrenceListener = repository.createListener<TaskRecurrence, SprintAssignment>(
           collectionName:  'taskRecurrences',
@@ -105,6 +107,7 @@ Future<void> Function(
           addCallback: (taskRecurrences) => store.dispatch(TaskRecurrencesAddedAction(taskRecurrences)),
           modifyCallback: (taskRecurrences) => store.dispatch(TaskRecurrencesModifiedAction(taskRecurrences)),
           serializer: TaskRecurrence.serializer,
+          onError: onFirestoreError,
       );
       var taskListener = repository.createListener<TaskItem, SprintAssignment>(
           collectionName: 'tasks',
@@ -113,6 +116,7 @@ Future<void> Function(
           modifyCallback: (taskItems) => store.dispatch(TasksModifiedAction(taskItems)),
           completionFilter: DateTime.now().subtract(Duration(days: 7)),
           serializer: TaskItem.serializer,
+          onError: onFirestoreError,
       );
 
       store.dispatch(ListenersInitializedAction(

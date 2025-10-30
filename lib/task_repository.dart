@@ -51,6 +51,7 @@ class TaskRepository {
     String? subCollectionName,
     Function(Iterable<S>)? subAddCallback,
     Serializer<S>? subSerializer,
+    Function(dynamic error)? onError,
   }) {
     var sprintAssignmentListeners = <String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>{};
     var collectionRef = firestore.collection(collectionName);
@@ -179,7 +180,10 @@ class TaskRepository {
         }
       }
 
-    });
+    }, onError: onError != null ? (error) {
+      log.severe('Error in $collectionName listener: $error');
+      onError(error);
+    } : null);
     return (mainListener: listener, sprintAssignmentListeners: sprintAssignmentListeners);
   }
 
