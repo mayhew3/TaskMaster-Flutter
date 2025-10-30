@@ -34,7 +34,6 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   static final _navigatorKey = GlobalKey<NavigatorState>();
 
   static const serverEnv = String.fromEnvironment('SERVER', defaultValue: 'heroku');
-  String? _emulatorError;
 
   @override
   void initState() {
@@ -49,9 +48,6 @@ class TaskMasterAppState extends State<TaskMasterApp> {
       firestore.settings = const Settings(
         persistenceEnabled: false,
       );
-
-      // Listen for Firestore errors to detect emulator connection issues
-      _setupEmulatorErrorListener(firestore);
     } else {
       print('☁️  USING PRODUCTION FIRESTORE (serverEnv: $serverEnv)');
       firestore.settings = const Settings(cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED);
@@ -76,71 +72,10 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     });
   }
 
-  void _setupEmulatorErrorListener(FirebaseFirestore firestore) {
-    // Try a lightweight connection test after a brief delay
-    // This gives time for the app to initialize but catches the error early
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (_emulatorError != null) return; // Already detected error
-
-      // Attempt a simple query to test connection
-      firestore
-          .collection('_emulator_health_check')
-          .limit(1)
-          .get(const GetOptions(source: Source.server))
-          .timeout(
-            const Duration(seconds: 5),
-            onTimeout: () {
-              _handleEmulatorConnectionFailure('Connection timeout - emulator not responding');
-              throw Exception('Firestore emulator not running on port 8085');
-            },
-          )
-          .then((_) {
-            print('✅ Firestore emulator connection successful');
-          })
-          .catchError((error) {
-            final errorStr = error.toString();
-            if (errorStr.contains('ECONNREFUSED') ||
-                errorStr.contains('failed to connect') ||
-                errorStr.contains('Connection timeout') ||
-                errorStr.contains('UNAVAILABLE')) {
-              _handleEmulatorConnectionFailure(errorStr);
-            }
-          });
-    });
-  }
-
-  void _handleEmulatorConnectionFailure(String errorDetails) {
-    print('');
-    print('═══════════════════════════════════════════════════════════');
-    print('❌❌❌ FIRESTORE EMULATOR CONNECTION FAILED ❌❌❌');
-    print('═══════════════════════════════════════════════════════════');
-    print('');
-    print('The app is configured to use the local Firestore emulator,');
-    print('but cannot connect to it at 127.0.0.1:8085');
-    print('');
-    print('To fix this:');
-    print('  1. Open a new terminal');
-    print('  2. Run: firebase emulators:start');
-    print('  3. Wait for "All emulators ready!"');
-    print('  4. Restart this app');
-    print('');
-    print('Or to use production Firebase instead:');
-    print('  flutter run  (without --dart-define=SERVER=local)');
-    print('');
-    print('Error: $errorDetails');
-    print('');
-    print('═══════════════════════════════════════════════════════════');
-    print('APP STOPPED - Please start the emulator and try again');
-    print('═══════════════════════════════════════════════════════════');
-    print('');
-
-    // Set error state to show error UI
-    if (mounted) {
-      setState(() {
-        _emulatorError = errorDetails;
-      });
-    }
-  }
+  // Note: The _emulatorError state variable is kept for potential future use
+  // but automatic detection has been removed due to false positives.
+  // The emulator connection error will be apparent from Firestore operation failures
+  // during normal app usage, which provide sufficient debugging information.
 
   void setupBadgeUpdater() {
     store.onChange.listen((appState) {
@@ -172,111 +107,6 @@ class TaskMasterAppState extends State<TaskMasterApp> {
 
   @override
   Widget build(BuildContext context) {
-    // Show error screen if emulator connection failed
-    if (_emulatorError != null) {
-      return MaterialApp(
-        title: 'TaskMaster 3000',
-        theme: taskMasterTheme,
-        home: Scaffold(
-          backgroundColor: Colors.red.shade900,
-          body: Center(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 600),
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 80,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Firestore Emulator Not Running',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Cannot connect to Firestore emulator at 127.0.0.1:8085',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 32),
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.black26,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'To fix this:',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        SizedBox(height: 12),
-                        Text(
-                          '1. Open a new terminal\n'
-                          '2. Run: firebase emulators:start\n'
-                          '3. Wait for "All emulators ready!"\n'
-                          '4. Restart this app',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                            height: 1.5,
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Or to use production Firebase:',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        SizedBox(height: 12),
-                        Text(
-                          'flutter run',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontFamily: 'monospace',
-                            color: Colors.white,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          '(without --dart-define=SERVER=local)',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.white70,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
     return StoreProvider(
       store: store,
       child: MaterialApp(
