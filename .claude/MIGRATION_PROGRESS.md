@@ -1,8 +1,9 @@
 # Redux → Riverpod Migration Progress
 
 **Started:** January 27, 2025
-**Status:** 🚧 In Progress - Phase 1 Complete
-**Branch:** `TM-82-integration-tests`
+**Current Date:** October 30, 2025
+**Status:** 🚧 In Progress - Phase 1 Complete, Starting Phase 2
+**Branch:** `TM-281-riverpod-refactor`
 
 ---
 
@@ -194,12 +195,37 @@ flutter run
 
 ---
 
-## 🎯 Next Steps
+## 🎯 Current Work: Phase 2 - Task List Screen
+
+### Status: Starting Implementation
+
+**Date Started:** October 30, 2025
+
+**Current Task:** Implement Task List Screen in Riverpod
+
+The Task List screen is the most complex screen with:
+- Task filtering (completed/scheduled toggles)
+- Task grouping and sorting
+- Checkbox interactions for completion
+- Navigation to details/edit
+- Swipe to delete
+
+**Implementation Plan:**
+1. Create task list providers (filters, sorted tasks)
+2. Create TaskListScreen widget
+3. Create TaskListItem widget
+4. Add USE_RIVERPOD_TASKS feature flag
+5. Wire up in home screen
+6. Test both versions side-by-side
+
+---
+
+## 🎯 Remaining Steps
 
 ### Phase 2: Core Screens (Estimated: 1-2 weeks)
 
 **Priority Order:**
-1. Task List Screen (most complex - filters, sorting, tap handlers)
+1. **Task List Screen** ← CURRENT
 2. Task Detail Screen (display task info)
 3. Add/Edit Task Screen (form with validation)
 4. Sprint Planning Screens
@@ -321,5 +347,5 @@ flutter test --verbose
 
 ---
 
-**Last Updated:** January 27, 2025
-**Next Review:** When starting Phase 2
+**Last Updated:** October 30, 2025
+**Next Review:** After completing Task List screen
