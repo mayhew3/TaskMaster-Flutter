@@ -34,6 +34,7 @@ class TaskMasterAppState extends State<TaskMasterApp> {
   static final _navigatorKey = GlobalKey<NavigatorState>();
 
   static const serverEnv = String.fromEnvironment('SERVER', defaultValue: 'heroku');
+  String? _emulatorError;
 
   @override
   void initState() {
@@ -121,18 +122,16 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     print('Error: $errorDetails');
     print('');
     print('═══════════════════════════════════════════════════════════');
-    print('EXITING APP - Please start the emulator and try again');
+    print('APP STOPPED - Please start the emulator and try again');
     print('═══════════════════════════════════════════════════════════');
     print('');
 
-    // Exit the app after a short delay to ensure message is visible
-    Future.delayed(const Duration(milliseconds: 500), () {
-      // Use exit code 1 to indicate error
-      throw FlutterError(
-        'Firestore emulator not available at 127.0.0.1:8085\n'
-        'Start it with: firebase emulators:start',
-      );
-    });
+    // Set error state to show error UI
+    if (mounted) {
+      setState(() {
+        _emulatorError = errorDetails;
+      });
+    }
   }
 
   void setupBadgeUpdater() {
@@ -165,6 +164,110 @@ class TaskMasterAppState extends State<TaskMasterApp> {
 
   @override
   Widget build(BuildContext context) {
+    // Show error screen if emulator connection failed
+    if (_emulatorError != null) {
+      return MaterialApp(
+        title: 'TaskMaster 3000',
+        theme: taskMasterTheme,
+        home: Scaffold(
+          backgroundColor: Colors.red.shade900,
+          body: Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 600),
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    size: 80,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Firestore Emulator Not Running',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Cannot connect to Firestore emulator at 127.0.0.1:8085',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 32),
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.black26,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          'To fix this:',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          '1. Open a new terminal\n'
+                          '2. Run: firebase emulators:start\n'
+                          '3. Wait for "All emulators ready!"\n'
+                          '4. Restart this app',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                            height: 1.5,
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Or to use production Firebase:',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          'flutter run',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontFamily: 'monospace',
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          '(without --dart-define=SERVER=local)',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return StoreProvider(
       store: store,
