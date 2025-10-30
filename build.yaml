@@ -1,0 +1,12 @@
+targets:
+  $default:
+    builders:
+      riverpod_generator:
+        options:
+          # Generate .g.dart files in same directory
+          riverpod_generator: true
+
+      freezed:
+        options:
+          # Don't generate .freezed.dart in build directory
+          build_to: source
