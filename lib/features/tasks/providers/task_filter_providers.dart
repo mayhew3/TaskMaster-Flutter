@@ -74,3 +74,72 @@ int completedTaskCount(CompletedTaskCountRef ref) {
     orElse: () => 0,
   );
 }
+
+/// Task grouping for display (Past Due, Urgent, Target, Scheduled, Tasks, Completed)
+class TaskGroup {
+  final String name;
+  final int displayOrder;
+  final List<TaskItem> tasks;
+
+  TaskGroup({
+    required this.name,
+    required this.displayOrder,
+    required this.tasks,
+  });
+}
+
+/// Grouped and sorted tasks for the task list
+@riverpod
+List<TaskGroup> groupedTasks(GroupedTasksRef ref) {
+  final filtered = ref.watch(filteredTasksProvider);
+
+  final groups = <String, List<TaskItem>>{
+    'Past Due': [],
+    'Urgent': [],
+    'Target': [],
+    'Tasks': [],
+    'Scheduled': [],
+    'Completed': [],
+  };
+
+  // Categorize tasks
+  for (final task in filtered) {
+    if (task.completionDate != null) {
+      groups['Completed']!.add(task);
+    } else if (task.isPastDue()) {
+      groups['Past Due']!.add(task);
+    } else if (task.isUrgent()) {
+      groups['Urgent']!.add(task);
+    } else if (task.isTarget()) {
+      groups['Target']!.add(task);
+    } else if (task.isScheduled()) {
+      groups['Scheduled']!.add(task);
+    } else {
+      groups['Tasks']!.add(task);
+    }
+  }
+
+  // Sort tasks within groups
+  groups['Scheduled']!.sort((a, b) => a.startDate!.compareTo(b.startDate!));
+  groups['Completed']!.sort((a, b) => b.completionDate!.compareTo(a.completionDate!));
+
+  // Create task groups with display order
+  final displayOrder = {
+    'Past Due': 1,
+    'Urgent': 2,
+    'Target': 3,
+    'Tasks': 4,
+    'Scheduled': 5,
+    'Completed': 6,
+  };
+
+  return groups.entries
+      .where((entry) => entry.value.isNotEmpty)
+      .map((entry) => TaskGroup(
+            name: entry.key,
+            displayOrder: displayOrder[entry.key]!,
+            tasks: entry.value,
+          ))
+      .toList()
+    ..sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
+}

@@ -14,6 +14,7 @@ import 'package:taskmaster/redux/presentation/stats_counter.dart';
 
 import '../core/feature_flags.dart';
 import '../features/tasks/presentation/stats_screen.dart';
+import '../features/tasks/presentation/task_list_screen.dart';
 import '../models/models.dart';
 import '../timezone_helper.dart';
 
@@ -107,7 +108,9 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
       TopNavItem.init(
           label: 'Tasks',
           icon: Icons.list,
-          widgetGetter: () => FilteredTaskItems()),
+          widgetGetter: () => FeatureFlags.useRiverpodForTasks
+              ? const TaskListScreen() // New Riverpod version
+              : FilteredTaskItems()), // Old Redux version
       TopNavItem.init(
           label: 'Stats',
           icon: Icons.show_chart,

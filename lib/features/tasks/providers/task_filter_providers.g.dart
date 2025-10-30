@@ -64,6 +64,25 @@ final completedTaskCountProvider = AutoDisposeProvider<int>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CompletedTaskCountRef = AutoDisposeProviderRef<int>;
+String _$groupedTasksHash() => r'e627dd78edbdd2d831fea865d44bb711a3e5ab42';
+
+/// Grouped and sorted tasks for the task list
+///
+/// Copied from [groupedTasks].
+@ProviderFor(groupedTasks)
+final groupedTasksProvider = AutoDisposeProvider<List<TaskGroup>>.internal(
+  groupedTasks,
+  name: r'groupedTasksProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$groupedTasksHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef GroupedTasksRef = AutoDisposeProviderRef<List<TaskGroup>>;
 String _$showCompletedHash() => r'672ec233cb7c3572edb0422b7eca8da36263b154';
 
 /// Simple state providers for filter toggles
