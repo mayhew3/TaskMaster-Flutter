@@ -50,8 +50,8 @@ class TaskMasterAppState extends State<TaskMasterApp> {
         persistenceEnabled: false,
       );
 
-      // Test emulator connection early
-      _testEmulatorConnection(firestore);
+      // Listen for Firestore errors to detect emulator connection issues
+      _setupEmulatorErrorListener(firestore);
     } else {
       print('☁️  USING PRODUCTION FIRESTORE (serverEnv: $serverEnv)');
       firestore.settings = const Settings(cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED);
@@ -76,29 +76,37 @@ class TaskMasterAppState extends State<TaskMasterApp> {
     });
   }
 
-  void _testEmulatorConnection(FirebaseFirestore firestore) {
-    // Test connection by attempting a simple query
-    firestore
-        .collection('_emulator_health_check')
-        .limit(1)
-        .get(const GetOptions(source: Source.server))
-        .timeout(
-          const Duration(seconds: 3),
-          onTimeout: () {
-            _handleEmulatorConnectionFailure('Connection timeout - emulator not responding');
-            throw Exception('Firestore emulator not running on port 8085');
-          },
-        )
-        .then((_) {
-          print('✅ Firestore emulator connection successful');
-        })
-        .catchError((error) {
-          if (error.toString().contains('ECONNREFUSED') ||
-              error.toString().contains('failed to connect') ||
-              error.toString().contains('Connection timeout')) {
-            _handleEmulatorConnectionFailure(error.toString());
-          }
-        });
+  void _setupEmulatorErrorListener(FirebaseFirestore firestore) {
+    // Try a lightweight connection test after a brief delay
+    // This gives time for the app to initialize but catches the error early
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (_emulatorError != null) return; // Already detected error
+
+      // Attempt a simple query to test connection
+      firestore
+          .collection('_emulator_health_check')
+          .limit(1)
+          .get(const GetOptions(source: Source.server))
+          .timeout(
+            const Duration(seconds: 5),
+            onTimeout: () {
+              _handleEmulatorConnectionFailure('Connection timeout - emulator not responding');
+              throw Exception('Firestore emulator not running on port 8085');
+            },
+          )
+          .then((_) {
+            print('✅ Firestore emulator connection successful');
+          })
+          .catchError((error) {
+            final errorStr = error.toString();
+            if (errorStr.contains('ECONNREFUSED') ||
+                errorStr.contains('failed to connect') ||
+                errorStr.contains('Connection timeout') ||
+                errorStr.contains('UNAVAILABLE')) {
+              _handleEmulatorConnectionFailure(errorStr);
+            }
+          });
+    });
   }
 
   void _handleEmulatorConnectionFailure(String errorDetails) {
