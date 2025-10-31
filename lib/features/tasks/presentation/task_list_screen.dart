@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:taskmaster/core/feature_flags.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/redux/presentation/details_screen.dart';
 import 'package:taskmaster/redux/presentation/editable_task_item.dart';
@@ -15,6 +16,7 @@ import 'package:taskmaster/redux/presentation/delayed_checkbox.dart';
 import '../../../core/services/task_completion_service.dart';
 import '../providers/task_filter_providers.dart';
 import '../providers/task_providers.dart';
+import 'task_details_screen.dart';
 
 /// Riverpod version of the Task List screen
 /// Displays grouped tasks with filtering and completion functionality
@@ -105,7 +107,9 @@ class _TaskListItem extends ConsumerWidget {
       onTap: () async {
         await Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => DetailsScreen(taskItemId: task.docId),
+            builder: (_) => FeatureFlags.useRiverpodForTasks
+                ? TaskDetailsScreen(taskItemId: task.docId)
+                : DetailsScreen(taskItemId: task.docId),
           ),
         );
       },
