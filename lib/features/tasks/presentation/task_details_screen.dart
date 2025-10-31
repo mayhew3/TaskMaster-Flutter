@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:jiffy/jiffy.dart';
+import 'package:taskmaster/core/feature_flags.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/task_colors.dart';
@@ -16,6 +17,7 @@ import 'package:taskmaster/timezone_helper.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../../core/providers/firebase_providers.dart';
 import '../providers/task_providers.dart';
+import 'task_add_edit_screen.dart';
 
 /// Riverpod version of the Task Details screen
 /// Displays full task information with edit and delete actions
@@ -207,10 +209,12 @@ class _TaskDetailsBody extends StatelessWidget {
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) {
-                return AddEditScreen(
-                  taskItem: task,
-                  timezoneHelper: timezoneHelper,
-                );
+                return FeatureFlags.useRiverpodForTasks
+                    ? TaskAddEditScreen(taskItemId: task.docId)
+                    : AddEditScreen(
+                        taskItem: task,
+                        timezoneHelper: timezoneHelper,
+                      );
               },
             ),
           );

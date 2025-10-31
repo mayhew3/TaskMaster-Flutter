@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:taskmaster/core/feature_flags.dart';
 import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaster/redux/presentation/add_edit_screen.dart';
 import 'package:taskmaster/redux/presentation/details_screen.dart';
 import 'package:taskmaster/redux/presentation/editable_task_item.dart';
 import 'package:taskmaster/redux/presentation/header_list_item.dart';
@@ -13,9 +14,11 @@ import 'package:taskmaster/redux/containers/tab_selector.dart';
 import 'package:taskmaster/redux/actions/task_item_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/presentation/delayed_checkbox.dart';
+import '../../../core/providers/firebase_providers.dart';
 import '../../../core/services/task_completion_service.dart';
 import '../providers/task_filter_providers.dart';
 import '../providers/task_providers.dart';
+import 'task_add_edit_screen.dart';
 import 'task_details_screen.dart';
 
 /// Riverpod version of the Task List screen
@@ -27,6 +30,7 @@ class TaskListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final groupedTasks = ref.watch(groupedTasksProvider);
     final tasksAsync = ref.watch(tasksProvider);
+    final timezoneHelper = ref.watch(timezoneHelperProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -40,6 +44,19 @@ class TaskListScreen extends ConsumerWidget {
         ),
       ),
       drawer: TaskMainMenu(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => FeatureFlags.useRiverpodForTasks
+                  ? const TaskAddEditScreen()
+                  : AddEditScreen(timezoneHelper: timezoneHelper),
+            ),
+          );
+        },
+        child: const Icon(Icons.add),
+      ),
       bottomNavigationBar: TabSelector(),
     );
   }
