@@ -18,13 +18,34 @@ class PlanningHome extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Use Riverpod implementation if feature flag is enabled
     if (FeatureFlags.useRiverpodForSprints) {
-      final activeSprint = ref.watch(activeSprintProvider);
+      final sprintsAsync = ref.watch(sprintsProvider);
 
-      if (activeSprint == null) {
-        return const NewSprintScreen();
-      } else {
-        return SprintTaskItemsScreen(sprint: activeSprint);
-      }
+      return sprintsAsync.when(
+        data: (sprints) {
+          // Find active sprint from the loaded sprints
+          final now = DateTime.now().toUtc();
+          final activeSprint = sprints
+              .where((sprint) =>
+                  sprint.startDate.isBefore(now) &&
+                  sprint.endDate.isAfter(now) &&
+                  sprint.closeDate == null)
+              .lastOrNull;
+
+          if (activeSprint == null) {
+            return const NewSprintScreen();
+          } else {
+            return SprintTaskItemsScreen(sprint: activeSprint);
+          }
+        },
+        loading: () => const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+        error: (err, stack) => Scaffold(
+          body: Center(
+            child: Text('Error loading sprints: $err'),
+          ),
+        ),
+      );
     }
 
     // Default: use Redux implementation

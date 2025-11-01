@@ -28,7 +28,10 @@ User? currentUser(CurrentUserRef ref) {
 /// Person doc ID from Firestore
 @riverpod
 Future<String?> personDocId(PersonDocIdRef ref) async {
-  final user = ref.watch(currentUserProvider);
+  // Get current user directly from FirebaseAuth instead of waiting for stream
+  final auth = ref.watch(firebaseAuthProvider);
+  final user = auth.currentUser;
+
   if (user == null) return null;
 
   final firestore = ref.watch(firestoreProvider);

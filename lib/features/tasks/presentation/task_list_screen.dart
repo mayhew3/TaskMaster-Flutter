@@ -18,8 +18,11 @@ import '../../../core/providers/firebase_providers.dart';
 import '../../../core/services/task_completion_service.dart';
 import '../providers/task_filter_providers.dart';
 import '../providers/task_providers.dart';
+import '../../sprints/providers/sprint_providers.dart';
+import '../../../models/sprint.dart';
 import 'task_add_edit_screen.dart';
 import 'task_details_screen.dart';
+import '../../../models/task_colors.dart';
 
 /// Riverpod version of the Task List screen
 /// Displays grouped tasks with filtering and completion functionality
@@ -63,19 +66,47 @@ class TaskListScreen extends ConsumerWidget {
   }
 }
 
-class _TaskListBody extends StatelessWidget {
+class _TaskListBody extends ConsumerStatefulWidget {
   final List<TaskGroup> groups;
 
   const _TaskListBody({required this.groups});
 
   @override
+  ConsumerState<_TaskListBody> createState() => _TaskListBodyState();
+}
+
+class _TaskListBodyState extends ConsumerState<_TaskListBody> {
+  bool showSprintTasks = false;
+
+  @override
   Widget build(BuildContext context) {
-    if (groups.isEmpty) {
+    if (widget.groups.isEmpty) {
       return _buildEmptyState();
     }
 
+    final activeSprint = ref.watch(activeSprintProvider);
+    final sprintTasks = activeSprint != null
+        ? ref.watch(tasksForSprintProvider(activeSprint))
+        : <TaskItem>[];
+
     final tiles = <Widget>[];
-    for (final group in groups) {
+
+    // Add sprint banner if there's an active sprint
+    if (activeSprint != null) {
+      tiles.add(_buildSprintBanner(activeSprint, sprintTasks));
+    }
+
+    // Add sprint tasks if toggled on
+    if (activeSprint != null && showSprintTasks) {
+      if (sprintTasks.isNotEmpty) {
+        tiles.add(HeadingItem('Sprint Tasks'));
+        for (final task in sprintTasks) {
+          tiles.add(_TaskListItem(task: task));
+        }
+      }
+    }
+
+    for (final group in widget.groups) {
       tiles.add(HeadingItem(group.name));
       for (final task in group.tasks) {
         tiles.add(_TaskListItem(task: task));
@@ -89,6 +120,77 @@ class _TaskListBody extends StatelessWidget {
       ),
       itemCount: tiles.length,
       itemBuilder: (context, index) => tiles[index],
+    );
+  }
+
+  Widget _buildSprintBanner(Sprint sprint, List<TaskItem> sprintTasks) {
+    final startDate = sprint.startDate;
+    final endDate = sprint.endDate;
+    final currentDay = DateTime.now().toUtc().difference(startDate).inDays + 1;
+    final totalDays = endDate.difference(startDate).inDays;
+    final sprintStr = 'Active Sprint - Day $currentDay of $totalDays';
+
+    final completed = sprintTasks.where((task) => task.completionDate != null).length;
+    final taskStr = '$completed/${sprintTasks.length} Tasks Complete';
+
+    return Card(
+      color: const Color.fromARGB(100, 100, 20, 20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(3.0),
+        side: BorderSide(
+          color: TaskColors.sprintColor,
+          width: 1.0,
+        ),
+      ),
+      elevation: 3.0,
+      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
+      child: ClipPath(
+        clipper: ShapeBorderClipper(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(3.0),
+          ),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(13.5),
+          child: Row(
+            children: <Widget>[
+              Icon(Icons.assignment, color: TaskColors.sprintColor),
+              const SizedBox(width: 10.0),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      sprintStr,
+                      style: const TextStyle(
+                        fontSize: 17.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      taskStr,
+                      style: TextStyle(
+                        fontSize: 14.0,
+                        color: TaskColors.sprintColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              GestureDetector(
+                onTap: () => setState(() => showSprintTasks = !showSprintTasks),
+                child: Text(
+                  showSprintTasks ? 'Hide Tasks' : 'Show Tasks',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white70,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
