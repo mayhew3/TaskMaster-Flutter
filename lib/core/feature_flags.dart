@@ -15,19 +15,19 @@
 /// ```
 class FeatureFlags {
   /// Use Riverpod implementation for Stats screen
-  /// Default: false (use Redux)
+  /// Default: true (Riverpod enabled by default)
   static const bool useRiverpodForStats =
-      bool.fromEnvironment('USE_RIVERPOD_STATS', defaultValue: false);
+      bool.fromEnvironment('USE_RIVERPOD_STATS', defaultValue: true);
 
   /// Use Riverpod implementation for Tasks list screen
-  /// Default: false (use Redux)
+  /// Default: true (Riverpod enabled by default)
   static const bool useRiverpodForTasks =
-      bool.fromEnvironment('USE_RIVERPOD_TASKS', defaultValue: false);
+      bool.fromEnvironment('USE_RIVERPOD_TASKS', defaultValue: true);
 
   /// Use Riverpod implementation for Sprint screens
-  /// Default: false (use Redux)
+  /// Default: true (Riverpod enabled by default)
   static const bool useRiverpodForSprints =
-      bool.fromEnvironment('USE_RIVERPOD_SPRINTS', defaultValue: false);
+      bool.fromEnvironment('USE_RIVERPOD_SPRINTS', defaultValue: true);
 
   /// Use go_router for navigation
   /// Default: false (use manual navigation)

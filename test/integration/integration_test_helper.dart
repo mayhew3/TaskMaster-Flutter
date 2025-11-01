@@ -4,11 +4,16 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:redux/redux.dart';
+import 'package:taskmaster/core/providers/auth_providers.dart';
+import 'package:taskmaster/core/providers/firebase_providers.dart';
+import 'package:taskmaster/features/sprints/providers/sprint_providers.dart';
+import 'package:taskmaster/features/tasks/providers/task_providers.dart';
 import 'package:taskmaster/firestore_migrator.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
@@ -120,17 +125,31 @@ class IntegrationTestHelper {
     // Tests verify UI rendering with seeded data, not real-time sync
 
     // Pump the app with proper theme for tests
+    // Wrap with both ProviderScope (for Riverpod) and StoreProvider (for Redux)
+    // to support migration period where both systems coexist
     await tester.pumpWidget(
-      StoreProvider<AppState>(
-        store: store,
-        child: MaterialApp(
-          navigatorKey: navigatorKey,
-          theme: ThemeData(
-            checkboxTheme: CheckboxThemeData(
-              fillColor: WidgetStateProperty.all(Colors.blue),
+      ProviderScope(
+        overrides: [
+          // Override Firestore provider to use test instance
+          firestoreProvider.overrideWithValue(testFirestore),
+          // Override auth providers with test data
+          personDocIdProvider.overrideWith((ref) => Future.value(testPersonDocId)),
+          // Override task/recurrence providers with test data
+          tasksProvider.overrideWith((ref) => Stream.value(tasksWithRecurrences)),
+          taskRecurrencesProvider.overrideWith((ref) => Stream.value(recurrencesList)),
+          sprintsProvider.overrideWith((ref) => Stream.value(initialSprints ?? [])),
+        ],
+        child: StoreProvider<AppState>(
+          store: store,
+          child: MaterialApp(
+            navigatorKey: navigatorKey,
+            theme: ThemeData(
+              checkboxTheme: CheckboxThemeData(
+                fillColor: WidgetStateProperty.all(Colors.blue),
+              ),
             ),
+            home: HomeScreen(),
           ),
-          home: HomeScreen(),
         ),
       ),
     );

@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="main.dart (local riverpod)" type="FlutterRunConfigurationType" factoryName="Flutter">
-    <option name="additionalArgs" value="--dart-define=SERVER=local --web-hostname localhost --web-port 3000 --dart-define=USE_RIVERPOD_STATS=true --dart-define=USE_RIVERPOD_TASKS=true --dart-define=USE_RIVERPOD_SPRINTS=true" />
+    <option name="additionalArgs" value="--dart-define=SERVER=local --web-hostname localhost --web-port 3000" />
     <option name="filePath" value="$PROJECT_DIR$/lib/main.dart" />
     <method v="2" />
   </configuration>
