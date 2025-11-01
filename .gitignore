@@ -9,6 +9,7 @@
 .history
 .svn/
 db_backups
+test_output*.txt
 
 # IntelliJ related
 *.iml
