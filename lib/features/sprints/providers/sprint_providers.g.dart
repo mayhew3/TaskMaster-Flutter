@@ -6,7 +6,7 @@ part of 'sprint_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$sprintsHash() => r'4aac05fe2009f240e4b7b2a18a50aa61e43b39fa';
+String _$sprintsHash() => r'c94584a4e6cb36fdc1333c8fccf5f388758e360e';
 
 /// Stream of all sprints for the current user
 ///
@@ -25,7 +25,7 @@ final sprintsProvider = StreamProvider<List<Sprint>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SprintsRef = StreamProviderRef<List<Sprint>>;
-String _$activeSprintHash() => r'de4ec125d9933182bb97ef67abf8ce2a7688f9b9';
+String _$activeSprintHash() => r'507f5c3547846196f1d0e4021f23527c807234a8';
 
 /// Get active sprint (currently in progress)
 ///

@@ -38,16 +38,13 @@ Stream<List<Sprint>> sprints(SprintsRef ref) async* {
           .collection('sprintAssignments')
           .get();
 
-      final assignments = assignmentsSnapshot.docs.map((assignDoc) {
+      final assignmentsJson = assignmentsSnapshot.docs.map((assignDoc) {
         final assignJson = assignDoc.data();
         assignJson['docId'] = assignDoc.id;
-        return serializers.deserializeWith(
-          SprintAssignment.serializer,
-          assignJson,
-        )!;
+        return assignJson;
       }).toList();
 
-      json['sprintAssignments'] = assignments;
+      json['sprintAssignments'] = assignmentsJson;
 
       final sprint = serializers.deserializeWith(Sprint.serializer, json)!;
       sprints.add(sprint);
@@ -64,7 +61,7 @@ Sprint? activeSprint(ActiveSprintRef ref) {
 
   return sprintsAsync.maybeWhen(
     data: (sprints) {
-      final now = DateTime.timestamp();
+      final now = DateTime.now().toUtc();
       final matching = sprints.where((sprint) =>
           sprint.startDate.isBefore(now) &&
           sprint.endDate.isAfter(now) &&

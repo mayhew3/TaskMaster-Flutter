@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../models/task_item.dart';
 import 'task_providers.dart';
+import '../../sprints/providers/sprint_providers.dart';
 
 part 'task_filter_providers.g.dart';
 
@@ -29,12 +30,22 @@ List<TaskItem> filteredTasks(FilteredTasksRef ref) {
   final tasksAsync = ref.watch(tasksProvider);
   final showCompleted = ref.watch(showCompletedProvider);
   final showScheduled = ref.watch(showScheduledProvider);
+  final activeSprint = ref.watch(activeSprintProvider);
 
   return tasksAsync.maybeWhen(
     data: (tasks) {
       return tasks.where((task) {
         // Always hide retired tasks
         if (task.retired != null) return false;
+
+        // Hide tasks in active sprint (unless showing completed and task is completed)
+        if (activeSprint != null) {
+          final isInActiveSprint = activeSprint.sprintAssignments
+              .any((sa) => sa.taskDocId == task.docId);
+          if (isInActiveSprint && task.completionDate == null) {
+            return false;
+          }
+        }
 
         // Filter completed tasks
         final completedPredicate = task.completionDate == null || showCompleted;

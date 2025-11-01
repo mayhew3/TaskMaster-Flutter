@@ -73,7 +73,7 @@ class SprintService {
 
     // Create sprint
     final sprintData = {
-      'dateAdded': DateTime.timestamp(),
+      'dateAdded': DateTime.now().toUtc(),
       'startDate': sprintBlueprint.startDate,
       'endDate': sprintBlueprint.endDate,
       'numUnits': sprintBlueprint.numUnits,
@@ -88,7 +88,8 @@ class SprintService {
     for (var task in allTasks) {
       final assignmentData = {
         'taskDocId': task.docId,
-        'dateAdded': DateTime.timestamp(),
+        'sprintDocId': sprintRef.id,
+        'dateAdded': DateTime.now().toUtc(),
       };
       await sprintRef.collection('sprintAssignments').add(assignmentData);
     }
@@ -103,16 +104,13 @@ class SprintService {
         .collection('sprintAssignments')
         .get();
 
-    final assignments = assignmentsSnapshot.docs.map((assignDoc) {
+    final assignmentsJson = assignmentsSnapshot.docs.map((assignDoc) {
       final assignJson = assignDoc.data();
       assignJson['docId'] = assignDoc.id;
-      return serializers.deserializeWith(
-        SprintAssignment.serializer,
-        assignJson,
-      )!;
+      return assignJson;
     }).toList();
 
-    sprintJson['sprintAssignments'] = assignments;
+    sprintJson['sprintAssignments'] = assignmentsJson;
 
     return serializers.deserializeWith(Sprint.serializer, sprintJson)!;
   }
@@ -162,7 +160,8 @@ class SprintService {
     for (var task in allTasks) {
       final assignmentData = {
         'taskDocId': task.docId,
-        'dateAdded': DateTime.timestamp(),
+        'sprintDocId': sprint.docId,
+        'dateAdded': DateTime.now().toUtc(),
       };
       await sprintRef.collection('sprintAssignments').add(assignmentData);
     }
@@ -186,19 +185,12 @@ class CreateSprint extends _$CreateSprint {
     required List<TaskItem> taskItems,
     required List<TaskItemRecurPreview> taskItemRecurPreviews,
   }) async {
-    state = const AsyncLoading();
-
-    final sprint = await AsyncValue.guard(() async {
-      final service = ref.read(sprintServiceProvider);
-      return await service.createSprintWithTasks(
-        sprintBlueprint: sprintBlueprint,
-        taskItems: taskItems,
-        taskItemRecurPreviews: taskItemRecurPreviews,
-      );
-    });
-
-    state = sprint.hasError ? sprint : const AsyncData(null);
-    return sprint.value!;
+    final service = ref.read(sprintServiceProvider);
+    return await service.createSprintWithTasks(
+      sprintBlueprint: sprintBlueprint,
+      taskItems: taskItems,
+      taskItemRecurPreviews: taskItemRecurPreviews,
+    );
   }
 }
 
