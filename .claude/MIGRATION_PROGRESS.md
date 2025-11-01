@@ -836,6 +836,129 @@ Now that Phase 3 is complete and architecture is simplified:
 
 ---
 
+---
+
+## 📝 Session Summary - November 1, 2025
+
+### Critical Bug Fix: Blank Screen on Sprint Load
+
+**Time Spent:** ~2 hours
+**Impact:** Fixed blocking bug preventing Riverpod sprint screens from loading
+
+### 🐛 Critical Bug Discovered
+
+**Issue:** Blank Screen on Startup with Riverpod Sprints
+- When using `USE_RIVERPOD_SPRINTS=true`, app showed blank screen after sign-in
+- No AppBar, no BottomNavigationBar, just loading spinner forever
+- `PlanningHome` rebuild loop (20+ rebuilds) stuck in loading state
+- `sprintsProvider` never emitted data
+
+**Root Cause:**
+```dart
+// BROKEN: personDocIdProvider depends on authStateChanges stream
+@riverpod
+Future<String?> personDocId(PersonDocIdRef ref) async {
+  final user = ref.watch(currentUserProvider);  // ❌ Waits for stream
+  if (user == null) return null;
+  // ...
+}
+```
+
+**Problem:** When user signs in silently (already authenticated), the `authStateChanges` stream doesn't emit immediately. This caused `personDocIdProvider` to return `null`, which caused `sprintsProvider` to yield empty list and stay in loading state forever.
+
+**Solution:**
+```dart
+// FIXED: Get current user directly from FirebaseAuth
+@riverpod
+Future<String?> personDocId(PersonDocIdRef ref) async {
+  final auth = ref.watch(firebaseAuthProvider);
+  final user = auth.currentUser;  // ✅ Immediate access
+  if (user == null) return null;
+  // ...
+}
+```
+
+### Additional Fixes
+
+**Sprint Task Hiding:**
+- ✅ Implemented `filteredTasksProvider` logic to hide incomplete tasks in active sprint
+- ✅ Completed tasks still visible when `showCompleted=true`
+- ✅ Added 7 comprehensive integration tests (`riverpod_sprint_test.dart`)
+
+**Sprint Banner in Task List:**
+- ✅ Added sprint summary banner showing progress (`X/Y Tasks Complete`)
+- ✅ "Show Tasks" / "Hide Tasks" toggle button
+- ✅ Displays current sprint day (`Day X of Y`)
+- ✅ Matches Redux styling exactly
+
+**Race Condition Fix:**
+- ✅ Added `.when()` handling to `PlanningHome` for proper loading states
+- ✅ Shows loading spinner while sprints are being fetched
+- ✅ Computes `activeSprint` directly from loaded sprints (no nested `ref.watch`)
+
+### Files Changed
+
+**Core Fix:**
+- `lib/core/providers/auth_providers.dart` - Fixed `personDocIdProvider`
+
+**Sprint Integration:**
+- `lib/redux/containers/planning_home.dart` - Added async handling with `.when()`
+- `lib/features/tasks/presentation/task_list_screen.dart` - Sprint banner + task hiding
+- `lib/features/tasks/providers/task_filter_providers.dart` - Filter logic for sprint tasks
+
+**Tests:**
+- `test/integration/riverpod_sprint_test.dart` - 7 new integration tests
+
+### Test Results
+
+**Integration Tests:** ✅ 7/7 passing
+1. Tasks in active sprint are hidden from task list
+2. Completed tasks in active sprint visible when showCompleted=true
+3. Tasks not in sprint remain visible
+4. Active sprint correctly identified
+5. No active sprint when all sprints past/future
+6. Multiple tasks in sprint all hidden
+7. Closed sprint doesn't affect visibility
+
+**All Tests:** ✅ 291/291 passing
+
+### Testing Flow
+
+```bash
+# Test Riverpod sprints
+flutter run --dart-define=SERVER=local --dart-define=USE_RIVERPOD_SPRINTS=true
+
+# Run integration tests
+flutter test test/integration/riverpod_sprint_test.dart
+```
+
+### Key Learnings
+
+1. **Auth State vs Current User**
+   - `authStateChanges` stream doesn't emit for already-authenticated users
+   - Always use `FirebaseAuth.currentUser` for synchronous access in providers
+   - Save streams for reactive UI updates, not initial data loading
+
+2. **Async Provider Dependencies**
+   - Avoid nesting `ref.watch()` calls inside `.when()` callbacks
+   - Compute derived state directly from loaded data
+   - Use `.when()` at top level, not nested multiple layers deep
+
+3. **Integration Testing**
+   - Use `ProviderContainer` with overrides for testing
+   - Mock streams with `Stream.value()` for predictable test data
+   - Always `await` provider.future in tests before reading data
+
+### Commits Made
+
+1. `TM-281: Fix blank screen issue with Riverpod sprint loading`
+   - Fixed personDocIdProvider to use FirebaseAuth.currentUser
+   - Added proper async handling in PlanningHome
+   - Sprint screen loads correctly on startup
+   - All 7 integration tests passing
+
+---
+
 ## 🎯 Current Status Summary
 
 **Migration:** ~80% Complete
@@ -844,11 +967,14 @@ Now that Phase 3 is complete and architecture is simplified:
 - ✅ Phase 2: Core Task Screens (List, Details, Add/Edit)
 - ✅ Phase 3: Sprint Screens (New Sprint, Planning, Task Items)
 - ✅ **Architecture Simplification Complete**
+- ✅ **Sprint Loading Bug Fixed**
 - ⏸️ Phase 4: Full Migration (Not Started)
 - ⏸️ Phase 5: Cleanup (Not Started)
 
 **Screens Migrated:** 7 major screens
 **Tests Passing:** 291/291 ✅
+**Integration Tests:** 7/7 sprint tests ✅
 **Code Quality:** Significantly improved with architecture simplification
+**Blocking Issues:** None
 **Ready for:** Phase 4 rollout
 
