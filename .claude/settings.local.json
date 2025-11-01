@@ -16,7 +16,12 @@
       "Bash(tee:*)",
       "Bash(git checkout:*)",
       "Bash(gcloud config:*)",
-      "Bash(git filter-branch:*)"
+      "Bash(git filter-branch:*)",
+      "Bash(powershell -Command \"(Get-Content ''lib\\features\\tasks\\presentation\\task_add_edit_screen.dart'' | Measure-Object -Line).Lines\")",
+      "Bash(powershell -Command \"Get-Content ''lib\\features\\tasks\\presentation\\task_add_edit_screen.dart'' | Select-Object -Last 30\")",
+      "Bash(Select-String -Pattern \"tests passed|All tests passed|failed\")",
+      "Bash(powershell -Command \"$input | Select-String -Pattern ''''tests passed|All tests passed|failed''''\")",
+      "Bash(powershell -Command \"$input | Where-Object { $_match ''''FAILED|Error'''' } | Select-Object -First 20\")"
     ],
     "deny": [],
     "ask": []

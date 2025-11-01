@@ -131,7 +131,7 @@ class _NewSprintState extends State<NewSprint> {
       DateTime lastEndDate = viewModel.lastCompleted!.endDate;
       String dateString = oneYearAgo.isAfter(lastEndDate) ?
       ' over a year ago.' :
-      DateUtil.formatMediumMaybeHidingYear(lastEndDate, viewModel.timezoneHelper);
+      DateUtil.formatMediumMaybeHidingYear(lastEndDate);
       return Text('Last Sprint Ended: $dateString');
     }
   }

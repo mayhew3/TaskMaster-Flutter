@@ -762,6 +762,96 @@ ref.read(updateTaskProvider.notifier).call(task);
 
 ---
 
+## Date/Time Handling Pattern
+
+### ✅ Use Standard Dart APIs (Preferred)
+
+For most date formatting and timezone conversion, use Dart's built-in APIs:
+
+```dart
+// Date formatting
+final formatted = DateFormat('MM-dd-yyyy').format(dateTime.toLocal());
+final time = DateFormat('hh:mm a').format(dateTime.toLocal());
+
+// Time ago
+final ago = timeago.format(dateTime, allowFromNow: true);
+
+// Jiffy for advanced date manipulation
+final jiffy = Jiffy.parseFromDateTime(dateTime.toLocal());
+final relative = jiffy.fromNow(); // "2 days ago"
+```
+
+### ✅ Initialize Timezone in main() (For Notifications)
+
+For `flutter_local_notifications.zonedSchedule()` which requires timezone support:
+
+```dart
+// lib/main.dart
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize timezone database ONCE at startup
+  tz.initializeTimeZones();
+  final timezoneName = await FlutterTimezone.getLocalTimezone();
+  tz.setLocalLocation(tz.getLocation(timezoneName));
+
+  await Firebase.initializeApp(...);
+  runApp(MyApp());
+}
+
+// Later in NotificationHelper
+final localTime = tz.TZDateTime.from(scheduledTime, tz.local);
+await plugin.zonedSchedule(id, title, body, localTime, ...);
+```
+
+### ❌ Avoid Async Providers for Singletons
+
+**Don't** create async providers for one-time initialization:
+
+```dart
+// ❌ BAD - Creates complexity
+@Riverpod(keepAlive: true)
+Future<TimezoneHelper> timezoneHelper(ref) async {
+  return await TimezoneHelper.createLocal();
+}
+
+// Requires nested .when() blocks everywhere
+return timezoneHelperAsync.when(
+  data: (helper) {
+    return tasksAsync.when(...);
+  },
+  loading: () => ...,
+  error: () => ...,
+);
+```
+
+**Do** initialize in `main()` instead:
+
+```dart
+// ✅ GOOD - Initialize once at startup
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDependency();
+  runApp(MyApp());
+}
+
+// Screens stay simple
+return tasksAsync.when(
+  data: (tasks) => TaskList(tasks),
+  loading: () => ...,
+  error: () => ...,
+);
+```
+
+### Benefits
+
+1. **Simpler Code** - No nested async handling
+2. **Better Performance** - One-time initialization
+3. **Standard Pattern** - Follows Flutter best practices
+4. **Easier Testing** - Dependencies initialized before tests
+
+---
+
 ## Resources
 
 - [Riverpod Documentation](https://riverpod.dev)

@@ -1,23 +1,22 @@
 
 import 'package:intl/intl.dart';
 import 'package:jiffy/jiffy.dart';
-import 'package:taskmaster/timezone_helper.dart';
 
 class DateUtil {
 
-  static bool isSameDay(DateTime dateTime1, DateTime dateTime2, TimezoneHelper timezoneHelper) {
+  static bool isSameDay(DateTime dateTime1, DateTime dateTime2) {
     var dateFormat = DateFormat.MMMd();
-    var formattedDate1 = timezoneHelper.getFormattedLocalTimeFromFormat(dateTime1, dateFormat);
-    var formattedDate2 = timezoneHelper.getFormattedLocalTimeFromFormat(dateTime2, dateFormat);
+    var formattedDate1 = dateFormat.format(dateTime1.toLocal());
+    var formattedDate2 = dateFormat.format(dateTime2.toLocal());
     return formattedDate1 == formattedDate2;
   }
 
-  static String formatShortMaybeHidingYear(DateTime? dateTime, TimezoneHelper timezoneHelper) {
+  static String formatShortMaybeHidingYear(DateTime? dateTime) {
     if (dateTime == null) {
       return 'N/A';
     }
     int thisYear = DateTime.timestamp().year;
-    var localTime = timezoneHelper.getLocalTime(dateTime);
+    var localTime = dateTime.toLocal();
 
     DateFormat dateFormat = localTime.year == thisYear ?
                           DateFormat('M/d') :
@@ -29,12 +28,12 @@ class DateUtil {
     return dateTimes.reduce((a, b) => a.isAfter(b) ? a : b);
   }
 
-  static String formatMediumMaybeHidingYear(DateTime? dateTime, TimezoneHelper timezoneHelper) {
+  static String formatMediumMaybeHidingYear(DateTime? dateTime) {
     if (dateTime == null) {
       return 'N/A';
     }
     int thisYear = DateTime.timestamp().year;
-    var localTime = timezoneHelper.getLocalTime(dateTime);
+    var localTime = dateTime.toLocal();
 
     DateFormat dateFormat = localTime.year == thisYear ?
                           DateFormat('EEE MMM d') :

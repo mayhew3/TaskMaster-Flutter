@@ -14,12 +14,12 @@ import 'package:flutter/material.dart' as _i16;
 import 'package:flutter/scheduler.dart' as _i18;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     as _i9;
-import 'package:google_sign_in/google_sign_in.dart' as _i13;
+import 'package:google_sign_in/google_sign_in.dart' as _i12;
 import 'package:logging/logging.dart' as _i3;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i28;
 import 'package:redux/src/store.dart' as _i27;
-import 'package:taskmaster/models/models.dart' as _i12;
+import 'package:taskmaster/models/models.dart' as _i11;
 import 'package:taskmaster/models/snooze_blueprint.dart' as _i26;
 import 'package:taskmaster/models/sprint.dart' as _i7;
 import 'package:taskmaster/models/sprint_assignment.dart' as _i23;
@@ -29,11 +29,11 @@ import 'package:taskmaster/models/task_item_blueprint.dart' as _i21;
 import 'package:taskmaster/models/task_item_recur_preview.dart' as _i22;
 import 'package:taskmaster/models/task_recurrence.dart' as _i8;
 import 'package:taskmaster/models/task_recurrence_blueprint.dart' as _i25;
-import 'package:taskmaster/models/top_nav_item.dart' as _i11;
+import 'package:taskmaster/models/top_nav_item.dart' as _i10;
 import 'package:taskmaster/redux/app_state.dart' as _i15;
 import 'package:taskmaster/redux/middleware/notification_helper.dart' as _i14;
 import 'package:taskmaster/task_repository.dart' as _i19;
-import 'package:taskmaster/timezone_helper.dart' as _i10;
+import 'package:taskmaster/timezone_helper.dart' as _i13;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -95,25 +95,25 @@ class _FakeFlutterLocalNotificationsPlugin_7 extends _i1.SmartFake
   ) : super(parent, parentInvocation);
 }
 
-class _FakeTimezoneHelper_8 extends _i1.SmartFake
-    implements _i10.TimezoneHelper {
-  _FakeTimezoneHelper_8(Object parent, Invocation parentInvocation)
+class _FakeTopNavItem_8 extends _i1.SmartFake implements _i10.TopNavItem {
+  _FakeTopNavItem_8(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeTopNavItem_9 extends _i1.SmartFake implements _i11.TopNavItem {
-  _FakeTopNavItem_9(Object parent, Invocation parentInvocation)
+class _FakeVisibilityFilter_9 extends _i1.SmartFake
+    implements _i11.VisibilityFilter {
+  _FakeVisibilityFilter_9(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeVisibilityFilter_10 extends _i1.SmartFake
-    implements _i12.VisibilityFilter {
-  _FakeVisibilityFilter_10(Object parent, Invocation parentInvocation)
+class _FakeGoogleSignIn_10 extends _i1.SmartFake implements _i12.GoogleSignIn {
+  _FakeGoogleSignIn_10(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeGoogleSignIn_11 extends _i1.SmartFake implements _i13.GoogleSignIn {
-  _FakeGoogleSignIn_11(Object parent, Invocation parentInvocation)
+class _FakeTimezoneHelper_11 extends _i1.SmartFake
+    implements _i13.TimezoneHelper {
+  _FakeTimezoneHelper_11(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
@@ -757,21 +757,6 @@ class MockNotificationHelper extends _i1.Mock
           as _i9.FlutterLocalNotificationsPlugin);
 
   @override
-  _i10.TimezoneHelper get timezoneHelper =>
-      (super.noSuchMethod(
-            Invocation.getter(#timezoneHelper),
-            returnValue: _FakeTimezoneHelper_8(
-              this,
-              Invocation.getter(#timezoneHelper),
-            ),
-            returnValueForMissingStub: _FakeTimezoneHelper_8(
-              this,
-              Invocation.getter(#timezoneHelper),
-            ),
-          )
-          as _i10.TimezoneHelper);
-
-  @override
   set nextId(int? _nextId) => super.noSuchMethod(
     Invocation.setter(#nextId, _nextId),
     returnValueForMissingStub: null,
@@ -939,76 +924,76 @@ class MockAppState extends _i1.Mock implements _i15.AppState {
           as _i6.BuiltList<_i5.TaskItem>);
 
   @override
-  _i11.TopNavItem get activeTab =>
+  _i10.TopNavItem get activeTab =>
       (super.noSuchMethod(
             Invocation.getter(#activeTab),
-            returnValue: _FakeTopNavItem_9(this, Invocation.getter(#activeTab)),
-            returnValueForMissingStub: _FakeTopNavItem_9(
+            returnValue: _FakeTopNavItem_8(this, Invocation.getter(#activeTab)),
+            returnValueForMissingStub: _FakeTopNavItem_8(
               this,
               Invocation.getter(#activeTab),
             ),
           )
-          as _i11.TopNavItem);
+          as _i10.TopNavItem);
 
   @override
-  _i6.BuiltList<_i11.TopNavItem> get allNavItems =>
+  _i6.BuiltList<_i10.TopNavItem> get allNavItems =>
       (super.noSuchMethod(
             Invocation.getter(#allNavItems),
-            returnValue: _FakeBuiltList_4<_i11.TopNavItem>(
+            returnValue: _FakeBuiltList_4<_i10.TopNavItem>(
               this,
               Invocation.getter(#allNavItems),
             ),
-            returnValueForMissingStub: _FakeBuiltList_4<_i11.TopNavItem>(
+            returnValueForMissingStub: _FakeBuiltList_4<_i10.TopNavItem>(
               this,
               Invocation.getter(#allNavItems),
             ),
           )
-          as _i6.BuiltList<_i11.TopNavItem>);
+          as _i6.BuiltList<_i10.TopNavItem>);
 
   @override
-  _i12.VisibilityFilter get sprintListFilter =>
+  _i11.VisibilityFilter get sprintListFilter =>
       (super.noSuchMethod(
             Invocation.getter(#sprintListFilter),
-            returnValue: _FakeVisibilityFilter_10(
+            returnValue: _FakeVisibilityFilter_9(
               this,
               Invocation.getter(#sprintListFilter),
             ),
-            returnValueForMissingStub: _FakeVisibilityFilter_10(
+            returnValueForMissingStub: _FakeVisibilityFilter_9(
               this,
               Invocation.getter(#sprintListFilter),
             ),
           )
-          as _i12.VisibilityFilter);
+          as _i11.VisibilityFilter);
 
   @override
-  _i12.VisibilityFilter get taskListFilter =>
+  _i11.VisibilityFilter get taskListFilter =>
       (super.noSuchMethod(
             Invocation.getter(#taskListFilter),
-            returnValue: _FakeVisibilityFilter_10(
+            returnValue: _FakeVisibilityFilter_9(
               this,
               Invocation.getter(#taskListFilter),
             ),
-            returnValueForMissingStub: _FakeVisibilityFilter_10(
+            returnValueForMissingStub: _FakeVisibilityFilter_9(
               this,
               Invocation.getter(#taskListFilter),
             ),
           )
-          as _i12.VisibilityFilter);
+          as _i11.VisibilityFilter);
 
   @override
-  _i13.GoogleSignIn get googleSignIn =>
+  _i12.GoogleSignIn get googleSignIn =>
       (super.noSuchMethod(
             Invocation.getter(#googleSignIn),
-            returnValue: _FakeGoogleSignIn_11(
+            returnValue: _FakeGoogleSignIn_10(
               this,
               Invocation.getter(#googleSignIn),
             ),
-            returnValueForMissingStub: _FakeGoogleSignIn_11(
+            returnValueForMissingStub: _FakeGoogleSignIn_10(
               this,
               Invocation.getter(#googleSignIn),
             ),
           )
-          as _i13.GoogleSignIn);
+          as _i12.GoogleSignIn);
 
   @override
   bool get googleInitialized =>
@@ -1029,19 +1014,19 @@ class MockAppState extends _i1.Mock implements _i15.AppState {
           as bool);
 
   @override
-  _i10.TimezoneHelper get timezoneHelper =>
+  _i13.TimezoneHelper get timezoneHelper =>
       (super.noSuchMethod(
             Invocation.getter(#timezoneHelper),
-            returnValue: _FakeTimezoneHelper_8(
+            returnValue: _FakeTimezoneHelper_11(
               this,
               Invocation.getter(#timezoneHelper),
             ),
-            returnValueForMissingStub: _FakeTimezoneHelper_8(
+            returnValueForMissingStub: _FakeTimezoneHelper_11(
               this,
               Invocation.getter(#timezoneHelper),
             ),
           )
-          as _i10.TimezoneHelper);
+          as _i13.TimezoneHelper);
 
   @override
   int get nextId =>

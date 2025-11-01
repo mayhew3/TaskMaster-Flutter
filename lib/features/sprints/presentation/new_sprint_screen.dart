@@ -51,7 +51,6 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
   }
 
   void _updateDatesOnInit() {
-    final timezoneHelper = ref.read(timezoneHelperProvider);
     final lastCompleted = ref.read(lastCompletedSprintProvider);
 
     final nextScheduled = _getNextScheduledStart();
@@ -62,9 +61,9 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
     }
 
     sprintStartDateController.text =
-        timezoneHelper.getFormattedLocalTime(sprintStart, 'MM-dd-yyyy');
+        DateFormat('MM-dd-yyyy').format(sprintStart.toLocal());
     sprintStartTimeController.text =
-        timezoneHelper.getFormattedLocalTime(sprintStart, 'hh:mm a');
+        DateFormat('hh:mm a').format(sprintStart.toLocal());
   }
 
   DateTime? _getNextScheduledStart() {
@@ -91,22 +90,20 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
   }
 
   void updateDateForDateField(DateTime? dateTime) {
-    final timezoneHelper = ref.read(timezoneHelperProvider);
     DateTime base = dateTime ?? DateTime.now();
     setState(() {
       sprintStart = DateUtil.combineDateAndTime(base, sprintStart);
       sprintStartDateController.text =
-          timezoneHelper.getFormattedLocalTime(base, 'MM-dd-yyyy');
+          DateFormat('MM-dd-yyyy').format(base.toLocal());
     });
   }
 
   void updateTimeForDateField(DateTime? dateTime) {
-    final timezoneHelper = ref.read(timezoneHelperProvider);
     DateTime base = dateTime ?? DateTime.now();
     setState(() {
       sprintStart = DateUtil.combineDateAndTime(sprintStart, base);
       sprintStartTimeController.text =
-          timezoneHelper.getFormattedLocalTime(base, 'hh:mm a');
+          DateFormat('hh:mm a').format(base.toLocal());
     });
   }
 
@@ -126,7 +123,6 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
 
   Widget _lastSprintSummary() {
     final lastCompleted = ref.watch(lastCompletedSprintProvider);
-    final timezoneHelper = ref.watch(timezoneHelperProvider);
 
     if (lastCompleted == null) {
       return const Text('This is your first sprint! Choose the cadence below:');
@@ -135,7 +131,7 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
       DateTime lastEndDate = lastCompleted.endDate;
       String dateString = oneYearAgo.isAfter(lastEndDate)
           ? ' over a year ago.'
-          : DateUtil.formatMediumMaybeHidingYear(lastEndDate, timezoneHelper);
+          : DateUtil.formatMediumMaybeHidingYear(lastEndDate);
       return Text('Last Sprint Ended: $dateString');
     }
   }

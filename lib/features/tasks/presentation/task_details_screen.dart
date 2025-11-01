@@ -13,7 +13,6 @@ import 'package:taskmaster/redux/presentation/add_edit_screen.dart';
 import 'package:taskmaster/redux/presentation/delayed_checkbox.dart';
 import 'package:taskmaster/redux/presentation/readonly_task_field.dart';
 import 'package:taskmaster/redux/presentation/readonly_task_field_small.dart';
-import 'package:taskmaster/timezone_helper.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../../core/providers/firebase_providers.dart';
 import '../providers/task_providers.dart';
@@ -33,9 +32,7 @@ class TaskDetailsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final task = ref.watch(taskProvider(taskItemId));
     final tasksAsync = ref.watch(tasksProvider);
-    final timezoneHelper = ref.watch(timezoneHelperProvider);
 
-    // Check if tasks are still loading
     return tasksAsync.when(
       data: (_) {
         if (task == null) {
@@ -44,10 +41,7 @@ class TaskDetailsScreen extends ConsumerWidget {
             body: const Center(child: Text('Task not found')),
           );
         }
-        return _TaskDetailsBody(
-          task: task,
-          timezoneHelper: timezoneHelper,
-        );
+        return _TaskDetailsBody(task: task);
       },
       loading: () => Scaffold(
         appBar: AppBar(title: const Text('Task Item Details')),
@@ -63,11 +57,9 @@ class TaskDetailsScreen extends ConsumerWidget {
 
 class _TaskDetailsBody extends StatelessWidget {
   final TaskItem task;
-  final TimezoneHelper timezoneHelper;
 
   const _TaskDetailsBody({
     required this.task,
-    required this.timezoneHelper,
   });
 
   @override
@@ -213,7 +205,7 @@ class _TaskDetailsBody extends StatelessWidget {
                     ? TaskAddEditScreen(taskItemId: task.docId)
                     : AddEditScreen(
                         taskItem: task,
-                        timezoneHelper: timezoneHelper,
+                        timezoneHelper: StoreProvider.of<AppState>(context).state.timezoneHelper,
                       );
               },
             ),
@@ -227,7 +219,7 @@ class _TaskDetailsBody extends StatelessWidget {
     if (dateTime == null) {
       return '';
     }
-    var localTime = timezoneHelper.getLocalTime(dateTime);
+    var localTime = dateTime.toLocal();
     var jiffy = Jiffy.parseFromDateTime(localTime);
     var isToday = jiffy.yMMMd == Jiffy.now().yMMMd;
     var isThisYear = jiffy.year == Jiffy.now().year;

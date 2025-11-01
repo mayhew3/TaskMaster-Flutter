@@ -255,7 +255,6 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final timezoneHelper = ref.watch(timezoneHelperProvider);
     final tasksAsync = ref.watch(tasksProvider);
     final taskRecurrencesAsync = ref.watch(taskRecurrencesProvider);
 
@@ -278,6 +277,9 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
               : null;
           _initializeTask(task);
         }
+
+        // Get timezoneHelper from Redux for compatibility with Redux widgets
+        final timezoneHelper = StoreProvider.of<AppState>(context).state.timezoneHelper;
 
         return Scaffold(
           appBar: AppBar(

@@ -1,6 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
-import 'package:taskmaster/timezone_helper.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 import '../../date_util.dart';
 import '../../models/sprint.dart';
@@ -9,9 +9,8 @@ import '../../models/task_item.dart';
 class NotificationHelper {
   int nextId = 0;
   final FlutterLocalNotificationsPlugin plugin;
-  final TimezoneHelper timezoneHelper;
 
-  NotificationHelper({required this.plugin, required this.timezoneHelper});
+  NotificationHelper({required this.plugin});
 
   static FlutterLocalNotificationsPlugin initializeNotificationPlugin() {
     // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
@@ -157,11 +156,11 @@ class NotificationHelper {
       ) async {
     String verificationMessage;
     var opener = replacingOriginal ? 'Replaced' : 'Scheduled';
-    var formattedTime = timezoneHelper.getFormattedLocalTimeFromFormat(scheduledTime, DateFormat.jm());
-    if (DateUtil.isSameDay(DateTime.now(), scheduledTime, timezoneHelper)) {
+    var formattedTime = DateFormat.jm().format(scheduledTime.toLocal());
+    if (DateUtil.isSameDay(DateTime.now(), scheduledTime)) {
       verificationMessage = '$opener notification for $name today at $formattedTime';
     } else {
-      var formattedDay = timezoneHelper.getFormattedLocalTimeFromFormat(scheduledTime, DateFormat.MMMd());
+      var formattedDay = DateFormat.MMMd().format(scheduledTime.toLocal());
       verificationMessage = '$opener notification for $name on $formattedDay at $formattedTime';
     }
 
@@ -182,7 +181,7 @@ class NotificationHelper {
       android: androidPlatformChannelSpecifics,
       iOS: iOSPlatformChannelSpecifics,
     );
-    var localTime = timezoneHelper.getLocalTime(scheduledTime);
+    var localTime = tz.TZDateTime.from(scheduledTime, tz.local);
     await plugin.zonedSchedule(
         id,
         name,

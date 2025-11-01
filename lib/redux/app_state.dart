@@ -94,7 +94,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
       ..nextId = 0
       ..offlineMode = false
       ..sprintAssignmentListeners = <String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>{}
-      ..notificationHelper = notificationHelper ?? NotificationHelper(plugin: NotificationHelper.initializeNotificationPlugin(), timezoneHelper: timezoneHelper)
+      ..notificationHelper = notificationHelper ?? NotificationHelper(plugin: NotificationHelper.initializeNotificationPlugin())
     ;
   }
   );

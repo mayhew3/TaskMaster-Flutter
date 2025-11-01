@@ -30,7 +30,6 @@ class TaskListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final groupedTasks = ref.watch(groupedTasksProvider);
     final tasksAsync = ref.watch(tasksProvider);
-    final timezoneHelper = ref.watch(timezoneHelperProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -51,7 +50,9 @@ class TaskListScreen extends ConsumerWidget {
             MaterialPageRoute(
               builder: (_) => FeatureFlags.useRiverpodForTasks
                   ? const TaskAddEditScreen()
-                  : AddEditScreen(timezoneHelper: timezoneHelper),
+                  : AddEditScreen(
+                      timezoneHelper: StoreProvider.of<AppState>(context).state.timezoneHelper,
+                    ),
             ),
           );
         },

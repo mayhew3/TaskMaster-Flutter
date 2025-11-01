@@ -67,7 +67,6 @@ void main() {
 
     var notificationScheduler = NotificationHelper(
       plugin: plugin,
-      timezoneHelper: timezoneHelper,
     );
     List<Future<void>> futures = [];
     for (var taskItem in taskItems) {
