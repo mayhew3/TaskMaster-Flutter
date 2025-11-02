@@ -1,30 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(done)",
       "Bash(flutter test:*)",
-      "Bash(findstr:*)",
-      "Bash(cat:*)",
-      "Bash(git commit:*)",
-      "Bash(git add:*)",
-      "Bash(git status:*)",
-      "Bash(git log:*)",
-      "Bash(git diff:*)",
-      "Bash(git rm:*)",
-      "Bash(git restore:*)",
-      "Bash(flutter:*)",
       "Bash(tee:*)",
-      "Bash(git checkout:*)",
-      "Bash(gcloud config:*)",
-      "Bash(git filter-branch:*)",
-      "Bash(powershell -Command \"(Get-Content ''lib\\features\\tasks\\presentation\\task_add_edit_screen.dart'' | Measure-Object -Line).Lines\")",
-      "Bash(powershell -Command \"Get-Content ''lib\\features\\tasks\\presentation\\task_add_edit_screen.dart'' | Select-Object -Last 30\")",
-      "Bash(Select-String -Pattern \"tests passed|All tests passed|failed\")",
-      "Bash(powershell -Command \"$input | Select-String -Pattern ''''tests passed|All tests passed|failed''''\")",
-      "Bash(powershell -Command \"$input | Where-Object { $_match ''''FAILED|Error'''' } | Select-Object -First 20\")",
-      "Bash(powershell -Command \"Get-Content ''C:\\Code\\TaskMaster\\TaskMaster-Flutter\\.claude\\MIGRATION_PROGRESS.md'' | Measure-Object -Line\")",
-      "Bash(echo \"\n\n---\n\n## 📝 Session Summary - November 1, 2025 (Phase 4)\n\n### Phase 4: Riverpod Enabled by Default\n\n**Time Spent:** ~30 minutes\n**Impact:** Migration to Riverpod complete - now default for all screens\n\n### ✅ Accomplishments\n\n**Feature Flag Updates:**\n- ✅ Changed all Riverpod feature flags to defaultValue: true\n- ✅ USE_RIVERPOD_STATS → true\n- ✅ USE_RIVERPOD_TASKS → true\n- ✅ USE_RIVERPOD_SPRINTS → true\n- ✅ Riverpod now runs by default, Redux available via feature flags for rollback\n\n**Test Infrastructure Updates:**\n- ✅ Updated IntegrationTestHelper.pumpApp() to wrap with ProviderScope\n- ✅ Added Riverpod provider overrides for test data\n- ✅ Tests now support both Redux and Riverpod simultaneously\n- ✅ Firestore, auth, tasks, recurrences, and sprints all mocked for Riverpod\n\n### Files Changed\n\n**Core:**\n- lib/core/feature_flags.dart - Changed defaults to true for all Riverpod flags\n\n**Test Infrastructure:**\n- test/integration/integration_test_helper.dart - Added ProviderScope wrapper with overrides\n\n### Test Results\n\n**Overall:** 254/276 passing (92%) ✅\n\n**Breakdown:**\n- **254 tests passing** - All core functionality works\n- **22 tests failing** - Known middleware limitations\n\n**Analysis:**\n- 92% pass rate is acceptable for migration\n- Failing tests are known limitations, not blocking issues\n- All user-facing screens work correctly with Riverpod\n- Redux still available for rollback if needed\n\n### Commits Ready\n\n1. TM-281: Phase 4 - Enable Riverpod by default\n   - Changed feature flag defaults to true\n   - Updated test infrastructure for ProviderScope\n   - 254/276 tests passing (92%)\n   - Ready for Redux removal\n\")",
-      "Bash(C:/Code/TaskMaster/TaskMaster-Flutter/.claude/MIGRATION_PROGRESS.md)"
+      "Bash(flutter analyze:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

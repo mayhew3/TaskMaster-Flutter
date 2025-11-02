@@ -37,6 +37,12 @@ class TaskListScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Tasks'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.filter_list),
+            onPressed: () => _showFilterDialog(context, ref),
+          ),
+        ],
       ),
       body: tasksAsync.when(
         data: (_) => _TaskListBody(groups: groupedTasks),
@@ -62,6 +68,38 @@ class TaskListScreen extends ConsumerWidget {
         child: const Icon(Icons.add),
       ),
       bottomNavigationBar: TabSelector(),
+    );
+  }
+
+  void _showFilterDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => const _FilterDialog(),
+    );
+  }
+}
+
+/// Filter dialog for showing/hiding completed and scheduled tasks
+class _FilterDialog extends StatelessWidget {
+  const _FilterDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Filters'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: const [
+          _FilterCheckboxCompleted(),
+          _FilterCheckboxScheduled(),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Close'),
+        ),
+      ],
     );
   }
 }
@@ -263,6 +301,47 @@ class _TaskListItem extends ConsumerWidget {
           }
         }
         return false;
+      },
+    );
+  }
+}
+
+/// Filter checkbox widget for toggling filter states
+class _FilterCheckboxCompleted extends ConsumerWidget {
+  const _FilterCheckboxCompleted();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final value = ref.watch(showCompletedProvider);
+
+    return CheckboxListTile(
+      title: const Text('Show Completed'),
+      value: value,
+      onChanged: (newValue) {
+        if (newValue != null) {
+          ref.read(showCompletedProvider.notifier).set(newValue);
+          Navigator.of(context).pop(); // Close dialog after toggle
+        }
+      },
+    );
+  }
+}
+
+class _FilterCheckboxScheduled extends ConsumerWidget {
+  const _FilterCheckboxScheduled();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final value = ref.watch(showScheduledProvider);
+
+    return CheckboxListTile(
+      title: const Text('Show Scheduled'),
+      value: value,
+      onChanged: (newValue) {
+        if (newValue != null) {
+          ref.read(showScheduledProvider.notifier).set(newValue);
+          Navigator.of(context).pop(); // Close dialog after toggle
+        }
       },
     );
   }

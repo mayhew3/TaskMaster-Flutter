@@ -41,7 +41,7 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
   late BuiltList<String> possibleRecurUnits;
 
   bool _repeatOn = false;
-  late final bool _initialRepeatOn;
+  late bool _initialRepeatOn;
 
   late TaskItemBlueprint taskItemBlueprint;
   TaskItem? taskItem;
@@ -299,7 +299,10 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                     EditableTaskField(
                       initialText: taskItemBlueprint.name,
                       labelText: 'Name',
-                      onChanged: (value) => taskItemBlueprint.name = value,
+                      onChanged: (value) {
+                        taskItemBlueprint.name = value;
+                        setState(() {}); // Trigger rebuild to update FAB visibility
+                      },
                       fieldSetter: (value) => taskItemBlueprint.name = value,
                       inputType: TextInputType.multiline,
                       isRequired: true,
@@ -576,42 +579,39 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
               ),
             ),
           ),
-          floatingActionButton: Visibility(
-            visible: hasChanges() || (_initialRepeatOn && !_repeatOn),
-            child: FloatingActionButton(
-              child: Icon(isEditing ? Icons.check : Icons.add),
-              onPressed: () async {
-                final form = formKey.currentState;
+          floatingActionButton: FloatingActionButton(
+            child: Icon(isEditing ? Icons.check : Icons.add),
+            onPressed: () async {
+              final form = formKey.currentState;
 
-                if (!_repeatOn) {
-                  clearRecurrenceFieldsFromTask();
+              if (!_repeatOn) {
+                clearRecurrenceFieldsFromTask();
+              }
+
+              if (form != null && form.validate()) {
+                form.save();
+
+                if (_repeatOn) {
+                  if (!_initialRepeatOn) {
+                    taskItemBlueprint.recurIteration = 1;
+                  }
+                  updateRecurrenceBlueprint();
                 }
 
-                if (form != null && form.validate()) {
-                  form.save();
-
-                  if (_repeatOn) {
-                    if (!_initialRepeatOn) {
-                      taskItemBlueprint.recurIteration = 1;
-                    }
-                    updateRecurrenceBlueprint();
-                  }
-
-                  // Use Redux dispatch for compatibility during migration
-                  if (editMode()) {
-                    StoreProvider.of<AppState>(context).dispatch(
-                      UpdateTaskItemAction(
-                          taskItem: taskItem!, blueprint: taskItemBlueprint),
-                    );
-                  } else {
-                    // add mode
-                    StoreProvider.of<AppState>(context).dispatch(
-                      AddTaskItemAction(blueprint: taskItemBlueprint),
-                    );
-                  }
+                // Use Redux dispatch for compatibility during migration
+                if (editMode()) {
+                  StoreProvider.of<AppState>(context).dispatch(
+                    UpdateTaskItemAction(
+                        taskItem: taskItem!, blueprint: taskItemBlueprint),
+                  );
+                } else {
+                  // add mode
+                  StoreProvider.of<AppState>(context).dispatch(
+                    AddTaskItemAction(blueprint: taskItemBlueprint),
+                  );
                 }
-              },
-            ),
+              }
+            },
           ),
         );
       },

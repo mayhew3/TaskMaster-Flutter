@@ -1,9 +1,11 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/redux/app_state.dart';
+import 'package:taskmaster/features/tasks/providers/task_filter_providers.dart';
 
 import 'integration_test_helper.dart';
 
@@ -181,11 +183,11 @@ void main() {
         initialTasks: tasks,
       );
 
-      // Verify: Current task visible, scheduled task filtered out
+      // Verify: Both tasks visible (Riverpod showScheduled = true by default)
       expect(find.text('Current Task'), findsOneWidget);
-      expect(find.text('Scheduled Task'), findsNothing);
+      expect(find.text('Scheduled Task'), findsOneWidget);
 
-      print('✓ Scheduled (future) tasks are filtered by default');
+      print('✓ Scheduled tasks are visible by default (showScheduled=true)');
     });
 
     testWidgets('Tasks with past startDate display normally', (tester) async {
@@ -282,12 +284,12 @@ void main() {
         initialTasks: tasks,
       );
 
-      // Verify: Only active, non-retired, non-scheduled tasks are visible
+      // Verify: Only active, non-retired tasks are visible (showScheduled=true by default in Riverpod)
       expect(find.text('Visible Task 1'), findsOneWidget);
       expect(find.text('Visible Task 2'), findsOneWidget);
       expect(find.text('Completed Task'), findsNothing);
       expect(find.text('Retired Task'), findsNothing);
-      expect(find.text('Future Scheduled Task'), findsNothing);
+      expect(find.text('Future Scheduled Task'), findsOneWidget); // Visible because showScheduled=true
 
       print('✓ Multiple filter conditions work together correctly');
     });
@@ -489,9 +491,9 @@ void main() {
         initialTasks: [currentTask, scheduledTask],
       );
 
-      // Initial state: Scheduled task is filtered out
+      // Initial state: Scheduled task is visible (showScheduled=true by default in Riverpod)
       expect(find.text('Current Task'), findsOneWidget);
-      expect(find.text('Scheduled Task'), findsNothing);
+      expect(find.text('Scheduled Task'), findsOneWidget);
 
       // Step 1: Open filter menu
       final filterButton = find.byIcon(Icons.filter_list);
@@ -499,24 +501,24 @@ void main() {
       await tester.tap(filterButton);
       await tester.pumpAndSettle();
 
-      // Step 2: Tap "Show Scheduled" to toggle it on
+      // Step 2: Tap "Show Scheduled" to toggle it OFF
       expect(find.text('Show Scheduled'), findsOneWidget);
       await tester.tap(find.text('Show Scheduled'), warnIfMissed: false);
       await tester.pumpAndSettle();
 
-      // Verify: Scheduled task now appears
+      // Verify: Scheduled task now hidden
       expect(find.text('Current Task'), findsOneWidget);
-      expect(find.text('Scheduled Task'), findsOneWidget);
+      expect(find.text('Scheduled Task'), findsNothing);
 
-      // Step 3: Open filter menu again and toggle off
+      // Step 3: Open filter menu again and toggle back on
       await tester.tap(filterButton);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Show Scheduled'), warnIfMissed: false);
       await tester.pumpAndSettle();
 
-      // Verify: Scheduled task hidden again
+      // Verify: Scheduled task visible again
       expect(find.text('Current Task'), findsOneWidget);
-      expect(find.text('Scheduled Task'), findsNothing);
+      expect(find.text('Scheduled Task'), findsOneWidget);
 
       print('✓ Toggling showScheduled filter shows/hides scheduled tasks');
     });
@@ -563,10 +565,10 @@ void main() {
         initialTasks: tasks,
       );
 
-      // Initial: Only active task visible
+      // Initial: Active and scheduled visible (showScheduled=true, showCompleted=false)
       expect(find.text('Active Task'), findsOneWidget);
       expect(find.text('Completed Task'), findsNothing);
-      expect(find.text('Scheduled Task'), findsNothing);
+      expect(find.text('Scheduled Task'), findsOneWidget); // Visible by default in Riverpod
 
       final filterButton = find.byIcon(Icons.filter_list);
 
@@ -576,32 +578,32 @@ void main() {
       await tester.tap(find.text('Show Completed'), warnIfMissed: false);
       await tester.pumpAndSettle();
 
-      // Verify: Active and completed visible
-      expect(find.text('Active Task'), findsOneWidget);
-      expect(find.text('Completed Task'), findsOneWidget);
-      expect(find.text('Scheduled Task'), findsNothing);
-
-      // Step 2: Enable showScheduled
-      await tester.tap(filterButton);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Show Scheduled'), warnIfMissed: false);
-      await tester.pumpAndSettle();
-
       // Verify: All tasks visible
       expect(find.text('Active Task'), findsOneWidget);
       expect(find.text('Completed Task'), findsOneWidget);
       expect(find.text('Scheduled Task'), findsOneWidget);
 
-      // Step 3: Disable showCompleted (keep showScheduled on)
+      // Step 2: Disable showScheduled (keep showCompleted on)
+      await tester.tap(filterButton);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Show Scheduled'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      // Verify: Active and completed visible, scheduled hidden
+      expect(find.text('Active Task'), findsOneWidget);
+      expect(find.text('Completed Task'), findsOneWidget);
+      expect(find.text('Scheduled Task'), findsNothing);
+
+      // Step 3: Disable showCompleted (keep showScheduled off)
       await tester.tap(filterButton);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Show Completed'), warnIfMissed: false);
       await tester.pumpAndSettle();
 
-      // Verify: Active and scheduled visible, completed hidden
+      // Verify: Only active visible
       expect(find.text('Active Task'), findsOneWidget);
       expect(find.text('Completed Task'), findsNothing);
-      expect(find.text('Scheduled Task'), findsOneWidget);
+      expect(find.text('Scheduled Task'), findsNothing);
 
       print('✓ Both filters can be toggled independently');
     });
@@ -638,13 +640,13 @@ void main() {
       );
 
       final filterButton = find.byIcon(Icons.filter_list);
-      final store = StoreProvider.of<AppState>(
+      final container = ProviderScope.containerOf(
         tester.element(find.byType(MaterialApp)),
       );
 
-      // Initial filter state
-      expect(store.state.taskListFilter.showCompleted, false);
-      expect(store.state.taskListFilter.showScheduled, false);
+      // Initial filter state (Riverpod defaults)
+      expect(container.read(showCompletedProvider), false);
+      expect(container.read(showScheduledProvider), true);
 
       // Toggle showCompleted on
       await tester.tap(filterButton);
@@ -653,7 +655,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify: State updated
-      expect(store.state.taskListFilter.showCompleted, true);
+      expect(container.read(showCompletedProvider), true);
 
       // Toggle showCompleted off
       await tester.tap(filterButton);
@@ -662,7 +664,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify: State back to false
-      expect(store.state.taskListFilter.showCompleted, false);
+      expect(container.read(showCompletedProvider), false);
 
       print('✓ Filter state persists across filter toggles');
     });

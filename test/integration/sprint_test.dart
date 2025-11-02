@@ -8,8 +8,8 @@ import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/redux/actions/sprint_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
-import 'package:taskmaster/redux/presentation/new_sprint.dart';
-import 'package:taskmaster/redux/containers/sprint_task_items.dart';
+import 'package:taskmaster/features/sprints/presentation/new_sprint_screen.dart';
+import 'package:taskmaster/features/sprints/presentation/sprint_task_items_screen.dart';
 
 import 'integration_test_helper.dart';
 
@@ -52,10 +52,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify: NewSprint form is visible (shows sprint creation UI)
-      expect(find.byType(NewSprint), findsOneWidget);
+      expect(find.byType(NewSprintScreen), findsOneWidget);
 
       // Verify: SprintTaskItems is NOT shown (no active sprint)
-      expect(find.byType(SprintTaskItems), findsNothing);
+      expect(find.byType(SprintTaskItemsScreen), findsNothing);
     });
 
     testWidgets('SprintTaskItems displays when active sprint exists',
@@ -124,10 +124,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify: SprintTaskItems is shown (displays active sprint)
-      expect(find.byType(SprintTaskItems), findsOneWidget);
+      expect(find.byType(SprintTaskItemsScreen), findsOneWidget);
 
       // Verify: NewSprint form is NOT shown (we have an active sprint)
-      expect(find.byType(NewSprint), findsNothing);
+      expect(find.byType(NewSprintScreen), findsNothing);
 
       // Verify: Sprint tasks are visible
       expect(find.text('Sprint Task 1'), findsOneWidget);

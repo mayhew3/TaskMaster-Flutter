@@ -142,11 +142,11 @@ void main() {
         initialTasks: [task],
       );
 
-      // Verify: Task is filtered out by default (future startDate)
-      // This is expected based on our filtering tests
-      expect(find.text('Scheduled Task'), findsNothing);
+      // Verify: Task IS visible by default (Riverpod showScheduled = true by default)
+      // This differs from Redux which hid scheduled tasks by default
+      expect(find.text('Scheduled Task'), findsOneWidget);
 
-      print('✓ Scheduled task is filtered correctly');
+      print('✓ Scheduled task displays correctly (showScheduled=true by default)');
     });
 
     testWidgets('Tasks with no special dates appear in Tasks group',

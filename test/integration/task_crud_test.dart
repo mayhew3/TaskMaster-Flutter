@@ -1,7 +1,7 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/redux/presentation/task_item_list.dart';
+import 'package:taskmaster/features/tasks/presentation/task_list_screen.dart';
 
 import 'integration_test_helper.dart';
 
@@ -34,7 +34,7 @@ void main() {
       );
 
       // Verify: Should see task list widget
-      expect(find.byType(TaskItemList), findsOneWidget);
+      expect(find.byType(TaskListScreen), findsOneWidget);
 
       // Note: The actual "no tasks" message depends on your UI implementation
       // Update this assertion based on what your app actually shows
