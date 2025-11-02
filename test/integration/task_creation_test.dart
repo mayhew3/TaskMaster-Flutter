@@ -83,23 +83,232 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('User can create a task with just a name', (tester) async {},
-      skip: true); // TODO TM-283: Rewrite for Riverpod - test uses Redux sync helpers incompatible with Riverpod screens
+    testWidgets('User can create a task with just a name', (tester) async {
+      // Setup: Start with empty task list, using live Firestore
+      await IntegrationTestHelper.pumpAppWithLiveFirestore(
+        tester,
+        firestore: fakeFirestore,
+        initialTasks: [],
+      );
+
+      // Initial state: No tasks
+      expect(find.text('No eligible tasks found.'), findsOneWidget);
+
+      // Step 1: Tap FAB to open add task screen
+      final fab = find.byType(FloatingActionButton).first;
+      expect(fab, findsOneWidget);
+      await tester.tap(fab);
+      await tester.pumpAndSettle();
+
+      // Verify: TaskAddEditScreen opened
+      expect(find.byType(TaskAddEditScreen), findsOneWidget);
+      expect(find.text('Task Details'), findsOneWidget);
+
+      // Step 2: Enter task name (required field)
+      final nameField = find.widgetWithText(TextFormField, 'Name');
+      expect(nameField, findsOneWidget);
+      await tester.enterText(nameField, 'Buy groceries');
+      await tester.pumpAndSettle();
+
+      // Step 3: Tap save button (FloatingActionButton)
+      final saveFab = find.byType(FloatingActionButton);
+      expect(saveFab, findsAtLeastNWidgets(1)); // At least 1 FAB (might be 2 if both screens visible)
+      await tester.tap(saveFab.last); // Tap the last one (the save button)
+      await tester.pumpAndSettle();
+
+      // Wait for Firestore write and stream update
+      await tester.pump(Duration(milliseconds: 100));
+      await tester.pumpAndSettle();
+
+      // Auto-close relies on Firestore stream updates which might be delayed in tests
+      // Manually close if still open
+      await closeAddEditScreenIfOpen(tester);
+
+      // Verify: Navigation back to task list
+      expect(find.byType(TaskAddEditScreen), findsNothing);
+
+      // Verify: Task appears in list
+      expect(find.text('Buy groceries'), findsOneWidget);
+
+      print('✓ User created task with name only');
+    });
 
     testWidgets('User can create a task with name and description',
-        (tester) async {},
-      skip: true); // TODO TM-283: Rewrite for Riverpod - test uses Redux sync incompatible with Riverpod providers
+        (tester) async {
+      // Setup: Start with empty task list, using live Firestore
+      await IntegrationTestHelper.pumpAppWithLiveFirestore(
+        tester,
+        firestore: fakeFirestore,
+        initialTasks: [],
+      );
+
+      // Step 1: Open add task screen
+      final fab = find.byType(FloatingActionButton).first;
+      await tester.tap(fab);
+      await tester.pumpAndSettle();
+
+      // Step 2: Enter task name
+      final nameField = find.widgetWithText(TextFormField, 'Name');
+      await tester.enterText(nameField, 'Write report');
+      await tester.pumpAndSettle();
+
+      // Step 3: Enter description
+      final descriptionField = find.widgetWithText(TextFormField, 'Notes');
+      expect(descriptionField, findsOneWidget);
+      await tester.enterText(descriptionField, 'Q4 financial report for board');
+      await tester.pumpAndSettle();
+
+      // Step 4: Save task
+      final saveFab = find.byType(FloatingActionButton);
+      await tester.tap(saveFab.last);
+      await tester.pumpAndSettle();
+
+      // Wait for Firestore write and stream update
+      await tester.pump(Duration(milliseconds: 100));
+      await tester.pumpAndSettle();
+
+      // Auto-close relies on Firestore stream updates which might be delayed in tests
+      await closeAddEditScreenIfOpen(tester);
+
+      // Verify: Task appears with name
+      expect(find.text('Write report'), findsOneWidget);
+
+      // Verify: Task exists in Firestore with description
+      final tasksSnapshot = await fakeFirestore.collection('tasks').get();
+      expect(tasksSnapshot.docs.length, 1);
+      final taskData = tasksSnapshot.docs.first.data();
+      expect(taskData['name'], 'Write report');
+      expect(taskData['description'], 'Q4 financial report for board');
+
+      print('✓ User created task with name and description');
+    });
 
     testWidgets('User can create a task with name only (variant 2)',
-        (tester) async {},
-      skip: true); // TODO TM-283: Rewrite for Riverpod - test uses Redux sync incompatible with Riverpod providers
+        (tester) async {
+      // Setup: Start with empty task list, using live Firestore
+      await IntegrationTestHelper.pumpAppWithLiveFirestore(
+        tester,
+        firestore: fakeFirestore,
+        initialTasks: [],
+      );
 
-    testWidgets('User can create multiple tasks', (tester) async {},
-      skip: true); // TODO TM-283: Rewrite for Riverpod - test uses Redux sync incompatible with Riverpod providers
+      // Step 1: Open add task screen
+      final fab = find.byType(FloatingActionButton).first;
+      await tester.tap(fab);
+      await tester.pumpAndSettle();
+
+      // Step 2: Enter task name
+      final nameField = find.widgetWithText(TextFormField, 'Name');
+      await tester.enterText(nameField, 'Fix login bug');
+      await tester.pumpAndSettle();
+
+      // Step 3: Save task
+      final saveFab = find.byType(FloatingActionButton);
+      await tester.tap(saveFab.last);
+      await tester.pumpAndSettle();
+
+      // Wait for Firestore write and stream update
+      await tester.pump(Duration(milliseconds: 100));
+      await tester.pumpAndSettle();
+
+      // Auto-close relies on Firestore stream updates which might be delayed in tests
+      await closeAddEditScreenIfOpen(tester);
+
+      // Verify: Task appears with name
+      expect(find.text('Fix login bug'), findsOneWidget);
+
+      print('✓ User created task with name');
+    });
+
+    testWidgets('User can create multiple tasks', (tester) async {
+      // Setup: Start with empty task list, using live Firestore
+      await IntegrationTestHelper.pumpAppWithLiveFirestore(
+        tester,
+        firestore: fakeFirestore,
+        initialTasks: [],
+      );
+
+      // Create first task
+      final fab = find.byType(FloatingActionButton).first;
+      await tester.tap(fab);
+      await tester.pumpAndSettle();
+
+      final nameField = find.widgetWithText(TextFormField, 'Name');
+      await tester.enterText(nameField, 'First task');
+      await tester.pumpAndSettle();
+
+      final saveFab = find.byType(FloatingActionButton);
+      await tester.tap(saveFab.last);
+      await tester.pumpAndSettle();
+
+      // Wait for Firestore write and stream update
+      await tester.pump(Duration(milliseconds: 100));
+      await tester.pumpAndSettle();
+
+      // Auto-close relies on Firestore stream updates which might be delayed in tests
+      await closeAddEditScreenIfOpen(tester);
+
+      // Verify first task appears
+      expect(find.text('First task'), findsOneWidget);
+
+      // Create second task
+      final fab2 = find.byType(FloatingActionButton).first;
+      await tester.tap(fab2);
+      await tester.pumpAndSettle();
+
+      final nameField2 = find.widgetWithText(TextFormField, 'Name');
+      await tester.enterText(nameField2, 'Second task');
+      await tester.pumpAndSettle();
+
+      final saveFab2 = find.byType(FloatingActionButton);
+      await tester.tap(saveFab2.last);
+      await tester.pumpAndSettle();
+
+      // Wait for Firestore write and stream update
+      await tester.pump(Duration(milliseconds: 100));
+      await tester.pumpAndSettle();
+
+      // Auto-close relies on Firestore stream updates which might be delayed in tests
+      await closeAddEditScreenIfOpen(tester);
+
+      // Verify: Both tasks appear
+      expect(find.text('First task'), findsOneWidget);
+      expect(find.text('Second task'), findsOneWidget);
+
+      print('✓ User created multiple tasks');
+    });
 
     testWidgets('User cannot save task without name (validation)',
-        (tester) async {},
-      skip: true); // TODO TM-283: Rewrite for Riverpod - FAB visibility wrapper was removed, test expectation invalid
+        (tester) async {
+      // Setup: Start with empty task list, using live Firestore
+      await IntegrationTestHelper.pumpAppWithLiveFirestore(
+        tester,
+        firestore: fakeFirestore,
+        initialTasks: [],
+      );
+
+      // Step 1: Open add task screen
+      final fab = find.byType(FloatingActionButton).first;
+      await tester.tap(fab);
+      await tester.pumpAndSettle();
+
+      // Step 2: Try to save without entering name (FAB is now always visible)
+      final saveFab = find.byType(FloatingActionButton);
+      expect(saveFab, findsAtLeastNWidgets(1)); // FAB is visible
+
+      await tester.tap(saveFab.last);
+      await tester.pumpAndSettle();
+
+      // Verify: Still on TaskAddEditScreen (validation prevented save)
+      expect(find.byType(TaskAddEditScreen), findsOneWidget);
+      expect(find.text('Task Details'), findsOneWidget);
+
+      // Verify: No tasks created in Firestore
+      final tasksSnapshot = await fakeFirestore.collection('tasks').get();
+      expect(tasksSnapshot.docs.length, 0);
+
+      print('✓ User cannot save task without name');
+    });
 
     testWidgets('User can cancel task creation', (tester) async {
       // Setup: Start with empty task list

@@ -182,6 +182,145 @@ class IntegrationTestHelper {
     await tester.pump();
   }
 
+  /// Create a test app with Riverpod providers reading from live Firestore
+  /// This allows tests to work with real Firestore updates instead of static data
+  static Future<void> pumpAppWithLiveFirestore(
+    WidgetTester tester, {
+    List<TaskItem>? initialTasks,
+    List<Sprint>? initialSprints,
+    List<TaskRecurrence>? initialRecurrences,
+    String? personDocId,
+    FirebaseFirestore? firestore,
+  }) async {
+    // Use provided Firestore or create a fake one
+    final testFirestore = firestore ?? FakeFirebaseFirestore();
+    final testPersonDocId = personDocId ?? 'test-person-123';
+
+    // Create person document
+    await testFirestore.collection('persons').doc(testPersonDocId).set({
+      'email': 'test@example.com',
+      'name': 'Test User',
+    });
+
+    // Seed initial data into Firestore (not Redux)
+    if (initialTasks != null) {
+      for (final task in initialTasks) {
+        await testFirestore.collection('tasks').doc(task.docId).set({
+          'dateAdded': task.dateAdded,
+          'name': task.name,
+          'personDocId': task.personDocId,
+          'offCycle': task.offCycle,
+          'pendingCompletion': task.pendingCompletion,
+          if (task.description != null) 'description': task.description,
+          if (task.project != null) 'project': task.project,
+          if (task.context != null) 'context': task.context,
+          if (task.completionDate != null) 'completionDate': task.completionDate,
+          if (task.retired != null) 'retired': task.retired,
+          if (task.startDate != null) 'startDate': task.startDate,
+          if (task.targetDate != null) 'targetDate': task.targetDate,
+          if (task.dueDate != null) 'dueDate': task.dueDate,
+          if (task.urgentDate != null) 'urgentDate': task.urgentDate,
+        });
+      }
+    }
+
+    if (initialSprints != null) {
+      for (final sprint in initialSprints) {
+        await testFirestore.collection('sprints').doc(sprint.docId).set({
+          'sprintNumber': sprint.sprintNumber,
+          'startDate': sprint.startDate,
+          'endDate': sprint.endDate,
+          'personDocId': sprint.personDocId,
+        });
+      }
+    }
+
+    if (initialRecurrences != null) {
+      for (final recurrence in initialRecurrences) {
+        await testFirestore.collection('taskRecurrences').doc(recurrence.docId).set({
+          'personDocId': recurrence.personDocId,
+          'name': recurrence.name,
+          'recurNumber': recurrence.recurNumber,
+          'recurUnit': recurrence.recurUnit,
+          if (recurrence.recurWait != null) 'recurWait': recurrence.recurWait,
+        });
+      }
+    }
+
+    // Create real task repository with fake Firestore
+    final taskRepository = TaskRepository(firestore: testFirestore);
+    final navigatorKey = GlobalKey<NavigatorState>();
+    final mockMigrator = _MockFirestoreMigrator();
+
+    // Create mock auth objects for appIsReady() check
+    final mockUser = _MockUser();
+    final mockUserCredential = _MockUserCredential();
+    final mockGoogleAccount = _MockGoogleSignInAccount();
+
+    // Use mock TimezoneHelper to avoid platform channel initialization
+    final timezoneHelper = MockTimezoneHelper();
+
+    // Set up mock user credential to return mock user
+    when(mockUserCredential.user).thenReturn(mockUser);
+
+    // Create store with real middleware and reducers
+    final initialState = AppState.init(
+      loading: false,
+      notificationHelper: MockNotificationHelper(),
+    );
+
+    // Set active tab to Tasks tab (index 1) for task-focused tests
+    final tasksTab = initialState.allNavItems[1];
+
+    // Create Redux store (for compatibility during migration)
+    final store = Store<AppState>(
+      appReducer,
+      initialState: initialState.rebuild((b) => b
+        ..personDocId = testPersonDocId
+        ..currentUser = mockGoogleAccount
+        ..firebaseUser = mockUserCredential
+        ..timezoneHelper = timezoneHelper
+        ..activeTab = tasksTab.toBuilder()
+        ..tasksLoading = false
+        ..sprintsLoading = false
+        ..taskRecurrencesLoading = false
+        ..isLoading = false),
+      middleware: [
+        ...createStoreTaskItemsMiddleware(taskRepository, navigatorKey, mockMigrator, null),
+        ...createStoreSprintsMiddleware(taskRepository),
+      ],
+    );
+
+    // Pump the app with Riverpod providers reading from LIVE Firestore
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          // Override Firestore provider to use test instance
+          firestoreProvider.overrideWithValue(testFirestore),
+          // Override auth providers with test data
+          personDocIdProvider.overrideWith((ref) => Future.value(testPersonDocId)),
+          // DO NOT override tasksProvider, sprintsProvider, taskRecurrencesProvider
+          // Let them read from the live Firestore instance so they pick up changes
+        ],
+        child: StoreProvider<AppState>(
+          store: store,
+          child: MaterialApp(
+            navigatorKey: navigatorKey,
+            theme: ThemeData(
+              checkboxTheme: CheckboxThemeData(
+                fillColor: WidgetStateProperty.all(Colors.blue),
+              ),
+            ),
+            home: HomeScreen(),
+          ),
+        ),
+      ),
+    );
+
+    // Wait for initial render and Firestore streams to load
+    await tester.pumpAndSettle();
+  }
+
   /// Find text that contains the given substring (useful for dynamic text)
   static Finder findTextContaining(String substring) {
     return find.byWidgetPredicate(
