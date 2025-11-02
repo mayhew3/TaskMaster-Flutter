@@ -55,6 +55,9 @@ void main() {
           tasksProvider.overrideWith((ref) {
             return Stream.value([task1, task2]);
           }),
+          tasksWithRecurrencesProvider.overrideWith((ref) {
+            return Stream.value([task1, task2]);
+          }),
           sprintsProvider.overrideWith((ref) {
             return Stream.value([sprint]);
           }),
@@ -66,6 +69,7 @@ void main() {
 
       // Wait for async providers to load
       await container.read(tasksProvider.future);
+      await container.read(tasksWithRecurrencesProvider.future);
       await container.read(sprintsProvider.future);
 
       // Get filtered tasks
@@ -108,6 +112,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           tasksProvider.overrideWith((ref) => Stream.value([completedSprintTask])),
+          tasksWithRecurrencesProvider.overrideWith((ref) => Stream.value([completedSprintTask])),
           sprintsProvider.overrideWith((ref) => Stream.value([sprint])),
         ],
       );
@@ -116,6 +121,7 @@ void main() {
 
       // Wait for async providers to load
       await container.read(tasksProvider.future);
+      await container.read(tasksWithRecurrencesProvider.future);
       await container.read(sprintsProvider.future);
 
       // Enable show completed
@@ -167,12 +173,14 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           tasksProvider.overrideWith((ref) => Stream.value([task1, task2])),
+          tasksWithRecurrencesProvider.overrideWith((ref) => Stream.value([task1, task2])),
           sprintsProvider.overrideWith((ref) => Stream.value([sprint])),
         ],
       );
 
       addTearDown(container.dispose);
       await container.read(tasksProvider.future);
+      await container.read(tasksWithRecurrencesProvider.future);
       await container.read(sprintsProvider.future);
 
       final filteredTasks = container.read(filteredTasksProvider);
@@ -338,12 +346,14 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           tasksProvider.overrideWith((ref) => Stream.value([task1, task2, task3])),
+          tasksWithRecurrencesProvider.overrideWith((ref) => Stream.value([task1, task2, task3])),
           sprintsProvider.overrideWith((ref) => Stream.value([sprint])),
         ],
       );
 
       addTearDown(container.dispose);
       await container.read(tasksProvider.future);
+      await container.read(tasksWithRecurrencesProvider.future);
       await container.read(sprintsProvider.future);
 
       final filteredTasks = container.read(filteredTasksProvider);
@@ -388,12 +398,14 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           tasksProvider.overrideWith((ref) => Stream.value([task1])),
+          tasksWithRecurrencesProvider.overrideWith((ref) => Stream.value([task1])),
           sprintsProvider.overrideWith((ref) => Stream.value([closedSprint])),
         ],
       );
 
       addTearDown(container.dispose);
       await container.read(tasksProvider.future);
+      await container.read(tasksWithRecurrencesProvider.future);
       await container.read(sprintsProvider.future);
 
       final activeSprintResult = container.read(activeSprintProvider);

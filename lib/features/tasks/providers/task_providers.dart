@@ -90,6 +90,32 @@ Stream<List<TaskRecurrence>> taskRecurrences(TaskRecurrencesRef ref) {
   );
 }
 
+/// Stream of tasks with their recurrences populated
+/// This is the primary provider that UI should use - it ensures task.recurrence
+/// is always populated for recurring tasks, matching the Redux pattern
+@Riverpod(keepAlive: true)
+Stream<List<TaskItem>> tasksWithRecurrences(TasksWithRecurrencesRef ref) async* {
+  // Watch both streams
+  await for (final tasks in ref.watch(tasksProvider.stream)) {
+    final recurrences = await ref.read(taskRecurrencesProvider.future);
+
+    // Link tasks with their recurrences (matching Redux onTaskItemsAdded pattern)
+    final linked = tasks.map((task) {
+      if (task.recurrenceDocId != null) {
+        final recurrence = recurrences
+            .where((r) => r.docId == task.recurrenceDocId)
+            .firstOrNull;
+        if (recurrence != null) {
+          return task.rebuild((t) => t..recurrence = recurrence.toBuilder());
+        }
+      }
+      return task;
+    }).toList();
+
+    yield linked;
+  }
+}
+
 /// Get a specific task by ID
 @riverpod
 TaskItem? task(TaskRef ref, String taskId) {

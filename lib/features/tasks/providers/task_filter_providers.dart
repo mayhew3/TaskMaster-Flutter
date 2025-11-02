@@ -27,7 +27,7 @@ class ShowScheduled extends _$ShowScheduled {
 /// Filtered tasks based on visibility settings
 @riverpod
 List<TaskItem> filteredTasks(FilteredTasksRef ref) {
-  final tasksAsync = ref.watch(tasksProvider);
+  final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
   final showCompleted = ref.watch(showCompletedProvider);
   final showScheduled = ref.watch(showScheduledProvider);
   final activeSprint = ref.watch(activeSprintProvider);
