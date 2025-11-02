@@ -220,6 +220,11 @@ class IntegrationTestHelper {
           if (task.targetDate != null) 'targetDate': task.targetDate,
           if (task.dueDate != null) 'dueDate': task.dueDate,
           if (task.urgentDate != null) 'urgentDate': task.urgentDate,
+          if (task.recurrenceDocId != null) 'recurrenceDocId': task.recurrenceDocId,
+          if (task.recurIteration != null) 'recurIteration': task.recurIteration,
+          if (task.recurNumber != null) 'recurNumber': task.recurNumber,
+          if (task.recurUnit != null) 'recurUnit': task.recurUnit,
+          if (task.recurWait != null) 'recurWait': task.recurWait,
         });
       }
     }
@@ -242,7 +247,13 @@ class IntegrationTestHelper {
           'name': recurrence.name,
           'recurNumber': recurrence.recurNumber,
           'recurUnit': recurrence.recurUnit,
+          'dateAdded': recurrence.dateAdded,
           if (recurrence.recurWait != null) 'recurWait': recurrence.recurWait,
+          if (recurrence.recurIteration != null) 'recurIteration': recurrence.recurIteration,
+          if (recurrence.anchorDate != null) 'anchorDate': {
+            'dateValue': recurrence.anchorDate!.dateValue,
+            'dateType': recurrence.anchorDate!.dateType.label,
+          },
         });
       }
     }

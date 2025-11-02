@@ -3,6 +3,7 @@ import '../../features/tasks/data/firestore_task_repository.dart';
 import '../../features/tasks/domain/task_repository.dart';
 import '../../features/tasks/providers/task_providers.dart';
 import '../../models/task_item.dart';
+import '../../models/task_recurrence.dart';
 import '../../helpers/recurrence_helper.dart';
 
 part 'task_completion_service.g.dart';
@@ -25,6 +26,7 @@ class TaskCompletionService {
   Future<TaskCompletionResult> completeTask({
     required TaskItem task,
     required List<TaskItem> allTasks,
+    required List<TaskRecurrence> allRecurrences,
     required bool complete,
   }) async {
     TaskItem? nextScheduledTask;
@@ -33,9 +35,18 @@ class TaskCompletionService {
     if (task.recurrenceDocId != null &&
         complete &&
         !_hasNextIteration(task, allTasks)) {
+      // Find and populate the recurrence on the task
+      final recurrence = allRecurrences.firstWhere(
+        (r) => r.docId == task.recurrenceDocId,
+        orElse: () => throw Exception('Recurrence not found: ${task.recurrenceDocId}'),
+      );
+
+      // Rebuild task with recurrence populated
+      final taskWithRecurrence = task.rebuild((b) => b..recurrence = recurrence.toBuilder());
+
       final completionDate = DateTime.now();
       final nextPreview = RecurrenceHelper.createNextIteration(
-        task,
+        taskWithRecurrence,
         completionDate,
       );
 
@@ -86,10 +97,12 @@ class CompleteTask extends _$CompleteTask {
     state = await AsyncValue.guard(() async {
       final service = ref.read(taskCompletionServiceProvider);
       final allTasks = await ref.read(tasksProvider.future);
+      final allRecurrences = await ref.read(taskRecurrencesProvider.future);
 
       await service.completeTask(
         task: task,
         allTasks: allTasks,
+        allRecurrences: allRecurrences,
         complete: complete,
       );
     });

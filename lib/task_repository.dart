@@ -191,14 +191,16 @@ class TaskRepository {
     var blueprintJson = blueprint.toJson();
 
     var recurrenceBlueprint = blueprint.recurrenceBlueprint;
-    if (recurrenceBlueprint != null) {
+    // Only create a new recurrence if we don't already have a recurrenceDocId
+    if (recurrenceBlueprint != null && blueprint.recurrenceDocId == null) {
       var recurrenceDoc = firestore.collection('taskRecurrences').doc();
       var recurrenceJson = recurrenceBlueprint.toJson();
       recurrenceJson['dateAdded'] = DateTime.now().toUtc();
       recurrenceDoc.set(recurrenceJson);
       blueprintJson['recurrenceDocId'] = recurrenceDoc.id;
-      blueprintJson.remove('recurrenceBlueprint');
     }
+    // Remove recurrenceBlueprint from JSON (not a Firestore field)
+    blueprintJson.remove('recurrenceBlueprint');
 
     var addedTaskDoc = firestore.collection('tasks').doc();
     var taskId = addedTaskDoc.id;

@@ -61,7 +61,7 @@ final currentUserProvider = AutoDisposeProvider<User?>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CurrentUserRef = AutoDisposeProviderRef<User?>;
-String _$personDocIdHash() => r'63010f2033a20ca5ad900a9c297da79bf535251d';
+String _$personDocIdHash() => r'66e9381a7091d39d0381489569dc82035206408e';
 
 /// Person doc ID from Firestore
 ///

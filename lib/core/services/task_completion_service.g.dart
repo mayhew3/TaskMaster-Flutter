@@ -26,7 +26,7 @@ final taskCompletionServiceProvider =
 // ignore: unused_element
 typedef TaskCompletionServiceRef =
     AutoDisposeProviderRef<TaskCompletionService>;
-String _$completeTaskHash() => r'9743e657e2db2272fbc2ded57a663c92a5b50e88';
+String _$completeTaskHash() => r'0d04326929cb41108cd9853aacf818f6a8279a81';
 
 /// Controller for completing tasks
 ///

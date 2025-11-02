@@ -277,9 +277,98 @@ void main() {
 
     testWidgets('Completing recurring task creates next iteration',
         (tester) async {
-      // TODO: Date calculation issue - next iteration created but dates not incremented
-      // Deferred to Phase 5 (Redux removal) - involves middleware logic
-    }, skip: true); // TODO: Date calculation issue - deferred to Phase 5
+      // Setup: Create a daily recurring task with a start date in the past
+      final now = DateTime.now().toUtc();
+      // Set start date to yesterday to avoid scheduling filter
+      final startDate = now.subtract(Duration(days: 1));
+
+      final dailyRecurrence = TaskRecurrence((b) => b
+        ..docId = 'recurrence-daily'
+        ..personDocId = 'test-person-123'
+        ..name = 'Daily Exercise'
+        ..recurNumber = 1
+        ..recurUnit = 'Days'
+        ..recurWait = false
+        ..recurIteration = 0
+        ..anchorDate = AnchorDate((a) => a
+          ..dateValue = startDate
+          ..dateType = TaskDateTypes.start).toBuilder()
+        ..dateAdded = now);
+
+      final recurringTask = TaskItem((b) => b
+        ..docId = 'task-recurring'
+        ..dateAdded = now
+        ..name = 'Daily Exercise'
+        ..personDocId = 'test-person-123'
+        ..recurrenceDocId = 'recurrence-daily'
+        ..recurIteration = 0
+        ..startDate = startDate
+        ..completionDate = null
+        ..retired = null
+        ..offCycle = false
+        ..pendingCompletion = false);
+
+      await IntegrationTestHelper.pumpAppWithLiveFirestore(
+        tester,
+        firestore: fakeFirestore,
+        initialTasks: [recurringTask],
+        initialRecurrences: [dailyRecurrence],
+      );
+
+      // Verify: Initial task appears
+      expect(find.text('Daily Exercise'), findsOneWidget);
+
+      // Step 1: Complete the task by tapping its checkbox
+      final checkbox = find.byType(DelayedCheckbox);
+      expect(checkbox, findsOneWidget);
+      await tester.tap(checkbox);
+      await tester.pumpAndSettle();
+
+      // Wait for Firestore write and stream update (completion + next iteration creation)
+      await tester.pump(Duration(milliseconds: 200));
+      await tester.pumpAndSettle();
+
+      // Verify: Task still appears (next iteration created)
+      expect(find.text('Daily Exercise'), findsOneWidget);
+
+      // Verify in Firestore: Should have 2 tasks now
+      final tasksSnapshot = await fakeFirestore.collection('tasks').get();
+      expect(tasksSnapshot.docs.length, 2, reason: 'Should have original and next iteration');
+
+      // Find the completed and next iteration tasks
+      final allTasks = tasksSnapshot.docs.map((doc) {
+        final data = doc.data();
+        data['docId'] = doc.id;
+        return TaskItem.fromJson(data);
+      }).toList();
+
+      final completedTask = allTasks.firstWhere(
+        (t) => t.completionDate != null,
+        orElse: () => throw Exception('No completed task found'),
+      );
+      final nextTask = allTasks.firstWhere(
+        (t) => t.completionDate == null,
+        orElse: () => throw Exception('No next iteration found'),
+      );
+
+      // Verify: Original task is completed
+      expect(completedTask.docId, 'task-recurring');
+      expect(completedTask.completionDate, isNotNull);
+      expect(completedTask.recurIteration, 0);
+
+      // Verify: Next iteration exists with incremented dates
+      expect(nextTask.recurrenceDocId, 'recurrence-daily');
+      expect(nextTask.recurIteration, 1, reason: 'Next iteration should be 1');
+
+      // Verify: Next iteration's start date is 1 day after original
+      final expectedNextStart = startDate.add(Duration(days: 1));
+      expect(nextTask.startDate, isNotNull);
+      expect(nextTask.startDate!.difference(expectedNextStart).inMinutes.abs(),
+          lessThan(1),
+          reason: 'Next start date should be 1 day after original start date');
+
+      print('✓ Completing recurring task created next iteration with incremented dates');
+    });
   });
 }
 
