@@ -56,13 +56,22 @@ TaskMaster has three main screens accessible via the **bottom navigation bar**:
 
 The Tasks tab displays all your tasks and provides the main interface for task management.
 
+### Active Sprint Summary
+
+When a sprint is active, the Tasks tab displays a **sprint summary** at the top showing:
+- **Progress indicator** - "Day X of Y" showing your position in the sprint
+- **Completion count** - "X/Y tasks completed"
+- **Show Tasks link** - Tap to reveal tasks assigned to the current sprint
+
+By default, tasks in the active sprint are hidden from the main task list. Tap **Show Tasks** to display them inline with a yellow calendar icon indicating sprint membership.
+
 ### Viewing Tasks
 
 Tasks are displayed in a scrollable list. Each task shows:
 - **Task name** - The title of the task
 - **Context** - The location/context for the task (if set)
 - **Date indicator** - Shows the most relevant date status
-- **Sprint icon** - A small indicator if the task is in the active sprint
+- **Sprint icon** - A yellow calendar icon on the right (if task is in active sprint and shown)
 - **Checkbox** - Shows completion status
 
 ### Task Actions
@@ -79,7 +88,7 @@ Tasks are displayed in a scrollable list. Each task shows:
 
 The checkbox has three visual states:
 - **Empty circle** - Task is not started
-- **Dot in circle** - Task completion is pending (for recurring tasks, gives you time to review)
+- **Dot in circle** - Task completion is pending (waiting for backend to process)
 - **Checkmark** - Task is completed
 
 ### Filtering Tasks
@@ -119,17 +128,14 @@ After creating a sprint, you'll see the **Task Selection** screen:
 - All available tasks are listed
 - Tasks from your previous sprint are highlighted
 - Tasks with due/urgent dates within the sprint period are auto-selected
+- **Recurrence previews** are shown for recurring tasks that will generate new instances during the sprint window (even if those instances don't exist yet)
 - Tap tasks to select/deselect them for the sprint
 
 Tap **Submit** to assign selected tasks to your sprint.
 
 ### Active Sprint View
 
-Once a sprint is active, the Plan tab shows:
-
-- **Progress indicator** - "Day X of Y" showing your position in the sprint
-- **Completion count** - "X/Y tasks completed"
-- **Sprint tasks** - List of all tasks assigned to this sprint
+Once a sprint is active, the Plan tab shows the list of tasks assigned to this sprint.
 
 #### Sprint Task Filters
 
@@ -143,6 +149,8 @@ Same as the Tasks tab:
 - Long press to snooze
 - Tap checkbox to complete
 - Swipe right to remove from sprint
+
+Note: Sprint progress (Day X of Y, completion count) is displayed on the **Tasks tab**, not the Plan tab.
 
 ---
 
@@ -245,21 +253,21 @@ TaskMaster uses four date types to help you prioritize and track tasks:
 
 | Date | Purpose | Visual Indicator |
 |------|---------|------------------|
-| **Start Date** | Task is hidden until this date | Green (scheduled) |
-| **Target Date** | Your initial goal to complete | Blue when passed |
-| **Urgent Date** | Task becomes high priority | Yellow when passed |
+| **Start Date** | Task is hidden until this date | Hollow appearance with darker background, light outline (scheduled) |
+| **Target Date** | Your initial goal to complete | Yellow when passed |
+| **Urgent Date** | Task becomes high priority | Orange when passed |
 | **Due Date** | Hard deadline | Red when passed |
 
 ### Date Progression
 
 Tasks typically progress through these states:
 
-1. **Scheduled** (green) - Start date is in the future
+1. **Scheduled** - Start date is in the future (hollow/muted appearance)
 2. **Active** - Start date has passed, working toward target
-3. **Target passed** (blue) - Target date reached, still time before urgent
-4. **Urgent** (yellow) - Urgent date passed, needs immediate attention
+3. **Target passed** (yellow) - Target date reached, still time before urgent
+4. **Urgent** (orange) - Urgent date passed, needs immediate attention
 5. **Overdue** (red) - Due date passed, task is late
-6. **Completed** (gray) - Task finished
+6. **Completed** (pink) - Task finished
 
 ### Date Display
 
@@ -307,11 +315,11 @@ Recurring tasks automatically create new instances when completed.
 
 When you complete a recurring task:
 
-1. Tap the checkbox - it enters **pending** state (dot icon)
-2. Tap again to **confirm** completion
-3. A new task instance is automatically created with updated dates
+1. Tap the checkbox to mark it complete
+2. The checkbox briefly shows the **pending** state (dot icon) while the backend processes
+3. Once processed, a new task instance is automatically created with updated dates
 
-The pending state gives you time to verify completion before the next instance is created.
+The completion process works the same as regular tasks—the key difference is that a new recurring instance is generated automatically.
 
 ---
 
@@ -355,16 +363,15 @@ TaskMaster uses colors to quickly communicate task status:
 
 | Color | Meaning |
 |-------|---------|
-| **Green** | Scheduled (start date in future) |
-| **Blue** | Target date has passed |
-| **Yellow** | Urgent date has passed |
+| **Hollow/Muted** | Scheduled (start date in future) - darker background with light outline |
+| **Yellow** | Target date has passed |
+| **Orange** | Urgent date has passed |
 | **Red** | Due date has passed (overdue) |
-| **Gray** | Completed |
-| **Purple** | Task is in the active sprint |
+| **Pink** | Completed |
 
 ### Sprint Icon
 
-Tasks assigned to the current sprint display a small sprint indicator icon, making it easy to identify sprint work across the app.
+Tasks assigned to the current sprint display a **yellow calendar icon** on the right side of the task row. This icon appears when you tap "Show Tasks" on the Tasks tab to reveal sprint tasks.
 
 ### App Badge
 
@@ -387,7 +394,7 @@ The app icon badge shows the count of urgent and overdue tasks, so you can see a
    - Use "Schedule Dates" for fixed-schedule items (meetings, reports)
    - Use "Completed Date" for flexible maintenance tasks (cleaning, exercise)
 
-2. **Use the pending state** - Take advantage of the two-tap completion to review recurring tasks before they regenerate
+2. **Review before completing** - Before marking a recurring task complete, consider if dates need adjustment via snooze
 
 ### Organizing with Projects and Contexts
 
@@ -413,10 +420,13 @@ When tasks pile up:
 
 ## Offline Support
 
-TaskMaster works offline:
-- View and edit tasks without internet connection
+TaskMaster has partial offline support:
+- **Authentication requires internet** - You must be online to sign in
+- **Works if connection drops** - If you lose connection while using the app, you can continue working
 - Changes sync automatically when connection is restored
 - Data is cached locally for fast access
+
+*Note: Full offline support (including offline authentication) is planned for a future release.*
 
 ---
 
