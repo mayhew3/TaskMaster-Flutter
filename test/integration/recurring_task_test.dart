@@ -8,7 +8,7 @@ import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/redux/actions/task_item_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
-import 'package:taskmaster/redux/presentation/delayed_checkbox.dart';
+import 'package:taskmaster/features/shared/presentation/delayed_checkbox.dart';
 
 import 'integration_test_helper.dart';
 
