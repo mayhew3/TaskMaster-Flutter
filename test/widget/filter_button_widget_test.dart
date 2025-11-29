@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/redux/presentation/filter_button.dart';
+import 'package:taskmaster/features/shared/presentation/filter_button.dart';
 
 /// Widget Test: FilterButton
 ///
-/// Tests the FilterButton widget (PopupMenuButton with checkboxes).
+/// Tests the FilterButton widget (Riverpod version - PopupMenuButton with checkboxes).
 ///
 /// FilterButton is a complex widget that:
 /// - Shows a PopupMenuButton with filter icon

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/check_state.dart';
-import 'package:taskmaster/redux/presentation/delayed_checkbox.dart';
+import 'package:taskmaster/features/shared/presentation/delayed_checkbox.dart';
 
 /// Widget Test: DelayedCheckbox
 ///
-/// Tests the DelayedCheckbox widget in isolation to verify:
+/// Tests the DelayedCheckbox widget (Riverpod version) in isolation to verify:
 /// 1. Three states display correctly (inactive, pending, checked)
 /// 2. State-specific colors are applied
 /// 3. State-specific icons are displayed
