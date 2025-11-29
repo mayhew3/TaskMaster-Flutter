@@ -116,3 +116,26 @@ TaskItem? task(TaskRef ref, String taskId) {
     orElse: () => null,
   );
 }
+
+/// Tracks recently completed tasks to keep them visible temporarily
+/// This matches Redux's recentlyCompleted state which prevents completed
+/// tasks from immediately disappearing when filters are applied
+@Riverpod(keepAlive: true)
+class RecentlyCompletedTasks extends _$RecentlyCompletedTasks {
+  @override
+  List<TaskItem> build() => [];
+
+  void add(TaskItem task) {
+    if (!state.any((t) => t.docId == task.docId)) {
+      state = [...state, task];
+    }
+  }
+
+  void remove(TaskItem task) {
+    state = state.where((t) => t.docId != task.docId).toList();
+  }
+
+  void clear() {
+    state = [];
+  }
+}

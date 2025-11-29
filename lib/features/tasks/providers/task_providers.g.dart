@@ -214,5 +214,26 @@ class _TaskProviderElement extends AutoDisposeProviderElement<TaskItem?>
   String get taskId => (origin as TaskProvider).taskId;
 }
 
+String _$recentlyCompletedTasksHash() =>
+    r'675051dbe7288e9621e1228fa594044843efe866';
+
+/// Tracks recently completed tasks to keep them visible temporarily
+/// This matches Redux's recentlyCompleted state which prevents completed
+/// tasks from immediately disappearing when filters are applied
+///
+/// Copied from [RecentlyCompletedTasks].
+@ProviderFor(RecentlyCompletedTasks)
+final recentlyCompletedTasksProvider =
+    NotifierProvider<RecentlyCompletedTasks, List<TaskItem>>.internal(
+      RecentlyCompletedTasks.new,
+      name: r'recentlyCompletedTasksProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$recentlyCompletedTasksHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$RecentlyCompletedTasks = Notifier<List<TaskItem>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

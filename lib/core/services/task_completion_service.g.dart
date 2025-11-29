@@ -47,7 +47,7 @@ final legacyTaskRepositoryProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef LegacyTaskRepositoryRef = AutoDisposeProviderRef<legacy.TaskRepository>;
-String _$completeTaskHash() => r'0d04326929cb41108cd9853aacf818f6a8279a81';
+String _$completeTaskHash() => r'cc706330645ccaa0bc35057fac260a0f459b826b';
 
 /// Controller for completing tasks
 ///

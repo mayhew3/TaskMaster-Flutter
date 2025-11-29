@@ -106,12 +106,20 @@ class CompleteTask extends _$CompleteTask {
       final allTasks = await ref.read(tasksProvider.future);
       final allRecurrences = await ref.read(taskRecurrencesProvider.future);
 
-      await service.completeTask(
+      final result = await service.completeTask(
         task: task,
         allTasks: allTasks,
         allRecurrences: allRecurrences,
         complete: complete,
       );
+
+      // Track recently completed tasks (matches Redux pattern)
+      final recentlyCompleted = ref.read(recentlyCompletedTasksProvider.notifier);
+      if (complete) {
+        recentlyCompleted.add(result.completedTask);
+      } else {
+        recentlyCompleted.remove(result.completedTask);
+      }
     });
   }
 }
