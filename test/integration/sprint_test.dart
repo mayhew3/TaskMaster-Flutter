@@ -48,7 +48,12 @@ void main() {
       await tester.pumpAndSettle();
 
       // Navigate to Plan tab (where sprints are shown)
-      await tester.tap(find.text('Plan'));
+      // Tap the first assignment icon in the NavigationBar
+      final navigationBarIcon = find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.byIcon(Icons.assignment),
+      ).first;
+      await tester.tap(navigationBarIcon);
       await tester.pumpAndSettle();
 
       // Verify: NewSprint form is visible (shows sprint creation UI)
@@ -120,7 +125,12 @@ void main() {
       await tester.pumpAndSettle();
 
       // Navigate to Plan tab (where sprints are shown)
-      await tester.tap(find.text('Plan'));
+      // Tap the first assignment icon in the NavigationBar
+      final navigationBarIcon = find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.byIcon(Icons.assignment),
+      ).first;
+      await tester.tap(navigationBarIcon);
       await tester.pumpAndSettle();
 
       // Verify: SprintTaskItems is shown (displays active sprint)
@@ -284,7 +294,7 @@ void main() {
         ..endDate = now.subtract(Duration(days: 7))
         ..closeDate = now.subtract(Duration(days: 6)) // Closed
         ..numUnits = 1
-        ..unitName = 'week'
+        ..unitName = 'Weeks' // Must be capitalized plural for DateUtil
         ..personDocId = 'test-person-123'
         ..sprintNumber = 1
         ..retired = null

@@ -23,7 +23,12 @@ import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/middleware/store_sprint_middleware.dart';
 import 'package:taskmaster/redux/middleware/store_task_items_middleware.dart';
-import 'package:taskmaster/redux/presentation/home_screen.dart';
+import 'package:taskmaster/features/tasks/presentation/task_list_screen.dart';
+import 'package:taskmaster/features/tasks/presentation/stats_screen.dart';
+import 'package:taskmaster/features/sprints/presentation/sprint_task_items_screen.dart';
+import 'package:taskmaster/features/sprints/presentation/new_sprint_screen.dart';
+import 'package:taskmaster/models/top_nav_item.dart';
+import 'package:taskmaster/redux/containers/planning_home.dart';
 import 'package:taskmaster/redux/reducers/app_state_reducer.dart';
 import 'package:taskmaster/task_repository.dart';
 
@@ -150,7 +155,7 @@ class IntegrationTestHelper {
                 fillColor: WidgetStateProperty.all(Colors.blue),
               ),
             ),
-            home: HomeScreen(),
+            home: _TestAuthenticatedHome(),
           ),
         ),
       ),
@@ -386,7 +391,7 @@ class IntegrationTestHelper {
                 fillColor: WidgetStateProperty.all(Colors.blue),
               ),
             ),
-            home: HomeScreen(),
+            home: _TestAuthenticatedHome(),
           ),
         ),
       ),
@@ -428,5 +433,66 @@ extension IntegrationTestAssertions on WidgetTester {
   /// Assert that widget type exists
   void expectWidget<T>() {
     expect(find.byType(T), findsOneWidget);
+  }
+}
+
+/// Test version of authenticated home screen with tab navigation
+/// Mimics the production _AuthenticatedHome from riverpod_app.dart
+class _TestAuthenticatedHome extends StatefulWidget {
+  const _TestAuthenticatedHome();
+
+  @override
+  State<_TestAuthenticatedHome> createState() => _TestAuthenticatedHomeState();
+}
+
+class _TestAuthenticatedHomeState extends State<_TestAuthenticatedHome> {
+  int _selectedIndex = 1; // Start on Tasks tab (index 1) for test compatibility
+  late final List<TopNavItem> _navItems;
+
+  @override
+  void initState() {
+    super.initState();
+    _navItems = [
+      TopNavItem.init(
+        label: 'Plan',
+        icon: Icons.assignment,
+        widgetGetter: () => PlanningHome(),
+      ),
+      TopNavItem.init(
+        label: 'Tasks',
+        icon: Icons.list,
+        widgetGetter: () => const TaskListScreen(),
+      ),
+      TopNavItem.init(
+        label: 'Stats',
+        icon: Icons.show_chart,
+        widgetGetter: () => const StatsScreen(),
+      ),
+    ];
+  }
+
+  void _onTabSelected(int index) {
+    setState(() => _selectedIndex = index);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentScreen = _navItems[_selectedIndex].widgetGetter();
+
+    return Column(
+      children: [
+        Expanded(child: currentScreen),
+        NavigationBar(
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: _onTabSelected,
+          destinations: _navItems.map((item) {
+            return NavigationDestination(
+              icon: Icon(item.icon),
+              label: item.label,
+            );
+          }).toList(),
+        ),
+      ],
+    );
   }
 }
