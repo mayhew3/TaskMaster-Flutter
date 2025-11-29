@@ -83,7 +83,7 @@ final deleteTaskProvider =
     );
 
 typedef _$DeleteTask = AutoDisposeAsyncNotifier<void>;
-String _$addTaskHash() => r'4fdc26b07bcb6c239e388733922ee8fc5af62dfc';
+String _$addTaskHash() => r'7ffdfca33b79e369fc3ac322f62a22fb26c25fca';
 
 /// Controller for adding new tasks
 ///

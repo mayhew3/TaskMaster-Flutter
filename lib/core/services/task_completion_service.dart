@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../providers/auth_providers.dart';
 import '../providers/firebase_providers.dart';
 import '../../features/tasks/data/firestore_task_repository.dart';
 import '../../features/tasks/domain/task_repository.dart';
@@ -151,6 +152,12 @@ class AddTask extends _$AddTask {
 
     state = await AsyncValue.guard(() async {
       final repository = ref.read(taskRepositoryProvider);
+      final personDocId = ref.read(personDocIdProvider);
+
+      // Set personDocId on the blueprint (matching Redux middleware behavior)
+      blueprint.personDocId = personDocId;
+      blueprint.recurrenceBlueprint?.personDocId = personDocId;
+
       await repository.addTask(blueprint);
     });
   }

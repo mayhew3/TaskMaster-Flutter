@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:taskmaster/core/providers/auth_providers.dart';
 import 'package:taskmaster/core/services/task_completion_service.dart';
 import 'package:taskmaster/features/tasks/data/firestore_task_repository.dart';
 import 'package:taskmaster/features/tasks/domain/task_repository.dart';
@@ -30,6 +31,7 @@ void main() {
     container = ProviderContainer(
       overrides: [
         taskRepositoryProvider.overrideWithValue(mockRepository),
+        personDocIdProvider.overrideWith((ref) => 'person123'),
       ],
     );
   });
@@ -108,6 +110,7 @@ void main() {
     container = ProviderContainer(
       overrides: [
         taskRepositoryProvider.overrideWithValue(mockRepository),
+        personDocIdProvider.overrideWith((ref) => 'person123'),
       ],
     );
   });
@@ -226,6 +229,7 @@ void main() {
     container = ProviderContainer(
       overrides: [
         taskRepositoryProvider.overrideWithValue(mockRepository),
+        personDocIdProvider.overrideWith((ref) => 'person123'),
       ],
     );
   });
