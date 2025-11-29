@@ -3,13 +3,16 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/sprint_assignment.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/redux/actions/sprint_actions.dart';
 import 'package:taskmaster/redux/app_state.dart';
+import 'package:taskmaster/redux/containers/planning_home.dart';
 import 'package:taskmaster/features/sprints/presentation/new_sprint_screen.dart';
 import 'package:taskmaster/features/sprints/presentation/sprint_task_items_screen.dart';
+import 'package:taskmaster/features/tasks/presentation/task_list_screen.dart';
 
 import 'integration_test_helper.dart';
 
@@ -48,12 +51,25 @@ void main() {
       await tester.pumpAndSettle();
 
       // Navigate to Plan tab (where sprints are shown)
-      // Tap the first assignment icon in the NavigationBar
-      final navigationBarIcon = find.descendant(
-        of: find.byType(NavigationBar),
-        matching: find.byIcon(Icons.assignment),
-      ).first;
-      await tester.tap(navigationBarIcon);
+      // NOTE: There are TWO NavigationBars in the widget tree:
+      // 1. Test wrapper's NavigationBar (no key) - controls which screen is shown
+      // 2. AppBottomNav inside the current screen (key: TaskMasterKeys.tabs) - doesn't control test navigation
+      // We need to tap the test wrapper's NavigationBar, not the AppBottomNav
+
+      // Find NavigationDestinations that are NOT descendants of the keyed NavigationBar
+      final appBottomNav = find.byKey(TaskMasterKeys.tabs);
+      final allDestinations = find.byType(NavigationDestination);
+      final testWrapperDestinations = allDestinations.evaluate().where((element) {
+        // Check if this destination is inside the AppBottomNav
+        final isInsideAppBottomNav = find.descendant(
+          of: appBottomNav,
+          matching: find.byWidget(element.widget),
+        ).evaluate().isNotEmpty;
+        return !isInsideAppBottomNav;
+      }).toList();
+
+      // Tap the first test wrapper destination (Plan tab - index 0)
+      await tester.tap(find.byWidget(testWrapperDestinations.first.widget));
       await tester.pumpAndSettle();
 
       // Verify: NewSprint form is visible (shows sprint creation UI)
@@ -125,12 +141,19 @@ void main() {
       await tester.pumpAndSettle();
 
       // Navigate to Plan tab (where sprints are shown)
-      // Tap the first assignment icon in the NavigationBar
-      final navigationBarIcon = find.descendant(
-        of: find.byType(NavigationBar),
-        matching: find.byIcon(Icons.assignment),
-      ).first;
-      await tester.tap(navigationBarIcon);
+      // NOTE: There are TWO NavigationBars in the widget tree - see comment in first test
+      final appBottomNav = find.byKey(TaskMasterKeys.tabs);
+      final allDestinations = find.byType(NavigationDestination);
+      final testWrapperDestinations = allDestinations.evaluate().where((element) {
+        final isInsideAppBottomNav = find.descendant(
+          of: appBottomNav,
+          matching: find.byWidget(element.widget),
+        ).evaluate().isNotEmpty;
+        return !isInsideAppBottomNav;
+      }).toList();
+
+      // Tap the first test wrapper destination (Plan tab - index 0)
+      await tester.tap(find.byWidget(testWrapperDestinations.first.widget));
       await tester.pumpAndSettle();
 
       // Verify: SprintTaskItems is shown (displays active sprint)
