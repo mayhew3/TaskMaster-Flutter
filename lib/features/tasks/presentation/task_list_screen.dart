@@ -1,20 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_redux/flutter_redux.dart';
-import 'package:taskmaster/core/feature_flags.dart';
 import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/redux/presentation/add_edit_screen.dart';
-import 'package:taskmaster/redux/presentation/details_screen.dart';
-import 'package:taskmaster/redux/presentation/editable_task_item.dart';
-import 'package:taskmaster/redux/presentation/header_list_item.dart';
-import 'package:taskmaster/redux/presentation/snooze_dialog.dart';
-import 'package:taskmaster/redux/presentation/task_main_menu.dart';
-import 'package:taskmaster/redux/presentation/refresh_button.dart';
-import 'package:taskmaster/redux/containers/tab_selector.dart';
-import 'package:taskmaster/redux/actions/task_item_actions.dart';
-import 'package:taskmaster/redux/app_state.dart';
-import 'package:taskmaster/redux/presentation/delayed_checkbox.dart';
 import '../../../core/providers/firebase_providers.dart';
 import '../../../core/services/task_completion_service.dart';
 import '../providers/task_filter_providers.dart';
@@ -25,22 +12,17 @@ import '../../../models/check_state.dart';
 import 'task_add_edit_screen.dart';
 import 'task_details_screen.dart';
 import '../../../models/task_colors.dart';
+import '../../shared/presentation/editable_task_item.dart';
+import '../../../redux/presentation/header_list_item.dart';
+import '../../shared/presentation/snooze_dialog.dart';
+import '../../shared/presentation/app_drawer.dart';
+import '../../shared/presentation/app_bottom_nav.dart';
+import '../../shared/presentation/refresh_button.dart';
 
 /// Riverpod version of the Task List screen
 /// Displays grouped tasks with filtering and completion functionality
 class TaskListScreen extends ConsumerWidget {
   const TaskListScreen({super.key});
-
-  /// Check if Redux StoreProvider is available in the widget tree
-  /// This allows the widget to work in both Redux and pure Riverpod contexts
-  bool _hasReduxStore(BuildContext context) {
-    try {
-      StoreProvider.of<AppState>(context);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -62,8 +44,7 @@ class TaskListScreen extends ConsumerWidget {
           child: Text('Error loading tasks: $err'),
         ),
       ),
-      // Only show drawer when Redux StoreProvider is available
-      drawer: _hasReduxStore(context) ? TaskMainMenu() : null,
+      drawer: const AppDrawer(),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           await Navigator.push(
@@ -75,8 +56,7 @@ class TaskListScreen extends ConsumerWidget {
         },
         child: const Icon(Icons.add),
       ),
-      // TabSelector requires Redux - only show if StoreProvider is available
-      bottomNavigationBar: _hasReduxStore(context) ? TabSelector() : null,
+      bottomNavigationBar: const AppBottomNav(),
     );
   }
 
@@ -307,9 +287,7 @@ class _TaskListItem extends ConsumerWidget {
       onTap: () async {
         await Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => FeatureFlags.useRiverpodForTasks
-                ? TaskDetailsScreen(taskItemId: task.docId)
-                : DetailsScreen(taskItemId: task.docId),
+            builder: (_) => TaskDetailsScreen(taskItemId: task.docId),
           ),
         );
       },
@@ -333,10 +311,7 @@ class _TaskListItem extends ConsumerWidget {
       onDismissed: (direction) async {
         if (direction == DismissDirection.endToStart) {
           try {
-            // Use Redux dispatch for now to maintain compatibility
-            StoreProvider.of<AppState>(context).dispatch(
-              DeleteTaskItemAction(task),
-            );
+            await ref.read(deleteTaskProvider.notifier).call(task);
             return true;
           } catch (err) {
             return false;
