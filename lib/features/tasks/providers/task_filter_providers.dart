@@ -39,11 +39,11 @@ List<TaskItem> filteredTasks(FilteredTasksRef ref) {
         // Always hide retired tasks
         if (task.retired != null) return false;
 
-        // Hide tasks in active sprint (unless showing completed and task is completed)
+        // Hide all tasks in active sprint (they're shown via sprint banner's "Show Tasks")
         if (activeSprint != null) {
           final isInActiveSprint = activeSprint.sprintAssignments
               .any((sa) => sa.taskDocId == task.docId);
-          if (isInActiveSprint && task.completionDate == null) {
+          if (isInActiveSprint) {
             return false;
           }
         }

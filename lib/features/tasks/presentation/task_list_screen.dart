@@ -118,10 +118,6 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.groups.isEmpty) {
-      return _buildEmptyState();
-    }
-
     final activeSprint = ref.watch(activeSprintProvider);
     final sprintTasks = activeSprint != null
         ? ref.watch(tasksForSprintProvider(activeSprint))
@@ -139,9 +135,27 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
       if (sprintTasks.isNotEmpty) {
         tiles.add(HeadingItem('Sprint Tasks'));
         for (final task in sprintTasks) {
-          tiles.add(_TaskListItem(task: task));
+          tiles.add(_TaskListItem(task: task, highlightSprint: true));
         }
       }
+    }
+
+    // If no task groups (all filtered out), show empty state after sprint banner
+    if (widget.groups.isEmpty) {
+      if (tiles.isEmpty) {
+        // No sprint banner either - show simple empty state
+        return _buildEmptyState();
+      }
+      // Sprint banner exists but no other tasks - add empty message below banner
+      tiles.add(_buildEmptyStateWidget());
+      return ListView.builder(
+        padding: const EdgeInsets.only(
+          top: 7.0,
+          bottom: kFloatingActionButtonMargin + 54,
+        ),
+        itemCount: tiles.length,
+        itemBuilder: (context, index) => tiles[index],
+      );
     }
 
     for (final group in widget.groups) {
@@ -250,18 +264,36 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
       ),
     );
   }
+
+  /// Widget version of empty state for use in a ListView
+  Widget _buildEmptyStateWidget() {
+    return Padding(
+      padding: const EdgeInsets.all(32.0),
+      child: Column(
+        children: const [
+          Icon(Icons.check_circle_outline, size: 64, color: Colors.grey),
+          SizedBox(height: 16),
+          Text(
+            'No eligible tasks found.',
+            style: TextStyle(fontSize: 17.0),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _TaskListItem extends ConsumerWidget {
   final TaskItem task;
+  final bool highlightSprint;
 
-  const _TaskListItem({required this.task});
+  const _TaskListItem({required this.task, this.highlightSprint = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return EditableTaskItemWidget(
       taskItem: task,
-      highlightSprint: false, // TODO: Add sprint highlighting logic
+      highlightSprint: highlightSprint,
       onTap: () async {
         await Navigator.of(context).push(
           MaterialPageRoute(

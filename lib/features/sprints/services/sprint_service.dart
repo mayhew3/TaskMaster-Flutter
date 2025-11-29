@@ -8,6 +8,7 @@ import '../../../models/sprint_assignment.dart';
 import '../../../models/sprint.dart';
 import '../../../models/serializers.dart';
 import '../../../helpers/recurrence_helper.dart';
+import '../providers/sprint_providers.dart';
 
 part 'sprint_service.g.dart';
 
@@ -214,6 +215,9 @@ class AddTasksToSprint extends _$AddTasksToSprint {
         taskItems: taskItems,
         taskItemRecurPreviews: taskItemRecurPreviews,
       );
+      // Invalidate sprints provider to force refresh from Firestore
+      // This is needed because adding to subcollection doesn't trigger parent snapshot
+      ref.invalidate(sprintsProvider);
     });
   }
 }

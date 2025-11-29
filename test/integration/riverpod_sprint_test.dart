@@ -81,7 +81,9 @@ void main() {
       expect(filteredTasks[0].name, 'Regular Task');
     });
 
-    test('Completed tasks in active sprint are visible when showCompleted is true', () async {
+    test('Completed tasks in active sprint are hidden from filteredTasks (no duplicates)', () async {
+      // Bug 5 fix: Sprint tasks should NOT appear in filteredTasks, even when completed.
+      // They are viewed via the sprint banner's "Show Tasks" toggle to avoid duplicates.
       final now = DateTime.now().toUtc();
       final completedSprintTask = TaskItem((b) => b
         ..docId = 'task1'
@@ -130,11 +132,16 @@ void main() {
       // Get filtered tasks
       final filteredTasks = container.read(filteredTasksProvider);
 
-      // Verify: Completed sprint task should be visible
-      expect(filteredTasks.length, 1);
-      expect(filteredTasks[0].docId, 'task1');
-      expect(filteredTasks[0].name, 'Completed Sprint Task');
-      expect(filteredTasks[0].completionDate, isNotNull);
+      // Verify: Sprint task should NOT be in filteredTasks (even when completed)
+      // This prevents duplicates when viewing sprint tasks via "Show Tasks" toggle
+      expect(filteredTasks.length, 0);
+
+      // Instead, sprint tasks are accessed via tasksForSprintProvider
+      final activeSprint = container.read(activeSprintProvider);
+      expect(activeSprint, isNotNull);
+      final sprintTasks = container.read(tasksForSprintProvider(activeSprint!));
+      expect(sprintTasks.length, 1);
+      expect(sprintTasks[0].docId, 'task1');
     });
 
     test('Tasks not in sprint remain visible', () async {
