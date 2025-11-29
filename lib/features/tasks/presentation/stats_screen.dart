@@ -1,25 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../redux/app_state.dart';
-import '../../../redux/containers/tab_selector.dart';
-import '../../../redux/presentation/task_main_menu.dart';
+import '../../shared/presentation/app_drawer.dart';
+import '../../shared/presentation/app_bottom_nav.dart';
 import '../providers/task_providers.dart';
 
 /// Riverpod version of the Stats screen
 /// Displays task statistics using Riverpod providers
 class StatsScreen extends ConsumerWidget {
   const StatsScreen({super.key});
-
-  /// Check if Redux StoreProvider is available in the widget tree
-  bool _hasReduxStore(BuildContext context) {
-    try {
-      StoreProvider.of<AppState>(context);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -78,9 +66,8 @@ class StatsScreen extends ConsumerWidget {
           child: Text('Error loading stats: $err'),
         ),
       ),
-      // Only show drawer/bottomNav when Redux StoreProvider is available
-      drawer: _hasReduxStore(context) ? TaskMainMenu() : null,
-      bottomNavigationBar: _hasReduxStore(context) ? TabSelector() : null,
+      drawer: const AppDrawer(),
+      bottomNavigationBar: const AppBottomNav(),
     );
   }
 }
