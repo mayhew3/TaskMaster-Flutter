@@ -4,9 +4,9 @@ import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/sprint.dart'; // Assuming Sprint might be needed for context
+import 'package:taskmaster/models/check_state.dart';
 import 'package:taskmaster/redux/presentation/delayed_checkbox.dart';
 import 'package:taskmaster/redux/presentation/editable_task_item.dart';
-import 'package:taskmaster/typedefs.dart';
 
 // Helper to build a TaskItem for tests
 // Using the actual TaskItemBuilder since it's a built_value class

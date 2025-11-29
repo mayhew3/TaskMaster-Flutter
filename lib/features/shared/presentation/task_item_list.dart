@@ -13,7 +13,7 @@ import '../../../models/check_state.dart';
 import 'delayed_checkbox.dart';
 import '../../../redux/presentation/header_list_item.dart';
 import 'snooze_dialog.dart';
-import '../../../redux/presentation/plan_task_list.dart';
+import 'plan_task_list.dart';
 import '../../../redux/selectors/selectors.dart';
 import '../../../core/services/task_completion_service.dart';
 import '../../tasks/providers/task_providers.dart';

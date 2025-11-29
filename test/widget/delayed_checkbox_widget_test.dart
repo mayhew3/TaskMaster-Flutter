@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaster/models/task_colors.dart';
+import 'package:taskmaster/models/check_state.dart';
 import 'package:taskmaster/redux/presentation/delayed_checkbox.dart';
 
 /// Widget Test: DelayedCheckbox

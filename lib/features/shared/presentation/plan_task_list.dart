@@ -3,44 +3,47 @@ import 'dart:collection';
 import 'package:built_collection/built_collection.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskmaster/helpers/recurrence_helper.dart';
 import 'package:taskmaster/models/sprint_blueprint.dart';
 import 'package:taskmaster/models/sprint_display_task.dart';
-import 'package:taskmaster/redux/app_state.dart';
-import 'package:taskmaster/redux/presentation/plan_task_item.dart';
-import 'package:taskmaster/redux/presentation/plan_task_list_viewmodel.dart';
 import 'package:taskmaster/redux/selectors/selectors.dart';
 
-import '../../date_util.dart';
-import '../../keys.dart';
-import '../../models/sprint.dart';
-import '../../models/task_colors.dart';
-import '../../models/task_display_grouping.dart';
-import '../../models/task_item.dart';
-import '../../models/task_item_recur_preview.dart';
-import '../../models/check_state.dart';
-import '../actions/sprint_actions.dart';
-import 'delayed_checkbox.dart';
-import 'header_list_item.dart';
+import '../../../date_util.dart';
+import '../../../keys.dart';
+import '../../../models/sprint.dart';
+import '../../../models/task_colors.dart';
+import '../../../models/task_display_grouping.dart';
+import '../../../models/task_item.dart';
+import '../../../models/task_item_recur_preview.dart';
+import '../../../core/providers/auth_providers.dart';
+import '../../sprints/providers/sprint_providers.dart';
+import '../../sprints/services/sprint_service.dart';
+import '../../tasks/providers/task_providers.dart';
+import '../../../redux/presentation/plan_task_item.dart';
+import '../../../redux/presentation/header_list_item.dart';
+import '../../../models/check_state.dart';
 
-class PlanTaskList extends StatefulWidget {
+/// Riverpod version of PlanTaskList
+///
+/// Displays tasks that can be selected for inclusion in a sprint
+class PlanTaskList extends ConsumerStatefulWidget {
   final int? numUnits;
   final String? unitName;
   final DateTime? startDate;
 
-  PlanTaskList({
+  const PlanTaskList({
+    super.key,
     this.numUnits,
     this.unitName,
     this.startDate,
-  }) : super(key: TaskMasterKeys.planTaskList);
+  });
 
   @override
-  State<StatefulWidget> createState() => PlanTaskListState();
+  ConsumerState<PlanTaskList> createState() => _PlanTaskListState();
 }
 
-class PlanTaskListState extends State<PlanTaskList> {
-
+class _PlanTaskListState extends ConsumerState<PlanTaskList> {
   bool initialized = false;
   bool submitting = false;
 
@@ -68,24 +71,29 @@ class PlanTaskListState extends State<PlanTaskList> {
     }
   }
 
-  void preSelectUrgentAndDueAndPreviousSprint(PlanTaskListViewModel viewModel) {
-    BuiltList<TaskItem> baseList = getBaseList(viewModel);
+  void preSelectUrgentAndDueAndPreviousSprint(
+      BuiltList<TaskItem> allTaskItems, Sprint? lastSprint) {
+    BuiltList<TaskItem> baseList = getBaseList(allTaskItems);
 
     final Iterable<TaskItem> dueOrUrgentTasks = baseList.where((taskItem) =>
         taskItem.isDueBefore(endDate) ||
         taskItem.isUrgentBefore(endDate) ||
-        taskItemIsInSprint(taskItem, viewModel.lastSprint)
+        taskItemIsInSprint(taskItem, lastSprint)
     );
     taskItemQueue.addAll(dueOrUrgentTasks);
     sprintDisplayTaskQueue.addAll(dueOrUrgentTasks);
   }
 
-  PlanTaskItemWidget _createWidget({required SprintDisplayTask taskItem, required PlanTaskListViewModel viewModel}) {
+  PlanTaskItemWidget _createWidget({
+    required SprintDisplayTask taskItem,
+    required BuiltList<Sprint> allSprints,
+    required Sprint? lastSprint,
+  }) {
     return PlanTaskItemWidget(
       sprintDisplayTask: taskItem,
       endDate: endDate,
       sprint: null,
-      highlightSprint: highlightSprint(taskItem, viewModel),
+      highlightSprint: highlightSprint(taskItem, lastSprint),
       initialCheckState: sprintDisplayTaskQueue.contains(taskItem) ? CheckState.checked : CheckState.inactive,
       onTaskAssignmentToggle: (checkState) {
         var alreadyQueued = sprintDisplayTaskQueue.contains(taskItem);
@@ -114,42 +122,34 @@ class PlanTaskListState extends State<PlanTaskList> {
     );
   }
 
-  List<TaskItem> getFilteredTasks(List<TaskItem> taskItems) {
-    List<TaskItem> filtered = taskItems.where((taskItem) {
-      return !taskItem.isScheduledAfter(endDate) && !taskItem.isCompleted() &&
-          (activeSprint == null || !taskItemIsInSprint(taskItem, activeSprint));
-    }).toList();
-    return filtered;
-  }
-
-  BuiltList<TaskItem> getBaseList(PlanTaskListViewModel viewModel) {
+  BuiltList<TaskItem> getBaseList(BuiltList<TaskItem> allTaskItems) {
     var sprint = activeSprint;
     if (sprint == null) {
-      return taskItemsForPlacingOnNewSprint(viewModel.allTaskItems, endDate);
+      return taskItemsForPlacingOnNewSprint(allTaskItems, endDate);
     } else {
-      return taskItemsForPlacingOnExistingSprint(viewModel.allTaskItems, sprint);
+      return taskItemsForPlacingOnExistingSprint(allTaskItems, sprint);
     }
   }
 
-  bool highlightSprint(SprintDisplayTask taskItem, PlanTaskListViewModel viewModel) {
-    return taskItemIsInSprint(taskItem, viewModel.lastSprint);
+  bool highlightSprint(SprintDisplayTask taskItem, Sprint? lastSprint) {
+    return taskItemIsInSprint(taskItem, lastSprint);
   }
 
-  bool wasInEarlierSprint(SprintDisplayTask taskItem, PlanTaskListViewModel viewModel) {
+  bool wasInEarlierSprint(SprintDisplayTask taskItem, BuiltList<Sprint> allSprints, Sprint? lastSprint) {
     if (taskItem is TaskItem) {
-      var sprints = sprintsForTaskItemSelector(viewModel.allSprints, taskItem).where((sprint) => sprint != viewModel.lastSprint);
+      var sprints = sprintsForTaskItemSelector(allSprints, taskItem).where((sprint) => sprint != lastSprint);
       return sprints.isNotEmpty;
     } else {
       return false;
     }
   }
 
-  void createTemporaryIterations(PlanTaskListViewModel viewModel) {
+  void createTemporaryIterations(BuiltList<TaskItem> allTaskItems) {
     List<TaskItem> eligibleItems = [];
-    eligibleItems.addAll(getBaseList(viewModel));
+    eligibleItems.addAll(getBaseList(allTaskItems));
     var sprint = activeSprint;
     if (sprint != null) {
-      eligibleItems.addAll(taskItemsForSprintSelector(viewModel.allTaskItems, sprint));
+      eligibleItems.addAll(taskItemsForSprintSelector(allTaskItems, sprint));
     }
     Set<String> recurIDs = HashSet();
 
@@ -194,31 +194,38 @@ class PlanTaskListState extends State<PlanTaskList> {
     }
   }
 
-  void _addTaskTile({required List<StatelessWidget> tiles, required SprintDisplayTask task, required PlanTaskListViewModel viewModel}) {
-    tiles.add(_createWidget(taskItem: task, viewModel: viewModel));
+  void _addTaskTile({
+    required List<StatelessWidget> tiles,
+    required SprintDisplayTask task,
+    required BuiltList<Sprint> allSprints,
+    required Sprint? lastSprint,
+  }) {
+    tiles.add(_createWidget(
+      taskItem: task,
+      allSprints: allSprints,
+      lastSprint: lastSprint,
+    ));
     hasTiles = true;
   }
 
-  ListView _buildListView(BuildContext context, PlanTaskListViewModel viewModel) {
-    // widget.appState.notificationScheduler.updateHomeScreenContext(context);
+  ListView _buildListView(BuildContext context, BuiltList<TaskItem> allTaskItems, BuiltList<Sprint> allSprints,
+      Sprint? lastSprint, BuiltList<TaskItem> recentlyCompleted) {
     final List<SprintDisplayTask> otherTasks = [];
-    otherTasks.addAll(getBaseList(viewModel));
+    otherTasks.addAll(getBaseList(allTaskItems));
     otherTasks.addAll(tempIterations);
-
-    Sprint? lastCompletedSprint = viewModel.lastSprint;
 
     startDateSort(SprintDisplayTask a, SprintDisplayTask b) => a.startDate!.compareTo(b.startDate!);
     completionDateSort(SprintDisplayTask a, SprintDisplayTask b) => a.completionDate!.compareTo(b.completionDate!);
 
     final List<TaskDisplayGrouping> groupings = [
-      TaskDisplayGrouping(displayName: 'Last Sprint', displayOrder: 1, filter: (taskItem) => (taskItem is TaskItem) && taskItemIsInSprint(taskItem, lastCompletedSprint)),
-      TaskDisplayGrouping(displayName: 'Older Sprints', displayOrder: 2, filter: (taskItem) => wasInEarlierSprint(taskItem, viewModel)),
+      TaskDisplayGrouping(displayName: 'Last Sprint', displayOrder: 1, filter: (taskItem) => (taskItem is TaskItem) && taskItemIsInSprint(taskItem, lastSprint)),
+      TaskDisplayGrouping(displayName: 'Older Sprints', displayOrder: 2, filter: (taskItem) => wasInEarlierSprint(taskItem, allSprints, lastSprint)),
       TaskDisplayGrouping(displayName: 'Due Soon', displayOrder: 3, filter: (taskItem) => taskItem.isDueBefore(endDate)),
       TaskDisplayGrouping(displayName: 'Urgent Soon', displayOrder: 4, filter: (taskItem) => taskItem.isUrgentBefore(endDate)),
       TaskDisplayGrouping(displayName: 'Target Soon', displayOrder: 5, filter: (taskItem) => taskItem.isTargetBefore(endDate)),
       TaskDisplayGrouping(displayName: 'Starting Later', displayOrder: 7, filter: (taskItem) => taskItem.isScheduledAfter(endDate), ordering: startDateSort),
       TaskDisplayGrouping(displayName: 'Completed', displayOrder: 8, filter: (taskItem) => taskItem.isCompleted() &&
-              !viewModel.recentlyCompleted.any((t) => t.docId == taskItem.getSprintDisplayTaskKey()), ordering: completionDateSort),
+              !recentlyCompleted.any((t) => t.docId == taskItem.getSprintDisplayTaskKey()), ordering: completionDateSort),
       // must come last to take all the other tasks
       TaskDisplayGrouping(displayName: 'Tasks', displayOrder: 6, filter: (_) => true),
     ];
@@ -234,7 +241,12 @@ class PlanTaskListState extends State<PlanTaskList> {
       if (grouping.taskItems.isNotEmpty) {
         tiles.add(HeadingItem(grouping.displayName));
         for (var task in grouping.taskItems) {
-          _addTaskTile(tiles: tiles, task: task, viewModel: viewModel);
+          _addTaskTile(
+            tiles: tiles,
+            task: task,
+            allSprints: allSprints,
+            lastSprint: lastSprint,
+          );
         }
       }
     }
@@ -296,85 +308,121 @@ class PlanTaskListState extends State<PlanTaskList> {
     activeSprint!.endDate;
   }
 
-  bool addMode(PlanTaskListViewModel viewModel) {
+  bool addMode() {
     return activeSprint == null;
   }
 
-  void submit(BuildContext context, PlanTaskListViewModel viewModel) async {
-    var store = StoreProvider.of<AppState>(context);
-    if (addMode(viewModel)) {
+  void submit(BuildContext context, String personDocId) async {
+    if (addMode()) {
       SprintBlueprint sprint = SprintBlueprint(
           startDate: widget.startDate!,
           endDate: endDate,
           numUnits: widget.numUnits!,
           unitName: widget.unitName!,
-          personDocId: viewModel.personDocId
+          personDocId: personDocId
       );
       print('Submitting');
-      store.dispatch(CreateSprintWithTaskItems(sprintBlueprint: sprint,
-          taskItems: taskItemQueue.toBuiltList(),
-          taskItemRecurPreviews: taskItemRecurPreviewQueue.toBuiltList()));
+      await ref.read(createSprintProvider.notifier).call(
+        sprintBlueprint: sprint,
+        taskItems: taskItemQueue,
+        taskItemRecurPreviews: taskItemRecurPreviewQueue,
+      );
     } else {
-      store.dispatch(AddTaskItemsToExistingSprint(
-          sprint: activeSprint!,
-          taskItems: taskItemQueue.toBuiltList(),
-          taskItemRecurPreviews: taskItemRecurPreviewQueue.toBuiltList()));
+      await ref.read(addTasksToSprintProvider.notifier).call(
+        sprint: activeSprint!,
+        taskItems: taskItemQueue,
+        taskItemRecurPreviews: taskItemRecurPreviewQueue,
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<AppState, PlanTaskListViewModel>(
-        onWillChange: (prev, current) {
-          if (!popped) {
-            if (activeSprint == null) {
-              if (prev != null && current.activeSprint != null) {
-                popped = true;
-                Navigator.pop(context);
-              }
-            } else {
-              if (prev != null) {
-                var currentCount = taskItemsForSprintSelector(
-                    current.allTaskItems, current.activeSprint!).length;
-                var prevCount = taskItemsForSprintSelector(
-                    prev.allTaskItems, prev.activeSprint!).length;
-                if (currentCount > prevCount) {
-                  popped = true;
-                  Navigator.pop(context);
-                }
-              }
+    // Watch providers
+    final allTasksAsync = ref.watch(tasksProvider);
+    final allSprintsAsync = ref.watch(sprintsProvider);
+    final recentlyCompletedList = ref.watch(recentlyCompletedTasksProvider);
+    final personDocId = ref.watch(personDocIdProvider);
+
+    // Handle loading/error states
+    if (allTasksAsync.isLoading || allSprintsAsync.isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: Text('Select Tasks')),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (allTasksAsync.hasError || allSprintsAsync.hasError) {
+      return Scaffold(
+        appBar: AppBar(title: Text('Select Tasks')),
+        body: Center(child: Text('Error loading data')),
+      );
+    }
+
+    final allTasks = allTasksAsync.value ?? [];
+    final allSprints = allSprintsAsync.value ?? [];
+    final allTasksBuilt = BuiltList<TaskItem>(allTasks);
+    final allSprintsBuilt = BuiltList<Sprint>(allSprints);
+    final recentlyCompleted = BuiltList<TaskItem>(recentlyCompletedList);
+
+    // Initialize on first build
+    if (!initialized) {
+      activeSprint = activeSprintSelector(allSprintsBuilt);
+      validateState();
+      endDate = getEndDate();
+      final lastSprint = lastCompletedSprintSelector(allSprintsBuilt);
+      preSelectUrgentAndDueAndPreviousSprint(allTasksBuilt, lastSprint);
+      createTemporaryIterations(allTasksBuilt);
+      initialized = true;
+    }
+
+    final lastSprint = lastCompletedSprintSelector(allSprintsBuilt);
+
+    // Auto-pop when sprint is created/updated (matches Redux onWillChange behavior)
+    ref.listen(sprintsProvider, (previous, next) {
+      if (!popped) {
+        if (activeSprint == null) {
+          // In "add mode" - pop when a new active sprint appears
+          final prevSprints = previous?.value ?? [];
+          final nextSprints = next.value ?? [];
+          final prevActiveSprint = activeSprintSelector(BuiltList<Sprint>(prevSprints));
+          final nextActiveSprint = activeSprintSelector(BuiltList<Sprint>(nextSprints));
+
+          if (prevActiveSprint == null && nextActiveSprint != null) {
+            popped = true;
+            if (context.mounted) {
+              Navigator.pop(context);
             }
           }
+        } else {
+          // In "add to existing sprint" mode - pop when tasks are added to sprint
+          final prevTasks = previous?.value ?? [];
+          final nextTasks = next.value ?? [];
+          final prevCount = taskItemsForSprintSelector(BuiltList<TaskItem>(prevTasks as List<TaskItem>), activeSprint!).length;
+          final nextCount = taskItemsForSprintSelector(BuiltList<TaskItem>(nextTasks as List<TaskItem>), activeSprint!).length;
 
-        },
-        builder: (context, viewModel) {
-          if (!initialized) {
-            activeSprint = viewModel.activeSprint;
-            validateState();
-            endDate = getEndDate();
-            preSelectUrgentAndDueAndPreviousSprint(viewModel);
-            createTemporaryIterations(viewModel);
-            initialized = true;
+          if (nextCount > prevCount) {
+            popped = true;
+            if (context.mounted) {
+              Navigator.pop(context);
+            }
           }
-          return
-            Scaffold(
-              appBar: AppBar(
-                title: Text('Select Tasks'),
-              ),
-              body: _buildListView(context, viewModel),
-              floatingActionButton: Visibility(
-                visible: sprintDisplayTaskQueue.isNotEmpty,
-                child: FloatingActionButton.extended(
-                    onPressed: () => submit(context, viewModel),
-                    label: Text('Submit')
-                ),
-              ),
-            );
-        },
-        converter: PlanTaskListViewModel.fromStore
+        }
+      }
+    });
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Select Tasks'),
+      ),
+      body: _buildListView(context, allTasksBuilt, allSprintsBuilt, lastSprint, recentlyCompleted),
+      floatingActionButton: Visibility(
+        visible: sprintDisplayTaskQueue.isNotEmpty,
+        child: FloatingActionButton.extended(
+            onPressed: () => submit(context, personDocId ?? ''),
+            label: Text('Submit')
+        ),
+      ),
     );
-
-
   }
-
 }

@@ -21,6 +21,7 @@ import '../providers/task_filter_providers.dart';
 import '../providers/task_providers.dart';
 import '../../sprints/providers/sprint_providers.dart';
 import '../../../models/sprint.dart';
+import '../../../models/check_state.dart';
 import 'task_add_edit_screen.dart';
 import 'task_details_screen.dart';
 import '../../../models/task_colors.dart';

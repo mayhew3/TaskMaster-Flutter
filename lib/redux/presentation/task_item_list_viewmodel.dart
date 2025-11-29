@@ -6,6 +6,7 @@ import 'package:taskmaster/redux/selectors/selectors.dart';
 
 import '../../models/sprint.dart';
 import '../../models/task_item.dart';
+import '../../models/check_state.dart';
 import '../actions/task_item_actions.dart';
 import '../app_state.dart';
 

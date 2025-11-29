@@ -6,7 +6,7 @@ import 'package:timeago/timeago.dart' as timeago;
 
 import '../../models/sprint.dart';
 import '../../models/task_item.dart';
-import '../../typedefs.dart';
+import '../../models/check_state.dart';
 import 'delayed_checkbox.dart';
 
 class EditableTaskItemWidget extends StatelessWidget {

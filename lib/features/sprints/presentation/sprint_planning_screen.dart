@@ -11,6 +11,7 @@ import '../../../models/task_display_grouping.dart';
 import '../../../models/task_item.dart';
 import '../../../models/task_item_recur_preview.dart';
 import '../../../models/sprint.dart';
+import '../../../models/check_state.dart';
 import '../../../date_util.dart';
 import '../../../keys.dart';
 import '../../../redux/presentation/plan_task_item.dart';

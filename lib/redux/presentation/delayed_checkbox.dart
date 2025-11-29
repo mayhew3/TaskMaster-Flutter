@@ -1,9 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:taskmaster/models/task_colors.dart';
-import 'package:taskmaster/typedefs.dart';
-
-enum CheckState { inactive, pending, checked }
+import 'package:taskmaster/models/check_state.dart';
 
 class DelayedCheckbox extends StatelessWidget {
 

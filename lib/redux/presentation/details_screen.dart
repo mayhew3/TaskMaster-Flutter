@@ -14,6 +14,7 @@ import '../../keys.dart';
 import '../../models/models.dart';
 import '../../models/task_colors.dart';
 import '../../models/task_date_type.dart';
+import '../../models/check_state.dart';
 import '../actions/task_item_actions.dart';
 import 'delayed_checkbox.dart';
 
