@@ -160,14 +160,15 @@ class _SprintTaskItemsProviderElement
 }
 
 String _$showCompletedInSprintHash() =>
-    r'c9102ce0ef0509c692dc9219563af3cbbe740369';
+    r'67c243d224d05ac3af4a5f6c9580eb115c6b8536';
 
 /// Provider for sprint filter settings
+/// Using keepAlive to persist state across tab switches
 ///
 /// Copied from [ShowCompletedInSprint].
 @ProviderFor(ShowCompletedInSprint)
 final showCompletedInSprintProvider =
-    AutoDisposeNotifierProvider<ShowCompletedInSprint, bool>.internal(
+    NotifierProvider<ShowCompletedInSprint, bool>.internal(
       ShowCompletedInSprint.new,
       name: r'showCompletedInSprintProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -177,14 +178,14 @@ final showCompletedInSprintProvider =
       allTransitiveDependencies: null,
     );
 
-typedef _$ShowCompletedInSprint = AutoDisposeNotifier<bool>;
+typedef _$ShowCompletedInSprint = Notifier<bool>;
 String _$showScheduledInSprintHash() =>
-    r'8226ae33a8e249ff8b182817aaf16e10d26a46f7';
+    r'bdc0ae9d43164417c196030c54d8fac7dda13884';
 
 /// See also [ShowScheduledInSprint].
 @ProviderFor(ShowScheduledInSprint)
 final showScheduledInSprintProvider =
-    AutoDisposeNotifierProvider<ShowScheduledInSprint, bool>.internal(
+    NotifierProvider<ShowScheduledInSprint, bool>.internal(
       ShowScheduledInSprint.new,
       name: r'showScheduledInSprintProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -194,6 +195,6 @@ final showScheduledInSprintProvider =
       allTransitiveDependencies: null,
     );
 
-typedef _$ShowScheduledInSprint = AutoDisposeNotifier<bool>;
+typedef _$ShowScheduledInSprint = Notifier<bool>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

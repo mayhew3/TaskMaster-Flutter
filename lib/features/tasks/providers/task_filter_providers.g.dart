@@ -83,39 +83,38 @@ final groupedTasksProvider = AutoDisposeProvider<List<TaskGroup>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef GroupedTasksRef = AutoDisposeProviderRef<List<TaskGroup>>;
-String _$showCompletedHash() => r'672ec233cb7c3572edb0422b7eca8da36263b154';
+String _$showCompletedHash() => r'4ff3e319b903af05cbce17b2f69eef4b9aed02c0';
 
 /// Simple state providers for filter toggles
+/// Using keepAlive: true to persist state across tab switches
 ///
 /// Copied from [ShowCompleted].
 @ProviderFor(ShowCompleted)
-final showCompletedProvider =
-    AutoDisposeNotifierProvider<ShowCompleted, bool>.internal(
-      ShowCompleted.new,
-      name: r'showCompletedProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$showCompletedHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+final showCompletedProvider = NotifierProvider<ShowCompleted, bool>.internal(
+  ShowCompleted.new,
+  name: r'showCompletedProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$showCompletedHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
 
-typedef _$ShowCompleted = AutoDisposeNotifier<bool>;
-String _$showScheduledHash() => r'4b682980d8b32595b155ffa9e94e39c7a1051a36';
+typedef _$ShowCompleted = Notifier<bool>;
+String _$showScheduledHash() => r'0ebc352bb4c95ca8b3f91d32a6db6323f5d01a84';
 
 /// See also [ShowScheduled].
 @ProviderFor(ShowScheduled)
-final showScheduledProvider =
-    AutoDisposeNotifierProvider<ShowScheduled, bool>.internal(
-      ShowScheduled.new,
-      name: r'showScheduledProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$showScheduledHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+final showScheduledProvider = NotifierProvider<ShowScheduled, bool>.internal(
+  ShowScheduled.new,
+  name: r'showScheduledProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$showScheduledHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
 
-typedef _$ShowScheduled = AutoDisposeNotifier<bool>;
+typedef _$ShowScheduled = Notifier<bool>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

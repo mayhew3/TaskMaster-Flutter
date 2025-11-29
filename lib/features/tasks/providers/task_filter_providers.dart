@@ -6,7 +6,8 @@ import '../../sprints/providers/sprint_providers.dart';
 part 'task_filter_providers.g.dart';
 
 /// Simple state providers for filter toggles
-@riverpod
+/// Using keepAlive: true to persist state across tab switches
+@Riverpod(keepAlive: true)
 class ShowCompleted extends _$ShowCompleted {
   @override
   bool build() => false;
@@ -15,10 +16,10 @@ class ShowCompleted extends _$ShowCompleted {
   void set(bool value) => state = value;
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class ShowScheduled extends _$ShowScheduled {
   @override
-  bool build() => true;
+  bool build() => false; // Default to false to hide scheduled tasks
 
   void toggle() => state = !state;
   void set(bool value) => state = value;

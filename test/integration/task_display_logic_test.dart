@@ -142,11 +142,11 @@ void main() {
         initialTasks: [task],
       );
 
-      // Verify: Task IS visible by default (Riverpod showScheduled = true by default)
-      // This differs from Redux which hid scheduled tasks by default
-      expect(find.text('Scheduled Task'), findsOneWidget);
+      // Verify: Task is NOT visible by default (showScheduled = false by default)
+      // Scheduled tasks require enabling the "Show Scheduled" filter
+      expect(find.text('Scheduled Task'), findsNothing);
 
-      print('✓ Scheduled task displays correctly (showScheduled=true by default)');
+      print('✓ Scheduled task hidden by default (showScheduled=false)');
     });
 
     testWidgets('Tasks with no special dates appear in Tasks group',

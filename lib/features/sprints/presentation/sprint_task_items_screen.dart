@@ -15,15 +15,16 @@ import '../../tasks/providers/task_providers.dart';
 part 'sprint_task_items_screen.g.dart';
 
 /// Provider for sprint filter settings
-@riverpod
+/// Using keepAlive to persist state across tab switches
+@Riverpod(keepAlive: true)
 class ShowCompletedInSprint extends _$ShowCompletedInSprint {
   @override
-  bool build() => false;
+  bool build() => true; // Default to true for sprint tab
 
   void toggle() => state = !state;
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class ShowScheduledInSprint extends _$ShowScheduledInSprint {
   @override
   bool build() => true;
