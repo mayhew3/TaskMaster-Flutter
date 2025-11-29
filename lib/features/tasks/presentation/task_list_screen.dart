@@ -30,6 +30,17 @@ import '../../../models/task_colors.dart';
 class TaskListScreen extends ConsumerWidget {
   const TaskListScreen({super.key});
 
+  /// Check if Redux StoreProvider is available in the widget tree
+  /// This allows the widget to work in both Redux and pure Riverpod contexts
+  bool _hasReduxStore(BuildContext context) {
+    try {
+      StoreProvider.of<AppState>(context);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final groupedTasks = ref.watch(groupedTasksProvider);
@@ -50,23 +61,21 @@ class TaskListScreen extends ConsumerWidget {
           child: Text('Error loading tasks: $err'),
         ),
       ),
-      drawer: TaskMainMenu(),
+      // Only show drawer when Redux StoreProvider is available
+      drawer: _hasReduxStore(context) ? TaskMainMenu() : null,
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => FeatureFlags.useRiverpodForTasks
-                  ? const TaskAddEditScreen()
-                  : AddEditScreen(
-                      timezoneHelper: StoreProvider.of<AppState>(context).state.timezoneHelper,
-                    ),
+              builder: (_) => const TaskAddEditScreen(),
             ),
           );
         },
         child: const Icon(Icons.add),
       ),
-      bottomNavigationBar: TabSelector(),
+      // TabSelector requires Redux - only show if StoreProvider is available
+      bottomNavigationBar: _hasReduxStore(context) ? TabSelector() : null,
     );
   }
 

@@ -308,8 +308,31 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
     // TODO: Implement badge updates via Riverpod
   }
 
+  void _onTabSelected(int index) {
+    setState(() => _selectedIndex = index);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return _navItems[_selectedIndex].widgetGetter();
+    // Get the current screen widget
+    final currentScreen = _navItems[_selectedIndex].widgetGetter();
+
+    // Build with navigation bar - the screen widgets are Scaffolds
+    // that don't include bottomNavigationBar when using Riverpod auth
+    return Column(
+      children: [
+        Expanded(child: currentScreen),
+        NavigationBar(
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: _onTabSelected,
+          destinations: _navItems.map((item) {
+            return NavigationDestination(
+              icon: Icon(item.icon),
+              label: item.label,
+            );
+          }).toList(),
+        ),
+      ],
+    );
   }
 }

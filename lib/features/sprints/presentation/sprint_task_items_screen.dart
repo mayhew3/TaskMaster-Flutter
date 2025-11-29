@@ -1,9 +1,11 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../models/sprint.dart';
 import '../../../models/task_item.dart';
+import '../../../redux/app_state.dart';
 import '../../../redux/presentation/task_item_list.dart';
 import '../../../redux/presentation/filter_button.dart';
 import '../../../redux/presentation/refresh_button.dart';
@@ -65,6 +67,16 @@ class SprintTaskItemsScreen extends ConsumerWidget {
     required this.sprint,
   });
 
+  /// Check if Redux StoreProvider is available in the widget tree
+  bool _hasReduxStore(BuildContext context) {
+    try {
+      StoreProvider.of<AppState>(context);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final taskItems = ref.watch(sprintTaskItemsProvider(sprint));
@@ -90,8 +102,9 @@ class SprintTaskItemsScreen extends ConsumerWidget {
         taskItems: taskItems.toBuiltList(),
         sprintMode: true,
       ),
-      drawer: const TaskMainMenu(),
-      bottomNavigationBar: const TabSelector(),
+      // Only show drawer/bottomNav when Redux StoreProvider is available
+      drawer: _hasReduxStore(context) ? const TaskMainMenu() : null,
+      bottomNavigationBar: _hasReduxStore(context) ? const TabSelector() : null,
     );
   }
 }
