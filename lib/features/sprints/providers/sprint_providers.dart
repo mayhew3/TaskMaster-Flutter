@@ -1,27 +1,26 @@
-import 'package:built_collection/built_collection.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/providers/auth_providers.dart';
 import '../../../core/providers/firebase_providers.dart';
 import '../../../models/sprint.dart';
 import '../../../models/serializers.dart';
 import '../../../models/task_item.dart';
-import '../../../models/sprint_assignment.dart';
 import '../../tasks/providers/task_providers.dart';
 
 part 'sprint_providers.g.dart';
 
 /// Stream of all sprints for the current user
 @Riverpod(keepAlive: true)
-Stream<List<Sprint>> sprints(SprintsRef ref) async* {
-  final personDocId = await ref.watch(personDocIdProvider.future);
+Stream<List<Sprint>> sprints(SprintsRef ref) {
+  // Get dependencies synchronously
+  final firestore = ref.watch(firestoreProvider);
+  final personDocId = ref.watch(personDocIdProvider);
+
+  // If not authenticated, return empty stream
   if (personDocId == null) {
-    yield [];
-    return;
+    return Stream.value([]);
   }
 
-  final firestore = ref.watch(firestoreProvider);
-
-  yield* firestore
+  return firestore
       .collection('sprints')
       .where('personDocId', isEqualTo: personDocId)
       .snapshots()

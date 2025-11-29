@@ -971,13 +971,13 @@ flutter test test/integration/riverpod_sprint_test.dart
 - ✅ **Sprint Loading Bug Fixed**
 - ⏸️ Phase 5: Redux Removal & Final Cleanup (Not Started)
 
-**Screens Migrated:** 7 major screens
-**Tests Passing:** 254/276 (92%) ✅
-**Known Test Issues:** 22 failures (middleware limitations in recurring/sprint tests)
+**Screens Migrated:** 7 major screens + Auth flow
+**Tests Passing:** 298/298 (100%) ✅
 **Integration Tests:** Riverpod screens working with ProviderScope
 **Code Quality:** Significantly improved with architecture simplification
+**Auth:** Fully migrated to Riverpod
 **Blocking Issues:** None
-**Ready for:** Phase 5 cleanup
+**Ready for:** Bug fixes from TM-281 post-migration review
 
 
 
@@ -1034,4 +1034,105 @@ flutter test test/integration/riverpod_sprint_test.dart
    - Updated test infrastructure for ProviderScope
    - 254/276 tests passing (92%)
    - Ready for Redux removal
+
+---
+
+## 📝 Session Summary - November 28, 2025
+
+### TM-285: Auth Migration to Riverpod
+
+**Time Spent:** ~2 hours
+**Impact:** Complete auth flow migration from Redux to Riverpod
+
+### Background
+
+During post-migration review (TM-281), user identified that **Redux was still handling auth** when all other features had been migrated to Riverpod. This caused startup timing issues and disconnect-on-timeout bugs.
+
+### ✅ Accomplishments
+
+**New Auth Architecture:**
+- ✅ Created `AuthService` class for core auth logic (sign-in, sign-out, Firebase integration)
+- ✅ Created `AuthState` class with proper state machine (6 states: initial, authenticated, unauthenticated, authenticating, personNotFound, connectionError)
+- ✅ Created `Auth` notifier with full sign-in flow handling
+- ✅ Created `RiverpodTaskMasterApp` widget with auth-aware screens
+- ✅ Added `useRiverpodForAuth` feature flag (defaults to true)
+
+**Key Improvements:**
+- ✅ Separated connection errors from person rejection (fixes disconnect-on-timeout bug)
+- ✅ Proper retry logic for connection errors
+- ✅ Made `personDocIdProvider` synchronous (simplifies downstream providers)
+- ✅ All 298 tests passing
+
+### Files Created
+
+**New Files:**
+- `lib/core/services/auth_service.dart` (348 lines) - AuthService, AuthState, AuthStatus enum, Auth notifier
+- `lib/riverpod_app.dart` (276 lines) - RiverpodTaskMasterApp with auth screens
+
+### Files Modified
+
+**Core Providers:**
+- `lib/core/providers/auth_providers.dart` - Simplified to use Auth notifier, made personDocIdProvider synchronous
+- `lib/core/feature_flags.dart` - Added `useRiverpodForAuth` flag
+
+**Entry Point:**
+- `lib/main.dart` - Conditional app selection based on feature flag
+
+**Downstream Providers (updated for synchronous personDocId):**
+- `lib/features/tasks/providers/task_providers.dart` - Changed from async to sync
+- `lib/features/sprints/providers/sprint_providers.dart` - Changed from async to sync
+- `lib/features/sprints/presentation/sprint_planning_screen.dart` - Removed `.future`
+
+**Tests:**
+- `test/integration/integration_test_helper.dart` - Updated provider overrides for sync personDocId
+
+### Auth State Machine
+
+```dart
+enum AuthStatus {
+  initial,        // App starting, checking for existing session
+  authenticating, // Sign-in in progress
+  authenticated,  // User signed in and person verified
+  unauthenticated,// No user signed in
+  personNotFound, // User signed in but not in Firestore
+  connectionError,// Can't reach Firestore (e.g., emulator not running)
+}
+```
+
+### Key Design Decisions
+
+1. **Synchronous personDocIdProvider**: Changed from `Future<String?>` to `String?` because:
+   - Auth state is already loaded by the time we need personDocId
+   - Simplifies all downstream providers (no more `.future` calls)
+   - Matches the actual data availability pattern
+
+2. **Separate connection error state**: Instead of treating connection errors as auth failures:
+   - User can retry without re-signing in
+   - Clear distinction between "wrong account" and "network issue"
+   - Fixes the bug where timeout caused Google disconnect
+
+3. **Feature flag for safe rollback**: `useRiverpodForAuth` allows switching back to Redux if issues found
+
+### Test Results
+
+**All 298 tests passing** ✅
+- No regressions from auth migration
+- Integration tests updated for synchronous provider overrides
+
+### Commits Ready
+
+1. `TM-285: Migrate auth flow from Redux to Riverpod`
+   - Created AuthService and Auth notifier
+   - Created RiverpodTaskMasterApp with auth screens
+   - Made personDocIdProvider synchronous
+   - Updated all downstream providers
+   - Added feature flag for safe rollback
+   - All 298 tests passing
+
+### Next Steps
+
+Continue with remaining post-migration bugs:
+- TM-282: Navigation bugs (3 bugs)
+- TM-283: Filter UI bugs (5 bugs)
+- TM-284: Sprint data/display bugs (5 bugs)
 

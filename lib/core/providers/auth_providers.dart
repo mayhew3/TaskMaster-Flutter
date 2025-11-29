@@ -1,44 +1,43 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../services/auth_service.dart';
 import 'firebase_providers.dart';
 
 part 'auth_providers.g.dart';
 
-@riverpod
-GoogleSignIn googleSignIn(GoogleSignInRef ref) => GoogleSignIn.instance;
-
-/// Stream of auth state changes
+/// Stream of auth state changes from Firebase
 @riverpod
 Stream<User?> authStateChanges(AuthStateChangesRef ref) {
   final auth = ref.watch(firebaseAuthProvider);
   return auth.authStateChanges();
 }
 
-/// Current user (nullable)
+/// Current Firebase user (nullable)
+/// This watches the auth notifier state for reactive updates
 @riverpod
 User? currentUser(CurrentUserRef ref) {
-  final authState = ref.watch(authStateChangesProvider);
-  return authState.maybeWhen(
-    data: (user) => user,
-    orElse: () => null,
-  );
+  final authState = ref.watch(authProvider);
+  return authState.user;
 }
 
-/// Person doc ID from Firestore
+/// Person doc ID from the auth state
+/// Returns null if not authenticated or person not verified
 @riverpod
-Future<String?> personDocId(PersonDocIdRef ref) async {
-  // Get current user directly from FirebaseAuth instead of waiting for stream
-  final auth = ref.watch(firebaseAuthProvider);
-  final user = auth.currentUser;
+String? personDocId(PersonDocIdRef ref) {
+  final authState = ref.watch(authProvider);
+  return authState.personDocId;
+}
 
-  if (user == null) return null;
+/// Whether the user is fully authenticated (signed in AND person verified)
+@riverpod
+bool isAuthenticated(IsAuthenticatedRef ref) {
+  final authState = ref.watch(authProvider);
+  return authState.isAuthenticated;
+}
 
-  final firestore = ref.watch(firestoreProvider);
-  final snapshot = await firestore
-      .collection('persons')
-      .where('email', isEqualTo: user.email)
-      .get();
-
-  return snapshot.docs.firstOrNull?.id;
+/// Whether auth is still loading (initializing or authenticating)
+@riverpod
+bool isAuthLoading(IsAuthLoadingRef ref) {
+  final authState = ref.watch(authProvider);
+  return authState.isLoading;
 }

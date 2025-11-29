@@ -34,13 +34,19 @@ class FeatureFlags {
   static const bool useGoRouter =
       bool.fromEnvironment('USE_GO_ROUTER', defaultValue: false);
 
+  /// Use Riverpod implementation for Authentication
+  /// Default: true (Riverpod enabled by default)
+  static const bool useRiverpodForAuth =
+      bool.fromEnvironment('USE_RIVERPOD_AUTH', defaultValue: true);
+
   /// Helper to check if any Riverpod features are enabled
   static bool get anyRiverpodEnabled =>
-      useRiverpodForStats || useRiverpodForTasks || useRiverpodForSprints;
+      useRiverpodForStats || useRiverpodForTasks || useRiverpodForSprints || useRiverpodForAuth;
 
   /// Print feature flag status (useful for debugging)
   static void printStatus() {
     print('=== Feature Flags Status ===');
+    print('Riverpod Auth: $useRiverpodForAuth');
     print('Riverpod Stats: $useRiverpodForStats');
     print('Riverpod Tasks: $useRiverpodForTasks');
     print('Riverpod Sprints: $useRiverpodForSprints');

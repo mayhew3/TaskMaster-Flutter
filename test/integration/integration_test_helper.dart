@@ -133,7 +133,7 @@ class IntegrationTestHelper {
           // Override Firestore provider to use test instance
           firestoreProvider.overrideWithValue(testFirestore),
           // Override auth providers with test data
-          personDocIdProvider.overrideWith((ref) => Future.value(testPersonDocId)),
+          personDocIdProvider.overrideWith((ref) => testPersonDocId),
           // Override task/recurrence providers with test data
           tasksProvider.overrideWith((ref) => Stream.value(tasksWithRecurrences)),
           taskRecurrencesProvider.overrideWith((ref) => Stream.value(recurrencesList)),
@@ -309,7 +309,7 @@ class IntegrationTestHelper {
           // Override Firestore provider to use test instance
           firestoreProvider.overrideWithValue(testFirestore),
           // Override auth providers with test data
-          personDocIdProvider.overrideWith((ref) => Future.value(testPersonDocId)),
+          personDocIdProvider.overrideWith((ref) => testPersonDocId),
           // DO NOT override tasksProvider, sprintsProvider, taskRecurrencesProvider
           // Let them read from the live Firestore instance so they pick up changes
         ],

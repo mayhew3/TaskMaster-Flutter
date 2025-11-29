@@ -6,26 +6,9 @@ part of 'auth_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$googleSignInHash() => r'66470fcc88b53a1d4566b7b94f89028a0aab7158';
-
-/// See also [googleSignIn].
-@ProviderFor(googleSignIn)
-final googleSignInProvider = AutoDisposeProvider<GoogleSignIn>.internal(
-  googleSignIn,
-  name: r'googleSignInProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$googleSignInHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef GoogleSignInRef = AutoDisposeProviderRef<GoogleSignIn>;
 String _$authStateChangesHash() => r'386ea079ca75ac54d471519e1565d88b5c2efc08';
 
-/// Stream of auth state changes
+/// Stream of auth state changes from Firebase
 ///
 /// Copied from [authStateChanges].
 @ProviderFor(authStateChanges)
@@ -42,9 +25,10 @@ final authStateChangesProvider = AutoDisposeStreamProvider<User?>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AuthStateChangesRef = AutoDisposeStreamProviderRef<User?>;
-String _$currentUserHash() => r'3990b21ef659d1ef778efb351d535ee600ebe211';
+String _$currentUserHash() => r'1385ee781a6d20f9b7cb58383f0a699d387e020c';
 
-/// Current user (nullable)
+/// Current Firebase user (nullable)
+/// This watches the auth notifier state for reactive updates
 ///
 /// Copied from [currentUser].
 @ProviderFor(currentUser)
@@ -61,13 +45,14 @@ final currentUserProvider = AutoDisposeProvider<User?>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CurrentUserRef = AutoDisposeProviderRef<User?>;
-String _$personDocIdHash() => r'66e9381a7091d39d0381489569dc82035206408e';
+String _$personDocIdHash() => r'36111b1a71150415565c1c85208bfd3eb57b41b0';
 
-/// Person doc ID from Firestore
+/// Person doc ID from the auth state
+/// Returns null if not authenticated or person not verified
 ///
 /// Copied from [personDocId].
 @ProviderFor(personDocId)
-final personDocIdProvider = AutoDisposeFutureProvider<String?>.internal(
+final personDocIdProvider = AutoDisposeProvider<String?>.internal(
   personDocId,
   name: r'personDocIdProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -79,6 +64,44 @@ final personDocIdProvider = AutoDisposeFutureProvider<String?>.internal(
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef PersonDocIdRef = AutoDisposeFutureProviderRef<String?>;
+typedef PersonDocIdRef = AutoDisposeProviderRef<String?>;
+String _$isAuthenticatedHash() => r'770625126209e1e33bfe9e80026743572b14ccf9';
+
+/// Whether the user is fully authenticated (signed in AND person verified)
+///
+/// Copied from [isAuthenticated].
+@ProviderFor(isAuthenticated)
+final isAuthenticatedProvider = AutoDisposeProvider<bool>.internal(
+  isAuthenticated,
+  name: r'isAuthenticatedProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$isAuthenticatedHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef IsAuthenticatedRef = AutoDisposeProviderRef<bool>;
+String _$isAuthLoadingHash() => r'3af894b80098bfe6f22cfc378b140fa751450077';
+
+/// Whether auth is still loading (initializing or authenticating)
+///
+/// Copied from [isAuthLoading].
+@ProviderFor(isAuthLoading)
+final isAuthLoadingProvider = AutoDisposeProvider<bool>.internal(
+  isAuthLoading,
+  name: r'isAuthLoadingProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$isAuthLoadingHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef IsAuthLoadingRef = AutoDisposeProviderRef<bool>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

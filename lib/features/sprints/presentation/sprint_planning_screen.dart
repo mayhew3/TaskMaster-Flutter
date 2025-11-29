@@ -378,7 +378,7 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
   }
 
   Future<void> submit(BuildContext context) async {
-    final personDocId = await ref.read(personDocIdProvider.future);
+    final personDocId = ref.read(personDocIdProvider);
     if (personDocId == null) return;
 
     if (addMode()) {
