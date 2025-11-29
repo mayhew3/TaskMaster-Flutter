@@ -1,7 +1,6 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_redux/flutter_redux.dart';
 import 'package:taskmaster/date_util.dart';
 import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/task_colors.dart';
@@ -9,13 +8,13 @@ import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
-import 'package:taskmaster/redux/actions/task_item_actions.dart';
-import 'package:taskmaster/redux/app_state.dart';
 import 'package:taskmaster/redux/presentation/clearable_date_time_field.dart';
 import 'package:taskmaster/redux/presentation/editable_task_field.dart';
 import 'package:taskmaster/redux/presentation/nullable_dropdown.dart';
 import 'package:taskmaster/redux/selectors/selectors.dart';
+import 'package:taskmaster/timezone_helper.dart';
 import '../../../core/providers/firebase_providers.dart';
+import '../../../core/services/task_completion_service.dart';
 import '../providers/task_providers.dart';
 
 /// Riverpod version of the Add/Edit Task screen
@@ -285,10 +284,33 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
           _initialTaskCount ??= tasks.length;
         }
 
-        // Get timezoneHelper from Redux for compatibility with Redux widgets
-        final timezoneHelper = StoreProvider.of<AppState>(context).state.timezoneHelper;
+        // Get timezoneHelper from Riverpod provider
+        final timezoneHelperAsync = ref.watch(timezoneHelperNotifierProvider);
 
-        return Scaffold(
+        // Get timezone helper value or show loading
+        final timezoneHelper = timezoneHelperAsync.value;
+        if (timezoneHelper == null) {
+          return const Scaffold(
+            appBar: null,
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        return _buildForm(context, timezoneHelper);
+      },
+      loading: () => Scaffold(
+        appBar: AppBar(title: const Text('Task Details')),
+        body: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (err, stack) => Scaffold(
+        appBar: AppBar(title: const Text('Error')),
+        body: Center(child: Text('Error loading tasks: $err')),
+      ),
+    );
+  }
+
+  Widget _buildForm(BuildContext context, TimezoneHelper timezoneHelper) {
+    return Scaffold(
           appBar: AppBar(
             title: const Text('Task Details'),
           ),
@@ -588,7 +610,7 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
           ),
           floatingActionButton: FloatingActionButton(
             child: Icon(isEditing ? Icons.check : Icons.add),
-            onPressed: () async {
+            onPressed: () {
               final form = formKey.currentState;
 
               if (!_repeatOn) {
@@ -610,31 +632,22 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                   _submitting = true;
                 });
 
-                // Use Redux dispatch for compatibility during migration
+                // Use Riverpod providers for task operations
+                // Don't await - let the auto-close mechanism handle closing via stream updates
                 if (editMode()) {
-                  StoreProvider.of<AppState>(context).dispatch(
-                    UpdateTaskItemAction(
-                        taskItem: taskItem!, blueprint: taskItemBlueprint),
+                  ref.read(updateTaskProvider.notifier).call(
+                    task: taskItem!,
+                    blueprint: taskItemBlueprint,
                   );
                 } else {
                   // add mode
-                  StoreProvider.of<AppState>(context).dispatch(
-                    AddTaskItemAction(blueprint: taskItemBlueprint),
+                  ref.read(addTaskProvider.notifier).call(
+                    taskItemBlueprint,
                   );
                 }
               }
             },
           ),
         );
-      },
-      loading: () => Scaffold(
-        appBar: AppBar(title: const Text('Task Details')),
-        body: const Center(child: CircularProgressIndicator()),
-      ),
-      error: (err, stack) => Scaffold(
-        appBar: AppBar(title: const Text('Error')),
-        body: Center(child: Text('Error loading tasks: $err')),
-      ),
-    );
   }
 }

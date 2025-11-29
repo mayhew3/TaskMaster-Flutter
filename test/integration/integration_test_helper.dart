@@ -13,6 +13,7 @@ import 'package:redux/redux.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:taskmaster/core/providers/auth_providers.dart';
 import 'package:taskmaster/core/providers/firebase_providers.dart';
+import 'package:taskmaster/core/services/task_completion_service.dart';
 import 'package:taskmaster/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaster/features/tasks/providers/task_providers.dart';
 import 'package:taskmaster/firestore_migrator.dart';
@@ -31,6 +32,7 @@ import 'package:taskmaster/models/top_nav_item.dart';
 import 'package:taskmaster/redux/containers/planning_home.dart';
 import 'package:taskmaster/redux/reducers/app_state_reducer.dart';
 import 'package:taskmaster/task_repository.dart';
+import 'package:taskmaster/timezone_helper.dart';
 
 import '../mocks/mock_notification_helper.dart';
 import '../mocks/mock_timezone_helper.dart';
@@ -41,6 +43,15 @@ class _MockFirestoreMigrator extends Mock implements FirestoreMigrator {}
 class _MockGoogleSignInAccount extends Mock implements GoogleSignInAccount {}
 class _MockUserCredential extends Mock implements UserCredential {}
 class _MockUser extends Mock implements User {}
+
+// Test helper for TimezoneHelperNotifier
+class _TestTimezoneHelperNotifier extends TimezoneHelperNotifier {
+  @override
+  Future<TimezoneHelper> build() async {
+    // In tests, return the mock immediately without async initialization
+    return MockTimezoneHelper();
+  }
+}
 
 /// Helper class for integration tests
 /// Provides utilities for setting up test environment with mocked Firebase
@@ -145,6 +156,8 @@ class IntegrationTestHelper {
           tasksProvider.overrideWith((ref) => Stream.value(tasksWithRecurrences)),
           taskRecurrencesProvider.overrideWith((ref) => Stream.value(recurrencesList)),
           sprintsProvider.overrideWith((ref) => Stream.value(initialSprints ?? [])),
+          // Override timezone helper notifier to immediately return mock
+          timezoneHelperNotifierProvider.overrideWith(() => _TestTimezoneHelperNotifier()),
         ],
         child: StoreProvider<AppState>(
           store: store,
@@ -381,6 +394,8 @@ class IntegrationTestHelper {
                 });
             return firestoreStream.startWith(initialRecurrencesList);
           }),
+          // Override timezone helper notifier to immediately return mock
+          timezoneHelperNotifierProvider.overrideWith(() => _TestTimezoneHelperNotifier()),
         ],
         child: StoreProvider<AppState>(
           store: store,
