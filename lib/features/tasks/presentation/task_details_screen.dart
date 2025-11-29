@@ -1,23 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_redux/flutter_redux.dart';
 import 'package:jiffy/jiffy.dart';
-import 'package:taskmaster/core/feature_flags.dart';
 import 'package:taskmaster/keys.dart';
 import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/check_state.dart';
-import 'package:taskmaster/redux/actions/task_item_actions.dart';
-import 'package:taskmaster/redux/app_state.dart';
-import 'package:taskmaster/redux/presentation/add_edit_screen.dart';
-import 'package:taskmaster/redux/presentation/delayed_checkbox.dart';
-import 'package:taskmaster/redux/presentation/readonly_task_field.dart';
-import 'package:taskmaster/redux/presentation/readonly_task_field_small.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../../core/providers/firebase_providers.dart';
+import '../../../core/services/task_completion_service.dart';
 import '../providers/task_providers.dart';
 import 'task_add_edit_screen.dart';
+import '../../shared/presentation/delayed_checkbox.dart';
+import '../../../redux/presentation/readonly_task_field.dart';
+import '../../../redux/presentation/readonly_task_field_small.dart';
 
 /// Riverpod version of the Task Details screen
 /// Displays full task information with edit and delete actions
@@ -56,7 +52,7 @@ class TaskDetailsScreen extends ConsumerWidget {
   }
 }
 
-class _TaskDetailsBody extends StatelessWidget {
+class _TaskDetailsBody extends ConsumerWidget {
   final TaskItem task;
 
   const _TaskDetailsBody({
@@ -64,7 +60,7 @@ class _TaskDetailsBody extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Task Item Details'),
@@ -73,12 +69,11 @@ class _TaskDetailsBody extends StatelessWidget {
             tooltip: 'Delete Task Item',
             key: TaskMasterKeys.deleteTaskItemButton,
             icon: const Icon(Icons.delete),
-            onPressed: () {
-              // Use Redux dispatch for compatibility
-              StoreProvider.of<AppState>(context).dispatch(
-                DeleteTaskItemAction(task),
-              );
-              Navigator.pop(context, task);
+            onPressed: () async {
+              await ref.read(deleteTaskProvider.notifier).call(task);
+              if (context.mounted) {
+                Navigator.pop(context, task);
+              }
             },
           )
         ],
@@ -110,11 +105,9 @@ class _TaskDetailsBody extends StatelessWidget {
                             ? CheckState.pending
                             : CheckState.inactive,
                     checkCycleWaiter: (checkState) {
-                      StoreProvider.of<AppState>(context).dispatch(
-                        CompleteTaskItemAction(
-                          task,
-                          CheckState.inactive == checkState,
-                        ),
+                      ref.read(completeTaskProvider.notifier).call(
+                        task,
+                        complete: CheckState.inactive == checkState,
                       );
                       return null;
                     },
@@ -201,14 +194,7 @@ class _TaskDetailsBody extends StatelessWidget {
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) {
-                return FeatureFlags.useRiverpodForTasks
-                    ? TaskAddEditScreen(taskItemId: task.docId)
-                    : AddEditScreen(
-                        taskItem: task,
-                        timezoneHelper: StoreProvider.of<AppState>(context).state.timezoneHelper,
-                      );
-              },
+              builder: (context) => TaskAddEditScreen(taskItemId: task.docId),
             ),
           );
         },
