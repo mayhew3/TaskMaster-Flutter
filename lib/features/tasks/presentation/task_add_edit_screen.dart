@@ -586,47 +586,44 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
               ),
             ),
           ),
-          floatingActionButton: Visibility(
-            visible: hasChanges(),
-            child: FloatingActionButton(
-              child: Icon(isEditing ? Icons.check : Icons.add),
-              onPressed: () async {
-                final form = formKey.currentState;
+          floatingActionButton: FloatingActionButton(
+            child: Icon(isEditing ? Icons.check : Icons.add),
+            onPressed: () async {
+              final form = formKey.currentState;
 
-                if (!_repeatOn) {
-                  clearRecurrenceFieldsFromTask();
+              if (!_repeatOn) {
+                clearRecurrenceFieldsFromTask();
+              }
+
+              if (form != null && form.validate()) {
+                form.save();
+
+                if (_repeatOn) {
+                  if (!_initialRepeatOn) {
+                    taskItemBlueprint.recurIteration = 1;
+                  }
+                  updateRecurrenceBlueprint();
                 }
 
-                if (form != null && form.validate()) {
-                  form.save();
+                // Mark as submitting for auto-close detection (new tasks)
+                setState(() {
+                  _submitting = true;
+                });
 
-                  if (_repeatOn) {
-                    if (!_initialRepeatOn) {
-                      taskItemBlueprint.recurIteration = 1;
-                    }
-                    updateRecurrenceBlueprint();
-                  }
-
-                  // Mark as submitting for auto-close detection (new tasks)
-                  setState(() {
-                    _submitting = true;
-                  });
-
-                  // Use Redux dispatch for compatibility during migration
-                  if (editMode()) {
-                    StoreProvider.of<AppState>(context).dispatch(
-                      UpdateTaskItemAction(
-                          taskItem: taskItem!, blueprint: taskItemBlueprint),
-                    );
-                  } else {
-                    // add mode
-                    StoreProvider.of<AppState>(context).dispatch(
-                      AddTaskItemAction(blueprint: taskItemBlueprint),
-                    );
-                  }
+                // Use Redux dispatch for compatibility during migration
+                if (editMode()) {
+                  StoreProvider.of<AppState>(context).dispatch(
+                    UpdateTaskItemAction(
+                        taskItem: taskItem!, blueprint: taskItemBlueprint),
+                  );
+                } else {
+                  // add mode
+                  StoreProvider.of<AppState>(context).dispatch(
+                    AddTaskItemAction(blueprint: taskItemBlueprint),
+                  );
                 }
-              },
-            ),
+              }
+            },
           ),
         );
       },

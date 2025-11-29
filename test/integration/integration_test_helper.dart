@@ -10,11 +10,13 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:redux/redux.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:taskmaster/core/providers/auth_providers.dart';
 import 'package:taskmaster/core/providers/firebase_providers.dart';
 import 'package:taskmaster/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaster/features/tasks/providers/task_providers.dart';
 import 'package:taskmaster/firestore_migrator.dart';
+import 'package:taskmaster/models/serializers.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
@@ -302,7 +304,13 @@ class IntegrationTestHelper {
       ],
     );
 
-    // Pump the app with Riverpod providers reading from LIVE Firestore
+    // Create initial data lists for provider overrides (used for initial render)
+    // The providers will still read from Firestore for subsequent updates
+    final initialTasksList = initialTasks ?? [];
+    final initialSprintsList = initialSprints ?? [];
+    final initialRecurrencesList = initialRecurrences ?? [];
+
+    // Pump the app with Riverpod providers that emit initial data then read from Firestore
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -310,8 +318,64 @@ class IntegrationTestHelper {
           firestoreProvider.overrideWithValue(testFirestore),
           // Override auth providers with test data
           personDocIdProvider.overrideWith((ref) => testPersonDocId),
-          // DO NOT override tasksProvider, sprintsProvider, taskRecurrencesProvider
-          // Let them read from the live Firestore instance so they pick up changes
+          // Override data providers with streams that emit initial data first
+          // then continue reading from Firestore
+          tasksProvider.overrideWith((ref) {
+            final firestore = ref.watch(firestoreProvider);
+            final personDocId = ref.watch(personDocIdProvider);
+            if (personDocId == null) return Stream.value(<TaskItem>[]);
+
+            final firestoreStream = firestore
+                .collection('tasks')
+                .where('personDocId', isEqualTo: personDocId)
+                .where('retired', isNull: true)
+                .snapshots()
+                .map<List<TaskItem>>((snapshot) {
+                  return snapshot.docs.map((doc) {
+                    final json = doc.data();
+                    json['docId'] = doc.id;
+                    return TaskItem.fromJson(json);
+                  }).toList();
+                });
+            // Start with initial data, then switch to Firestore stream
+            return firestoreStream.startWith(initialTasksList);
+          }),
+          sprintsProvider.overrideWith((ref) {
+            final firestore = ref.watch(firestoreProvider);
+            final personDocId = ref.watch(personDocIdProvider);
+            if (personDocId == null) return Stream.value(<Sprint>[]);
+
+            final firestoreStream = firestore
+                .collection('sprints')
+                .where('personDocId', isEqualTo: personDocId)
+                .snapshots()
+                .map<List<Sprint>>((snapshot) {
+                  return snapshot.docs.map((doc) {
+                    final json = doc.data();
+                    json['docId'] = doc.id;
+                    return serializers.deserializeWith(Sprint.serializer, json)!;
+                  }).toList();
+                });
+            return firestoreStream.startWith(initialSprintsList);
+          }),
+          taskRecurrencesProvider.overrideWith((ref) {
+            final firestore = ref.watch(firestoreProvider);
+            final personDocId = ref.watch(personDocIdProvider);
+            if (personDocId == null) return Stream.value(<TaskRecurrence>[]);
+
+            final firestoreStream = firestore
+                .collection('taskRecurrences')
+                .where('personDocId', isEqualTo: personDocId)
+                .snapshots()
+                .map<List<TaskRecurrence>>((snapshot) {
+                  return snapshot.docs.map((doc) {
+                    final json = doc.data();
+                    json['docId'] = doc.id;
+                    return TaskRecurrence.fromJson(json);
+                  }).toList();
+                });
+            return firestoreStream.startWith(initialRecurrencesList);
+          }),
         ],
         child: StoreProvider<AppState>(
           store: store,
