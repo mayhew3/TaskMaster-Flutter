@@ -50,6 +50,8 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
   late TaskRecurrenceBlueprint taskRecurrenceBlueprint;
 
   bool popped = false;
+  int? _initialTaskCount; // Track initial task count for new task detection
+  bool _submitting = false; // Track if submit was pressed
 
   @override
   void initState() {
@@ -245,8 +247,11 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
               Navigator.pop(context);
             }
           } else {
-            // For new tasks, check if count increased (harder to detect without prev state)
-            // For now, we'll rely on the dispatch completing successfully
+            // For new tasks, check if count increased after submitting
+            if (_submitting && _initialTaskCount != null && tasks.length > _initialTaskCount!) {
+              popped = true;
+              Navigator.pop(context);
+            }
           }
         }
       });
@@ -276,6 +281,8 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
               ? ref.read(taskProvider(widget.taskItemId!))
               : null;
           _initializeTask(task);
+          // Store initial task count for new task detection
+          _initialTaskCount ??= tasks.length;
         }
 
         // Get timezoneHelper from Redux for compatibility with Redux widgets
@@ -579,39 +586,47 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
               ),
             ),
           ),
-          floatingActionButton: FloatingActionButton(
-            child: Icon(isEditing ? Icons.check : Icons.add),
-            onPressed: () async {
-              final form = formKey.currentState;
+          floatingActionButton: Visibility(
+            visible: hasChanges(),
+            child: FloatingActionButton(
+              child: Icon(isEditing ? Icons.check : Icons.add),
+              onPressed: () async {
+                final form = formKey.currentState;
 
-              if (!_repeatOn) {
-                clearRecurrenceFieldsFromTask();
-              }
+                if (!_repeatOn) {
+                  clearRecurrenceFieldsFromTask();
+                }
 
-              if (form != null && form.validate()) {
-                form.save();
+                if (form != null && form.validate()) {
+                  form.save();
 
-                if (_repeatOn) {
-                  if (!_initialRepeatOn) {
-                    taskItemBlueprint.recurIteration = 1;
+                  if (_repeatOn) {
+                    if (!_initialRepeatOn) {
+                      taskItemBlueprint.recurIteration = 1;
+                    }
+                    updateRecurrenceBlueprint();
                   }
-                  updateRecurrenceBlueprint();
-                }
 
-                // Use Redux dispatch for compatibility during migration
-                if (editMode()) {
-                  StoreProvider.of<AppState>(context).dispatch(
-                    UpdateTaskItemAction(
-                        taskItem: taskItem!, blueprint: taskItemBlueprint),
-                  );
-                } else {
-                  // add mode
-                  StoreProvider.of<AppState>(context).dispatch(
-                    AddTaskItemAction(blueprint: taskItemBlueprint),
-                  );
+                  // Mark as submitting for auto-close detection (new tasks)
+                  setState(() {
+                    _submitting = true;
+                  });
+
+                  // Use Redux dispatch for compatibility during migration
+                  if (editMode()) {
+                    StoreProvider.of<AppState>(context).dispatch(
+                      UpdateTaskItemAction(
+                          taskItem: taskItem!, blueprint: taskItemBlueprint),
+                    );
+                  } else {
+                    // add mode
+                    StoreProvider.of<AppState>(context).dispatch(
+                      AddTaskItemAction(blueprint: taskItemBlueprint),
+                    );
+                  }
                 }
-              }
-            },
+              },
+            ),
           ),
         );
       },

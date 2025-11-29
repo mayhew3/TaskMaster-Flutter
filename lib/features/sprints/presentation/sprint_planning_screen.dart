@@ -413,8 +413,9 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
         final nextSprints = next.value ?? [];
 
         if (addMode()) {
-          // Check if active sprint was created
-          final prevActiveSprint = ref.read(activeSprintProvider);
+          // Check if a new sprint was created by comparing sprint counts
+          // or by finding an active sprint in the new list that wasn't in the old list
+          final prevActiveSprint = _findActiveSprint(prevSprints);
           final nowActiveSprint = _findActiveSprint(nextSprints);
 
           if (prevActiveSprint == null && nowActiveSprint != null) {
