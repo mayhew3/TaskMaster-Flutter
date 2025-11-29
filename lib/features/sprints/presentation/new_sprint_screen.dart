@@ -1,20 +1,18 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../date_util.dart';
 import '../../../parse_helper.dart';
 import '../../../core/providers/firebase_providers.dart';
-import '../../../redux/app_state.dart';
 import '../providers/sprint_providers.dart';
 import 'sprint_planning_screen.dart';
 import '../../../redux/presentation/editable_task_field.dart';
 import '../../../redux/presentation/nullable_dropdown.dart';
-import '../../../redux/presentation/refresh_button.dart';
-import '../../../redux/presentation/task_main_menu.dart';
-import '../../../redux/containers/tab_selector.dart';
+import '../../shared/presentation/refresh_button.dart';
+import '../../shared/presentation/app_drawer.dart';
+import '../../shared/presentation/app_bottom_nav.dart';
 
 class NewSprintScreen extends ConsumerStatefulWidget {
   const NewSprintScreen({super.key});
@@ -30,16 +28,6 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
 
   int numUnits = 1;
   String unitName = 'Weeks';
-
-  /// Check if Redux StoreProvider is available in the widget tree
-  bool _hasReduxStore(BuildContext context) {
-    try {
-      StoreProvider.of<AppState>(context);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
 
   final BuiltList<String> possibleRecurUnits = ListBuilder<String>([
     'Days',
@@ -260,9 +248,8 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
           ],
         ),
       ),
-      // Only show drawer/bottomNav when Redux StoreProvider is available
-      drawer: _hasReduxStore(context) ? const TaskMainMenu() : null,
-      bottomNavigationBar: _hasReduxStore(context) ? const TabSelector() : null,
+      drawer: const AppDrawer(),
+      bottomNavigationBar: const AppBottomNav(),
     );
   }
 }

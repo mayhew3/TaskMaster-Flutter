@@ -35,9 +35,6 @@ void main() {
     // UI DISPLAY TESTS - Test actual screens shown to users
     // =======================================================================
 
-    // TODO(TM-295): Enable when Sprint screens migrated to Riverpod
-    // This test requires PlanningHome to properly route to NewSprintScreen
-    // using Riverpod navigation. Currently blocked by Sprint screen migration.
     testWidgets('NewSprint form displays when no active sprint exists',
         (tester) async {
       // Setup: Create app with no sprints (or only closed sprints)
@@ -64,11 +61,8 @@ void main() {
 
       // Verify: SprintTaskItems is NOT shown (no active sprint)
       expect(find.byType(SprintTaskItemsScreen), findsNothing);
-    }, skip: true); // TM-295: Blocked by Sprint screen Riverpod migration
+    });
 
-    // TODO(TM-295): Enable when Sprint screens migrated to Riverpod
-    // This test requires PlanningHome to properly route to SprintTaskItemsScreen
-    // using Riverpod navigation. Currently blocked by Sprint screen migration.
     testWidgets('SprintTaskItems displays when active sprint exists',
         (tester) async {
       // Setup: Create an active sprint with tasks
@@ -148,7 +142,7 @@ void main() {
       // Verify: Sprint tasks are visible
       expect(find.text('Sprint Task 1'), findsOneWidget);
       expect(find.text('Sprint Task 2'), findsOneWidget);
-    }, skip: true); // TM-295: Blocked by Sprint screen Riverpod migration
+    });
 
     // =======================================================================
     // STATE MANAGEMENT TESTS - Test Redux state and data relationships
