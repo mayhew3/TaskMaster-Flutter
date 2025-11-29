@@ -6,8 +6,8 @@ import 'package:timeago/timeago.dart' as timeago;
 
 import '../../../models/sprint.dart';
 import '../../../models/task_item.dart';
-import '../../../typedefs.dart';
-import '../../../redux/presentation/delayed_checkbox.dart';
+import '../../../models/check_state.dart';
+import 'delayed_checkbox.dart';
 
 /// Riverpod version of EditableTaskItem
 ///
