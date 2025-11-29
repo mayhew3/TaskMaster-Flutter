@@ -921,23 +921,137 @@ Compare code:
 
 ## Phase 3: Full Migration (Weeks 9-16)
 
+---
+
+### ⚠️ CRITICAL STATUS UPDATE (2024-11)
+
+**MIGRATION IS NOT COMPLETE** - Previous claims of "~80% complete" were misleading.
+
+**What was actually completed:**
+- ✅ Data providers (Riverpod streams for tasks, sprints, recurrences)
+- ✅ Feature flags for switching between Redux/Riverpod data sources
+- ✅ Some service classes (TaskCompletionService, DeleteTask provider)
+- ✅ Provider overrides in test infrastructure
+
+**What was NOT completed (but claimed to be):**
+- ❌ NO Riverpod UI widgets were created
+- ❌ ALL "Riverpod screens" still use Redux UI components
+- ❌ NO task actions converted (add, update, delete still use Redux dispatch)
+- ❌ NO shared widgets converted (TaskItemList, TaskMainMenu, TabSelector, etc.)
+
+**Root Cause of Current Crashes:**
+When `useRiverpodForAuth=true`, the app uses `RiverpodTaskMasterApp` which does NOT provide
+a Redux `StoreProvider`. However, all "Riverpod" screens import and render Redux widgets
+that require `StoreProvider`, causing "No StoreProvider<AppState> found" errors.
+
+**Commit 5a3d4367 Analysis:**
+Claimed "Sprint Screens Migrated" and "~80% complete" but examination shows:
+- All screens still import from `redux/presentation/*` and `redux/containers/*`
+- `TaskItemList`, `TaskMainMenu`, `TabSelector`, `FilterButton`, `RefreshButton` are all Redux
+- Only the DATA LAYER was migrated, not the UI layer
+
+---
+
+### 3.0 IMMEDIATE FIX REQUIRED: Create Riverpod UI Components
+
+Before any screen can truly work in Riverpod-only mode, we must create Riverpod versions
+of all shared widgets currently imported from `lib/redux/presentation/` and `lib/redux/containers/`.
+
+**Critical Redux Widgets to Convert (Priority Order):**
+
+| Widget | Redux Location | Used By | Complexity |
+|--------|---------------|---------|------------|
+| TaskItemList | `redux/presentation/task_item_list.dart` | TaskListScreen, SprintTaskItemsScreen | HIGH |
+| EditableTaskItem | `redux/presentation/editable_task_item.dart` | TaskItemList, TaskDetailsScreen | HIGH |
+| TaskMainMenu | `redux/presentation/task_main_menu.dart` | ALL screens (drawer) | MEDIUM |
+| TabSelector | `redux/containers/tab_selector.dart` | ALL screens (bottom nav) | MEDIUM |
+| FilterButton | `redux/presentation/filter_button.dart` | TaskListScreen, SprintTaskItemsScreen | LOW |
+| RefreshButton | `redux/presentation/refresh_button.dart` | Multiple screens | LOW |
+| SnoozeDialog | `redux/presentation/snooze_dialog.dart` | TaskDetailsScreen, EditableTaskItem | MEDIUM |
+| PlanTaskList | `redux/presentation/plan_task_list.dart` | SprintPlanningScreen | MEDIUM |
+| DetailsScreen | `redux/presentation/details_screen.dart` | TaskDetailsScreen (wrapper) | LOW |
+| DelayedCheckbox | `redux/presentation/delayed_checkbox.dart` | EditableTaskItem | LOW |
+
+**Redux Actions to Convert to Riverpod Providers:**
+
+| Action | Redux Location | Riverpod Equivalent | Status |
+|--------|---------------|---------------------|--------|
+| DeleteTaskItemAction | `redux/actions/task_item_actions.dart` | `deleteTaskProvider` | ✅ DONE |
+| CompleteTaskItemAction | `redux/actions/task_item_actions.dart` | `completeTaskProvider` | ✅ DONE |
+| AddTaskItemAction | `redux/actions/task_item_actions.dart` | `addTaskProvider` | ❌ TODO |
+| UpdateTaskItemAction | `redux/actions/task_item_actions.dart` | `updateTaskProvider` | ❌ TODO |
+| SnoozeTaskItemAction | `redux/actions/task_item_actions.dart` | `snoozeTaskProvider` | ❌ TODO |
+| CreateSprintAction | `redux/actions/sprint_actions.dart` | `createSprintProvider` | ❌ TODO |
+| AddTasksToSprintAction | `redux/actions/sprint_actions.dart` | `addTasksToSprintProvider` | ❌ TODO |
+
+**Other Redux Dependencies to Remove:**
+
+| Dependency | Current Usage | Riverpod Replacement |
+|------------|--------------|---------------------|
+| `timezoneHelper` | `StoreProvider.of<AppState>(context).state.timezoneHelper` | Create `timezoneHelperProvider` |
+| `personDocId` | From Redux store | ✅ Already have `personDocIdProvider` |
+| Navigation | Via Redux store's `navigatorKey` | Use `go_router` or context-based navigation |
+
+---
+
 ### 3.1 Convert Screens One by One
 
+**REVISED Priority Order (based on dependencies):**
+
+1. **Phase 3.1a: Core Shared Widgets** (BLOCKING - must do first)
+   - [ ] Create `lib/features/shared/presentation/task_item_list.dart` (Riverpod)
+   - [ ] Create `lib/features/shared/presentation/editable_task_item.dart` (Riverpod)
+   - [ ] Create `lib/features/shared/presentation/app_drawer.dart` (replaces TaskMainMenu)
+   - [ ] Create `lib/features/shared/presentation/app_bottom_nav.dart` (replaces TabSelector)
+   - [ ] Create `lib/features/shared/presentation/filter_button.dart` (Riverpod)
+   - [ ] Create `lib/features/shared/presentation/snooze_dialog.dart` (Riverpod)
+
+2. **Phase 3.1b: Task Action Providers** (BLOCKING - must do before screens)
+   - [ ] Create `addTaskProvider` in `task_completion_service.dart`
+   - [ ] Create `updateTaskProvider` in `task_completion_service.dart`
+   - [ ] Create `snoozeTaskProvider` in `task_completion_service.dart`
+   - [ ] Create `timezoneHelperProvider` in `core/providers/`
+
+3. **Phase 3.1c: Screen Conversions** (Can proceed after 3.1a and 3.1b)
+   - [ ] StatsScreen - ✅ Already Riverpod (simple, no Redux widgets)
+   - [ ] SprintTaskItemsScreen - Update to use Riverpod TaskItemList
+   - [ ] TaskListScreen - Update to use Riverpod widgets and providers
+   - [ ] TaskDetailsScreen - Update to use Riverpod widgets and providers
+   - [ ] TaskAddEditScreen - Update to use Riverpod action providers
+   - [ ] SprintPlanningScreen - Update to use Riverpod PlanTaskList
+   - [ ] NewSprintScreen - Update to use Riverpod sprint providers
+
+**Screens Currently Claiming Riverpod but Using Redux Widgets:**
+
+| Screen | File | Redux Widgets Used |
+|--------|------|-------------------|
+| TaskListScreen | `features/tasks/presentation/task_list_screen.dart` | EditableTaskItem, SnoozeDialog, TaskMainMenu |
+| TaskDetailsScreen | `features/tasks/presentation/task_details_screen.dart` | DetailsScreen, StoreProvider.of for actions |
+| TaskAddEditScreen | `features/tasks/presentation/task_add_edit_screen.dart` | StoreProvider.of for timezoneHelper, dispatch |
+| SprintTaskItemsScreen | `features/sprints/presentation/sprint_task_items_screen.dart` | TaskItemList, FilterButton, RefreshButton, TaskMainMenu, TabSelector |
+| SprintPlanningScreen | `features/sprints/presentation/sprint_planning_screen.dart` | PlanTaskList, TaskMainMenu, TabSelector |
+| NewSprintScreen | `features/sprints/presentation/new_sprint_screen.dart` | TaskMainMenu, TabSelector |
+| StatsScreen | `features/stats/presentation/stats_screen.dart` | TaskMainMenu, TabSelector |
+
+---
+
+### 3.1 (Original) Convert Screens One by One
+
 **Priority Order:**
-1. ✅ Stats (done in Phase 2)
-2. Task List Screen
-3. Task Detail Screen
-4. Sprint Planning Screen
-5. Add/Edit Task Screen
+1. ✅ Stats (done in Phase 2) - DATA ONLY, still uses Redux drawer/nav
+2. Task List Screen - IN PROGRESS, needs widget conversion
+3. Task Detail Screen - IN PROGRESS, needs widget conversion
+4. Sprint Planning Screen - IN PROGRESS, needs widget conversion
+5. Add/Edit Task Screen - IN PROGRESS, needs action provider conversion
 
 For each screen:
-1. Create Riverpod providers for that screen's data
-2. Extract business logic to service classes
-3. Create new UI using ConsumerWidget
-4. Add feature flag
-5. Test both versions
-6. Switch default to Riverpod
-7. Delete Redux version after 1 sprint
+1. ✅ Create Riverpod providers for that screen's data - DONE for most screens
+2. ❌ Extract business logic to service classes - PARTIALLY DONE
+3. ❌ Create new UI using ConsumerWidget - NOT DONE (screens exist but use Redux widgets!)
+4. ✅ Add feature flag - DONE
+5. ❌ Test both versions - BLOCKED (Riverpod version crashes)
+6. ❌ Switch default to Riverpod - BLOCKED
+7. ❌ Delete Redux version after 1 sprint - BLOCKED
 
 ### 3.2 Convert Task List Screen
 
@@ -1405,12 +1519,14 @@ flutter run
 
 Migration is complete when:
 
-1. ✅ All screens use Riverpod (no Redux code remaining)
-2. ✅ Build time reduced by 40%+
-3. ✅ Test time reduced by 30%+
-4. ✅ New feature takes 50% less boilerplate
-5. ✅ No regressions in functionality
-6. ✅ Team feels confident with new patterns
+1. ❌ All screens use Riverpod (no Redux code remaining)
+2. ❌ Build time reduced by 40%+
+3. ❌ Test time reduced by 30%+
+4. ❌ New feature takes 50% less boilerplate
+5. ❌ No regressions in functionality
+6. ❌ Team feels confident with new patterns
+
+**Current Status (2024-11):** NONE of these criteria are met. The migration is approximately 25-30% complete (data layer only).
 
 ---
 
@@ -1429,16 +1545,106 @@ After migration, consider:
 
 ## Next Steps
 
-1. **Review this plan** and `.claude/TESTING_PLAN.md`
-2. **Complete testing phase first** (see TESTING_PLAN.md)
-   - Write critical path integration tests
-   - Write screen widget tests
-   - Achieve >70% coverage
-3. **Create migration branch** after tests pass: `git checkout -b feat/riverpod-migration`
-4. **Start Phase 0** (setup) from this document
-5. **Schedule weekly check-ins** to assess progress
-6. **Update plans** as you learn new patterns
+### IMMEDIATE (to fix current crashes)
 
-**DO NOT SKIP THE TESTING PHASE!** Migration without tests is extremely risky.
+1. **Option A: Quick Fix** - Keep Redux `StoreProvider` in `RiverpodTaskMasterApp`
+   - Pros: Fast, unblocks development
+   - Cons: Defeats purpose of Riverpod-only mode, keeps Redux dependency
+
+2. **Option B: Proper Fix** - Convert critical shared widgets to Riverpod
+   - Start with `TaskItemList` → `RiverpodTaskItemList`
+   - Update screens to conditionally use Riverpod vs Redux version
+   - Takes longer but is the right path forward
+
+### RECOMMENDED PATH FORWARD
+
+1. **Phase 3.1a First**: Create Riverpod versions of shared widgets
+   - `lib/features/shared/presentation/task_item_list.dart`
+   - `lib/features/shared/presentation/editable_task_item.dart`
+   - `lib/features/shared/presentation/app_drawer.dart`
+   - `lib/features/shared/presentation/app_bottom_nav.dart`
+
+2. **Phase 3.1b Second**: Create remaining action providers
+   - `addTaskProvider`
+   - `updateTaskProvider`
+   - `snoozeTaskProvider`
+   - `timezoneHelperProvider`
+
+3. **Phase 3.1c Third**: Update screens to use new widgets
+   - Replace Redux imports with Riverpod imports
+   - Replace `StoreProvider.of` calls with `ref.read/watch`
+   - Test each screen in Riverpod-only mode
+
+4. **Phase 3.2+**: Continue with remaining migration as originally planned
+
+### ESTIMATED REMAINING EFFORT
+
+| Phase | Description | Estimated Effort |
+|-------|-------------|-----------------|
+| 3.1a | Shared widgets conversion | 3-5 days |
+| 3.1b | Action providers | 1-2 days |
+| 3.1c | Screen updates | 2-3 days per screen |
+| 3.2+ | Full migration completion | 2-3 weeks |
+
+**Total remaining:** ~4-6 weeks of focused work
+
+---
+
+## Appendix: Full Audit of Redux Dependencies (2024-11)
+
+### Redux Widgets Used by "Riverpod" Screens
+
+```
+lib/features/sprints/presentation/sprint_task_items_screen.dart:
+  - import '../../../redux/presentation/task_item_list.dart'
+  - import '../../../redux/presentation/filter_button.dart'
+  - import '../../../redux/presentation/refresh_button.dart'
+  - import '../../../redux/presentation/task_main_menu.dart'
+  - import '../../../redux/containers/tab_selector.dart'
+  - Uses: TaskItemList, FilterButton, RefreshButton, TaskMainMenu, TabSelector
+
+lib/features/sprints/presentation/sprint_planning_screen.dart:
+  - import '../../../redux/presentation/plan_task_list.dart'
+  - import '../../../redux/presentation/task_main_menu.dart'
+  - import '../../../redux/containers/tab_selector.dart'
+  - Uses: PlanTaskList, TaskMainMenu, TabSelector
+
+lib/features/sprints/presentation/new_sprint_screen.dart:
+  - import '../../../redux/presentation/task_main_menu.dart'
+  - import '../../../redux/containers/tab_selector.dart'
+  - Uses: TaskMainMenu, TabSelector
+
+lib/features/tasks/presentation/task_list_screen.dart:
+  - import 'package:taskmaster/redux/presentation/editable_task_item.dart'
+  - import 'package:taskmaster/redux/presentation/snooze_dialog.dart'
+  - import 'package:taskmaster/redux/presentation/task_main_menu.dart'
+  - import 'package:taskmaster/redux/actions/task_item_actions.dart'
+  - Uses: EditableTaskItem, SnoozeDialog, TaskMainMenu, StoreProvider.of for DeleteTaskItemAction
+
+lib/features/tasks/presentation/task_details_screen.dart:
+  - import '../../../redux/presentation/details_screen.dart'
+  - Uses: DetailsScreen, StoreProvider.of for delete/complete actions, timezoneHelper
+
+lib/features/tasks/presentation/task_add_edit_screen.dart:
+  - Uses: StoreProvider.of for timezoneHelper, AddTaskItemAction, UpdateTaskItemAction
+
+lib/features/stats/presentation/stats_screen.dart:
+  - import '../../../redux/presentation/task_main_menu.dart'
+  - import '../../../redux/containers/tab_selector.dart'
+  - Uses: TaskMainMenu, TabSelector
+```
+
+### StoreConnector/StoreProvider Usage in Redux Widgets
+
+```
+lib/redux/presentation/task_item_list.dart:50 - StoreConnector<AppState, TaskItemListViewModel>
+lib/redux/presentation/task_main_menu.dart - StoreConnector for navigation
+lib/redux/containers/tab_selector.dart - StoreConnector for tab state
+lib/redux/presentation/editable_task_item.dart - StoreConnector for task actions
+lib/redux/presentation/snooze_dialog.dart - StoreConnector for snooze actions
+lib/redux/presentation/plan_task_list.dart - StoreConnector for sprint planning
+```
+
+**DO NOT claim the migration is complete until ALL of these Redux dependencies are removed!**
 
 Questions? Add them to `.claude/QUESTIONS.md` and I'll help answer!

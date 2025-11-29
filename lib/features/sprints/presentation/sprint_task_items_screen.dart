@@ -1,17 +1,30 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../core/feature_flags.dart';
+import '../../../core/services/task_completion_service.dart';
 import '../../../models/sprint.dart';
 import '../../../models/task_item.dart';
+import '../../../models/task_colors.dart';
+import '../../../models/task_display_grouping.dart';
+import '../../../models/sprint_display_task.dart';
 import '../../../redux/app_state.dart';
-import '../../../redux/presentation/task_item_list.dart';
+import '../../../redux/presentation/details_screen.dart';
+import '../../../redux/presentation/editable_task_item.dart';
+import '../../../redux/presentation/delayed_checkbox.dart';
 import '../../../redux/presentation/filter_button.dart';
+import '../../../redux/presentation/header_list_item.dart';
+import '../../../redux/presentation/plan_task_list.dart';
 import '../../../redux/presentation/refresh_button.dart';
+import '../../../redux/presentation/snooze_dialog.dart';
+import '../../../redux/presentation/task_item_list.dart';
 import '../../../redux/presentation/task_main_menu.dart';
 import '../../../redux/containers/tab_selector.dart';
 import '../providers/sprint_providers.dart';
+import '../../tasks/presentation/task_details_screen.dart';
 import '../../tasks/providers/task_providers.dart';
 
 part 'sprint_task_items_screen.g.dart';
@@ -99,7 +112,7 @@ class SprintTaskItemsScreen extends ConsumerWidget {
         ],
       ),
       body: TaskItemList(
-        taskItems: taskItems.toBuiltList(),
+        taskItems: BuiltList<TaskItem>(taskItems),
         sprintMode: true,
       ),
       // Only show drawer/bottomNav when Redux StoreProvider is available

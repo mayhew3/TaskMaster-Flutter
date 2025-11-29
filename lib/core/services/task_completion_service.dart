@@ -1,10 +1,17 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../providers/firebase_providers.dart';
 import '../../features/tasks/data/firestore_task_repository.dart';
 import '../../features/tasks/domain/task_repository.dart';
 import '../../features/tasks/providers/task_providers.dart';
 import '../../models/task_item.dart';
+import '../../models/task_item_blueprint.dart';
 import '../../models/task_recurrence.dart';
+import '../../models/snooze_blueprint.dart';
+import '../../models/task_date_type.dart';
 import '../../helpers/recurrence_helper.dart';
+import '../../task_repository.dart' as legacy;
+import '../../timezone_helper.dart';
+import '../../redux/actions/task_item_actions.dart' show ExecuteSnooze;
 
 part 'task_completion_service.g.dart';
 
@@ -106,5 +113,129 @@ class CompleteTask extends _$CompleteTask {
         complete: complete,
       );
     });
+  }
+}
+
+/// Controller for deleting tasks
+@riverpod
+class DeleteTask extends _$DeleteTask {
+  @override
+  FutureOr<void> build() {}
+
+  Future<void> call(TaskItem task) async {
+    state = const AsyncLoading();
+
+    state = await AsyncValue.guard(() async {
+      final repository = ref.read(taskRepositoryProvider);
+      await repository.deleteTask(task);
+    });
+  }
+}
+
+/// Controller for adding new tasks
+@riverpod
+class AddTask extends _$AddTask {
+  @override
+  FutureOr<void> build() {}
+
+  Future<void> call(TaskItemBlueprint blueprint) async {
+    state = const AsyncLoading();
+
+    state = await AsyncValue.guard(() async {
+      final repository = ref.read(taskRepositoryProvider);
+      await repository.addTask(blueprint);
+    });
+  }
+}
+
+/// Controller for updating tasks
+@riverpod
+class UpdateTask extends _$UpdateTask {
+  @override
+  FutureOr<void> build() {}
+
+  Future<void> call({
+    required TaskItem task,
+    required TaskItemBlueprint blueprint,
+  }) async {
+    state = const AsyncLoading();
+
+    state = await AsyncValue.guard(() async {
+      final repository = ref.read(taskRepositoryProvider);
+      await repository.updateTaskAndRecurrence(task.docId, blueprint);
+    });
+  }
+}
+
+/// Controller for snoozing tasks
+@riverpod
+class SnoozeTask extends _$SnoozeTask {
+  @override
+  FutureOr<void> build() {}
+
+  Future<void> call({
+    required TaskItem taskItem,
+    required TaskItemBlueprint blueprint,
+    required int numUnits,
+    required String unitSize,
+    required TaskDateType dateType,
+  }) async {
+    state = const AsyncLoading();
+
+    state = await AsyncValue.guard(() async {
+      final legacyRepository = ref.read(legacyTaskRepositoryProvider);
+
+      // Generate the preview (updates blueprint in place)
+      RecurrenceHelper.generatePreview(blueprint, numUnits, unitSize, dateType);
+
+      // Get original anchor date before update
+      final originalValue = taskItem.getAnchorDate();
+
+      // Update task and maybe recurrence
+      final result = await RecurrenceHelper.updateTaskAndMaybeRecurrenceForSnooze(
+        legacyRepository,
+        ExecuteSnooze(
+          taskItem: taskItem,
+          blueprint: blueprint,
+          numUnits: numUnits,
+          unitSize: unitSize,
+          dateType: dateType,
+        ),
+      );
+
+      // Get new anchor date
+      final newAnchorDate = dateType.dateFieldGetter(result.taskItem)!;
+
+      // Create snooze record
+      final snooze = SnoozeBlueprint(
+        taskDocId: result.taskItem.docId,
+        snoozeNumber: numUnits,
+        snoozeUnits: unitSize,
+        snoozeAnchor: dateType.label,
+        previousAnchor: originalValue?.dateValue,
+        newAnchor: newAnchorDate,
+      );
+
+      legacyRepository.addSnooze(snooze);
+    });
+  }
+}
+
+/// Provider for legacy TaskRepository (for snooze functionality)
+@riverpod
+legacy.TaskRepository legacyTaskRepository(LegacyTaskRepositoryRef ref) {
+  final firestore = ref.watch(firestoreProvider);
+  return legacy.TaskRepository(firestore: firestore);
+}
+
+/// Provider for TimezoneHelper
+/// Must be initialized before use - call configureLocalTimeZone() first
+@Riverpod(keepAlive: true)
+class TimezoneHelperNotifier extends _$TimezoneHelperNotifier {
+  @override
+  Future<TimezoneHelper> build() async {
+    final helper = TimezoneHelper();
+    await helper.configureLocalTimeZone();
+    return helper;
   }
 }

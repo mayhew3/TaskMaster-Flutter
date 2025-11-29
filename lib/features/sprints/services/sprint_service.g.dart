@@ -41,7 +41,7 @@ final createSprintProvider =
     );
 
 typedef _$CreateSprint = AutoDisposeAsyncNotifier<void>;
-String _$addTasksToSprintHash() => r'075750dc36e344768dbaf0e9556b61ecda1e8612';
+String _$addTasksToSprintHash() => r'45aac8acb30c98dbc0b253cbf8badf12768cee91';
 
 /// Controller for adding tasks to existing sprint
 ///

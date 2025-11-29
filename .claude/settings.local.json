@@ -4,7 +4,8 @@
       "Bash(flutter test:*)",
       "Bash(flutter pub run build_runner build:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(mcp__atlassian)"
     ],
     "deny": [],
     "ask": []
