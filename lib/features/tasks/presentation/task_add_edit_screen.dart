@@ -102,6 +102,20 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
     ]).build();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Initialize task only once when dependencies are first available
+    if (!_initialized) {
+      final task = widget.taskItemId != null
+          ? ref.read(taskProvider(widget.taskItemId!))
+          : null;
+      _initializeTask(task);
+      _initialized = true;
+    }
+  }
+
   void _initializeTask(TaskItem? task) {
     taskItem = task;
     taskItemBlueprint =
@@ -275,17 +289,8 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
 
     return tasksAsync.when(
       data: (tasks) {
-        // Initialize task on first build or when data loads
-        // Use _initialized flag to prevent re-initialization on every rebuild
-        if (!_initialized) {
-          final task = widget.taskItemId != null
-              ? ref.read(taskProvider(widget.taskItemId!))
-              : null;
-          _initializeTask(task);
-          // Store initial task count for new task detection
-          _initialTaskCount ??= tasks.length;
-          _initialized = true;
-        }
+        // Store initial task count for new task detection (first time only)
+        _initialTaskCount ??= tasks.length;
 
         // Get timezoneHelper from Riverpod provider
         final timezoneHelperAsync = ref.watch(timezoneHelperNotifierProvider);
