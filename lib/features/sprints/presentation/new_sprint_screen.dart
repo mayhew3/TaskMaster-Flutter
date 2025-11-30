@@ -249,7 +249,6 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
         ),
       ),
       drawer: const AppDrawer(),
-      bottomNavigationBar: const AppBottomNav(),
     );
   }
 }

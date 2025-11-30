@@ -47,7 +47,10 @@ class ClearableDateTimeField extends StatelessWidget {
         ),
         format: longDateFormat,
         initialValue: getLocalDate(dateGetter()),
-        onChanged: (pickedDate) => dateSetter(pickedDate),
+        onChanged: (pickedDate) {
+          print('[$labelText] onChanged called with: $pickedDate');
+          dateSetter(pickedDate);
+        },
         onShowPicker: (context, currentValue) async {
           DateTime? firstDateNullable = firstDateGetter == null ? null : firstDateGetter!();
           DateTime firstDate = firstDateNullable ?? DateTime(1900);

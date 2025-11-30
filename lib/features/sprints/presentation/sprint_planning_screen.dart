@@ -436,20 +436,26 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
       }
     });
 
+    // Initialize state BEFORE building widget tree, using addPostFrameCallback
+    // This ensures sprintDisplayTaskQueue is populated before Visibility widget checks it
     if (!initialized) {
-      activeSprint = widget.sprint ?? ref.read(activeSprintProvider);
-      validateState();
-      endDate = getEndDate();
-      preSelectUrgentAndDueAndPreviousSprint();
-      createTemporaryIterations();
-      initialized = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          activeSprint = widget.sprint ?? ref.read(activeSprintProvider);
+          validateState();
+          endDate = getEndDate();
+          preSelectUrgentAndDueAndPreviousSprint();
+          createTemporaryIterations();
+          initialized = true;
+        });
+      });
     }
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Select Tasks'),
       ),
-      body: _buildListView(context),
+      body: initialized ? _buildListView(context) : const Center(child: CircularProgressIndicator()),
       floatingActionButton: Visibility(
         visible: sprintDisplayTaskQueue.isNotEmpty,
         child: FloatingActionButton.extended(

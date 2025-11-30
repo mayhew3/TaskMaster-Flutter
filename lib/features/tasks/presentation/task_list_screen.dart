@@ -56,7 +56,6 @@ class TaskListScreen extends ConsumerWidget {
         },
         child: const Icon(Icons.add),
       ),
-      bottomNavigationBar: const AppBottomNav(),
     );
   }
 

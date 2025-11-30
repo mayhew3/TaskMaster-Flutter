@@ -91,7 +91,6 @@ class SprintTaskItemsScreen extends ConsumerWidget {
         sprintMode: true,
       ),
       drawer: const AppDrawer(),
-      bottomNavigationBar: const AppBottomNav(),
     );
   }
 }

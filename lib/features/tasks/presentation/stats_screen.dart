@@ -67,7 +67,6 @@ class StatsScreen extends ConsumerWidget {
         ),
       ),
       drawer: const AppDrawer(),
-      bottomNavigationBar: const AppBottomNav(),
     );
   }
 }

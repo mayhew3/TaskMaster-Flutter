@@ -159,10 +159,26 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
       }
     }
 
+    // Get all recurrences to populate tasks
+    final allRecurrences = ref.read(taskRecurrencesProvider).value ?? [];
+
     for (var recurID in recurIDs) {
       Iterable<TaskItem> recurItems = eligibleItems.where((var taskItem) => taskItem.recurrenceDocId == recurID);
       List<TaskItem> sortedItems = recurItems.sorted((TaskItem t1, TaskItem t2) => t1.recurIteration!.compareTo(t2.recurIteration!));
       TaskItem newest = sortedItems.last;
+
+      // Populate recurrence on the task if not already populated
+      if (newest.recurrence == null && newest.recurrenceDocId != null) {
+        final recurrence = allRecurrences.firstWhereOrNull((r) => r.docId == newest.recurrenceDocId);
+        if (recurrence != null) {
+          newest = newest.rebuild((b) => b..recurrence = recurrence.toBuilder());
+        } else {
+          // Skip this task if recurrence not found
+          print('[TM-304] Skipping task ${newest.docId} - recurrence ${newest.recurrenceDocId} not found');
+          continue;
+        }
+      }
+
       List<TaskItemRecurPreview> futureIterations = [];
       if (newest.startDate != null && !newest.startDate!.isUtc) {
         print("[createTemporaryIterations]: Task '${newest.name}' has non-UTC start date! ID: ${newest.docId}");

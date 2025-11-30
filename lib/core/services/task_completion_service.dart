@@ -177,6 +177,13 @@ class UpdateTask extends _$UpdateTask {
 
     state = await AsyncValue.guard(() async {
       final repository = ref.read(taskRepositoryProvider);
+      final personDocId = ref.read(personDocIdProvider);
+
+      // Set personDocId on the blueprint (matching AddTask behavior)
+      // This is needed when adding recurrence to an existing task
+      blueprint.personDocId = personDocId;
+      blueprint.recurrenceBlueprint?.personDocId = personDocId;
+
       await repository.updateTaskAndRecurrence(task.docId, blueprint);
     });
   }
