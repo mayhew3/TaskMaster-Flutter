@@ -422,8 +422,12 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                         return _getPreviousDateOrNow(TaskDateTypes.target);
                       },
                       dateSetter: (DateTime? pickedDate) {
+                        print('[TM-300 DEBUG] Target Date dateSetter called with: $pickedDate');
+                        print('[TM-300 DEBUG] hasDate() before: ${hasDate()}');
                         setState(() {
                           taskItemBlueprint.targetDate = pickedDate;
+                          print('[TM-300 DEBUG] blueprint.targetDate now: ${taskItemBlueprint.targetDate}');
+                          print('[TM-300 DEBUG] hasDate() after: ${hasDate()}');
                           if (!hasDate()) {
                             clearRepeatOn();
                           }
