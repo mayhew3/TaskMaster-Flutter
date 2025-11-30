@@ -51,6 +51,7 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
   bool popped = false;
   int? _initialTaskCount; // Track initial task count for new task detection
   bool _submitting = false; // Track if submit was pressed
+  bool _initialized = false; // Track if task has been initialized to prevent re-init on rebuild
 
   @override
   void initState() {
@@ -275,13 +276,15 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
     return tasksAsync.when(
       data: (tasks) {
         // Initialize task on first build or when data loads
-        if (taskItem == null) {
+        // Use _initialized flag to prevent re-initialization on every rebuild
+        if (!_initialized) {
           final task = widget.taskItemId != null
               ? ref.read(taskProvider(widget.taskItemId!))
               : null;
           _initializeTask(task);
           // Store initial task count for new task detection
           _initialTaskCount ??= tasks.length;
+          _initialized = true;
         }
 
         // Get timezoneHelper from Riverpod provider
