@@ -101,7 +101,7 @@ final addTaskProvider =
     );
 
 typedef _$AddTask = AutoDisposeAsyncNotifier<void>;
-String _$updateTaskHash() => r'be3105f321431a44b5e31fe119cb7ea6fb1b3ed4';
+String _$updateTaskHash() => r'49ffd7d68d141aeb6dfe2ce825bb8b5ce7f1bd64';
 
 /// Controller for updating tasks
 ///

@@ -8,6 +8,7 @@ import '../../../models/sprint_assignment.dart';
 import '../../../models/sprint.dart';
 import '../../../models/serializers.dart';
 import '../../../helpers/recurrence_helper.dart';
+import '../../tasks/providers/task_providers.dart';
 import '../providers/sprint_providers.dart';
 
 part 'sprint_service.g.dart';
@@ -187,11 +188,13 @@ class CreateSprint extends _$CreateSprint {
     required List<TaskItemRecurPreview> taskItemRecurPreviews,
   }) async {
     final service = ref.read(sprintServiceProvider);
-    return await service.createSprintWithTasks(
+    final result = await service.createSprintWithTasks(
       sprintBlueprint: sprintBlueprint,
       taskItems: taskItems,
       taskItemRecurPreviews: taskItemRecurPreviews,
     );
+
+    return result;
   }
 }
 
@@ -206,8 +209,6 @@ class AddTasksToSprint extends _$AddTasksToSprint {
     required List<TaskItem> taskItems,
     required List<TaskItemRecurPreview> taskItemRecurPreviews,
   }) async {
-    state = const AsyncLoading();
-
     state = await AsyncValue.guard(() async {
       final service = ref.read(sprintServiceProvider);
       await service.addTasksToSprint(
@@ -215,9 +216,13 @@ class AddTasksToSprint extends _$AddTasksToSprint {
         taskItems: taskItems,
         taskItemRecurPreviews: taskItemRecurPreviews,
       );
-      // Invalidate sprints provider to force refresh from Firestore
-      // This is needed because adding to subcollection doesn't trigger parent snapshot
-      ref.invalidate(sprintsProvider);
     });
+
+    // Invalidate sprints provider AFTER state is set to force reload from Firestore
+    // This is needed because adding to subcollection doesn't trigger parent snapshot
+    if (state.hasValue) {
+      print('[TM-306] Invalidating sprints provider');
+      ref.invalidate(sprintsProvider);
+    }
   }
 }

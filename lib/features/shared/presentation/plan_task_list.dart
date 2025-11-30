@@ -329,6 +329,13 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
   }
 
   void submit(BuildContext context, String personDocId) async {
+    if (submitting) {
+      print('[TM-306] Submit already in progress, ignoring duplicate call');
+      return;
+    }
+
+    submitting = true;
+
     if (addMode()) {
       SprintBlueprint sprint = SprintBlueprint(
           startDate: widget.startDate!,
@@ -337,25 +344,35 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
           unitName: widget.unitName!,
           personDocId: personDocId
       );
-      print('Submitting');
+      print('[TM-306] Submitting new sprint');
       await ref.read(createSprintProvider.notifier).call(
         sprintBlueprint: sprint,
         taskItems: taskItemQueue,
         taskItemRecurPreviews: taskItemRecurPreviewQueue,
       );
     } else {
+      print('[TM-306] Adding ${taskItemQueue.length} tasks to sprint ${activeSprint!.docId}');
       await ref.read(addTasksToSprintProvider.notifier).call(
         sprint: activeSprint!,
         taskItems: taskItemQueue,
         taskItemRecurPreviews: taskItemRecurPreviewQueue,
       );
+
+      // Pop after successful submit
+      print('[TM-306] Submit complete, popping navigation');
+      if (context.mounted && !popped) {
+        popped = true;
+        Navigator.pop(context);
+      }
     }
+
+    submitting = false;
   }
 
   @override
   Widget build(BuildContext context) {
     // Watch providers
-    final allTasksAsync = ref.watch(tasksProvider);
+    final allTasksAsync = ref.watch(tasksWithRecurrencesProvider);
     final allSprintsAsync = ref.watch(sprintsProvider);
     final recentlyCompletedList = ref.watch(recentlyCompletedTasksProvider);
     final personDocId = ref.watch(personDocIdProvider);
@@ -390,14 +407,11 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
       preSelectUrgentAndDueAndPreviousSprint(allTasksBuilt, lastSprint);
       createTemporaryIterations(allTasksBuilt);
       initialized = true;
-    }
 
-    final lastSprint = lastCompletedSprintSelector(allSprintsBuilt);
-
-    // Auto-pop when sprint is created/updated (matches Redux onWillChange behavior)
-    ref.listen(sprintsProvider, (previous, next) {
-      if (!popped) {
-        if (activeSprint == null) {
+      // Set up listeners after initialization (so activeSprint is set)
+      // Auto-pop when sprint is created (matches Redux onWillChange behavior)
+      ref.listen(sprintsProvider, (previous, next) {
+        if (!popped && activeSprint == null) {
           // In "add mode" - pop when a new active sprint appears
           final prevSprints = previous?.value ?? [];
           final nextSprints = next.value ?? [];
@@ -410,22 +424,40 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
               Navigator.pop(context);
             }
           }
-        } else {
-          // In "add to existing sprint" mode - pop when tasks are added to sprint
-          final prevTasks = previous?.value ?? [];
-          final nextTasks = next.value ?? [];
-          final prevCount = taskItemsForSprintSelector(BuiltList<TaskItem>(prevTasks as List<TaskItem>), activeSprint!).length;
-          final nextCount = taskItemsForSprintSelector(BuiltList<TaskItem>(nextTasks as List<TaskItem>), activeSprint!).length;
+        }
+      });
 
-          if (nextCount > prevCount) {
-            popped = true;
-            if (context.mounted) {
-              Navigator.pop(context);
+      // Auto-pop when tasks are added to existing sprint
+      if (activeSprint != null) {
+        print('[TM-306] Setting up listener for sprint ${activeSprint!.docId}');
+        ref.listen(sprintsProvider, (previous, next) {
+          print('[TM-306] Sprints provider changed!');
+          if (!popped) {
+            // Find the current sprint in the updated list
+            final prevSprints = previous?.value ?? [];
+            final nextSprints = next.value ?? [];
+
+            final prevSprint = prevSprints.firstWhereOrNull((s) => s.docId == activeSprint!.docId);
+            final nextSprint = nextSprints.firstWhereOrNull((s) => s.docId == activeSprint!.docId);
+
+            final prevCount = prevSprint?.sprintAssignments.length ?? 0;
+            final nextCount = nextSprint?.sprintAssignments.length ?? 0;
+
+            print('[TM-306] Sprint assignment count changed: $prevCount -> $nextCount');
+
+            if (nextCount > prevCount) {
+              print('[TM-306] Popping navigation!');
+              popped = true;
+              if (context.mounted) {
+                Navigator.pop(context);
+              }
             }
           }
-        }
+        });
       }
-    });
+    }
+
+    final lastSprint = lastCompletedSprintSelector(allSprintsBuilt);
 
     return Scaffold(
       appBar: AppBar(

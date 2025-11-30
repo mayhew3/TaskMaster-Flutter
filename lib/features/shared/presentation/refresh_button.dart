@@ -17,6 +17,7 @@ class RefreshButton extends ConsumerWidget {
       icon: Icon(Icons.refresh),
       onPressed: () {
         // Invalidate providers to trigger refresh
+        // Note: Invalidating tasksProvider will also invalidate tasksWithRecurrencesProvider
         ref.invalidate(tasksProvider);
         ref.invalidate(taskRecurrencesProvider);
         ref.invalidate(sprintsProvider);

@@ -106,7 +106,7 @@ List<Sprint> sprintsForTask(SprintsForTaskRef ref, TaskItem task) {
 /// Get tasks for a specific sprint
 @riverpod
 List<TaskItem> tasksForSprint(TasksForSprintRef ref, Sprint sprint) {
-  final tasksAsync = ref.watch(tasksProvider);
+  final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
 
   return tasksAsync.maybeWhen(
     data: (tasks) {

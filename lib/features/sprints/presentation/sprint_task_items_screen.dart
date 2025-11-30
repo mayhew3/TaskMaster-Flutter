@@ -35,7 +35,7 @@ class ShowScheduledInSprint extends _$ShowScheduledInSprint {
 /// Provider for filtered tasks in the active sprint
 @riverpod
 List<TaskItem> sprintTaskItems(SprintTaskItemsRef ref, Sprint sprint) {
-  final allTasks = ref.watch(tasksProvider).value ?? [];
+  final allTasks = ref.watch(tasksWithRecurrencesProvider).value ?? [];
   final showCompleted = ref.watch(showCompletedInSprintProvider);
   final showScheduled = ref.watch(showScheduledInSprintProvider);
 

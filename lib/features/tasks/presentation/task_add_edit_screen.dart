@@ -205,6 +205,11 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
   }
 
   bool hasChanges() {
+    // Check if recurrence toggle state has changed
+    if (_repeatOn != _initialRepeatOn) {
+      return true;
+    }
+
     if (editMode()) {
       return taskItemBlueprint.hasChanges(taskItem!);
     } else {
@@ -238,7 +243,12 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
   }
 
   void _checkForAutoClose() {
-    final tasksAsync = ref.read(tasksProvider);
+    // Only check for auto-close if user has submitted the form
+    if (!_submitting) {
+      return;
+    }
+
+    final tasksAsync = ref.read(tasksWithRecurrencesProvider);
     final recurrencesAsync = ref.read(taskRecurrencesProvider);
 
     tasksAsync.whenData((tasks) {
@@ -262,7 +272,7 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
             }
           } else {
             // For new tasks, check if count increased after submitting
-            if (_submitting && _initialTaskCount != null && tasks.length > _initialTaskCount!) {
+            if (_initialTaskCount != null && tasks.length > _initialTaskCount!) {
               popped = true;
               Navigator.pop(context);
             }
@@ -274,11 +284,10 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final tasksAsync = ref.watch(tasksProvider);
-    final taskRecurrencesAsync = ref.watch(taskRecurrencesProvider);
+    final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
 
     // Listen for changes to auto-close
-    ref.listen<AsyncValue<List<TaskItem>>>(tasksProvider, (prev, next) {
+    ref.listen<AsyncValue<List<TaskItem>>>(tasksWithRecurrencesProvider, (prev, next) {
       _checkForAutoClose();
     });
 
@@ -365,6 +374,11 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                             initialText:
                                 _getInputDisplay(taskItemBlueprint.priority),
                             labelText: 'Priority',
+                            onChanged: (value) {
+                              setState(() {
+                                taskItemBlueprint.priority = _parseInt(value);
+                              });
+                            },
                             fieldSetter: (value) =>
                                 taskItemBlueprint.priority = _parseInt(value),
                             inputType: TextInputType.number,
@@ -375,6 +389,11 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                             initialText:
                                 _getInputDisplay(taskItemBlueprint.gamePoints),
                             labelText: 'Points',
+                            onChanged: (value) {
+                              setState(() {
+                                taskItemBlueprint.gamePoints = _parseInt(value);
+                              });
+                            },
                             fieldSetter: (value) =>
                                 taskItemBlueprint.gamePoints = _parseInt(value),
                             inputType: TextInputType.number,
@@ -385,6 +404,11 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                             initialText:
                                 _getInputDisplay(taskItemBlueprint.duration),
                             labelText: 'Length',
+                            onChanged: (value) {
+                              setState(() {
+                                taskItemBlueprint.duration = _parseInt(value);
+                              });
+                            },
                             fieldSetter: (value) =>
                                 taskItemBlueprint.duration = _parseInt(value),
                             inputType: TextInputType.number,
@@ -613,8 +637,12 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                     EditableTaskField(
                       initialText: taskItemBlueprint.description,
                       labelText: 'Notes',
-                      onChanged: (value) => taskItemBlueprint.description =
-                          value == null || value.isEmpty ? null : value,
+                      onChanged: (value) {
+                        setState(() {
+                          taskItemBlueprint.description =
+                              value == null || value.isEmpty ? null : value;
+                        });
+                      },
                       fieldSetter: (value) => taskItemBlueprint.description =
                           value == null || value.isEmpty ? null : value,
                       inputType: TextInputType.multiline,
@@ -624,9 +652,11 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
               ),
             ),
           ),
-          floatingActionButton: FloatingActionButton(
-            child: Icon(isEditing ? Icons.check : Icons.add),
-            onPressed: () {
+          floatingActionButton: Visibility(
+            visible: !isEditing || hasChanges(),
+            child: FloatingActionButton(
+              child: Icon(isEditing ? Icons.check : Icons.add),
+              onPressed: () {
               final form = formKey.currentState;
 
               if (!_repeatOn) {
@@ -671,6 +701,7 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                 }
               }
             },
+            ),
           ),
         );
   }

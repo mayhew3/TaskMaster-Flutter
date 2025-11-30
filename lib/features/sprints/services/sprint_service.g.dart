@@ -23,7 +23,7 @@ final sprintServiceProvider = AutoDisposeProvider<SprintService>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SprintServiceRef = AutoDisposeProviderRef<SprintService>;
-String _$createSprintHash() => r'ac463d66abc712ed4fa91fb98cd5898005fc116c';
+String _$createSprintHash() => r'0b10afc1cf9560ec9af50a47d615ce52b5eca5a2';
 
 /// Controller for creating sprints
 ///
@@ -41,7 +41,7 @@ final createSprintProvider =
     );
 
 typedef _$CreateSprint = AutoDisposeAsyncNotifier<void>;
-String _$addTasksToSprintHash() => r'45aac8acb30c98dbc0b253cbf8badf12768cee91';
+String _$addTasksToSprintHash() => r'02aacb9a25584cdbea42d80b86467bdbee0abe07';
 
 /// Controller for adding tasks to existing sprint
 ///
