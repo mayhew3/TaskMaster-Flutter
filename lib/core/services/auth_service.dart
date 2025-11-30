@@ -173,7 +173,28 @@ class Auth extends _$Auth {
     await googleSignIn.initialize();
     print('🔐 Auth: Google Sign In initialized');
 
-    // Try silent sign-in
+    // Listen to authentication events stream for automatic session restoration
+    googleSignIn.authenticationEvents.listen(
+      (GoogleSignInAuthenticationEvent event) async {
+        switch (event) {
+          case GoogleSignInAuthenticationEventSignIn():
+            print('🔐 Auth: Sign-in event - user: ${event.user.displayName}');
+            await _completeSignIn(event.user);
+          case GoogleSignInAuthenticationEventSignOut():
+            print('🔐 Auth: Sign-out event');
+            state = const AuthState(status: AuthStatus.unauthenticated);
+        }
+      },
+      onError: (error) {
+        print('🔐 Auth: Authentication event error: $error');
+        state = AuthState(
+          status: AuthStatus.unauthenticated,
+          errorMessage: 'Authentication error: $error',
+        );
+      },
+    );
+
+    // Trigger lightweight authentication to restore session
     await trySilentSignIn();
   }
 
