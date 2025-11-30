@@ -640,6 +640,14 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                   _submitting = true;
                 });
 
+                // Debug logging before save
+                print('[TM-300 DEBUG] About to save task:');
+                print('  startDate: ${taskItemBlueprint.startDate}');
+                print('  targetDate: ${taskItemBlueprint.targetDate}');
+                print('  dueDate: ${taskItemBlueprint.dueDate}');
+                print('  urgentDate: ${taskItemBlueprint.urgentDate}');
+                print('  hasDate(): ${hasDate()}');
+
                 // Use Riverpod providers for task operations
                 // Don't await - let the auto-close mechanism handle closing via stream updates
                 if (editMode()) {
