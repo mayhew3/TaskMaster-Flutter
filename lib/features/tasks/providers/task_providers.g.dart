@@ -46,7 +46,7 @@ final taskRecurrencesProvider =
 // ignore: unused_element
 typedef TaskRecurrencesRef = AutoDisposeStreamProviderRef<List<TaskRecurrence>>;
 String _$tasksWithRecurrencesHash() =>
-    r'0f5fb87782bb03dbdfdc942aa6f19bbedbe261cd';
+    r'a37a5892e560843cfdcdb1f94e3af3a9419a1bb4';
 
 /// Stream of tasks with their recurrences populated
 /// This is the primary provider that UI should use - it ensures task.recurrence
@@ -67,7 +67,7 @@ final tasksWithRecurrencesProvider = StreamProvider<List<TaskItem>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TasksWithRecurrencesRef = StreamProviderRef<List<TaskItem>>;
-String _$taskHash() => r'4bf9d3ef4a5420abd7dcd9b2ddb4d6300c31109c';
+String _$taskHash() => r'97a95f1e85b1db772c8782797b9fdfa24da18ff7';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -90,22 +90,22 @@ class _SystemHash {
   }
 }
 
-/// Get a specific task by ID
+/// Get a specific task by ID with recurrence populated
 ///
 /// Copied from [task].
 @ProviderFor(task)
 const taskProvider = TaskFamily();
 
-/// Get a specific task by ID
+/// Get a specific task by ID with recurrence populated
 ///
 /// Copied from [task].
 class TaskFamily extends Family<TaskItem?> {
-  /// Get a specific task by ID
+  /// Get a specific task by ID with recurrence populated
   ///
   /// Copied from [task].
   const TaskFamily();
 
-  /// Get a specific task by ID
+  /// Get a specific task by ID with recurrence populated
   ///
   /// Copied from [task].
   TaskProvider call(String taskId) {
@@ -132,11 +132,11 @@ class TaskFamily extends Family<TaskItem?> {
   String? get name => r'taskProvider';
 }
 
-/// Get a specific task by ID
+/// Get a specific task by ID with recurrence populated
 ///
 /// Copied from [task].
 class TaskProvider extends AutoDisposeProvider<TaskItem?> {
-  /// Get a specific task by ID
+  /// Get a specific task by ID with recurrence populated
   ///
   /// Copied from [task].
   TaskProvider(String taskId)

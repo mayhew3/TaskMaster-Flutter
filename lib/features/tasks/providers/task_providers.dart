@@ -84,13 +84,17 @@ Stream<List<TaskRecurrence>> taskRecurrences(TaskRecurrencesRef ref) {
 /// This is the primary provider that UI should use - it ensures task.recurrence
 /// is always populated for recurring tasks, matching the Redux pattern
 @Riverpod(keepAlive: true)
-Stream<List<TaskItem>> tasksWithRecurrences(TasksWithRecurrencesRef ref) async* {
+Stream<List<TaskItem>> tasksWithRecurrences(TasksWithRecurrencesRef ref) {
   // Watch both streams
-  await for (final tasks in ref.watch(tasksProvider.stream)) {
-    final recurrences = await ref.read(taskRecurrencesProvider.future);
+  final tasksStream = ref.watch(tasksProvider.stream);
+  final recurrencesStream = ref.watch(taskRecurrencesProvider.stream);
+
+  // Combine both streams and link tasks with recurrences
+  return tasksStream.asyncMap((tasks) async {
+    final recurrences = await recurrencesStream.first;
 
     // Link tasks with their recurrences (matching Redux onTaskItemsAdded pattern)
-    final linked = tasks.map((task) {
+    return tasks.map((task) {
       if (task.recurrenceDocId != null) {
         final recurrence = recurrences
             .where((r) => r.docId == task.recurrenceDocId)
@@ -101,15 +105,13 @@ Stream<List<TaskItem>> tasksWithRecurrences(TasksWithRecurrencesRef ref) async* 
       }
       return task;
     }).toList();
-
-    yield linked;
-  }
+  });
 }
 
-/// Get a specific task by ID
+/// Get a specific task by ID with recurrence populated
 @riverpod
 TaskItem? task(TaskRef ref, String taskId) {
-  final tasksAsync = ref.watch(tasksProvider);
+  final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
 
   return tasksAsync.maybeWhen(
     data: (tasks) => tasks.where((t) => t.docId == taskId).firstOrNull,

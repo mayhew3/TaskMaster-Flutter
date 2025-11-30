@@ -26,19 +26,18 @@ class TaskListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final groupedTasks = ref.watch(groupedTasksProvider);
-    final tasksAsync = ref.watch(tasksProvider);
+    final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Tasks'),
         actions: [
-          const RefreshButton(),
           _FilterPopupMenu(),
+          const RefreshButton(),
         ],
       ),
       body: tasksAsync.when(
-        data: (_) => _TaskListBody(groups: groupedTasks),
+        data: (_) => const _TaskListBody(),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(
           child: Text('Error loading tasks: $err'),
@@ -94,9 +93,7 @@ class _FilterPopupMenu extends ConsumerWidget {
 }
 
 class _TaskListBody extends ConsumerStatefulWidget {
-  final List<TaskGroup> groups;
-
-  const _TaskListBody({required this.groups});
+  const _TaskListBody();
 
   @override
   ConsumerState<_TaskListBody> createState() => _TaskListBodyState();
@@ -107,6 +104,7 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
 
   @override
   Widget build(BuildContext context) {
+    final groupedTasks = ref.watch(groupedTasksProvider);
     final activeSprint = ref.watch(activeSprintProvider);
     final sprintTasks = activeSprint != null
         ? ref.watch(tasksForSprintProvider(activeSprint))
@@ -130,7 +128,7 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
     }
 
     // If no task groups (all filtered out), show empty state after sprint banner
-    if (widget.groups.isEmpty) {
+    if (groupedTasks.isEmpty) {
       if (tiles.isEmpty) {
         // No sprint banner either - show simple empty state
         return _buildEmptyState();
@@ -147,7 +145,7 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
       );
     }
 
-    for (final group in widget.groups) {
+    for (final group in groupedTasks) {
       tiles.add(HeadingItem(group.name));
       for (final task in group.tasks) {
         tiles.add(_TaskListItem(task: task));

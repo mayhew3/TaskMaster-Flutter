@@ -6,13 +6,13 @@ part of 'task_filter_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$filteredTasksHash() => r'709e45bd47aea0a64465f4817347837119c49788';
+String _$filteredTasksHash() => r'3ee94b19f2c3e9434501a80a9c24d9ab3d34f1cf';
 
 /// Filtered tasks based on visibility settings
 ///
 /// Copied from [filteredTasks].
 @ProviderFor(filteredTasks)
-final filteredTasksProvider = AutoDisposeProvider<List<TaskItem>>.internal(
+final filteredTasksProvider = Provider<List<TaskItem>>.internal(
   filteredTasks,
   name: r'filteredTasksProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -24,7 +24,7 @@ final filteredTasksProvider = AutoDisposeProvider<List<TaskItem>>.internal(
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef FilteredTasksRef = AutoDisposeProviderRef<List<TaskItem>>;
+typedef FilteredTasksRef = ProviderRef<List<TaskItem>>;
 String _$activeTaskCountHash() => r'f01c94f8df46bdfda6985986e43d2d2496ad634c';
 
 /// Count of active (non-completed, non-retired) tasks

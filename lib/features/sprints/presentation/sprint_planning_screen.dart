@@ -62,7 +62,14 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
   @override
   void initState() {
     super.initState();
-    // activeSprint will be set in first build
+    // Initialization will happen in didChangeDependencies when ref is available
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Note: Actual initialization happens in build() once data is loaded
+    // This is because providers may still be loading when this method first runs
   }
 
   void validateState() {
@@ -76,7 +83,7 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
   }
 
   void preSelectUrgentAndDueAndPreviousSprint() {
-    final allTasks = ref.read(tasksProvider).value ?? [];
+    final allTasks = ref.read(tasksWithRecurrencesProvider).value ?? [];
     final lastSprint = ref.read(lastCompletedSprintProvider);
 
     BuiltList<TaskItem> baseList = _getBaseList(allTasks);
@@ -166,7 +173,7 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
   }
 
   void createTemporaryIterations() {
-    final allTasks = ref.read(tasksProvider).value ?? [];
+    final allTasks = ref.read(tasksWithRecurrencesProvider).value ?? [];
     List<TaskItem> eligibleItems = [];
     eligibleItems.addAll(_getBaseList(allTasks));
 
@@ -185,6 +192,9 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
       }
     }
 
+    // Get all recurrences to populate tasks
+    final allRecurrences = ref.read(taskRecurrencesProvider).value ?? [];
+
     for (var recurID in recurIDs) {
       Iterable<TaskItem> recurItems =
           eligibleItems.where((var taskItem) => taskItem.recurrenceDocId == recurID);
@@ -192,6 +202,19 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
           .sorted((TaskItem t1, TaskItem t2) =>
               t1.recurIteration!.compareTo(t2.recurIteration!));
       TaskItem newest = sortedItems.last;
+
+      // Populate recurrence on the task if not already populated
+      if (newest.recurrence == null && newest.recurrenceDocId != null) {
+        final recurrence = allRecurrences.firstWhereOrNull((r) => r.docId == newest.recurrenceDocId);
+        if (recurrence != null) {
+          newest = newest.rebuild((b) => b..recurrence = recurrence.toBuilder());
+        } else {
+          // Skip this task if recurrence not found
+          print('[TM-303] Skipping task ${newest.docId} - recurrence ${newest.recurrenceDocId} not found');
+          continue;
+        }
+      }
+
       List<TaskItemRecurPreview> futureIterations = [];
 
       if (newest.recurWait == false) {
@@ -232,7 +255,7 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
   }
 
   ListView _buildListView(BuildContext context) {
-    final allTasks = ref.watch(tasksProvider).value ?? [];
+    final allTasks = ref.watch(tasksWithRecurrencesProvider).value ?? [];
     final lastSprint = ref.watch(lastCompletedSprintProvider);
     final recentlyCompleted = allTasks
         .where((t) =>
@@ -396,66 +419,64 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
             taskItems: taskItemQueue,
             taskItemRecurPreviews: taskItemRecurPreviewQueue,
           );
+
+      // Pop after successful submit
+      // Note: Firestore snapshots will automatically update all providers
+      if (context.mounted && !popped) {
+        popped = true;
+        Navigator.pop(context);
+      }
     } else {
       await ref.read(addTasksToSprintProvider.notifier).call(
             sprint: activeSprint!,
             taskItems: taskItemQueue,
             taskItemRecurPreviews: taskItemRecurPreviewQueue,
           );
+
+      // Pop after successful submit
+      if (context.mounted && !popped) {
+        popped = true;
+        Navigator.pop(context);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Listen for sprint creation/update to auto-close
-    ref.listen(sprintsProvider, (previous, next) {
-      if (!popped && previous != null && next.hasValue) {
-        final prevSprints = previous.value ?? [];
-        final nextSprints = next.value ?? [];
+    // Watch providers
+    final allTasksAsync = ref.watch(tasksWithRecurrencesProvider);
+    final allSprintsAsync = ref.watch(sprintsProvider);
 
-        if (addMode()) {
-          // Check if a new sprint was created by comparing sprint counts
-          // or by finding an active sprint in the new list that wasn't in the old list
-          final prevActiveSprint = _findActiveSprint(prevSprints);
-          final nowActiveSprint = _findActiveSprint(nextSprints);
+    // Handle loading/error states
+    if (allTasksAsync.isLoading || allSprintsAsync.isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Select Tasks')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
 
-          if (prevActiveSprint == null && nowActiveSprint != null) {
-            popped = true;
-            Navigator.pop(context);
-          }
-        } else {
-          // Check if tasks were added to existing sprint
-          final prevCount = _countTasksForSprint(prevSprints, activeSprint!);
-          final nextCount = _countTasksForSprint(nextSprints, activeSprint!);
+    if (allTasksAsync.hasError || allSprintsAsync.hasError) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Select Tasks')),
+        body: const Center(child: Text('Error loading data')),
+      );
+    }
 
-          if (nextCount > prevCount) {
-            popped = true;
-            Navigator.pop(context);
-          }
-        }
-      }
-    });
-
-    // Initialize state BEFORE building widget tree, using addPostFrameCallback
-    // This ensures sprintDisplayTaskQueue is populated before Visibility widget checks it
+    // Initialize once data is loaded
     if (!initialized) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        setState(() {
-          activeSprint = widget.sprint ?? ref.read(activeSprintProvider);
-          validateState();
-          endDate = getEndDate();
-          preSelectUrgentAndDueAndPreviousSprint();
-          createTemporaryIterations();
-          initialized = true;
-        });
-      });
+      activeSprint = widget.sprint ?? ref.read(activeSprintProvider);
+      validateState();
+      endDate = getEndDate();
+      preSelectUrgentAndDueAndPreviousSprint();
+      createTemporaryIterations();
+      initialized = true;
     }
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Select Tasks'),
       ),
-      body: initialized ? _buildListView(context) : const Center(child: CircularProgressIndicator()),
+      body: _buildListView(context),
       floatingActionButton: Visibility(
         visible: sprintDisplayTaskQueue.isNotEmpty,
         child: FloatingActionButton.extended(
@@ -464,20 +485,5 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
         ),
       ),
     );
-  }
-
-  Sprint? _findActiveSprint(List<Sprint> sprints) {
-    final now = DateTime.timestamp();
-    final matching = sprints.where((sprint) =>
-        sprint.startDate.isBefore(now) &&
-        sprint.endDate.isAfter(now) &&
-        sprint.closeDate == null);
-    return matching.isEmpty ? null : matching.last;
-  }
-
-  int _countTasksForSprint(List<Sprint> sprints, Sprint targetSprint) {
-    final sprint = sprints.firstWhereOrNull((s) => s.docId == targetSprint.docId);
-    if (sprint == null) return 0;
-    return sprint.sprintAssignments.length;
   }
 }

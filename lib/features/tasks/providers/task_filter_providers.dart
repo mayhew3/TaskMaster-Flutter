@@ -26,41 +26,43 @@ class ShowScheduled extends _$ShowScheduled {
 }
 
 /// Filtered tasks based on visibility settings
-@riverpod
+@Riverpod(keepAlive: true)
 List<TaskItem> filteredTasks(FilteredTasksRef ref) {
   final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
   final showCompleted = ref.watch(showCompletedProvider);
   final showScheduled = ref.watch(showScheduledProvider);
   final activeSprint = ref.watch(activeSprintProvider);
 
-  return tasksAsync.maybeWhen(
-    data: (tasks) {
-      return tasks.where((task) {
-        // Always hide retired tasks
-        if (task.retired != null) return false;
-
-        // Hide all tasks in active sprint (they're shown via sprint banner's "Show Tasks")
-        if (activeSprint != null) {
-          final isInActiveSprint = activeSprint.sprintAssignments
-              .any((sa) => sa.taskDocId == task.docId);
-          if (isInActiveSprint) {
-            return false;
-          }
-        }
-
-        // Filter completed tasks
-        final completedPredicate = task.completionDate == null || showCompleted;
-
-        // Filter scheduled tasks (future startDate)
-        final scheduledPredicate = task.startDate == null ||
-            task.startDate!.isBefore(DateTime.now()) ||
-            showScheduled;
-
-        return completedPredicate && scheduledPredicate;
-      }).toList();
-    },
-    orElse: () => [],
+  // When loading, try to use previous value; if no previous value, return empty list
+  final tasks = tasksAsync.when(
+    data: (data) => data,
+    loading: () => tasksAsync.valueOrNull ?? <TaskItem>[],
+    error: (err, stack) => <TaskItem>[],
   );
+
+  return tasks.where((task) {
+    // Always hide retired tasks
+    if (task.retired != null) return false;
+
+    // Hide all tasks in active sprint (they're shown via sprint banner's "Show Tasks")
+    if (activeSprint != null) {
+      final isInActiveSprint = activeSprint.sprintAssignments
+          .any((sa) => sa.taskDocId == task.docId);
+      if (isInActiveSprint) {
+        return false;
+      }
+    }
+
+    // Filter completed tasks
+    final completedPredicate = task.completionDate == null || showCompleted;
+
+    // Filter scheduled tasks (future startDate)
+    final scheduledPredicate = task.startDate == null ||
+        task.startDate!.isBefore(DateTime.now()) ||
+        showScheduled;
+
+    return completedPredicate && scheduledPredicate;
+  }).toList();
 }
 
 /// Count of active (non-completed, non-retired) tasks
