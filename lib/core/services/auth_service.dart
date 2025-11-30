@@ -73,11 +73,14 @@ class AuthService {
   Future<GoogleSignInAccount?> trySilentSignIn() async {
     try {
       print('🔐 Attempting silent sign-in...');
-      // Use signInSilently() instead of attemptLightweightAuthentication()
-      // This properly uses cached credentials from previous sign-in
-      final account = await _googleSignIn.signInSilently();
-      print('🔐 Silent sign-in result: ${account?.displayName ?? 'null'}');
-      return account;
+      final result = _googleSignIn.attemptLightweightAuthentication();
+
+      if (result is Future<GoogleSignInAccount?>) {
+        final account = await result;
+        print('🔐 Silent sign-in result: ${account?.displayName ?? 'null'}');
+        return account;
+      }
+      return result as GoogleSignInAccount?;
     } on GoogleSignInException catch (e) {
       print('🔐 Google Sign In error: ${e.code.name} - ${e.description}');
       return null;
