@@ -73,14 +73,15 @@ class AuthService {
   Future<GoogleSignInAccount?> trySilentSignIn() async {
     try {
       print('🔐 Attempting silent sign-in...');
-      final result = _googleSignIn.attemptLightweightAuthentication();
 
-      if (result is Future<GoogleSignInAccount?>) {
-        final account = await result;
-        print('🔐 Silent sign-in result: ${account?.displayName ?? 'null'}');
-        return account;
-      }
-      return result as GoogleSignInAccount?;
+      // attemptLightweightAuthentication returns Future<bool>, not the account
+      // The authenticationEvents stream will emit the account if auth succeeds
+      final success = await _googleSignIn.attemptLightweightAuthentication();
+      print('🔐 Silent sign-in attempt result: $success');
+
+      // Return null to indicate we're waiting for the authentication event
+      // The actual account will come through the authenticationEvents stream
+      return null;
     } on GoogleSignInException catch (e) {
       print('🔐 Google Sign In error: ${e.code.name} - ${e.description}');
       return null;
@@ -202,16 +203,12 @@ class Auth extends _$Auth {
   Future<void> trySilentSignIn() async {
     final service = ref.read(authServiceProvider);
 
-    state = state.copyWith(status: AuthStatus.authenticating);
+    // Note: attemptLightweightAuthentication just triggers the auth attempt
+    // The actual authentication result comes through authenticationEvents stream
+    // We don't set state here - let the stream handle all state transitions
+    await service.trySilentSignIn();
 
-    final account = await service.trySilentSignIn();
-    if (account == null) {
-      print('🔐 Auth: Silent sign-in failed, user needs to sign in manually');
-      state = const AuthState(status: AuthStatus.unauthenticated);
-      return;
-    }
-
-    await _completeSignIn(account);
+    print('🔐 Auth: Silent sign-in attempt completed, waiting for authentication events...');
   }
 
   /// Manual sign-in (user clicked button)
@@ -227,7 +224,8 @@ class Auth extends _$Auth {
         return;
       }
 
-      await _completeSignIn(account);
+      // Don't call _completeSignIn here - the authenticationEvents stream will handle it
+      print('🔐 Auth: Manual sign-in successful, waiting for authentication event...');
     } on GoogleSignInException catch (e) {
       state = AuthState(
         status: AuthStatus.unauthenticated,

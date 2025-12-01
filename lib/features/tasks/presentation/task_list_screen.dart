@@ -26,7 +26,10 @@ class TaskListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    print('📋 TaskListScreen: Building...');
     final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
+
+    print('📋 TaskListScreen: tasksAsync isLoading=${tasksAsync.isLoading}, hasValue=${tasksAsync.hasValue}');
 
     return Scaffold(
       appBar: AppBar(
@@ -104,8 +107,21 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
 
   @override
   Widget build(BuildContext context) {
-    final groupedTasks = ref.watch(groupedTasksProvider);
+    final groupedTasksAsync = ref.watch(groupedTasksProvider);
     final activeSprint = ref.watch(activeSprintProvider);
+
+    // Handle loading/error states for grouped tasks
+    if (groupedTasksAsync.isLoading && !groupedTasksAsync.hasValue) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (groupedTasksAsync.hasError && !groupedTasksAsync.hasValue) {
+      return Center(
+        child: Text('Error loading tasks: ${groupedTasksAsync.error}'),
+      );
+    }
+
+    final groupedTasks = groupedTasksAsync.valueOrNull ?? [];
     final sprintTasks = activeSprint != null
         ? ref.watch(tasksForSprintProvider(activeSprint))
         : <TaskItem>[];

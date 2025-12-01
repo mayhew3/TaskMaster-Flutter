@@ -217,7 +217,7 @@ class _SprintsForTaskProviderElement
   TaskItem get task => (origin as SprintsForTaskProvider).task;
 }
 
-String _$tasksForSprintHash() => r'5a83c119894a110efabe992f9c43743db9b3dcc2';
+String _$tasksForSprintHash() => r'b8c56b1d6dcf4b09d3693a6d6f47654fce76db1c';
 
 /// Get tasks for a specific sprint
 ///

@@ -6,25 +6,26 @@ part of 'task_filter_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$filteredTasksHash() => r'3ee94b19f2c3e9434501a80a9c24d9ab3d34f1cf';
+String _$filteredTasksHash() => r'87a099407dc65de591349338e54263a51ea5e6c9';
 
 /// Filtered tasks based on visibility settings
 ///
 /// Copied from [filteredTasks].
 @ProviderFor(filteredTasks)
-final filteredTasksProvider = Provider<List<TaskItem>>.internal(
-  filteredTasks,
-  name: r'filteredTasksProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$filteredTasksHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final filteredTasksProvider =
+    AutoDisposeFutureProvider<List<TaskItem>>.internal(
+      filteredTasks,
+      name: r'filteredTasksProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$filteredTasksHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef FilteredTasksRef = ProviderRef<List<TaskItem>>;
+typedef FilteredTasksRef = AutoDisposeFutureProviderRef<List<TaskItem>>;
 String _$activeTaskCountHash() => r'f01c94f8df46bdfda6985986e43d2d2496ad634c';
 
 /// Count of active (non-completed, non-retired) tasks
@@ -64,25 +65,26 @@ final completedTaskCountProvider = AutoDisposeProvider<int>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CompletedTaskCountRef = AutoDisposeProviderRef<int>;
-String _$groupedTasksHash() => r'e627dd78edbdd2d831fea865d44bb711a3e5ab42';
+String _$groupedTasksHash() => r'403450213eadc102bef593cfb6c78a28b010a616';
 
 /// Grouped and sorted tasks for the task list
 ///
 /// Copied from [groupedTasks].
 @ProviderFor(groupedTasks)
-final groupedTasksProvider = AutoDisposeProvider<List<TaskGroup>>.internal(
-  groupedTasks,
-  name: r'groupedTasksProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$groupedTasksHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final groupedTasksProvider =
+    AutoDisposeFutureProvider<List<TaskGroup>>.internal(
+      groupedTasks,
+      name: r'groupedTasksProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$groupedTasksHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef GroupedTasksRef = AutoDisposeProviderRef<List<TaskGroup>>;
+typedef GroupedTasksRef = AutoDisposeFutureProviderRef<List<TaskGroup>>;
 String _$showCompletedHash() => r'4ff3e319b903af05cbce17b2f69eef4b9aed02c0';
 
 /// Simple state providers for filter toggles

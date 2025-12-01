@@ -26,21 +26,19 @@ class ShowScheduled extends _$ShowScheduled {
 }
 
 /// Filtered tasks based on visibility settings
-@Riverpod(keepAlive: true)
-List<TaskItem> filteredTasks(FilteredTasksRef ref) {
-  final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
+@riverpod
+Future<List<TaskItem>> filteredTasks(FilteredTasksRef ref) async {
   final showCompleted = ref.watch(showCompletedProvider);
   final showScheduled = ref.watch(showScheduledProvider);
   final activeSprint = ref.watch(activeSprintProvider);
 
-  // When loading, try to use previous value; if no previous value, return empty list
-  final tasks = tasksAsync.when(
-    data: (data) => data,
-    loading: () => tasksAsync.valueOrNull ?? <TaskItem>[],
-    error: (err, stack) => <TaskItem>[],
-  );
+  print('📋 filteredTasksProvider: Starting with showCompleted=$showCompleted, showScheduled=$showScheduled');
 
-  return tasks.where((task) {
+  // Watch the tasks future
+  final tasks = await ref.watch(tasksWithRecurrencesProvider.future);
+  print('📋 filteredTasksProvider: Received ${tasks.length} tasks');
+
+  final filtered = tasks.where((task) {
     // Always hide retired tasks
     if (task.retired != null) return false;
 
@@ -63,6 +61,9 @@ List<TaskItem> filteredTasks(FilteredTasksRef ref) {
 
     return completedPredicate && scheduledPredicate;
   }).toList();
+
+  print('📋 filteredTasksProvider: Returning ${filtered.length} filtered tasks');
+  return filtered;
 }
 
 /// Count of active (non-completed, non-retired) tasks
@@ -104,8 +105,12 @@ class TaskGroup {
 
 /// Grouped and sorted tasks for the task list
 @riverpod
-List<TaskGroup> groupedTasks(GroupedTasksRef ref) {
-  final filtered = ref.watch(filteredTasksProvider);
+Future<List<TaskGroup>> groupedTasks(GroupedTasksRef ref) async {
+  print('📋 groupedTasksProvider: Starting');
+
+  // Watch the filtered tasks future
+  final filtered = await ref.watch(filteredTasksProvider.future);
+  print('📋 groupedTasksProvider: Received ${filtered.length} filtered tasks');
 
   final groups = <String, List<TaskItem>>{
     'Past Due': [],
@@ -147,7 +152,7 @@ List<TaskGroup> groupedTasks(GroupedTasksRef ref) {
     'Completed': 6,
   };
 
-  return groups.entries
+  final result = groups.entries
       .where((entry) => entry.value.isNotEmpty)
       .map((entry) => TaskGroup(
             name: entry.key,
@@ -156,4 +161,7 @@ List<TaskGroup> groupedTasks(GroupedTasksRef ref) {
           ))
       .toList()
     ..sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
+
+  print('📋 groupedTasksProvider: Returning ${result.length} task groups');
+  return result;
 }

@@ -6,7 +6,7 @@ part of 'task_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$tasksHash() => r'f6688c3280a5b67a593f8b62ff15e25a85f072d2';
+String _$tasksHash() => r'7341578df2daac082d53dcaa1441d2bbc28d7661';
 
 /// Stream of all tasks for the current user
 ///
@@ -46,7 +46,7 @@ final taskRecurrencesProvider =
 // ignore: unused_element
 typedef TaskRecurrencesRef = AutoDisposeStreamProviderRef<List<TaskRecurrence>>;
 String _$tasksWithRecurrencesHash() =>
-    r'a37a5892e560843cfdcdb1f94e3af3a9419a1bb4';
+    r'85c31a35544d42fa4cf29f815420478fa95db671';
 
 /// Stream of tasks with their recurrences populated
 /// This is the primary provider that UI should use - it ensures task.recurrence
@@ -54,19 +54,20 @@ String _$tasksWithRecurrencesHash() =>
 ///
 /// Copied from [tasksWithRecurrences].
 @ProviderFor(tasksWithRecurrences)
-final tasksWithRecurrencesProvider = StreamProvider<List<TaskItem>>.internal(
-  tasksWithRecurrences,
-  name: r'tasksWithRecurrencesProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$tasksWithRecurrencesHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final tasksWithRecurrencesProvider =
+    AutoDisposeFutureProvider<List<TaskItem>>.internal(
+      tasksWithRecurrences,
+      name: r'tasksWithRecurrencesProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$tasksWithRecurrencesHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef TasksWithRecurrencesRef = StreamProviderRef<List<TaskItem>>;
+typedef TasksWithRecurrencesRef = AutoDisposeFutureProviderRef<List<TaskItem>>;
 String _$taskHash() => r'97a95f1e85b1db772c8782797b9fdfa24da18ff7';
 
 /// Copied from Dart SDK

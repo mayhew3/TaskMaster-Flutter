@@ -44,7 +44,7 @@ final authServiceProvider = Provider<AuthService>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AuthServiceRef = ProviderRef<AuthService>;
-String _$authHash() => r'2f09b066730ce4cd2a3e6cb9f24c6b1846045460';
+String _$authHash() => r'b17a73b2945a5909b5cf1a8006ccd8ab062f0560';
 
 /// Main auth state notifier - manages authentication flow
 ///
