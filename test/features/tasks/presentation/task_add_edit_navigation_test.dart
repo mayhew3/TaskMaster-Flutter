@@ -9,6 +9,9 @@ import '../../../integration/integration_test_helper.dart';
 
 /// Tests for TM-282: Navigation bugs after Riverpod migration
 /// Specifically: "Create task doesn't navigate back to task list"
+///
+/// NOTE: These tests use pumpAppWithLiveFirestore() instead of pumpApp()
+/// because auto-close logic requires Firestore streams to see task updates.
 void main() {
   group('TaskAddEditScreen Navigation Tests (TM-282)', () {
     late FakeFirebaseFirestore fakeFirestore;
@@ -20,7 +23,7 @@ void main() {
     testWidgets('Creating a new task navigates back to task list',
         (tester) async {
       // Setup: Start with empty task list
-      await IntegrationTestHelper.pumpApp(
+      await IntegrationTestHelper.pumpAppWithLiveFirestore(
         tester,
         firestore: fakeFirestore,
         initialTasks: [],
@@ -81,7 +84,7 @@ void main() {
       // Setup: Start with one task
       final now = DateTime.now().toUtc();
 
-      await IntegrationTestHelper.pumpApp(
+      await IntegrationTestHelper.pumpAppWithLiveFirestore(
         tester,
         firestore: fakeFirestore,
         initialTasks: [

@@ -78,27 +78,6 @@ class IntegrationTestHelper {
       'name': 'Test User',
     });
 
-    // Seed initial tasks into Firestore (needed for save/update operations and auto-close)
-    for (final task in (initialTasks ?? [])) {
-      await testFirestore.collection('tasks').doc(task.docId).set({
-        'name': task.name,
-        'personDocId': task.personDocId,
-        'dateAdded': task.dateAdded.toIso8601String(),
-        'offCycle': task.offCycle ?? false,
-        'pendingCompletion': task.pendingCompletion ?? false,
-      });
-    }
-
-    // Seed initial recurrences into Firestore
-    for (final recurrence in (initialRecurrences ?? [])) {
-      await testFirestore.collection('taskRecurrences').doc(recurrence.docId).set({
-        'name': recurrence.name,
-        'personDocId': recurrence.personDocId,
-        'recurNumber': recurrence.recurNumber,
-        'recurUnit': recurrence.recurUnit,
-      });
-    }
-
     // Create real task repository with fake Firestore
     final taskRepository = TaskRepository(firestore: testFirestore);
     final navigatorKey = GlobalKey<NavigatorState>();
@@ -173,8 +152,10 @@ class IntegrationTestHelper {
           firestoreProvider.overrideWithValue(testFirestore),
           // Override auth providers with test data
           personDocIdProvider.overrideWith((ref) => testPersonDocId),
-          // Don't override task/recurrence providers - let them watch Firestore naturally
-          // This allows auto-close logic to work when tasks are saved
+          // Override task/recurrence providers with test data
+          tasksProvider.overrideWith((ref) => Stream.value(tasksWithRecurrences)),
+          tasksWithRecurrencesProvider.overrideWith((ref) async => tasksWithRecurrences),
+          taskRecurrencesProvider.overrideWith((ref) => Stream.value(recurrencesList)),
           sprintsProvider.overrideWith((ref) => Stream.value(initialSprints ?? [])),
           // Override timezone helper notifier to immediately return mock
           timezoneHelperNotifierProvider.overrideWith(() => _TestTimezoneHelperNotifier()),
@@ -357,14 +338,15 @@ class IntegrationTestHelper {
           firestoreProvider.overrideWithValue(testFirestore),
           // Override auth providers with test data
           personDocIdProvider.overrideWith((ref) => testPersonDocId),
-          // Override data providers with streams that emit initial data first
-          // then continue reading from Firestore
+          // Override task providers to read from Firestore WITHOUT using .startWith()
+          // The issue is that .startWith() + Firestore streams cause infinite rebuilds
+          // Instead, just read from Firestore directly - it will emit initial data fast enough
           tasksProvider.overrideWith((ref) {
             final firestore = ref.watch(firestoreProvider);
             final personDocId = ref.watch(personDocIdProvider);
             if (personDocId == null) return Stream.value(<TaskItem>[]);
 
-            final firestoreStream = firestore
+            return firestore
                 .collection('tasks')
                 .where('personDocId', isEqualTo: personDocId)
                 .where('retired', isNull: true)
@@ -376,15 +358,13 @@ class IntegrationTestHelper {
                     return TaskItem.fromJson(json);
                   }).toList();
                 });
-            // Start with initial data, then switch to Firestore stream
-            return firestoreStream.startWith(initialTasksList);
           }),
           sprintsProvider.overrideWith((ref) {
             final firestore = ref.watch(firestoreProvider);
             final personDocId = ref.watch(personDocIdProvider);
             if (personDocId == null) return Stream.value(<Sprint>[]);
 
-            final firestoreStream = firestore
+            return firestore
                 .collection('sprints')
                 .where('personDocId', isEqualTo: personDocId)
                 .snapshots()
@@ -395,14 +375,13 @@ class IntegrationTestHelper {
                     return serializers.deserializeWith(Sprint.serializer, json)!;
                   }).toList();
                 });
-            return firestoreStream.startWith(initialSprintsList);
           }),
           taskRecurrencesProvider.overrideWith((ref) {
             final firestore = ref.watch(firestoreProvider);
             final personDocId = ref.watch(personDocIdProvider);
             if (personDocId == null) return Stream.value(<TaskRecurrence>[]);
 
-            final firestoreStream = firestore
+            return firestore
                 .collection('taskRecurrences')
                 .where('personDocId', isEqualTo: personDocId)
                 .snapshots()
@@ -413,27 +392,9 @@ class IntegrationTestHelper {
                     return TaskRecurrence.fromJson(json);
                   }).toList();
                 });
-            return firestoreStream.startWith(initialRecurrencesList);
           }),
-          // Override tasksWithRecurrencesProvider to avoid infinite rebuild loop
-          // when tasks or recurrences streams emit
-          tasksWithRecurrencesProvider.overrideWith((ref) async {
-            final tasks = await ref.watch(tasksProvider.future);
-            final recurrences = await ref.watch(taskRecurrencesProvider.future);
-
-            // Link tasks with their recurrences
-            return tasks.map((task) {
-              if (task.recurrenceDocId != null) {
-                final recurrence = recurrences
-                    .where((r) => r.docId == task.recurrenceDocId)
-                    .firstOrNull;
-                if (recurrence != null) {
-                  return task.rebuild((t) => t..recurrence = recurrence.toBuilder());
-                }
-              }
-              return task;
-            }).toList();
-          }),
+          // Don't override tasksWithRecurrencesProvider - let it use the default implementation
+          // which properly handles stream dependencies
           // Override timezone helper notifier to immediately return mock
           timezoneHelperNotifierProvider.overrideWith(() => _TestTimezoneHelperNotifier()),
         ],
