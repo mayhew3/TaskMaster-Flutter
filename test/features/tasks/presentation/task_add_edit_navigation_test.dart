@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaster/features/tasks/presentation/task_add_edit_screen.dart';
 import 'package:taskmaster/features/tasks/presentation/task_list_screen.dart';
+import 'package:taskmaster/models/task_item.dart';
 import '../../../integration/integration_test_helper.dart';
 
 /// Tests for TM-282: Navigation bugs after Riverpod migration
@@ -77,16 +78,20 @@ void main() {
     testWidgets('Editing an existing task navigates back after save',
         (tester) async {
       // Setup: Start with one task
-      final now = DateTime.now();
+      final now = DateTime.now().toUtc();
       await IntegrationTestHelper.pumpApp(
         tester,
         firestore: fakeFirestore,
         initialTasks: [
-          IntegrationTestHelper.createTask(
-            'task-1',
-            'Original Task Name',
-            now,
-          ),
+          TaskItem((b) => b
+            ..docId = 'task-1'
+            ..name = 'Original Task Name'
+            ..personDocId = 'test-person-123'
+            ..dateAdded = now
+            ..completionDate = null
+            ..retired = null
+            ..offCycle = false
+            ..pendingCompletion = false),
         ],
         initialSprints: [],
       );

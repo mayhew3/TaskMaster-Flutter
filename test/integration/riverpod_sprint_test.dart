@@ -55,8 +55,8 @@ void main() {
           tasksProvider.overrideWith((ref) {
             return Stream.value([task1, task2]);
           }),
-          tasksWithRecurrencesProvider.overrideWith((ref) {
-            return Stream.value([task1, task2]);
+          tasksWithRecurrencesProvider.overrideWith((ref) async {
+            return [task1, task2];
           }),
           sprintsProvider.overrideWith((ref) {
             return Stream.value([sprint]);
@@ -73,7 +73,7 @@ void main() {
       await container.read(sprintsProvider.future);
 
       // Get filtered tasks
-      final filteredTasks = container.read(filteredTasksProvider);
+      final filteredTasks = await container.read(filteredTasksProvider.future);
 
       // Verify: Only task2 should be visible (task1 is in active sprint)
       expect(filteredTasks.length, 1);
@@ -114,7 +114,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           tasksProvider.overrideWith((ref) => Stream.value([completedSprintTask])),
-          tasksWithRecurrencesProvider.overrideWith((ref) => Stream.value([completedSprintTask])),
+          tasksWithRecurrencesProvider.overrideWith((ref) async => [completedSprintTask]),
           sprintsProvider.overrideWith((ref) => Stream.value([sprint])),
         ],
       );
@@ -130,7 +130,7 @@ void main() {
       container.read(showCompletedProvider.notifier).set(true);
 
       // Get filtered tasks
-      final filteredTasks = container.read(filteredTasksProvider);
+      final filteredTasks = await container.read(filteredTasksProvider.future);
 
       // Verify: Sprint task should NOT be in filteredTasks (even when completed)
       // This prevents duplicates when viewing sprint tasks via "Show Tasks" toggle
@@ -180,7 +180,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           tasksProvider.overrideWith((ref) => Stream.value([task1, task2])),
-          tasksWithRecurrencesProvider.overrideWith((ref) => Stream.value([task1, task2])),
+          tasksWithRecurrencesProvider.overrideWith((ref) async => [task1, task2]),
           sprintsProvider.overrideWith((ref) => Stream.value([sprint])),
         ],
       );
@@ -190,7 +190,7 @@ void main() {
       await container.read(tasksWithRecurrencesProvider.future);
       await container.read(sprintsProvider.future);
 
-      final filteredTasks = container.read(filteredTasksProvider);
+      final filteredTasks = await container.read(filteredTasksProvider.future);
 
       // Verify: Both tasks should be visible
       expect(filteredTasks.length, 2);
@@ -353,7 +353,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           tasksProvider.overrideWith((ref) => Stream.value([task1, task2, task3])),
-          tasksWithRecurrencesProvider.overrideWith((ref) => Stream.value([task1, task2, task3])),
+          tasksWithRecurrencesProvider.overrideWith((ref) async => [task1, task2, task3]),
           sprintsProvider.overrideWith((ref) => Stream.value([sprint])),
         ],
       );
@@ -363,7 +363,7 @@ void main() {
       await container.read(tasksWithRecurrencesProvider.future);
       await container.read(sprintsProvider.future);
 
-      final filteredTasks = container.read(filteredTasksProvider);
+      final filteredTasks = await container.read(filteredTasksProvider.future);
 
       // Verify: Only task3 should be visible
       expect(filteredTasks.length, 1);
@@ -405,7 +405,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           tasksProvider.overrideWith((ref) => Stream.value([task1])),
-          tasksWithRecurrencesProvider.overrideWith((ref) => Stream.value([task1])),
+          tasksWithRecurrencesProvider.overrideWith((ref) async => [task1]),
           sprintsProvider.overrideWith((ref) => Stream.value([closedSprint])),
         ],
       );
@@ -416,7 +416,7 @@ void main() {
       await container.read(sprintsProvider.future);
 
       final activeSprintResult = container.read(activeSprintProvider);
-      final filteredTasks = container.read(filteredTasksProvider);
+      final filteredTasks = await container.read(filteredTasksProvider.future);
 
       // Verify: No active sprint (closed sprint doesn't count)
       expect(activeSprintResult, isNull);

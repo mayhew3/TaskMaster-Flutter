@@ -154,6 +154,7 @@ class IntegrationTestHelper {
           personDocIdProvider.overrideWith((ref) => testPersonDocId),
           // Override task/recurrence providers with test data
           tasksProvider.overrideWith((ref) => Stream.value(tasksWithRecurrences)),
+          tasksWithRecurrencesProvider.overrideWith((ref) async => tasksWithRecurrences),
           taskRecurrencesProvider.overrideWith((ref) => Stream.value(recurrencesList)),
           sprintsProvider.overrideWith((ref) => Stream.value(initialSprints ?? [])),
           // Override timezone helper notifier to immediately return mock
@@ -174,8 +175,9 @@ class IntegrationTestHelper {
       ),
     );
 
-    // Wait for initial render - single pump is enough since data is pre-seeded
-    await tester.pump();
+    // Wait for initial render and async providers to complete
+    // Using pumpAndSettle() to wait for Future providers (tasksWithRecurrencesProvider, etc.)
+    await tester.pumpAndSettle();
   }
 
   /// Create a minimal Redux store for testing
