@@ -396,6 +396,25 @@ class IntegrationTestHelper {
                 });
             return firestoreStream.startWith(initialRecurrencesList);
           }),
+          // Override tasksWithRecurrencesProvider to avoid infinite rebuild loop
+          // when tasks or recurrences streams emit
+          tasksWithRecurrencesProvider.overrideWith((ref) async {
+            final tasks = await ref.watch(tasksProvider.future);
+            final recurrences = await ref.watch(taskRecurrencesProvider.future);
+
+            // Link tasks with their recurrences
+            return tasks.map((task) {
+              if (task.recurrenceDocId != null) {
+                final recurrence = recurrences
+                    .where((r) => r.docId == task.recurrenceDocId)
+                    .firstOrNull;
+                if (recurrence != null) {
+                  return task.rebuild((t) => t..recurrence = recurrence.toBuilder());
+                }
+              }
+              return task;
+            }).toList();
+          }),
           // Override timezone helper notifier to immediately return mock
           timezoneHelperNotifierProvider.overrideWith(() => _TestTimezoneHelperNotifier()),
         ],
