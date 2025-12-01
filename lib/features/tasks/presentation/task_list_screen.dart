@@ -48,6 +48,7 @@ class TaskListScreen extends ConsumerWidget {
       ),
       drawer: const AppDrawer(),
       floatingActionButton: FloatingActionButton(
+        heroTag: null,
         onPressed: () async {
           await Navigator.push(
             context,

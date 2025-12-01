@@ -188,6 +188,7 @@ class _TaskDetailsBody extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: null,
         key: TaskMasterKeys.editTaskItemFab,
         tooltip: 'Edit Task Item',
         child: const Icon(Icons.edit),

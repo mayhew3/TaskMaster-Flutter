@@ -480,6 +480,7 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
       floatingActionButton: Visibility(
         visible: sprintDisplayTaskQueue.isNotEmpty,
         child: FloatingActionButton.extended(
+          heroTag: null,
           onPressed: () => submit(context),
           label: const Text('Submit'),
         ),

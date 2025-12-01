@@ -467,6 +467,7 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
       floatingActionButton: Visibility(
         visible: sprintDisplayTaskQueue.isNotEmpty,
         child: FloatingActionButton.extended(
+            heroTag: null,
             onPressed: () => submit(context, personDocId ?? ''),
             label: Text('Submit')
         ),

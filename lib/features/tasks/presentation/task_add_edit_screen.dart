@@ -656,6 +656,7 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
           floatingActionButton: Visibility(
             visible: !isEditing || hasChanges(),
             child: FloatingActionButton(
+              heroTag: null,
               child: Icon(isEditing ? Icons.check : Icons.add),
               onPressed: () {
               final form = formKey.currentState;
