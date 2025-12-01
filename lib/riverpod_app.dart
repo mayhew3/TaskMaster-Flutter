@@ -4,7 +4,9 @@ import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskmaster/app_theme.dart';
 import 'package:taskmaster/core/services/auth_service.dart';
+import 'package:taskmaster/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaster/features/tasks/presentation/task_list_screen.dart';
+import 'package:taskmaster/features/tasks/providers/task_providers.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
 import 'package:taskmaster/redux/containers/planning_home.dart';
 import 'package:taskmaster/features/tasks/presentation/stats_screen.dart';
@@ -314,6 +316,58 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch data providers to show loading state until data is ready
+    final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
+    final sprintsAsync = ref.watch(sprintsProvider);
+
+    // Show loading indicator until both tasks and sprints are loaded
+    final isLoading = tasksAsync.isLoading || sprintsAsync.isLoading;
+    final hasError = tasksAsync.hasError || sprintsAsync.hasError;
+    final hasData = tasksAsync.hasValue && sprintsAsync.hasValue;
+
+    // Show loading screen while data is being fetched
+    if (isLoading && !hasData) {
+      return const Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 24),
+              Text('Loading your tasks...'),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Show error screen if there's an error loading data
+    if (hasError && !hasData) {
+      final errorMessage = tasksAsync.error?.toString() ??
+                           sprintsAsync.error?.toString() ??
+                           'Unknown error';
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              Text('Error loading data: $errorMessage'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  ref.invalidate(tasksWithRecurrencesProvider);
+                  ref.invalidate(sprintsProvider);
+                },
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     // Get the current screen widget
     final currentScreen = _navItems[_selectedIndex].widgetGetter();
 
