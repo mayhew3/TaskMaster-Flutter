@@ -343,6 +343,7 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                 child: Column(
                   children: <Widget>[
                     EditableTaskField(
+                      key: const Key('task_name_field'),
                       initialText: taskItemBlueprint.name,
                       labelText: 'Name',
                       onChanged: (value) {

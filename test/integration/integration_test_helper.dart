@@ -78,6 +78,27 @@ class IntegrationTestHelper {
       'name': 'Test User',
     });
 
+    // Seed initial tasks into Firestore (needed for save/update operations and auto-close)
+    for (final task in (initialTasks ?? [])) {
+      await testFirestore.collection('tasks').doc(task.docId).set({
+        'name': task.name,
+        'personDocId': task.personDocId,
+        'dateAdded': task.dateAdded.toIso8601String(),
+        'offCycle': task.offCycle ?? false,
+        'pendingCompletion': task.pendingCompletion ?? false,
+      });
+    }
+
+    // Seed initial recurrences into Firestore
+    for (final recurrence in (initialRecurrences ?? [])) {
+      await testFirestore.collection('taskRecurrences').doc(recurrence.docId).set({
+        'name': recurrence.name,
+        'personDocId': recurrence.personDocId,
+        'recurNumber': recurrence.recurNumber,
+        'recurUnit': recurrence.recurUnit,
+      });
+    }
+
     // Create real task repository with fake Firestore
     final taskRepository = TaskRepository(firestore: testFirestore);
     final navigatorKey = GlobalKey<NavigatorState>();
@@ -152,10 +173,8 @@ class IntegrationTestHelper {
           firestoreProvider.overrideWithValue(testFirestore),
           // Override auth providers with test data
           personDocIdProvider.overrideWith((ref) => testPersonDocId),
-          // Override task/recurrence providers with test data
-          tasksProvider.overrideWith((ref) => Stream.value(tasksWithRecurrences)),
-          tasksWithRecurrencesProvider.overrideWith((ref) async => tasksWithRecurrences),
-          taskRecurrencesProvider.overrideWith((ref) => Stream.value(recurrencesList)),
+          // Don't override task/recurrence providers - let them watch Firestore naturally
+          // This allows auto-close logic to work when tasks are saved
           sprintsProvider.overrideWith((ref) => Stream.value(initialSprints ?? [])),
           // Override timezone helper notifier to immediately return mock
           timezoneHelperNotifierProvider.overrideWith(() => _TestTimezoneHelperNotifier()),
