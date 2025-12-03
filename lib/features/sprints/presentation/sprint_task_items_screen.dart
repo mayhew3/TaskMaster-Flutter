@@ -48,12 +48,17 @@ List<TaskItem> sprintTaskItems(SprintTaskItemsRef ref, Sprint sprint) {
   return sprintTasks.where((task) {
     if (task.retired != null) return false;
 
-    final completedPredicate = task.completionDate == null || showCompleted;
+    // Completed tasks: show when showCompleted is true, bypassing scheduled filter
+    // This ensures completed tasks with future start dates still appear
+    if (task.completionDate != null) {
+      return showCompleted;
+    }
+
+    // Non-completed tasks: check scheduled filter
     final scheduledPredicate = task.startDate == null ||
         task.startDate!.isBefore(DateTime.now()) ||
         showScheduled;
-
-    return completedPredicate && scheduledPredicate;
+    return scheduledPredicate;
   }).toList();
 }
 

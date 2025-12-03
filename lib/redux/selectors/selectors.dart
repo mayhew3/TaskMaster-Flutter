@@ -33,11 +33,18 @@ ListBuilder<TaskItem> filteredTaskItemsSelector(BuiltList<TaskItem> taskItems, B
 
     var startDate = taskItem.startDate;
 
-    var completedPredicate = taskItem.completionDate == null || visibilityFilter.showCompleted;
-    var scheduledPredicate = startDate == null || startDate.isBefore(DateTime.now()) || visibilityFilter.showScheduled;
     var isRecentlyCompleted = recentlyCompleted.map((t) => t.docId).contains(taskItem.docId);
 
-    var withoutSprint = (completedPredicate && scheduledPredicate) || isRecentlyCompleted;
+    // Completed tasks: show when showCompleted is true, bypassing scheduled filter
+    // This ensures completed tasks with future start dates still appear
+    bool withoutSprint;
+    if (taskItem.completionDate != null) {
+      withoutSprint = visibilityFilter.showCompleted || isRecentlyCompleted;
+    } else {
+      // Non-completed tasks: check scheduled filter
+      var scheduledPredicate = startDate == null || startDate.isBefore(DateTime.now()) || visibilityFilter.showScheduled;
+      withoutSprint = scheduledPredicate || isRecentlyCompleted;
+    }
 
     if (sprint != null) {
       var taskItemsForSprint = taskItemsForSprintSelector(taskItems, sprint);

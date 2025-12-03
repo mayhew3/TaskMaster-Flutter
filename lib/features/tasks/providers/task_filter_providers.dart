@@ -51,15 +51,17 @@ Future<List<TaskItem>> filteredTasks(FilteredTasksRef ref) async {
       }
     }
 
-    // Filter completed tasks
-    final completedPredicate = task.completionDate == null || showCompleted;
+    // Completed tasks: show when showCompleted is true, bypassing scheduled filter
+    // This ensures completed tasks with future start dates still appear
+    if (task.completionDate != null) {
+      return showCompleted;
+    }
 
-    // Filter scheduled tasks (future startDate)
+    // Non-completed tasks: check scheduled filter
     final scheduledPredicate = task.startDate == null ||
         task.startDate!.isBefore(DateTime.now()) ||
         showScheduled;
-
-    return completedPredicate && scheduledPredicate;
+    return scheduledPredicate;
   }).toList();
 
   print('📋 filteredTasksProvider: Returning ${filtered.length} filtered tasks');
