@@ -4,9 +4,16 @@
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": ".claude/hooks/validate-commit-message.sh" },
-          { "type": "command", "command": ".claude/hooks/task-test-gate.sh" },
-          { "type": "command", "command": ".claude/hooks/task-push-gate.sh" }
+          { "type": "command", "command": "powershell -NoProfile -File .claude/hooks/validate-commit-message.ps1" },
+          { "type": "command", "command": "powershell -NoProfile -File .claude/hooks/task-test-gate.ps1" },
+          { "type": "command", "command": "powershell -NoProfile -File .claude/hooks/task-push-gate.ps1" },
+          { "type": "command", "command": "powershell -NoProfile -File .claude/hooks/jira-done-gate.ps1" }
+        ]
+      },
+      {
+        "matcher": "mcp__atlassian__transitionJiraIssue",
+        "hooks": [
+          { "type": "command", "command": "powershell -NoProfile -File .claude/hooks/jira-done-gate.ps1" }
         ]
       }
     ]
