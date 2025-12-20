@@ -85,15 +85,10 @@ mcp__atlassian__addCommentToJiraIssue({
 
 **MCP (Primary):**
 ```
-mcp__atlassian__getTransitionsForJiraIssue({
-  cloudId: "mayhew3.atlassian.net",
-  issueIdOrKey: "{ISSUE_KEY}"
-})
-
 mcp__atlassian__transitionJiraIssue({
   cloudId: "mayhew3.atlassian.net",
   issueIdOrKey: "{ISSUE_KEY}",
-  transition: { id: "{transition_id_for_under_review}" }
+  transition: { id: "61" }
 })
 ```
 
@@ -101,6 +96,8 @@ mcp__atlassian__transitionJiraIssue({
 ```bash
 acli jira workitem transition --key {ISSUE_KEY} --status "Under Review"
 ```
+
+> **Note:** Transition ID 61 = "Under Review" (stable for TM project)
 
 ### Step 6: Request push permission
 

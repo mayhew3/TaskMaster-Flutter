@@ -67,15 +67,10 @@ Check current status. If not already "In Progress":
 
 **MCP (Primary):**
 ```
-mcp__atlassian__getTransitionsForJiraIssue({
-  cloudId: "mayhew3.atlassian.net",
-  issueIdOrKey: "{ISSUE_KEY}"
-})
-
 mcp__atlassian__transitionJiraIssue({
   cloudId: "mayhew3.atlassian.net",
   issueIdOrKey: "{ISSUE_KEY}",
-  transition: { id: "{transition_id_for_in_progress}" }
+  transition: { id: "31" }
 })
 ```
 
@@ -83,6 +78,8 @@ mcp__atlassian__transitionJiraIssue({
 ```bash
 acli jira workitem transition --key {ISSUE_KEY} --status "In Progress"
 ```
+
+> **Note:** Transition ID 31 = "In Progress" (stable for TM project)
 
 ### Step 4: Create or verify branch
 

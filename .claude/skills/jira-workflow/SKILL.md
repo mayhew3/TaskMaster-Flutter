@@ -34,6 +34,14 @@ The MCP Atlassian tool can lose authentication. If you get auth errors:
 3. **Comments** must use Markdown with MCP tool - see jira-formatting.md
 4. **Push** only after: user verification + analysis passes + tests pass
 
+### Transition IDs (TM Project)
+| Status | Transition ID | Usage |
+|--------|---------------|-------|
+| In Progress | `31` | Starting work |
+| Under Review | `61` | Work complete |
+
+Use these IDs directly - no need to query `getTransitionsForJiraIssue`.
+
 ### Project Info
 | Key | Project | Directory |
 |-----|---------|-----------|
@@ -88,17 +96,18 @@ If MCP is not authenticated, ask user to re-authenticate with `/mcp` before addi
 
 **MCP (Primary):**
 ```
-# First get available transitions
-mcp__atlassian__getTransitionsForJiraIssue({
-  cloudId: "mayhew3.atlassian.net",
-  issueIdOrKey: "TM-123"
-})
-
-# Then transition
+# Transition to In Progress (ID: 31)
 mcp__atlassian__transitionJiraIssue({
   cloudId: "mayhew3.atlassian.net",
   issueIdOrKey: "TM-123",
-  transition: { id: "{transition_id}" }
+  transition: { id: "31" }
+})
+
+# Transition to Under Review (ID: 61)
+mcp__atlassian__transitionJiraIssue({
+  cloudId: "mayhew3.atlassian.net",
+  issueIdOrKey: "TM-123",
+  transition: { id: "61" }
 })
 ```
 
