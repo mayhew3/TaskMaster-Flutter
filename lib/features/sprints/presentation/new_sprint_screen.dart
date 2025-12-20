@@ -5,14 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../date_util.dart';
 import '../../../parse_helper.dart';
-import '../../../core/providers/firebase_providers.dart';
 import '../providers/sprint_providers.dart';
 import 'sprint_planning_screen.dart';
 import '../../shared/presentation/widgets/editable_task_field.dart';
 import '../../shared/presentation/widgets/nullable_dropdown.dart';
 import '../../shared/presentation/refresh_button.dart';
 import '../../shared/presentation/app_drawer.dart';
-import '../../shared/presentation/app_bottom_nav.dart';
 
 class NewSprintScreen extends ConsumerStatefulWidget {
   const NewSprintScreen({super.key});

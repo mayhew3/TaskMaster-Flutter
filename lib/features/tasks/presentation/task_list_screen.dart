@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskmaster/models/task_item.dart';
-import '../../../core/providers/firebase_providers.dart';
 import '../../../core/services/task_completion_service.dart';
 import '../providers/task_filter_providers.dart';
 import '../providers/task_providers.dart';
@@ -16,7 +15,6 @@ import '../../shared/presentation/editable_task_item.dart';
 import '../../shared/presentation/widgets/header_list_item.dart';
 import '../../shared/presentation/snooze_dialog.dart';
 import '../../shared/presentation/app_drawer.dart';
-import '../../shared/presentation/app_bottom_nav.dart';
 import '../../shared/presentation/refresh_button.dart';
 
 /// Riverpod version of the Task List screen

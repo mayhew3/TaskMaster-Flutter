@@ -96,7 +96,7 @@ class AuthService {
     try {
       print('🔐 Starting manual sign-in...');
       final account = await _googleSignIn.authenticate(scopeHint: ['email']);
-      print('🔐 Manual sign-in result: ${account?.displayName ?? 'null'}');
+      print('🔐 Manual sign-in result: ${account.displayName ?? 'null'}');
       return account;
     } on GoogleSignInException catch (e) {
       print('🔐 Google Sign In error: ${e.code.name} - ${e.description}');

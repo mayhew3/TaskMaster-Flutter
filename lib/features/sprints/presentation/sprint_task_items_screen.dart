@@ -7,7 +7,6 @@ import '../../../models/task_item.dart';
 import '../../shared/presentation/filter_button.dart';
 import '../../shared/presentation/refresh_button.dart';
 import '../../shared/presentation/app_drawer.dart';
-import '../../shared/presentation/app_bottom_nav.dart';
 import '../providers/sprint_providers.dart';
 import '../../tasks/providers/task_providers.dart';
 import '../../shared/presentation/task_item_list.dart';

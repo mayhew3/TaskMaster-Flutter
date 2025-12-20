@@ -13,9 +13,7 @@ import '../../../models/task_item_recur_preview.dart';
 import '../../../models/sprint.dart';
 import '../../../models/check_state.dart';
 import '../../../date_util.dart';
-import '../../../keys.dart';
 import '../../shared/presentation/widgets/plan_task_item.dart';
-import '../../shared/presentation/widgets/delayed_checkbox.dart';
 import '../../shared/presentation/widgets/header_list_item.dart';
 import '../../../helpers/task_selectors.dart';
 import '../../../core/providers/auth_providers.dart';
@@ -108,7 +106,6 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
     required SprintDisplayTask taskItem,
   }) {
     final lastSprint = ref.read(lastCompletedSprintProvider);
-    final allSprints = ref.read(sprintsProvider).value ?? [];
 
     return PlanTaskItemWidget(
       sprintDisplayTask: taskItem,

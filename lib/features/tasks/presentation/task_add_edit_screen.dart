@@ -13,7 +13,6 @@ import 'package:taskmaster/features/shared/presentation/widgets/editable_task_fi
 import 'package:taskmaster/features/shared/presentation/widgets/nullable_dropdown.dart';
 import 'package:taskmaster/helpers/task_selectors.dart';
 import 'package:taskmaster/timezone_helper.dart';
-import '../../../core/providers/firebase_providers.dart';
 import '../../../core/services/task_completion_service.dart';
 import '../providers/task_providers.dart';
 

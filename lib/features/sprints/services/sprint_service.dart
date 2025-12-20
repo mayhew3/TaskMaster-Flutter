@@ -1,13 +1,10 @@
-import 'package:built_collection/built_collection.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/providers/firebase_providers.dart';
 import '../../../models/sprint_blueprint.dart';
 import '../../../models/task_item.dart';
 import '../../../models/task_item_recur_preview.dart';
-import '../../../models/sprint_assignment.dart';
 import '../../../models/sprint.dart';
 import '../../../models/serializers.dart';
-import '../../../helpers/recurrence_helper.dart';
 import '../../tasks/providers/task_providers.dart';
 import '../providers/sprint_providers.dart';
 

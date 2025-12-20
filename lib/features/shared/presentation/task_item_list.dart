@@ -10,7 +10,6 @@ import '../../../models/sprint.dart';
 import '../../../models/task_colors.dart';
 import '../../../models/task_display_grouping.dart';
 import '../../../models/check_state.dart';
-import 'delayed_checkbox.dart';
 import './widgets/header_list_item.dart';
 import 'snooze_dialog.dart';
 import 'plan_task_list.dart';

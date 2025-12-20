@@ -7,7 +7,6 @@ import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/check_state.dart';
 import 'package:timeago/timeago.dart' as timeago;
-import '../../../core/providers/firebase_providers.dart';
 import '../../../core/services/task_completion_service.dart';
 import '../providers/task_providers.dart';
 import 'task_add_edit_screen.dart';
@@ -280,8 +279,7 @@ class _TaskDetailsBody extends ConsumerWidget {
   }
 
   String _getFormattedRecurUnit(TaskRecurrence taskRecurrence) {
-    String? unit = taskRecurrence.recurUnit;
-    if (unit == null) return '';
+    String unit = taskRecurrence.recurUnit;
     if (taskRecurrence.recurNumber == 1) {
       unit = unit.substring(0, unit.length - 1);
     }

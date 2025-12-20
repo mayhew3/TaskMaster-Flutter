@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../shared/presentation/app_drawer.dart';
-import '../../shared/presentation/app_bottom_nav.dart';
 import '../providers/task_providers.dart';
 
 /// Riverpod version of the Stats screen
