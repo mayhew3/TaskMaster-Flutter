@@ -12,26 +12,21 @@ final notificationHelperProvider = Provider<NotificationHelperImpl>((ref) {
   return NotificationHelperImpl(plugin: plugin);
 });
 
-/// Provider that syncs notifications when tasks or sprints change
-/// This should be watched in the app to trigger notification updates
+/// Provider that syncs notifications ONCE on app startup
+/// Individual task changes are handled via updateNotificationForTask() in CompleteTask
+/// This avoids re-scheduling ALL notifications on every task change (major perf fix)
 final notificationSyncProvider = FutureProvider<void>((ref) async {
   final notificationHelper = ref.watch(notificationHelperProvider);
-  final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
-  final sprintsAsync = ref.watch(sprintsProvider);
 
-  // Wait for both to be available
-  final tasks = tasksAsync.valueOrNull;
-  final sprints = sprintsAsync.valueOrNull;
-
-  if (tasks == null || sprints == null) {
-    return; // Data not ready yet
-  }
+  // Use ref.read (not ref.watch) to avoid re-triggering on task changes
+  final tasks = await ref.read(tasksWithRecurrencesProvider.future);
+  final sprints = await ref.read(sprintsProvider.future);
 
   // Get active sprint
   final builtSprints = BuiltList<Sprint>(sprints);
   final activeSprint = activeSprintSelector(builtSprints);
 
-  // Sync all notifications
+  // Full sync only on startup
   await notificationHelper.syncNotificationForTasksAndSprint(
     tasks,
     activeSprint,

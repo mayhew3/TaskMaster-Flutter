@@ -34,8 +34,8 @@ Future<List<TaskItem>> filteredTasks(FilteredTasksRef ref) async {
 
   print('📋 filteredTasksProvider: Starting with showCompleted=$showCompleted, showScheduled=$showScheduled');
 
-  // Watch the tasks future
-  final tasks = await ref.watch(tasksWithRecurrencesProvider.future);
+  // Watch the tasks future with pending state for optimistic UI
+  final tasks = await ref.watch(tasksWithPendingStateProvider.future);
   print('📋 filteredTasksProvider: Received ${tasks.length} tasks');
 
   final filtered = tasks.where((task) {

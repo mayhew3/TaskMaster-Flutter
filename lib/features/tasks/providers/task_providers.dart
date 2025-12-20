@@ -144,3 +144,32 @@ class RecentlyCompletedTasks extends _$RecentlyCompletedTasks {
     state = [];
   }
 }
+
+/// Tracks tasks currently being completed (optimistic UI)
+/// This enables immediate visual feedback (pending state) before Firestore confirms
+@Riverpod(keepAlive: true)
+class PendingTasks extends _$PendingTasks {
+  @override
+  Map<String, TaskItem> build() => {};
+
+  void markPending(TaskItem task) {
+    final pendingTask = task.rebuild((b) => b..pendingCompletion = true);
+    state = {...state, task.docId: pendingTask};
+  }
+
+  void clearPending(String taskDocId) {
+    state = Map.from(state)..remove(taskDocId);
+  }
+}
+
+/// Tasks with pending completion state merged in (optimistic UI overlay)
+/// This provider overlays optimistic pending state on top of Firestore data
+@riverpod
+Future<List<TaskItem>> tasksWithPendingState(TasksWithPendingStateRef ref) async {
+  final tasks = await ref.watch(tasksWithRecurrencesProvider.future);
+  final pendingTasks = ref.watch(pendingTasksProvider);
+
+  if (pendingTasks.isEmpty) return tasks;
+
+  return tasks.map((task) => pendingTasks[task.docId] ?? task).toList();
+}

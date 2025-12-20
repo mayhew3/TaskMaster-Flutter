@@ -215,6 +215,28 @@ class _TaskProviderElement extends AutoDisposeProviderElement<TaskItem?>
   String get taskId => (origin as TaskProvider).taskId;
 }
 
+String _$tasksWithPendingStateHash() =>
+    r'c7456f5fee336615508feee09d779ce6c4b8fa2f';
+
+/// Tasks with pending completion state merged in (optimistic UI overlay)
+/// This provider overlays optimistic pending state on top of Firestore data
+///
+/// Copied from [tasksWithPendingState].
+@ProviderFor(tasksWithPendingState)
+final tasksWithPendingStateProvider =
+    AutoDisposeFutureProvider<List<TaskItem>>.internal(
+      tasksWithPendingState,
+      name: r'tasksWithPendingStateProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$tasksWithPendingStateHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef TasksWithPendingStateRef = AutoDisposeFutureProviderRef<List<TaskItem>>;
 String _$recentlyCompletedTasksHash() =>
     r'675051dbe7288e9621e1228fa594044843efe866';
 
@@ -236,5 +258,24 @@ final recentlyCompletedTasksProvider =
     );
 
 typedef _$RecentlyCompletedTasks = Notifier<List<TaskItem>>;
+String _$pendingTasksHash() => r'ea9d1ef0dab3dee2f47eff55d7ff4a64b518c003';
+
+/// Tracks tasks currently being completed (optimistic UI)
+/// This enables immediate visual feedback (pending state) before Firestore confirms
+///
+/// Copied from [PendingTasks].
+@ProviderFor(PendingTasks)
+final pendingTasksProvider =
+    NotifierProvider<PendingTasks, Map<String, TaskItem>>.internal(
+      PendingTasks.new,
+      name: r'pendingTasksProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$pendingTasksHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$PendingTasks = Notifier<Map<String, TaskItem>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

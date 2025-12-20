@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../providers/auth_providers.dart';
 import '../providers/firebase_providers.dart';
+import '../providers/notification_providers.dart';
 import '../../features/tasks/data/firestore_task_repository.dart';
 import '../../features/tasks/domain/task_repository.dart';
 import '../../features/tasks/providers/task_providers.dart';
@@ -99,6 +100,9 @@ class CompleteTask extends _$CompleteTask {
   FutureOr<void> build() {}
 
   Future<void> call(TaskItem task, {required bool complete}) async {
+    // IMMEDIATE: Mark as pending (optimistic update for instant UI feedback)
+    ref.read(pendingTasksProvider.notifier).markPending(task);
+
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() async {
@@ -120,7 +124,19 @@ class CompleteTask extends _$CompleteTask {
       } else {
         recentlyCompleted.remove(result.completedTask);
       }
+
+      // Clear pending state after success
+      ref.read(pendingTasksProvider.notifier).clearPending(task.docId);
+
+      // Update notification for this task only (not all tasks - performance fix)
+      final notificationHelper = ref.read(notificationHelperProvider);
+      await notificationHelper.updateNotificationForTask(result.completedTask);
     });
+
+    // Clear pending state on error too
+    if (state.hasError) {
+      ref.read(pendingTasksProvider.notifier).clearPending(task.docId);
+    }
   }
 }
 

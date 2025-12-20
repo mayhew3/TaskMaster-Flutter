@@ -33,8 +33,9 @@ class ShowScheduledInSprint extends _$ShowScheduledInSprint {
 
 /// Provider for filtered tasks in the active sprint
 @riverpod
-List<TaskItem> sprintTaskItems(SprintTaskItemsRef ref, Sprint sprint) {
-  final allTasks = ref.watch(tasksWithRecurrencesProvider).value ?? [];
+Future<List<TaskItem>> sprintTaskItems(SprintTaskItemsRef ref, Sprint sprint) async {
+  // Use tasksWithPendingState for optimistic UI (shows pending state immediately)
+  final allTasks = await ref.watch(tasksWithPendingStateProvider.future);
   final showCompleted = ref.watch(showCompletedInSprintProvider);
   final showScheduled = ref.watch(showScheduledInSprintProvider);
 
@@ -71,7 +72,7 @@ class SprintTaskItemsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final taskItems = ref.watch(sprintTaskItemsProvider(sprint));
+    final taskItemsAsync = ref.watch(sprintTaskItemsProvider(sprint));
     final showCompleted = ref.watch(showCompletedInSprintProvider);
     final showScheduled = ref.watch(showScheduledInSprintProvider);
 
@@ -90,9 +91,24 @@ class SprintTaskItemsScreen extends ConsumerWidget {
           const RefreshButton(),
         ],
       ),
-      body: TaskItemList(
-        taskItems: BuiltList<TaskItem>(taskItems),
-        sprintMode: true,
+      body: taskItemsAsync.when(
+        data: (taskItems) => TaskItemList(
+          taskItems: BuiltList<TaskItem>(taskItems),
+          sprintMode: true,
+        ),
+        loading: () {
+          // Preserve previous data during loading to prevent list disappearing
+          if (taskItemsAsync.hasValue) {
+            return TaskItemList(
+              taskItems: BuiltList<TaskItem>(taskItemsAsync.value!),
+              sprintMode: true,
+            );
+          }
+          return const Center(child: CircularProgressIndicator());
+        },
+        error: (err, stack) => Center(
+          child: Text('Error loading sprint tasks: $err'),
+        ),
       ),
       drawer: const AppDrawer(),
     );

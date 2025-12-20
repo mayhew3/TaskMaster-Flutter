@@ -39,7 +39,13 @@ class TaskListScreen extends ConsumerWidget {
       ),
       body: tasksAsync.when(
         data: (_) => const _TaskListBody(),
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () {
+          // Preserve previous data during loading to prevent list disappearing
+          if (tasksAsync.hasValue) {
+            return const _TaskListBody();
+          }
+          return const Center(child: CircularProgressIndicator());
+        },
         error: (err, stack) => Center(
           child: Text('Error loading tasks: $err'),
         ),

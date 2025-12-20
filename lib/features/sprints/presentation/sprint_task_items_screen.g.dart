@@ -6,7 +6,7 @@ part of 'sprint_task_items_screen.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$sprintTaskItemsHash() => r'e92bd36337cb885c1396cc2706bdea7af381826e';
+String _$sprintTaskItemsHash() => r'ae15134672b276622cbf4e304d895fca126f23fa';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -38,7 +38,7 @@ const sprintTaskItemsProvider = SprintTaskItemsFamily();
 /// Provider for filtered tasks in the active sprint
 ///
 /// Copied from [sprintTaskItems].
-class SprintTaskItemsFamily extends Family<List<TaskItem>> {
+class SprintTaskItemsFamily extends Family<AsyncValue<List<TaskItem>>> {
   /// Provider for filtered tasks in the active sprint
   ///
   /// Copied from [sprintTaskItems].
@@ -76,7 +76,8 @@ class SprintTaskItemsFamily extends Family<List<TaskItem>> {
 /// Provider for filtered tasks in the active sprint
 ///
 /// Copied from [sprintTaskItems].
-class SprintTaskItemsProvider extends AutoDisposeProvider<List<TaskItem>> {
+class SprintTaskItemsProvider
+    extends AutoDisposeFutureProvider<List<TaskItem>> {
   /// Provider for filtered tasks in the active sprint
   ///
   /// Copied from [sprintTaskItems].
@@ -108,7 +109,7 @@ class SprintTaskItemsProvider extends AutoDisposeProvider<List<TaskItem>> {
 
   @override
   Override overrideWith(
-    List<TaskItem> Function(SprintTaskItemsRef provider) create,
+    FutureOr<List<TaskItem>> Function(SprintTaskItemsRef provider) create,
   ) {
     return ProviderOverride(
       origin: this,
@@ -125,7 +126,7 @@ class SprintTaskItemsProvider extends AutoDisposeProvider<List<TaskItem>> {
   }
 
   @override
-  AutoDisposeProviderElement<List<TaskItem>> createElement() {
+  AutoDisposeFutureProviderElement<List<TaskItem>> createElement() {
     return _SprintTaskItemsProviderElement(this);
   }
 
@@ -145,13 +146,13 @@ class SprintTaskItemsProvider extends AutoDisposeProvider<List<TaskItem>> {
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin SprintTaskItemsRef on AutoDisposeProviderRef<List<TaskItem>> {
+mixin SprintTaskItemsRef on AutoDisposeFutureProviderRef<List<TaskItem>> {
   /// The parameter `sprint` of this provider.
   Sprint get sprint;
 }
 
 class _SprintTaskItemsProviderElement
-    extends AutoDisposeProviderElement<List<TaskItem>>
+    extends AutoDisposeFutureProviderElement<List<TaskItem>>
     with SprintTaskItemsRef {
   _SprintTaskItemsProviderElement(super.provider);
 

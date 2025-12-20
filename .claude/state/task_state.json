@@ -1,1 +1,8 @@
-{"issue": "TM-297", "verified": false, "started_at": "2025-12-20T02:36:57Z", "project": "TM", "type": "Story", "summary": "Final Cleanup: Remove Redux from features/ and verify Riverpod-only mode"}
+{
+  "issue": "TM-315",
+  "verified": false,
+  "started_at": "2025-12-20T05:10:00Z",
+  "project": "TM",
+  "type": "Story",
+  "summary": "Improve performance and UI state on task complete"
+}
