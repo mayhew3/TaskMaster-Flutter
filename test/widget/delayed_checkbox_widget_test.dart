@@ -149,8 +149,9 @@ void main() {
       expect(tappedState, CheckState.inactive);
     });
 
-    testWidgets('Tap on pending checkbox passes pending state', (tester) async {
+    testWidgets('Tap on pending checkbox is ignored (TM-323)', (tester) async {
       // Setup: Create pending checkbox with tap tracking
+      // Since TM-323, tapping while pending is ignored to prevent double-taps
       CheckState? tappedState;
 
       await tester.pumpWidget(
@@ -177,8 +178,8 @@ void main() {
       await tester.tap(find.byType(GestureDetector));
       await tester.pump();
 
-      // Verify: Callback received pending state
-      expect(tappedState, CheckState.pending);
+      // Verify: Callback was NOT called (taps ignored while pending)
+      expect(tappedState, isNull);
     });
 
     testWidgets('Tap on checked checkbox passes checked state', (tester) async {

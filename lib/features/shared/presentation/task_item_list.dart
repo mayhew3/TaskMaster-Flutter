@@ -57,6 +57,9 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
     final recentlyCompletedList = ref.watch(recentlyCompletedTasksProvider);
     final recentlyCompleted = BuiltList<TaskItem>(recentlyCompletedList);
 
+    // Watch pending state directly for immediate UI feedback (TM-323)
+    final pendingTasks = ref.watch(pendingTasksProvider);
+
     if (!initialized) {
       showActive = widget.sprintMode;
       final allSprints = ref.read(sprintsProvider).value ?? [];
@@ -72,7 +75,7 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
       padding: EdgeInsets.only(top: 7.0),
       child: Builder(
         builder: (context) {
-          return _buildListView(context, recentlyCompleted);
+          return _buildListView(context, recentlyCompleted, pendingTasks);
         },
       ),
     );
@@ -94,7 +97,11 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
     required BuildContext context,
     required List<StatelessWidget> tiles,
     required BuiltList<TaskItem> recentlyCompleted,
+    required Map<String, TaskItem> pendingTasks,
   }) {
+    // Use pending version of task for immediate UI feedback (TM-323)
+    final displayTask = pendingTasks[taskItem.docId] ?? taskItem;
+
     snoozeDialog(TaskItem taskItem) {
       HapticFeedback.mediumImpact();
       showDialog<void>(context: context, builder: (context) => SnoozeDialog(
@@ -103,7 +110,7 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
     }
 
     var taskCard = EditableTaskItemWidget(
-      taskItem: taskItem,
+      taskItem: displayTask,
       sprint: activeSprint,
       highlightSprint: (!widget.sprintMode && activeSprint != null && activeSprintItems != null && activeSprintItems!.contains(taskItem)),
       onTap: () async {
@@ -257,7 +264,7 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
     );
   }
 
-  ListView _buildListView(BuildContext context, BuiltList<TaskItem> recentlyCompleted) {
+  ListView _buildListView(BuildContext context, BuiltList<TaskItem> recentlyCompleted, Map<String, TaskItem> pendingTasks) {
     List<TaskItem> otherTasks = getFilteredTasks(widget.taskItems);
 
     startDateSort(SprintDisplayTask a, SprintDisplayTask b) => a.startDate!.compareTo(b.startDate!);
@@ -296,6 +303,7 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
             context: context,
             tiles: tiles,
             recentlyCompleted: recentlyCompleted,
+            pendingTasks: pendingTasks,
           );
         }
       }
@@ -357,7 +365,7 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
     );
   }
 
-  Widget getTaskListBody(BuildContext context, BuiltList<TaskItem> recentlyCompleted) {
+  Widget getTaskListBody(BuildContext context, BuiltList<TaskItem> recentlyCompleted, Map<String, TaskItem> pendingTasks) {
     List<Widget> elements = [];
     var subHeader = widget.subHeader;
     if (subHeader != null) {
@@ -383,7 +391,7 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
           )
       );
     }
-    ListView listView = _buildListView(context, recentlyCompleted);
+    ListView listView = _buildListView(context, recentlyCompleted, pendingTasks);
     Widget expanded = Expanded(child: listView);
     elements.add(expanded);
     return Column(

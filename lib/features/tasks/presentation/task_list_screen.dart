@@ -299,8 +299,13 @@ class _TaskListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Watch pending state directly for immediate UI feedback (TM-323)
+    // This avoids waiting for the async provider chain to propagate
+    final pendingTasks = ref.watch(pendingTasksProvider);
+    final displayTask = pendingTasks[task.docId] ?? task;
+
     return EditableTaskItemWidget(
-      taskItem: task,
+      taskItem: displayTask,
       highlightSprint: highlightSprint,
       onTap: () async {
         await Navigator.of(context).push(

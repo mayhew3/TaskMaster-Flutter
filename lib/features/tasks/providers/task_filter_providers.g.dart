@@ -6,7 +6,7 @@ part of 'task_filter_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$filteredTasksHash() => r'49d6c1fd23357a7c4b5186de406d5ef34186d474';
+String _$filteredTasksHash() => r'a934ec1903e273ec6a3a55eee3d791973cca91cf';
 
 /// Filtered tasks based on visibility settings
 ///
@@ -65,7 +65,7 @@ final completedTaskCountProvider = AutoDisposeProvider<int>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CompletedTaskCountRef = AutoDisposeProviderRef<int>;
-String _$groupedTasksHash() => r'403450213eadc102bef593cfb6c78a28b010a616';
+String _$groupedTasksHash() => r'3da7bb754722d3ebb8a96ab016efddf71750462d';
 
 /// Grouped and sorted tasks for the task list
 ///

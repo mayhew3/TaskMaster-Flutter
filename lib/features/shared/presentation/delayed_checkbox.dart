@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/check_state.dart';
 
-class DelayedCheckbox extends StatelessWidget {
+class DelayedCheckbox extends StatefulWidget {
 
   final CheckCycleWaiter checkCycleWaiter;
   final CheckState initialState;
@@ -20,23 +20,64 @@ class DelayedCheckbox extends StatelessWidget {
     required this.taskName,
   });
 
+  @override
+  State<DelayedCheckbox> createState() => _DelayedCheckboxState();
+}
+
+class _DelayedCheckboxState extends State<DelayedCheckbox> {
+  late CheckState _currentState;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentState = widget.initialState;
+  }
+
+  @override
+  void didUpdateWidget(DelayedCheckbox oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update local state when parent provides new state
+    // This handles when the task is completed/uncompleted from Firestore
+    if (widget.initialState != oldWidget.initialState) {
+      _currentState = widget.initialState;
+    }
+  }
+
   Color? getColor(BuildContext context) {
     final ThemeData themeData = Theme.of(context);
+    final checkedColor = widget.checkedColor ??
+        themeData.checkboxTheme.fillColor?.resolve({WidgetState.selected}) ??
+        TaskColors.cardColor;
     Map<CheckState, Color> colorMap = {
       CheckState.inactive: Color.fromARGB(0, 0, 0, 0),
       CheckState.pending: TaskColors.pendingCheckbox,
-      CheckState.checked: checkedColor ?? themeData.checkboxTheme.fillColor!.resolve({WidgetState.selected}) ?? TaskColors.cardColor,
+      CheckState.checked: checkedColor,
     };
-    return colorMap[initialState];
+    return colorMap[_currentState];
   }
 
   IconData? getInnerIcon() {
     Map<CheckState, IconData?> iconMap = {
-      CheckState.inactive: inactiveIcon,
+      CheckState.inactive: widget.inactiveIcon,
       CheckState.pending: Icons.more_horiz,
       CheckState.checked: Icons.done_outline,
     };
-    return iconMap[initialState];
+    return iconMap[_currentState];
+  }
+
+  void _onTap() {
+    // Don't process taps while already pending
+    if (_currentState == CheckState.pending) {
+      return;
+    }
+
+    // Immediately show pending state (TM-323)
+    setState(() {
+      _currentState = CheckState.pending;
+    });
+
+    // Trigger the parent callback
+    widget.checkCycleWaiter(widget.initialState);
   }
 
   @override
@@ -44,7 +85,7 @@ class DelayedCheckbox extends StatelessWidget {
 
     return
       GestureDetector(
-          onTap: () => checkCycleWaiter(initialState),
+          onTap: _onTap,
           child: Container(
             padding: EdgeInsets.only(
               top: 0.0,

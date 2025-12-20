@@ -31,6 +31,7 @@ Future<List<TaskItem>> filteredTasks(FilteredTasksRef ref) async {
   final showCompleted = ref.watch(showCompletedProvider);
   final showScheduled = ref.watch(showScheduledProvider);
   final activeSprint = ref.watch(activeSprintProvider);
+  final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
 
   print('📋 filteredTasksProvider: Starting with showCompleted=$showCompleted, showScheduled=$showScheduled');
 
@@ -51,10 +52,12 @@ Future<List<TaskItem>> filteredTasks(FilteredTasksRef ref) async {
       }
     }
 
-    // Completed tasks: show when showCompleted is true, bypassing scheduled filter
-    // This ensures completed tasks with future start dates still appear
+    // Completed tasks: show when showCompleted is true OR if recently completed
+    // Recently completed tasks stay visible until tab navigation clears them (TM-323)
     if (task.completionDate != null) {
-      return showCompleted;
+      final isRecentlyCompleted =
+          recentlyCompleted.any((t) => t.docId == task.docId);
+      return showCompleted || isRecentlyCompleted;
     }
 
     // Non-completed tasks: check scheduled filter
@@ -112,6 +115,7 @@ Future<List<TaskGroup>> groupedTasks(GroupedTasksRef ref) async {
 
   // Watch the filtered tasks future
   final filtered = await ref.watch(filteredTasksProvider.future);
+  final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
   print('📋 groupedTasksProvider: Received ${filtered.length} filtered tasks');
 
   final groups = <String, List<TaskItem>>{
@@ -124,8 +128,13 @@ Future<List<TaskGroup>> groupedTasks(GroupedTasksRef ref) async {
   };
 
   // Categorize tasks
+  // Recently completed tasks stay in their original category (TM-323)
   for (final task in filtered) {
-    if (task.completionDate != null) {
+    final isRecentlyCompleted =
+        recentlyCompleted.any((t) => t.docId == task.docId);
+
+    if (task.completionDate != null && !isRecentlyCompleted) {
+      // Only move to Completed if NOT recently completed
       groups['Completed']!.add(task);
     } else if (task.isPastDue()) {
       groups['Past Due']!.add(task);
