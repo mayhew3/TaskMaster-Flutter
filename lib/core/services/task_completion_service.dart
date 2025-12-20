@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../providers/auth_providers.dart';
 import '../providers/firebase_providers.dart';
 import '../providers/notification_providers.dart';
+import '../utils/performance_logger.dart';
 import '../../features/tasks/data/firestore_task_repository.dart';
 import '../../features/tasks/domain/task_repository.dart';
 import '../../features/tasks/providers/task_providers.dart';
@@ -37,12 +38,15 @@ class TaskCompletionService {
     required List<TaskRecurrence> allRecurrences,
     required bool complete,
   }) async {
+    final perf = PerformanceLogger.start('TaskCompletionService.completeTask');
     TaskItem? nextScheduledTask;
 
     // Create next recurrence if needed (before completing current task)
     if (task.recurrenceDocId != null &&
         complete &&
         !_hasNextIteration(task, allTasks)) {
+      perf.checkpoint('needsNextRecurrence=true');
+
       // Find and populate the recurrence on the task
       final recurrence = allRecurrences.firstWhere(
         (r) => r.docId == task.recurrenceDocId,
@@ -57,11 +61,13 @@ class TaskCompletionService {
         taskWithRecurrence,
         completionDate,
       );
+      perf.checkpoint('createNextIteration');
 
       // Add the new task
       await _repository.addTask(nextPreview.toBlueprint());
-
-      // We'll get the added task from the stream
+      perf.checkpoint('repository.addTask (next recurrence)');
+    } else {
+      perf.checkpoint('needsNextRecurrence=false');
     }
 
     // Update the completed task
@@ -69,7 +75,9 @@ class TaskCompletionService {
       task,
       complete: complete,
     );
+    perf.checkpoint('repository.toggleTaskCompletion');
 
+    perf.finish();
     return TaskCompletionResult(
       completedTask: updatedTask,
       nextRecurrence: nextScheduledTask,
@@ -100,15 +108,32 @@ class CompleteTask extends _$CompleteTask {
   FutureOr<void> build() {}
 
   Future<void> call(TaskItem task, {required bool complete}) async {
+    final perf = PerformanceLogger.start('CompleteTask');
+
     // IMMEDIATE: Mark as pending (optimistic update for instant UI feedback)
     ref.read(pendingTasksProvider.notifier).markPending(task);
+    perf.checkpoint('markPending');
 
-    state = const AsyncLoading();
-
-    state = await AsyncValue.guard(() async {
+    try {
       final service = ref.read(taskCompletionServiceProvider);
-      final allTasks = await ref.read(tasksProvider.future);
-      final allRecurrences = await ref.read(taskRecurrencesProvider.future);
+      perf.checkpoint('getService');
+
+      // Use cached data if available (don't wait for stream)
+      final tasksAsync = ref.read(tasksProvider);
+      final recurrencesAsync = ref.read(taskRecurrencesProvider);
+
+      final List<TaskItem> allTasks;
+      final List<TaskRecurrence> allRecurrences;
+
+      if (tasksAsync.hasValue && recurrencesAsync.hasValue) {
+        allTasks = tasksAsync.value!;
+        allRecurrences = recurrencesAsync.value!;
+        perf.checkpoint('getData (cached)');
+      } else {
+        allTasks = await ref.read(tasksProvider.future);
+        allRecurrences = await ref.read(taskRecurrencesProvider.future);
+        perf.checkpoint('getData (awaited)');
+      }
 
       final result = await service.completeTask(
         task: task,
@@ -116,6 +141,7 @@ class CompleteTask extends _$CompleteTask {
         allRecurrences: allRecurrences,
         complete: complete,
       );
+      perf.checkpoint('service.completeTask');
 
       // Track recently completed tasks (matches Redux pattern)
       final recentlyCompleted = ref.read(recentlyCompletedTasksProvider.notifier);
@@ -124,18 +150,27 @@ class CompleteTask extends _$CompleteTask {
       } else {
         recentlyCompleted.remove(result.completedTask);
       }
+      perf.checkpoint('recentlyCompleted update');
 
       // Clear pending state after success
       ref.read(pendingTasksProvider.notifier).clearPending(task.docId);
+      perf.checkpoint('clearPending');
 
-      // Update notification for this task only (not all tasks - performance fix)
+      perf.finish('success');
+
+      // Fire-and-forget: Update notification in background (not critical for UI)
       final notificationHelper = ref.read(notificationHelperProvider);
-      await notificationHelper.updateNotificationForTask(result.completedTask);
-    });
-
-    // Clear pending state on error too
-    if (state.hasError) {
+      notificationHelper.updateNotificationForTask(result.completedTask).then((_) {
+        print('⏱️ [CompleteTask] notification updated (background)');
+      }).catchError((e) {
+        print('⚠️ [CompleteTask] notification error: $e');
+      });
+    } catch (e, stack) {
+      print('❌ [CompleteTask] Error: $e\n$stack');
+      // Clear pending on error so UI reverts to stream state
       ref.read(pendingTasksProvider.notifier).clearPending(task.docId);
+      perf.finish('error');
+      rethrow;
     }
   }
 }
