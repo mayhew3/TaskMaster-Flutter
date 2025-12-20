@@ -3,15 +3,23 @@
 # Expected format: TM-###: Commit message
 # Examples: TM-281: Fix bug, TM-313: Add feature
 
-$ErrorActionPreference = "Stop"
+try {
+    # Read JSON from stdin - use pipeline input for PowerShell compatibility
+    $stdinContent = @($input) -join "`n"
 
-$input = $input | Out-String
-$json = $input | ConvertFrom-Json
+    if ([string]::IsNullOrWhiteSpace($stdinContent)) {
+        exit 0
+    }
 
-$command = $json.tool_input.command
+    $json = $stdinContent | ConvertFrom-Json
+    $command = $json.tool_input.command
 
-# If we couldn't parse the command, allow it
-if ([string]::IsNullOrWhiteSpace($command)) {
+    # If we couldn't parse the command, allow it
+    if ([string]::IsNullOrWhiteSpace($command)) {
+        exit 0
+    }
+} catch {
+    # If we can't parse input, allow the operation
     exit 0
 }
 

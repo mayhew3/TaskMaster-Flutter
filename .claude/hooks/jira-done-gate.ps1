@@ -2,10 +2,20 @@
 # State file: .claude/state/task_state.json
 # Catches both MCP tool (mcp__atlassian__transitionJiraIssue) and acli CLI commands
 
-$input = $input | Out-String
-$json = $input | ConvertFrom-Json
+try {
+    # Read JSON from stdin - use pipeline input for PowerShell compatibility
+    $stdinContent = @($input) -join "`n"
 
-$toolName = $json.tool_name
+    if ([string]::IsNullOrWhiteSpace($stdinContent)) {
+        exit 0
+    }
+
+    $json = $stdinContent | ConvertFrom-Json
+    $toolName = $json.tool_name
+} catch {
+    # If we can't parse input, allow the operation
+    exit 0
+}
 
 # Done transition ID for TM project
 $doneTransitionId = "41"

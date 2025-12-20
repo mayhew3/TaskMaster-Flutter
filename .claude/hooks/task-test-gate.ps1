@@ -2,11 +2,21 @@
 # State file: .claude/state/task_state.json
 # Usage: Activated when working on stories/bugs, cleared with /task-complete or /task-quick
 
-$input = $input | Out-String
-$json = $input | ConvertFrom-Json
+try {
+    # Read JSON from stdin - use pipeline input for PowerShell compatibility
+    $stdinContent = @($input) -join "`n"
 
-$toolName = $json.tool_name
-$command = $json.tool_input.command
+    if ([string]::IsNullOrWhiteSpace($stdinContent)) {
+        exit 0
+    }
+
+    $json = $stdinContent | ConvertFrom-Json
+    $toolName = $json.tool_name
+    $command = $json.tool_input.command
+} catch {
+    # If we can't parse input, allow the operation
+    exit 0
+}
 
 # Only check Bash commands
 if ($toolName -ne "Bash") {
