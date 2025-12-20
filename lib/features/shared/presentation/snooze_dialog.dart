@@ -9,8 +9,8 @@ import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/parse_helper.dart';
 import '../../../core/services/task_completion_service.dart';
-import '../../../redux/presentation/editable_task_field.dart';
-import '../../../redux/presentation/nullable_dropdown.dart';
+import './widgets/editable_task_field.dart';
+import './widgets/nullable_dropdown.dart';
 
 /// Riverpod version of SnoozeDialog
 ///

@@ -12,8 +12,8 @@ import '../../../core/services/task_completion_service.dart';
 import '../providers/task_providers.dart';
 import 'task_add_edit_screen.dart';
 import '../../shared/presentation/delayed_checkbox.dart';
-import '../../../redux/presentation/readonly_task_field.dart';
-import '../../../redux/presentation/readonly_task_field_small.dart';
+import '../../shared/presentation/widgets/readonly_task_field.dart';
+import '../../shared/presentation/widgets/readonly_task_field_small.dart';
 
 /// Riverpod version of the Task Details screen
 /// Displays full task information with edit and delete actions

@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskmaster/helpers/recurrence_helper.dart';
 import 'package:taskmaster/models/sprint_blueprint.dart';
 import 'package:taskmaster/models/sprint_display_task.dart';
-import 'package:taskmaster/redux/selectors/selectors.dart';
+import 'package:taskmaster/helpers/task_selectors.dart';
 
 import '../../../date_util.dart';
 import '../../../keys.dart';
@@ -20,8 +20,8 @@ import '../../../core/providers/auth_providers.dart';
 import '../../sprints/providers/sprint_providers.dart';
 import '../../sprints/services/sprint_service.dart';
 import '../../tasks/providers/task_providers.dart';
-import '../../../redux/presentation/plan_task_item.dart';
-import '../../../redux/presentation/header_list_item.dart';
+import './widgets/plan_task_item.dart';
+import './widgets/header_list_item.dart';
 import '../../../models/check_state.dart';
 
 /// Riverpod version of PlanTaskList

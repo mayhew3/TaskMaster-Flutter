@@ -5,7 +5,9 @@
       "Bash(flutter pub run build_runner build:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(mcp__atlassian)"
+      "Bash(mcp__atlassian)",
+      "Bash(dart analyze:*)",
+      "Bash(flutter pub get:*)"
     ],
     "deny": [],
     "ask": []

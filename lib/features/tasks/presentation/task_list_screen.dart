@@ -13,7 +13,7 @@ import 'task_add_edit_screen.dart';
 import 'task_details_screen.dart';
 import '../../../models/task_colors.dart';
 import '../../shared/presentation/editable_task_item.dart';
-import '../../../redux/presentation/header_list_item.dart';
+import '../../shared/presentation/widgets/header_list_item.dart';
 import '../../shared/presentation/snooze_dialog.dart';
 import '../../shared/presentation/app_drawer.dart';
 import '../../shared/presentation/app_bottom_nav.dart';

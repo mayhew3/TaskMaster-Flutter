@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/redux/presentation/clearable_date_time_field.dart';
+import 'package:taskmaster/features/shared/presentation/widgets/clearable_date_time_field.dart';
 
 import '../mocks/mock_timezone_helper.dart';
 

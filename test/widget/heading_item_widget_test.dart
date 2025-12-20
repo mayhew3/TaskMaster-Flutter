@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/redux/presentation/header_list_item.dart';
+import 'package:taskmaster/features/shared/presentation/widgets/header_list_item.dart';
 
 /// Widget Test: HeadingItem
 ///

@@ -3,14 +3,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:redux/redux.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:taskmaster/core/providers/auth_providers.dart';
 import 'package:taskmaster/core/providers/firebase_providers.dart';
 import 'package:taskmaster/core/services/task_completion_service.dart';
@@ -21,20 +18,15 @@ import 'package:taskmaster/models/serializers.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
-import 'package:taskmaster/redux/app_state.dart';
-import 'package:taskmaster/redux/middleware/store_sprint_middleware.dart';
-import 'package:taskmaster/redux/middleware/store_task_items_middleware.dart';
 import 'package:taskmaster/features/tasks/presentation/task_list_screen.dart';
 import 'package:taskmaster/features/tasks/presentation/stats_screen.dart';
 import 'package:taskmaster/features/sprints/presentation/sprint_task_items_screen.dart';
 import 'package:taskmaster/features/sprints/presentation/new_sprint_screen.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
-import 'package:taskmaster/redux/containers/planning_home.dart';
-import 'package:taskmaster/redux/reducers/app_state_reducer.dart';
+import 'package:taskmaster/features/shared/presentation/planning_home.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:taskmaster/timezone_helper.dart';
 
-import '../mocks/mock_notification_helper.dart';
 import '../mocks/mock_timezone_helper.dart';
 
 // Generate mocks for FirestoreMigrator and auth
@@ -56,7 +48,7 @@ class _TestTimezoneHelperNotifier extends TimezoneHelperNotifier {
 /// Helper class for integration tests
 /// Provides utilities for setting up test environment with mocked Firebase
 class IntegrationTestHelper {
-  /// Create a test app with full Redux store and real task repository
+  /// Create a test app with Riverpod providers
   static Future<void> pumpApp(
     WidgetTester tester, {
     List<TaskItem>? initialTasks,
@@ -69,9 +61,6 @@ class IntegrationTestHelper {
     final testFirestore = firestore ?? FakeFirebaseFirestore();
     final testPersonDocId = personDocId ?? 'test-person-123';
 
-    // Note: We'll seed data directly into Redux state instead of Firestore
-    // to avoid triggering continuous stream emissions that slow down tests
-
     // Create person document
     await testFirestore.collection('persons').doc(testPersonDocId).set({
       'email': 'test@example.com',
@@ -81,30 +70,11 @@ class IntegrationTestHelper {
     // Create real task repository with fake Firestore
     final taskRepository = TaskRepository(firestore: testFirestore);
     final navigatorKey = GlobalKey<NavigatorState>();
-    final mockMigrator = _MockFirestoreMigrator();
-
-    // Create mock auth objects for appIsReady() check
-    final mockUser = _MockUser();
-    final mockUserCredential = _MockUserCredential();
-    final mockGoogleAccount = _MockGoogleSignInAccount();
 
     // Use mock TimezoneHelper to avoid platform channel initialization
     final timezoneHelper = MockTimezoneHelper();
 
-    // Set up mock user credential to return mock user
-    when(mockUserCredential.user).thenReturn(mockUser);
-
-    // Create store with real middleware and reducers
-    // Use mock notification helper to avoid platform initialization errors
-    final initialState = AppState.init(
-      loading: false,
-      notificationHelper: MockNotificationHelper(),
-    );
-
-    // Set active tab to Tasks tab (index 1) for task-focused tests
-    final tasksTab = initialState.allNavItems[1];
-
-    // Link recurrences to tasks (like reducers do)
+    // Link recurrences to tasks
     final recurrencesList = initialRecurrences ?? [];
     final tasksWithRecurrences = (initialTasks ?? []).map((task) {
       if (task.recurrenceDocId != null) {
@@ -116,35 +86,7 @@ class IntegrationTestHelper {
       return task;
     }).toList();
 
-    // Seed data directly into Redux state (not Firestore) for fast tests
-    final store = Store<AppState>(
-      appReducer,
-      initialState: initialState.rebuild((b) => b
-        ..personDocId = testPersonDocId
-        ..currentUser = mockGoogleAccount
-        ..firebaseUser = mockUserCredential
-        ..timezoneHelper = timezoneHelper
-        ..activeTab = tasksTab.toBuilder()
-        ..taskItems = ListBuilder<TaskItem>(tasksWithRecurrences)
-        ..sprints = ListBuilder<Sprint>(initialSprints ?? [])
-        ..taskRecurrences = ListBuilder<TaskRecurrence>(recurrencesList)
-        ..tasksLoading = false
-        ..sprintsLoading = false
-        ..taskRecurrencesLoading = false
-        ..isLoading = false),
-      middleware: [
-        // Include middleware but don't start listeners - tests just verify rendering
-        ...createStoreTaskItemsMiddleware(taskRepository, navigatorKey, mockMigrator, null),
-        ...createStoreSprintsMiddleware(taskRepository),
-      ],
-    );
-
-    // Don't dispatch LoadDataAction - it starts Firestore listeners that never settle
-    // Tests verify UI rendering with seeded data, not real-time sync
-
-    // Pump the app with proper theme for tests
-    // Wrap with both ProviderScope (for Riverpod) and StoreProvider (for Redux)
-    // to support migration period where both systems coexist
+    // Pump the app with Riverpod providers
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -160,47 +102,24 @@ class IntegrationTestHelper {
           // Override timezone helper notifier to immediately return mock
           timezoneHelperNotifierProvider.overrideWith(() => _TestTimezoneHelperNotifier()),
         ],
-        child: StoreProvider<AppState>(
-          store: store,
-          child: MaterialApp(
-            navigatorKey: navigatorKey,
-            theme: ThemeData(
-              checkboxTheme: CheckboxThemeData(
-                fillColor: WidgetStateProperty.all(Colors.blue),
-              ),
+        child: MaterialApp(
+          navigatorKey: navigatorKey,
+          theme: ThemeData(
+            checkboxTheme: CheckboxThemeData(
+              fillColor: WidgetStateProperty.all(Colors.blue),
             ),
-            home: _TestAuthenticatedHome(),
           ),
+          home: _TestAuthenticatedHome(),
         ),
       ),
     );
 
     // Wait for initial render and async providers to complete
-    // Using pumpAndSettle() to wait for Future providers (tasksWithRecurrencesProvider, etc.)
     await tester.pumpAndSettle();
   }
 
-  /// Create a minimal Redux store for testing
-  static Store<AppState> createMinimalStore({
-    List<TaskItem>? tasks,
-    List<Sprint>? sprints,
-    List<TaskRecurrence>? recurrences,
-    String? personDocId,
-  }) {
-    return Store<AppState>(
-      appReducer,
-      initialState: AppState.init(loading: false).rebuild((b) => b
-        ..taskItems = ListBuilder(tasks ?? [])
-        ..sprints = ListBuilder(sprints ?? [])
-        ..taskRecurrences = ListBuilder(recurrences ?? [])
-        ..personDocId = personDocId ?? 'test-person-123'
-        ..isLoading = false),
-    );
-  }
-
-  /// Wait for widget rebuild (data is pre-seeded, no async operations)
+  /// Wait for widget rebuild
   static Future<void> waitForRender(WidgetTester tester) async {
-    // Just pump once - data is already in Redux state
     await tester.pump();
   }
 
@@ -224,7 +143,7 @@ class IntegrationTestHelper {
       'name': 'Test User',
     });
 
-    // Seed initial data into Firestore (not Redux)
+    // Seed initial data into Firestore
     if (initialTasks != null) {
       for (final task in initialTasks) {
         await testFirestore.collection('tasks').doc(task.docId).set({
@@ -283,54 +202,11 @@ class IntegrationTestHelper {
     // Create real task repository with fake Firestore
     final taskRepository = TaskRepository(firestore: testFirestore);
     final navigatorKey = GlobalKey<NavigatorState>();
-    final mockMigrator = _MockFirestoreMigrator();
-
-    // Create mock auth objects for appIsReady() check
-    final mockUser = _MockUser();
-    final mockUserCredential = _MockUserCredential();
-    final mockGoogleAccount = _MockGoogleSignInAccount();
 
     // Use mock TimezoneHelper to avoid platform channel initialization
     final timezoneHelper = MockTimezoneHelper();
 
-    // Set up mock user credential to return mock user
-    when(mockUserCredential.user).thenReturn(mockUser);
-
-    // Create store with real middleware and reducers
-    final initialState = AppState.init(
-      loading: false,
-      notificationHelper: MockNotificationHelper(),
-    );
-
-    // Set active tab to Tasks tab (index 1) for task-focused tests
-    final tasksTab = initialState.allNavItems[1];
-
-    // Create Redux store (for compatibility during migration)
-    final store = Store<AppState>(
-      appReducer,
-      initialState: initialState.rebuild((b) => b
-        ..personDocId = testPersonDocId
-        ..currentUser = mockGoogleAccount
-        ..firebaseUser = mockUserCredential
-        ..timezoneHelper = timezoneHelper
-        ..activeTab = tasksTab.toBuilder()
-        ..tasksLoading = false
-        ..sprintsLoading = false
-        ..taskRecurrencesLoading = false
-        ..isLoading = false),
-      middleware: [
-        ...createStoreTaskItemsMiddleware(taskRepository, navigatorKey, mockMigrator, null),
-        ...createStoreSprintsMiddleware(taskRepository),
-      ],
-    );
-
-    // Create initial data lists for provider overrides (used for initial render)
-    // The providers will still read from Firestore for subsequent updates
-    final initialTasksList = initialTasks ?? [];
-    final initialSprintsList = initialSprints ?? [];
-    final initialRecurrencesList = initialRecurrences ?? [];
-
-    // Pump the app with Riverpod providers that emit initial data then read from Firestore
+    // Pump the app with Riverpod providers that read from Firestore
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -338,9 +214,7 @@ class IntegrationTestHelper {
           firestoreProvider.overrideWithValue(testFirestore),
           // Override auth providers with test data
           personDocIdProvider.overrideWith((ref) => testPersonDocId),
-          // Override task providers to read from Firestore WITHOUT using .startWith()
-          // The issue is that .startWith() + Firestore streams cause infinite rebuilds
-          // Instead, just read from Firestore directly - it will emit initial data fast enough
+          // Override task providers to read from Firestore
           tasksProvider.overrideWith((ref) {
             final firestore = ref.watch(firestoreProvider);
             final personDocId = ref.watch(personDocIdProvider);
@@ -393,22 +267,17 @@ class IntegrationTestHelper {
                   }).toList();
                 });
           }),
-          // Don't override tasksWithRecurrencesProvider - let it use the default implementation
-          // which properly handles stream dependencies
           // Override timezone helper notifier to immediately return mock
           timezoneHelperNotifierProvider.overrideWith(() => _TestTimezoneHelperNotifier()),
         ],
-        child: StoreProvider<AppState>(
-          store: store,
-          child: MaterialApp(
-            navigatorKey: navigatorKey,
-            theme: ThemeData(
-              checkboxTheme: CheckboxThemeData(
-                fillColor: WidgetStateProperty.all(Colors.blue),
-              ),
+        child: MaterialApp(
+          navigatorKey: navigatorKey,
+          theme: ThemeData(
+            checkboxTheme: CheckboxThemeData(
+              fillColor: WidgetStateProperty.all(Colors.blue),
             ),
-            home: _TestAuthenticatedHome(),
           ),
+          home: _TestAuthenticatedHome(),
         ),
       ),
     );

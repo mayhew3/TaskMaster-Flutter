@@ -1,8 +1,8 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:mockito/mockito.dart';
+import 'package:taskmaster/core/services/notification_helper.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/redux/middleware/notification_helper.dart';
 import 'package:taskmaster/timezone_helper.dart';
 
 /// Mock NotificationHelper for testing

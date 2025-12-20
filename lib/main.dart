@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:logging/logging.dart';
-import 'package:taskmaster/app.dart';
-import 'package:taskmaster/core/feature_flags.dart';
 import 'package:taskmaster/riverpod_app.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -20,9 +18,6 @@ Future<void> main() async {
     print('${record.level.name}: ${record.time}: ${record.message}');
   });
 
-  // Print feature flags for debugging
-  FeatureFlags.printStatus();
-
   // Initialize timezone database for notifications
   // This is needed for flutter_local_notifications.zonedSchedule() to handle DST correctly
   tz.initializeTimeZones();
@@ -35,12 +30,9 @@ Future<void> main() async {
   );
 
   // Wrap app with ProviderScope for Riverpod state management
-  // Choose between Riverpod-first or Redux-first app based on feature flag
   runApp(
-    ProviderScope(
-      child: FeatureFlags.useRiverpodForAuth
-          ? const RiverpodTaskMasterApp()  // New Riverpod auth flow
-          : TaskMasterApp(),               // Legacy Redux auth flow
+    const ProviderScope(
+      child: RiverpodTaskMasterApp(),
     ),
   );
 }

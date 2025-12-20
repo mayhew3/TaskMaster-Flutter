@@ -6,12 +6,11 @@ import 'package:taskmaster/helpers/recurrence_helper.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
-import 'package:taskmaster/redux/actions/task_item_actions.dart';
 import 'package:taskmaster/task_repository.dart';
 import 'package:test/test.dart';
 
 import 'mocks/mock_data_builder.dart';
-import 'task_helper_test.mocks.dart';
+import 'recurrence_helper_test.mocks.dart';
 import 'test_mock_helper.dart';
 
 @GenerateNiceMocks([MockSpec<TaskRepository>()])
@@ -84,12 +83,6 @@ void main() {
       var blueprint = taskItem.createBlueprint();
       blueprint.incrementDateIfExists(TaskDateTypes.due, Duration(days: 3));
 
-      var action = ExecuteSnooze(taskItem: taskItem,
-          blueprint: blueprint,
-          numUnits: 3,
-          unitSize: 'Days',
-          dateType: TaskDateTypes.due);
-
       TaskItem? resultTask;
       TaskItemBlueprint? resultingBlueprint;
 
@@ -100,7 +93,11 @@ void main() {
         return Future.value((taskItem: resultTask!, recurrence: null));
       });
 
-      RecurrenceHelper.updateTaskAndMaybeRecurrenceForSnooze(mockTaskRepository, action);
+      RecurrenceHelper.updateTaskAndMaybeRecurrenceForSnooze(
+        repository: mockTaskRepository,
+        taskItem: taskItem,
+        blueprint: blueprint,
+      );
 
       expect(resultingBlueprint, blueprint);
       verify(mockTaskRepository.updateTaskAndRecurrence(taskItem.docId, resultingBlueprint));
@@ -117,14 +114,6 @@ void main() {
       var blueprint = taskItem.createBlueprint();
       blueprint.incrementDateIfExists(TaskDateTypes.due, Duration(days: 3));
 
-      var action = ExecuteSnooze(
-          taskItem: taskItem,
-          blueprint: blueprint,
-          numUnits: 3,
-          unitSize: 'Days',
-          dateType: TaskDateTypes.due
-      );
-
       TaskItem? resultTask;
       TaskItemBlueprint? resultingBlueprint;
 
@@ -135,7 +124,11 @@ void main() {
         return Future.value((taskItem: resultTask!, recurrence: null));
       });
 
-      RecurrenceHelper.updateTaskAndMaybeRecurrenceForSnooze(mockTaskRepository, action);
+      RecurrenceHelper.updateTaskAndMaybeRecurrenceForSnooze(
+        repository: mockTaskRepository,
+        taskItem: taskItem,
+        blueprint: blueprint,
+      );
 
       expect(resultingBlueprint, blueprint);
       verify(mockTaskRepository.updateTaskAndRecurrence(taskItem.docId, resultingBlueprint));
@@ -153,12 +146,6 @@ void main() {
       var blueprint = taskItem.createBlueprint();
       blueprint.incrementDateIfExists(TaskDateTypes.due, Duration(days: 3));
 
-      var action = ExecuteSnooze(taskItem: taskItem,
-          blueprint: blueprint,
-          numUnits: 3,
-          unitSize: 'Days',
-          dateType: TaskDateTypes.due);
-
       TaskItem? resultTask;
       TaskItemBlueprint? resultingBlueprint;
 
@@ -169,7 +156,11 @@ void main() {
         return Future.value((taskItem: resultTask!, recurrence: null));
       });
 
-      RecurrenceHelper.updateTaskAndMaybeRecurrenceForSnooze(mockTaskRepository, action);
+      RecurrenceHelper.updateTaskAndMaybeRecurrenceForSnooze(
+        repository: mockTaskRepository,
+        taskItem: taskItem,
+        blueprint: blueprint,
+      );
 
       expect(resultingBlueprint, blueprint);
       verify(mockTaskRepository.updateTaskAndRecurrence(
@@ -189,14 +180,6 @@ void main() {
       blueprint.offCycle = true; // Snooze should knock task off cycle
       blueprint.incrementDateIfExists(TaskDateTypes.due, Duration(days: 3));
 
-      var action = ExecuteSnooze(
-          taskItem: taskItem,
-          blueprint: blueprint,
-          numUnits: 3,
-          unitSize: 'Days',
-          dateType: TaskDateTypes.due
-      );
-
       TaskItem? resultTask;
       TaskItemBlueprint? resultingBlueprint;
 
@@ -207,7 +190,11 @@ void main() {
         return Future.value((taskItem: resultTask!, recurrence: null));
       });
 
-      RecurrenceHelper.updateTaskAndMaybeRecurrenceForSnooze(mockTaskRepository, action);
+      RecurrenceHelper.updateTaskAndMaybeRecurrenceForSnooze(
+        repository: mockTaskRepository,
+        taskItem: taskItem,
+        blueprint: blueprint,
+      );
 
       expect(resultingBlueprint, blueprint);
       verify(mockTaskRepository.updateTaskAndRecurrence(taskItem.docId, resultingBlueprint));

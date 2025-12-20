@@ -9,7 +9,7 @@ import 'package:taskmaster/features/tasks/presentation/task_list_screen.dart';
 import 'package:taskmaster/features/tasks/providers/task_providers.dart';
 import 'package:taskmaster/features/shared/providers/navigation_provider.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
-import 'package:taskmaster/redux/containers/planning_home.dart';
+import 'package:taskmaster/features/shared/presentation/planning_home.dart';
 import 'package:taskmaster/features/tasks/presentation/stats_screen.dart';
 
 /// Riverpod-based main app widget

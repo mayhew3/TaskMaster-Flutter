@@ -119,7 +119,7 @@ final updateTaskProvider =
     );
 
 typedef _$UpdateTask = AutoDisposeAsyncNotifier<void>;
-String _$snoozeTaskHash() => r'0824f34d84345eacdbd8fbaeec0da085ac102ad6';
+String _$snoozeTaskHash() => r'8d0d9a21bee855a56511d39385d8943f862fae29';
 
 /// Controller for snoozing tasks
 ///

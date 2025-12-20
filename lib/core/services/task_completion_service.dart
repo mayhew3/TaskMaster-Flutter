@@ -12,7 +12,6 @@ import '../../models/task_date_type.dart';
 import '../../helpers/recurrence_helper.dart';
 import '../../task_repository.dart' as legacy;
 import '../../timezone_helper.dart';
-import '../../redux/actions/task_item_actions.dart' show ExecuteSnooze;
 
 part 'task_completion_service.g.dart';
 
@@ -215,14 +214,9 @@ class SnoozeTask extends _$SnoozeTask {
 
       // Update task and maybe recurrence
       final result = await RecurrenceHelper.updateTaskAndMaybeRecurrenceForSnooze(
-        legacyRepository,
-        ExecuteSnooze(
-          taskItem: taskItem,
-          blueprint: blueprint,
-          numUnits: numUnits,
-          unitSize: unitSize,
-          dateType: dateType,
-        ),
+        repository: legacyRepository,
+        taskItem: taskItem,
+        blueprint: blueprint,
       );
 
       // Get new anchor date
