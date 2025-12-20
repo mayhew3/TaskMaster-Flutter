@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskmaster/app_theme.dart';
+import 'package:taskmaster/core/providers/notification_providers.dart';
 import 'package:taskmaster/core/services/auth_service.dart';
 import 'package:taskmaster/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaster/features/tasks/presentation/task_list_screen.dart';
@@ -316,6 +317,10 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
     final sprintsAsync = ref.watch(sprintsProvider);
     // Watch the tab index provider (also clears recentlyCompleted on tab change - TM-312)
     final selectedIndex = ref.watch(activeTabIndexProvider);
+
+    // Watch notification sync provider to keep notifications in sync with tasks
+    // This will automatically resync when tasks or sprints change
+    ref.watch(notificationSyncProvider);
 
     // Show loading indicator until both tasks and sprints are loaded
     final isLoading = tasksAsync.isLoading || sprintsAsync.isLoading;

@@ -5,7 +5,8 @@
         "matcher": "Bash",
         "hooks": [
           { "type": "command", "command": ".claude/hooks/validate-commit-message.sh" },
-          { "type": "command", "command": ".claude/hooks/task-test-gate.sh" }
+          { "type": "command", "command": ".claude/hooks/task-test-gate.sh" },
+          { "type": "command", "command": ".claude/hooks/task-push-gate.sh" }
         ]
       }
     ]

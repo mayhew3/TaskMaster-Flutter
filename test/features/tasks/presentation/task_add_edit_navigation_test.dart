@@ -12,6 +12,8 @@ import '../../../integration/integration_test_helper.dart';
 ///
 /// NOTE: These tests use pumpAppWithLiveFirestore() instead of pumpApp()
 /// because auto-close logic requires Firestore streams to see task updates.
+///
+/// Also includes field validation tests (TM-297).
 void main() {
   group('TaskAddEditScreen Navigation Tests (TM-282)', () {
     late FakeFirebaseFirestore fakeFirestore;
@@ -157,6 +159,151 @@ void main() {
 
       // Verify task name was updated
       expect(find.text('Updated Task Name'), findsOneWidget);
+    });
+  });
+
+  group('TaskAddEditScreen Validation Tests (TM-297)', () {
+    late FakeFirebaseFirestore fakeFirestore;
+
+    setUp(() {
+      fakeFirestore = FakeFirebaseFirestore();
+    });
+
+    testWidgets('Name field is required - cannot save without name',
+        (tester) async {
+      await IntegrationTestHelper.pumpAppWithLiveFirestore(
+        tester,
+        firestore: fakeFirestore,
+        initialTasks: [],
+        initialSprints: [],
+      );
+
+      await tester.pumpAndSettle();
+
+      // Navigate to Tasks tab
+      final appBottomNav = find.byType(NavigationBar);
+      final tasksDestination = find.descendant(
+        of: appBottomNav,
+        matching: find.byWidgetPredicate(
+          (widget) => widget is NavigationDestination && widget.label == 'Tasks',
+        ),
+      );
+
+      if (tasksDestination.evaluate().isNotEmpty) {
+        await tester.tap(tasksDestination);
+        await tester.pumpAndSettle();
+      }
+
+      // Tap the "+" FAB to add a task
+      final fab = find.byType(FloatingActionButton);
+      await tester.tap(fab);
+      await tester.pumpAndSettle();
+
+      // Verify we're on the add/edit screen
+      expect(find.byType(TaskAddEditScreen), findsOneWidget);
+
+      // Try to save without entering a name
+      final saveButton = find.byIcon(Icons.add);
+      await tester.tap(saveButton);
+      await tester.pumpAndSettle();
+
+      // Should still be on the add/edit screen (validation failed)
+      expect(find.byType(TaskAddEditScreen), findsOneWidget,
+          reason: 'Should remain on add/edit screen when validation fails');
+
+      // Should show validation error (message is "Name is required")
+      expect(find.text('Name is required'), findsOneWidget,
+          reason: 'Should show validation message for name field');
+    });
+
+    testWidgets('Name field shows error after clearing text',
+        (tester) async {
+      await IntegrationTestHelper.pumpAppWithLiveFirestore(
+        tester,
+        firestore: fakeFirestore,
+        initialTasks: [],
+        initialSprints: [],
+      );
+
+      await tester.pumpAndSettle();
+
+      // Navigate to Tasks tab
+      final appBottomNav = find.byType(NavigationBar);
+      final tasksDestination = find.descendant(
+        of: appBottomNav,
+        matching: find.byWidgetPredicate(
+          (widget) => widget is NavigationDestination && widget.label == 'Tasks',
+        ),
+      );
+
+      if (tasksDestination.evaluate().isNotEmpty) {
+        await tester.tap(tasksDestination);
+        await tester.pumpAndSettle();
+      }
+
+      // Tap the "+" FAB to add a task
+      final fab = find.byType(FloatingActionButton);
+      await tester.tap(fab);
+      await tester.pumpAndSettle();
+
+      // Enter text then clear it (simulates user typing then deleting)
+      final nameField = find.byKey(const Key('task_name_field'));
+      await tester.enterText(nameField, 'Test');
+      await tester.pumpAndSettle();
+      await tester.enterText(nameField, '');
+      await tester.pumpAndSettle();
+
+      // Validation error should appear due to autovalidateMode.onUserInteraction
+      expect(find.text('Name is required'), findsOneWidget,
+          reason: 'Should show validation message after clearing name');
+    });
+
+    testWidgets('Form prevents save when name is empty',
+        (tester) async {
+      await IntegrationTestHelper.pumpAppWithLiveFirestore(
+        tester,
+        firestore: fakeFirestore,
+        initialTasks: [],
+        initialSprints: [],
+      );
+
+      await tester.pumpAndSettle();
+
+      // Navigate to Tasks tab
+      final appBottomNav = find.byType(NavigationBar);
+      final tasksDestination = find.descendant(
+        of: appBottomNav,
+        matching: find.byWidgetPredicate(
+          (widget) => widget is NavigationDestination && widget.label == 'Tasks',
+        ),
+      );
+
+      if (tasksDestination.evaluate().isNotEmpty) {
+        await tester.tap(tasksDestination);
+        await tester.pumpAndSettle();
+      }
+
+      // Tap the "+" FAB to add a task
+      final fab = find.byType(FloatingActionButton);
+      await tester.tap(fab);
+      await tester.pumpAndSettle();
+
+      // Get initial task count from Firestore
+      final tasksBefore = await fakeFirestore.collection('tasks').get();
+      final countBefore = tasksBefore.docs.length;
+
+      // Try to save without entering a name
+      final saveButton = find.byIcon(Icons.add);
+      await tester.tap(saveButton);
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      // Verify no task was created
+      final tasksAfter = await fakeFirestore.collection('tasks').get();
+      expect(tasksAfter.docs.length, countBefore,
+          reason: 'No task should be created when validation fails');
+
+      // Should still be on the add/edit screen
+      expect(find.byType(TaskAddEditScreen), findsOneWidget);
     });
   });
 }

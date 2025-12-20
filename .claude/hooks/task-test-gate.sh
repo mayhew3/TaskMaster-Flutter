@@ -12,10 +12,21 @@ if [[ "$TOOL_NAME" != "Bash" ]]; then
     exit 0
 fi
 
-# Only block FULL test suite (flutter test with no args)
+# Only block FULL test suite (flutter test with no specific file)
 # Allow: flutter test test/specific_file.dart (for TDD during development)
-# Block: flutter test (full suite run)
-if [[ ! "$COMMAND" =~ ^flutter[[:space:]]+test$ ]]; then
+# Block: flutter test, flutter test --reporter compact, etc.
+
+# First check if it's a flutter test command at all
+if [[ ! "$COMMAND" =~ ^flutter[[:space:]]+test ]]; then
+    exit 0
+fi
+
+# Extract everything after "flutter test"
+AFTER_TEST="${COMMAND#flutter test}"
+
+# Allow if there's a path argument (contains .dart or test/)
+# This permits: flutter test test/foo.dart --reporter compact
+if [[ "$AFTER_TEST" =~ \.dart ]] || [[ "$AFTER_TEST" =~ test/ ]]; then
     exit 0
 fi
 
