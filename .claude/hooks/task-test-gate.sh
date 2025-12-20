@@ -12,9 +12,10 @@ if [[ "$TOOL_NAME" != "Bash" ]]; then
     exit 0
 fi
 
-# Only block test suite commands (Flutter-specific)
-# Match: flutter test
-if [[ ! "$COMMAND" =~ flutter[[:space:]]+test ]]; then
+# Only block FULL test suite (flutter test with no args)
+# Allow: flutter test test/specific_file.dart (for TDD during development)
+# Block: flutter test (full suite run)
+if [[ ! "$COMMAND" =~ ^flutter[[:space:]]+test$ ]]; then
     exit 0
 fi
 

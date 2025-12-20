@@ -7,6 +7,7 @@ import 'package:taskmaster/core/services/auth_service.dart';
 import 'package:taskmaster/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaster/features/tasks/presentation/task_list_screen.dart';
 import 'package:taskmaster/features/tasks/providers/task_providers.dart';
+import 'package:taskmaster/features/shared/providers/navigation_provider.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
 import 'package:taskmaster/redux/containers/planning_home.dart';
 import 'package:taskmaster/features/tasks/presentation/stats_screen.dart';
@@ -277,8 +278,6 @@ class _AuthenticatedHome extends ConsumerStatefulWidget {
 }
 
 class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
-  int _selectedIndex = 0;
-
   late final List<TopNavItem> _navItems;
 
   @override
@@ -310,15 +309,13 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
     // TODO: Implement badge updates via Riverpod
   }
 
-  void _onTabSelected(int index) {
-    setState(() => _selectedIndex = index);
-  }
-
   @override
   Widget build(BuildContext context) {
     // Watch data providers to show loading state until data is ready
     final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
     final sprintsAsync = ref.watch(sprintsProvider);
+    // Watch the tab index provider (also clears recentlyCompleted on tab change - TM-312)
+    final selectedIndex = ref.watch(activeTabIndexProvider);
 
     // Show loading indicator until both tasks and sprints are loaded
     final isLoading = tasksAsync.isLoading || sprintsAsync.isLoading;
@@ -369,7 +366,7 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
     }
 
     // Get the current screen widget
-    final currentScreen = _navItems[_selectedIndex].widgetGetter();
+    final currentScreen = _navItems[selectedIndex].widgetGetter();
 
     // Build with navigation bar - the screen widgets are Scaffolds
     // that don't include bottomNavigationBar when using Riverpod auth
@@ -377,8 +374,11 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
       children: [
         Expanded(child: currentScreen),
         NavigationBar(
-          selectedIndex: _selectedIndex,
-          onDestinationSelected: _onTabSelected,
+          selectedIndex: selectedIndex,
+          onDestinationSelected: (index) {
+            // Use provider to change tab - this also clears recentlyCompleted (TM-312)
+            ref.read(activeTabIndexProvider.notifier).setTab(index);
+          },
           destinations: _navItems.map((item) {
             return NavigationDestination(
               icon: Icon(item.icon),
