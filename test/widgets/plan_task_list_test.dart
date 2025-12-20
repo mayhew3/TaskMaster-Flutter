@@ -66,7 +66,7 @@ void main() {
         ProviderScope(
           overrides: [
             tasksProvider.overrideWith((ref) => Stream<List<TaskItem>>.value([])),
-            tasksWithRecurrencesProvider.overrideWith((ref) async => []),
+            tasksWithRecurrencesProvider.overrideWith((ref) => Stream.value(<TaskItem>[])),
             taskRecurrencesProvider.overrideWith((ref) => Stream.value([])),
             sprintsProvider.overrideWith((ref) => Stream<List<Sprint>>.value([])),
             personDocIdProvider.overrideWith((ref) => 'test_person_id'),
@@ -98,7 +98,7 @@ void main() {
         ProviderScope(
           overrides: [
             tasksProvider.overrideWith((ref) => Stream<List<TaskItem>>.error('Test error')),
-            tasksWithRecurrencesProvider.overrideWith((ref) async => throw 'Test error'),
+            tasksWithRecurrencesProvider.overrideWith((ref) => Stream<List<TaskItem>>.error('Test error')),
             taskRecurrencesProvider.overrideWith((ref) => Stream.value([])),
             sprintsProvider.overrideWith((ref) => Stream<List<Sprint>>.value([])),
             personDocIdProvider.overrideWith((ref) => 'test_person_id'),
@@ -141,7 +141,7 @@ void main() {
         ProviderScope(
           overrides: [
             tasksProvider.overrideWith((ref) => Stream.value(tasks)),
-            tasksWithRecurrencesProvider.overrideWith((ref) async => tasks),
+            tasksWithRecurrencesProvider.overrideWith((ref) => Stream.value(tasks)),
             taskRecurrencesProvider.overrideWith((ref) => Stream.value([])),
             sprintsProvider.overrideWith((ref) => Stream.value([])),
             recentlyCompletedTasksProvider.overrideWith(() => RecentlyCompletedTasks()),
@@ -174,8 +174,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            tasksProvider.overrideWith((ref) => Stream.value([])),
-            tasksWithRecurrencesProvider.overrideWith((ref) async => []),
+            tasksProvider.overrideWith((ref) => Stream.value(<TaskItem>[])),
+            tasksWithRecurrencesProvider.overrideWith((ref) => Stream.value(<TaskItem>[])),
             taskRecurrencesProvider.overrideWith((ref) => Stream.value([])),
             sprintsProvider.overrideWith((ref) => Stream.value([])),
             recentlyCompletedTasksProvider.overrideWith(() => RecentlyCompletedTasks()),
@@ -211,7 +211,7 @@ void main() {
         ProviderScope(
           overrides: [
             tasksProvider.overrideWith((ref) => Stream.value([urgentTask])),
-            tasksWithRecurrencesProvider.overrideWith((ref) async => [urgentTask]),
+            tasksWithRecurrencesProvider.overrideWith((ref) => Stream.value([urgentTask])),
             taskRecurrencesProvider.overrideWith((ref) => Stream.value([])),
             sprintsProvider.overrideWith((ref) => Stream.value([])),
             recentlyCompletedTasksProvider.overrideWith(() => RecentlyCompletedTasks()),
@@ -257,7 +257,7 @@ void main() {
         ProviderScope(
           overrides: [
             tasksProvider.overrideWith((ref) => Stream.value([dueTask, urgentTask, targetTask])),
-            tasksWithRecurrencesProvider.overrideWith((ref) async => [dueTask, urgentTask, targetTask]),
+            tasksWithRecurrencesProvider.overrideWith((ref) => Stream.value([dueTask, urgentTask, targetTask])),
             taskRecurrencesProvider.overrideWith((ref) => Stream.value([])),
             sprintsProvider.overrideWith((ref) => Stream.value([])),
             recentlyCompletedTasksProvider.overrideWith(() => RecentlyCompletedTasks()),
@@ -296,7 +296,7 @@ void main() {
         ProviderScope(
           overrides: [
             tasksProvider.overrideWith((ref) => Stream.value([completedTask])),
-            tasksWithRecurrencesProvider.overrideWith((ref) async => [completedTask]),
+            tasksWithRecurrencesProvider.overrideWith((ref) => Stream.value([completedTask])),
             taskRecurrencesProvider.overrideWith((ref) => Stream.value([])),
             sprintsProvider.overrideWith((ref) => Stream.value([])),
             recentlyCompletedTasksProvider.overrideWith(() => RecentlyCompletedTasks()),
@@ -334,7 +334,7 @@ void main() {
         ProviderScope(
           overrides: [
             tasksProvider.overrideWith((ref) => Stream.value([task])),
-            tasksWithRecurrencesProvider.overrideWith((ref) async => [task]),
+            tasksWithRecurrencesProvider.overrideWith((ref) => Stream.value([task])),
             taskRecurrencesProvider.overrideWith((ref) => Stream.value([])),
             sprintsProvider.overrideWith((ref) => Stream.value([])),
             recentlyCompletedTasksProvider.overrideWith(() => RecentlyCompletedTasks()),

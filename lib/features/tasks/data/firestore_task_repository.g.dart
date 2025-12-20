@@ -6,7 +6,7 @@ part of 'firestore_task_repository.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$taskRepositoryHash() => r'9179c4a81fb566a2fba008aeeb730f6dc3aff6c6';
+String _$taskRepositoryHash() => r'4b8401c2721aa0e13d4dee5ebfbffd28099fe0f5';
 
 /// See also [taskRepository].
 @ProviderFor(taskRepository)

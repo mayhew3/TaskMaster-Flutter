@@ -1,3 +1,4 @@
+import 'package:built_collection/built_collection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,8 @@ import 'package:taskmaster/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaster/features/tasks/presentation/task_list_screen.dart';
 import 'package:taskmaster/features/tasks/providers/task_providers.dart';
 import 'package:taskmaster/features/shared/providers/navigation_provider.dart';
+import 'package:taskmaster/helpers/task_selectors.dart';
+import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
 import 'package:taskmaster/features/shared/presentation/planning_home.dart';
 import 'package:taskmaster/features/tasks/presentation/stats_screen.dart';
@@ -302,11 +305,42 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
     ];
 
     _setupBadgeUpdater();
+
+    // Schedule notification sync for AFTER first frame renders (non-blocking)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncNotificationsInBackground();
+    });
   }
 
   void _setupBadgeUpdater() {
     // Badge updates will be handled by watching tasks provider
     // TODO: Implement badge updates via Riverpod
+  }
+
+  /// Sync notifications in background AFTER UI renders (non-blocking)
+  Future<void> _syncNotificationsInBackground() async {
+    try {
+      print('⏱️ _syncNotificationsInBackground: Starting background sync');
+      final stopwatch = Stopwatch()..start();
+
+      final tasks = await ref.read(tasksWithRecurrencesProvider.future);
+      final sprints = await ref.read(sprintsProvider.future);
+      final notificationHelper = ref.read(notificationHelperProvider);
+
+      // Get active sprint
+      final builtSprints = BuiltList<Sprint>(sprints);
+      final activeSprint = activeSprintSelector(builtSprints);
+
+      // Full sync in background
+      await notificationHelper.syncNotificationForTasksAndSprint(
+        tasks,
+        activeSprint,
+      );
+
+      print('⏱️ _syncNotificationsInBackground: Completed in ${stopwatch.elapsedMilliseconds}ms');
+    } catch (e) {
+      print('⚠️ _syncNotificationsInBackground: Error (non-blocking): $e');
+    }
   }
 
   @override
@@ -317,9 +351,8 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
     // Watch the tab index provider (also clears recentlyCompleted on tab change - TM-312)
     final selectedIndex = ref.watch(activeTabIndexProvider);
 
-    // Watch notification sync provider to keep notifications in sync with tasks
-    // This will automatically resync when tasks or sprints change
-    ref.watch(notificationSyncProvider);
+    // NOTE: Notification sync moved to background via addPostFrameCallback in initState
+    // This prevents blocking the initial UI render
 
     // Show loading indicator until both tasks and sprints are loaded
     final isLoading = tasksAsync.isLoading || sprintsAsync.isLoading;

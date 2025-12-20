@@ -46,28 +46,28 @@ final taskRecurrencesProvider =
 // ignore: unused_element
 typedef TaskRecurrencesRef = AutoDisposeStreamProviderRef<List<TaskRecurrence>>;
 String _$tasksWithRecurrencesHash() =>
-    r'85c31a35544d42fa4cf29f815420478fa95db671';
+    r'6037ed946fc83b5dbdd2a23638c0b3d2dfd17eb3';
 
 /// Stream of tasks with their recurrences populated
+/// Uses rxdart combineLatest2 for PARALLEL loading of tasks and recurrences
 /// This is the primary provider that UI should use - it ensures task.recurrence
 /// is always populated for recurring tasks, matching the Redux pattern
 ///
 /// Copied from [tasksWithRecurrences].
 @ProviderFor(tasksWithRecurrences)
-final tasksWithRecurrencesProvider =
-    AutoDisposeFutureProvider<List<TaskItem>>.internal(
-      tasksWithRecurrences,
-      name: r'tasksWithRecurrencesProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$tasksWithRecurrencesHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+final tasksWithRecurrencesProvider = StreamProvider<List<TaskItem>>.internal(
+  tasksWithRecurrences,
+  name: r'tasksWithRecurrencesProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$tasksWithRecurrencesHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef TasksWithRecurrencesRef = AutoDisposeFutureProviderRef<List<TaskItem>>;
+typedef TasksWithRecurrencesRef = StreamProviderRef<List<TaskItem>>;
 String _$taskHash() => r'97a95f1e85b1db772c8782797b9fdfa24da18ff7';
 
 /// Copied from Dart SDK

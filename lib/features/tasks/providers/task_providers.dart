@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:rxdart/rxdart.dart';
 import '../../../core/providers/auth_providers.dart';
 import '../../../core/providers/firebase_providers.dart';
 import '../../../models/task_item.dart';
@@ -87,28 +88,94 @@ Stream<List<TaskRecurrence>> taskRecurrences(TaskRecurrencesRef ref) {
 }
 
 /// Stream of tasks with their recurrences populated
+/// Uses rxdart combineLatest2 for PARALLEL loading of tasks and recurrences
 /// This is the primary provider that UI should use - it ensures task.recurrence
 /// is always populated for recurring tasks, matching the Redux pattern
-@riverpod
-Future<List<TaskItem>> tasksWithRecurrences(TasksWithRecurrencesRef ref) async {
-  // Wait for both providers to have data
-  final tasks = await ref.watch(tasksProvider.future);
-  final recurrences = await ref.watch(taskRecurrencesProvider.future);
+@Riverpod(keepAlive: true)
+Stream<List<TaskItem>> tasksWithRecurrences(TasksWithRecurrencesRef ref) {
+  final firestore = ref.watch(firestoreProvider);
+  final personDocId = ref.watch(personDocIdProvider);
 
-  print('📋 tasksWithRecurrencesProvider: Linking ${tasks.length} tasks with ${recurrences.length} recurrences');
+  if (personDocId == null) {
+    return Stream.value([]);
+  }
 
-  // Link tasks with their recurrences (matching Redux onTaskItemsAdded pattern)
-  return tasks.map((task) {
-    if (task.recurrenceDocId != null) {
-      final recurrence = recurrences
-          .where((r) => r.docId == task.recurrenceDocId)
-          .firstOrNull;
-      if (recurrence != null) {
-        return task.rebuild((t) => t..recurrence = recurrence.toBuilder());
-      }
-    }
-    return task;
-  }).toList();
+  final stopwatch = Stopwatch()..start();
+  print('⏱️ tasksWithRecurrencesProvider: Starting parallel queries');
+
+  final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
+
+  // Create tasks stream
+  final tasksStream = firestore
+      .collection('tasks')
+      .where('personDocId', isEqualTo: personDocId)
+      .where('retired', isNull: true)
+      .snapshots()
+      .map((snapshot) {
+        print('⏱️ tasksWithRecurrences: Got ${snapshot.docs.length} task docs at ${stopwatch.elapsedMilliseconds}ms');
+        return snapshot.docs
+            .map((doc) {
+              final json = doc.data();
+              json['docId'] = doc.id;
+              final task = serializers.deserializeWith(TaskItem.serializer, json);
+
+              // Filter out old completed tasks (older than 7 days)
+              if (task != null) {
+                final completionDate = task.completionDate;
+                if (completionDate != null && completionDate.isBefore(sevenDaysAgo)) {
+                  return null;
+                }
+                return task;
+              }
+              return null;
+            })
+            .whereType<TaskItem>()
+            .toList();
+      });
+
+  // Create recurrences stream
+  final recurrencesStream = firestore
+      .collection('taskRecurrences')
+      .where('personDocId', isEqualTo: personDocId)
+      .where('retired', isNull: true)
+      .snapshots()
+      .map((snapshot) {
+        print('⏱️ tasksWithRecurrences: Got ${snapshot.docs.length} recurrence docs at ${stopwatch.elapsedMilliseconds}ms');
+        return snapshot.docs
+            .map((doc) {
+              final json = doc.data();
+              json['docId'] = doc.id;
+              return serializers.deserializeWith(TaskRecurrence.serializer, json);
+            })
+            .whereType<TaskRecurrence>()
+            .toList();
+      });
+
+  // PARALLEL: Combine both streams - fires when EITHER emits, using latest from both
+  return Rx.combineLatest2<List<TaskItem>, List<TaskRecurrence>, List<TaskItem>>(
+    tasksStream,
+    recurrencesStream,
+    (tasks, recurrences) {
+      print('⏱️ tasksWithRecurrences: Combining ${tasks.length} tasks with ${recurrences.length} recurrences at ${stopwatch.elapsedMilliseconds}ms');
+
+      // O(1) lookup map instead of O(n) search for each task
+      final recurrenceMap = {for (var r in recurrences) r.docId: r};
+
+      // Link tasks with their recurrences
+      final linkedTasks = tasks.map((task) {
+        if (task.recurrenceDocId != null) {
+          final recurrence = recurrenceMap[task.recurrenceDocId];
+          if (recurrence != null) {
+            return task.rebuild((t) => t..recurrence = recurrence.toBuilder());
+          }
+        }
+        return task;
+      }).toList();
+
+      print('⏱️ tasksWithRecurrences: Completed in ${stopwatch.elapsedMilliseconds}ms');
+      return linkedTasks;
+    },
+  );
 }
 
 /// Get a specific task by ID with recurrence populated

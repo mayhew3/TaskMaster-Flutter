@@ -49,7 +49,7 @@ void main() {
           overrides: [
             firestoreProvider.overrideWithValue(fakeFirestore),
             tasksProvider.overrideWith((ref) => Stream.value([taskWithRecurrence])),
-            tasksWithRecurrencesProvider.overrideWith((ref) async => [taskWithRecurrence]),
+            tasksWithRecurrencesProvider.overrideWith((ref) => Stream.value([taskWithRecurrence])),
             taskRecurrencesProvider.overrideWith((ref) => Stream.value(
               recurrence != null ? [recurrence] : [],
             )),
@@ -290,7 +290,7 @@ void main() {
           overrides: [
             firestoreProvider.overrideWithValue(fakeFirestore),
             tasksProvider.overrideWith((ref) => Stream.value(<TaskItem>[])),
-            tasksWithRecurrencesProvider.overrideWith((ref) async => <TaskItem>[]),
+            tasksWithRecurrencesProvider.overrideWith((ref) => Stream.value(<TaskItem>[])),
             taskRecurrencesProvider.overrideWith((ref) => Stream.value(<TaskRecurrence>[])),
             sprintsProvider.overrideWith((ref) => Stream.value([])),
             timezoneHelperNotifierProvider.overrideWith(() => _TestTimezoneHelperNotifier()),

@@ -96,7 +96,7 @@ class IntegrationTestHelper {
           personDocIdProvider.overrideWith((ref) => testPersonDocId),
           // Override task/recurrence providers with test data
           tasksProvider.overrideWith((ref) => Stream.value(tasksWithRecurrences)),
-          tasksWithRecurrencesProvider.overrideWith((ref) async => tasksWithRecurrences),
+          tasksWithRecurrencesProvider.overrideWith((ref) => Stream.value(tasksWithRecurrences)),
           taskRecurrencesProvider.overrideWith((ref) => Stream.value(recurrencesList)),
           sprintsProvider.overrideWith((ref) => Stream.value(initialSprints ?? [])),
           // Override timezone helper notifier to immediately return mock

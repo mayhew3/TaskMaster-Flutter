@@ -20,15 +20,20 @@ Stream<List<Sprint>> sprints(SprintsRef ref) {
     return Stream.value([]);
   }
 
+  final stopwatch = Stopwatch()..start();
+  print('⏱️ sprintsProvider: Starting query');
+
   return firestore
       .collection('sprints')
       .where('personDocId', isEqualTo: personDocId)
+      .orderBy('sprintNumber', descending: true)
+      .limit(3)  // Only fetch recent sprints for performance
       .snapshots()
       .asyncMap((snapshot) async {
-    // Load sprints with their assignments
-    List<Sprint> sprints = [];
+    print('⏱️ sprintsProvider: Got ${snapshot.docs.length} sprints in ${stopwatch.elapsedMilliseconds}ms');
 
-    for (var doc in snapshot.docs) {
+    // PARALLEL: Fetch all sprint assignments simultaneously using Future.wait
+    final sprintFutures = snapshot.docs.map((doc) async {
       final json = doc.data();
       json['docId'] = doc.id;
 
@@ -45,10 +50,13 @@ Stream<List<Sprint>> sprints(SprintsRef ref) {
 
       json['sprintAssignments'] = assignmentsJson;
 
-      final sprint = serializers.deserializeWith(Sprint.serializer, json)!;
-      sprints.add(sprint);
-    }
+      return serializers.deserializeWith(Sprint.serializer, json)!;
+    });
 
+    // Execute ALL assignment fetches in parallel
+    final sprints = await Future.wait(sprintFutures);
+
+    print('⏱️ sprintsProvider: Completed in ${stopwatch.elapsedMilliseconds}ms');
     return sprints;
   });
 }

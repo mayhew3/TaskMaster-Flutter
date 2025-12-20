@@ -6,7 +6,7 @@ part of 'sprint_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$sprintsHash() => r'745c0da2d573ccc6b19f58489c7af22d1d745d82';
+String _$sprintsHash() => r'476b50e31b1245449ce2b91d619a7776a5d787f9';
 
 /// Stream of all sprints for the current user
 ///
