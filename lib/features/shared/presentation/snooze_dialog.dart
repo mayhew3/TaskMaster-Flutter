@@ -197,6 +197,10 @@ class SnoozeDialogState extends ConsumerState<SnoozeDialog> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch the snooze provider to keep it alive during async operations
+    // (AutoDispose providers get disposed when nothing watches them)
+    ref.watch(snoozeTaskProvider);
+
     return PopScope(
       canPop: true,
       child: AlertDialog(
