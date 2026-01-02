@@ -15,10 +15,10 @@ ThemeData taskMasterTheme = ThemeData(
       color: Colors.white,
     ),
   ),
-  bottomNavigationBarTheme: BottomNavigationBarThemeData(
+  navigationBarTheme: NavigationBarThemeData(
     backgroundColor: TaskColors.menuColor,
-    selectedItemColor: Colors.white,
-    unselectedItemColor: Colors.white70,
+    indicatorColor: TaskColors.backgroundColor,
+    height: 70,
   ),
   floatingActionButtonTheme: FloatingActionButtonThemeData(
     backgroundColor: TaskColors.highlight,

@@ -1,5 +1,8 @@
 {
+  "defaultMode": "acceptEdits",
   "allow": [
+    "Write",
+    "Edit",
     "Bash(flutter test:*)",
     "Bash(flutter pub run build_runner build:*)",
     "Bash(git add:*)",

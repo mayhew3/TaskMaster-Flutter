@@ -406,30 +406,22 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
     // Get the current screen widget
     final currentScreen = _navItems[selectedIndex].widgetGetter();
 
-    // Build with navigation bar - the screen widgets are Scaffolds
-    // that don't include bottomNavigationBar when using Riverpod auth
+    // Build with navigation bar - using Scaffold's bottomNavigationBar slot
+    // for proper Material 3 layout (not Column which caused excess padding)
     return Scaffold(
       body: currentScreen,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: selectedIndex,
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: selectedIndex,
         backgroundColor: TaskColors.menuColor,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white70,
-        onTap: (index) {
+        indicatorColor: TaskColors.backgroundColor,
+        height: 70,
+        onDestinationSelected: (index) {
           // Use provider to change tab - this also clears recentlyCompleted (TM-312)
           ref.read(activeTabIndexProvider.notifier).setTab(index);
         },
-        items: _navItems.map((item) {
-          return BottomNavigationBarItem(
+        destinations: _navItems.map((item) {
+          return NavigationDestination(
             icon: Icon(item.icon),
-            activeIcon: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              decoration: BoxDecoration(
-                color: TaskColors.backgroundColor,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Icon(item.icon),
-            ),
             label: item.label,
           );
         }).toList(),
