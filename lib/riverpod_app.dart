@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskmaster/app_theme.dart';
+import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/core/providers/notification_providers.dart';
 import 'package:taskmaster/core/services/auth_service.dart';
 import 'package:taskmaster/features/sprints/providers/sprint_providers.dart';
@@ -407,23 +408,32 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
 
     // Build with navigation bar - the screen widgets are Scaffolds
     // that don't include bottomNavigationBar when using Riverpod auth
-    return Column(
-      children: [
-        Expanded(child: currentScreen),
-        NavigationBar(
-          selectedIndex: selectedIndex,
-          onDestinationSelected: (index) {
-            // Use provider to change tab - this also clears recentlyCompleted (TM-312)
-            ref.read(activeTabIndexProvider.notifier).setTab(index);
-          },
-          destinations: _navItems.map((item) {
-            return NavigationDestination(
-              icon: Icon(item.icon),
-              label: item.label,
-            );
-          }).toList(),
-        ),
-      ],
+    return Scaffold(
+      body: currentScreen,
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: selectedIndex,
+        backgroundColor: TaskColors.menuColor,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white70,
+        onTap: (index) {
+          // Use provider to change tab - this also clears recentlyCompleted (TM-312)
+          ref.read(activeTabIndexProvider.notifier).setTab(index);
+        },
+        items: _navItems.map((item) {
+          return BottomNavigationBarItem(
+            icon: Icon(item.icon),
+            activeIcon: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              decoration: BoxDecoration(
+                color: TaskColors.backgroundColor,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(item.icon),
+            ),
+            label: item.label,
+          );
+        }).toList(),
+      ),
     );
   }
 }
