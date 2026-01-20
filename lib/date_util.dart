@@ -52,7 +52,12 @@ class DateUtil {
   }
 
   static DateTime combineDateAndTime(DateTime dateToUse, DateTime timeToUse) {
-    return DateTime(dateToUse.year, dateToUse.month, dateToUse.day, timeToUse.hour, timeToUse.minute);
+    // TM-326: Convert to local before extracting components to handle UTC DateTimes correctly.
+    // Without this, a UTC DateTime like Jan 3 00:00 UTC (= Jan 2 4pm PST) would extract
+    // hour=0 instead of the intended local hour=16, causing times to shift to midnight.
+    final localDate = dateToUse.toLocal();
+    final localTime = timeToUse.toLocal();
+    return DateTime(localDate.year, localDate.month, localDate.day, localTime.hour, localTime.minute);
   }
 
   static DateTime withoutMillis(DateTime originalDate) {
