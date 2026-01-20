@@ -71,10 +71,13 @@ class SprintService {
     }
 
     // Create sprint
+    // TM-326: Convert dates to UTC to ensure correct timezone handling
+    // Without .toUtc(), local DateTime values are stored as-is but interpreted as UTC,
+    // causing sprint end times to be off by the timezone offset.
     final sprintData = {
       'dateAdded': DateTime.now().toUtc(),
-      'startDate': sprintBlueprint.startDate,
-      'endDate': sprintBlueprint.endDate,
+      'startDate': sprintBlueprint.startDate.toUtc(),
+      'endDate': sprintBlueprint.endDate.toUtc(),
       'numUnits': sprintBlueprint.numUnits,
       'unitName': sprintBlueprint.unitName,
       'personDocId': sprintBlueprint.personDocId,

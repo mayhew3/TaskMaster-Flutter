@@ -24,6 +24,7 @@ test_results/
 
 # Claude
 settings.local.json
+.claude/state/
 
 # Flutter/Dart/Pub related
 **/doc/api/
