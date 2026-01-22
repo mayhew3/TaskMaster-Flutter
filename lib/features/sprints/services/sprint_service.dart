@@ -21,42 +21,49 @@ class SprintService {
     required List<TaskItem> taskItems,
     required List<TaskItemRecurPreview> taskItemRecurPreviews,
   }) async {
-    // Create tasks from recurrence previews
-    List<TaskItem> newTasksFromRecurrences = [];
+    // TM-325: Use WriteBatch for atomic commits - triggers only ONE snapshot update
+    // instead of N updates (one per document), dramatically reducing listener churn
+
+    final now = DateTime.now().toUtc();
+    final batch = _firestore.batch();
+
+    // Step 1: Prepare all documents and add to batch
+    final List<TaskItem> newTasksFromRecurrences = [];
+
     for (var preview in taskItemRecurPreviews) {
       final blueprint = preview.toBlueprint();
       var blueprintJson = blueprint.toJson();
+      blueprintJson['dateAdded'] = now;
 
       // Handle recurrence if present
       var recurrenceBlueprint = blueprint.recurrenceBlueprint;
       if (recurrenceBlueprint != null) {
+        // Pre-generate recurrence doc reference
         var recurrenceDoc = _firestore.collection('taskRecurrences').doc();
         var recurrenceJson = recurrenceBlueprint.toJson();
-        recurrenceJson['dateAdded'] = DateTime.now().toUtc();
-        await recurrenceDoc.set(recurrenceJson);
+        recurrenceJson['dateAdded'] = now;
+
+        // Add to batch instead of immediate write
+        batch.set(recurrenceDoc, recurrenceJson);
         blueprintJson['recurrenceDocId'] = recurrenceDoc.id;
         blueprintJson.remove('recurrenceBlueprint');
       }
 
-      blueprintJson['dateAdded'] = DateTime.now().toUtc();
+      // Pre-generate task doc reference
+      final taskDoc = _firestore.collection('tasks').doc();
+      batch.set(taskDoc, blueprintJson);
 
-      final taskRef = await _firestore.collection('tasks').add(blueprintJson);
-
-      // Wait for the task to be created and read it back
-      final taskDoc = await taskRef.get();
-      final json = taskDoc.data();
+      // Construct TaskItem locally
+      final json = Map<String, dynamic>.from(blueprintJson);
       json['docId'] = taskDoc.id;
-      final newTask = serializers.deserializeWith(
-        TaskItem.serializer,
-        json,
-      )!;
+      final newTask = serializers.deserializeWith(TaskItem.serializer, json)!;
       newTasksFromRecurrences.add(newTask);
     }
 
     // Combine existing tasks with newly created tasks
     final allTasks = [...taskItems, ...newTasksFromRecurrences];
 
-    // Get next sprint number
+    // Get next sprint number (must be done before batch to know the value)
     final sprintsSnapshot = await _firestore
         .collection('sprints')
         .where('personDocId', isEqualTo: sprintBlueprint.personDocId)
@@ -70,12 +77,12 @@ class SprintService {
       }
     }
 
-    // Create sprint
+    // Pre-generate sprint doc reference
+    final sprintRef = _firestore.collection('sprints').doc();
+
     // TM-326: Convert dates to UTC to ensure correct timezone handling
-    // Without .toUtc(), local DateTime values are stored as-is but interpreted as UTC,
-    // causing sprint end times to be off by the timezone offset.
     final sprintData = {
-      'dateAdded': DateTime.now().toUtc(),
+      'dateAdded': now,
       'startDate': sprintBlueprint.startDate.toUtc(),
       'endDate': sprintBlueprint.endDate.toUtc(),
       'numUnits': sprintBlueprint.numUnits,
@@ -84,35 +91,31 @@ class SprintService {
       'sprintNumber': maxSprintNumber + 1,
     };
 
-    final sprintRef = await _firestore.collection('sprints').add(sprintData);
+    // Add sprint to batch
+    batch.set(sprintRef, sprintData);
 
-    // Create sprint assignments
+    // TM-325: Add sprint assignments to batch (not parallel futures)
+    final List<Map<String, dynamic>> assignmentsData = [];
     for (var task in allTasks) {
+      final assignmentDoc = sprintRef.collection('sprintAssignments').doc();
       final assignmentData = {
+        'docId': assignmentDoc.id,
         'taskDocId': task.docId,
         'sprintDocId': sprintRef.id,
-        'dateAdded': DateTime.now().toUtc(),
+        'dateAdded': now,
       };
-      await sprintRef.collection('sprintAssignments').add(assignmentData);
+      batch.set(assignmentDoc, assignmentData);
+      assignmentsData.add(assignmentData);
     }
 
-    // Read back the created sprint with assignments
-    final sprintDoc = await sprintRef.get();
-    final sprintJson = sprintDoc.data();
-    sprintJson['docId'] = sprintDoc.id;
+    // Commit everything in one atomic operation:
+    // recurrences + tasks + sprint + assignments
+    await batch.commit();
 
-    // Load sprint assignments
-    final assignmentsSnapshot = await sprintRef
-        .collection('sprintAssignments')
-        .get();
-
-    final assignmentsJson = assignmentsSnapshot.docs.map((assignDoc) {
-      final assignJson = assignDoc.data();
-      assignJson['docId'] = assignDoc.id;
-      return assignJson;
-    }).toList();
-
-    sprintJson['sprintAssignments'] = assignmentsJson;
+    // Construct Sprint locally without read-back round trips
+    final sprintJson = Map<String, dynamic>.from(sprintData);
+    sprintJson['docId'] = sprintRef.id;
+    sprintJson['sprintAssignments'] = assignmentsData;
 
     return serializers.deserializeWith(Sprint.serializer, sprintJson)!;
   }
@@ -123,50 +126,58 @@ class SprintService {
     required List<TaskItem> taskItems,
     required List<TaskItemRecurPreview> taskItemRecurPreviews,
   }) async {
-    // Create tasks from recurrence previews
-    List<TaskItem> newTasksFromRecurrences = [];
+    // TM-325: Use WriteBatch for atomic commits - triggers only ONE snapshot update
+    final now = DateTime.now().toUtc();
+    final batch = _firestore.batch();
+
+    // Step 1: Prepare all documents and add to batch
+    final List<TaskItem> newTasksFromRecurrences = [];
+
     for (var preview in taskItemRecurPreviews) {
       final blueprint = preview.toBlueprint();
       var blueprintJson = blueprint.toJson();
+      blueprintJson['dateAdded'] = now;
 
       // Handle recurrence if present
       var recurrenceBlueprint = blueprint.recurrenceBlueprint;
       if (recurrenceBlueprint != null) {
         var recurrenceDoc = _firestore.collection('taskRecurrences').doc();
         var recurrenceJson = recurrenceBlueprint.toJson();
-        recurrenceJson['dateAdded'] = DateTime.now().toUtc();
-        await recurrenceDoc.set(recurrenceJson);
+        recurrenceJson['dateAdded'] = now;
+
+        batch.set(recurrenceDoc, recurrenceJson);
         blueprintJson['recurrenceDocId'] = recurrenceDoc.id;
         blueprintJson.remove('recurrenceBlueprint');
       }
 
-      blueprintJson['dateAdded'] = DateTime.now().toUtc();
+      // Pre-generate task doc reference
+      final taskDoc = _firestore.collection('tasks').doc();
+      batch.set(taskDoc, blueprintJson);
 
-      final taskRef = await _firestore.collection('tasks').add(blueprintJson);
-
-      final taskDoc = await taskRef.get();
-      final json = taskDoc.data();
+      // Construct TaskItem locally
+      final json = Map<String, dynamic>.from(blueprintJson);
       json['docId'] = taskDoc.id;
-      final newTask = serializers.deserializeWith(
-        TaskItem.serializer,
-        json,
-      )!;
+      final newTask = serializers.deserializeWith(TaskItem.serializer, json)!;
       newTasksFromRecurrences.add(newTask);
     }
 
     // Combine existing tasks with newly created tasks
     final allTasks = [...taskItems, ...newTasksFromRecurrences];
 
-    // Add sprint assignments
+    // Add sprint assignments to batch
     final sprintRef = _firestore.collection('sprints').doc(sprint.docId);
     for (var task in allTasks) {
+      final assignmentDoc = sprintRef.collection('sprintAssignments').doc();
       final assignmentData = {
         'taskDocId': task.docId,
         'sprintDocId': sprint.docId,
-        'dateAdded': DateTime.now().toUtc(),
+        'dateAdded': now,
       };
-      await sprintRef.collection('sprintAssignments').add(assignmentData);
+      batch.set(assignmentDoc, assignmentData);
     }
+
+    // Commit all documents in one atomic operation
+    await batch.commit();
   }
 }
 
@@ -193,6 +204,10 @@ class CreateSprint extends _$CreateSprint {
       taskItems: taskItems,
       taskItemRecurPreviews: taskItemRecurPreviews,
     );
+
+    // TM-325: Invalidate sprints provider to force UI refresh
+    // This matches the pattern in AddTasksToSprint (line 225)
+    ref.invalidate(sprintsProvider);
 
     return result;
   }
