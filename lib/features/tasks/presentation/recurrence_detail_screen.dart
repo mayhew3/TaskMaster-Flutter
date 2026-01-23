@@ -164,7 +164,7 @@ class _RecurrenceIterationTile extends StatelessWidget {
 
   Color _getBadgeColor() {
     if (task.retired != null) return Colors.grey.shade700;
-    if (task.completionDate != null) return const Color(0xFFD88BD0); // lighter pink
+    if (task.completionDate != null) return TaskColors.completedColor;
     return TaskColors.cardColor;
   }
 
