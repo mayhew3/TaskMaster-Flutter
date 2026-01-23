@@ -11,6 +11,89 @@ npm install
 
 ---
 
+## Firestore Export Tool
+
+Exports Firestore collections to CSV files for analysis.
+
+### Usage
+
+```bash
+# Export all collections from emulator
+node bin/firestore-export.js --emulator
+
+# Export specific collections
+node bin/firestore-export.js --emulator --collections=tasks,taskRecurrences
+
+# Export by specific email
+node bin/firestore-export.js --emulator --email=other@example.com
+
+# Export by personDocId
+node bin/firestore-export.js --emulator --person-doc-id=abc123
+
+# Custom output directory
+node bin/firestore-export.js --emulator --output=./my-exports
+
+# Show help
+node bin/firestore-export.js --help
+```
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `--emulator` | Connect to Firestore emulator (localhost:8085) |
+| `--production` | Connect to production Firestore (requires auth) |
+| `--email=<email>` | Filter by user email (looks up personDocId) |
+| `--person-doc-id=<id>` | Filter by personDocId directly |
+| `--collections=<list>` | Comma-separated list of collections to export |
+| `--output=<dir>` | Output directory (default: `./exports`) |
+| `--help, -h` | Show help message |
+
+### Supported Collections
+
+- `tasks` - Task items
+- `taskRecurrences` - Recurrence rules
+- `sprints` - Sprint definitions
+- `snoozes` - Snooze records
+- `persons` - User records
+- `sprintAssignments` - Sprint-task assignments (subcollection, exported when `sprints` is included)
+
+### Output Format
+
+- Files are saved as CSV with timestamp in filename
+- Timestamps are exported as ISO8601 UTC format
+- All document fields are included, with consistent column ordering
+- Complex fields (maps, arrays) are converted to JSON string
+
+### Examples
+
+#### Investigating Recurring Task Duplication
+
+```bash
+# Export tasks and recurrences to analyze iteration numbers
+node bin/firestore-export.js --emulator --collections=tasks,taskRecurrences
+
+# Open exports/tasks_*.csv in a spreadsheet
+# Sort by recurrenceDocId, then recurIteration to find duplicates
+```
+
+#### Full Data Export for Backup
+
+```bash
+# Export all collections
+node bin/firestore-export.js --emulator
+
+# Files created:
+# - exports/tasks_2024-01-15T10-30-00.csv
+# - exports/taskRecurrences_2024-01-15T10-30-00.csv
+# - exports/sprints_2024-01-15T10-30-00.csv
+# - exports/snoozes_2024-01-15T10-30-00.csv
+# - exports/persons_2024-01-15T10-30-00.csv
+# - exports/sprintAssignments_2024-01-15T10-30-00.csv
+```
+
+---
+
 ## Firestore Repair Tool
 
 Detects and repairs bad data from the recurring task duplication bug (TM-324). The bug caused duplicate recurrence documents and mismatched iteration values during sprint creation.
@@ -164,4 +247,5 @@ These tests verify the repair logic works correctly for all 4 bad data scenarios
 
 - Default email filter is `scorpy@gmail.com` when no filter is specified
 - Production mode requires proper Firebase authentication (not yet fully implemented)
-- The Dart version (`bin/firestore_repair.dart`) cannot be run directly due to Flutter dependencies, but the logic is tested via `flutter test`
+- The `exports/` directory is gitignored by default
+- The Dart versions (`bin/firestore_*.dart`) cannot be run directly due to Flutter dependencies, but the repair logic is tested via `flutter test`
