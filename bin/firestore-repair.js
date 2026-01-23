@@ -52,6 +52,18 @@ async function main() {
       });
       console.log(`Connected to production Firestore (service account: ${path.basename(config.serviceAccount)})`);
     } else {
+      // Check for conflicting GOOGLE_APPLICATION_CREDENTIALS
+      const gacPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+      if (gacPath && !gacPath.includes(PROJECT_ID)) {
+        console.log('');
+        console.log('WARNING: GOOGLE_APPLICATION_CREDENTIALS is set to:');
+        console.log(`  ${gacPath}`);
+        console.log('');
+        console.log('This may point to a different project. If you get permission errors, either:');
+        console.log('  1. Unset GOOGLE_APPLICATION_CREDENTIALS before running');
+        console.log('  2. Use --service-account with a key for this project');
+        console.log('');
+      }
       // Use Application Default Credentials (from gcloud auth application-default login)
       admin.initializeApp({
         credential: admin.credential.applicationDefault(),
