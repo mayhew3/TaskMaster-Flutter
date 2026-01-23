@@ -4,6 +4,9 @@
 
 # Firestore exports
 /exports/
+
+# Node.js CLI tools
+bin/node_modules/
 *.pyc
 *.swp
 .DS_Store

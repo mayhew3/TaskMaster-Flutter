@@ -1,105 +1,17 @@
 # TaskMaster CLI Tools
 
-This directory contains CLI tools for debugging and maintenance of TaskMaster data.
+This directory contains Node.js CLI tools for debugging and maintenance of TaskMaster Firestore data.
 
-> **Note:** These tools use Flutter Firebase packages which require the Flutter engine.
-> Use `flutter test` instead of `dart run` to execute them.
-
-## Firestore Export Tool
-
-Exports Firestore collections to CSV files for analysis.
-
-### Prerequisites
-
-- Flutter SDK
-- Firebase project initialized
-
-### Usage
+## Setup
 
 ```bash
-# Export from emulator with default email (scorpy@gmail.com)
-flutter test test/bin/run_firestore_export_test.dart --dart-define=ARGS="--emulator"
-
-# Export by specific email address
-flutter test test/bin/run_firestore_export_test.dart --dart-define=ARGS="--emulator --email=other@example.com"
-
-# Export by personDocId (if you have it)
-flutter test test/bin/run_firestore_export_test.dart --dart-define=ARGS="--emulator --person-doc-id=abc123"
-
-# Export specific collections only
-flutter test test/bin/run_firestore_export_test.dart --dart-define=ARGS="--emulator --collections=tasks,taskRecurrences"
-
-# Export to custom output directory
-flutter test test/bin/run_firestore_export_test.dart --dart-define=ARGS="--emulator --output=./my-exports"
-
-# Show help
-flutter test test/bin/run_firestore_export_test.dart --dart-define=ARGS="--help"
+cd bin
+npm install
 ```
-
-### Options
-
-| Option | Description |
-|--------|-------------|
-| `--emulator` | Connect to Firestore emulator (localhost:8085) |
-| `--production` | Connect to production Firestore (requires auth) |
-| `--email=<email>` | Filter by user email (looks up personDocId) |
-| `--person-doc-id=<id>` | Filter by personDocId directly |
-| `--collections=<list>` | Comma-separated list of collections to export |
-| `--output=<dir>` | Output directory (default: `./exports`) |
-| `--help, -h` | Show help message |
-
-### Supported Collections
-
-- `tasks` - Task items
-- `taskRecurrences` - Recurrence rules
-- `sprints` - Sprint definitions
-- `snoozes` - Snooze records
-- `persons` - User records
-- `sprintAssignments` - Sprint-task assignments (subcollection, exported when `sprints` is included)
-
-### Output Format
-
-- Files are saved as CSV with timestamp in filename
-- Timestamps are exported as ISO8601 UTC format
-- All document fields are included, with consistent column ordering
-- Complex fields (maps, arrays) are converted to string representation
-
-### Examples
-
-#### Investigating Recurring Task Duplication
-
-```bash
-# Export tasks and recurrences to analyze iteration numbers
-flutter test test/bin/run_firestore_export_test.dart --dart-define=ARGS="--emulator --collections=tasks,taskRecurrences"
-
-# Open exports/tasks_*.csv in a spreadsheet
-# Sort by recurrenceDocId, then recurIteration to find duplicates
-```
-
-#### Full Data Export for Backup
-
-```bash
-# Export all collections
-flutter test test/bin/run_firestore_export_test.dart --dart-define=ARGS="--emulator"
-
-# Files created:
-# - exports/tasks_2024-01-15T10-30-00.csv
-# - exports/taskRecurrences_2024-01-15T10-30-00.csv
-# - exports/sprints_2024-01-15T10-30-00.csv
-# - exports/snoozes_2024-01-15T10-30-00.csv
-# - exports/persons_2024-01-15T10-30-00.csv
-# - exports/sprintAssignments_2024-01-15T10-30-00.csv
-```
-
-### Notes
-
-- The `exports/` directory is gitignored by default
-- Default email filter is `scorpy@gmail.com` when no filter is specified
-- Production mode requires proper Firebase authentication (not yet fully implemented)
 
 ---
 
-## Firestore Recurrence Repair Tool
+## Firestore Repair Tool
 
 Detects and repairs bad data from the recurring task duplication bug (TM-324). The bug caused duplicate recurrence documents and mismatched iteration values during sprint creation.
 
@@ -109,19 +21,19 @@ Detects and repairs bad data from the recurring task duplication bug (TM-324). T
 
 ```bash
 # Analyze data on emulator (dry-run, default behavior)
-flutter test test/bin/run_firestore_repair_test.dart --dart-define=ARGS="--emulator"
+node bin/firestore-repair.js --emulator
 
 # Apply repairs on emulator
-flutter test test/bin/run_firestore_repair_test.dart --dart-define=ARGS="--emulator --apply"
+node bin/firestore-repair.js --emulator --apply
 
 # Analyze specific user by email
-flutter test test/bin/run_firestore_repair_test.dart --dart-define=ARGS="--emulator --email=other@example.com"
+node bin/firestore-repair.js --emulator --email=other@example.com
 
 # Analyze specific user by personDocId
-flutter test test/bin/run_firestore_repair_test.dart --dart-define=ARGS="--emulator --person-doc-id=abc123"
+node bin/firestore-repair.js --emulator --person-doc-id=abc123
 
 # Show help
-flutter test test/bin/run_firestore_repair_test.dart --dart-define=ARGS="--help"
+node bin/firestore-repair.js --help
 ```
 
 ### Options
@@ -204,19 +116,19 @@ Run with --apply to execute repairs.
 
 1. **Run analysis first** (dry-run):
    ```bash
-   flutter test test/bin/run_firestore_repair_test.dart --dart-define=ARGS="--emulator"
+   node bin/firestore-repair.js --emulator
    ```
 
 2. **Review findings** and confirm scope is correct
 
 3. **Apply repairs**:
    ```bash
-   flutter test test/bin/run_firestore_repair_test.dart --dart-define=ARGS="--emulator --apply"
+   node bin/firestore-repair.js --emulator --apply
    ```
 
 4. **Re-run analysis** to confirm all issues resolved:
    ```bash
-   flutter test test/bin/run_firestore_repair_test.dart --dart-define=ARGS="--emulator"
+   node bin/firestore-repair.js --emulator
    ```
    Expected: All counts should be 0
 
@@ -229,3 +141,27 @@ Run with --apply to execute repairs.
 - **Keeps oldest duplicate** - When retiring duplicates, keeps the oldest by `dateAdded`
 - **Batch operations** - Uses Firestore WriteBatch for atomic commits
 - **Idempotent** - Running multiple times produces same result
+
+---
+
+## Dart Unit Tests
+
+The repair logic is also tested using `fake_cloud_firestore` in Dart tests:
+
+```bash
+# Run all repair tool tests
+flutter test test/bin/firestore_repair_test.dart
+
+# Run with verbose output
+flutter test test/bin/firestore_repair_test.dart -v
+```
+
+These tests verify the repair logic works correctly for all 4 bad data scenarios.
+
+---
+
+## Notes
+
+- Default email filter is `scorpy@gmail.com` when no filter is specified
+- Production mode requires proper Firebase authentication (not yet fully implemented)
+- The Dart version (`bin/firestore_repair.dart`) cannot be run directly due to Flutter dependencies, but the logic is tested via `flutter test`
