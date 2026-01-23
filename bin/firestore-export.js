@@ -102,17 +102,18 @@ async function main() {
 
   // Export collections
   const collectionsToExport = config.collections || ALL_COLLECTIONS;
+  const env = config.useEmulator ? 'emulator' : 'production';
   console.log(`Exporting collections: ${collectionsToExport.join(', ')}`);
   console.log(`Filter: personDocId = ${personDocId}`);
   console.log('');
 
   for (const collection of collectionsToExport) {
-    await exportCollection(db, collection, personDocId, outputDir);
+    await exportCollection(db, collection, personDocId, outputDir, env);
   }
 
   // Export sprintAssignments subcollection if sprints is included
   if (collectionsToExport.includes('sprints')) {
-    await exportSprintAssignments(db, personDocId, outputDir);
+    await exportSprintAssignments(db, personDocId, outputDir, env);
   }
 
   console.log('');
@@ -242,7 +243,7 @@ async function lookupPersonDocId(db, email) {
 // Export Functions
 // ============================================================================
 
-async function exportCollection(db, collectionName, personDocId, outputDir) {
+async function exportCollection(db, collectionName, personDocId, outputDir, env) {
   console.log(`Exporting ${collectionName}...`);
 
   let snapshot;
@@ -254,7 +255,7 @@ async function exportCollection(db, collectionName, personDocId, outputDir) {
       const data = doc.data();
       data.docId = doc.id;
       const rows = convertToRows([data]);
-      await writeCsv(outputDir, collectionName, rows);
+      await writeCsv(outputDir, collectionName, rows, env);
       console.log('  -> Exported 1 document');
       return;
     } else {
@@ -289,10 +290,10 @@ async function exportCollection(db, collectionName, personDocId, outputDir) {
   }
 
   const rows = convertToRows(data);
-  await writeCsv(outputDir, collectionName, rows);
+  await writeCsv(outputDir, collectionName, rows, env);
 }
 
-async function exportSprintAssignments(db, personDocId, outputDir) {
+async function exportSprintAssignments(db, personDocId, outputDir, env) {
   console.log('Exporting sprintAssignments (subcollection)...');
 
   // First get all sprints for this person
@@ -329,7 +330,7 @@ async function exportSprintAssignments(db, personDocId, outputDir) {
   }
 
   const rows = convertToRows(allAssignments);
-  await writeCsv(outputDir, 'sprintAssignments', rows);
+  await writeCsv(outputDir, 'sprintAssignments', rows, env);
 }
 
 // ============================================================================
@@ -459,10 +460,10 @@ function isISODateString(str) {
   return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(str);
 }
 
-async function writeCsv(outputDir, collectionName, rows) {
+async function writeCsv(outputDir, collectionName, rows, env) {
   const csv = rowsToCsv(rows);
   const timestamp = new Date().toISOString().replace(/:/g, '-').split('.')[0];
-  const filename = `${collectionName}_${timestamp}.csv`;
+  const filename = `${collectionName}_${env}_${timestamp}.csv`;
   const filePath = path.join(outputDir, filename);
 
   fs.writeFileSync(filePath, csv, 'utf8');
