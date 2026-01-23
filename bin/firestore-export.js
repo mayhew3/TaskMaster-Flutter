@@ -216,11 +216,16 @@ async function exportCollection(db, collectionName, personDocId, outputDir) {
     return;
   }
 
-  const data = snapshot.docs.map(doc => {
+  let data = snapshot.docs.map(doc => {
     const json = doc.data();
     json.docId = doc.id;
     return json;
   });
+
+  // Apply collection-specific transformations
+  if (collectionName === 'taskRecurrences') {
+    data = data.map(transformTaskRecurrence);
+  }
 
   const rows = convertToRows(data);
   await writeCsv(outputDir, collectionName, rows);
@@ -264,6 +269,47 @@ async function exportSprintAssignments(db, personDocId, outputDir) {
 
   const rows = convertToRows(allAssignments);
   await writeCsv(outputDir, 'sprintAssignments', rows);
+}
+
+// ============================================================================
+// Collection-Specific Transformations
+// ============================================================================
+
+/**
+ * Transform taskRecurrence document to flatten anchorDate into two columns:
+ * - anchorType: the date type (e.g., "Urgent", "Target", "Completion")
+ * - anchorDate: the actual date value as ISO string
+ */
+function transformTaskRecurrence(doc) {
+  const result = { ...doc };
+
+  // Transform anchorDate from {dateType, dateValue} to two separate columns
+  if (doc.anchorDate && typeof doc.anchorDate === 'object') {
+    const anchor = doc.anchorDate;
+
+    // Extract anchorType
+    result.anchorType = anchor.dateType || '';
+
+    // Extract and format anchorDate
+    if (anchor.dateValue) {
+      // Handle Firestore timestamp format {_seconds, _nanoseconds}
+      if (anchor.dateValue._seconds !== undefined) {
+        result.anchorDate = new Date(anchor.dateValue._seconds * 1000).toISOString();
+      } else if (typeof anchor.dateValue.toDate === 'function') {
+        result.anchorDate = anchor.dateValue.toDate().toISOString();
+      } else {
+        result.anchorDate = '';
+      }
+    } else {
+      result.anchorDate = '';
+    }
+  } else {
+    // No anchorDate or it's not an object
+    result.anchorType = '';
+    result.anchorDate = '';
+  }
+
+  return result;
 }
 
 // ============================================================================
