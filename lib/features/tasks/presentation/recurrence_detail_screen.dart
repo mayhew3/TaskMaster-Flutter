@@ -136,9 +136,9 @@ class _RecurrenceIterationTile extends StatelessWidget {
                   if (isCompleted && !isRetired)
                     Text(
                       'Completed: ${_formatDate(task.completionDate!)}',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 13,
-                        color: TaskColors.completedColor,
+                        color: Color(0xFFD88BD0), // lighter pink
                       ),
                     ),
                   // Show retired indicator
@@ -164,20 +164,21 @@ class _RecurrenceIterationTile extends StatelessWidget {
 
   Color _getBadgeColor() {
     if (task.retired != null) return Colors.grey.shade700;
-    if (task.completionDate != null) return TaskColors.completedColor;
+    if (task.completionDate != null) return const Color(0xFFD88BD0); // lighter pink
     return TaskColors.cardColor;
   }
 
   _DateInfo? _getPrimaryDateInfo() {
     // Priority: due -> urgent -> target -> start
+    // Use lighter versions of TaskColors for better readability
     if (task.dueDate != null) {
-      return _DateInfo('Due', task.dueDate!, TaskColors.dueColor);
+      return _DateInfo('Due', task.dueDate!, const Color(0xFFE091B0)); // lighter pink
     }
     if (task.urgentDate != null) {
-      return _DateInfo('Urgent', task.urgentDate!, TaskColors.urgentColor);
+      return _DateInfo('Urgent', task.urgentDate!, const Color(0xFFD4A89A)); // lighter orange
     }
     if (task.targetDate != null) {
-      return _DateInfo('Target', task.targetDate!, TaskColors.targetColor);
+      return _DateInfo('Target', task.targetDate!, const Color(0xFFB8C490)); // lighter green
     }
     if (task.startDate != null) {
       return _DateInfo('Start', task.startDate!, Colors.white70);
@@ -215,7 +216,8 @@ class _StatusIcon extends StatelessWidget {
       return const Icon(Icons.delete_outline, color: Colors.grey, size: 24);
     }
     if (task.completionDate != null) {
-      return Icon(Icons.check_circle, color: TaskColors.completedColor, size: 24);
+      // Lighter pink for better visibility
+      return const Icon(Icons.check_circle, color: Color(0xFFD88BD0), size: 24);
     }
     return const Icon(Icons.radio_button_unchecked, color: Colors.white54, size: 24);
   }
