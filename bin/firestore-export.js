@@ -463,7 +463,7 @@ function isISODateString(str) {
 async function writeCsv(outputDir, collectionName, rows, env) {
   const csv = rowsToCsv(rows);
   const timestamp = new Date().toISOString().replace(/:/g, '-').split('.')[0];
-  const filename = `${collectionName}_${env}_${timestamp}.csv`;
+  const filename = `${timestamp}_${env}_${collectionName}.csv`;
   const filePath = path.join(outputDir, filename);
 
   fs.writeFileSync(filePath, csv, 'utf8');
