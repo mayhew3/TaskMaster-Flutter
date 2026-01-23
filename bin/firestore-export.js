@@ -37,16 +37,34 @@ async function main() {
   if (config.useEmulator) {
     process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8085';
     console.log('Connected to Firestore emulator at 127.0.0.1:8085');
+    admin.initializeApp({ projectId: PROJECT_ID });
   } else if (config.useProduction) {
-    console.log('Connected to production Firestore');
+    if (config.serviceAccount) {
+      // Use service account key file
+      if (!fs.existsSync(config.serviceAccount)) {
+        console.log(`ERROR: Service account file not found: ${config.serviceAccount}`);
+        process.exit(1);
+      }
+      const serviceAccount = JSON.parse(fs.readFileSync(config.serviceAccount, 'utf8'));
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        projectId: PROJECT_ID,
+      });
+      console.log(`Connected to production Firestore (service account: ${path.basename(config.serviceAccount)})`);
+    } else {
+      // Use Application Default Credentials (from gcloud auth application-default login)
+      admin.initializeApp({
+        credential: admin.credential.applicationDefault(),
+        projectId: PROJECT_ID,
+      });
+      console.log('Connected to production Firestore (using gcloud credentials)');
+    }
   } else {
     console.log('ERROR: Must specify --emulator or --production');
     printUsage();
     process.exit(1);
   }
 
-  // Initialize Firebase Admin
-  admin.initializeApp({ projectId: PROJECT_ID });
   const db = admin.firestore();
 
   // Resolve personDocId
@@ -98,6 +116,7 @@ function parseArgs(args) {
   const config = {
     useEmulator: false,
     useProduction: false,
+    serviceAccount: null,
     email: null,
     personDocId: null,
     collections: null,
@@ -120,6 +139,8 @@ function parseArgs(args) {
       config.collections = arg.substring('--collections='.length).split(',');
     } else if (arg.startsWith('--output=')) {
       config.outputDir = arg.substring('--output='.length);
+    } else if (arg.startsWith('--service-account=')) {
+      config.serviceAccount = arg.substring('--service-account='.length);
     }
   }
 
@@ -135,18 +156,19 @@ Exports Firestore collections to CSV files for analysis.
 
 Usage:
   node bin/firestore-export.js --emulator
-  node bin/firestore-export.js --emulator --email=user@example.com
+  node bin/firestore-export.js --production --service-account=<path>
   node bin/firestore-export.js --emulator --collections=tasks,taskRecurrences
 
 Options:
-  --emulator            Connect to Firestore emulator (127.0.0.1:8085)
-  --production          Connect to production Firestore
-  --email=<email>       Filter by user email (looks up personDocId)
-  --person-doc-id=<id>  Filter by personDocId directly
-  --collections=<list>  Comma-separated list of collections to export
-                        Default: ${ALL_COLLECTIONS.join(',')}
-  --output=<dir>        Output directory (default: ./exports)
-  --help, -h            Show this help message
+  --emulator               Connect to Firestore emulator (127.0.0.1:8085)
+  --production             Connect to production Firestore (requires auth)
+  --service-account=<path> Path to service account JSON key file (for production)
+  --email=<email>          Filter by user email (looks up personDocId)
+  --person-doc-id=<id>     Filter by personDocId directly
+  --collections=<list>     Comma-separated list of collections to export
+                           Default: ${ALL_COLLECTIONS.join(',')}
+  --output=<dir>           Output directory (default: ./exports)
+  --help, -h               Show this help message
 
 Default behavior:
   - Uses email: ${DEFAULT_EMAIL} when no filter is specified
@@ -156,25 +178,52 @@ Examples:
   # First time setup
   cd bin && npm install
 
-  # Export from emulator with default email
+  # Export from emulator
   node bin/firestore-export.js --emulator
+
+  # Export from production with service account
+  node bin/firestore-export.js --production --service-account=./serviceAccountKey.json
 
   # Export specific collections
   node bin/firestore-export.js --emulator --collections=tasks,taskRecurrences
 
-  # Export by specific email
-  node bin/firestore-export.js --emulator --email=other@example.com
+Production Authentication:
+  Uses your existing gcloud credentials. If not authenticated, run:
+    gcloud auth application-default login
+
+  Alternatively, use a service account key file:
+    --service-account=./serviceAccountKey.json
 `);
 }
 
 async function lookupPersonDocId(db, email) {
-  const snapshot = await db.collection('persons')
-    .where('email', '==', email)
-    .limit(1)
-    .get();
+  try {
+    const snapshot = await db.collection('persons')
+      .where('email', '==', email)
+      .limit(1)
+      .get();
 
-  if (snapshot.empty) return null;
-  return snapshot.docs[0].id;
+    if (snapshot.empty) return null;
+    return snapshot.docs[0].id;
+  } catch (error) {
+    if (error.code === 7 || error.message?.includes('PERMISSION_DENIED')) {
+      console.log('');
+      console.log('ERROR: Permission denied accessing Firestore.');
+      console.log('');
+      console.log('For production access, you need one of:');
+      console.log('');
+      console.log('1. Application Default Credentials with Firestore permissions:');
+      console.log('   gcloud auth application-default login');
+      console.log('   (Your account needs "Cloud Datastore User" role on the project)');
+      console.log('');
+      console.log('2. Service account key file:');
+      console.log('   node bin/firestore-export.js --production --service-account=./serviceAccountKey.json');
+      console.log('   (Get key from Firebase Console > Project Settings > Service Accounts)');
+      console.log('');
+      process.exit(1);
+    }
+    throw error;
+  }
 }
 
 // ============================================================================

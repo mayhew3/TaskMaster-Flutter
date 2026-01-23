@@ -43,6 +43,7 @@ node bin/firestore-export.js --help
 |--------|-------------|
 | `--emulator` | Connect to Firestore emulator (localhost:8085) |
 | `--production` | Connect to production Firestore (requires auth) |
+| `--service-account=<path>` | Path to service account JSON key file (for production) |
 | `--email=<email>` | Filter by user email (looks up personDocId) |
 | `--person-doc-id=<id>` | Filter by personDocId directly |
 | `--collections=<list>` | Comma-separated list of collections to export |
@@ -131,6 +132,7 @@ node bin/firestore-repair.js --help
 |--------|-------------|
 | `--emulator` | Connect to Firestore emulator (localhost:8085) |
 | `--production` | Connect to production Firestore (requires auth) |
+| `--service-account=<path>` | Path to service account JSON key file (for production) |
 | `--email=<email>` | Filter by user email (looks up personDocId) |
 | `--person-doc-id=<id>` | Filter by personDocId directly |
 | `--apply` | Apply repairs (default is dry-run analysis only) |
@@ -249,9 +251,39 @@ These tests verify the repair logic works correctly for all 4 bad data scenarios
 
 ---
 
+## Production Authentication
+
+Both tools support production Firestore access via two authentication methods:
+
+### Option 1: Application Default Credentials (ADC)
+
+Uses your existing gcloud credentials:
+
+```bash
+# Authenticate (one-time setup)
+gcloud auth application-default login
+
+# Run tool
+node bin/firestore-export.js --production
+```
+
+**Requirements:** Your Google account must have the "Cloud Datastore User" IAM role on the project.
+
+### Option 2: Service Account Key File
+
+Uses a service account JSON key file:
+
+```bash
+# Download key from Firebase Console > Project Settings > Service Accounts
+node bin/firestore-export.js --production --service-account=./serviceAccountKey.json
+```
+
+**Note:** Service account key files are gitignored (`**/serviceAccountKey*.json`) to prevent accidental commits.
+
+---
+
 ## Notes
 
 - Default email filter is `scorpy@gmail.com` when no filter is specified
-- Production mode requires proper Firebase authentication (not yet fully implemented)
 - The `exports/` directory is gitignored by default
 - The Dart versions (`bin/firestore_*.dart`) cannot be run directly due to Flutter dependencies, but the repair logic is tested via `flutter test`

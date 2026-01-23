@@ -12,6 +12,8 @@
  */
 
 const admin = require('firebase-admin');
+const fs = require('fs');
+const path = require('path');
 
 const DEFAULT_EMAIL = 'scorpy@gmail.com';
 const PROJECT_ID = 'm3-taskmaster-3000';
@@ -35,16 +37,34 @@ async function main() {
   if (config.useEmulator) {
     process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8085';
     console.log('Connected to Firestore emulator at 127.0.0.1:8085');
+    admin.initializeApp({ projectId: PROJECT_ID });
   } else if (config.useProduction) {
-    console.log('Connected to production Firestore');
+    if (config.serviceAccount) {
+      // Use service account key file
+      if (!fs.existsSync(config.serviceAccount)) {
+        console.log(`ERROR: Service account file not found: ${config.serviceAccount}`);
+        process.exit(1);
+      }
+      const serviceAccount = JSON.parse(fs.readFileSync(config.serviceAccount, 'utf8'));
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        projectId: PROJECT_ID,
+      });
+      console.log(`Connected to production Firestore (service account: ${path.basename(config.serviceAccount)})`);
+    } else {
+      // Use Application Default Credentials (from gcloud auth application-default login)
+      admin.initializeApp({
+        credential: admin.credential.applicationDefault(),
+        projectId: PROJECT_ID,
+      });
+      console.log('Connected to production Firestore (using gcloud credentials)');
+    }
   } else {
     console.log('ERROR: Must specify --emulator or --production');
     printUsage();
     process.exit(1);
   }
 
-  // Initialize Firebase Admin
-  admin.initializeApp({ projectId: PROJECT_ID });
   const db = admin.firestore();
 
   console.log(`Mode: ${config.applyRepairs ? 'APPLY' : 'DRY-RUN (use --apply to make changes)'}`);
@@ -81,6 +101,7 @@ function parseArgs(args) {
   const config = {
     useEmulator: false,
     useProduction: false,
+    serviceAccount: null,
     email: null,
     personDocId: null,
     applyRepairs: false,
@@ -100,6 +121,8 @@ function parseArgs(args) {
       config.email = arg.substring('--email='.length);
     } else if (arg.startsWith('--person-doc-id=')) {
       config.personDocId = arg.substring('--person-doc-id='.length);
+    } else if (arg.startsWith('--service-account=')) {
+      config.serviceAccount = arg.substring('--service-account='.length);
     }
   }
 
@@ -115,16 +138,17 @@ Detects and repairs bad data from the recurring task duplication bug (TM-324).
 
 Usage:
   node bin/firestore-repair.js --emulator
+  node bin/firestore-repair.js --production --service-account=<path>
   node bin/firestore-repair.js --emulator --apply
-  node bin/firestore-repair.js --emulator --email=user@example.com
 
 Options:
-  --emulator            Connect to Firestore emulator (127.0.0.1:8085)
-  --production          Connect to production Firestore
-  --email=<email>       Filter by user email (looks up personDocId)
-  --person-doc-id=<id>  Filter by personDocId directly
-  --apply               Apply repairs (default is dry-run analysis only)
-  --help, -h            Show this help message
+  --emulator               Connect to Firestore emulator (127.0.0.1:8085)
+  --production             Connect to production Firestore (requires auth)
+  --service-account=<path> Path to service account JSON key file (for production)
+  --email=<email>          Filter by user email (looks up personDocId)
+  --person-doc-id=<id>     Filter by personDocId directly
+  --apply                  Apply repairs (default is dry-run analysis only)
+  --help, -h               Show this help message
 
 Default behavior:
   - Uses email: ${DEFAULT_EMAIL} when no filter is specified
@@ -145,17 +169,50 @@ Examples:
 
   # Apply repairs on emulator
   node bin/firestore-repair.js --emulator --apply
+
+  # Analyze production data
+  node bin/firestore-repair.js --production --service-account=./serviceAccountKey.json
+
+  # Apply repairs to production (CAUTION!)
+  node bin/firestore-repair.js --production --service-account=./serviceAccountKey.json --apply
+
+Production Authentication:
+  Uses your existing gcloud credentials. If not authenticated, run:
+    gcloud auth application-default login
+
+  Alternatively, use a service account key file:
+    --service-account=./serviceAccountKey.json
 `);
 }
 
 async function lookupPersonDocId(db, email) {
-  const snapshot = await db.collection('persons')
-    .where('email', '==', email)
-    .limit(1)
-    .get();
+  try {
+    const snapshot = await db.collection('persons')
+      .where('email', '==', email)
+      .limit(1)
+      .get();
 
-  if (snapshot.empty) return null;
-  return snapshot.docs[0].id;
+    if (snapshot.empty) return null;
+    return snapshot.docs[0].id;
+  } catch (error) {
+    if (error.code === 7 || error.message?.includes('PERMISSION_DENIED')) {
+      console.log('');
+      console.log('ERROR: Permission denied accessing Firestore.');
+      console.log('');
+      console.log('For production access, you need one of:');
+      console.log('');
+      console.log('1. Application Default Credentials with Firestore permissions:');
+      console.log('   gcloud auth application-default login');
+      console.log('   (Your account needs "Cloud Datastore User" role on the project)');
+      console.log('');
+      console.log('2. Service account key file:');
+      console.log('   node bin/firestore-repair.js --production --service-account=./serviceAccountKey.json');
+      console.log('   (Get key from Firebase Console > Project Settings > Service Accounts)');
+      console.log('');
+      process.exit(1);
+    }
+    throw error;
+  }
 }
 
 // ============================================================================

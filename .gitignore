@@ -7,6 +7,9 @@
 
 # Node.js CLI tools
 bin/node_modules/
+
+# Firebase service account keys (sensitive!)
+**/serviceAccountKey*.json
 *.pyc
 *.swp
 .DS_Store
