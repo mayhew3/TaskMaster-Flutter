@@ -167,36 +167,65 @@ class Auth extends _$Auth {
   }
 
   Future<void> _initialize() async {
-    print('🔐 Auth: Initializing...');
+    try {
+      print('🔐 Auth: Initializing...');
 
-    // Initialize Google Sign In
-    final googleSignIn = ref.read(googleSignInProvider);
-    await googleSignIn.initialize();
-    print('🔐 Auth: Google Sign In initialized');
+      // Initialize Google Sign In
+      final googleSignIn = ref.read(googleSignInProvider);
+      await googleSignIn.initialize();
+      print('🔐 Auth: Google Sign In initialized');
 
-    // Listen to authentication events stream for automatic session restoration
-    googleSignIn.authenticationEvents.listen(
-      (GoogleSignInAuthenticationEvent event) async {
-        switch (event) {
-          case GoogleSignInAuthenticationEventSignIn():
-            print('🔐 Auth: Sign-in event - user: ${event.user.displayName}');
-            await _completeSignIn(event.user);
-          case GoogleSignInAuthenticationEventSignOut():
-            print('🔐 Auth: Sign-out event');
-            state = const AuthState(status: AuthStatus.unauthenticated);
-        }
-      },
-      onError: (error) {
-        print('🔐 Auth: Authentication event error: $error');
-        state = AuthState(
-          status: AuthStatus.unauthenticated,
-          errorMessage: 'Authentication error: $error',
-        );
-      },
-    );
+      // Track whether we received an auth event
+      var receivedAuthEvent = false;
 
-    // Trigger lightweight authentication to restore session
-    await trySilentSignIn();
+      // Listen to authentication events stream for automatic session restoration
+      googleSignIn.authenticationEvents.listen(
+        (GoogleSignInAuthenticationEvent event) async {
+          receivedAuthEvent = true;
+          switch (event) {
+            case GoogleSignInAuthenticationEventSignIn():
+              print('🔐 Auth: Sign-in event - user: ${event.user.displayName}');
+              await _completeSignIn(event.user);
+            case GoogleSignInAuthenticationEventSignOut():
+              print('🔐 Auth: Sign-out event');
+              state = const AuthState(status: AuthStatus.unauthenticated);
+          }
+        },
+        onError: (error) {
+          receivedAuthEvent = true;
+          print('🔐 Auth: Authentication event error: $error');
+          state = AuthState(
+            status: AuthStatus.unauthenticated,
+            errorMessage: 'Authentication error: $error',
+          );
+        },
+      );
+
+      // Trigger lightweight authentication to restore session
+      // Wrap in try-catch in case the native code crashes
+      try {
+        await trySilentSignIn();
+      } catch (e) {
+        print('🔐 Auth: Silent sign-in threw exception: $e');
+        // Continue - we'll fall through to unauthenticated state
+      }
+
+      // If no auth event was received after silent sign-in, user needs to sign in manually
+      // Use a short delay to allow any pending auth events to be processed
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (!receivedAuthEvent && state.status == AuthStatus.initial) {
+        print('🔐 Auth: No saved session found, prompting for sign-in');
+        state = const AuthState(status: AuthStatus.unauthenticated);
+      }
+    } catch (e, stackTrace) {
+      print('🔐 Auth: Fatal error during initialization: $e');
+      print('🔐 Auth: Stack trace: $stackTrace');
+      // Fail gracefully - show sign-in screen
+      state = AuthState(
+        status: AuthStatus.unauthenticated,
+        errorMessage: 'Auth initialization failed: $e',
+      );
+    }
   }
 
   /// Attempt silent sign-in (called on app start)

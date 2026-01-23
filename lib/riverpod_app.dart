@@ -27,6 +27,7 @@ class RiverpodTaskMasterApp extends ConsumerStatefulWidget {
 
 class _RiverpodTaskMasterAppState extends ConsumerState<RiverpodTaskMasterApp> {
   static const serverEnv = String.fromEnvironment('SERVER', defaultValue: 'heroku');
+  static const emulatorHost = String.fromEnvironment('EMULATOR_HOST', defaultValue: '127.0.0.1');
 
   @override
   void initState() {
@@ -39,9 +40,9 @@ class _RiverpodTaskMasterAppState extends ConsumerState<RiverpodTaskMasterApp> {
 
     if (serverEnv == 'local') {
       print('🔧 USING LOCAL FIRESTORE EMULATOR');
-      print('📡 Connecting to: 127.0.0.1:8085');
+      print('📡 Connecting to: $emulatorHost:8085');
       print('⚠️  Make sure Firebase emulator is running: firebase emulators:start');
-      firestore.useFirestoreEmulator('127.0.0.1', 8085);
+      firestore.useFirestoreEmulator(emulatorHost, 8085);
       firestore.settings = const Settings(
         persistenceEnabled: false,
       );
