@@ -2,35 +2,38 @@
 
 This directory contains CLI tools for debugging and maintenance of TaskMaster data.
 
+> **Note:** These tools use Flutter Firebase packages which require the Flutter engine.
+> Use `flutter test` instead of `dart run` to execute them.
+
 ## Firestore Export Tool
 
 Exports Firestore collections to CSV files for analysis.
 
 ### Prerequisites
 
-- Dart SDK (comes with Flutter)
+- Flutter SDK
 - Firebase project initialized
 
 ### Usage
 
 ```bash
 # Export from emulator with default email (scorpy@gmail.com)
-dart run bin/firestore_export.dart --emulator
+flutter test test/bin/run_firestore_export_test.dart --dart-define=ARGS="--emulator"
 
 # Export by specific email address
-dart run bin/firestore_export.dart --emulator --email=other@example.com
+flutter test test/bin/run_firestore_export_test.dart --dart-define=ARGS="--emulator --email=other@example.com"
 
 # Export by personDocId (if you have it)
-dart run bin/firestore_export.dart --emulator --person-doc-id=abc123
+flutter test test/bin/run_firestore_export_test.dart --dart-define=ARGS="--emulator --person-doc-id=abc123"
 
 # Export specific collections only
-dart run bin/firestore_export.dart --emulator --collections=tasks,taskRecurrences
+flutter test test/bin/run_firestore_export_test.dart --dart-define=ARGS="--emulator --collections=tasks,taskRecurrences"
 
 # Export to custom output directory
-dart run bin/firestore_export.dart --emulator --output=./my-exports
+flutter test test/bin/run_firestore_export_test.dart --dart-define=ARGS="--emulator --output=./my-exports"
 
 # Show help
-dart run bin/firestore_export.dart --help
+flutter test test/bin/run_firestore_export_test.dart --dart-define=ARGS="--help"
 ```
 
 ### Options
@@ -67,7 +70,7 @@ dart run bin/firestore_export.dart --help
 
 ```bash
 # Export tasks and recurrences to analyze iteration numbers
-dart run bin/firestore_export.dart --emulator --collections=tasks,taskRecurrences
+flutter test test/bin/run_firestore_export_test.dart --dart-define=ARGS="--emulator --collections=tasks,taskRecurrences"
 
 # Open exports/tasks_*.csv in a spreadsheet
 # Sort by recurrenceDocId, then recurIteration to find duplicates
@@ -77,7 +80,7 @@ dart run bin/firestore_export.dart --emulator --collections=tasks,taskRecurrence
 
 ```bash
 # Export all collections
-dart run bin/firestore_export.dart --emulator
+flutter test test/bin/run_firestore_export_test.dart --dart-define=ARGS="--emulator"
 
 # Files created:
 # - exports/tasks_2024-01-15T10-30-00.csv
@@ -106,19 +109,19 @@ Detects and repairs bad data from the recurring task duplication bug (TM-324). T
 
 ```bash
 # Analyze data on emulator (dry-run, default behavior)
-dart run bin/firestore_repair.dart --emulator
+flutter test test/bin/run_firestore_repair_test.dart --dart-define=ARGS="--emulator"
 
 # Apply repairs on emulator
-dart run bin/firestore_repair.dart --emulator --apply
+flutter test test/bin/run_firestore_repair_test.dart --dart-define=ARGS="--emulator --apply"
 
 # Analyze specific user by email
-dart run bin/firestore_repair.dart --emulator --email=other@example.com
+flutter test test/bin/run_firestore_repair_test.dart --dart-define=ARGS="--emulator --email=other@example.com"
 
 # Analyze specific user by personDocId
-dart run bin/firestore_repair.dart --emulator --person-doc-id=abc123
+flutter test test/bin/run_firestore_repair_test.dart --dart-define=ARGS="--emulator --person-doc-id=abc123"
 
 # Show help
-dart run bin/firestore_repair.dart --help
+flutter test test/bin/run_firestore_repair_test.dart --dart-define=ARGS="--help"
 ```
 
 ### Options
@@ -201,19 +204,19 @@ Run with --apply to execute repairs.
 
 1. **Run analysis first** (dry-run):
    ```bash
-   dart run bin/firestore_repair.dart --emulator
+   flutter test test/bin/run_firestore_repair_test.dart --dart-define=ARGS="--emulator"
    ```
 
 2. **Review findings** and confirm scope is correct
 
 3. **Apply repairs**:
    ```bash
-   dart run bin/firestore_repair.dart --emulator --apply
+   flutter test test/bin/run_firestore_repair_test.dart --dart-define=ARGS="--emulator --apply"
    ```
 
 4. **Re-run analysis** to confirm all issues resolved:
    ```bash
-   dart run bin/firestore_repair.dart --emulator
+   flutter test test/bin/run_firestore_repair_test.dart --dart-define=ARGS="--emulator"
    ```
    Expected: All counts should be 0
 
