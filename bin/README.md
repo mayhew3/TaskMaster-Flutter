@@ -61,9 +61,15 @@ node bin/firestore-export.js --help
 ### Output Format
 
 - Files are saved as CSV with timestamp in filename
-- Timestamps are exported as ISO8601 UTC format
+- **Dates are formatted for Excel** (`YYYY-MM-DD HH:MM:SS`) - automatically recognized as datetime values
 - All document fields are included, with consistent column ordering
 - Complex fields (maps, arrays) are converted to JSON string
+
+### Collection-Specific Transformations
+
+**taskRecurrences**: The `anchorDate` object is flattened into two columns:
+- `anchorDate` - The date value (e.g., `2023-02-16 19:56:01`)
+- `anchorType` - The date type (e.g., `Urgent`, `Target`, `Completion`)
 
 ### Examples
 
