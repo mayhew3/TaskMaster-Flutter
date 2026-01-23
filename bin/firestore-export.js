@@ -290,18 +290,18 @@ function transformTaskRecurrence(doc) {
     // Extract anchorType
     result.anchorType = anchor.dateType || '';
 
-    // Extract and format anchorDate
+    // Extract and format anchorDate (will be converted to Excel format by formatValue)
     if (anchor.dateValue) {
       // Handle Firestore timestamp format {_seconds, _nanoseconds}
       if (anchor.dateValue._seconds !== undefined) {
-        result.anchorDate = new Date(anchor.dateValue._seconds * 1000).toISOString();
+        result.anchorDate = new Date(anchor.dateValue._seconds * 1000);
       } else if (typeof anchor.dateValue.toDate === 'function') {
-        result.anchorDate = anchor.dateValue.toDate().toISOString();
+        result.anchorDate = anchor.dateValue.toDate();
       } else {
-        result.anchorDate = '';
+        result.anchorDate = null;
       }
     } else {
-      result.anchorDate = '';
+      result.anchorDate = null;
     }
   } else {
     // No anchorDate or it's not an object
@@ -345,12 +345,17 @@ function formatValue(value) {
 
   // Firebase Timestamp
   if (value && typeof value.toDate === 'function') {
-    return value.toDate().toISOString();
+    return formatDateForExcel(value.toDate());
   }
 
   // Date object
   if (value instanceof Date) {
-    return value.toISOString();
+    return formatDateForExcel(value);
+  }
+
+  // Handle Firestore timestamp format {_seconds, _nanoseconds} that wasn't converted
+  if (value && typeof value === 'object' && value._seconds !== undefined) {
+    return formatDateForExcel(new Date(value._seconds * 1000));
   }
 
   // Arrays and objects
@@ -358,7 +363,39 @@ function formatValue(value) {
     return JSON.stringify(value);
   }
 
+  // Check if string looks like an ISO date and convert it
+  if (typeof value === 'string' && isISODateString(value)) {
+    return formatDateForExcel(new Date(value));
+  }
+
   return String(value);
+}
+
+/**
+ * Format a Date object for Excel recognition.
+ * Excel recognizes: YYYY-MM-DD HH:MM:SS
+ */
+function formatDateForExcel(date) {
+  if (!date || isNaN(date.getTime())) return '';
+
+  const pad = (n) => n.toString().padStart(2, '0');
+
+  const year = date.getUTCFullYear();
+  const month = pad(date.getUTCMonth() + 1);
+  const day = pad(date.getUTCDate());
+  const hours = pad(date.getUTCHours());
+  const minutes = pad(date.getUTCMinutes());
+  const seconds = pad(date.getUTCSeconds());
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
+/**
+ * Check if a string looks like an ISO 8601 date string
+ */
+function isISODateString(str) {
+  // Match patterns like: 2023-02-16T19:56:01.000Z or 2023-02-16T19:56:01Z
+  return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(str);
 }
 
 async function writeCsv(outputDir, collectionName, rows) {
