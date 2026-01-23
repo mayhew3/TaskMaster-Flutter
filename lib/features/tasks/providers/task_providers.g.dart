@@ -237,6 +237,155 @@ final tasksWithPendingStateProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TasksWithPendingStateRef = AutoDisposeFutureProviderRef<List<TaskItem>>;
+String _$tasksForRecurrenceHash() =>
+    r'07c07e2db632e4d7601be4df566818c96fe3dfe3';
+
+/// Stream of all tasks for a specific recurrence, including retired ones.
+/// This shows the full history of a recurring task for debugging/inspection.
+/// Ordered by recurIteration descending (newest first).
+///
+/// Copied from [tasksForRecurrence].
+@ProviderFor(tasksForRecurrence)
+const tasksForRecurrenceProvider = TasksForRecurrenceFamily();
+
+/// Stream of all tasks for a specific recurrence, including retired ones.
+/// This shows the full history of a recurring task for debugging/inspection.
+/// Ordered by recurIteration descending (newest first).
+///
+/// Copied from [tasksForRecurrence].
+class TasksForRecurrenceFamily extends Family<AsyncValue<List<TaskItem>>> {
+  /// Stream of all tasks for a specific recurrence, including retired ones.
+  /// This shows the full history of a recurring task for debugging/inspection.
+  /// Ordered by recurIteration descending (newest first).
+  ///
+  /// Copied from [tasksForRecurrence].
+  const TasksForRecurrenceFamily();
+
+  /// Stream of all tasks for a specific recurrence, including retired ones.
+  /// This shows the full history of a recurring task for debugging/inspection.
+  /// Ordered by recurIteration descending (newest first).
+  ///
+  /// Copied from [tasksForRecurrence].
+  TasksForRecurrenceProvider call(String recurrenceDocId) {
+    return TasksForRecurrenceProvider(recurrenceDocId);
+  }
+
+  @override
+  TasksForRecurrenceProvider getProviderOverride(
+    covariant TasksForRecurrenceProvider provider,
+  ) {
+    return call(provider.recurrenceDocId);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'tasksForRecurrenceProvider';
+}
+
+/// Stream of all tasks for a specific recurrence, including retired ones.
+/// This shows the full history of a recurring task for debugging/inspection.
+/// Ordered by recurIteration descending (newest first).
+///
+/// Copied from [tasksForRecurrence].
+class TasksForRecurrenceProvider
+    extends AutoDisposeStreamProvider<List<TaskItem>> {
+  /// Stream of all tasks for a specific recurrence, including retired ones.
+  /// This shows the full history of a recurring task for debugging/inspection.
+  /// Ordered by recurIteration descending (newest first).
+  ///
+  /// Copied from [tasksForRecurrence].
+  TasksForRecurrenceProvider(String recurrenceDocId)
+    : this._internal(
+        (ref) =>
+            tasksForRecurrence(ref as TasksForRecurrenceRef, recurrenceDocId),
+        from: tasksForRecurrenceProvider,
+        name: r'tasksForRecurrenceProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$tasksForRecurrenceHash,
+        dependencies: TasksForRecurrenceFamily._dependencies,
+        allTransitiveDependencies:
+            TasksForRecurrenceFamily._allTransitiveDependencies,
+        recurrenceDocId: recurrenceDocId,
+      );
+
+  TasksForRecurrenceProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.recurrenceDocId,
+  }) : super.internal();
+
+  final String recurrenceDocId;
+
+  @override
+  Override overrideWith(
+    Stream<List<TaskItem>> Function(TasksForRecurrenceRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: TasksForRecurrenceProvider._internal(
+        (ref) => create(ref as TasksForRecurrenceRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        recurrenceDocId: recurrenceDocId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeStreamProviderElement<List<TaskItem>> createElement() {
+    return _TasksForRecurrenceProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TasksForRecurrenceProvider &&
+        other.recurrenceDocId == recurrenceDocId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, recurrenceDocId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin TasksForRecurrenceRef on AutoDisposeStreamProviderRef<List<TaskItem>> {
+  /// The parameter `recurrenceDocId` of this provider.
+  String get recurrenceDocId;
+}
+
+class _TasksForRecurrenceProviderElement
+    extends AutoDisposeStreamProviderElement<List<TaskItem>>
+    with TasksForRecurrenceRef {
+  _TasksForRecurrenceProviderElement(super.provider);
+
+  @override
+  String get recurrenceDocId =>
+      (origin as TasksForRecurrenceProvider).recurrenceDocId;
+}
+
 String _$recentlyCompletedTasksHash() =>
     r'675051dbe7288e9621e1228fa594044843efe866';
 

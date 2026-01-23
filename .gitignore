@@ -1,6 +1,9 @@
 # Miscellaneous
 *.class
 *.log
+
+# Firestore exports
+/exports/
 *.pyc
 *.swp
 .DS_Store

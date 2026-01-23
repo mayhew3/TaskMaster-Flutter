@@ -240,3 +240,29 @@ Future<List<TaskItem>> tasksWithPendingState(TasksWithPendingStateRef ref) async
 
   return tasks.map((task) => pendingTasks[task.docId] ?? task).toList();
 }
+
+/// Stream of all tasks for a specific recurrence, including retired ones.
+/// This shows the full history of a recurring task for debugging/inspection.
+/// Ordered by recurIteration descending (newest first).
+@riverpod
+Stream<List<TaskItem>> tasksForRecurrence(TasksForRecurrenceRef ref, String recurrenceDocId) {
+  final firestore = ref.watch(firestoreProvider);
+  final personDocId = ref.watch(personDocIdProvider);
+
+  if (personDocId == null) return Stream.value([]);
+
+  return firestore
+      .collection('tasks')
+      .where('personDocId', isEqualTo: personDocId)
+      .where('recurrenceDocId', isEqualTo: recurrenceDocId)
+      .orderBy('recurIteration', descending: true)
+      .snapshots()
+      .map((snapshot) => snapshot.docs
+          .map((doc) {
+            final json = doc.data();
+            json['docId'] = doc.id;
+            return serializers.deserializeWith(TaskItem.serializer, json);
+          })
+          .whereType<TaskItem>()
+          .toList());
+}

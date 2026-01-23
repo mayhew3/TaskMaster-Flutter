@@ -462,5 +462,232 @@ void main() {
             reason: 'Should have 5 assignments total');
       });
     });
+
+    group('TM-324: Recurring Task Duplication Fix', () {
+      test('should NOT create new recurrence when recurrenceDocId already exists', () async {
+        // Setup: Create an existing recurrence document
+        final existingRecurrenceId = 'existing-recurrence-123';
+        await fakeFirestore.collection('taskRecurrences').doc(existingRecurrenceId).set({
+          'name': 'Take Out Recycling',
+          'personDocId': 'test-person',
+          'recurIteration': 109,
+          'dateAdded': DateTime.now().toUtc(),
+        });
+
+        // Create a preview with EXISTING recurrenceDocId (simulating next iteration)
+        final recurPreview = TaskItemRecurPreview('Take Out Recycling')
+          ..personDocId = 'test-person'
+          ..gamePoints = 5
+          ..recurNumber = 1
+          ..recurUnit = 'Weeks'
+          ..recurWait = false
+          ..recurrenceDocId = existingRecurrenceId  // KEY: existing recurrence
+          ..recurIteration = 110  // Next iteration
+          ..recurrence = (TaskRecurrenceBlueprint()
+            ..name = 'Take Out Recycling'
+            ..personDocId = 'test-person'
+            ..recurIteration = 110);
+
+        final blueprint = SprintBlueprint(
+          startDate: DateTime.now(),
+          endDate: DateTime.now().add(const Duration(days: 7)),
+          numUnits: 1,
+          unitName: 'Weeks',
+          personDocId: 'test-person',
+        );
+
+        // Act: Create sprint with the recurring task preview
+        await service.createSprintWithTasks(
+          sprintBlueprint: blueprint,
+          taskItems: [],
+          taskItemRecurPreviews: [recurPreview],
+        );
+
+        // Assert: Should still have only ONE recurrence document
+        final recurrencesSnapshot =
+            await fakeFirestore.collection('taskRecurrences').get();
+        expect(recurrencesSnapshot.docs.length, equals(1),
+            reason: 'Should NOT create a new recurrence - reuse existing');
+
+        // Assert: The existing recurrence should have updated recurIteration
+        final recurrenceDoc = await fakeFirestore
+            .collection('taskRecurrences')
+            .doc(existingRecurrenceId)
+            .get();
+        expect(recurrenceDoc.data()?['recurIteration'], equals(110),
+            reason: 'Existing recurrence recurIteration should be updated to 110');
+
+        // Assert: The new task should reference the EXISTING recurrence
+        final tasksSnapshot = await fakeFirestore.collection('tasks').get();
+        expect(tasksSnapshot.docs.length, equals(1));
+        final taskData = tasksSnapshot.docs.first.data();
+        expect(taskData['recurrenceDocId'], equals(existingRecurrenceId),
+            reason: 'Task should reference existing recurrence, not a new one');
+      });
+
+      test('should create new recurrence when recurrenceDocId is null', () async {
+        // Create a preview with NO existing recurrenceDocId (first time creating)
+        final recurPreview = TaskItemRecurPreview('New Recurring Task')
+          ..personDocId = 'test-person'
+          ..gamePoints = 5
+          ..recurNumber = 1
+          ..recurUnit = 'Days'
+          ..recurWait = false
+          ..recurrenceDocId = null  // No existing recurrence
+          ..recurIteration = 1
+          ..recurrence = (TaskRecurrenceBlueprint()
+            ..name = 'New Recurring Task'
+            ..personDocId = 'test-person'
+            ..recurIteration = 1);
+
+        final blueprint = SprintBlueprint(
+          startDate: DateTime.now(),
+          endDate: DateTime.now().add(const Duration(days: 7)),
+          numUnits: 1,
+          unitName: 'Weeks',
+          personDocId: 'test-person',
+        );
+
+        // Act
+        await service.createSprintWithTasks(
+          sprintBlueprint: blueprint,
+          taskItems: [],
+          taskItemRecurPreviews: [recurPreview],
+        );
+
+        // Assert: Should create exactly ONE new recurrence
+        final recurrencesSnapshot =
+            await fakeFirestore.collection('taskRecurrences').get();
+        expect(recurrencesSnapshot.docs.length, equals(1),
+            reason: 'Should create a new recurrence');
+
+        // Assert: Task should link to the new recurrence
+        final tasksSnapshot = await fakeFirestore.collection('tasks').get();
+        expect(tasksSnapshot.docs.length, equals(1));
+        final taskData = tasksSnapshot.docs.first.data();
+        final newRecurrenceId = recurrencesSnapshot.docs.first.id;
+        expect(taskData['recurrenceDocId'], equals(newRecurrenceId),
+            reason: 'Task should link to new recurrence');
+      });
+
+      test('addTasksToSprint should also preserve existing recurrence', () async {
+        // Setup: Create sprint and existing recurrence
+        final existingRecurrenceId = 'existing-recurrence-456';
+        await fakeFirestore.collection('taskRecurrences').doc(existingRecurrenceId).set({
+          'name': 'Weekly Review',
+          'personDocId': 'test-person',
+          'recurIteration': 50,
+          'dateAdded': DateTime.now().toUtc(),
+        });
+
+        final blueprint = SprintBlueprint(
+          startDate: DateTime.now(),
+          endDate: DateTime.now().add(const Duration(days: 7)),
+          numUnits: 1,
+          unitName: 'Weeks',
+          personDocId: 'test-person',
+        );
+
+        final sprint = await service.createSprintWithTasks(
+          sprintBlueprint: blueprint,
+          taskItems: [],
+          taskItemRecurPreviews: [],
+        );
+
+        // Create preview with existing recurrence
+        final recurPreview = TaskItemRecurPreview('Weekly Review')
+          ..personDocId = 'test-person'
+          ..gamePoints = 10
+          ..recurNumber = 1
+          ..recurUnit = 'Weeks'
+          ..recurWait = false
+          ..recurrenceDocId = existingRecurrenceId
+          ..recurIteration = 51
+          ..recurrence = (TaskRecurrenceBlueprint()
+            ..name = 'Weekly Review'
+            ..personDocId = 'test-person'
+            ..recurIteration = 51);
+
+        // Act: Add tasks to existing sprint
+        await service.addTasksToSprint(
+          sprint: sprint,
+          taskItems: [],
+          taskItemRecurPreviews: [recurPreview],
+        );
+
+        // Assert: Still only one recurrence
+        final recurrencesSnapshot =
+            await fakeFirestore.collection('taskRecurrences').get();
+        expect(recurrencesSnapshot.docs.length, equals(1),
+            reason: 'addTasksToSprint should NOT create duplicate recurrence');
+
+        // Assert: Recurrence updated to new iteration
+        final recurrenceDoc = await fakeFirestore
+            .collection('taskRecurrences')
+            .doc(existingRecurrenceId)
+            .get();
+        expect(recurrenceDoc.data()?['recurIteration'], equals(51));
+      });
+
+      test('multiple recurring tasks should each preserve their recurrence', () async {
+        // Setup: Create two existing recurrence documents
+        final recurrenceId1 = 'recurrence-task-1';
+        final recurrenceId2 = 'recurrence-task-2';
+
+        await fakeFirestore.collection('taskRecurrences').doc(recurrenceId1).set({
+          'name': 'Daily Standup',
+          'personDocId': 'test-person',
+          'recurIteration': 200,
+          'dateAdded': DateTime.now().toUtc(),
+        });
+        await fakeFirestore.collection('taskRecurrences').doc(recurrenceId2).set({
+          'name': 'Code Review',
+          'personDocId': 'test-person',
+          'recurIteration': 100,
+          'dateAdded': DateTime.now().toUtc(),
+        });
+
+        // Create previews with existing recurrences
+        final previews = [
+          TaskItemRecurPreview('Daily Standup')
+            ..personDocId = 'test-person'
+            ..recurrenceDocId = recurrenceId1
+            ..recurIteration = 201
+            ..recurrence = (TaskRecurrenceBlueprint()..recurIteration = 201),
+          TaskItemRecurPreview('Code Review')
+            ..personDocId = 'test-person'
+            ..recurrenceDocId = recurrenceId2
+            ..recurIteration = 101
+            ..recurrence = (TaskRecurrenceBlueprint()..recurIteration = 101),
+        ];
+
+        final blueprint = SprintBlueprint(
+          startDate: DateTime.now(),
+          endDate: DateTime.now().add(const Duration(days: 7)),
+          numUnits: 1,
+          unitName: 'Weeks',
+          personDocId: 'test-person',
+        );
+
+        // Act
+        await service.createSprintWithTasks(
+          sprintBlueprint: blueprint,
+          taskItems: [],
+          taskItemRecurPreviews: previews,
+        );
+
+        // Assert: Still only 2 recurrences (no duplicates)
+        final recurrencesSnapshot =
+            await fakeFirestore.collection('taskRecurrences').get();
+        expect(recurrencesSnapshot.docs.length, equals(2),
+            reason: 'Should have exactly 2 recurrences (no duplicates)');
+
+        // Assert: Both recurrences updated
+        final rec1Doc = await fakeFirestore.collection('taskRecurrences').doc(recurrenceId1).get();
+        final rec2Doc = await fakeFirestore.collection('taskRecurrences').doc(recurrenceId2).get();
+        expect(rec1Doc.data()?['recurIteration'], equals(201));
+        expect(rec2Doc.data()?['recurIteration'], equals(101));
+      });
+    });
   });
 }
