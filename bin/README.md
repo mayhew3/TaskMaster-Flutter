@@ -237,22 +237,6 @@ Run with --apply to execute repairs.
 
 ---
 
-## Dart Unit Tests
-
-The repair logic is also tested using `fake_cloud_firestore` in Dart tests:
-
-```bash
-# Run all repair tool tests
-flutter test test/bin/firestore_repair_test.dart
-
-# Run with verbose output
-flutter test test/bin/firestore_repair_test.dart -v
-```
-
-These tests verify the repair logic works correctly for all 4 bad data scenarios.
-
----
-
 ## Production Authentication
 
 Both tools support production Firestore access via two authentication methods:
@@ -288,4 +272,3 @@ node bin/firestore-export.js --production --service-account=./serviceAccountKey.
 
 - Default email filter is `scorpy@gmail.com` when no filter is specified
 - The `exports/` directory is gitignored by default
-- The Dart versions (`bin/firestore_*.dart`) cannot be run directly due to Flutter dependencies, but the repair logic is tested via `flutter test`
