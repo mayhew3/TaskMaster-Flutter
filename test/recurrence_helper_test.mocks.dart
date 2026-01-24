@@ -144,6 +144,7 @@ class MockTaskRepository extends _i1.Mock implements _i9.TaskRepository {
     String? subCollectionName,
     dynamic Function(Iterable<S>)? subAddCallback,
     _i10.Serializer<S>? subSerializer,
+    dynamic Function(dynamic)? onError,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#createListener, [], {
@@ -158,6 +159,7 @@ class MockTaskRepository extends _i1.Mock implements _i9.TaskRepository {
               #subCollectionName: subCollectionName,
               #subAddCallback: subAddCallback,
               #subSerializer: subSerializer,
+              #onError: onError,
             }),
             returnValue: (
               mainListener:
@@ -177,6 +179,7 @@ class MockTaskRepository extends _i1.Mock implements _i9.TaskRepository {
                       #subCollectionName: subCollectionName,
                       #subAddCallback: subAddCallback,
                       #subSerializer: subSerializer,
+                      #onError: onError,
                     }),
                   ),
               sprintAssignmentListeners:
@@ -205,6 +208,7 @@ class MockTaskRepository extends _i1.Mock implements _i9.TaskRepository {
                       #subCollectionName: subCollectionName,
                       #subAddCallback: subAddCallback,
                       #subSerializer: subSerializer,
+                      #onError: onError,
                     }),
                   ),
               sprintAssignmentListeners:
@@ -510,10 +514,13 @@ class MockTaskRepository extends _i1.Mock implements _i9.TaskRepository {
           >);
 
   @override
-  void deleteTask(_i5.TaskItem? taskItem) => super.noSuchMethod(
-    Invocation.method(#deleteTask, [taskItem]),
-    returnValueForMissingStub: null,
-  );
+  _i4.Future<void> deleteTask(_i5.TaskItem? taskItem) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteTask, [taskItem]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
 
   @override
   void addSnooze(_i16.SnoozeBlueprint? snooze) => super.noSuchMethod(

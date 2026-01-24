@@ -18,7 +18,7 @@ ThemeData taskMasterTheme = ThemeData(
   navigationBarTheme: NavigationBarThemeData(
     backgroundColor: TaskColors.menuColor,
     indicatorColor: TaskColors.backgroundColor,
-    height: 70.0,
+    height: 70,
   ),
   floatingActionButtonTheme: FloatingActionButtonThemeData(
     backgroundColor: TaskColors.highlight,

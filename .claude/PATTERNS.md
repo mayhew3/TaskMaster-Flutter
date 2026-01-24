@@ -492,6 +492,150 @@ void main() {
 - Don't forget to handle loading/error states in UI
 - Don't mix Redux and Riverpod for same feature - pick one
 - Don't create new ProviderContainer per widget - use ProviderScope at root
+- **Don't use `async*` with `ref.watch()` after `await` in stream providers** ⚠️ (see Common Gotchas below)
+
+---
+
+## Common Gotchas & Solutions
+
+### ⚠️ Gotcha 1: Stream Providers with Async Dependencies
+
+**Problem:** Using `async*` generators with `await ref.watch()` causes providers to not track dependencies properly.
+
+**❌ WRONG:**
+```dart
+@riverpod
+Stream<List<TaskItem>> tasks(TasksRef ref) async* {
+  final personDocId = await ref.watch(personDocIdProvider.future);
+  // ❌ Riverpod can't track dependencies after await!
+
+  final firestore = ref.watch(firestoreProvider);
+  // ❌ Provider may not rebuild when firestore changes
+
+  yield* firestore.collection('tasks').snapshots()...;
+}
+```
+
+**Symptoms:**
+- Blank screen / no data loading
+- Provider stuck in loading state
+- Data doesn't update when dependencies change
+- Infinite rebuild loops
+
+**✅ CORRECT:**
+```dart
+@riverpod
+Stream<List<TaskItem>> tasks(TasksRef ref) {
+  // ✅ Watch all dependencies synchronously FIRST
+  final firestore = ref.watch(firestoreProvider);
+  final personDocIdAsync = ref.watch(personDocIdProvider);
+
+  // ✅ Handle async with .when() - returns Stream immediately
+  return personDocIdAsync.when(
+    data: (personDocId) {
+      if (personDocId == null) return Stream.value([]);
+
+      return firestore
+          .collection('tasks')
+          .where('personDocId', isEqualTo: personDocId)
+          .snapshots()
+          .map((snapshot) => ...);
+    },
+    loading: () => Stream.value([]),
+    error: (_, __) => Stream.value([]),
+  );
+}
+```
+
+**Key Points:**
+- Stream providers should return `Stream<T>`, not use `async*`
+- Watch all dependencies before any async operations
+- Use `.when()` to handle `AsyncValue` dependencies
+- Return a Stream immediately (even if it's `Stream.value([])`)
+
+### ⚠️ Gotcha 2: Provider Auto-Dispose Causing Infinite Rebuilds
+
+**Problem:** Singleton resources (like Firebase instances) being recreated on every rebuild.
+
+**❌ WRONG:**
+```dart
+@riverpod
+FirebaseFirestore firestore(FirestoreRef ref) {
+  final instance = FirebaseFirestore.instance;
+
+  // ❌ This gets called every time provider recreates!
+  instance.useFirestoreEmulator('127.0.0.1', 8085);
+  instance.settings = const Settings(...);
+
+  return instance;
+}
+```
+
+**Symptoms:**
+- Infinite console logs repeating the same message
+- App performance degradation
+- Emulator connection messages flooding logs
+
+**✅ CORRECT:**
+```dart
+@Riverpod(keepAlive: true)  // ✅ Keep provider alive forever
+FirebaseFirestore firestore(FirestoreRef ref) {
+  // ✅ Only returns singleton, configuration done elsewhere (main.dart)
+  return FirebaseFirestore.instance;
+}
+
+@Riverpod(keepAlive: true)  // ✅ Auth provider also needs keepAlive
+FirebaseAuth firebaseAuth(FirebaseAuthRef ref) {
+  return FirebaseAuth.instance;
+}
+```
+
+**Key Points:**
+- Use `@Riverpod(keepAlive: true)` for singleton resources
+- Configure Firebase in `main.dart` before `runApp()`
+- Keep providers simple - just return the instance
+- Auto-dispose is great for data providers, bad for singletons
+
+### ⚠️ Gotcha 3: Missing Scaffold in Screen Widgets
+
+**Problem:** Forgetting that screens need full Scaffold structure.
+
+**❌ WRONG:**
+```dart
+class StatsScreen extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Center(  // ❌ No AppBar, drawer, bottomNav!
+      child: Column(children: [...]),
+    );
+  }
+}
+```
+
+**Symptoms:**
+- Missing navigation bars
+- No way to access drawer menu
+- Screen looks broken / incomplete
+
+**✅ CORRECT:**
+```dart
+class StatsScreen extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Stats')),
+      body: Center(child: Column(children: [...])),
+      drawer: TaskMainMenu(),
+      bottomNavigationBar: TabSelector(),
+    );
+  }
+}
+```
+
+**Key Points:**
+- Always include full Scaffold structure for screens
+- Match existing Redux screen layout exactly
+- Include drawer and bottomNavigationBar for consistency
 
 ---
 
@@ -615,6 +759,96 @@ class TaskWidget extends ConsumerWidget {
 // Trigger update
 ref.read(updateTaskProvider.notifier).call(task);
 ```
+
+---
+
+## Date/Time Handling Pattern
+
+### ✅ Use Standard Dart APIs (Preferred)
+
+For most date formatting and timezone conversion, use Dart's built-in APIs:
+
+```dart
+// Date formatting
+final formatted = DateFormat('MM-dd-yyyy').format(dateTime.toLocal());
+final time = DateFormat('hh:mm a').format(dateTime.toLocal());
+
+// Time ago
+final ago = timeago.format(dateTime, allowFromNow: true);
+
+// Jiffy for advanced date manipulation
+final jiffy = Jiffy.parseFromDateTime(dateTime.toLocal());
+final relative = jiffy.fromNow(); // "2 days ago"
+```
+
+### ✅ Initialize Timezone in main() (For Notifications)
+
+For `flutter_local_notifications.zonedSchedule()` which requires timezone support:
+
+```dart
+// lib/main.dart
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize timezone database ONCE at startup
+  tz.initializeTimeZones();
+  final timezoneName = await FlutterTimezone.getLocalTimezone();
+  tz.setLocalLocation(tz.getLocation(timezoneName));
+
+  await Firebase.initializeApp(...);
+  runApp(MyApp());
+}
+
+// Later in NotificationHelper
+final localTime = tz.TZDateTime.from(scheduledTime, tz.local);
+await plugin.zonedSchedule(id, title, body, localTime, ...);
+```
+
+### ❌ Avoid Async Providers for Singletons
+
+**Don't** create async providers for one-time initialization:
+
+```dart
+// ❌ BAD - Creates complexity
+@Riverpod(keepAlive: true)
+Future<TimezoneHelper> timezoneHelper(ref) async {
+  return await TimezoneHelper.createLocal();
+}
+
+// Requires nested .when() blocks everywhere
+return timezoneHelperAsync.when(
+  data: (helper) {
+    return tasksAsync.when(...);
+  },
+  loading: () => ...,
+  error: () => ...,
+);
+```
+
+**Do** initialize in `main()` instead:
+
+```dart
+// ✅ GOOD - Initialize once at startup
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDependency();
+  runApp(MyApp());
+}
+
+// Screens stay simple
+return tasksAsync.when(
+  data: (tasks) => TaskList(tasks),
+  loading: () => ...,
+  error: () => ...,
+);
+```
+
+### Benefits
+
+1. **Simpler Code** - No nested async handling
+2. **Better Performance** - One-time initialization
+3. **Standard Pattern** - Follows Flutter best practices
+4. **Easier Testing** - Dependencies initialized before tests
 
 ---
 

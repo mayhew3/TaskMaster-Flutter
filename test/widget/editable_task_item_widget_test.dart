@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/redux/presentation/editable_task_item.dart';
+import 'package:taskmaster/features/shared/presentation/editable_task_item.dart';
 
 /// Widget Test: EditableTaskItemWidget
 ///

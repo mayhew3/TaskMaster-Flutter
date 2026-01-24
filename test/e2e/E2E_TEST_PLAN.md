@@ -1,1097 +1,801 @@
 # TaskMaster E2E Test Plan
 
-This document outlines comprehensive end-to-end tests to ensure critical user flows work correctly and breaking changes are detected.
+This document outlines end-to-end tests using a **hybrid approach**:
+- **Isolated tests** (~80%) for core functionality - fast feedback, easy debugging
+- **Flow tests** (~20%) for critical user journeys - catch integration bugs
 
 ---
 
-## Test Categories
+## Table of Contents
 
+### Part 1: Isolated Tests
 1. [Authentication](#1-authentication)
-2. [Navigation](#2-navigation)
-3. [Task Creation](#3-task-creation)
-4. [Task Editing](#4-task-editing)
-5. [Task Completion](#5-task-completion)
-6. [Task Deletion](#6-task-deletion)
-7. [Task Filtering](#7-task-filtering)
-8. [Task Visual Indicators](#8-task-visual-indicators)
-9. [Recurring Tasks](#9-recurring-tasks)
-10. [Snoozing Tasks](#10-snoozing-tasks)
-11. [Sprint Creation](#11-sprint-creation)
-12. [Sprint Task Selection](#12-sprint-task-selection)
-13. [Active Sprint Management](#13-active-sprint-management)
-14. [Stats Tab](#14-stats-tab)
-15. [Offline Behavior](#15-offline-behavior)
-16. [Data Persistence](#16-data-persistence)
+2. [Task CRUD](#2-task-crud)
+3. [Task Completion](#3-task-completion)
+4. [Task Filtering](#4-task-filtering)
+5. [Visual Indicators](#5-visual-indicators)
+6. [Snooze Dialog](#6-snooze-dialog)
+7. [Sprint Setup](#7-sprint-setup)
+8. [Stats Tab](#8-stats-tab)
+
+### Part 2: Critical Flow Tests
+9. [Flow: Complete Sprint Lifecycle](#9-flow-complete-sprint-lifecycle)
+10. [Flow: Recurring Task Lifecycle](#10-flow-recurring-task-lifecycle)
+11. [Flow: Snooze Recurring Task (Schedule Anchor)](#11-flow-snooze-recurring-task-schedule-anchor)
+12. [Flow: Snooze Recurring Task (Completion Anchor)](#12-flow-snooze-recurring-task-completion-anchor)
+13. [Flow: Task Date Progression](#13-flow-task-date-progression)
+
+### Appendix
+- [Test Data Helpers](#test-data-helpers)
+- [Priority Matrix](#priority-matrix)
+
+---
+
+# Part 1: Isolated Tests
+
+These tests verify individual features work correctly in isolation.
 
 ---
 
 ## 1. Authentication
 
-### 1.1 Sign In Flow
+### 1.1 Sign In Displays Correctly
 ```
 GIVEN the user is not authenticated
 WHEN the app launches
-THEN the sign-in screen should be displayed
-AND the "Sign in with Google" button should be visible
+THEN the sign-in screen should display
+AND the "Sign in with Google" button should be visible and tappable
 ```
 
 **Assertions:**
-- Sign-in screen is displayed
-- Google sign-in button is tappable
-- Loading indicator appears during authentication
-- On success, user is redirected to Tasks tab
-- User's data loads after sign-in
+- [ ] Sign-in screen is displayed
+- [ ] Google sign-in button exists and is enabled
 
-### 1.2 Sign Out Flow
+### 1.2 Sign Out Works
 ```
 GIVEN the user is authenticated
-WHEN the user opens the drawer menu
-AND taps "Sign Out"
-THEN the user should be signed out
-AND redirected to the sign-in screen
+WHEN the user opens drawer and taps "Sign Out"
+THEN the sign-in screen should display
 ```
 
 **Assertions:**
-- Drawer menu opens from left swipe or menu icon
-- "Sign Out" option is visible
-- After sign out, sign-in screen is displayed
-- Previous user data is not accessible
+- [ ] Drawer opens from left edge swipe
+- [ ] "Sign Out" option is visible
+- [ ] After tap, sign-in screen appears
 
-### 1.3 Session Persistence
+### 1.3 Session Persists Across Restart
 ```
-GIVEN the user has previously signed in
-WHEN the app is closed and reopened
-THEN the user should be automatically signed in (silent sign-in)
-AND their tasks should load
+GIVEN the user previously signed in
+WHEN the app is restarted
+THEN the user should be automatically authenticated
+AND tasks should load
 ```
 
 **Assertions:**
-- No sign-in prompt on app restart
-- User data loads automatically
-- Tasks tab is displayed
+- [ ] No sign-in prompt on restart
+- [ ] Tasks tab displays with user data
 
 ---
 
-## 2. Navigation
+## 2. Task CRUD
 
-### 2.1 Bottom Navigation - Tasks Tab
+### 2.1 Create Task - Minimum Fields
 ```
-GIVEN the user is on any tab
-WHEN the user taps the Tasks tab icon
-THEN the Tasks tab should be displayed
-```
-
-**Assertions:**
-- Tasks list is visible
-- Add task FAB (+) is visible
-- Filter icon is in app bar
-- Refresh icon is in app bar
-
-### 2.2 Bottom Navigation - Plan Tab
-```
-GIVEN the user is on any tab
-WHEN the user taps the Plan tab icon
-THEN the Plan tab should be displayed
+GIVEN the user is on Tasks tab
+WHEN user taps + FAB, enters name "Test Task", taps save
+THEN the task should appear in the list
 ```
 
 **Assertions:**
-- Plan tab content is visible
-- Either "New Sprint" form or active sprint tasks are shown
+- [ ] Add screen opens on FAB tap
+- [ ] Save FAB appears after entering name
+- [ ] Task "Test Task" appears in list after save
+- [ ] Navigates back to task list
 
-### 2.3 Bottom Navigation - Stats Tab
+### 2.2 Create Task - All Fields
 ```
-GIVEN the user is on any tab
-WHEN the user taps the Stats tab icon
-THEN the Stats tab should be displayed
-```
-
-**Assertions:**
-- "Completed Tasks" count is visible
-- "Active Tasks" count is visible
-
-### 2.4 Task List to Task Details Navigation
-```
-GIVEN the user is on the Tasks tab with tasks visible
-WHEN the user taps on a task
-THEN the Task Details screen should open
-```
-
-**Assertions:**
-- Task Details screen is displayed
-- Task name is shown
-- All task fields are displayed (dates, project, context, etc.)
-- Edit FAB (pencil icon) is visible
-- Delete button (trash icon) is visible
-- Checkbox is visible
-
-### 2.5 Task Details to Edit Screen Navigation
-```
-GIVEN the user is on the Task Details screen
-WHEN the user taps the Edit FAB
-THEN the Edit Task screen should open
-```
-
-**Assertions:**
-- Edit screen is displayed with "Task Details" title
-- All fields are pre-populated with current task values
-- Save FAB appears when changes are made
-
-### 2.6 Drawer Menu Access
-```
-GIVEN the user is on any main screen
-WHEN the user swipes from the left edge (or taps menu icon)
-THEN the drawer menu should open
-```
-
-**Assertions:**
-- Drawer slides in from left
-- "Actions" header is visible
-- "Sign Out" option is visible
-
----
-
-## 3. Task Creation
-
-### 3.1 Create Basic Task
-```
-GIVEN the user is on the Tasks tab
-WHEN the user taps the + FAB
-AND enters a task name "Test Task"
-AND taps the save button
-THEN a new task should be created
-AND appear in the task list
-```
-
-**Assertions:**
-- Add Task screen opens
-- Name field is empty initially
-- Save FAB appears after entering name
-- After save, navigates back to task list
-- New task "Test Task" appears in list
-
-### 3.2 Create Task with All Fields
-```
-GIVEN the user is on the Add Task screen
-WHEN the user fills in:
-  - Name: "Complete Task"
+GIVEN the user is on Add Task screen
+WHEN user fills all fields:
+  - Name: "Full Task"
   - Project: "Career"
   - Context: "Computer"
-  - Priority: 5
-  - Points: 10
-  - Length: 2
-  - Start Date: tomorrow
-  - Target Date: in 3 days
-  - Urgent Date: in 5 days
-  - Due Date: in 7 days
+  - Priority: 5, Points: 10, Length: 2
+  - Start: tomorrow, Target: +3d, Urgent: +5d, Due: +7d
   - Notes: "Test notes"
-AND taps save
-THEN the task should be created with all fields populated
-```
-
-**Assertions:**
-- All dropdown fields show correct options
-- Date pickers function correctly
-- Numeric fields accept numbers only
-- All values are saved correctly
-- Task details show all entered values
-
-### 3.3 Create Task - Name Required Validation
-```
-GIVEN the user is on the Add Task screen
-WHEN the user does not enter a name
-THEN the save button should not appear
-OR validation error should be shown
-```
-
-**Assertions:**
-- Save FAB is hidden when name is empty
-- Cannot submit form without name
-
-### 3.4 Create Task with Project Selection
-```
-GIVEN the user is on the Add Task screen
-WHEN the user taps the Project dropdown
-THEN all project options should be available:
-  - (none), Career, Hobby, Friends, Family, Health,
-    Maintenance, Organization, Shopping, Entertainment,
-    WIG Mentorship, Writing, Bugs, Projects
-```
-
-**Assertions:**
-- All 14 project options are visible
-- Selection updates the field
-- "(none)" clears the project
-
-### 3.5 Create Task with Context Selection
-```
-GIVEN the user is on the Add Task screen
-WHEN the user taps the Context dropdown
-THEN all context options should be available:
-  - (none), Computer, Home, Office, E-Mail, Phone,
-    Outside, Reading, Planning
-```
-
-**Assertions:**
-- All 9 context options are visible
-- Selection updates the field
-- "(none)" clears the context
-
----
-
-## 4. Task Editing
-
-### 4.1 Edit Task Name
-```
-GIVEN a task "Original Name" exists
-WHEN the user opens the task details
-AND taps edit
-AND changes the name to "Updated Name"
 AND saves
-THEN the task name should be updated
+THEN all fields should be persisted
 ```
 
 **Assertions:**
-- Edit screen shows current name
-- Save FAB appears after change
-- After save, task list shows "Updated Name"
-- Task details show "Updated Name"
+- [ ] All dropdowns contain expected options
+- [ ] Date pickers function correctly
+- [ ] Task details show all entered values
 
-### 4.2 Edit Task Dates
+### 2.3 Create Task - Name Required
 ```
-GIVEN a task exists without dates
-WHEN the user edits the task
-AND adds a Start Date
-AND adds a Target Date
-AND saves
-THEN the task should display the new dates
+GIVEN the user is on Add Task screen
+WHEN name field is empty
+THEN save FAB should not appear
 ```
 
 **Assertions:**
-- Date fields are clearable
-- Date picker shows correct initial date
-- Time can be set along with date
-- Saved dates appear in task details
+- [ ] Save FAB is hidden/disabled when name empty
 
-### 4.3 Clear Task Field
+### 2.4 Edit Task - Change Name
 ```
-GIVEN a task with a Project set
-WHEN the user edits the task
-AND changes Project to "(none)"
-AND saves
-THEN the project should be cleared
+GIVEN task "Original" exists
+WHEN user opens details, taps edit, changes to "Updated", saves
+THEN task list should show "Updated"
 ```
 
 **Assertions:**
-- Selecting "(none)" clears the field
-- Task details no longer show project
+- [ ] Edit screen pre-populates current values
+- [ ] Save FAB appears on change
+- [ ] Updated name appears in list and details
 
-### 4.4 Edit Without Changes - No Save Button
+### 2.5 Edit Task - No Changes = No Save Button
 ```
 GIVEN a task exists
-WHEN the user opens edit screen
-AND makes no changes
-THEN the save FAB should not appear
+WHEN user opens edit screen without changes
+THEN save FAB should not appear
 ```
 
 **Assertions:**
-- Save FAB is hidden when no changes made
-- Navigating back doesn't modify task
+- [ ] Save FAB hidden when no modifications made
+
+### 2.6 Delete Task
+```
+GIVEN task "ToDelete" exists
+WHEN user opens details and taps delete button
+THEN task should be removed from list
+```
+
+**Assertions:**
+- [ ] Delete button (trash icon) visible in details
+- [ ] Task removed after deletion
+- [ ] Navigates back to list
+
+### 2.7 Delete Task via Swipe
+```
+GIVEN task exists in list
+WHEN user swipes right on task
+THEN task should be deleted
+```
+
+**Assertions:**
+- [ ] Swipe gesture triggers deletion
+- [ ] Task removed from list
 
 ---
 
-## 5. Task Completion
+## 3. Task Completion
 
-### 5.1 Complete Task from List
+### 3.1 Complete Task from List
 ```
-GIVEN an incomplete task exists
-WHEN the user taps the checkbox in the task list
-THEN the task should be marked as complete
-AND show a checkmark
-AND the task should appear pink (completed color)
-```
-
-**Assertions:**
-- Checkbox changes from empty to pending (dot)
-- Checkbox changes from pending to checked
-- Task row color changes to pink
-- Completion date is set
-
-### 5.2 Complete Task from Details
-```
-GIVEN an incomplete task exists
-WHEN the user opens task details
-AND taps the checkbox
-THEN the task should be marked as complete
+GIVEN incomplete task exists
+WHEN user taps checkbox in list
+THEN checkbox should show checkmark
+AND task should appear pink
 ```
 
 **Assertions:**
-- Checkbox in details view is tappable
-- Task completion updates immediately
-- Completion date appears in details
+- [ ] Checkbox transitions: empty → pending (dot) → checked
+- [ ] Task row color changes to pink
+- [ ] Completion date is set
 
-### 5.3 Uncomplete Task
+### 3.2 Complete Task from Details
 ```
-GIVEN a completed task exists
-WHEN the user taps the checkbox
-THEN the task should be marked as incomplete
-AND the checkmark should be removed
-```
-
-**Assertions:**
-- Checkbox becomes empty
-- Completion date is cleared
-- Task color changes from pink
-
-### 5.4 Pending State During Completion
-```
-GIVEN an incomplete task exists
-WHEN the user taps the checkbox
-THEN a pending state (dot icon) should briefly appear
-THEN the checkmark should appear after backend processing
+GIVEN incomplete task exists
+WHEN user opens details and taps checkbox
+THEN task should be marked complete
 ```
 
 **Assertions:**
-- Dot icon appears during processing
-- Transitions to checkmark on success
+- [ ] Checkbox in details is tappable
+- [ ] Completion date appears in details view
+
+### 3.3 Uncomplete Task
+```
+GIVEN completed task exists
+WHEN user taps checkbox
+THEN task should become incomplete
+AND checkmark should be removed
+```
+
+**Assertions:**
+- [ ] Checkbox becomes empty
+- [ ] Pink color removed
+- [ ] Completion date cleared
 
 ---
 
-## 6. Task Deletion
+## 4. Task Filtering
 
-### 6.1 Delete Task from Details
+### 4.1 Hide Scheduled Tasks
 ```
-GIVEN a task exists
-WHEN the user opens task details
-AND taps the delete (trash) button
-AND confirms deletion
-THEN the task should be deleted
-AND removed from the task list
-```
-
-**Assertions:**
-- Delete button is visible in details
-- Confirmation dialog appears (if implemented)
-- Task is removed from list
-- Navigates back to task list
-
-### 6.2 Delete Task via Swipe
-```
-GIVEN a task exists in the list
-WHEN the user swipes right on the task
-THEN the task should be deleted (with confirmation if implemented)
-```
-
-**Assertions:**
-- Swipe gesture is recognized
-- Task is removed from list
-
----
-
-## 7. Task Filtering
-
-### 7.1 Filter - Hide Scheduled Tasks
-```
-GIVEN tasks exist with future start dates (scheduled)
+GIVEN tasks with future start dates exist
 AND "Show Scheduled" is ON
-WHEN the user taps filter and turns OFF "Show Scheduled"
-THEN scheduled tasks should be hidden from the list
+WHEN user toggles "Show Scheduled" OFF
+THEN scheduled tasks should disappear
 ```
 
 **Assertions:**
-- Filter menu opens on tap
-- "Show Scheduled" toggle is visible
-- Scheduled tasks disappear when toggled off
-- Scheduled tasks reappear when toggled on
+- [ ] Filter menu accessible via filter icon
+- [ ] Toggle exists for "Show Scheduled"
+- [ ] Scheduled tasks hidden when OFF
+- [ ] Scheduled tasks visible when ON
 
-### 7.2 Filter - Hide Completed Tasks
+### 4.2 Hide Completed Tasks
 ```
 GIVEN completed tasks exist
 AND "Show Completed" is ON
-WHEN the user taps filter and turns OFF "Show Completed"
-THEN completed tasks should be hidden from the list
-```
-
-**Assertions:**
-- "Show Completed" toggle is visible
-- Completed tasks (pink) disappear when toggled off
-- Completed tasks reappear when toggled on
-
-### 7.3 Multiple Filters Combined
-```
-GIVEN scheduled and completed tasks exist
-WHEN both "Show Scheduled" and "Show Completed" are OFF
-THEN only active, non-scheduled tasks should be visible
-```
-
-**Assertions:**
-- Both filters can be applied simultaneously
-- Only matching tasks are shown
-
----
-
-## 8. Task Visual Indicators
-
-### 8.1 Scheduled Task Appearance
-```
-GIVEN a task with a future start date
-WHEN viewing the task list
-THEN the task should have a hollow/muted appearance
-WITH darker background and light outline
-```
-
-**Assertions:**
-- Task has distinct visual style (not solid color)
-- Light outline is visible
-- Background is darker/muted
-
-### 8.2 Target Date Passed - Yellow
-```
-GIVEN a task with target date in the past
-AND no urgent or due date passed
-WHEN viewing the task list
-THEN the task should appear yellow
-```
-
-**Assertions:**
-- Task row has yellow background/indicator
-- Date display shows target info
-
-### 8.3 Urgent Date Passed - Orange
-```
-GIVEN a task with urgent date in the past
-AND no due date passed
-WHEN viewing the task list
-THEN the task should appear orange
-```
-
-**Assertions:**
-- Task row has orange background/indicator
-- Takes precedence over yellow (target)
-
-### 8.4 Due Date Passed - Red
-```
-GIVEN a task with due date in the past
-WHEN viewing the task list
-THEN the task should appear red
-```
-
-**Assertions:**
-- Task row has red background/indicator
-- Takes precedence over orange and yellow
-
-### 8.5 Completed Task - Pink
-```
-GIVEN a completed task
-WHEN viewing the task list
-THEN the task should appear pink
-```
-
-**Assertions:**
-- Task row has pink background/indicator
-- Checkmark is visible
-
-### 8.6 Date Display Format
-```
-GIVEN a task with a target date 3 days in the future
-WHEN viewing the task list
-THEN the date should display as "in 3d"
-
-GIVEN a task completed 2 days ago
-WHEN viewing the task list
-THEN it should display as "2d ago"
-```
-
-**Assertions:**
-- Relative dates are formatted correctly
-- "in Xd" for future dates
-- "Xd ago" for past dates
-- "just now" for very recent
-
----
-
-## 9. Recurring Tasks
-
-### 9.1 Create Recurring Task - Schedule Anchor
-```
-GIVEN the user is creating a task
-WHEN they set a target date
-AND enable Repeat
-AND set: Num=1, Unit=Weeks, Anchor=Schedule Dates
-AND save
-THEN the task should be created as recurring
-```
-
-**Assertions:**
-- Repeat toggle appears after setting a date
-- Repeat fields appear when toggled on
-- Num, Unit, and Anchor fields are required
-- Task is saved with recurrence settings
-- Task details show "Every 1 Week" recurrence info
-
-### 9.2 Create Recurring Task - Completion Anchor
-```
-GIVEN the user is creating a task
-WHEN they set a due date
-AND enable Repeat
-AND set: Num=2, Unit=Weeks, Anchor=Completed Date
-AND save
-THEN the task should be created as recurring from completion
-```
-
-**Assertions:**
-- Anchor shows "Completed Date" option
-- Task is saved with recurWait=true
-- Task details show "Every 2 Weeks (after completion)"
-
-### 9.3 Complete Recurring Task - New Instance Created
-```
-GIVEN a recurring task exists (weekly, schedule anchor)
-WITH target date = today
-WHEN the user completes the task
-THEN the task should be marked complete
-AND a new task instance should be created
-WITH target date = 1 week from original target
-```
-
-**Assertions:**
-- Original task shows as completed
-- New task appears in list (or becomes visible after filter)
-- New task has updated dates based on recurrence
-- New task has incremented recurIteration
-
-### 9.4 Complete Recurring Task - Completion Anchor Dates
-```
-GIVEN a recurring task with completion anchor
-WITH target date = 3 days ago (overdue)
-WHEN the user completes the task today
-THEN a new task should be created
-WITH target date = recurrence interval from TODAY (not original date)
-```
-
-**Assertions:**
-- New task dates calculated from completion date
-- Not from original scheduled date
-
-### 9.5 Recurring Task Validation
-```
-GIVEN the user is creating a task with Repeat enabled
-WHEN Num is empty
-OR Unit is "(none)"
-OR Anchor is "(none)"
-THEN validation errors should appear
-AND save should be prevented
-```
-
-**Assertions:**
-- "Required" error on empty Num
-- "Unit is required for repeat" error
-- "Anchor Date is required for repeat" error
-
-### 9.6 Disable Recurrence on Existing Task
-```
-GIVEN a recurring task exists
-WHEN the user edits it
-AND toggles Repeat OFF
-AND saves
-THEN the task should no longer be recurring
-```
-
-**Assertions:**
-- Repeat toggle can be turned off
-- Recurrence fields are cleared
-- Completing task no longer creates new instance
-
----
-
-## 10. Snoozing Tasks
-
-### 10.1 Open Snooze Dialog
-```
-GIVEN a task exists
-WHEN the user long-presses on the task
-THEN the Snooze Dialog should appear
-```
-
-**Assertions:**
-- Long press triggers dialog
-- Dialog title is "Snooze Task"
-- Num, Unit, and For Date fields are visible
-
-### 10.2 Snooze Task - Basic
-```
-GIVEN a task with target date = today
-WHEN the user opens snooze dialog
-AND sets Num=3, Unit=Days, For Date=Target
-AND taps Submit
-THEN the task's target date should be 3 days from now
-```
-
-**Assertions:**
-- Date preview shows updated date before submit
-- After submit, task list reflects new date
-- Task details show updated target date
-
-### 10.3 Snooze Different Date Types
-```
-GIVEN a task with Start, Target, Urgent, and Due dates
-WHEN the user opens snooze dialog
-THEN "For Date" dropdown should show all 4 date types
-AND selecting each should snooze that specific date
-```
-
-**Assertions:**
-- All set dates appear in dropdown
-- Only dates the task has are shown
-- Correct date is modified
-
-### 10.4 Snooze Recurring Task - This Task Only
-```
-GIVEN a recurring task (schedule anchor)
-WHEN the user opens snooze dialog
-THEN "Change" option should appear with:
-  - "This Task Only"
-  - "Change Schedule"
-WHEN user selects "This Task Only" and submits
-THEN only this instance should be snoozed
-AND the task should be marked as off-cycle
-```
-
-**Assertions:**
-- Schedule option appears for recurring tasks
-- Off-cycle flag is set
-- Future instances maintain original schedule
-
-### 10.5 Snooze Recurring Task - Change Schedule
-```
-GIVEN a recurring task (schedule anchor)
-WHEN the user selects "Change Schedule" and submits
-THEN the base schedule should be modified
-AND future instances will use new dates
-```
-
-**Assertions:**
-- Off-cycle flag is NOT set
-- Recurrence schedule is updated
-
-### 10.6 Snooze Preview
-```
-GIVEN a task with multiple dates set
-WHEN the user opens snooze dialog
-AND modifies snooze values
-THEN all task dates should be previewed in the dialog
-```
-
-**Assertions:**
-- All current dates are displayed
-- Preview updates as values change
-- Dates formatted correctly (day of week, month, day)
-
----
-
-## 11. Sprint Creation
-
-### 11.1 Create Sprint - Basic
-```
-GIVEN no active sprint exists
-WHEN the user navigates to Plan tab
-THEN the "New Sprint" form should be displayed
-```
-
-**Assertions:**
-- Duration number field is visible
-- Duration unit dropdown (Days, Weeks, Months, Years)
-- Start Date picker is visible
-- Start Time picker is visible
-- End Date is calculated and displayed
-- "Create Sprint" button is visible
-
-### 11.2 Create Sprint - Set Duration
-```
-GIVEN the New Sprint form
-WHEN the user sets Duration=2, Unit=Weeks
-AND sets Start Date to today
-THEN End Date should show 2 weeks from today
-```
-
-**Assertions:**
-- End date auto-calculates
-- Updates when duration or unit changes
-
-### 11.3 Create Sprint - Navigate to Task Selection
-```
-GIVEN the New Sprint form is filled
-WHEN the user taps "Create Sprint"
-THEN the Task Selection screen should appear
-```
-
-**Assertions:**
-- Sprint is created (but not finalized until tasks selected)
-- Task selection list appears
-- Available tasks are listed
-
-### 11.4 Last Sprint Information
-```
-GIVEN a previous sprint was completed
-WHEN viewing the New Sprint form
-THEN information about the last sprint should be displayed
-```
-
-**Assertions:**
-- Shows when last sprint ended
-- Helps user plan next sprint start
-
----
-
-## 12. Sprint Task Selection
-
-### 12.1 View Available Tasks
-```
-GIVEN the user is on Task Selection screen
-THEN all non-completed, non-retired tasks should be listed
-```
-
-**Assertions:**
-- Tasks are selectable (checkbox or tap to toggle)
-- Task names are visible
-- Date warnings are shown
-
-### 12.2 Auto-Select Urgent/Due Tasks
-```
-GIVEN tasks with urgent/due dates within sprint window
-WHEN viewing Task Selection
-THEN those tasks should be pre-selected
-```
-
-**Assertions:**
-- Tasks due before sprint end are checked
-- Tasks urgent before sprint end are checked
-
-### 12.3 Highlight Previous Sprint Tasks
-```
-GIVEN tasks were in the previous sprint
-WHEN viewing Task Selection
-THEN those tasks should be visually highlighted
-```
-
-**Assertions:**
-- Previous sprint tasks have distinct styling
-- Easy to identify carryover tasks
-
-### 12.4 Show Recurrence Previews
-```
-GIVEN a recurring task that will generate a new instance during sprint
-WHEN viewing Task Selection
-THEN the preview of the future instance should be shown
-AND be selectable
-```
-
-**Assertions:**
-- Preview tasks are distinguishable from real tasks
-- Selecting preview assigns future instance to sprint
-- Preview shows expected dates
-
-### 12.5 Submit Task Selection
-```
-GIVEN the user has selected tasks
-WHEN the user taps "Submit"
-THEN the sprint should be activated
-AND selected tasks assigned to it
-```
-
-**Assertions:**
-- Sprint becomes active
-- Tasks are linked to sprint
-- Plan tab shows sprint tasks
-- Tasks tab shows sprint summary
-
----
-
-## 13. Active Sprint Management
-
-### 13.1 Sprint Summary on Tasks Tab
-```
-GIVEN an active sprint exists
-WHEN the user views the Tasks tab
-THEN a sprint summary should appear at the top showing:
-  - "Day X of Y"
-  - "X/Y tasks completed"
-  - "Show Tasks" link
-```
-
-**Assertions:**
-- Summary is visible at top of task list
-- Day count is accurate
-- Completion count is accurate
-- "Show Tasks" link is tappable
-
-### 13.2 Show/Hide Sprint Tasks
-```
-GIVEN sprint summary is visible on Tasks tab
-WHEN the user taps "Show Tasks"
-THEN tasks in the active sprint should appear in the list
-WITH yellow calendar icons
-```
-
-**Assertions:**
-- Sprint tasks appear inline
-- Yellow calendar icon on right side of each
-- Tapping again hides sprint tasks
-
-### 13.3 Sprint Tasks Hidden by Default
-```
-GIVEN an active sprint with tasks
-WHEN viewing Tasks tab (without clicking Show Tasks)
-THEN sprint tasks should NOT appear in the main list
-```
-
-**Assertions:**
-- Sprint tasks are hidden initially
-- Regular tasks are still visible
-- Sprint summary provides access to sprint tasks
-
-### 13.4 Plan Tab - Active Sprint Tasks
-```
-GIVEN an active sprint exists
-WHEN the user views the Plan tab
-THEN the sprint task list should be displayed
-```
-
-**Assertions:**
-- Sprint tasks are listed
-- Tasks can be completed from Plan tab
-- Filter options are available
-
-### 13.5 Complete Sprint Task
-```
-GIVEN an active sprint with tasks
-WHEN the user completes a sprint task
-THEN the completion count should update
-AND the task should show as completed
-```
-
-**Assertions:**
-- Count updates from "X/Y" to "X+1/Y"
-- Task shows checkmark and pink color
-- Works from both Tasks and Plan tabs
-
-### 13.6 Remove Task from Sprint (via swipe)
-```
-GIVEN a task is in the active sprint
-WHEN the user swipes right on the task (in Plan tab)
-THEN the task should be removed from the sprint
-```
-
-**Assertions:**
-- Task no longer appears in sprint list
-- Task still exists (not deleted)
-- Task appears in regular task list
-
-### 13.7 Sprint Filters
-```
-GIVEN an active sprint with scheduled and completed tasks
-WHEN user toggles "Show Scheduled" OFF in Plan tab
-THEN scheduled sprint tasks should be hidden
-
 WHEN user toggles "Show Completed" OFF
-THEN completed sprint tasks should be hidden
+THEN completed tasks should disappear
 ```
 
 **Assertions:**
-- Filters work on Plan tab sprint list
-- Independent from Tasks tab filters
+- [ ] Toggle exists for "Show Completed"
+- [ ] Completed (pink) tasks hidden when OFF
+- [ ] Completed tasks visible when ON
+
+### 4.3 Both Filters Combined
+```
+GIVEN scheduled AND completed tasks exist
+WHEN both filters are OFF
+THEN only active, non-scheduled tasks visible
+```
+
+**Assertions:**
+- [ ] Filters combine correctly
+- [ ] Only matching tasks shown
 
 ---
 
-## 14. Stats Tab
+## 5. Visual Indicators
 
-### 14.1 Completed Tasks Count
+### 5.1 Scheduled Task - Hollow Appearance
 ```
-GIVEN some tasks are completed
-WHEN viewing the Stats tab
-THEN "Completed Tasks" should show the correct count
-```
-
-**Assertions:**
-- Count matches actual completed tasks
-- Updates when tasks are completed
-
-### 14.2 Active Tasks Count
-```
-GIVEN some tasks are incomplete
-WHEN viewing the Stats tab
-THEN "Active Tasks" should show the correct count
+GIVEN task with start date = tomorrow
+WHEN viewing task list
+THEN task should have hollow/muted appearance with light outline
 ```
 
 **Assertions:**
-- Count matches actual incomplete tasks
-- Updates when tasks are completed or added
+- [ ] Darker background visible
+- [ ] Light outline present
+- [ ] Distinct from other task states
 
-### 14.3 Stats Update on Task Changes
+### 5.2 Target Passed - Yellow
 ```
-GIVEN Stats tab shows X completed, Y active
-WHEN the user completes a task
-THEN stats should update to X+1 completed, Y-1 active
+GIVEN task with target date = yesterday (no urgent/due)
+WHEN viewing task list
+THEN task should appear yellow
 ```
 
 **Assertions:**
-- Stats update in real-time (or on tab focus)
-- Counts are accurate
+- [ ] Yellow background/indicator visible
+- [ ] Date shows "1d ago" or similar
+
+### 5.3 Urgent Passed - Orange
+```
+GIVEN task with urgent date = yesterday (no due date passed)
+WHEN viewing task list
+THEN task should appear orange
+```
+
+**Assertions:**
+- [ ] Orange background/indicator visible
+- [ ] Orange takes precedence over yellow
+
+### 5.4 Due Passed - Red
+```
+GIVEN task with due date = yesterday
+WHEN viewing task list
+THEN task should appear red
+```
+
+**Assertions:**
+- [ ] Red background/indicator visible
+- [ ] Red takes precedence over orange/yellow
+
+### 5.5 Completed - Pink
+```
+GIVEN completed task
+WHEN viewing task list
+THEN task should appear pink with checkmark
+```
+
+**Assertions:**
+- [ ] Pink background/indicator visible
+- [ ] Checkmark shown
+
+### 5.6 Date Display Format
+```
+GIVEN task with target in 3 days
+THEN should display "in 3d"
+
+GIVEN task completed 2 days ago
+THEN should display "2d ago"
+```
+
+**Assertions:**
+- [ ] Future dates: "in Xd" format
+- [ ] Past dates: "Xd ago" format
+- [ ] Recent: "just now"
 
 ---
 
-## 15. Offline Behavior
+## 6. Snooze Dialog
 
-### 15.1 Continue Working After Connection Loss
+### 6.1 Open Snooze via Long Press
 ```
-GIVEN the user is authenticated and viewing tasks
-WHEN the network connection is lost
-THEN the user should still be able to:
-  - View existing tasks
-  - Complete tasks
-  - Edit tasks
+GIVEN task exists
+WHEN user long-presses on task
+THEN Snooze Dialog should appear
 ```
 
 **Assertions:**
-- App doesn't crash on connection loss
-- Local data remains accessible
-- Changes are queued for sync
+- [ ] Dialog title "Snooze Task"
+- [ ] Num field (default 3)
+- [ ] Unit dropdown (Days, Weeks, Months, Years)
+- [ ] "For Date" dropdown
 
-### 15.2 Sync on Reconnection
+### 6.2 Snooze Shows Only Existing Dates
 ```
-GIVEN changes were made while offline
-WHEN the network connection is restored
-THEN changes should sync to the server
-```
-
-**Assertions:**
-- Queued changes are sent
-- Server data is updated
-- No data loss
-
-### 15.3 Authentication Requires Network
-```
-GIVEN the user is not authenticated
-AND there is no network connection
-WHEN the app launches
-THEN sign-in should fail or wait for connection
+GIVEN task with only Target and Due dates set
+WHEN viewing snooze dialog
+THEN "For Date" should only show Target and Due options
 ```
 
 **Assertions:**
-- Cannot authenticate without network
-- Appropriate error or waiting state shown
+- [ ] Only dates the task has are shown
+- [ ] Start/Urgent not shown if not set
+
+### 6.3 Snooze Preview Updates
+```
+GIVEN task with target = today
+WHEN user sets Num=5, Unit=Days in snooze
+THEN preview should show target = today + 5 days
+```
+
+**Assertions:**
+- [ ] Date preview visible in dialog
+- [ ] Preview updates as values change
+
+### 6.4 Snooze Non-Recurring Task
+```
+GIVEN non-recurring task with target = today
+WHEN user snoozes by 3 days
+THEN target should be today + 3 days
+```
+
+**Assertions:**
+- [ ] No "Change" option for non-recurring
+- [ ] Date updated correctly
 
 ---
 
-## 16. Data Persistence
+## 7. Sprint Setup
 
-### 16.1 Data Survives App Restart
+### 7.1 New Sprint Form Displays
 ```
-GIVEN tasks, sprints, and settings exist
-WHEN the app is closed and reopened
-THEN all data should be preserved
-```
-
-**Assertions:**
-- Tasks appear as before
-- Active sprint is still active
-- Filter settings are remembered
-- Completion states are preserved
-
-### 16.2 Real-time Sync
-```
-GIVEN the user makes a change on one device
-WHEN viewing on another device (or after refresh)
-THEN the change should appear
+GIVEN no active sprint
+WHEN user navigates to Plan tab
+THEN New Sprint form should display
 ```
 
 **Assertions:**
-- Changes sync across sessions
-- Refresh button triggers sync
-- Real-time listeners update UI
+- [ ] Duration number field visible
+- [ ] Duration unit dropdown visible
+- [ ] Start Date picker visible
+- [ ] End Date (calculated) visible
+- [ ] "Create Sprint" button visible
 
-### 16.3 App Badge Count
+### 7.2 End Date Calculates Correctly
 ```
-GIVEN tasks with urgent or due dates passed
-WHEN viewing the app icon
-THEN the badge should show the count of urgent/overdue tasks
+GIVEN New Sprint form
+WHEN user sets Duration=2, Unit=Weeks, Start=today
+THEN End Date should show today + 2 weeks
 ```
 
 **Assertions:**
-- Badge count matches urgent + overdue incomplete tasks
-- Badge updates when tasks change
-- Badge clears when all urgent/overdue tasks are completed
+- [ ] End date updates on duration change
+- [ ] End date updates on unit change
+- [ ] End date updates on start date change
+
+### 7.3 Task Selection Shows Available Tasks
+```
+GIVEN tasks exist
+WHEN user creates sprint and reaches task selection
+THEN available tasks should be listed
+```
+
+**Assertions:**
+- [ ] Non-completed tasks appear
+- [ ] Tasks are selectable (tap to toggle)
+
+### 7.4 Sprint Summary on Tasks Tab
+```
+GIVEN active sprint exists
+WHEN viewing Tasks tab
+THEN sprint summary should show at top
+```
+
+**Assertions:**
+- [ ] "Day X of Y" visible
+- [ ] "X/Y tasks completed" visible
+- [ ] "Show Tasks" link visible
+
+### 7.5 Show/Hide Sprint Tasks
+```
+GIVEN active sprint with tasks
+WHEN user taps "Show Tasks" on Tasks tab
+THEN sprint tasks should appear with yellow calendar icon
+```
+
+**Assertions:**
+- [ ] Sprint tasks appear in list
+- [ ] Yellow calendar icon on right side
+- [ ] Tapping again hides them
 
 ---
 
-## Test Data Setup Helpers
+## 8. Stats Tab
 
-### Create Test Task
+### 8.1 Stats Display Correctly
+```
+GIVEN 5 completed and 10 active tasks
+WHEN viewing Stats tab
+THEN should show "5" completed and "10" active
+```
+
+**Assertions:**
+- [ ] Completed count accurate
+- [ ] Active count accurate
+
+### 8.2 Stats Update on Completion
+```
+GIVEN stats show X completed, Y active
+WHEN user completes a task
+THEN stats should show X+1 completed, Y-1 active
+```
+
+**Assertions:**
+- [ ] Counts update after task completion
+
+---
+
+# Part 2: Critical Flow Tests
+
+These tests verify complete user journeys where step interactions matter.
+
+---
+
+## 9. Flow: Complete Sprint Lifecycle
+
+**Purpose:** Verify the entire sprint workflow from creation to completion.
+
+```
+SETUP:
+  - Create 3 tasks: "Task A", "Task B" (due in 5 days), "Task C"
+  - Ensure no active sprint
+
+FLOW:
+
+Step 1: Navigate to Plan tab
+  → ASSERT: New Sprint form is displayed
+  → ASSERT: "Create Sprint" button visible
+
+Step 2: Configure sprint (1 week starting today)
+  → ASSERT: End date shows today + 7 days
+
+Step 3: Tap "Create Sprint"
+  → ASSERT: Task Selection screen appears
+  → ASSERT: All 3 tasks are listed
+  → ASSERT: "Task B" is pre-selected (due within sprint window)
+
+Step 4: Select "Task A" additionally, submit
+  → ASSERT: Navigates to Plan tab with sprint tasks
+  → ASSERT: "Task A" and "Task B" shown (2 tasks)
+
+Step 5: Navigate to Tasks tab
+  → ASSERT: Sprint summary visible at top
+  → ASSERT: Shows "Day 1 of 7"
+  → ASSERT: Shows "0/2 tasks completed"
+  → ASSERT: "Task A" and "Task B" NOT in main list (hidden)
+
+Step 6: Tap "Show Tasks"
+  → ASSERT: "Task A" and "Task B" appear with yellow calendar icons
+  → ASSERT: "Task C" does NOT have calendar icon
+
+Step 7: Complete "Task A" via checkbox
+  → ASSERT: Summary updates to "1/2 tasks completed"
+  → ASSERT: "Task A" shows pink with checkmark
+
+Step 8: Complete "Task B"
+  → ASSERT: Summary updates to "2/2 tasks completed"
+
+CLEANUP: Delete test tasks and sprint
+```
+
+**Why this flow matters:** Sprint creation, task auto-selection, summary display, and completion tracking all interact. A bug in any step affects the whole experience.
+
+---
+
+## 10. Flow: Recurring Task Lifecycle
+
+**Purpose:** Verify recurring tasks create new instances correctly on completion.
+
+```
+SETUP:
+  - No existing test tasks
+
+FLOW:
+
+Step 1: Create recurring task
+  - Name: "Weekly Review"
+  - Target Date: today
+  - Enable Repeat: Num=1, Unit=Weeks, Anchor=Schedule Dates
+  → ASSERT: Task created successfully
+  → ASSERT: Task visible in list with today's target
+
+Step 2: View task details
+  → ASSERT: Shows "Every 1 Week" or similar recurrence info
+  → ASSERT: Target date shows today
+
+Step 3: Complete the task
+  → ASSERT: Original task shows completed (pink, checkmark)
+  → ASSERT: NEW task instance created
+  → ASSERT: New task name is "Weekly Review"
+  → ASSERT: New task target date = today + 7 days
+  → ASSERT: New task is NOT completed
+
+Step 4: Verify new task details
+  → ASSERT: Recurrence info preserved
+  → ASSERT: recurIteration incremented
+
+Step 5: Complete new instance
+  → ASSERT: Another new instance created
+  → ASSERT: Target = today + 14 days
+
+CLEANUP: Delete test tasks
+```
+
+**Why this flow matters:** The recurring task system involves multiple components (recurrence helper, middleware, repository). Completing a task triggers instance creation with date calculations.
+
+---
+
+## 11. Flow: Snooze Recurring Task (Schedule Anchor)
+
+**Purpose:** Verify snoozing with "This Task Only" vs "Change Schedule" works correctly.
+
+```
+SETUP:
+  - Create recurring task:
+    - Name: "Scheduled Recurring"
+    - Target: today
+    - Repeat: 1 Week, Schedule Dates anchor
+
+FLOW - Part A: "This Task Only" (Off-Cycle)
+
+Step 1: Long-press task to open snooze
+  → ASSERT: Snooze dialog appears
+  → ASSERT: "Change" dropdown visible with options:
+    - "This Task Only"
+    - "Change Schedule"
+
+Step 2: Set Num=3, Unit=Days, For Date=Target, Change="This Task Only"
+  → ASSERT: Preview shows target = today + 3 days
+
+Step 3: Submit snooze
+  → ASSERT: Task target is now today + 3 days
+  → ASSERT: Task is marked as off-cycle
+
+Step 4: Complete the snoozed task
+  → ASSERT: New instance created
+  → ASSERT: New instance target = today + 7 days (original schedule, NOT +3+7)
+  → ASSERT: New instance is NOT off-cycle
+
+CLEANUP: Delete test tasks
+
+---
+
+FLOW - Part B: "Change Schedule"
+
+Step 1: Create fresh recurring task (same as setup)
+
+Step 2: Snooze with Num=3, Unit=Days, Change="Change Schedule"
+  → ASSERT: Task target = today + 3 days
+  → ASSERT: Task is NOT marked off-cycle
+
+Step 3: Complete the task
+  → ASSERT: New instance target = today + 3 + 7 = today + 10 days
+  → ASSERT: Schedule has shifted
+
+CLEANUP: Delete test tasks
+```
+
+**Why this flow matters:** The off-cycle flag determines whether snoozing affects just this instance or the entire recurring schedule. This is complex logic that's easy to break.
+
+---
+
+## 12. Flow: Snooze Recurring Task (Completion Anchor)
+
+**Purpose:** Verify completion-anchored recurring tasks calculate dates from actual completion.
+
+```
+SETUP:
+  - Create recurring task:
+    - Name: "Completion Anchored"
+    - Target: 3 days ago (overdue)
+    - Repeat: 2 Weeks, Completed Date anchor
+
+FLOW:
+
+Step 1: Verify task shows overdue (red or appropriate color)
+  → ASSERT: Task visible and appears overdue
+
+Step 2: Snooze is NOT needed - just complete the task
+  → ASSERT: Task marked complete
+
+Step 3: Verify new instance
+  → ASSERT: New task created
+  → ASSERT: New target = TODAY + 14 days (not 3 days ago + 14)
+  → ASSERT: Dates calculated from completion, not original schedule
+
+Step 4: Wait simulation - complete new task "late"
+  (If possible, manipulate dates or just verify the pattern)
+  → ASSERT: Next instance = completion date + 14 days
+
+CLEANUP: Delete test tasks
+```
+
+**Why this flow matters:** Completion-anchored tasks must calculate from when the user actually completes, not from scheduled dates. This affects users who complete tasks late.
+
+---
+
+## 13. Flow: Task Date Progression
+
+**Purpose:** Verify a single task progresses through visual states as time passes.
+
+```
+SETUP:
+  - Create task:
+    - Name: "Progressing Task"
+    - Start: today - 1 (yesterday, so not scheduled)
+    - Target: today
+    - Urgent: today + 2
+    - Due: today + 4
+
+FLOW:
+
+Step 1: Initial state (target = today)
+  → ASSERT: Task appears yellow (target passed or at target)
+
+Step 2: Simulate time passing - urgent date passes
+  (Edit task: urgent = yesterday, or create with past dates)
+  → ASSERT: Task appears orange
+  → ASSERT: Orange takes precedence over yellow
+
+Step 3: Simulate due date passing
+  (Edit task: due = yesterday)
+  → ASSERT: Task appears red
+  → ASSERT: Red takes precedence over orange
+
+Step 4: Complete the task
+  → ASSERT: Task appears pink
+  → ASSERT: Pink takes precedence over red
+
+Step 5: Uncomplete the task
+  → ASSERT: Task returns to red (overdue)
+
+CLEANUP: Delete test task
+```
+
+**Why this flow matters:** Color priority logic must work correctly. Users rely on visual cues to prioritize work.
+
+---
+
+# Appendix
+
+## Test Data Helpers
+
 ```dart
+/// Creates a task with specified properties
 Future<TaskItem> createTestTask({
   required String name,
   String? project,
   String? context,
+  int? priority,
+  int? points,
+  int? duration,
   DateTime? startDate,
   DateTime? targetDate,
   DateTime? urgentDate,
   DateTime? dueDate,
+  String? notes,
+  // Recurrence
   bool recurring = false,
   int? recurNumber,
-  String? recurUnit,
-  bool? recurWait,
+  String? recurUnit,        // 'Days', 'Weeks', 'Months', 'Years'
+  String? recurAnchor,      // 'Schedule Dates', 'Completed Date'
 });
-```
 
-### Create Test Sprint
-```dart
+/// Creates a sprint and optionally assigns tasks
 Future<Sprint> createTestSprint({
   required int durationNumber,
   required String durationUnit,
   required DateTime startDate,
-  List<String>? taskIds,
+  List<String>? taskIdsToAssign,
 });
-```
 
-### Complete Test Task
-```dart
+/// Completes a task by ID
 Future<void> completeTask(String taskId);
-```
 
-### Clean Up Test Data
-```dart
+/// Snoozes a task
+Future<void> snoozeTask({
+  required String taskId,
+  required int numUnits,
+  required String unit,
+  required String forDate,
+  String? scheduleOption,  // 'This Task Only' or 'Change Schedule'
+});
+
+/// Deletes all test data (call in tearDown)
 Future<void> cleanUpTestData();
+
+/// Gets current task count by status
+Future<Map<String, int>> getTaskCounts();
 ```
 
+## Priority Matrix
+
+### P0 - Must Pass (Blocks Release)
+
+| Test | Reason |
+|------|--------|
+| 2.1 Create Task - Minimum | Core functionality |
+| 3.1 Complete Task from List | Core functionality |
+| 9. Flow: Sprint Lifecycle | Critical user journey |
+| 10. Flow: Recurring Task Lifecycle | Complex, high-value feature |
+| 11. Flow: Snooze Recurring (Schedule) | Easy to break, hard to debug |
+
+### P1 - Should Pass (High Priority)
+
+| Test | Reason |
+|------|--------|
+| 1.1-1.3 Authentication | Blocking if broken |
+| 2.4 Edit Task | Common operation |
+| 4.1-4.2 Filtering | Daily use feature |
+| 5.1-5.5 Visual Indicators | User relies on these |
+| 7.4-7.5 Sprint Summary | Sprint UX |
+| 12. Flow: Snooze Recurring (Completion) | Different code path |
+
+### P2 - Should Pass (Medium Priority)
+
+| Test | Reason |
+|------|--------|
+| 2.2 Create Task - All Fields | Less common path |
+| 2.3, 2.5 Validation | Edge cases |
+| 6.1-6.4 Snooze Dialog | Important but isolated |
+| 8.1-8.2 Stats | Nice to have |
+| 13. Flow: Date Progression | Visual verification |
+
+### P3 - Nice to Have
+
+| Test | Reason |
+|------|--------|
+| 2.6-2.7 Delete variations | Multiple ways to same result |
+| 5.6 Date format | Cosmetic |
+
 ---
 
-## Priority Levels
+## Execution Notes
 
-### P0 - Critical (Must Pass)
-- 3.1 Create Basic Task
-- 5.1 Complete Task from List
-- 9.3 Complete Recurring Task - New Instance Created
-- 11.3 Create Sprint - Navigate to Task Selection
-- 12.5 Submit Task Selection
-- 13.1 Sprint Summary on Tasks Tab
-
-### P1 - High (Should Pass)
-- 1.1 Sign In Flow
-- 4.1 Edit Task Name
-- 7.1 Filter - Hide Scheduled Tasks
-- 8.1-8.5 All Visual Indicators
-- 10.2 Snooze Task - Basic
-- 13.5 Complete Sprint Task
-
-### P2 - Medium (Important)
-- All remaining tests
-
----
-
-## Implementation Notes
-
-1. **Test Isolation**: Each test should create its own data and clean up after
-2. **Authentication**: Use a test account or mock authentication for CI
-3. **Timing**: Add appropriate waits for async operations and animations
-4. **Assertions**: Verify both UI state and data state where possible
-5. **Screenshots**: Capture screenshots on failure for debugging
-6. **Firestore Emulator**: Use local emulator for consistent test environment
+1. **Test Isolation**: Each test creates own data, cleans up after
+2. **Flow Test Failure**: If step N fails, log which step and continue to cleanup
+3. **Parallelization**: Isolated tests can run in parallel; flow tests run sequentially
+4. **CI Integration**: Run P0 on every PR, P0+P1 on merge to main, all tests nightly
+5. **Flakiness**: If a test fails intermittently, add retry logic or increase timeouts before disabling
+6. **Screenshots**: Capture on failure for visual debugging
+7. **Emulator**: Use Firestore emulator for consistent, fast tests

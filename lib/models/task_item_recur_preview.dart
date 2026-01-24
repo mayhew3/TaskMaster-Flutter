@@ -3,6 +3,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaster/models/sprint_display_task.dart';
 import 'package:taskmaster/models/task_date_holder.dart';
 import 'package:taskmaster/models/task_date_type.dart';
+import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 import 'package:random_string/random_string.dart';
 
@@ -115,6 +116,34 @@ class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
   @override
   String getSprintDisplayTaskKey() {
     return key;
+  }
+
+  TaskItemBlueprint toBlueprint() {
+    TaskItemBlueprint blueprint = TaskItemBlueprint();
+
+    blueprint.name = name;
+    blueprint.description = description;
+    blueprint.project = project;
+    blueprint.context = context;
+    blueprint.urgency = urgency;
+    blueprint.priority = priority;
+    blueprint.duration = duration;
+    blueprint.startDate = startDate;
+    blueprint.targetDate = targetDate;
+    blueprint.dueDate = dueDate;
+    blueprint.urgentDate = urgentDate;
+    blueprint.gamePoints = gamePoints;
+    blueprint.offCycle = offCycle;
+    blueprint.personDocId = personDocId;
+    blueprint.recurNumber = recurNumber;
+    blueprint.recurUnit = recurUnit;
+    blueprint.recurWait = recurWait;
+    blueprint.recurrenceDocId = recurrenceDocId;
+    blueprint.recurIteration = recurIteration;
+
+    blueprint.recurrenceBlueprint = recurrence;
+
+    return blueprint;
   }
 
 }

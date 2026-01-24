@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/redux/presentation/editable_task_field.dart';
+import 'package:taskmaster/features/shared/presentation/widgets/editable_task_field.dart';
 
 void main() {
 

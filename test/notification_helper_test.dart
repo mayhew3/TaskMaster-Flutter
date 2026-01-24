@@ -1,8 +1,7 @@
-import 'package:taskmaster/models/anchor_date.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
-import 'package:taskmaster/redux/middleware/notification_helper.dart';
+import 'package:taskmaster/core/services/notification_helper_impl.dart';
 import 'package:taskmaster/timezone_helper.dart';
 import 'package:test/test.dart';
 
@@ -61,14 +60,13 @@ void main() {
     );
   });
 
-  Future<NotificationHelper> createHelper(List<TaskItem> taskItems) async {
+  Future<NotificationHelperImpl> createHelper(List<TaskItem> taskItems) async {
     plugin = MockFlutterLocalNotificationsPlugin();
     timezoneHelper = MockTimezoneHelper();
     await timezoneHelper.configureLocalTimeZone();
 
-    var notificationScheduler = NotificationHelper(
+    var notificationScheduler = NotificationHelperImpl(
       plugin: plugin,
-      timezoneHelper: timezoneHelper,
     );
     List<Future<void>> futures = [];
     for (var taskItem in taskItems) {

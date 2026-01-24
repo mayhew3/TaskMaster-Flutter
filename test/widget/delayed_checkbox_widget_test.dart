@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaster/models/task_colors.dart';
-import 'package:taskmaster/redux/presentation/delayed_checkbox.dart';
+import 'package:taskmaster/models/check_state.dart';
+import 'package:taskmaster/features/shared/presentation/delayed_checkbox.dart';
 
 /// Widget Test: DelayedCheckbox
 ///
-/// Tests the DelayedCheckbox widget in isolation to verify:
+/// Tests the DelayedCheckbox widget (Riverpod version) in isolation to verify:
 /// 1. Three states display correctly (inactive, pending, checked)
 /// 2. State-specific colors are applied
 /// 3. State-specific icons are displayed
@@ -148,8 +149,9 @@ void main() {
       expect(tappedState, CheckState.inactive);
     });
 
-    testWidgets('Tap on pending checkbox passes pending state', (tester) async {
+    testWidgets('Tap on pending checkbox is ignored (TM-323)', (tester) async {
       // Setup: Create pending checkbox with tap tracking
+      // Since TM-323, tapping while pending is ignored to prevent double-taps
       CheckState? tappedState;
 
       await tester.pumpWidget(
@@ -176,8 +178,8 @@ void main() {
       await tester.tap(find.byType(GestureDetector));
       await tester.pump();
 
-      // Verify: Callback received pending state
-      expect(tappedState, CheckState.pending);
+      // Verify: Callback was NOT called (taps ignored while pending)
+      expect(tappedState, isNull);
     });
 
     testWidgets('Tap on checked checkbox passes checked state', (tester) async {

@@ -142,11 +142,11 @@ void main() {
         initialTasks: [task],
       );
 
-      // Verify: Task is filtered out by default (future startDate)
-      // This is expected based on our filtering tests
+      // Verify: Task is NOT visible by default (showScheduled = false by default)
+      // Scheduled tasks require enabling the "Show Scheduled" filter
       expect(find.text('Scheduled Task'), findsNothing);
 
-      print('✓ Scheduled task is filtered correctly');
+      print('✓ Scheduled task hidden by default (showScheduled=false)');
     });
 
     testWidgets('Tasks with no special dates appear in Tasks group',

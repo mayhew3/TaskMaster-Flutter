@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaster/models/task_colors.dart';
-import 'package:taskmaster/redux/presentation/readonly_task_field.dart';
+import 'package:taskmaster/features/shared/presentation/widgets/readonly_task_field.dart';
 
 /// Widget Test: ReadOnlyTaskField
 ///

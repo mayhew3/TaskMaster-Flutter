@@ -1,7 +1,7 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/redux/presentation/nullable_dropdown.dart';
+import 'package:taskmaster/features/shared/presentation/widgets/nullable_dropdown.dart';
 
 /// Widget Test: NullableDropdown
 ///

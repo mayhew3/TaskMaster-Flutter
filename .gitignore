@@ -1,6 +1,15 @@
 # Miscellaneous
 *.class
 *.log
+
+# Firestore exports
+/exports/
+
+# Node.js CLI tools
+bin/node_modules/
+
+# Firebase service account keys (sensitive!)
+**/serviceAccountKey*.json
 *.pyc
 *.swp
 .DS_Store
@@ -9,6 +18,7 @@
 .history
 .svn/
 db_backups
+test_results/
 
 # IntelliJ related
 *.iml
@@ -20,6 +30,10 @@ db_backups
 # VS Code which you may wish to be included in version control, so this line
 # is commented out by default.
 #.vscode/
+
+# Claude
+settings.local.json
+.claude/state/
 
 # Flutter/Dart/Pub related
 **/doc/api/

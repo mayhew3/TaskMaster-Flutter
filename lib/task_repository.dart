@@ -51,6 +51,7 @@ class TaskRepository {
     String? subCollectionName,
     Function(Iterable<S>)? subAddCallback,
     Serializer<S>? subSerializer,
+    Function(dynamic error)? onError,
   }) {
     var sprintAssignmentListeners = <String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>{};
     var collectionRef = firestore.collection(collectionName);
@@ -179,7 +180,10 @@ class TaskRepository {
         }
       }
 
-    });
+    }, onError: onError != null ? (error) {
+      log.severe('Error in $collectionName listener: $error');
+      onError(error);
+    } : null);
     return (mainListener: listener, sprintAssignmentListeners: sprintAssignmentListeners);
   }
 
@@ -187,14 +191,16 @@ class TaskRepository {
     var blueprintJson = blueprint.toJson();
 
     var recurrenceBlueprint = blueprint.recurrenceBlueprint;
-    if (recurrenceBlueprint != null) {
+    // Only create a new recurrence if we don't already have a recurrenceDocId
+    if (recurrenceBlueprint != null && blueprint.recurrenceDocId == null) {
       var recurrenceDoc = firestore.collection('taskRecurrences').doc();
       var recurrenceJson = recurrenceBlueprint.toJson();
       recurrenceJson['dateAdded'] = DateTime.now().toUtc();
       recurrenceDoc.set(recurrenceJson);
       blueprintJson['recurrenceDocId'] = recurrenceDoc.id;
-      blueprintJson.remove('recurrenceBlueprint');
     }
+    // Remove recurrenceBlueprint from JSON (not a Firestore field)
+    blueprintJson.remove('recurrenceBlueprint');
 
     var addedTaskDoc = firestore.collection('tasks').doc();
     var taskId = addedTaskDoc.id;
@@ -426,9 +432,30 @@ class TaskRepository {
 
   }
 
-  void deleteTask(TaskItem taskItem) async {
+  Future<void> deleteTask(TaskItem taskItem) async {
     var doc = firestore.collection('tasks').doc(taskItem.docId);
-    doc.update({'retired': taskItem.docId, 'retiredDate': DateTime.now().toUtc()});
+    await doc.update({'retired': taskItem.docId, 'retiredDate': DateTime.now().toUtc()});
+
+    // TM-324: Update recurrence.recurIteration to highest non-retired iteration
+    // This prevents duplicate task creation when the retired task was the highest iteration
+    if (taskItem.recurrenceDocId != null) {
+      final recurrenceDoc = firestore.collection('taskRecurrences').doc(taskItem.recurrenceDocId);
+
+      // Query for highest iteration among non-retired tasks with this recurrence
+      final tasksQuery = await firestore.collection('tasks')
+          .where('recurrenceDocId', isEqualTo: taskItem.recurrenceDocId)
+          .where('retired', isNull: true)
+          .orderBy('recurIteration', descending: true)
+          .limit(1)
+          .get();
+
+      final newHighestIteration = tasksQuery.docs.isNotEmpty
+          ? (tasksQuery.docs.first.data()['recurIteration'] as int? ?? 0)
+          : 0;
+
+      await recurrenceDoc.update({'recurIteration': newHighestIteration});
+      log.fine('Updated recurrence ${taskItem.recurrenceDocId} recurIteration to $newHighestIteration');
+    }
   }
 
   void addSnooze(SnoozeBlueprint snooze) async {
