@@ -59,6 +59,9 @@ dependencies:
   collection: any
   timezone: any
   cloud_firestore: ^5.4.4
+
+  # CSV export for debugging tools
+  csv: ^6.0.0
 dev_dependencies:
   test: ^1.16.8
   flutter_test:

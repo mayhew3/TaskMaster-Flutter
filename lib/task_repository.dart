@@ -432,9 +432,30 @@ class TaskRepository {
 
   }
 
-  void deleteTask(TaskItem taskItem) async {
+  Future<void> deleteTask(TaskItem taskItem) async {
     var doc = firestore.collection('tasks').doc(taskItem.docId);
-    doc.update({'retired': taskItem.docId, 'retiredDate': DateTime.now().toUtc()});
+    await doc.update({'retired': taskItem.docId, 'retiredDate': DateTime.now().toUtc()});
+
+    // TM-324: Update recurrence.recurIteration to highest non-retired iteration
+    // This prevents duplicate task creation when the retired task was the highest iteration
+    if (taskItem.recurrenceDocId != null) {
+      final recurrenceDoc = firestore.collection('taskRecurrences').doc(taskItem.recurrenceDocId);
+
+      // Query for highest iteration among non-retired tasks with this recurrence
+      final tasksQuery = await firestore.collection('tasks')
+          .where('recurrenceDocId', isEqualTo: taskItem.recurrenceDocId)
+          .where('retired', isNull: true)
+          .orderBy('recurIteration', descending: true)
+          .limit(1)
+          .get();
+
+      final newHighestIteration = tasksQuery.docs.isNotEmpty
+          ? (tasksQuery.docs.first.data()['recurIteration'] as int? ?? 0)
+          : 0;
+
+      await recurrenceDoc.update({'recurIteration': newHighestIteration});
+      log.fine('Updated recurrence ${taskItem.recurrenceDocId} recurIteration to $newHighestIteration');
+    }
   }
 
   void addSnooze(SnoozeBlueprint snooze) async {

@@ -37,8 +37,10 @@ class SprintService {
 
       // Handle recurrence if present
       var recurrenceBlueprint = blueprint.recurrenceBlueprint;
-      if (recurrenceBlueprint != null) {
-        // Pre-generate recurrence doc reference
+      var existingRecurrenceDocId = blueprint.recurrenceDocId;
+
+      if (recurrenceBlueprint != null && existingRecurrenceDocId == null) {
+        // NEW recurrence - create document
         var recurrenceDoc = _firestore.collection('taskRecurrences').doc();
         var recurrenceJson = recurrenceBlueprint.toJson();
         recurrenceJson['dateAdded'] = now;
@@ -46,6 +48,11 @@ class SprintService {
         // Add to batch instead of immediate write
         batch.set(recurrenceDoc, recurrenceJson);
         blueprintJson['recurrenceDocId'] = recurrenceDoc.id;
+        blueprintJson.remove('recurrenceBlueprint');
+      } else if (existingRecurrenceDocId != null && recurrenceBlueprint != null) {
+        // EXISTING recurrence - update recurIteration on the existing document
+        var recurrenceDoc = _firestore.collection('taskRecurrences').doc(existingRecurrenceDocId);
+        batch.update(recurrenceDoc, {'recurIteration': recurrenceBlueprint.recurIteration});
         blueprintJson.remove('recurrenceBlueprint');
       }
 
@@ -140,13 +147,21 @@ class SprintService {
 
       // Handle recurrence if present
       var recurrenceBlueprint = blueprint.recurrenceBlueprint;
-      if (recurrenceBlueprint != null) {
+      var existingRecurrenceDocId = blueprint.recurrenceDocId;
+
+      if (recurrenceBlueprint != null && existingRecurrenceDocId == null) {
+        // NEW recurrence - create document
         var recurrenceDoc = _firestore.collection('taskRecurrences').doc();
         var recurrenceJson = recurrenceBlueprint.toJson();
         recurrenceJson['dateAdded'] = now;
 
         batch.set(recurrenceDoc, recurrenceJson);
         blueprintJson['recurrenceDocId'] = recurrenceDoc.id;
+        blueprintJson.remove('recurrenceBlueprint');
+      } else if (existingRecurrenceDocId != null && recurrenceBlueprint != null) {
+        // EXISTING recurrence - update recurIteration on the existing document
+        var recurrenceDoc = _firestore.collection('taskRecurrences').doc(existingRecurrenceDocId);
+        batch.update(recurrenceDoc, {'recurIteration': recurrenceBlueprint.recurIteration});
         blueprintJson.remove('recurrenceBlueprint');
       }
 

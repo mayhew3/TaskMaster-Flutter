@@ -10,6 +10,7 @@ import 'package:timeago/timeago.dart' as timeago;
 import '../../../core/services/task_completion_service.dart';
 import '../providers/task_providers.dart';
 import 'task_add_edit_screen.dart';
+import 'recurrence_detail_screen.dart';
 import '../../shared/presentation/delayed_checkbox.dart';
 import '../../shared/presentation/widgets/readonly_task_field.dart';
 import '../../shared/presentation/widgets/readonly_task_field_small.dart';
@@ -175,10 +176,7 @@ class _TaskDetailsBody extends ConsumerWidget {
               optionalSubText: _getFormattedAgo(task.getFinishedCompletionDate()),
               optionalBackgroundColor: _getCompletedBackgroundColor(task),
             ),
-            ReadOnlyTaskField(
-              headerName: 'Repeat',
-              textToShow: _getFormattedRecurrence(task),
-            ),
+            _RecurrenceField(task: task),
             ReadOnlyTaskField(
               headerName: 'Notes',
               textToShow: task.description,
@@ -268,13 +266,75 @@ class _TaskDetailsBody extends ConsumerWidget {
     return completed ? TaskColors.completedColor : TaskColors.cardColor;
   }
 
-  String _getFormattedRecurrence(TaskItem task) {
-    var recurrence = task.recurrence;
-    if (recurrence == null) {
-      return 'No recurrence.';
-    }
-    var recurNumber = recurrence.recurNumber;
-    var recurWait = recurrence.recurWait;
+}
+
+/// Displays recurrence info as a tappable card that navigates to RecurrenceDetailScreen.
+/// Shows "No recurrence." for non-recurring tasks, and a tappable row for recurring tasks.
+class _RecurrenceField extends StatelessWidget {
+  final TaskItem task;
+
+  const _RecurrenceField({required this.task});
+
+  @override
+  Widget build(BuildContext context) {
+    final recurrence = task.recurrence;
+    final hasRecurrence = recurrence != null;
+    final recurrenceText = hasRecurrence
+        ? _getFormattedRecurrence(recurrence)
+        : 'No recurrence.';
+
+    return Card(
+      elevation: 3.0,
+      color: TaskColors.cardColor,
+      child: InkWell(
+        onTap: hasRecurrence ? () => _navigateToRecurrenceDetail(context) : null,
+        borderRadius: BorderRadius.circular(4.0),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 70.0,
+                child: Text(
+                  'Repeat',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  recurrenceText,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16.0,
+                  ),
+                ),
+              ),
+              if (hasRecurrence)
+                const Icon(
+                  Icons.chevron_right,
+                  color: Colors.white54,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _navigateToRecurrenceDetail(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => RecurrenceDetailScreen(
+          recurrenceDocId: task.recurrenceDocId!,
+          recurrenceName: task.name,
+        ),
+      ),
+    );
+  }
+
+  String _getFormattedRecurrence(TaskRecurrence recurrence) {
+    final recurNumber = recurrence.recurNumber;
+    final recurWait = recurrence.recurWait;
     return 'Every $recurNumber ${_getFormattedRecurUnit(recurrence)}${recurWait ? ' (after completion)' : ''}';
   }
 
