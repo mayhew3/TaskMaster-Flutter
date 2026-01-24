@@ -247,7 +247,38 @@ class RecurrenceRepairTool {
     // Cached data
     this.recurrencesById = new Map();
     this.tasksByRecurrenceId = new Map();
-    this.snoozedTaskIds = new Set();
+
+    // Change log for audit trail
+    this.changeLog = [];
+  }
+
+  log(phase, action, details) {
+    const entry = {
+      timestamp: new Date().toISOString(),
+      phase,
+      action,
+      ...details,
+    };
+    this.changeLog.push(entry);
+  }
+
+  async writeChangeLog() {
+    if (this.changeLog.length === 0) {
+      console.log('No changes to log.');
+      return;
+    }
+
+    const outputDir = './exports';
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    const timestamp = new Date().toISOString().replace(/:/g, '-').split('.')[0];
+    const filename = `${timestamp}_repair_log.json`;
+    const filePath = path.join(outputDir, filename);
+
+    fs.writeFileSync(filePath, JSON.stringify(this.changeLog, null, 2), 'utf8');
+    console.log(`Change log written to: ${filePath}`);
   }
 
   async run() {
@@ -258,6 +289,7 @@ class RecurrenceRepairTool {
       this.printRepairPlan();
       if (this.applyRepairs) {
         await this.executeRepairs();
+        await this.writeChangeLog();
         console.log('');
         console.log('Repairs complete! Re-run without --apply to verify.');
       } else {
@@ -344,17 +376,6 @@ class RecurrenceRepairTool {
       this.tasksByRecurrenceId.get(recurrenceDocId).push(task);
     }
     console.log(`  Loaded ${activeCount} active + ${retiredCount} retired recurring tasks`);
-
-    // Load snoozes to identify snoozed tasks
-    const snoozesSnapshot = await this.db.collection('snoozes').get();
-    this.snoozedTaskIds = new Set();
-    for (const doc of snoozesSnapshot.docs) {
-      const taskDocId = doc.data().taskDocId;
-      if (taskDocId) {
-        this.snoozedTaskIds.add(taskDocId);
-      }
-    }
-    console.log(`  Found ${this.snoozedTaskIds.size} snoozed tasks`);
     console.log('');
   }
 
@@ -540,36 +561,33 @@ class RecurrenceRepairTool {
     console.log('REPAIR PLAN');
     console.log('-----------');
 
-    // Phase 1: Sync iterations
-    console.log(`Phase 1: Would update ${this.outOfSyncRecurrences.length} recurrence iterations`);
-
-    // Phase 2: Resolve duplicate iterations
-    const tasksToRetire = this.duplicateIterations
-      .flatMap(d => d.tasks.slice(1)) // Skip oldest (keep it)
-      .filter(t => !this.snoozedTaskIds.has(t.docId));
-    console.log(`Phase 2: Would retire ${tasksToRetire.length} duplicate tasks`);
-
-    // Phase 3: Fix orphaned tasks
-    const orphansToFix = this.orphanedTasks.filter(o => !this.snoozedTaskIds.has(o.task.docId));
-    // Count how many can be retargeted to existing recurrences
+    // Phase 1: Fix orphaned tasks (first, so they can be included in merge)
+    const orphansToFix = this.orphanedTasks;
     const recurrenceNames = new Set([...this.recurrencesById.values()].map(r => r.name).filter(Boolean));
     const canRetarget = orphansToFix.filter(o => recurrenceNames.has(o.task.name)).length;
     const needsNewRecurrence = orphansToFix.filter(o => !recurrenceNames.has(o.task.name) && o.task.hasRecurrenceMetadata).length;
     const needsClear = orphansToFix.filter(o => !recurrenceNames.has(o.task.name) && !o.task.hasRecurrenceMetadata).length;
     if (orphansToFix.length === 0) {
-      console.log('Phase 3: No orphaned tasks to fix');
+      console.log('Phase 1: No orphaned tasks to fix');
     } else {
-      console.log(`Phase 3: Would retarget ${canRetarget} tasks to existing recurrences, create ${needsNewRecurrence} new recurrences, clear ${needsClear} references`);
+      console.log(`Phase 1: Would retarget ${canRetarget} orphans to existing recurrences, create ${needsNewRecurrence} new recurrences, clear ${needsClear} references`);
     }
 
-    // Phase 4: Merge duplicate recurrences
+    // Phase 2: Merge duplicate recurrences
     const recurrencesToDelete = this.duplicateRecurrenceFamilies
       .flatMap(f => f.nonCanonical).length;
     if (this.duplicateRecurrenceFamilies.length === 0) {
-      console.log('Phase 4: No duplicate recurrences to merge');
+      console.log('Phase 2: No duplicate recurrences to merge');
     } else {
-      console.log(`Phase 4: Would merge ${this.duplicateRecurrenceFamilies.length} recurrence families (delete ${recurrencesToDelete} recurrences)`);
+      console.log(`Phase 2: Would merge ${this.duplicateRecurrenceFamilies.length} recurrence families (delete ${recurrencesToDelete} recurrences)`);
     }
+
+    // Phase 3: Renumber iterations (after merge, which may create more duplicates)
+    const recurrencesToRenumber = new Set(this.duplicateIterations.map(d => d.recurrenceDocId)).size;
+    console.log(`Phase 3: Would renumber iterations for ${recurrencesToRenumber} recurrences (may increase after merge)`);
+
+    // Phase 4: Sync iterations (final cleanup)
+    console.log(`Phase 4: Would update ${this.outOfSyncRecurrences.length} recurrence iterations (may change after earlier phases)`);
   }
 
   // ==========================================================================
@@ -581,81 +599,38 @@ class RecurrenceRepairTool {
     console.log('EXECUTING REPAIRS');
     console.log('-----------------');
 
-    await this.phase1SyncIterations();
-    await this.phase2ResolveDuplicateIterations();
-    await this.phase3FixOrphanedTasks();
-    await this.phase4MergeDuplicateRecurrences();
-  }
+    // New order: Fix orphans -> Merge duplicates -> Resolve duplicate iterations -> Sync iterations
+    await this.executePhase1FixOrphanedTasks();
+    await this.executePhase2MergeDuplicateRecurrences();
 
-  async phase1SyncIterations() {
-    if (this.outOfSyncRecurrences.length === 0) {
-      console.log('Phase 1: No out-of-sync recurrences to fix');
-      return;
+    // Reload data after merge to find new duplicate iterations
+    if (this.duplicateRecurrenceFamilies.length > 0) {
+      console.log('  Reloading data after merge...');
+      await this.loadData();
+      this.findDuplicateIterations();
+      this.findOutOfSyncRecurrences();
     }
 
-    console.log(`Phase 1: Syncing ${this.outOfSyncRecurrences.length} recurrence iterations...`);
+    await this.executePhase3RenumberIterations();
 
-    const batch = this.db.batch();
-
-    for (const item of this.outOfSyncRecurrences) {
-      const docRef = this.db.collection('taskRecurrences').doc(item.recurrenceDocId);
-      batch.update(docRef, { recurIteration: item.maxTaskIteration });
-    }
-
-    await batch.commit();
-    console.log(`  Updated ${this.outOfSyncRecurrences.length} recurrences`);
-  }
-
-  async phase2ResolveDuplicateIterations() {
-    if (this.duplicateIterations.length === 0) {
-      console.log('Phase 2: No duplicate iterations to fix');
-      return;
-    }
-
-    console.log(`Phase 2: Resolving ${this.duplicateIterations.length} duplicate iteration groups...`);
-
-    const batch = this.db.batch();
-    let retiredCount = 0;
-
-    for (const dup of this.duplicateIterations) {
-      // Skip the oldest task (first after sort), retire the rest
-      const tasksToRetire = dup.tasks.slice(1);
-
-      for (const task of tasksToRetire) {
-        // Don't retire snoozed tasks
-        if (this.snoozedTaskIds.has(task.docId)) {
-          console.log(`  Skipping snoozed task: ${task.docId}`);
-          continue;
-        }
-
-        const docRef = this.db.collection('tasks').doc(task.docId);
-        batch.update(docRef, {
-          retired: task.docId,
-          retiredDate: new Date(),
-        });
-        retiredCount++;
-      }
-    }
-
-    await batch.commit();
-    console.log(`  Retired ${retiredCount} duplicate tasks`);
-
-    // After retiring duplicates, re-sync iterations
-    if (retiredCount > 0) {
-      console.log('  Re-syncing iterations after retiring duplicates...');
+    // Reload data after renumbering to get accurate iteration counts for Phase 4
+    if (this.duplicateIterations.length > 0) {
+      console.log('  Reloading data after renumbering...');
       await this.loadData();
       this.findOutOfSyncRecurrences();
-      await this.phase1SyncIterations();
     }
+
+    await this.executePhase4SyncIterations();
   }
 
-  async phase3FixOrphanedTasks() {
+  // Phase 1: Fix orphaned tasks (retarget to existing recurrences)
+  async executePhase1FixOrphanedTasks() {
     if (this.orphanedTasks.length === 0) {
-      console.log('Phase 3: No orphaned tasks to fix');
+      console.log('Phase 1: No orphaned tasks to fix');
       return;
     }
 
-    console.log(`Phase 3: Fixing ${this.orphanedTasks.length} orphaned tasks...`);
+    console.log(`Phase 1: Fixing ${this.orphanedTasks.length} orphaned tasks...`);
 
     // Build a map of recurrence name -> recurrence for quick lookup
     const recurrencesByName = new Map();
@@ -670,12 +645,6 @@ class RecurrenceRepairTool {
     let clearedReferences = 0;
 
     for (const orphan of this.orphanedTasks) {
-      // Don't modify snoozed tasks
-      if (this.snoozedTaskIds.has(orphan.task.docId)) {
-        console.log(`  Skipping snoozed task: ${orphan.task.docId}`);
-        continue;
-      }
-
       const taskRef = this.db.collection('tasks').doc(orphan.task.docId);
 
       // First, try to find an existing recurrence with the same name
@@ -683,6 +652,12 @@ class RecurrenceRepairTool {
       if (existingRecurrence) {
         // Retarget to existing recurrence
         await taskRef.update({ recurrenceDocId: existingRecurrence.docId });
+        this.log('Phase 1', 'retarget_orphan', {
+          taskDocId: orphan.task.docId,
+          taskName: orphan.task.name,
+          oldRecurrenceDocId: orphan.missingRecurrenceDocId,
+          newRecurrenceDocId: existingRecurrence.docId,
+        });
         retargetedToExisting++;
       } else if (orphan.task.hasRecurrenceMetadata) {
         // Create a new recurrence document
@@ -701,6 +676,12 @@ class RecurrenceRepairTool {
 
         // Update task to point to new recurrence
         await taskRef.update({ recurrenceDocId: recurrenceRef.id });
+        this.log('Phase 1', 'create_recurrence', {
+          taskDocId: orphan.task.docId,
+          taskName: orphan.task.name,
+          oldRecurrenceDocId: orphan.missingRecurrenceDocId,
+          newRecurrenceDocId: recurrenceRef.id,
+        });
         createdRecurrences++;
 
         // Add to map so subsequent orphans with same name use this recurrence
@@ -711,6 +692,11 @@ class RecurrenceRepairTool {
       } else {
         // Clear the invalid recurrence reference
         await taskRef.update({ recurrenceDocId: null });
+        this.log('Phase 1', 'clear_reference', {
+          taskDocId: orphan.task.docId,
+          taskName: orphan.task.name,
+          oldRecurrenceDocId: orphan.missingRecurrenceDocId,
+        });
         clearedReferences++;
       }
     }
@@ -720,13 +706,14 @@ class RecurrenceRepairTool {
     console.log(`  Cleared ${clearedReferences} invalid references`);
   }
 
-  async phase4MergeDuplicateRecurrences() {
+  // Phase 2: Merge duplicate recurrences
+  async executePhase2MergeDuplicateRecurrences() {
     if (this.duplicateRecurrenceFamilies.length === 0) {
-      console.log('Phase 4: No duplicate recurrences to merge');
+      console.log('Phase 2: No duplicate recurrences to merge');
       return;
     }
 
-    console.log(`Phase 4: Merging ${this.duplicateRecurrenceFamilies.length} duplicate recurrence families...`);
+    console.log(`Phase 2: Merging ${this.duplicateRecurrenceFamilies.length} duplicate recurrence families...`);
 
     let mergedFamilies = 0;
     let deletedRecurrences = 0;
@@ -736,7 +723,7 @@ class RecurrenceRepairTool {
       const batch = this.db.batch();
 
       // Retarget ALL tasks (including retired!) from non-canonical recurrences to canonical
-      // We must query Firestore directly since this.tasksByRecurrenceId only has non-retired tasks
+      // We must query Firestore directly since this.tasksByRecurrenceId may not have all tasks
       for (const nonCanonical of family.nonCanonical) {
         const tasksSnapshot = await this.db.collection('tasks')
           .where('recurrenceDocId', '==', nonCanonical.docId)
@@ -744,12 +731,23 @@ class RecurrenceRepairTool {
 
         for (const doc of tasksSnapshot.docs) {
           batch.update(doc.ref, { recurrenceDocId: family.canonical.docId });
+          this.log('Phase 2', 'retarget_task', {
+            taskDocId: doc.id,
+            recurrenceName: family.name,
+            oldRecurrenceDocId: nonCanonical.docId,
+            newRecurrenceDocId: family.canonical.docId,
+          });
           retargetedTasks++;
         }
 
         // Delete the non-canonical recurrence
         const recurrenceRef = this.db.collection('taskRecurrences').doc(nonCanonical.docId);
         batch.delete(recurrenceRef);
+        this.log('Phase 2', 'delete_recurrence', {
+          recurrenceDocId: nonCanonical.docId,
+          recurrenceName: family.name,
+          canonicalRecurrenceDocId: family.canonical.docId,
+        });
         deletedRecurrences++;
       }
 
@@ -757,6 +755,11 @@ class RecurrenceRepairTool {
       const maxIteration = Math.max(...family.recurrences.map(r => r.recurIteration));
       const canonicalRef = this.db.collection('taskRecurrences').doc(family.canonical.docId);
       batch.update(canonicalRef, { recurIteration: maxIteration });
+      this.log('Phase 2', 'update_canonical_iteration', {
+        recurrenceDocId: family.canonical.docId,
+        recurrenceName: family.name,
+        newIteration: maxIteration,
+      });
 
       await batch.commit();
       mergedFamilies++;
@@ -765,6 +768,90 @@ class RecurrenceRepairTool {
     console.log(`  Merged ${mergedFamilies} families`);
     console.log(`  Retargeted ${retargetedTasks} tasks (including retired)`);
     console.log(`  Deleted ${deletedRecurrences} duplicate recurrences`);
+  }
+
+  // Phase 3: Renumber iterations for recurrences with duplicates
+  async executePhase3RenumberIterations() {
+    if (this.duplicateIterations.length === 0) {
+      console.log('Phase 3: No duplicate iterations to renumber');
+      return;
+    }
+
+    // Get unique recurrence IDs that have duplicate iterations
+    const recurrenceIdsToFix = new Set(this.duplicateIterations.map(d => d.recurrenceDocId));
+    console.log(`Phase 3: Renumbering iterations for ${recurrenceIdsToFix.size} recurrences...`);
+
+    const batch = this.db.batch();
+    let tasksUpdated = 0;
+
+    for (const recurrenceDocId of recurrenceIdsToFix) {
+      // Get all non-retired tasks for this recurrence, sorted by dateAdded
+      const allTasks = this.tasksByRecurrenceId.get(recurrenceDocId) || [];
+      const activeTasks = allTasks
+        .filter(t => !t.retired)
+        .sort((a, b) => a.dateAdded - b.dateAdded);
+
+      // Renumber sequentially starting from 0
+      const recurrence = this.recurrencesById.get(recurrenceDocId);
+      for (let i = 0; i < activeTasks.length; i++) {
+        const task = activeTasks[i];
+        if (task.recurIteration !== i) {
+          const docRef = this.db.collection('tasks').doc(task.docId);
+          batch.update(docRef, { recurIteration: i });
+          this.log('Phase 3', 'renumber_task', {
+            taskDocId: task.docId,
+            taskName: task.name,
+            recurrenceDocId: recurrenceDocId,
+            recurrenceName: recurrence?.name || 'Unknown',
+            oldIteration: task.recurIteration,
+            newIteration: i,
+          });
+          tasksUpdated++;
+        }
+      }
+
+      // Update recurrence iteration to match highest
+      const maxIteration = activeTasks.length - 1;
+      if (recurrence && recurrence.recurIteration !== maxIteration) {
+        const recurrenceRef = this.db.collection('taskRecurrences').doc(recurrenceDocId);
+        batch.update(recurrenceRef, { recurIteration: maxIteration });
+        this.log('Phase 3', 'update_recurrence_iteration', {
+          recurrenceDocId: recurrenceDocId,
+          recurrenceName: recurrence.name,
+          oldIteration: recurrence.recurIteration,
+          newIteration: maxIteration,
+        });
+      }
+    }
+
+    await batch.commit();
+    console.log(`  Renumbered ${tasksUpdated} tasks`);
+  }
+
+  // Phase 4: Sync iterations (final cleanup)
+  async executePhase4SyncIterations() {
+    if (this.outOfSyncRecurrences.length === 0) {
+      console.log('Phase 4: No out-of-sync recurrences to fix');
+      return;
+    }
+
+    console.log(`Phase 4: Syncing ${this.outOfSyncRecurrences.length} recurrence iterations...`);
+
+    const batch = this.db.batch();
+
+    for (const item of this.outOfSyncRecurrences) {
+      const docRef = this.db.collection('taskRecurrences').doc(item.recurrenceDocId);
+      batch.update(docRef, { recurIteration: item.maxTaskIteration });
+      this.log('Phase 4', 'sync_iteration', {
+        recurrenceDocId: item.recurrenceDocId,
+        recurrenceName: item.name,
+        oldIteration: item.currentIteration,
+        newIteration: item.maxTaskIteration,
+      });
+    }
+
+    await batch.commit();
+    console.log(`  Updated ${this.outOfSyncRecurrences.length} recurrences`);
   }
 }
 

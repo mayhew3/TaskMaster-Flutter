@@ -149,25 +149,28 @@ node bin/firestore-repair.js --help
 
 ### Repair Phases
 
-1. **Phase 1: Sync Iterations** (LOW RISK)
-   - Finds recurrences where iteration < max task iteration
-   - Updates recurrence to match highest non-retired task
+Phases run in this order to handle dependencies correctly:
 
-2. **Phase 2: Resolve Duplicate Iterations** (MEDIUM RISK)
-   - Finds tasks with same `(recurrenceDocId, recurIteration)`
-   - Keeps oldest task by `dateAdded`, retires others
-   - Protects snoozed tasks from retirement
-
-3. **Phase 3: Fix Orphaned Tasks** (MEDIUM RISK)
+1. **Phase 1: Fix Orphaned Tasks** (MEDIUM RISK)
    - Finds tasks referencing non-existent recurrences
+   - Retargets to existing recurrence with same name if found
    - Creates new recurrence if task has metadata (`recurNumber`, `recurUnit`)
    - Clears `recurrenceDocId` if task has no recurrence metadata
 
-4. **Phase 4: Merge Duplicate Recurrences** (HIGH RISK)
+2. **Phase 2: Merge Duplicate Recurrences** (HIGH RISK)
    - Groups recurrences by `(personDocId, name)`
    - Selects canonical recurrence (highest iteration)
-   - Retargets all tasks to canonical recurrence
+   - Retargets all tasks (including retired) to canonical recurrence
    - Deletes non-canonical recurrence documents
+
+3. **Phase 3: Renumber Iterations** (LOW RISK)
+   - Finds recurrences with duplicate iteration numbers
+   - Renumbers all non-retired tasks sequentially by `dateAdded`
+   - Preserves all tasks (no data loss)
+
+4. **Phase 4: Sync Iterations** (LOW RISK)
+   - Finds recurrences where iteration < max task iteration
+   - Updates recurrence to match highest non-retired task
 
 ### Example Output
 
@@ -195,10 +198,10 @@ Duplicate recurrence families: 2
 
 REPAIR PLAN
 -----------
-Phase 1: Would update 3 recurrence iterations
-Phase 2: Would retire 1 duplicate task
-Phase 3: No orphaned tasks to fix
-Phase 4: Would merge 2 recurrence families (delete 3 recurrences)
+Phase 1: No orphaned tasks to fix
+Phase 2: Would merge 2 recurrence families (delete 3 recurrences)
+Phase 3: Would renumber iterations for 1 recurrence
+Phase 4: Would update 3 recurrence iterations
 
 Run with --apply to execute repairs.
 ```
@@ -228,8 +231,7 @@ Run with --apply to execute repairs.
 ### Safety Features
 
 - **Dry-run by default** - Always analyzes first without making changes
-- **Snoozed task protection** - Won't retire tasks that have active snoozes
-- **Keeps oldest duplicate** - When retiring duplicates, keeps the oldest by `dateAdded`
+- **No data loss** - Duplicate iterations are renumbered, not retired
 - **Batch operations** - Uses Firestore WriteBatch for atomic commits
 - **Idempotent** - Running multiple times produces same result
 
