@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:rxdart/rxdart.dart';
 import '../../../core/providers/auth_providers.dart';
@@ -10,7 +11,7 @@ part 'task_providers.g.dart';
 
 /// Stream of all tasks for the current user
 @riverpod
-Stream<List<TaskItem>> tasks(TasksRef ref) {
+Stream<List<TaskItem>> tasks(Ref ref) {
   // Get dependencies synchronously
   final firestore = ref.watch(firestoreProvider);
   final personDocId = ref.watch(personDocIdProvider);
@@ -57,7 +58,7 @@ Stream<List<TaskItem>> tasks(TasksRef ref) {
 
 /// Stream of task recurrences for the current user
 @riverpod
-Stream<List<TaskRecurrence>> taskRecurrences(TaskRecurrencesRef ref) {
+Stream<List<TaskRecurrence>> taskRecurrences(Ref ref) {
   // Get dependencies synchronously
   final firestore = ref.watch(firestoreProvider);
   final personDocId = ref.watch(personDocIdProvider);
@@ -92,7 +93,7 @@ Stream<List<TaskRecurrence>> taskRecurrences(TaskRecurrencesRef ref) {
 /// This is the primary provider that UI should use - it ensures task.recurrence
 /// is always populated for recurring tasks, matching the Redux pattern
 @Riverpod(keepAlive: true)
-Stream<List<TaskItem>> tasksWithRecurrences(TasksWithRecurrencesRef ref) {
+Stream<List<TaskItem>> tasksWithRecurrences(Ref ref) {
   final firestore = ref.watch(firestoreProvider);
   final personDocId = ref.watch(personDocIdProvider);
 
@@ -180,7 +181,7 @@ Stream<List<TaskItem>> tasksWithRecurrences(TasksWithRecurrencesRef ref) {
 
 /// Get a specific task by ID with recurrence populated
 @riverpod
-TaskItem? task(TaskRef ref, String taskId) {
+TaskItem? task(Ref ref, String taskId) {
   final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
 
   return tasksAsync.maybeWhen(
@@ -232,7 +233,7 @@ class PendingTasks extends _$PendingTasks {
 /// Tasks with pending completion state merged in (optimistic UI overlay)
 /// This provider overlays optimistic pending state on top of Firestore data
 @riverpod
-Future<List<TaskItem>> tasksWithPendingState(TasksWithPendingStateRef ref) async {
+Future<List<TaskItem>> tasksWithPendingState(Ref ref) async {
   final tasks = await ref.watch(tasksWithRecurrencesProvider.future);
   final pendingTasks = ref.watch(pendingTasksProvider);
 
@@ -245,7 +246,7 @@ Future<List<TaskItem>> tasksWithPendingState(TasksWithPendingStateRef ref) async
 /// This shows the full history of a recurring task for debugging/inspection.
 /// Ordered by recurIteration descending (newest first).
 @riverpod
-Stream<List<TaskItem>> tasksForRecurrence(TasksForRecurrenceRef ref, String recurrenceDocId) {
+Stream<List<TaskItem>> tasksForRecurrence(Ref ref, String recurrenceDocId) {
   final firestore = ref.watch(firestoreProvider);
   final personDocId = ref.watch(personDocIdProvider);
 

@@ -6,7 +6,7 @@ part of 'sprint_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$sprintsHash() => r'476b50e31b1245449ce2b91d619a7776a5d787f9';
+String _$sprintsHash() => r'a70a881e5ce1dfade2333d5f180f5de56a3fb5f4';
 
 /// Stream of all sprints for the current user
 ///
@@ -25,7 +25,7 @@ final sprintsProvider = StreamProvider<List<Sprint>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SprintsRef = StreamProviderRef<List<Sprint>>;
-String _$activeSprintHash() => r'507f5c3547846196f1d0e4021f23527c807234a8';
+String _$activeSprintHash() => r'a15226739e7e5120f69612a4abbdb07cda498219';
 
 /// Get active sprint (currently in progress)
 ///
@@ -45,7 +45,7 @@ final activeSprintProvider = AutoDisposeProvider<Sprint?>.internal(
 // ignore: unused_element
 typedef ActiveSprintRef = AutoDisposeProviderRef<Sprint?>;
 String _$lastCompletedSprintHash() =>
-    r'68a30ebbb6453a88e2c9c11e3b468d82bd9bd263';
+    r'f12c70cff3df9442690c81e2c23756ba043fa202';
 
 /// Get last completed sprint
 ///
@@ -64,7 +64,7 @@ final lastCompletedSprintProvider = AutoDisposeProvider<Sprint?>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef LastCompletedSprintRef = AutoDisposeProviderRef<Sprint?>;
-String _$sprintsForTaskHash() => r'd14e0520a015f0675c5f740ff6fa7124af80b03b';
+String _$sprintsForTaskHash() => r'75cb2317e396f901a25d85ca7f324ef73bab6bae';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -217,7 +217,7 @@ class _SprintsForTaskProviderElement
   TaskItem get task => (origin as SprintsForTaskProvider).task;
 }
 
-String _$tasksForSprintHash() => r'b8c56b1d6dcf4b09d3693a6d6f47654fce76db1c';
+String _$tasksForSprintHash() => r'9a23175d6d631443a6f1efb1ef91af5a9a21681a';
 
 /// Get tasks for a specific sprint
 ///

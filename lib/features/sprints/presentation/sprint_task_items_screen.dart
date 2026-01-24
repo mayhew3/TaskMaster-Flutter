@@ -32,7 +32,7 @@ class ShowScheduledInSprint extends _$ShowScheduledInSprint {
 
 /// Provider for filtered tasks in the active sprint
 @riverpod
-Future<List<TaskItem>> sprintTaskItems(SprintTaskItemsRef ref, Sprint sprint) async {
+Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
   // Use tasksWithPendingState for optimistic UI (shows pending state immediately)
   final allTasks = await ref.watch(tasksWithPendingStateProvider.future);
   final showCompleted = ref.watch(showCompletedInSprintProvider);

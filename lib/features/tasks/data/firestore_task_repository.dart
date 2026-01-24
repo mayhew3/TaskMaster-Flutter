@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/providers/firebase_providers.dart';
 import '../../../models/task_item.dart';
@@ -62,7 +63,7 @@ class FirestoreTaskRepository implements TaskRepository {
 }
 
 @riverpod
-TaskRepository taskRepository(TaskRepositoryRef ref) {
+TaskRepository taskRepository(Ref ref) {
   final firestore = ref.watch(firestoreProvider);
   final legacyRepo = legacy.TaskRepository(firestore: firestore);
   return FirestoreTaskRepository(legacyRepo, firestore);

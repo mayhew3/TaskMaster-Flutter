@@ -6,7 +6,6 @@ import 'package:taskmaster/models/sprint_display_task.dart';
 
 import '../../../keys.dart';
 import '../../../models/models.dart';
-import '../../../models/sprint.dart';
 import '../../../models/task_colors.dart';
 import '../../../models/task_display_grouping.dart';
 import '../../../models/check_state.dart';

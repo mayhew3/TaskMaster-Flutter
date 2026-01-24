@@ -5,7 +5,6 @@ import 'package:taskmaster/date_util.dart';
 import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_date_type.dart';
-import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 import 'package:taskmaster/features/shared/presentation/widgets/clearable_date_time_field.dart';

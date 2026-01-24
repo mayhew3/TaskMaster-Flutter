@@ -6,7 +6,7 @@ part of 'auth_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$authStateChangesHash() => r'386ea079ca75ac54d471519e1565d88b5c2efc08';
+String _$authStateChangesHash() => r'5f8861723c359af3f00d0995225ba1df8c413368';
 
 /// Stream of auth state changes from Firebase
 ///
@@ -25,7 +25,7 @@ final authStateChangesProvider = AutoDisposeStreamProvider<User?>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AuthStateChangesRef = AutoDisposeStreamProviderRef<User?>;
-String _$currentUserHash() => r'1385ee781a6d20f9b7cb58383f0a699d387e020c';
+String _$currentUserHash() => r'4c8cb60cef35a4fd001291434558037d6c85faf5';
 
 /// Current Firebase user (nullable)
 /// This watches the auth notifier state for reactive updates
@@ -45,7 +45,7 @@ final currentUserProvider = AutoDisposeProvider<User?>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CurrentUserRef = AutoDisposeProviderRef<User?>;
-String _$personDocIdHash() => r'36111b1a71150415565c1c85208bfd3eb57b41b0';
+String _$personDocIdHash() => r'97beffdbed28e795901298ec645ab3e4ac71e1bf';
 
 /// Person doc ID from the auth state
 /// Returns null if not authenticated or person not verified
@@ -65,7 +65,7 @@ final personDocIdProvider = AutoDisposeProvider<String?>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef PersonDocIdRef = AutoDisposeProviderRef<String?>;
-String _$isAuthenticatedHash() => r'770625126209e1e33bfe9e80026743572b14ccf9';
+String _$isAuthenticatedHash() => r'003f7e85bfa5ae774792659ce771b5b59ebf04f8';
 
 /// Whether the user is fully authenticated (signed in AND person verified)
 ///
@@ -84,7 +84,7 @@ final isAuthenticatedProvider = AutoDisposeProvider<bool>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef IsAuthenticatedRef = AutoDisposeProviderRef<bool>;
-String _$isAuthLoadingHash() => r'3af894b80098bfe6f22cfc378b140fa751450077';
+String _$isAuthLoadingHash() => r'b9e25036f2f11d488204a6e453070e7f191b2292';
 
 /// Whether auth is still loading (initializing or authenticating)
 ///

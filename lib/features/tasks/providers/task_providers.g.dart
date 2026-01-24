@@ -6,7 +6,7 @@ part of 'task_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$tasksHash() => r'7341578df2daac082d53dcaa1441d2bbc28d7661';
+String _$tasksHash() => r'1ded0be20e4c6f4693dec189dd668db3a9cd05f7';
 
 /// Stream of all tasks for the current user
 ///
@@ -25,7 +25,7 @@ final tasksProvider = AutoDisposeStreamProvider<List<TaskItem>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TasksRef = AutoDisposeStreamProviderRef<List<TaskItem>>;
-String _$taskRecurrencesHash() => r'e2dac215c9effde34c214e991db8920af6dd2300';
+String _$taskRecurrencesHash() => r'b101411a9d1388fe94b6907adfc75ffbe7eed52c';
 
 /// Stream of task recurrences for the current user
 ///
@@ -46,7 +46,7 @@ final taskRecurrencesProvider =
 // ignore: unused_element
 typedef TaskRecurrencesRef = AutoDisposeStreamProviderRef<List<TaskRecurrence>>;
 String _$tasksWithRecurrencesHash() =>
-    r'6037ed946fc83b5dbdd2a23638c0b3d2dfd17eb3';
+    r'394e961fcc9fc903cc370f486929b4d04ad33eaa';
 
 /// Stream of tasks with their recurrences populated
 /// Uses rxdart combineLatest2 for PARALLEL loading of tasks and recurrences
@@ -68,7 +68,7 @@ final tasksWithRecurrencesProvider = StreamProvider<List<TaskItem>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TasksWithRecurrencesRef = StreamProviderRef<List<TaskItem>>;
-String _$taskHash() => r'97a95f1e85b1db772c8782797b9fdfa24da18ff7';
+String _$taskHash() => r'7ed90f682f4bcde660797d668b949ef0466bef67';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -216,7 +216,7 @@ class _TaskProviderElement extends AutoDisposeProviderElement<TaskItem?>
 }
 
 String _$tasksWithPendingStateHash() =>
-    r'c7456f5fee336615508feee09d779ce6c4b8fa2f';
+    r'ef00338798a863ef28b0f36cd5743628fb821034';
 
 /// Tasks with pending completion state merged in (optimistic UI overlay)
 /// This provider overlays optimistic pending state on top of Firestore data
@@ -238,7 +238,7 @@ final tasksWithPendingStateProvider =
 // ignore: unused_element
 typedef TasksWithPendingStateRef = AutoDisposeFutureProviderRef<List<TaskItem>>;
 String _$tasksForRecurrenceHash() =>
-    r'07c07e2db632e4d7601be4df566818c96fe3dfe3';
+    r'4753667465c437f9fbc6a34e9b829ffe98cf01be';
 
 /// Stream of all tasks for a specific recurrence, including retired ones.
 /// This shows the full history of a recurring task for debugging/inspection.

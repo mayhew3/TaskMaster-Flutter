@@ -6,7 +6,7 @@ part of 'task_filter_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$filteredTasksHash() => r'a934ec1903e273ec6a3a55eee3d791973cca91cf';
+String _$filteredTasksHash() => r'c03ee7d7f20ccf6b797957b92b72c631bf6f6896';
 
 /// Filtered tasks based on visibility settings
 ///
@@ -26,7 +26,7 @@ final filteredTasksProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef FilteredTasksRef = AutoDisposeFutureProviderRef<List<TaskItem>>;
-String _$activeTaskCountHash() => r'f01c94f8df46bdfda6985986e43d2d2496ad634c';
+String _$activeTaskCountHash() => r'2bebdf365f5d0aa271589aa7d69410a8f3c04e0b';
 
 /// Count of active (non-completed, non-retired) tasks
 ///
@@ -46,7 +46,7 @@ final activeTaskCountProvider = AutoDisposeProvider<int>.internal(
 // ignore: unused_element
 typedef ActiveTaskCountRef = AutoDisposeProviderRef<int>;
 String _$completedTaskCountHash() =>
-    r'6d2874edfc1bf1f3a005878f030e03ee7d1d7aae';
+    r'bd2847dd544a5ff2aed5a726556b25ec29ca847e';
 
 /// Count of completed tasks
 ///
@@ -65,7 +65,7 @@ final completedTaskCountProvider = AutoDisposeProvider<int>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CompletedTaskCountRef = AutoDisposeProviderRef<int>;
-String _$groupedTasksHash() => r'3da7bb754722d3ebb8a96ab016efddf71750462d';
+String _$groupedTasksHash() => r'd8ed7228a3c8e2c6413a4d25cabbaa4a1b639a4b';
 
 /// Grouped and sorted tasks for the task list
 ///

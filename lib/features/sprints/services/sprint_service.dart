@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/providers/firebase_providers.dart';
 import '../../../models/sprint_blueprint.dart';
@@ -197,7 +198,7 @@ class SprintService {
 }
 
 @riverpod
-SprintService sprintService(SprintServiceRef ref) {
+SprintService sprintService(Ref ref) {
   final firestore = ref.watch(firestoreProvider);
   return SprintService(firestore);
 }

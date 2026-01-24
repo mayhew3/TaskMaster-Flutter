@@ -7,7 +7,7 @@ part of 'task_completion_service.dart';
 // **************************************************************************
 
 String _$taskCompletionServiceHash() =>
-    r'61166b994cae7b931b47b3d3d1c6451e302e51c1';
+    r'ad60561ea8cd39ea6765a3272a5776df358497a7';
 
 /// See also [taskCompletionService].
 @ProviderFor(taskCompletionService)
@@ -27,7 +27,7 @@ final taskCompletionServiceProvider =
 typedef TaskCompletionServiceRef =
     AutoDisposeProviderRef<TaskCompletionService>;
 String _$legacyTaskRepositoryHash() =>
-    r'40ba386668fcee58eef4e670913409e98bf1e889';
+    r'b8092e425e6000371e0635584509e6e293b20da3';
 
 /// Provider for legacy TaskRepository (for snooze functionality)
 ///

@@ -6,7 +6,7 @@ part of 'sprint_service.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$sprintServiceHash() => r'3aa5ec8d26909a92296a3890cbf78e2b0381580f';
+String _$sprintServiceHash() => r'ce065f9f3dbc412d74350423619f50b5753a92ec';
 
 /// See also [sprintService].
 @ProviderFor(sprintService)

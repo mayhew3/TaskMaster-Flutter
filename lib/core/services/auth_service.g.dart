@@ -6,7 +6,7 @@ part of 'auth_service.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$googleSignInHash() => r'3b3ac9a25c4070dfe986e18f3290bf55d97911c7';
+String _$googleSignInHash() => r'be6e657edfb1790d127cff1d3820a50c34e65011';
 
 /// Provider for GoogleSignIn instance
 ///
@@ -25,7 +25,7 @@ final googleSignInProvider = Provider<GoogleSignIn>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef GoogleSignInRef = ProviderRef<GoogleSignIn>;
-String _$authServiceHash() => r'5e8379ad7575aad9403b23c9f6c385b49ae6feda';
+String _$authServiceHash() => r'8d569cce6458aacd4ffbc0f356702b3b1416d63f';
 
 /// Provider for AuthService
 ///

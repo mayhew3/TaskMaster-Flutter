@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../models/task_item.dart';
 import 'task_providers.dart';
@@ -27,7 +28,7 @@ class ShowScheduled extends _$ShowScheduled {
 
 /// Filtered tasks based on visibility settings
 @riverpod
-Future<List<TaskItem>> filteredTasks(FilteredTasksRef ref) async {
+Future<List<TaskItem>> filteredTasks(Ref ref) async {
   final showCompleted = ref.watch(showCompletedProvider);
   final showScheduled = ref.watch(showScheduledProvider);
   final activeSprint = ref.watch(activeSprintProvider);
@@ -73,7 +74,7 @@ Future<List<TaskItem>> filteredTasks(FilteredTasksRef ref) async {
 
 /// Count of active (non-completed, non-retired) tasks
 @riverpod
-int activeTaskCount(ActiveTaskCountRef ref) {
+int activeTaskCount(Ref ref) {
   final tasksAsync = ref.watch(tasksProvider);
 
   return tasksAsync.maybeWhen(
@@ -86,7 +87,7 @@ int activeTaskCount(ActiveTaskCountRef ref) {
 
 /// Count of completed tasks
 @riverpod
-int completedTaskCount(CompletedTaskCountRef ref) {
+int completedTaskCount(Ref ref) {
   final tasksAsync = ref.watch(tasksProvider);
 
   return tasksAsync.maybeWhen(
@@ -110,7 +111,7 @@ class TaskGroup {
 
 /// Grouped and sorted tasks for the task list
 @riverpod
-Future<List<TaskGroup>> groupedTasks(GroupedTasksRef ref) async {
+Future<List<TaskGroup>> groupedTasks(Ref ref) async {
   print('📋 groupedTasksProvider: Starting');
 
   // Watch the filtered tasks future

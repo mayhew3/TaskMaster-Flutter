@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/providers/auth_providers.dart';
 import '../../../core/providers/firebase_providers.dart';
@@ -10,7 +11,7 @@ part 'sprint_providers.g.dart';
 
 /// Stream of all sprints for the current user
 @Riverpod(keepAlive: true)
-Stream<List<Sprint>> sprints(SprintsRef ref) {
+Stream<List<Sprint>> sprints(Ref ref) {
   // Get dependencies synchronously
   final firestore = ref.watch(firestoreProvider);
   final personDocId = ref.watch(personDocIdProvider);
@@ -63,7 +64,7 @@ Stream<List<Sprint>> sprints(SprintsRef ref) {
 
 /// Get active sprint (currently in progress)
 @riverpod
-Sprint? activeSprint(ActiveSprintRef ref) {
+Sprint? activeSprint(Ref ref) {
   final sprintsAsync = ref.watch(sprintsProvider);
 
   return sprintsAsync.maybeWhen(
@@ -81,7 +82,7 @@ Sprint? activeSprint(ActiveSprintRef ref) {
 
 /// Get last completed sprint
 @riverpod
-Sprint? lastCompletedSprint(LastCompletedSprintRef ref) {
+Sprint? lastCompletedSprint(Ref ref) {
   final sprintsAsync = ref.watch(sprintsProvider);
 
   return sprintsAsync.maybeWhen(
@@ -98,7 +99,7 @@ Sprint? lastCompletedSprint(LastCompletedSprintRef ref) {
 
 /// Get sprints for a specific task
 @riverpod
-List<Sprint> sprintsForTask(SprintsForTaskRef ref, TaskItem task) {
+List<Sprint> sprintsForTask(Ref ref, TaskItem task) {
   final sprintsAsync = ref.watch(sprintsProvider);
 
   return sprintsAsync.maybeWhen(
@@ -113,7 +114,7 @@ List<Sprint> sprintsForTask(SprintsForTaskRef ref, TaskItem task) {
 
 /// Get tasks for a specific sprint
 @riverpod
-List<TaskItem> tasksForSprint(TasksForSprintRef ref, Sprint sprint) {
+List<TaskItem> tasksForSprint(Ref ref, Sprint sprint) {
   final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
 
   return tasksAsync.maybeWhen(

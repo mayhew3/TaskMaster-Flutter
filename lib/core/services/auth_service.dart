@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../providers/firebase_providers.dart';
@@ -145,11 +146,11 @@ class AuthService {
 
 /// Provider for GoogleSignIn instance
 @Riverpod(keepAlive: true)
-GoogleSignIn googleSignIn(GoogleSignInRef ref) => GoogleSignIn.instance;
+GoogleSignIn googleSignIn(Ref ref) => GoogleSignIn.instance;
 
 /// Provider for AuthService
 @Riverpod(keepAlive: true)
-AuthService authService(AuthServiceRef ref) {
+AuthService authService(Ref ref) {
   return AuthService(
     firebaseAuth: ref.watch(firebaseAuthProvider),
     googleSignIn: ref.watch(googleSignInProvider),

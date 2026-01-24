@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../providers/auth_providers.dart';
 import '../providers/firebase_providers.dart';
@@ -96,7 +97,7 @@ class TaskCompletionService {
 }
 
 @riverpod
-TaskCompletionService taskCompletionService(TaskCompletionServiceRef ref) {
+TaskCompletionService taskCompletionService(Ref ref) {
   final repository = ref.watch(taskRepositoryProvider);
   return TaskCompletionService(repository);
 }
@@ -290,7 +291,7 @@ class SnoozeTask extends _$SnoozeTask {
 
 /// Provider for legacy TaskRepository (for snooze functionality)
 @riverpod
-legacy.TaskRepository legacyTaskRepository(LegacyTaskRepositoryRef ref) {
+legacy.TaskRepository legacyTaskRepository(Ref ref) {
   final firestore = ref.watch(firestoreProvider);
   return legacy.TaskRepository(firestore: firestore);
 }
