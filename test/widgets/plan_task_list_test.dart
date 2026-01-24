@@ -42,24 +42,6 @@ void main() {
         ..completionDate = completionDate?.toUtc());
     }
 
-    // Helper to create test sprint
-    Sprint createTestSprint({
-      required String docId,
-      required DateTime startDate,
-      required DateTime endDate,
-      required int sprintNumber,
-    }) {
-      return Sprint((b) => b
-        ..docId = docId
-        ..personDocId = 'test_person_id'
-        ..startDate = startDate.toUtc()
-        ..endDate = endDate.toUtc()
-        ..dateAdded = DateTime.now().toUtc()
-        ..numUnits = 1
-        ..unitName = 'Weeks'
-        ..sprintNumber = sprintNumber);
-    }
-
     testWidgets('Displays loading indicator when data is loading', (tester) async {
       // Setup: Providers return loading state (never complete)
       await tester.pumpWidget(

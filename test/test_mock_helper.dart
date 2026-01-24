@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/annotations.dart';
@@ -10,7 +8,6 @@ import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/task_repository.dart';
 
-import 'mocks/mock_data.dart';
 import 'mocks/mock_data_builder.dart';
 import 'test_mock_helper.mocks.dart';
 
@@ -39,35 +36,6 @@ class TestMockHelper {
   }
 
   // helper methods
-
-  static dynamic _getMockTask(TaskItem taskItem) {
-    return taskItem.toJson();
-  }
-
-  static String _mockTheJSON({List<TaskItem>? taskItems, List<Sprint>? sprints, List<TaskRecurrence>? recurrences}) {
-    var taskObj = {};
-    taskObj['person_id'] = 1;
-    var mockTaskList = [];
-    var mockSprintList = [];
-    var mockRecurrenceList = [];
-
-    for (var taskItem in taskItems ?? allTasks) {
-      mockTaskList.add(_getMockTask(taskItem));
-    }
-
-    for (var sprintItem in sprints ?? allSprints) {
-      mockSprintList.add(sprintItem.toJson());
-    }
-
-    for (var recurrence in recurrences ?? []) {
-      mockRecurrenceList.add(recurrence.toJson());
-    }
-
-    taskObj['tasks'] = mockTaskList;
-    taskObj['sprints'] = mockSprintList;
-    taskObj['taskRecurrences'] = mockRecurrenceList;
-    return json.encode(taskObj);
-  }
 
   static TaskItem mockAddTask(TaskItemBlueprint blueprint, String id, String? recurrenceDocId) {
     var recurrenceBlueprint = blueprint.recurrenceBlueprint;

@@ -6,7 +6,6 @@ import 'package:taskmaster/core/providers/auth_providers.dart';
 import 'package:taskmaster/core/services/task_completion_service.dart';
 import 'package:taskmaster/features/tasks/data/firestore_task_repository.dart';
 import 'package:taskmaster/features/tasks/domain/task_repository.dart';
-import 'package:taskmaster/features/tasks/providers/task_providers.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_recurrence.dart';

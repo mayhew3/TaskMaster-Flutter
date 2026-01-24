@@ -7,18 +7,13 @@ import 'package:taskmaster/models/task_colors.dart';
 void main() {
   group('DelayedCheckbox', () {
     testWidgets('shows inactive state initially', (tester) async {
-      CheckState? callbackState;
-
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: DelayedCheckbox(
               taskName: 'Test Task',
               initialState: CheckState.inactive,
-              checkCycleWaiter: (state) {
-                callbackState = state;
-                return null;
-              },
+              checkCycleWaiter: (_) => null,
             ),
           ),
         ),

@@ -316,7 +316,6 @@ void main() {
 
     testWidgets('Handles empty string as valid option', (tester) async {
       // Setup: Empty string as option
-      String? capturedValue;
       final options = BuiltList<String>(['', 'Option']);
 
       await tester.pumpWidget(
@@ -326,9 +325,7 @@ void main() {
               initialValue: 'Option',
               labelText: 'Test',
               possibleValues: options,
-              valueSetter: (value) {
-                capturedValue = value;
-              },
+              valueSetter: (_) {},
             ),
           ),
         ),

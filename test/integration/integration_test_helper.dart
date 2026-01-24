@@ -1,46 +1,30 @@
-import 'package:built_collection/built_collection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
 import 'package:taskmaster/core/providers/auth_providers.dart';
 import 'package:taskmaster/core/providers/firebase_providers.dart';
 import 'package:taskmaster/core/services/task_completion_service.dart';
 import 'package:taskmaster/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaster/features/tasks/providers/task_providers.dart';
-import 'package:taskmaster/firestore_migrator.dart';
 import 'package:taskmaster/models/serializers.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
 import 'package:taskmaster/features/tasks/presentation/task_list_screen.dart';
 import 'package:taskmaster/features/tasks/presentation/stats_screen.dart';
-import 'package:taskmaster/features/sprints/presentation/sprint_task_items_screen.dart';
-import 'package:taskmaster/features/sprints/presentation/new_sprint_screen.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
 import 'package:taskmaster/features/shared/presentation/planning_home.dart';
-import 'package:taskmaster/task_repository.dart';
 import 'package:taskmaster/timezone_helper.dart';
 
 import '../mocks/mock_timezone_helper.dart';
 
-// Generate mocks for FirestoreMigrator and auth
-@GenerateMocks([])
-class _MockFirestoreMigrator extends Mock implements FirestoreMigrator {}
-class _MockGoogleSignInAccount extends Mock implements GoogleSignInAccount {}
-class _MockUserCredential extends Mock implements UserCredential {}
-class _MockUser extends Mock implements User {}
-
 // Test helper for TimezoneHelperNotifier
 class _TestTimezoneHelperNotifier extends TimezoneHelperNotifier {
+  // Override build to return mock immediately without platform channel initialization
   @override
   Future<TimezoneHelper> build() async {
-    // In tests, return the mock immediately without async initialization
     return MockTimezoneHelper();
   }
 }
@@ -67,12 +51,7 @@ class IntegrationTestHelper {
       'name': 'Test User',
     });
 
-    // Create real task repository with fake Firestore
-    final taskRepository = TaskRepository(firestore: testFirestore);
     final navigatorKey = GlobalKey<NavigatorState>();
-
-    // Use mock TimezoneHelper to avoid platform channel initialization
-    final timezoneHelper = MockTimezoneHelper();
 
     // Link recurrences to tasks
     final recurrencesList = initialRecurrences ?? [];
@@ -189,22 +168,17 @@ class IntegrationTestHelper {
           'recurNumber': recurrence.recurNumber,
           'recurUnit': recurrence.recurUnit,
           'dateAdded': recurrence.dateAdded,
-          if (recurrence.recurWait != null) 'recurWait': recurrence.recurWait,
-          if (recurrence.recurIteration != null) 'recurIteration': recurrence.recurIteration,
-          if (recurrence.anchorDate != null) 'anchorDate': {
-            'dateValue': recurrence.anchorDate!.dateValue,
-            'dateType': recurrence.anchorDate!.dateType.label,
+          'recurWait': recurrence.recurWait,
+          'recurIteration': recurrence.recurIteration,
+          'anchorDate': {
+            'dateValue': recurrence.anchorDate.dateValue,
+            'dateType': recurrence.anchorDate.dateType.label,
           },
         });
       }
     }
 
-    // Create real task repository with fake Firestore
-    final taskRepository = TaskRepository(firestore: testFirestore);
     final navigatorKey = GlobalKey<NavigatorState>();
-
-    // Use mock TimezoneHelper to avoid platform channel initialization
-    final timezoneHelper = MockTimezoneHelper();
 
     // Pump the app with Riverpod providers that read from Firestore
     await tester.pumpWidget(

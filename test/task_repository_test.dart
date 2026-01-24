@@ -1,24 +1,8 @@
-import 'dart:io';
-
 import 'package:test/test.dart';
 
 
 void main() {
   group('TaskRepository', () {
-
-    final Uri tasksAPI = Uri.parse('https://taskmaster-general.herokuapp.com/api/tasks');
-
-    final personId = 1;
-    final token = 'token';
-
-    // helper methods
-
-    void validateToken(Invocation invocation) async {
-      var headers = invocation.namedArguments[Symbol('headers')];
-      var tokenInfo = headers[HttpHeaders.authorizationHeader];
-      expect(tokenInfo, token);
-    }
-
     // tests
 /*
 

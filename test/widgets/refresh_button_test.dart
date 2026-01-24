@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaster/features/shared/presentation/refresh_button.dart';
-import 'package:taskmaster/features/tasks/providers/task_providers.dart';
-import 'package:taskmaster/features/sprints/providers/sprint_providers.dart';
 
 /// Widget Test: RefreshButton
 ///

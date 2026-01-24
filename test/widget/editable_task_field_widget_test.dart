@@ -333,9 +333,6 @@ void main() {
 
     testWidgets('Multiple fields work independently', (tester) async {
       // Setup: Two separate fields
-      String? value1;
-      String? value2;
-
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -344,17 +341,13 @@ void main() {
                 EditableTaskField(
                   initialText: 'Field 1',
                   labelText: 'First',
-                  fieldSetter: (value) {
-                    value1 = value;
-                  },
+                  fieldSetter: (_) {},
                   inputType: TextInputType.text,
                 ),
                 EditableTaskField(
                   initialText: 'Field 2',
                   labelText: 'Second',
-                  fieldSetter: (value) {
-                    value2 = value;
-                  },
+                  fieldSetter: (_) {},
                   inputType: TextInputType.text,
                 ),
               ],

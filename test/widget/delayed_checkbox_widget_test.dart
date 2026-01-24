@@ -18,8 +18,6 @@ void main() {
   group('DelayedCheckbox Tests', () {
     testWidgets('Displays inactive state with default icon', (tester) async {
       // Setup: Create checkbox in inactive state
-      CheckState? callbackState;
-
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData(
@@ -29,10 +27,7 @@ void main() {
           ),
           home: Scaffold(
             body: DelayedCheckbox(
-              checkCycleWaiter: (state) {
-                callbackState = state;
-                return null;
-              },
+              checkCycleWaiter: (_) => null,
               initialState: CheckState.inactive,
               taskName: 'Test Task',
             ),
