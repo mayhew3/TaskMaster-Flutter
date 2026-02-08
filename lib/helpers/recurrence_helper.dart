@@ -25,7 +25,7 @@ class RecurrenceHelper {
 
       var recurNumber = recurrence.recurNumber!;
       var recurUnit = recurrence.recurUnit!;
-      var recurWait = recurrence.recurWait!;
+      var recurWait = taskItem.recurWait ?? recurrence.recurWait!;
 
       AnchorDate anchorDate = recurrence.anchorDate!;
       DateTime nextAnchorDate;
@@ -51,6 +51,7 @@ class RecurrenceHelper {
         ..dateType = anchorDate.dateType;
       recurrenceBlueprint.anchorDate = anchorDateBuilder.build();
       recurrenceBlueprint.recurIteration = recurIteration + 1;
+      recurrenceBlueprint.recurWait = recurWait;
 
       return nextScheduledTask;
     } else {
