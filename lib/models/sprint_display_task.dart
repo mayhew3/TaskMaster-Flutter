@@ -25,6 +25,8 @@ mixin SprintDisplayTask implements DateHolder {
   @override
   int? get recurIteration;
 
+  bool? get recurWait;
+
   bool get offCycle;
 
   @override

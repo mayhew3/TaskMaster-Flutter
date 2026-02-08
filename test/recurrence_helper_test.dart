@@ -352,6 +352,54 @@ void main() {
           reason: 'On Schedule due-to-due gap should match regardless of drift');
     });
 
+    test('on complete with desynced recurrence (task=true, recurrence=false) uses task recurWait', () {
+      // Bug scenario: taskItem.recurWait=true (On Complete) but recurrence.recurWait=false (On Schedule)
+      // The recurrence document is stale. createNextIteration should use the task's value.
+      var builder = MockTaskItemBuilder
+          .withDates(offCycle: false)
+          .withRecur(recurWait: true); // Sets both task and recurrence to true
+      // Desync: override recurrence to false (stale recurrence)
+      builder.taskRecurrence!.recurWait = false;
+      var taskItem = builder.create();
+
+      final completionDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 5));
+
+      final result = RecurrenceHelper.createNextIteration(taskItem, completionDate);
+
+      // Should calculate as On Complete: 42 days from completionDate
+      expect(daysBetween(completionDate, result.dueDate!), 42,
+          reason: 'Dates should be calculated from completionDate (On Complete), not from stale anchor');
+
+      // Recurrence blueprint should have recurWait synced from task
+      expect(result.recurrence!.recurWait, true,
+          reason: 'Recurrence recurWait should be synced from task (true)');
+    });
+
+    test('on schedule with desynced recurrence (task=false, recurrence=true) uses task recurWait', () {
+      // Opposite desync: taskItem.recurWait=false (On Schedule) but recurrence.recurWait=true (On Complete)
+      var builder = MockTaskItemBuilder
+          .withDates(offCycle: false)
+          .withRecur(recurWait: false); // Sets both task and recurrence to false
+      // Desync: override recurrence to true (stale recurrence)
+      builder.taskRecurrence!.recurWait = true;
+      var taskItem = builder.create();
+
+      final completionDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 5));
+      final originalRecurrenceAnchorDate = taskItem.recurrence!.anchorDate.dateValue;
+
+      final result = RecurrenceHelper.createNextIteration(taskItem, completionDate);
+
+      // Should calculate as On Schedule: 42 days from recurrence anchor
+      expect(daysBetween(originalRecurrenceAnchorDate, result.recurrence!.anchorDate!.dateValue), 42,
+          reason: 'Anchor should advance 42 days from original anchor (On Schedule)');
+      expect(daysBetween(taskItem.dueDate!, result.dueDate!), 42,
+          reason: 'Due date should advance 42 days from original due date (On Schedule)');
+
+      // Recurrence blueprint should have recurWait synced from task
+      expect(result.recurrence!.recurWait, false,
+          reason: 'Recurrence recurWait should be synced from task (false)');
+    });
+
     // test different anchor dates
     // test calling this method on a task item with no recurrence
     // test exception for no recur_iteration
