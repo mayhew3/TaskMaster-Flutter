@@ -36,8 +36,12 @@ class RecurrenceHelper {
         nextAnchorDate = getAdjustedDate(anchorDate.dateValue, recurNumber, recurUnit);
       }
 
+      var offsetBaseDate = recurWait
+          ? taskItem.getAnchorDate()!.dateValue
+          : anchorDate.dateValue;
+
       TaskItemRecurPreview nextScheduledTask = taskItem.createNextRecurPreview(
-        dates: incrementWithMatchingDateIntervals(taskItem, anchorDate.dateValue, nextAnchorDate),
+        dates: incrementWithMatchingDateIntervals(taskItem, offsetBaseDate, nextAnchorDate),
       );
 
       var recurrenceBlueprint = nextScheduledTask.recurrence!;
