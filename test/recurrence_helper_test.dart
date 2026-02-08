@@ -269,6 +269,89 @@ void main() {
       expect(result.recurrence!.recurIteration, originalRecurIteration + 1);
     });
 
+    test('on complete with backward anchor drift produces correct dates', () {
+      // Recurrence anchor is 7 days behind the task's due date.
+      // Without the fix, offsets are calculated from the drifted recurrence anchor,
+      // inflating dates by the drift amount.
+      var taskItem = MockTaskItemBuilder
+          .withDates(offCycle: false)
+          .withRecur(recurWait: true, anchorOffsetInDays: -7)
+          .create();
+      final completionDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 5));
+
+      final result = RecurrenceHelper.createNextIteration(taskItem, completionDate);
+
+      // Due date should be exactly 42 days (6 weeks) from completionDate,
+      // NOT 42 + 7 = 49 days.
+      expect(daysBetween(completionDate, result.dueDate!), 42);
+
+      // Verify date offsets between dates are preserved from the task
+      final originalStartToDue = daysBetween(taskItem.startDate!, taskItem.dueDate!);
+      final newStartToDue = daysBetween(result.startDate!, result.dueDate!);
+      expect(newStartToDue, originalStartToDue,
+          reason: 'Start-to-due offset should be preserved');
+    });
+
+    test('on complete with forward anchor drift produces correct dates', () {
+      // Recurrence anchor is 5 days ahead of the task's due date.
+      var taskItem = MockTaskItemBuilder
+          .withDates(offCycle: false)
+          .withRecur(recurWait: true, anchorOffsetInDays: 5)
+          .create();
+      final completionDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 5));
+
+      final result = RecurrenceHelper.createNextIteration(taskItem, completionDate);
+
+      // Due date should still be exactly 42 days from completionDate.
+      expect(daysBetween(completionDate, result.dueDate!), 42);
+    });
+
+    test('weekly recurrence on complete with large drift (bug report scenario)', () {
+      // This matches the bug report: 1-week recurrence, anchor 14 days behind.
+      // Bug would produce dueDate 21 days after completion instead of 7.
+      var builder = MockTaskItemBuilder.asDefault()
+          ..dueDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 8, hours: 8));
+      builder.withRecur(recurWait: true, anchorOffsetInDays: -14);
+      // Override to 1-week recurrence
+      builder.recurNumber = 1;
+      builder.taskRecurrence!.recurNumber = 1;
+
+      var taskItem = builder.create();
+      final completionDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 5));
+
+      final result = RecurrenceHelper.createNextIteration(taskItem, completionDate);
+
+      // Due date should be 7 days (1 week) from completionDate, not 21.
+      expect(daysBetween(completionDate, result.dueDate!), 7);
+    });
+
+    test('on schedule with anchor drift is unaffected (regression)', () {
+      // For recurWait=false (On Schedule), behavior should be unchanged
+      // even when there's anchor drift. Capture current behavior to ensure
+      // our recurWait=true fix doesn't affect On Schedule.
+      var taskItem = MockTaskItemBuilder
+          .withDates(offCycle: false)
+          .withRecur(recurWait: false, anchorOffsetInDays: -7)
+          .create();
+      final completionDate = DateUtil.nowUtcWithoutMillis().add(Duration(days: 5));
+
+      // Capture baseline: run the same setup WITHOUT drift
+      var taskItemNoDrift = MockTaskItemBuilder
+          .withDates(offCycle: false)
+          .withRecur(recurWait: false, anchorOffsetInDays: 0)
+          .create();
+      final baselineResult = RecurrenceHelper.createNextIteration(taskItemNoDrift, completionDate);
+      final baselineDueGap = daysBetween(taskItemNoDrift.dueDate!, baselineResult.dueDate!);
+
+      final result = RecurrenceHelper.createNextIteration(taskItem, completionDate);
+      final dueGap = daysBetween(taskItem.dueDate!, result.dueDate!);
+
+      // On Schedule gap from task due to new due should be the same
+      // regardless of drift, since both anchor and offsets use the recurrence anchor.
+      expect(dueGap, baselineDueGap,
+          reason: 'On Schedule due-to-due gap should match regardless of drift');
+    });
+
     // test different anchor dates
     // test calling this method on a task item with no recurrence
     // test exception for no recur_iteration
