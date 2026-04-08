@@ -227,7 +227,7 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
     [int depth = 0]
   ) {
     if (depth >= 365) {
-      print('[Safety] Warning: Exceeded max iteration depth for task ${newest.name}');
+      print('[Safety] Warning: Exceeded max iteration depth for task ${newest.name} (depth: $depth, recurIteration: ${newest.recurIteration})');
       return;
     }
     TaskItemRecurPreview nextIteration =
