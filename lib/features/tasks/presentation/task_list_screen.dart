@@ -166,10 +166,19 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
       );
     }
 
+    final showCompleted = ref.watch(showCompletedProvider);
+
     for (final group in groupedTasks) {
       tiles.add(HeadingItem(group.name));
       for (final task in group.tasks) {
         tiles.add(_TaskListItem(task: task));
+      }
+      // Add "Load More" button after the Completed group
+      if (group.name == 'Completed' && showCompleted) {
+        final olderState = ref.watch(olderCompletedTasksBatchesProvider);
+        if (olderState.hasMore) {
+          tiles.add(_LoadMoreCompletedButton());
+        }
       }
     }
 
@@ -286,6 +295,29 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
             style: TextStyle(fontSize: 17.0),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _LoadMoreCompletedButton extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final olderState = ref.watch(olderCompletedTasksBatchesProvider);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: OutlinedButton(
+        onPressed: olderState.isLoading
+            ? null
+            : () => ref.read(olderCompletedTasksBatchesProvider.notifier).loadNextBatch(),
+        child: olderState.isLoading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Text('Load older completed tasks'),
       ),
     );
   }

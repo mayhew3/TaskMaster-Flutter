@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../models/task_item.dart';
+import '../../../models/task_recurrence.dart';
 import 'task_providers.dart';
 import '../../sprints/providers/sprint_providers.dart';
 
@@ -13,7 +14,13 @@ class ShowCompleted extends _$ShowCompleted {
   @override
   bool build() => false;
 
-  void toggle() => state = !state;
+  void toggle() {
+    state = !state;
+    if (state) {
+      // Pre-fetch first batch of older completed tasks when toggling on
+      ref.read(olderCompletedTasksBatchesProvider.notifier).loadNextBatch();
+    }
+  }
   void set(bool value) => state = value;
 }
 
@@ -40,7 +47,44 @@ Future<List<TaskItem>> filteredTasks(Ref ref) async {
   final tasks = await ref.watch(tasksWithPendingStateProvider.future);
   print('📋 filteredTasksProvider: Received ${tasks.length} tasks');
 
-  final filtered = tasks.where((task) {
+  // Merge older completed tasks when showCompleted is enabled
+  List<TaskItem> allTasks;
+  if (showCompleted) {
+    final olderState = ref.watch(olderCompletedTasksBatchesProvider);
+    if (olderState.loadedTasks.isNotEmpty) {
+      // Deduplicate by docId (base query's 30-day window may overlap)
+      final baseDocIds = tasks.map((t) => t.docId).toSet();
+      final uniqueOlder = olderState.loadedTasks
+          .where((t) => !baseDocIds.contains(t.docId))
+          .toList();
+
+      // Link recurrences for older tasks
+      final recurrencesAsync = ref.watch(taskRecurrencesProvider);
+      final recurrences = recurrencesAsync.maybeWhen(
+        data: (r) => r,
+        orElse: () => <TaskRecurrence>[],
+      );
+      final recurrenceMap = {for (var r in recurrences) r.docId: r};
+      final linkedOlder = uniqueOlder.map((task) {
+        if (task.recurrenceDocId != null) {
+          final recurrence = recurrenceMap[task.recurrenceDocId];
+          if (recurrence != null) {
+            return task.rebuild((t) => t..recurrence = recurrence.toBuilder());
+          }
+        }
+        return task;
+      }).toList();
+
+      allTasks = [...tasks, ...linkedOlder];
+      print('📋 filteredTasksProvider: Merged ${linkedOlder.length} older completed tasks');
+    } else {
+      allTasks = tasks;
+    }
+  } else {
+    allTasks = tasks;
+  }
+
+  final filtered = allTasks.where((task) {
     // Always hide retired tasks
     if (task.retired != null) return false;
 

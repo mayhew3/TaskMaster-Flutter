@@ -6,7 +6,7 @@ part of 'task_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$tasksHash() => r'1ded0be20e4c6f4693dec189dd668db3a9cd05f7';
+String _$tasksHash() => r'b074f1a83f63a65475ba994d5d46eddebf618bdf';
 
 /// Stream of all tasks for the current user
 ///
@@ -46,7 +46,7 @@ final taskRecurrencesProvider =
 // ignore: unused_element
 typedef TaskRecurrencesRef = AutoDisposeStreamProviderRef<List<TaskRecurrence>>;
 String _$tasksWithRecurrencesHash() =>
-    r'394e961fcc9fc903cc370f486929b4d04ad33eaa';
+    r'f9c030ea8c84f739888b453ec8f87fa37b1d942a';
 
 /// Stream of tasks with their recurrences populated
 /// Uses rxdart combineLatest2 for PARALLEL loading of tasks and recurrences
@@ -68,7 +68,7 @@ final tasksWithRecurrencesProvider = StreamProvider<List<TaskItem>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TasksWithRecurrencesRef = StreamProviderRef<List<TaskItem>>;
-String _$taskHash() => r'7ed90f682f4bcde660797d668b949ef0466bef67';
+String _$taskHash() => r'f6a858a1ee6af1e76006b0da24add92c64f33dea';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -91,22 +91,26 @@ class _SystemHash {
   }
 }
 
-/// Get a specific task by ID with recurrence populated
+/// Get a specific task by ID with recurrence populated.
+/// Falls back to older completed tasks if not found in the base query.
 ///
 /// Copied from [task].
 @ProviderFor(task)
 const taskProvider = TaskFamily();
 
-/// Get a specific task by ID with recurrence populated
+/// Get a specific task by ID with recurrence populated.
+/// Falls back to older completed tasks if not found in the base query.
 ///
 /// Copied from [task].
 class TaskFamily extends Family<TaskItem?> {
-  /// Get a specific task by ID with recurrence populated
+  /// Get a specific task by ID with recurrence populated.
+  /// Falls back to older completed tasks if not found in the base query.
   ///
   /// Copied from [task].
   const TaskFamily();
 
-  /// Get a specific task by ID with recurrence populated
+  /// Get a specific task by ID with recurrence populated.
+  /// Falls back to older completed tasks if not found in the base query.
   ///
   /// Copied from [task].
   TaskProvider call(String taskId) {
@@ -133,11 +137,13 @@ class TaskFamily extends Family<TaskItem?> {
   String? get name => r'taskProvider';
 }
 
-/// Get a specific task by ID with recurrence populated
+/// Get a specific task by ID with recurrence populated.
+/// Falls back to older completed tasks if not found in the base query.
 ///
 /// Copied from [task].
 class TaskProvider extends AutoDisposeProvider<TaskItem?> {
-  /// Get a specific task by ID with recurrence populated
+  /// Get a specific task by ID with recurrence populated.
+  /// Falls back to older completed tasks if not found in the base query.
   ///
   /// Copied from [task].
   TaskProvider(String taskId)
@@ -426,5 +432,26 @@ final pendingTasksProvider =
     );
 
 typedef _$PendingTasks = Notifier<Map<String, TaskItem>>;
+String _$olderCompletedTasksBatchesHash() =>
+    r'087cbe4ac858659abdb65b1a700a2808ea1b7639';
+
+/// Progressively loads older completed tasks in 30-day batches.
+/// Triggered when the user enables "Show Completed" and taps "Load More".
+/// Uses one-time fetches (not real-time listeners) since old completed tasks rarely change.
+///
+/// Copied from [OlderCompletedTasksBatches].
+@ProviderFor(OlderCompletedTasksBatches)
+final olderCompletedTasksBatchesProvider =
+    NotifierProvider<OlderCompletedTasksBatches, OlderCompletedState>.internal(
+      OlderCompletedTasksBatches.new,
+      name: r'olderCompletedTasksBatchesProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$olderCompletedTasksBatchesHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$OlderCompletedTasksBatches = Notifier<OlderCompletedState>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
