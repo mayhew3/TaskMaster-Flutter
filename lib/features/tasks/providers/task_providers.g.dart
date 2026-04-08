@@ -433,7 +433,7 @@ final pendingTasksProvider =
 
 typedef _$PendingTasks = Notifier<Map<String, TaskItem>>;
 String _$olderCompletedTasksBatchesHash() =>
-    r'7bb82c5d87b33ed9d6224bbfb38e37717d304d56';
+    r'78792869d6225b32580590a3fdae4f659926d5ee';
 
 /// Progressively loads older completed tasks in 30-day batches.
 /// Triggered when the user enables "Show Completed" and taps "Load More".

@@ -311,11 +311,15 @@ class OlderCompletedTasksBatches extends _$OlderCompletedTasksBatches {
   static const _batchSize = 50;
 
   @override
-  OlderCompletedState build() => const OlderCompletedState(
-    loadedTasks: [],
-    isLoading: false,
-    hasMore: true,
-  );
+  OlderCompletedState build() {
+    // Watch personDocId so state resets on sign-out/sign-in (prevents cross-user leakage)
+    ref.watch(personDocIdProvider);
+    return const OlderCompletedState(
+      loadedTasks: [],
+      isLoading: false,
+      hasMore: true,
+    );
+  }
 
   Future<void> loadNextBatch() async {
     if (state.isLoading || !state.hasMore) return;
@@ -328,22 +332,22 @@ class OlderCompletedTasksBatches extends _$OlderCompletedTasksBatches {
       return;
     }
 
+    final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
+
     try {
-      // Build query with document-snapshot cursor for deterministic pagination
+      // Always constrain to completed tasks (completionDate <= 30 days ago)
+      // to prevent paginating into incomplete tasks (completionDate == null)
       var query = firestore
           .collection('tasks')
           .where('personDocId', isEqualTo: personDocId)
           .where('retired', isNull: true)
+          .where('completionDate', isLessThanOrEqualTo: thirtyDaysAgo.toUtc())
           .orderBy('completionDate', descending: true)
           .limit(_batchSize);
 
       if (state.lastDocument != null) {
         // Continue from last document of previous batch
         query = query.startAfterDocument(state.lastDocument!);
-      } else {
-        // First batch: start from 30 days ago
-        final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
-        query = query.where('completionDate', isLessThanOrEqualTo: thirtyDaysAgo.toUtc());
       }
 
       final snapshot = await query.get();

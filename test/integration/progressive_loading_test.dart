@@ -230,5 +230,48 @@ void main() {
       expect(container.read(olderCompletedTasksBatchesProvider).hasMore, false);
       expect(container.read(olderCompletedTasksBatchesProvider).loadedTasks, isEmpty);
     });
+
+    test('pagination excludes incomplete tasks and eventually exhausts results', () async {
+      final firestore = await createFirestoreWithTasks(
+        incompleteTasks: 5,
+        olderCompletedTasks: 10,
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          firestoreProvider.overrideWithValue(firestore),
+          personDocIdProvider.overrideWith((ref) => testPersonDocId),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(olderCompletedTasksBatchesProvider.notifier);
+
+      var iterations = 0;
+      const maxIterations = 10;
+      while (iterations < maxIterations) {
+        await notifier.loadNextBatch();
+
+        final state = container.read(olderCompletedTasksBatchesProvider);
+        expect(state.isLoading, false);
+        // All loaded tasks must have a completionDate (no incomplete tasks)
+        expect(
+          state.loadedTasks.every((task) => task.completionDate != null),
+          isTrue,
+        );
+
+        iterations++;
+        if (!state.hasMore) break;
+      }
+
+      final finalState = container.read(olderCompletedTasksBatchesProvider);
+      expect(finalState.loadedTasks, isNotEmpty);
+      expect(
+        finalState.loadedTasks.every((task) => task.completionDate != null),
+        isTrue,
+      );
+      expect(finalState.hasMore, false);
+      expect(iterations, lessThan(maxIterations));
+    });
   });
 }
