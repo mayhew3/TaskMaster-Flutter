@@ -6,7 +6,7 @@ part of 'task_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$tasksHash() => r'b074f1a83f63a65475ba994d5d46eddebf618bdf';
+String _$tasksHash() => r'81d25cc51e46c6f36308fc9848e8df26414b3126';
 
 /// Stream of all tasks for the current user
 ///
@@ -46,7 +46,7 @@ final taskRecurrencesProvider =
 // ignore: unused_element
 typedef TaskRecurrencesRef = AutoDisposeStreamProviderRef<List<TaskRecurrence>>;
 String _$tasksWithRecurrencesHash() =>
-    r'f9c030ea8c84f739888b453ec8f87fa37b1d942a';
+    r'477588d9a3264f8f4c89b524ac9639ba7d19d02a';
 
 /// Stream of tasks with their recurrences populated
 /// Uses rxdart combineLatest2 for PARALLEL loading of tasks and recurrences
@@ -433,7 +433,7 @@ final pendingTasksProvider =
 
 typedef _$PendingTasks = Notifier<Map<String, TaskItem>>;
 String _$olderCompletedTasksBatchesHash() =>
-    r'087cbe4ac858659abdb65b1a700a2808ea1b7639';
+    r'7bb82c5d87b33ed9d6224bbfb38e37717d304d56';
 
 /// Progressively loads older completed tasks in 30-day batches.
 /// Triggered when the user enables "Show Completed" and taps "Load More".

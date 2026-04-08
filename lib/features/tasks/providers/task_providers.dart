@@ -32,26 +32,27 @@ Stream<List<TaskItem>> tasks(Ref ref) {
   return firestore
       .collection('tasks')
       .where(
-        Filter.and(
-          Filter('personDocId', isEqualTo: personDocId),
-          Filter('retired', isNull: true),
-          Filter.or(
-            Filter('completionDate', isNull: true),
-            Filter('completionDate', isGreaterThan: thirtyDaysAgo.toUtc()),
-          ),
+        Filter.or(
+          Filter('completionDate', isNull: true),
+          Filter('completionDate', isGreaterThan: thirtyDaysAgo.toUtc()),
         ),
       )
+      .where('personDocId', isEqualTo: personDocId)
+      .where('retired', isNull: true)
       .snapshots()
       .map((snapshot) {
         print('📋 tasksProvider: Received ${snapshot.docs.length} task documents from Firestore');
-        return snapshot.docs
+        final tasks = snapshot.docs
             .map((doc) {
               final json = doc.data();
               json['docId'] = doc.id;
               return serializers.deserializeWith(TaskItem.serializer, json);
             })
-            .whereType<TaskItem>() // Remove nulls
+            .whereType<TaskItem>()
             .toList();
+        final completedCount = tasks.where((t) => t.completionDate != null).length;
+        print('📋 tasksProvider: $completedCount completed, ${tasks.length - completedCount} incomplete');
+        return tasks;
       });
 }
 
@@ -109,15 +110,13 @@ Stream<List<TaskItem>> tasksWithRecurrences(Ref ref) {
   final tasksStream = firestore
       .collection('tasks')
       .where(
-        Filter.and(
-          Filter('personDocId', isEqualTo: personDocId),
-          Filter('retired', isNull: true),
-          Filter.or(
-            Filter('completionDate', isNull: true),
-            Filter('completionDate', isGreaterThan: thirtyDaysAgo.toUtc()),
-          ),
+        Filter.or(
+          Filter('completionDate', isNull: true),
+          Filter('completionDate', isGreaterThan: thirtyDaysAgo.toUtc()),
         ),
       )
+      .where('personDocId', isEqualTo: personDocId)
+      .where('retired', isNull: true)
       .snapshots()
       .map((snapshot) {
         print('⏱️ tasksWithRecurrences: Got ${snapshot.docs.length} task docs at ${stopwatch.elapsedMilliseconds}ms');
@@ -275,26 +274,30 @@ Stream<List<TaskItem>> tasksForRecurrence(Ref ref, String recurrenceDocId) {
 /// State for progressively loaded older completed tasks
 class OlderCompletedState {
   final List<TaskItem> loadedTasks;
-  final DateTime oldestLoadedDate;
+  /// Cursor: the oldest completionDate we've loaded so far.
+  /// Next batch fetches tasks completed before this date.
+  final DateTime? oldestCompletionDate;
   final bool isLoading;
   final bool hasMore;
 
   const OlderCompletedState({
     required this.loadedTasks,
-    required this.oldestLoadedDate,
+    this.oldestCompletionDate,
     required this.isLoading,
     required this.hasMore,
   });
 
   OlderCompletedState copyWith({
     List<TaskItem>? loadedTasks,
-    DateTime? oldestLoadedDate,
+    DateTime? Function()? oldestCompletionDate,
     bool? isLoading,
     bool? hasMore,
   }) {
     return OlderCompletedState(
       loadedTasks: loadedTasks ?? this.loadedTasks,
-      oldestLoadedDate: oldestLoadedDate ?? this.oldestLoadedDate,
+      oldestCompletionDate: oldestCompletionDate != null
+          ? oldestCompletionDate()
+          : this.oldestCompletionDate,
       isLoading: isLoading ?? this.isLoading,
       hasMore: hasMore ?? this.hasMore,
     );
@@ -306,39 +309,44 @@ class OlderCompletedState {
 /// Uses one-time fetches (not real-time listeners) since old completed tasks rarely change.
 @Riverpod(keepAlive: true)
 class OlderCompletedTasksBatches extends _$OlderCompletedTasksBatches {
+  static const _batchSize = 50;
+
   @override
-  OlderCompletedState build() => OlderCompletedState(
+  OlderCompletedState build() => const OlderCompletedState(
     loadedTasks: [],
-    oldestLoadedDate: DateTime.now().subtract(const Duration(days: 30)),
     isLoading: false,
     hasMore: true,
   );
 
   Future<void> loadNextBatch() async {
+    print('📋 OlderBatch.loadNextBatch: called (isLoading=${state.isLoading}, hasMore=${state.hasMore})');
     if (state.isLoading || !state.hasMore) return;
     state = state.copyWith(isLoading: true);
 
     final firestore = ref.read(firestoreProvider);
     final personDocId = ref.read(personDocIdProvider);
     if (personDocId == null) {
+      print('📋 OlderBatch.loadNextBatch: no personDocId, aborting');
       state = state.copyWith(isLoading: false, hasMore: false);
       return;
     }
 
-    final batchEnd = state.oldestLoadedDate;
-    final batchStart = batchEnd.subtract(const Duration(days: 30));
+    // Cursor: start from oldest loaded task, or 30 days ago for first batch
+    final cursor = state.oldestCompletionDate
+        ?? DateTime.now().subtract(const Duration(days: 30));
+    print('📋 OlderBatch.loadNextBatch: querying tasks completed before $cursor');
 
     try {
       final snapshot = await firestore
           .collection('tasks')
           .where('personDocId', isEqualTo: personDocId)
           .where('retired', isNull: true)
-          .where('completionDate', isLessThanOrEqualTo: batchEnd.toUtc())
-          .where('completionDate', isGreaterThan: batchStart.toUtc())
+          .where('completionDate', isLessThanOrEqualTo: cursor.toUtc())
           .orderBy('completionDate', descending: true)
-          .get(); // One-time fetch, not a listener
+          .limit(_batchSize)
+          .get();
 
-      final newTasks = snapshot.docs
+      final rawTasks = snapshot.docs
           .map((doc) {
             final json = doc.data();
             json['docId'] = doc.id;
@@ -347,11 +355,52 @@ class OlderCompletedTasksBatches extends _$OlderCompletedTasksBatches {
           .whereType<TaskItem>()
           .toList();
 
+      // Link recurrences to older tasks — fetch from Firestore directly
+      final recurrenceDocIds = rawTasks
+          .where((t) => t.recurrenceDocId != null)
+          .map((t) => t.recurrenceDocId!)
+          .toSet();
+      final recurrenceMap = <String, TaskRecurrence>{};
+      if (recurrenceDocIds.isNotEmpty) {
+        final recurrenceSnapshot = await firestore
+            .collection('taskRecurrences')
+            .where('personDocId', isEqualTo: personDocId)
+            .where('retired', isNull: true)
+            .get();
+        for (final doc in recurrenceSnapshot.docs) {
+          if (recurrenceDocIds.contains(doc.id)) {
+            final json = doc.data();
+            json['docId'] = doc.id;
+            final recurrence = serializers.deserializeWith(TaskRecurrence.serializer, json);
+            if (recurrence != null) {
+              recurrenceMap[doc.id] = recurrence;
+            }
+          }
+        }
+      }
+      final newTasks = rawTasks.map((task) {
+        if (task.recurrenceDocId != null) {
+          final recurrence = recurrenceMap[task.recurrenceDocId];
+          if (recurrence != null) {
+            return task.rebuild((t) => t..recurrence = recurrence.toBuilder());
+          }
+        }
+        return task;
+      }).toList();
+
+      print('📋 OlderBatch.loadNextBatch: got ${newTasks.length} tasks');
+
+      // Use the oldest task's completionDate as cursor for next batch
+      DateTime? newCursor;
+      if (newTasks.isNotEmpty) {
+        newCursor = newTasks.last.completionDate;
+      }
+
       state = state.copyWith(
         loadedTasks: [...state.loadedTasks, ...newTasks],
-        oldestLoadedDate: batchStart,
+        oldestCompletionDate: () => newCursor ?? cursor,
         isLoading: false,
-        hasMore: newTasks.isNotEmpty,
+        hasMore: newTasks.length >= _batchSize,
       );
     } catch (e) {
       print('[OlderCompletedTasksBatches] Error loading batch: $e');
@@ -360,9 +409,8 @@ class OlderCompletedTasksBatches extends _$OlderCompletedTasksBatches {
   }
 
   void reset() {
-    state = OlderCompletedState(
+    state = const OlderCompletedState(
       loadedTasks: [],
-      oldestLoadedDate: DateTime.now().subtract(const Duration(days: 30)),
       isLoading: false,
       hasMore: true,
     );

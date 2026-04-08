@@ -85,7 +85,7 @@ final groupedTasksProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef GroupedTasksRef = AutoDisposeFutureProviderRef<List<TaskGroup>>;
-String _$showCompletedHash() => r'58cbc5e9478cffe3ddd757079d1bb00f85d28258';
+String _$showCompletedHash() => r'a7c3485980d4e64d2b0945fd8a098070bd5fbffb';
 
 /// Simple state providers for filter toggles
 /// Using keepAlive: true to persist state across tab switches

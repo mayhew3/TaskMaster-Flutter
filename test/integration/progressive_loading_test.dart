@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -59,7 +58,7 @@ void main() {
     test('copyWith preserves unchanged fields', () {
       final state = OlderCompletedState(
         loadedTasks: [],
-        oldestLoadedDate: DateTime(2026, 1, 1),
+        oldestCompletionDate: DateTime(2026, 1, 1),
         isLoading: false,
         hasMore: true,
       );
@@ -69,13 +68,12 @@ void main() {
       expect(updated.isLoading, true);
       expect(updated.hasMore, true);
       expect(updated.loadedTasks, isEmpty);
-      expect(updated.oldestLoadedDate, DateTime(2026, 1, 1));
+      expect(updated.oldestCompletionDate, DateTime(2026, 1, 1));
     });
 
     test('copyWith updates multiple fields', () {
       final state = OlderCompletedState(
         loadedTasks: [],
-        oldestLoadedDate: DateTime(2026, 1, 1),
         isLoading: false,
         hasMore: true,
       );

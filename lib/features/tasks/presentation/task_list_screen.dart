@@ -307,17 +307,22 @@ class _LoadMoreCompletedButton extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: OutlinedButton(
-        onPressed: olderState.isLoading
-            ? null
-            : () => ref.read(olderCompletedTasksBatchesProvider.notifier).loadNextBatch(),
-        child: olderState.isLoading
-            ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : const Text('Load older completed tasks'),
+      child: Center(
+        child: TextButton.icon(
+          onPressed: olderState.isLoading
+              ? null
+              : () => ref.read(olderCompletedTasksBatchesProvider.notifier).loadNextBatch(),
+          icon: olderState.isLoading
+              ? const SizedBox(
+                  height: 16,
+                  width: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.expand_more),
+          label: Text(olderState.isLoading
+              ? 'Loading...'
+              : 'Load older completed tasks'),
+        ),
       ),
     );
   }
