@@ -46,9 +46,12 @@ class TaskListScreen extends ConsumerWidget {
           }
           return const Center(child: CircularProgressIndicator());
         },
-        error: (err, stack) => Center(
-          child: Text('Error loading tasks: $err'),
-        ),
+        error: (err, stack) {
+          print('❌ Error loading tasks: $err\n$stack');
+          return const Center(
+            child: Text('Error loading data. Check logs for details.'),
+          );
+        },
       ),
       drawer: const AppDrawer(),
       floatingActionButton: FloatingActionButton(

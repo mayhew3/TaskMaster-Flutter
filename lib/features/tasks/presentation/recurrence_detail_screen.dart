@@ -52,9 +52,12 @@ class RecurrenceDetailScreen extends ConsumerWidget {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(
-                child: Text('Error loading iterations: $err'),
-              ),
+              error: (err, stack) {
+                print('❌ Error loading iterations: $err\n$stack');
+                return const Center(
+                  child: Text('Error loading data. Check logs for details.'),
+                );
+              },
             ),
           ),
         ],
