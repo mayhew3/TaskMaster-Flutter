@@ -31,12 +31,14 @@ Stream<List<TaskItem>> tasks(Ref ref) {
 
   return firestore
       .collection('tasks')
-      .where('personDocId', isEqualTo: personDocId)
-      .where('retired', isNull: true)
       .where(
-        Filter.or(
-          Filter('completionDate', isNull: true),
-          Filter('completionDate', isGreaterThan: Timestamp.fromDate(thirtyDaysAgo.toUtc())),
+        Filter.and(
+          Filter('personDocId', isEqualTo: personDocId),
+          Filter('retired', isNull: true),
+          Filter.or(
+            Filter('completionDate', isNull: true),
+            Filter('completionDate', isGreaterThan: thirtyDaysAgo.toUtc()),
+          ),
         ),
       )
       .snapshots()
@@ -106,12 +108,14 @@ Stream<List<TaskItem>> tasksWithRecurrences(Ref ref) {
   // Create tasks stream - server-side filter: incomplete + completed within 30 days
   final tasksStream = firestore
       .collection('tasks')
-      .where('personDocId', isEqualTo: personDocId)
-      .where('retired', isNull: true)
       .where(
-        Filter.or(
-          Filter('completionDate', isNull: true),
-          Filter('completionDate', isGreaterThan: Timestamp.fromDate(thirtyDaysAgo.toUtc())),
+        Filter.and(
+          Filter('personDocId', isEqualTo: personDocId),
+          Filter('retired', isNull: true),
+          Filter.or(
+            Filter('completionDate', isNull: true),
+            Filter('completionDate', isGreaterThan: thirtyDaysAgo.toUtc()),
+          ),
         ),
       )
       .snapshots()
@@ -329,8 +333,8 @@ class OlderCompletedTasksBatches extends _$OlderCompletedTasksBatches {
           .collection('tasks')
           .where('personDocId', isEqualTo: personDocId)
           .where('retired', isNull: true)
-          .where('completionDate', isLessThanOrEqualTo: Timestamp.fromDate(batchEnd.toUtc()))
-          .where('completionDate', isGreaterThan: Timestamp.fromDate(batchStart.toUtc()))
+          .where('completionDate', isLessThanOrEqualTo: batchEnd.toUtc())
+          .where('completionDate', isGreaterThan: batchStart.toUtc())
           .orderBy('completionDate', descending: true)
           .get(); // One-time fetch, not a listener
 
