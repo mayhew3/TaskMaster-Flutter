@@ -25,7 +25,7 @@ void main() {
     List<TaskItemRecurPreview> collector = [];
 
     void recurse(SprintDisplayTask current, int depth) {
-      if (depth > maxDepth) {
+      if (depth >= maxDepth) {
         return;
       }
       TaskItemRecurPreview nextIteration =
@@ -86,8 +86,8 @@ void main() {
       var endDate = DateTime.now().toUtc().add(Duration(days: 1095));
       var iterations = simulateAddNextIterations(task, endDate);
 
-      // Safety limit should cap at 366 (depth 0 through 365, then depth 366 triggers guard)
-      expect(iterations.length, lessThanOrEqualTo(366));
+      // Safety limit should cap at exactly 365 iterations (depth 0 through 364)
+      expect(iterations.length, equals(365));
     });
 
     test('weekly recurrence for 1 year stays well under safety limit', () {

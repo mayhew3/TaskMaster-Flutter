@@ -191,7 +191,7 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
 
 
   void addNextIterations(SprintDisplayTask newest, DateTime endDate, List<TaskItemRecurPreview> collector, [int depth = 0]) {
-    if (depth > 365) {
+    if (depth >= 365) {
       print('[Safety] Warning: Exceeded max iteration depth for task ${newest.name}');
       return;
     }
