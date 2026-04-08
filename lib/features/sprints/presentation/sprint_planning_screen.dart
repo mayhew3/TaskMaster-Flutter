@@ -224,7 +224,12 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
     SprintDisplayTask newest,
     DateTime endDate,
     List<TaskItemRecurPreview> collector,
+    [int depth = 0]
   ) {
+    if (depth >= 365) {
+      print('[Safety] Warning: Exceeded max iteration depth for task ${newest.name} (depth: $depth, recurIteration: ${newest.recurIteration})');
+      return;
+    }
     TaskItemRecurPreview nextIteration =
         RecurrenceHelper.createNextIteration(newest, DateTime.now());
     var willBeUrgentOrDue = nextIteration.isDueBefore(endDate) ||
@@ -239,7 +244,7 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
       }
       tempIterations.add(nextIteration);
       collector.add(nextIteration);
-      _addNextIterations(nextIteration, endDate, collector);
+      _addNextIterations(nextIteration, endDate, collector, depth + 1);
     }
   }
 

@@ -190,7 +190,11 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
   }
 
 
-  void addNextIterations(SprintDisplayTask newest, DateTime endDate, List<TaskItemRecurPreview> collector) {
+  void addNextIterations(SprintDisplayTask newest, DateTime endDate, List<TaskItemRecurPreview> collector, [int depth = 0]) {
+    if (depth >= 365) {
+      print('[Safety] Warning: Exceeded max iteration depth for task ${newest.name} (depth: $depth, recurIteration: ${newest.recurIteration})');
+      return;
+    }
     if (newest.startDate != null && !newest.startDate!.isUtc) {
       print("[addNextIterations]: Task '${newest.name}' has non-UTC start date! Iteration: ${newest.recurIteration}");
     }
@@ -205,7 +209,7 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
       }
       tempIterations.add(nextIteration);
       collector.add(nextIteration);
-      addNextIterations(nextIteration, endDate, collector);
+      addNextIterations(nextIteration, endDate, collector, depth + 1);
     }
   }
 
