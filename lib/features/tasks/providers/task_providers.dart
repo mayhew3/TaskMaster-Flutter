@@ -10,7 +10,8 @@ import '../../../models/serializers.dart';
 
 part 'task_providers.g.dart';
 
-/// Stream of all tasks for the current user
+/// Stream of incomplete tasks for the current user.
+/// Completed tasks are loaded on demand via [OlderCompletedTasksBatches].
 @riverpod
 Stream<List<TaskItem>> tasks(Ref ref) {
   // Get dependencies synchronously
@@ -27,22 +28,15 @@ Stream<List<TaskItem>> tasks(Ref ref) {
 
   print('📋 tasksProvider: Loading tasks for personDocId: $personDocId');
 
-  final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
-
   return firestore
       .collection('tasks')
-      .where(
-        Filter.or(
-          Filter('completionDate', isNull: true),
-          Filter('completionDate', isGreaterThan: thirtyDaysAgo.toUtc()),
-        ),
-      )
       .where('personDocId', isEqualTo: personDocId)
       .where('retired', isNull: true)
+      .where('completionDate', isNull: true)
       .snapshots()
       .map((snapshot) {
-        print('📋 tasksProvider: Received ${snapshot.docs.length} task documents from Firestore');
-        final tasks = snapshot.docs
+        print('📋 tasksProvider: Received ${snapshot.docs.length} incomplete tasks from Firestore');
+        return snapshot.docs
             .map((doc) {
               final json = doc.data();
               json['docId'] = doc.id;
@@ -50,9 +44,6 @@ Stream<List<TaskItem>> tasks(Ref ref) {
             })
             .whereType<TaskItem>()
             .toList();
-        final completedCount = tasks.where((t) => t.completionDate != null).length;
-        print('📋 tasksProvider: $completedCount completed, ${tasks.length - completedCount} incomplete');
-        return tasks;
       });
 }
 
@@ -104,22 +95,15 @@ Stream<List<TaskItem>> tasksWithRecurrences(Ref ref) {
   final stopwatch = Stopwatch()..start();
   print('⏱️ tasksWithRecurrencesProvider: Starting parallel queries');
 
-  final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
-
-  // Create tasks stream - server-side filter: incomplete + completed within 30 days
+  // Create tasks stream - only incomplete tasks
   final tasksStream = firestore
       .collection('tasks')
-      .where(
-        Filter.or(
-          Filter('completionDate', isNull: true),
-          Filter('completionDate', isGreaterThan: thirtyDaysAgo.toUtc()),
-        ),
-      )
       .where('personDocId', isEqualTo: personDocId)
       .where('retired', isNull: true)
+      .where('completionDate', isNull: true)
       .snapshots()
       .map((snapshot) {
-        print('⏱️ tasksWithRecurrences: Got ${snapshot.docs.length} task docs at ${stopwatch.elapsedMilliseconds}ms');
+        print('⏱️ tasksWithRecurrences: Got ${snapshot.docs.length} incomplete task docs at ${stopwatch.elapsedMilliseconds}ms');
         return snapshot.docs
             .map((doc) {
               final json = doc.data();
@@ -176,7 +160,8 @@ Stream<List<TaskItem>> tasksWithRecurrences(Ref ref) {
 }
 
 /// Get a specific task by ID with recurrence populated.
-/// Falls back to older completed tasks if not found in the base query.
+/// Falls back to already-loaded older completed task batches if not found
+/// in the base query. Does not fetch from Firestore by ID.
 @riverpod
 TaskItem? task(Ref ref, String taskId) {
   final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
@@ -303,9 +288,9 @@ class OlderCompletedState {
   }
 }
 
-/// Progressively loads older completed tasks in 30-day batches.
-/// Triggered when the user enables "Show Completed" and taps "Load More".
-/// Uses one-time fetches (not real-time listeners) since old completed tasks rarely change.
+/// Progressively loads completed tasks using cursor-based pagination.
+/// Triggered when the user enables "Show Completed".
+/// Uses one-time fetches (not real-time listeners) in fixed-size batches.
 @Riverpod(keepAlive: true)
 class OlderCompletedTasksBatches extends _$OlderCompletedTasksBatches {
   static const _batchSize = 50;
@@ -332,16 +317,15 @@ class OlderCompletedTasksBatches extends _$OlderCompletedTasksBatches {
       return;
     }
 
-    final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
-
     try {
-      // Always constrain to completed tasks (completionDate <= 30 days ago)
-      // to prevent paginating into incomplete tasks (completionDate == null)
+      // Query all completed tasks, paginated.
+      // The base query only returns incomplete tasks, so all completed
+      // tasks come through this provider.
       var query = firestore
           .collection('tasks')
           .where('personDocId', isEqualTo: personDocId)
           .where('retired', isNull: true)
-          .where('completionDate', isLessThanOrEqualTo: thirtyDaysAgo.toUtc())
+          .where('completionDate', isNull: false)
           .orderBy('completionDate', descending: true)
           .limit(_batchSize);
 
@@ -402,7 +386,7 @@ class OlderCompletedTasksBatches extends _$OlderCompletedTasksBatches {
         loadedTasks: [...state.loadedTasks, ...newTasks],
         lastDocument: () => snapshot.docs.isNotEmpty ? snapshot.docs.last : state.lastDocument,
         isLoading: false,
-        hasMore: newTasks.length >= _batchSize,
+        hasMore: snapshot.docs.length == _batchSize,
       );
     } catch (e) {
       print('[OlderCompletedTasksBatches] Error loading batch: $e');

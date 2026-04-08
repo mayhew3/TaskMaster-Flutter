@@ -135,8 +135,9 @@ void main() {
     });
 
     test('loadNextBatch sets hasMore=false when batch is empty', () async {
-      // Create Firestore with NO older completed tasks
+      // Create Firestore with NO completed tasks at all
       final firestore = await createFirestoreWithTasks(
+        recentCompletedTasks: 0,
         olderCompletedTasks: 0,
       );
 
@@ -208,6 +209,7 @@ void main() {
 
     test('loadNextBatch does nothing when hasMore=false', () async {
       final firestore = await createFirestoreWithTasks(
+        recentCompletedTasks: 0,
         olderCompletedTasks: 0,
       );
 
@@ -232,9 +234,10 @@ void main() {
     });
 
     test('pagination excludes incomplete tasks and eventually exhausts results', () async {
+      // Seed >50 older completed tasks to exercise cursor pagination across multiple batches
       final firestore = await createFirestoreWithTasks(
         incompleteTasks: 5,
-        olderCompletedTasks: 10,
+        olderCompletedTasks: 120,
       );
 
       final container = ProviderContainer(
@@ -271,6 +274,8 @@ void main() {
         isTrue,
       );
       expect(finalState.hasMore, false);
+      // With 120 tasks and batch size 50, should take multiple iterations
+      expect(iterations, greaterThan(1));
       expect(iterations, lessThan(maxIterations));
     });
   });

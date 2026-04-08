@@ -45,27 +45,36 @@ Future<List<TaskItem>> filteredTasks(Ref ref) async {
   print('📋 filteredTasksProvider: Starting with showCompleted=$showCompleted, showScheduled=$showScheduled');
 
   // Watch the tasks future with pending state for optimistic UI
+  // Base query only returns incomplete tasks
   final tasks = await ref.watch(tasksWithPendingStateProvider.future);
-  print('📋 filteredTasksProvider: Received ${tasks.length} tasks');
+  print('📋 filteredTasksProvider: Received ${tasks.length} incomplete tasks');
 
-  // Merge older completed tasks when showCompleted is enabled
-  List<TaskItem> allTasks;
+  // Build combined task list
+  final taskDocIds = tasks.map((t) => t.docId).toSet();
+  List<TaskItem> allTasks = [...tasks];
+
+  // Merge recently completed tasks (keeps just-completed tasks visible
+  // even though the base query no longer includes them)
+  if (recentlyCompleted.isNotEmpty) {
+    final uniqueRecent = recentlyCompleted
+        .where((t) => !taskDocIds.contains(t.docId))
+        .toList();
+    allTasks.addAll(uniqueRecent);
+    for (final t in uniqueRecent) {
+      taskDocIds.add(t.docId);
+    }
+  }
+
+  // Merge progressively loaded completed tasks when showCompleted is enabled
   if (showCompleted) {
     final olderState = ref.watch(olderCompletedTasksBatchesProvider);
     if (olderState.loadedTasks.isNotEmpty) {
-      // Deduplicate by docId (base query's 30-day window may overlap)
-      final baseDocIds = tasks.map((t) => t.docId).toSet();
       final uniqueOlder = olderState.loadedTasks
-          .where((t) => !baseDocIds.contains(t.docId))
+          .where((t) => !taskDocIds.contains(t.docId))
           .toList();
-
-      allTasks = [...tasks, ...uniqueOlder];
-      print('📋 filteredTasksProvider: Merged ${uniqueOlder.length} older completed tasks');
-    } else {
-      allTasks = tasks;
+      allTasks.addAll(uniqueOlder);
+      print('📋 filteredTasksProvider: Merged ${uniqueOlder.length} completed tasks');
     }
-  } else {
-    allTasks = tasks;
   }
 
   final filtered = allTasks.where((task) {
@@ -81,8 +90,7 @@ Future<List<TaskItem>> filteredTasks(Ref ref) async {
       }
     }
 
-    // Completed tasks: show when showCompleted is true OR if recently completed
-    // Recently completed tasks stay visible until tab navigation clears them (TM-323)
+    // Completed tasks: show when showCompleted is true OR if recently completed (TM-323)
     if (task.completionDate != null) {
       final isRecentlyCompleted =
           recentlyCompleted.any((t) => t.docId == task.docId);
