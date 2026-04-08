@@ -58,7 +58,6 @@ void main() {
     test('copyWith preserves unchanged fields', () {
       final state = OlderCompletedState(
         loadedTasks: [],
-        oldestCompletionDate: DateTime(2026, 1, 1),
         isLoading: false,
         hasMore: true,
       );
@@ -68,7 +67,6 @@ void main() {
       expect(updated.isLoading, true);
       expect(updated.hasMore, true);
       expect(updated.loadedTasks, isEmpty);
-      expect(updated.oldestCompletionDate, DateTime(2026, 1, 1));
     });
 
     test('copyWith updates multiple fields', () {

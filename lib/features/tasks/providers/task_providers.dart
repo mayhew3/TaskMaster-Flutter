@@ -274,30 +274,29 @@ Stream<List<TaskItem>> tasksForRecurrence(Ref ref, String recurrenceDocId) {
 /// State for progressively loaded older completed tasks
 class OlderCompletedState {
   final List<TaskItem> loadedTasks;
-  /// Cursor: the oldest completionDate we've loaded so far.
-  /// Next batch fetches tasks completed before this date.
-  final DateTime? oldestCompletionDate;
+  /// Firestore document snapshot cursor for deterministic pagination.
+  final DocumentSnapshot? lastDocument;
   final bool isLoading;
   final bool hasMore;
 
   const OlderCompletedState({
     required this.loadedTasks,
-    this.oldestCompletionDate,
+    this.lastDocument,
     required this.isLoading,
     required this.hasMore,
   });
 
   OlderCompletedState copyWith({
     List<TaskItem>? loadedTasks,
-    DateTime? Function()? oldestCompletionDate,
+    DocumentSnapshot? Function()? lastDocument,
     bool? isLoading,
     bool? hasMore,
   }) {
     return OlderCompletedState(
       loadedTasks: loadedTasks ?? this.loadedTasks,
-      oldestCompletionDate: oldestCompletionDate != null
-          ? oldestCompletionDate()
-          : this.oldestCompletionDate,
+      lastDocument: lastDocument != null
+          ? lastDocument()
+          : this.lastDocument,
       isLoading: isLoading ?? this.isLoading,
       hasMore: hasMore ?? this.hasMore,
     );
@@ -319,32 +318,35 @@ class OlderCompletedTasksBatches extends _$OlderCompletedTasksBatches {
   );
 
   Future<void> loadNextBatch() async {
-    print('📋 OlderBatch.loadNextBatch: called (isLoading=${state.isLoading}, hasMore=${state.hasMore})');
     if (state.isLoading || !state.hasMore) return;
     state = state.copyWith(isLoading: true);
 
     final firestore = ref.read(firestoreProvider);
     final personDocId = ref.read(personDocIdProvider);
     if (personDocId == null) {
-      print('📋 OlderBatch.loadNextBatch: no personDocId, aborting');
       state = state.copyWith(isLoading: false, hasMore: false);
       return;
     }
 
-    // Cursor: start from oldest loaded task, or 30 days ago for first batch
-    final cursor = state.oldestCompletionDate
-        ?? DateTime.now().subtract(const Duration(days: 30));
-    print('📋 OlderBatch.loadNextBatch: querying tasks completed before $cursor');
-
     try {
-      final snapshot = await firestore
+      // Build query with document-snapshot cursor for deterministic pagination
+      var query = firestore
           .collection('tasks')
           .where('personDocId', isEqualTo: personDocId)
           .where('retired', isNull: true)
-          .where('completionDate', isLessThanOrEqualTo: cursor.toUtc())
           .orderBy('completionDate', descending: true)
-          .limit(_batchSize)
-          .get();
+          .limit(_batchSize);
+
+      if (state.lastDocument != null) {
+        // Continue from last document of previous batch
+        query = query.startAfterDocument(state.lastDocument!);
+      } else {
+        // First batch: start from 30 days ago
+        final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
+        query = query.where('completionDate', isLessThanOrEqualTo: thirtyDaysAgo.toUtc());
+      }
+
+      final snapshot = await query.get();
 
       final rawTasks = snapshot.docs
           .map((doc) {
@@ -355,20 +357,24 @@ class OlderCompletedTasksBatches extends _$OlderCompletedTasksBatches {
           .whereType<TaskItem>()
           .toList();
 
-      // Link recurrences to older tasks — fetch from Firestore directly
+      // Link recurrences — fetch only the needed ones using whereIn (max 30 per query)
       final recurrenceDocIds = rawTasks
           .where((t) => t.recurrenceDocId != null)
           .map((t) => t.recurrenceDocId!)
-          .toSet();
+          .toSet()
+          .toList();
       final recurrenceMap = <String, TaskRecurrence>{};
       if (recurrenceDocIds.isNotEmpty) {
-        final recurrenceSnapshot = await firestore
-            .collection('taskRecurrences')
-            .where('personDocId', isEqualTo: personDocId)
-            .where('retired', isNull: true)
-            .get();
-        for (final doc in recurrenceSnapshot.docs) {
-          if (recurrenceDocIds.contains(doc.id)) {
+        // Firestore whereIn supports max 30 values per query
+        for (var i = 0; i < recurrenceDocIds.length; i += 30) {
+          final chunk = recurrenceDocIds.sublist(
+            i, i + 30 > recurrenceDocIds.length ? recurrenceDocIds.length : i + 30,
+          );
+          final recurrenceSnapshot = await firestore
+              .collection('taskRecurrences')
+              .where(FieldPath.documentId, whereIn: chunk)
+              .get();
+          for (final doc in recurrenceSnapshot.docs) {
             final json = doc.data();
             json['docId'] = doc.id;
             final recurrence = serializers.deserializeWith(TaskRecurrence.serializer, json);
@@ -388,17 +394,9 @@ class OlderCompletedTasksBatches extends _$OlderCompletedTasksBatches {
         return task;
       }).toList();
 
-      print('📋 OlderBatch.loadNextBatch: got ${newTasks.length} tasks');
-
-      // Use the oldest task's completionDate as cursor for next batch
-      DateTime? newCursor;
-      if (newTasks.isNotEmpty) {
-        newCursor = newTasks.last.completionDate;
-      }
-
       state = state.copyWith(
         loadedTasks: [...state.loadedTasks, ...newTasks],
-        oldestCompletionDate: () => newCursor ?? cursor,
+        lastDocument: () => snapshot.docs.isNotEmpty ? snapshot.docs.last : state.lastDocument,
         isLoading: false,
         hasMore: newTasks.length >= _batchSize,
       );
@@ -411,6 +409,7 @@ class OlderCompletedTasksBatches extends _$OlderCompletedTasksBatches {
   void reset() {
     state = const OlderCompletedState(
       loadedTasks: [],
+      lastDocument: null,
       isLoading: false,
       hasMore: true,
     );
