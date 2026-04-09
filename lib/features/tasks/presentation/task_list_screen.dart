@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:taskmaster/models/bad_schema_task.dart';
 import 'package:taskmaster/models/task_item.dart';
 import '../../../core/services/task_completion_service.dart';
 import '../providers/task_filter_providers.dart';
@@ -185,6 +186,15 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
       }
     }
 
+    // Show bad-schema tasks at the bottom with warning styling
+    final badSchemaTasks = ref.watch(badSchemaTasksProvider);
+    if (badSchemaTasks.isNotEmpty) {
+      tiles.add(HeadingItem('Schema Errors (${badSchemaTasks.length})'));
+      for (final badTask in badSchemaTasks) {
+        tiles.add(_BadSchemaTaskItem(badTask: badTask));
+      }
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.only(
         top: 7.0,
@@ -299,6 +309,34 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _BadSchemaTaskItem extends StatelessWidget {
+  final BadSchemaTask badTask;
+
+  const _BadSchemaTaskItem({required this.badTask});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.warning_amber_rounded, color: Colors.red),
+      title: Text(
+        badTask.displayName,
+        style: const TextStyle(
+          color: Colors.red,
+          fontStyle: FontStyle.italic,
+        ),
+      ),
+      subtitle: Text(
+        badTask.errorMessage,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+      ),
+      dense: true,
+      enabled: false,
     );
   }
 }
