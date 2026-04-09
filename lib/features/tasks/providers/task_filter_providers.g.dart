@@ -6,7 +6,7 @@ part of 'task_filter_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$filteredTasksHash() => r'ef193f60f306e386004217691e32c93cd3a6cb17';
+String _$filteredTasksHash() => r'60ae1ecb9a1e3913c6e626ea326ef3d38dedb95b';
 
 /// Filtered tasks based on visibility settings
 ///
@@ -46,13 +46,15 @@ final activeTaskCountProvider = AutoDisposeProvider<int>.internal(
 // ignore: unused_element
 typedef ActiveTaskCountRef = AutoDisposeProviderRef<int>;
 String _$completedTaskCountHash() =>
-    r'bd2847dd544a5ff2aed5a726556b25ec29ca847e';
+    r'128685e43b99c155d02a7bbfe5637d99c25231f7';
 
-/// Count of completed tasks
+/// Count of all completed (non-retired) tasks using Firestore aggregation.
+/// Uses count() instead of fetching documents since the base query
+/// only returns incomplete tasks.
 ///
 /// Copied from [completedTaskCount].
 @ProviderFor(completedTaskCount)
-final completedTaskCountProvider = AutoDisposeProvider<int>.internal(
+final completedTaskCountProvider = AutoDisposeFutureProvider<int>.internal(
   completedTaskCount,
   name: r'completedTaskCountProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -64,7 +66,7 @@ final completedTaskCountProvider = AutoDisposeProvider<int>.internal(
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef CompletedTaskCountRef = AutoDisposeProviderRef<int>;
+typedef CompletedTaskCountRef = AutoDisposeFutureProviderRef<int>;
 String _$groupedTasksHash() => r'd8ed7228a3c8e2c6413a4d25cabbaa4a1b639a4b';
 
 /// Grouped and sorted tasks for the task list
