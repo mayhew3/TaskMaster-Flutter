@@ -6,9 +6,10 @@ part of 'task_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$tasksHash() => r'81d25cc51e46c6f36308fc9848e8df26414b3126';
+String _$tasksHash() => r'5875c2fe946425fb11291eea72799a8e782bb752';
 
-/// Stream of all tasks for the current user
+/// Stream of incomplete tasks for the current user.
+/// Completed tasks are loaded on demand via [OlderCompletedTasksBatches].
 ///
 /// Copied from [tasks].
 @ProviderFor(tasks)
@@ -46,7 +47,7 @@ final taskRecurrencesProvider =
 // ignore: unused_element
 typedef TaskRecurrencesRef = AutoDisposeStreamProviderRef<List<TaskRecurrence>>;
 String _$tasksWithRecurrencesHash() =>
-    r'477588d9a3264f8f4c89b524ac9639ba7d19d02a';
+    r'd808aaec8cb845a51969c9c6d19de0ae1f07eb38';
 
 /// Stream of tasks with their recurrences populated
 /// Uses rxdart combineLatest2 for PARALLEL loading of tasks and recurrences
@@ -92,25 +93,29 @@ class _SystemHash {
 }
 
 /// Get a specific task by ID with recurrence populated.
-/// Falls back to older completed tasks if not found in the base query.
+/// Falls back to already-loaded older completed task batches if not found
+/// in the base query. Does not fetch from Firestore by ID.
 ///
 /// Copied from [task].
 @ProviderFor(task)
 const taskProvider = TaskFamily();
 
 /// Get a specific task by ID with recurrence populated.
-/// Falls back to older completed tasks if not found in the base query.
+/// Falls back to already-loaded older completed task batches if not found
+/// in the base query. Does not fetch from Firestore by ID.
 ///
 /// Copied from [task].
 class TaskFamily extends Family<TaskItem?> {
   /// Get a specific task by ID with recurrence populated.
-  /// Falls back to older completed tasks if not found in the base query.
+  /// Falls back to already-loaded older completed task batches if not found
+  /// in the base query. Does not fetch from Firestore by ID.
   ///
   /// Copied from [task].
   const TaskFamily();
 
   /// Get a specific task by ID with recurrence populated.
-  /// Falls back to older completed tasks if not found in the base query.
+  /// Falls back to already-loaded older completed task batches if not found
+  /// in the base query. Does not fetch from Firestore by ID.
   ///
   /// Copied from [task].
   TaskProvider call(String taskId) {
@@ -138,12 +143,14 @@ class TaskFamily extends Family<TaskItem?> {
 }
 
 /// Get a specific task by ID with recurrence populated.
-/// Falls back to older completed tasks if not found in the base query.
+/// Falls back to already-loaded older completed task batches if not found
+/// in the base query. Does not fetch from Firestore by ID.
 ///
 /// Copied from [task].
 class TaskProvider extends AutoDisposeProvider<TaskItem?> {
   /// Get a specific task by ID with recurrence populated.
-  /// Falls back to older completed tasks if not found in the base query.
+  /// Falls back to already-loaded older completed task batches if not found
+  /// in the base query. Does not fetch from Firestore by ID.
   ///
   /// Copied from [task].
   TaskProvider(String taskId)
@@ -433,11 +440,11 @@ final pendingTasksProvider =
 
 typedef _$PendingTasks = Notifier<Map<String, TaskItem>>;
 String _$olderCompletedTasksBatchesHash() =>
-    r'78792869d6225b32580590a3fdae4f659926d5ee';
+    r'ee78d57f7fb4917c44f2aa87da07fb29a4a0b9ae';
 
-/// Progressively loads older completed tasks in 30-day batches.
-/// Triggered when the user enables "Show Completed" and taps "Load More".
-/// Uses one-time fetches (not real-time listeners) since old completed tasks rarely change.
+/// Progressively loads completed tasks using cursor-based pagination.
+/// Triggered when the user enables "Show Completed".
+/// Uses one-time fetches (not real-time listeners) in fixed-size batches.
 ///
 /// Copied from [OlderCompletedTasksBatches].
 @ProviderFor(OlderCompletedTasksBatches)
