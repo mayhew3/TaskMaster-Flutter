@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../shared/presentation/app_drawer.dart';
 import '../providers/task_filter_providers.dart';
-import '../providers/task_providers.dart';
 
 /// Riverpod version of the Stats screen
 /// Displays task statistics using Riverpod providers

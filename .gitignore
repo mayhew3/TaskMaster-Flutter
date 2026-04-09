@@ -20,6 +20,9 @@ bin/node_modules/
 db_backups
 test_results/
 
+# Auto-generated emulator host config (machine-specific)
+assets/config/emulator_host.txt
+
 # IntelliJ related
 *.iml
 *.ipr

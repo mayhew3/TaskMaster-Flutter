@@ -1,6 +1,7 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskmaster/app_theme.dart';
 import 'package:taskmaster/models/task_colors.dart';
@@ -27,7 +28,7 @@ class RiverpodTaskMasterApp extends ConsumerStatefulWidget {
 
 class _RiverpodTaskMasterAppState extends ConsumerState<RiverpodTaskMasterApp> {
   static const serverEnv = String.fromEnvironment('SERVER', defaultValue: 'heroku');
-  static const emulatorHost = String.fromEnvironment('EMULATOR_HOST', defaultValue: '127.0.0.1');
+  static const _dartDefineHost = String.fromEnvironment('EMULATOR_HOST');
 
   @override
   void initState() {
@@ -35,10 +36,22 @@ class _RiverpodTaskMasterAppState extends ConsumerState<RiverpodTaskMasterApp> {
     _configureFirestore();
   }
 
-  void _configureFirestore() {
+  Future<void> _configureFirestore() async {
     final firestore = FirebaseFirestore.instance;
 
     if (serverEnv == 'local') {
+      // Resolve emulator host: dart-define override > auto-detected asset > fallback
+      String emulatorHost;
+      if (_dartDefineHost.isNotEmpty) {
+        emulatorHost = _dartDefineHost;
+      } else {
+        try {
+          emulatorHost = (await rootBundle.loadString('assets/config/emulator_host.txt')).trim();
+        } catch (_) {
+          emulatorHost = '127.0.0.1';
+        }
+      }
+
       print('🔧 USING LOCAL FIRESTORE EMULATOR');
       print('📡 Connecting to: $emulatorHost:8085');
       print('⚠️  Make sure Firebase emulator is running: firebase emulators:start');
