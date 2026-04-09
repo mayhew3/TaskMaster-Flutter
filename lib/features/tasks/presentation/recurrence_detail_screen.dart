@@ -54,8 +54,19 @@ class RecurrenceDetailScreen extends ConsumerWidget {
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (err, stack) {
                 print('❌ Error loading iterations: $err\n$stack');
-                return const Center(
-                  child: Text('Error loading data. Check logs for details.'),
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('Unable to load recurrence history. Please try again.'),
+                      const SizedBox(height: 12),
+                      ElevatedButton.icon(
+                        onPressed: () => ref.invalidate(tasksForRecurrenceProvider(recurrenceDocId)),
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Retry'),
+                      ),
+                    ],
+                  ),
                 );
               },
             ),

@@ -63,8 +63,19 @@ class StatsScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) {
           print('❌ Error loading stats: $err\n$stack');
-          return const Center(
-            child: Text('Error loading data. Check logs for details.'),
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Unable to load stats. Please try again.'),
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  onPressed: () => ref.invalidate(tasksProvider),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Retry'),
+                ),
+              ],
+            ),
           );
         },
       ),
