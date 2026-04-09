@@ -20,35 +20,11 @@ import '../../shared/presentation/refresh_button.dart';
 
 /// Riverpod version of the Task List screen
 /// Displays grouped tasks with filtering and completion functionality
-class TaskListScreen extends ConsumerStatefulWidget {
+class TaskListScreen extends ConsumerWidget {
   const TaskListScreen({super.key});
 
   @override
-  ConsumerState<TaskListScreen> createState() => _TaskListScreenState();
-}
-
-class _TaskListScreenState extends ConsumerState<TaskListScreen> {
-  bool _isSearching = false;
-  final _searchController = TextEditingController();
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  void _toggleSearch() {
-    setState(() {
-      _isSearching = !_isSearching;
-      if (!_isSearching) {
-        _searchController.clear();
-        ref.read(searchQueryProvider.notifier).clear();
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     print('📋 TaskListScreen: Building...');
     final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
 
@@ -56,24 +32,8 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: _isSearching
-            ? TextField(
-                controller: _searchController,
-                autofocus: true,
-                decoration: const InputDecoration(
-                  hintText: 'Search tasks...',
-                  border: InputBorder.none,
-                  hintStyle: TextStyle(color: Colors.white70),
-                ),
-                style: const TextStyle(color: Colors.white),
-                onChanged: (value) => ref.read(searchQueryProvider.notifier).set(value),
-              )
-            : const Text('Tasks'),
+        title: const Text('Tasks'),
         actions: [
-          IconButton(
-            icon: Icon(_isSearching ? Icons.close : Icons.search),
-            onPressed: _toggleSearch,
-          ),
           _FilterPopupMenu(),
           const RefreshButton(),
         ],

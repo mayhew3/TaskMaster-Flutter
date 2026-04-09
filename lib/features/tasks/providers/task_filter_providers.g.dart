@@ -6,7 +6,7 @@ part of 'task_filter_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$filteredTasksHash() => r'8827a4fd0038bbe673ef8fa8dfb8a7e06459ff6a';
+String _$filteredTasksHash() => r'60ae1ecb9a1e3913c6e626ea326ef3d38dedb95b';
 
 /// Filtered tasks based on visibility settings
 ///
@@ -120,22 +120,5 @@ final showScheduledProvider = NotifierProvider<ShowScheduled, bool>.internal(
 );
 
 typedef _$ShowScheduled = Notifier<bool>;
-String _$searchQueryHash() => r'652516df14d1f054c2015886d77c308ba15b0a58';
-
-/// Text search query for filtering tasks by name
-///
-/// Copied from [SearchQuery].
-@ProviderFor(SearchQuery)
-final searchQueryProvider = NotifierProvider<SearchQuery, String>.internal(
-  SearchQuery.new,
-  name: r'searchQueryProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$searchQueryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef _$SearchQuery = Notifier<String>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

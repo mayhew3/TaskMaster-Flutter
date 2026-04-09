@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/providers/auth_providers.dart';
@@ -36,26 +37,15 @@ class ShowScheduled extends _$ShowScheduled {
   void set(bool value) => state = value;
 }
 
-/// Text search query for filtering tasks by name
-@Riverpod(keepAlive: true)
-class SearchQuery extends _$SearchQuery {
-  @override
-  String build() => '';
-
-  void set(String value) => state = value;
-  void clear() => state = '';
-}
-
 /// Filtered tasks based on visibility settings
 @riverpod
 Future<List<TaskItem>> filteredTasks(Ref ref) async {
   final showCompleted = ref.watch(showCompletedProvider);
   final showScheduled = ref.watch(showScheduledProvider);
-  final searchQuery = ref.watch(searchQueryProvider).toLowerCase();
   final activeSprint = ref.watch(activeSprintProvider);
   final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
 
-  print('📋 filteredTasksProvider: Starting with showCompleted=$showCompleted, showScheduled=$showScheduled, search="${searchQuery.isNotEmpty ? searchQuery : ""}"');
+  print('📋 filteredTasksProvider: Starting with showCompleted=$showCompleted, showScheduled=$showScheduled');
 
   // Watch the tasks future with pending state for optimistic UI
   // Base query only returns incomplete tasks
@@ -93,11 +83,6 @@ Future<List<TaskItem>> filteredTasks(Ref ref) async {
   final filtered = allTasks.where((task) {
     // Always hide retired tasks
     if (task.retired != null) return false;
-
-    // Apply text search filter
-    if (searchQuery.isNotEmpty) {
-      if (!task.name.toLowerCase().contains(searchQuery)) return false;
-    }
 
     // Hide all tasks in active sprint (they're shown via sprint banner's "Show Tasks")
     if (activeSprint != null) {
