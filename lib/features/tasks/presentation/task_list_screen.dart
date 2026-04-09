@@ -28,8 +28,8 @@ class TaskListScreen extends ConsumerStatefulWidget {
 }
 
 class _TaskListScreenState extends ConsumerState<TaskListScreen> {
-  bool _isSearching = false;
   final _searchController = TextEditingController();
+  bool _searchBarVisible = false;
 
   @override
   void dispose() {
@@ -39,8 +39,8 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
 
   void _toggleSearch() {
     setState(() {
-      _isSearching = !_isSearching;
-      if (!_isSearching) {
+      _searchBarVisible = !_searchBarVisible;
+      if (!_searchBarVisible) {
         _searchController.clear();
         ref.read(searchQueryProvider.notifier).clear();
       }
@@ -49,14 +49,17 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print('📋 TaskListScreen: Building...');
     final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
-
-    print('📋 TaskListScreen: tasksAsync isLoading=${tasksAsync.isLoading}, hasValue=${tasksAsync.hasValue}');
+    // Sync search bar visibility with provider (e.g., cleared by tab navigation)
+    final searchQuery = ref.watch(searchQueryProvider);
+    if (searchQuery.isEmpty && _searchBarVisible && _searchController.text.isNotEmpty) {
+      // Provider was cleared externally — sync the controller
+      _searchController.clear();
+    }
 
     return Scaffold(
       appBar: AppBar(
-        title: _isSearching
+        title: _searchBarVisible
             ? TextField(
                 controller: _searchController,
                 autofocus: true,
@@ -71,7 +74,7 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
             : const Text('Tasks'),
         actions: [
           IconButton(
-            icon: Icon(_isSearching ? Icons.close : Icons.search),
+            icon: Icon(_searchBarVisible ? Icons.close : Icons.search),
             onPressed: _toggleSearch,
           ),
           _FilterPopupMenu(),

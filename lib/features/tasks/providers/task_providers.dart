@@ -17,12 +17,15 @@ part 'task_providers.g.dart';
 @Riverpod(keepAlive: true)
 class BadSchemaTasks extends _$BadSchemaTasks {
   @override
-  List<BadSchemaTask> build() => [];
+  List<BadSchemaTask> build() {
+    // Reset on user change to prevent cross-user leakage
+    ref.watch(personDocIdProvider);
+    return [];
+  }
 
-  void add(BadSchemaTask task) {
-    if (!state.any((t) => t.docId == task.docId)) {
-      state = [...state, task];
-    }
+  /// Replace the entire bad-schema list (called per snapshot to reflect current state)
+  void replace(List<BadSchemaTask> tasks) {
+    state = tasks;
   }
 
   void clear() {
@@ -58,7 +61,9 @@ Stream<List<TaskItem>> tasks(Ref ref) {
       .snapshots()
       .map((snapshot) {
         print('📋 tasksProvider: Received ${snapshot.docs.length} incomplete tasks from Firestore');
-        return _deserializeTasks(snapshot.docs, badSchemaNotifier);
+        final result = _deserializeTasks(snapshot.docs);
+        badSchemaNotifier.replace(result.badTasks);
+        return result.tasks;
       });
 }
 
@@ -110,8 +115,6 @@ Stream<List<TaskItem>> tasksWithRecurrences(Ref ref) {
   final stopwatch = Stopwatch()..start();
   print('⏱️ tasksWithRecurrencesProvider: Starting parallel queries');
 
-  final badSchemaNotifier = ref.read(badSchemaTasksProvider.notifier);
-
   // Create tasks stream - only incomplete tasks
   final tasksStream = firestore
       .collection('tasks')
@@ -121,7 +124,9 @@ Stream<List<TaskItem>> tasksWithRecurrences(Ref ref) {
       .snapshots()
       .map((snapshot) {
         print('⏱️ tasksWithRecurrences: Got ${snapshot.docs.length} incomplete task docs at ${stopwatch.elapsedMilliseconds}ms');
-        return _deserializeTasks(snapshot.docs, badSchemaNotifier);
+        final result = _deserializeTasks(snapshot.docs);
+        // Bad schema tasks are reported via tasksProvider, no need to duplicate here
+        return result.tasks;
       });
 
   // Create recurrences stream
@@ -267,13 +272,20 @@ Stream<List<TaskItem>> tasksForRecurrence(Ref ref, String recurrenceDocId) {
 }
 
 /// State for progressively loaded older completed tasks
+/// Result of deserializing Firestore task documents.
+class _DeserializeResult {
+  final List<TaskItem> tasks;
+  final List<BadSchemaTask> badTasks;
+  _DeserializeResult(this.tasks, this.badTasks);
+}
+
 /// Deserialize Firestore task documents with error handling.
-/// Failed documents are reported to [BadSchemaTasks] instead of silently dropped.
-List<TaskItem> _deserializeTasks(
+/// Returns both successfully deserialized tasks and bad-schema entries.
+_DeserializeResult _deserializeTasks(
   List<QueryDocumentSnapshot<Map<String, dynamic>>> docs,
-  BadSchemaTasks badSchemaNotifier,
 ) {
   final tasks = <TaskItem>[];
+  final badTasks = <BadSchemaTask>[];
   for (final doc in docs) {
     final json = doc.data();
     json['docId'] = doc.id;
@@ -282,22 +294,22 @@ List<TaskItem> _deserializeTasks(
       if (task != null) {
         tasks.add(task);
       } else {
-        badSchemaNotifier.add(BadSchemaTask(
+        badTasks.add(BadSchemaTask(
           docId: doc.id,
-          rawName: json['name'] as String?,
+          rawName: json['name']?.toString(),
           errorMessage: 'Deserialization returned null',
         ));
       }
     } catch (e) {
       debugPrint('⚠️ [TaskDeserialization] Error for doc ${doc.id} "${json['name']}": $e');
-      badSchemaNotifier.add(BadSchemaTask(
+      badTasks.add(BadSchemaTask(
         docId: doc.id,
-        rawName: json['name'] as String?,
+        rawName: json['name']?.toString(),
         errorMessage: e.toString(),
       ));
     }
   }
-  return tasks;
+  return _DeserializeResult(tasks, badTasks);
 }
 
 class OlderCompletedState {

@@ -6,7 +6,7 @@ part of 'task_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$tasksHash() => r'1999681b01e56e7f414bb310032459ce3ca593cc';
+String _$tasksHash() => r'00f7af242f67371fdef6619adfaedeba2b9665d6';
 
 /// Stream of incomplete tasks for the current user.
 /// Completed tasks are loaded on demand via [OlderCompletedTasksBatches].
@@ -47,7 +47,7 @@ final taskRecurrencesProvider =
 // ignore: unused_element
 typedef TaskRecurrencesRef = AutoDisposeStreamProviderRef<List<TaskRecurrence>>;
 String _$tasksWithRecurrencesHash() =>
-    r'153b088ffeb5fd0071f87e83e2aaa7f951140697';
+    r'2cf4c6e74bbe9f473905dd636cc16c89785d706c';
 
 /// Stream of tasks with their recurrences populated
 /// Uses rxdart combineLatest2 for PARALLEL loading of tasks and recurrences
@@ -399,7 +399,7 @@ class _TasksForRecurrenceProviderElement
       (origin as TasksForRecurrenceProvider).recurrenceDocId;
 }
 
-String _$badSchemaTasksHash() => r'cc5da3e4f9d6350dbe1c4d3b6b55ed2f6c98b58b';
+String _$badSchemaTasksHash() => r'97f06982c32ba51ec0e4d3ca0021935a2c707b33';
 
 /// Tracks tasks that failed Firestore deserialization.
 /// Displayed in the UI with warning styling so the user knows something is wrong.

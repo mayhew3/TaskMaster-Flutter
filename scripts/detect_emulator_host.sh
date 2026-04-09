@@ -6,6 +6,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 OUTPUT_FILE="$PROJECT_DIR/assets/config/emulator_host.txt"
 
+# Ensure output directory exists
+mkdir -p "$(dirname "$OUTPUT_FILE")"
+
 # Detect LAN IP based on OS
 if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
   # Windows (Git Bash / MSYS2)
