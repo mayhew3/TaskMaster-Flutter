@@ -6,7 +6,7 @@ part of 'task_filter_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$filteredTasksHash() => r'c03ee7d7f20ccf6b797957b92b72c631bf6f6896';
+String _$filteredTasksHash() => r'ef193f60f306e386004217691e32c93cd3a6cb17';
 
 /// Filtered tasks based on visibility settings
 ///
@@ -85,7 +85,7 @@ final groupedTasksProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef GroupedTasksRef = AutoDisposeFutureProviderRef<List<TaskGroup>>;
-String _$showCompletedHash() => r'4ff3e319b903af05cbce17b2f69eef4b9aed02c0';
+String _$showCompletedHash() => r'a7c3485980d4e64d2b0945fd8a098070bd5fbffb';
 
 /// Simple state providers for filter toggles
 /// Using keepAlive: true to persist state across tab switches

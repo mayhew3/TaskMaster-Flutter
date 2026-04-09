@@ -61,9 +61,12 @@ class StatsScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(
-          child: Text('Error loading stats: $err'),
-        ),
+        error: (err, stack) {
+          print('❌ Error loading stats: $err\n$stack');
+          return const Center(
+            child: Text('Error loading data. Check logs for details.'),
+          );
+        },
       ),
       drawer: const AppDrawer(),
     );

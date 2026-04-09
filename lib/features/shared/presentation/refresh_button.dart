@@ -21,6 +21,8 @@ class RefreshButton extends ConsumerWidget {
         ref.invalidate(tasksProvider);
         ref.invalidate(taskRecurrencesProvider);
         ref.invalidate(sprintsProvider);
+        // Reset progressively loaded older completed tasks
+        ref.read(olderCompletedTasksBatchesProvider.notifier).reset();
       },
     );
   }

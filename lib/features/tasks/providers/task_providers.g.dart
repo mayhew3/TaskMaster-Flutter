@@ -6,9 +6,10 @@ part of 'task_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$tasksHash() => r'1ded0be20e4c6f4693dec189dd668db3a9cd05f7';
+String _$tasksHash() => r'5875c2fe946425fb11291eea72799a8e782bb752';
 
-/// Stream of all tasks for the current user
+/// Stream of incomplete tasks for the current user.
+/// Completed tasks are loaded on demand via [OlderCompletedTasksBatches].
 ///
 /// Copied from [tasks].
 @ProviderFor(tasks)
@@ -46,7 +47,7 @@ final taskRecurrencesProvider =
 // ignore: unused_element
 typedef TaskRecurrencesRef = AutoDisposeStreamProviderRef<List<TaskRecurrence>>;
 String _$tasksWithRecurrencesHash() =>
-    r'394e961fcc9fc903cc370f486929b4d04ad33eaa';
+    r'd808aaec8cb845a51969c9c6d19de0ae1f07eb38';
 
 /// Stream of tasks with their recurrences populated
 /// Uses rxdart combineLatest2 for PARALLEL loading of tasks and recurrences
@@ -68,7 +69,7 @@ final tasksWithRecurrencesProvider = StreamProvider<List<TaskItem>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TasksWithRecurrencesRef = StreamProviderRef<List<TaskItem>>;
-String _$taskHash() => r'7ed90f682f4bcde660797d668b949ef0466bef67';
+String _$taskHash() => r'f6a858a1ee6af1e76006b0da24add92c64f33dea';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -91,22 +92,30 @@ class _SystemHash {
   }
 }
 
-/// Get a specific task by ID with recurrence populated
+/// Get a specific task by ID with recurrence populated.
+/// Falls back to already-loaded older completed task batches if not found
+/// in the base query. Does not fetch from Firestore by ID.
 ///
 /// Copied from [task].
 @ProviderFor(task)
 const taskProvider = TaskFamily();
 
-/// Get a specific task by ID with recurrence populated
+/// Get a specific task by ID with recurrence populated.
+/// Falls back to already-loaded older completed task batches if not found
+/// in the base query. Does not fetch from Firestore by ID.
 ///
 /// Copied from [task].
 class TaskFamily extends Family<TaskItem?> {
-  /// Get a specific task by ID with recurrence populated
+  /// Get a specific task by ID with recurrence populated.
+  /// Falls back to already-loaded older completed task batches if not found
+  /// in the base query. Does not fetch from Firestore by ID.
   ///
   /// Copied from [task].
   const TaskFamily();
 
-  /// Get a specific task by ID with recurrence populated
+  /// Get a specific task by ID with recurrence populated.
+  /// Falls back to already-loaded older completed task batches if not found
+  /// in the base query. Does not fetch from Firestore by ID.
   ///
   /// Copied from [task].
   TaskProvider call(String taskId) {
@@ -133,11 +142,15 @@ class TaskFamily extends Family<TaskItem?> {
   String? get name => r'taskProvider';
 }
 
-/// Get a specific task by ID with recurrence populated
+/// Get a specific task by ID with recurrence populated.
+/// Falls back to already-loaded older completed task batches if not found
+/// in the base query. Does not fetch from Firestore by ID.
 ///
 /// Copied from [task].
 class TaskProvider extends AutoDisposeProvider<TaskItem?> {
-  /// Get a specific task by ID with recurrence populated
+  /// Get a specific task by ID with recurrence populated.
+  /// Falls back to already-loaded older completed task batches if not found
+  /// in the base query. Does not fetch from Firestore by ID.
   ///
   /// Copied from [task].
   TaskProvider(String taskId)
@@ -426,5 +439,26 @@ final pendingTasksProvider =
     );
 
 typedef _$PendingTasks = Notifier<Map<String, TaskItem>>;
+String _$olderCompletedTasksBatchesHash() =>
+    r'ee78d57f7fb4917c44f2aa87da07fb29a4a0b9ae';
+
+/// Progressively loads completed tasks using cursor-based pagination.
+/// Triggered when the user enables "Show Completed".
+/// Uses one-time fetches (not real-time listeners) in fixed-size batches.
+///
+/// Copied from [OlderCompletedTasksBatches].
+@ProviderFor(OlderCompletedTasksBatches)
+final olderCompletedTasksBatchesProvider =
+    NotifierProvider<OlderCompletedTasksBatches, OlderCompletedState>.internal(
+      OlderCompletedTasksBatches.new,
+      name: r'olderCompletedTasksBatchesProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$olderCompletedTasksBatchesHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$OlderCompletedTasksBatches = Notifier<OlderCompletedState>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

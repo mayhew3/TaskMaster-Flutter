@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:rxdart/rxdart.dart';
@@ -9,7 +10,8 @@ import '../../../models/serializers.dart';
 
 part 'task_providers.g.dart';
 
-/// Stream of all tasks for the current user
+/// Stream of incomplete tasks for the current user.
+/// Completed tasks are loaded on demand via [OlderCompletedTasksBatches].
 @riverpod
 Stream<List<TaskItem>> tasks(Ref ref) {
   // Get dependencies synchronously
@@ -26,32 +28,21 @@ Stream<List<TaskItem>> tasks(Ref ref) {
 
   print('📋 tasksProvider: Loading tasks for personDocId: $personDocId');
 
-  final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
-
   return firestore
       .collection('tasks')
       .where('personDocId', isEqualTo: personDocId)
       .where('retired', isNull: true)
+      .where('completionDate', isNull: true)
       .snapshots()
       .map((snapshot) {
-        print('📋 tasksProvider: Received ${snapshot.docs.length} task documents from Firestore');
+        print('📋 tasksProvider: Received ${snapshot.docs.length} incomplete tasks from Firestore');
         return snapshot.docs
             .map((doc) {
               final json = doc.data();
               json['docId'] = doc.id;
-              final task = serializers.deserializeWith(TaskItem.serializer, json);
-
-              // Filter out old completed tasks (older than 7 days)
-              if (task != null) {
-                final completionDate = task.completionDate;
-                if (completionDate != null && completionDate.isBefore(sevenDaysAgo)) {
-                  return null;
-                }
-                return task;
-              }
-              return null;
+              return serializers.deserializeWith(TaskItem.serializer, json);
             })
-            .whereType<TaskItem>() // Remove nulls
+            .whereType<TaskItem>()
             .toList();
       });
 }
@@ -104,31 +95,20 @@ Stream<List<TaskItem>> tasksWithRecurrences(Ref ref) {
   final stopwatch = Stopwatch()..start();
   print('⏱️ tasksWithRecurrencesProvider: Starting parallel queries');
 
-  final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
-
-  // Create tasks stream
+  // Create tasks stream - only incomplete tasks
   final tasksStream = firestore
       .collection('tasks')
       .where('personDocId', isEqualTo: personDocId)
       .where('retired', isNull: true)
+      .where('completionDate', isNull: true)
       .snapshots()
       .map((snapshot) {
-        print('⏱️ tasksWithRecurrences: Got ${snapshot.docs.length} task docs at ${stopwatch.elapsedMilliseconds}ms');
+        print('⏱️ tasksWithRecurrences: Got ${snapshot.docs.length} incomplete task docs at ${stopwatch.elapsedMilliseconds}ms');
         return snapshot.docs
             .map((doc) {
               final json = doc.data();
               json['docId'] = doc.id;
-              final task = serializers.deserializeWith(TaskItem.serializer, json);
-
-              // Filter out old completed tasks (older than 7 days)
-              if (task != null) {
-                final completionDate = task.completionDate;
-                if (completionDate != null && completionDate.isBefore(sevenDaysAgo)) {
-                  return null;
-                }
-                return task;
-              }
-              return null;
+              return serializers.deserializeWith(TaskItem.serializer, json);
             })
             .whereType<TaskItem>()
             .toList();
@@ -179,15 +159,23 @@ Stream<List<TaskItem>> tasksWithRecurrences(Ref ref) {
   );
 }
 
-/// Get a specific task by ID with recurrence populated
+/// Get a specific task by ID with recurrence populated.
+/// Falls back to already-loaded older completed task batches if not found
+/// in the base query. Does not fetch from Firestore by ID.
 @riverpod
 TaskItem? task(Ref ref, String taskId) {
   final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
 
-  return tasksAsync.maybeWhen(
+  final baseResult = tasksAsync.maybeWhen(
     data: (tasks) => tasks.where((t) => t.docId == taskId).firstOrNull,
     orElse: () => null,
   );
+
+  if (baseResult != null) return baseResult;
+
+  // Fall back to older completed tasks batch
+  final olderState = ref.watch(olderCompletedTasksBatchesProvider);
+  return olderState.loadedTasks.where((t) => t.docId == taskId).firstOrNull;
 }
 
 /// Tracks recently completed tasks to keep them visible temporarily
@@ -266,4 +254,152 @@ Stream<List<TaskItem>> tasksForRecurrence(Ref ref, String recurrenceDocId) {
           })
           .whereType<TaskItem>()
           .toList());
+}
+
+/// State for progressively loaded older completed tasks
+class OlderCompletedState {
+  final List<TaskItem> loadedTasks;
+  /// Firestore document snapshot cursor for deterministic pagination.
+  final DocumentSnapshot? lastDocument;
+  final bool isLoading;
+  final bool hasMore;
+
+  const OlderCompletedState({
+    required this.loadedTasks,
+    this.lastDocument,
+    required this.isLoading,
+    required this.hasMore,
+  });
+
+  OlderCompletedState copyWith({
+    List<TaskItem>? loadedTasks,
+    DocumentSnapshot? Function()? lastDocument,
+    bool? isLoading,
+    bool? hasMore,
+  }) {
+    return OlderCompletedState(
+      loadedTasks: loadedTasks ?? this.loadedTasks,
+      lastDocument: lastDocument != null
+          ? lastDocument()
+          : this.lastDocument,
+      isLoading: isLoading ?? this.isLoading,
+      hasMore: hasMore ?? this.hasMore,
+    );
+  }
+}
+
+/// Progressively loads completed tasks using cursor-based pagination.
+/// Triggered when the user enables "Show Completed".
+/// Uses one-time fetches (not real-time listeners) in fixed-size batches.
+@Riverpod(keepAlive: true)
+class OlderCompletedTasksBatches extends _$OlderCompletedTasksBatches {
+  static const _batchSize = 50;
+
+  @override
+  OlderCompletedState build() {
+    // Watch personDocId so state resets on sign-out/sign-in (prevents cross-user leakage)
+    ref.watch(personDocIdProvider);
+    return const OlderCompletedState(
+      loadedTasks: [],
+      isLoading: false,
+      hasMore: true,
+    );
+  }
+
+  Future<void> loadNextBatch() async {
+    if (state.isLoading || !state.hasMore) return;
+    state = state.copyWith(isLoading: true);
+
+    final firestore = ref.read(firestoreProvider);
+    final personDocId = ref.read(personDocIdProvider);
+    if (personDocId == null) {
+      state = state.copyWith(isLoading: false, hasMore: false);
+      return;
+    }
+
+    try {
+      // Query all completed tasks, paginated.
+      // The base query only returns incomplete tasks, so all completed
+      // tasks come through this provider.
+      var query = firestore
+          .collection('tasks')
+          .where('personDocId', isEqualTo: personDocId)
+          .where('retired', isNull: true)
+          .where('completionDate', isNull: false)
+          .orderBy('completionDate', descending: true)
+          .limit(_batchSize);
+
+      if (state.lastDocument != null) {
+        // Continue from last document of previous batch
+        query = query.startAfterDocument(state.lastDocument!);
+      }
+
+      final snapshot = await query.get();
+
+      final rawTasks = snapshot.docs
+          .map((doc) {
+            final json = doc.data();
+            json['docId'] = doc.id;
+            return serializers.deserializeWith(TaskItem.serializer, json);
+          })
+          .whereType<TaskItem>()
+          .toList();
+
+      // Link recurrences — fetch only the needed ones using whereIn (max 30 per query)
+      final recurrenceDocIds = rawTasks
+          .where((t) => t.recurrenceDocId != null)
+          .map((t) => t.recurrenceDocId!)
+          .toSet()
+          .toList();
+      final recurrenceMap = <String, TaskRecurrence>{};
+      if (recurrenceDocIds.isNotEmpty) {
+        // Firestore whereIn supports max 30 values per query
+        for (var i = 0; i < recurrenceDocIds.length; i += 30) {
+          final chunk = recurrenceDocIds.sublist(
+            i, i + 30 > recurrenceDocIds.length ? recurrenceDocIds.length : i + 30,
+          );
+          final recurrenceSnapshot = await firestore
+              .collection('taskRecurrences')
+              .where(FieldPath.documentId, whereIn: chunk)
+              .get();
+          for (final doc in recurrenceSnapshot.docs) {
+            final json = doc.data();
+            json['docId'] = doc.id;
+            final recurrence = serializers.deserializeWith(TaskRecurrence.serializer, json);
+            if (recurrence != null) {
+              recurrenceMap[doc.id] = recurrence;
+            }
+          }
+        }
+      }
+      final newTasks = rawTasks.map((task) {
+        if (task.recurrenceDocId != null) {
+          final recurrence = recurrenceMap[task.recurrenceDocId];
+          if (recurrence != null) {
+            return task.rebuild((t) => t..recurrence = recurrence.toBuilder());
+          }
+        }
+        return task;
+      }).toList();
+
+      state = state.copyWith(
+        loadedTasks: [...state.loadedTasks, ...newTasks],
+        lastDocument: () => snapshot.docs.isNotEmpty ? snapshot.docs.last : state.lastDocument,
+        isLoading: false,
+        hasMore: snapshot.docs.length == _batchSize,
+      );
+    } catch (e) {
+      print('[OlderCompletedTasksBatches] Error loading batch: $e');
+      state = state.copyWith(isLoading: false);
+    }
+  }
+
+  void reset() {
+    state = const OlderCompletedState(
+      loadedTasks: [],
+      lastDocument: null,
+      isLoading: false,
+      hasMore: true,
+    );
+  }
 }

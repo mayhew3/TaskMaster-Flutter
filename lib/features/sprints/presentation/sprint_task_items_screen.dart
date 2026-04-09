@@ -105,9 +105,12 @@ class SprintTaskItemsScreen extends ConsumerWidget {
           }
           return const Center(child: CircularProgressIndicator());
         },
-        error: (err, stack) => Center(
-          child: Text('Error loading sprint tasks: $err'),
-        ),
+        error: (err, stack) {
+          print('❌ Error loading sprint tasks: $err\n$stack');
+          return const Center(
+            child: Text('Error loading data. Check logs for details.'),
+          );
+        },
       ),
       drawer: const AppDrawer(),
     );

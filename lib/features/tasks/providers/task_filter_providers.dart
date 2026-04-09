@@ -13,7 +13,15 @@ class ShowCompleted extends _$ShowCompleted {
   @override
   bool build() => false;
 
-  void toggle() => state = !state;
+  void toggle() {
+    state = !state;
+    print('📋 ShowCompleted.toggle: state=$state');
+    if (state) {
+      // Pre-fetch first batch of older completed tasks when toggling on
+      print('📋 ShowCompleted.toggle: triggering loadNextBatch');
+      ref.read(olderCompletedTasksBatchesProvider.notifier).loadNextBatch();
+    }
+  }
   void set(bool value) => state = value;
 }
 
@@ -37,10 +45,39 @@ Future<List<TaskItem>> filteredTasks(Ref ref) async {
   print('📋 filteredTasksProvider: Starting with showCompleted=$showCompleted, showScheduled=$showScheduled');
 
   // Watch the tasks future with pending state for optimistic UI
+  // Base query only returns incomplete tasks
   final tasks = await ref.watch(tasksWithPendingStateProvider.future);
-  print('📋 filteredTasksProvider: Received ${tasks.length} tasks');
+  print('📋 filteredTasksProvider: Received ${tasks.length} incomplete tasks');
 
-  final filtered = tasks.where((task) {
+  // Build combined task list
+  final taskDocIds = tasks.map((t) => t.docId).toSet();
+  List<TaskItem> allTasks = [...tasks];
+
+  // Merge recently completed tasks (keeps just-completed tasks visible
+  // even though the base query no longer includes them)
+  if (recentlyCompleted.isNotEmpty) {
+    final uniqueRecent = recentlyCompleted
+        .where((t) => !taskDocIds.contains(t.docId))
+        .toList();
+    allTasks.addAll(uniqueRecent);
+    for (final t in uniqueRecent) {
+      taskDocIds.add(t.docId);
+    }
+  }
+
+  // Merge progressively loaded completed tasks when showCompleted is enabled
+  if (showCompleted) {
+    final olderState = ref.watch(olderCompletedTasksBatchesProvider);
+    if (olderState.loadedTasks.isNotEmpty) {
+      final uniqueOlder = olderState.loadedTasks
+          .where((t) => !taskDocIds.contains(t.docId))
+          .toList();
+      allTasks.addAll(uniqueOlder);
+      print('📋 filteredTasksProvider: Merged ${uniqueOlder.length} completed tasks');
+    }
+  }
+
+  final filtered = allTasks.where((task) {
     // Always hide retired tasks
     if (task.retired != null) return false;
 
@@ -53,8 +90,7 @@ Future<List<TaskItem>> filteredTasks(Ref ref) async {
       }
     }
 
-    // Completed tasks: show when showCompleted is true OR if recently completed
-    // Recently completed tasks stay visible until tab navigation clears them (TM-323)
+    // Completed tasks: show when showCompleted is true OR if recently completed (TM-323)
     if (task.completionDate != null) {
       final isRecentlyCompleted =
           recentlyCompleted.any((t) => t.docId == task.docId);

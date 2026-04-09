@@ -46,9 +46,12 @@ class TaskListScreen extends ConsumerWidget {
           }
           return const Center(child: CircularProgressIndicator());
         },
-        error: (err, stack) => Center(
-          child: Text('Error loading tasks: $err'),
-        ),
+        error: (err, stack) {
+          print('❌ Error loading tasks: $err\n$stack');
+          return const Center(
+            child: Text('Error loading data. Check logs for details.'),
+          );
+        },
       ),
       drawer: const AppDrawer(),
       floatingActionButton: FloatingActionButton(
@@ -166,10 +169,19 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
       );
     }
 
+    final showCompleted = ref.watch(showCompletedProvider);
+
     for (final group in groupedTasks) {
       tiles.add(HeadingItem(group.name));
       for (final task in group.tasks) {
         tiles.add(_TaskListItem(task: task));
+      }
+      // Add "Load More" button after the Completed group
+      if (group.name == 'Completed' && showCompleted) {
+        final olderState = ref.watch(olderCompletedTasksBatchesProvider);
+        if (olderState.hasMore) {
+          tiles.add(_LoadMoreCompletedButton());
+        }
       }
     }
 
@@ -286,6 +298,34 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
             style: TextStyle(fontSize: 17.0),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _LoadMoreCompletedButton extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final olderState = ref.watch(olderCompletedTasksBatchesProvider);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Center(
+        child: TextButton.icon(
+          onPressed: olderState.isLoading
+              ? null
+              : () => ref.read(olderCompletedTasksBatchesProvider.notifier).loadNextBatch(),
+          icon: olderState.isLoading
+              ? const SizedBox(
+                  height: 16,
+                  width: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.expand_more),
+          label: Text(olderState.isLoading
+              ? 'Loading...'
+              : 'Load older completed tasks'),
+        ),
       ),
     );
   }

@@ -8,6 +8,24 @@
         { "fieldPath": "recurrenceDocId", "order": "ASCENDING" },
         { "fieldPath": "recurIteration", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "tasks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "personDocId", "order": "ASCENDING" },
+        { "fieldPath": "retired", "order": "ASCENDING" },
+        { "fieldPath": "completionDate", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "tasks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "personDocId", "order": "ASCENDING" },
+        { "fieldPath": "retired", "order": "ASCENDING" },
+        { "fieldPath": "completionDate", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
