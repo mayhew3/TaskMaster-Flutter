@@ -16,7 +16,8 @@ Future<String> _resolveEmulatorHost() async {
   const dartDefineHost = String.fromEnvironment('EMULATOR_HOST');
   if (dartDefineHost.isNotEmpty) return dartDefineHost;
   try {
-    return (await rootBundle.loadString('assets/config/emulator_host.txt')).trim();
+    final assetHost = (await rootBundle.loadString('assets/config/emulator_host.txt')).trim();
+    return assetHost.isEmpty ? '127.0.0.1' : assetHost;
   } catch (_) {
     return '127.0.0.1';
   }

@@ -125,7 +125,7 @@ Stream<List<TaskItem>> tasksWithRecurrences(Ref ref) {
       .map((snapshot) {
         print('⏱️ tasksWithRecurrences: Got ${snapshot.docs.length} incomplete task docs at ${stopwatch.elapsedMilliseconds}ms');
         final result = _deserializeTasks(snapshot.docs);
-        // Bad schema tasks are reported via tasksProvider, no need to duplicate here
+        ref.read(badSchemaTasksProvider.notifier).replace(result.badTasks);
         return result.tasks;
       });
 
