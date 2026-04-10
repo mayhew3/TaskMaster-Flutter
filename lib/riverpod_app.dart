@@ -19,7 +19,9 @@ import 'package:taskmaster/features/tasks/presentation/stats_screen.dart';
 /// Riverpod-based main app widget
 /// This replaces the Redux-based TaskMasterApp when useRiverpodForAuth is enabled
 class RiverpodTaskMasterApp extends ConsumerStatefulWidget {
-  const RiverpodTaskMasterApp({super.key});
+  final String emulatorHost;
+
+  const RiverpodTaskMasterApp({super.key, required this.emulatorHost});
 
   @override
   ConsumerState<RiverpodTaskMasterApp> createState() => _RiverpodTaskMasterAppState();
@@ -27,7 +29,6 @@ class RiverpodTaskMasterApp extends ConsumerStatefulWidget {
 
 class _RiverpodTaskMasterAppState extends ConsumerState<RiverpodTaskMasterApp> {
   static const serverEnv = String.fromEnvironment('SERVER', defaultValue: 'heroku');
-  static const emulatorHost = String.fromEnvironment('EMULATOR_HOST', defaultValue: '127.0.0.1');
 
   @override
   void initState() {
@@ -39,6 +40,7 @@ class _RiverpodTaskMasterAppState extends ConsumerState<RiverpodTaskMasterApp> {
     final firestore = FirebaseFirestore.instance;
 
     if (serverEnv == 'local') {
+      final emulatorHost = widget.emulatorHost;
       print('🔧 USING LOCAL FIRESTORE EMULATOR');
       print('📡 Connecting to: $emulatorHost:8085');
       print('⚠️  Make sure Firebase emulator is running: firebase emulators:start');

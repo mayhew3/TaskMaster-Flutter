@@ -6,7 +6,7 @@ part of 'task_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$tasksHash() => r'5875c2fe946425fb11291eea72799a8e782bb752';
+String _$tasksHash() => r'00f7af242f67371fdef6619adfaedeba2b9665d6';
 
 /// Stream of incomplete tasks for the current user.
 /// Completed tasks are loaded on demand via [OlderCompletedTasksBatches].
@@ -47,7 +47,7 @@ final taskRecurrencesProvider =
 // ignore: unused_element
 typedef TaskRecurrencesRef = AutoDisposeStreamProviderRef<List<TaskRecurrence>>;
 String _$tasksWithRecurrencesHash() =>
-    r'd808aaec8cb845a51969c9c6d19de0ae1f07eb38';
+    r'2cf4c6e74bbe9f473905dd636cc16c89785d706c';
 
 /// Stream of tasks with their recurrences populated
 /// Uses rxdart combineLatest2 for PARALLEL loading of tasks and recurrences
@@ -399,6 +399,25 @@ class _TasksForRecurrenceProviderElement
       (origin as TasksForRecurrenceProvider).recurrenceDocId;
 }
 
+String _$badSchemaTasksHash() => r'97f06982c32ba51ec0e4d3ca0021935a2c707b33';
+
+/// Tracks tasks that failed Firestore deserialization.
+/// Displayed in the UI with warning styling so the user knows something is wrong.
+///
+/// Copied from [BadSchemaTasks].
+@ProviderFor(BadSchemaTasks)
+final badSchemaTasksProvider =
+    NotifierProvider<BadSchemaTasks, List<BadSchemaTask>>.internal(
+      BadSchemaTasks.new,
+      name: r'badSchemaTasksProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$badSchemaTasksHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$BadSchemaTasks = Notifier<List<BadSchemaTask>>;
 String _$recentlyCompletedTasksHash() =>
     r'675051dbe7288e9621e1228fa594044843efe866';
 

@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../core/providers/auth_providers.dart';
+import '../../../core/providers/firebase_providers.dart';
 import '../../../models/task_item.dart';
 import 'task_providers.dart';
 import '../../sprints/providers/sprint_providers.dart';
@@ -34,15 +36,26 @@ class ShowScheduled extends _$ShowScheduled {
   void set(bool value) => state = value;
 }
 
+/// Text search query for filtering tasks by name
+@Riverpod(keepAlive: true)
+class SearchQuery extends _$SearchQuery {
+  @override
+  String build() => '';
+
+  void set(String value) => state = value;
+  void clear() => state = '';
+}
+
 /// Filtered tasks based on visibility settings
 @riverpod
 Future<List<TaskItem>> filteredTasks(Ref ref) async {
   final showCompleted = ref.watch(showCompletedProvider);
   final showScheduled = ref.watch(showScheduledProvider);
+  final searchQuery = ref.watch(searchQueryProvider).toLowerCase();
   final activeSprint = ref.watch(activeSprintProvider);
   final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
 
-  print('📋 filteredTasksProvider: Starting with showCompleted=$showCompleted, showScheduled=$showScheduled');
+  print('📋 filteredTasksProvider: Starting with showCompleted=$showCompleted, showScheduled=$showScheduled, search="${searchQuery.isNotEmpty ? searchQuery : ""}"');
 
   // Watch the tasks future with pending state for optimistic UI
   // Base query only returns incomplete tasks
@@ -80,6 +93,11 @@ Future<List<TaskItem>> filteredTasks(Ref ref) async {
   final filtered = allTasks.where((task) {
     // Always hide retired tasks
     if (task.retired != null) return false;
+
+    // Apply text search filter
+    if (searchQuery.isNotEmpty) {
+      if (!task.name.toLowerCase().contains(searchQuery)) return false;
+    }
 
     // Hide all tasks in active sprint (they're shown via sprint banner's "Show Tasks")
     if (activeSprint != null) {
@@ -121,15 +139,23 @@ int activeTaskCount(Ref ref) {
   );
 }
 
-/// Count of completed tasks
+/// Count of all completed (non-retired) tasks using Firestore aggregation.
+/// Uses count() instead of fetching documents since the base query
+/// only returns incomplete tasks.
 @riverpod
-int completedTaskCount(Ref ref) {
-  final tasksAsync = ref.watch(tasksProvider);
+Future<int> completedTaskCount(Ref ref) async {
+  final firestore = ref.watch(firestoreProvider);
+  final personDocId = ref.watch(personDocIdProvider);
+  if (personDocId == null) return 0;
 
-  return tasksAsync.maybeWhen(
-    data: (tasks) => tasks.where((t) => t.completionDate != null).length,
-    orElse: () => 0,
-  );
+  final result = await firestore
+      .collection('tasks')
+      .where('personDocId', isEqualTo: personDocId)
+      .where('retired', isNull: true)
+      .where('completionDate', isNull: false)
+      .count()
+      .get();
+  return result.count ?? 0;
 }
 
 /// Task grouping for display (Past Due, Urgent, Target, Scheduled, Tasks, Completed)

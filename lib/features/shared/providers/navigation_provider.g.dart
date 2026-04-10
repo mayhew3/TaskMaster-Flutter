@@ -6,7 +6,7 @@ part of 'navigation_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$activeTabIndexHash() => r'c3852d8244ab65bd878e42fd32ced159144694d8';
+String _$activeTabIndexHash() => r'fc4930aab0e07cdee59f9e4e1b263dab401fae83';
 
 /// Provider for the currently active tab index
 /// Using keepAlive to persist across widget rebuilds

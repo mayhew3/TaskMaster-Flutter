@@ -1,14 +1,37 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:rxdart/rxdart.dart';
 import '../../../core/providers/auth_providers.dart';
 import '../../../core/providers/firebase_providers.dart';
+import '../../../models/bad_schema_task.dart';
 import '../../../models/task_item.dart';
 import '../../../models/task_recurrence.dart';
 import '../../../models/serializers.dart';
 
 part 'task_providers.g.dart';
+
+/// Tracks tasks that failed Firestore deserialization.
+/// Displayed in the UI with warning styling so the user knows something is wrong.
+@Riverpod(keepAlive: true)
+class BadSchemaTasks extends _$BadSchemaTasks {
+  @override
+  List<BadSchemaTask> build() {
+    // Reset on user change to prevent cross-user leakage
+    ref.watch(personDocIdProvider);
+    return [];
+  }
+
+  /// Replace the entire bad-schema list (called per snapshot to reflect current state)
+  void replace(List<BadSchemaTask> tasks) {
+    state = tasks;
+  }
+
+  void clear() {
+    state = [];
+  }
+}
 
 /// Stream of incomplete tasks for the current user.
 /// Completed tasks are loaded on demand via [OlderCompletedTasksBatches].
@@ -28,6 +51,8 @@ Stream<List<TaskItem>> tasks(Ref ref) {
 
   print('📋 tasksProvider: Loading tasks for personDocId: $personDocId');
 
+  final badSchemaNotifier = ref.read(badSchemaTasksProvider.notifier);
+
   return firestore
       .collection('tasks')
       .where('personDocId', isEqualTo: personDocId)
@@ -36,14 +61,9 @@ Stream<List<TaskItem>> tasks(Ref ref) {
       .snapshots()
       .map((snapshot) {
         print('📋 tasksProvider: Received ${snapshot.docs.length} incomplete tasks from Firestore');
-        return snapshot.docs
-            .map((doc) {
-              final json = doc.data();
-              json['docId'] = doc.id;
-              return serializers.deserializeWith(TaskItem.serializer, json);
-            })
-            .whereType<TaskItem>()
-            .toList();
+        final result = _deserializeTasks(snapshot.docs);
+        badSchemaNotifier.replace(result.badTasks);
+        return result.tasks;
       });
 }
 
@@ -104,14 +124,9 @@ Stream<List<TaskItem>> tasksWithRecurrences(Ref ref) {
       .snapshots()
       .map((snapshot) {
         print('⏱️ tasksWithRecurrences: Got ${snapshot.docs.length} incomplete task docs at ${stopwatch.elapsedMilliseconds}ms');
-        return snapshot.docs
-            .map((doc) {
-              final json = doc.data();
-              json['docId'] = doc.id;
-              return serializers.deserializeWith(TaskItem.serializer, json);
-            })
-            .whereType<TaskItem>()
-            .toList();
+        final result = _deserializeTasks(snapshot.docs);
+        ref.read(badSchemaTasksProvider.notifier).replace(result.badTasks);
+        return result.tasks;
       });
 
   // Create recurrences stream
@@ -254,6 +269,50 @@ Stream<List<TaskItem>> tasksForRecurrence(Ref ref, String recurrenceDocId) {
           })
           .whereType<TaskItem>()
           .toList());
+}
+
+/// Result of deserializing Firestore task documents.
+class _DeserializeResult {
+  final List<TaskItem> tasks;
+  final List<BadSchemaTask> badTasks;
+  _DeserializeResult(this.tasks, this.badTasks);
+}
+
+/// Deserialize Firestore task documents with error handling.
+/// Returns both successfully deserialized tasks and bad-schema entries.
+_DeserializeResult _deserializeTasks(
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> docs,
+) {
+  final tasks = <TaskItem>[];
+  final badTasks = <BadSchemaTask>[];
+  for (final doc in docs) {
+    String? rawName;
+    try {
+      // Defensive copy so any failure in mutation doesn't poison the original snapshot data
+      final json = Map<String, dynamic>.from(doc.data());
+      rawName = json['name']?.toString();
+      json['docId'] = doc.id;
+
+      final task = serializers.deserializeWith(TaskItem.serializer, json);
+      if (task != null) {
+        tasks.add(task);
+      } else {
+        badTasks.add(BadSchemaTask(
+          docId: doc.id,
+          rawName: rawName,
+          errorMessage: 'Deserialization returned null',
+        ));
+      }
+    } catch (e) {
+      debugPrint('⚠️ [TaskDeserialization] Error for doc ${doc.id} "$rawName": $e');
+      badTasks.add(BadSchemaTask(
+        docId: doc.id,
+        rawName: rawName,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+  return _DeserializeResult(tasks, badTasks);
 }
 
 /// State for progressively loaded older completed tasks

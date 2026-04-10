@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:taskmaster/models/bad_schema_task.dart';
 import 'package:taskmaster/models/task_item.dart';
 import '../../../core/services/task_completion_service.dart';
 import '../providers/task_filter_providers.dart';
@@ -19,20 +20,63 @@ import '../../shared/presentation/refresh_button.dart';
 
 /// Riverpod version of the Task List screen
 /// Displays grouped tasks with filtering and completion functionality
-class TaskListScreen extends ConsumerWidget {
+class TaskListScreen extends ConsumerStatefulWidget {
   const TaskListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    print('📋 TaskListScreen: Building...');
-    final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
+  ConsumerState<TaskListScreen> createState() => _TaskListScreenState();
+}
 
-    print('📋 TaskListScreen: tasksAsync isLoading=${tasksAsync.isLoading}, hasValue=${tasksAsync.hasValue}');
+class _TaskListScreenState extends ConsumerState<TaskListScreen> {
+  final _searchController = TextEditingController();
+  bool _searchBarVisible = false;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _searchBarVisible = !_searchBarVisible;
+      if (!_searchBarVisible) {
+        _searchController.clear();
+        ref.read(searchQueryProvider.notifier).clear();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
+    // Sync search bar visibility with provider (e.g., cleared by tab navigation)
+    final searchQuery = ref.watch(searchQueryProvider);
+    if (searchQuery.isEmpty && _searchBarVisible && _searchController.text.isNotEmpty) {
+      // Provider was cleared externally — sync the controller
+      _searchController.clear();
+    }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tasks'),
+        title: _searchBarVisible
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  hintText: 'Search tasks...',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(color: Colors.white70),
+                ),
+                style: const TextStyle(color: Colors.white),
+                onChanged: (value) => ref.read(searchQueryProvider.notifier).set(value),
+              )
+            : const Text('Tasks'),
         actions: [
+          IconButton(
+            icon: Icon(_searchBarVisible ? Icons.close : Icons.search),
+            onPressed: _toggleSearch,
+          ),
           _FilterPopupMenu(),
           const RefreshButton(),
         ],
@@ -48,8 +92,19 @@ class TaskListScreen extends ConsumerWidget {
         },
         error: (err, stack) {
           print('❌ Error loading tasks: $err\n$stack');
-          return const Center(
-            child: Text('Error loading data. Check logs for details.'),
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Unable to load tasks. Please try again.'),
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  onPressed: () => ref.invalidate(tasksWithRecurrencesProvider),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Retry'),
+                ),
+              ],
+            ),
           );
         },
       ),
@@ -185,6 +240,15 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
       }
     }
 
+    // Show bad-schema tasks at the bottom with warning styling
+    final badSchemaTasks = ref.watch(badSchemaTasksProvider);
+    if (badSchemaTasks.isNotEmpty) {
+      tiles.add(HeadingItem('Schema Errors (${badSchemaTasks.length})'));
+      for (final badTask in badSchemaTasks) {
+        tiles.add(_BadSchemaTaskItem(badTask: badTask));
+      }
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.only(
         top: 7.0,
@@ -299,6 +363,34 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _BadSchemaTaskItem extends StatelessWidget {
+  final BadSchemaTask badTask;
+
+  const _BadSchemaTaskItem({required this.badTask});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.warning_amber_rounded, color: Colors.red),
+      title: Text(
+        badTask.displayName,
+        style: const TextStyle(
+          color: Colors.red,
+          fontStyle: FontStyle.italic,
+        ),
+      ),
+      subtitle: Text(
+        badTask.errorMessage,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+      ),
+      dense: true,
+      enabled: false,
     );
   }
 }
