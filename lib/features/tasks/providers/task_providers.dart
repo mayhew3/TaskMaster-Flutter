@@ -286,24 +286,28 @@ _DeserializeResult _deserializeTasks(
   final tasks = <TaskItem>[];
   final badTasks = <BadSchemaTask>[];
   for (final doc in docs) {
-    final json = doc.data();
-    json['docId'] = doc.id;
+    String? rawName;
     try {
+      // Defensive copy so any failure in mutation doesn't poison the original snapshot data
+      final json = Map<String, dynamic>.from(doc.data());
+      rawName = json['name']?.toString();
+      json['docId'] = doc.id;
+
       final task = serializers.deserializeWith(TaskItem.serializer, json);
       if (task != null) {
         tasks.add(task);
       } else {
         badTasks.add(BadSchemaTask(
           docId: doc.id,
-          rawName: json['name']?.toString(),
+          rawName: rawName,
           errorMessage: 'Deserialization returned null',
         ));
       }
     } catch (e) {
-      debugPrint('⚠️ [TaskDeserialization] Error for doc ${doc.id} "${json['name']}": $e');
+      debugPrint('⚠️ [TaskDeserialization] Error for doc ${doc.id} "$rawName": $e');
       badTasks.add(BadSchemaTask(
         docId: doc.id,
-        rawName: json['name']?.toString(),
+        rawName: rawName,
         errorMessage: e.toString(),
       ));
     }
