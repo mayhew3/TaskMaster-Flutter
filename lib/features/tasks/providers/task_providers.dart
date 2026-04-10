@@ -271,7 +271,6 @@ Stream<List<TaskItem>> tasksForRecurrence(Ref ref, String recurrenceDocId) {
           .toList());
 }
 
-/// State for progressively loaded older completed tasks
 /// Result of deserializing Firestore task documents.
 class _DeserializeResult {
   final List<TaskItem> tasks;
@@ -312,6 +311,7 @@ _DeserializeResult _deserializeTasks(
   return _DeserializeResult(tasks, badTasks);
 }
 
+/// State for progressively loaded older completed tasks
 class OlderCompletedState {
   final List<TaskItem> loadedTasks;
   /// Firestore document snapshot cursor for deterministic pagination.
