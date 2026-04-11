@@ -63,10 +63,17 @@ class AppDrawer extends ConsumerWidget {
               final logStorage = ref.read(logStorageServiceProvider);
               final path = logStorage.getLogFilePath();
               if (path == null) return;
+              final timestamp = DateTime.now()
+                  .toIso8601String()
+                  .replaceAll(':', '-')
+                  .split('.')
+                  .first;
+              final exportName = 'taskmaster-$timestamp.log';
               await SharePlus.instance.share(
                 ShareParams(
                   files: [XFile(path)],
-                  subject: 'TaskMaster logs',
+                  fileNameOverrides: [exportName],
+                  subject: exportName,
                 ),
               );
             },

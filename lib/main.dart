@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,38 +27,57 @@ Future<String> _resolveEmulatorHost() async {
 }
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  //  Initialize logger and persistent log sink
+  // Create the log storage instance (not initialized yet — needs the binding first)
   final logStorage = LogStorageService();
-  await logStorage.initialize();
-  Logger.root.level = Level.ALL;
-  Logger.root.onRecord.listen((record) {
-    print('${record.level.name}: ${record.time}: ${record.message}');
-    logStorage.writeRecord(record);
-  });
 
-  // Initialize timezone database for notifications
-  // This is needed for flutter_local_notifications.zonedSchedule() to handle DST correctly
-  tz.initializeTimeZones();
-  final String timezoneName = await FlutterTimezone.getLocalTimezone();
-  tz.setLocalLocation(tz.getLocation(timezoneName));
-  print('🕐 Timezone initialized: $timezoneName');
+  // Capture all print() output into the log file via a custom Zone.
+  // The binding MUST be initialized inside this zone so runApp() runs in the
+  // same zone (otherwise Flutter throws a Zone mismatch error).
+  // This preserves the full runtime output that would otherwise be lost
+  // on iOS production devices where console logs aren't accessible.
+  runZoned<Future<void>>(
+    () async {
+      // Initialize binding inside the zone so runApp uses the same zone
+      WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+      // Now that the binding is ready, path_provider can resolve the documents dir
+      await logStorage.initialize();
 
-  // Resolve emulator host before building widget tree (avoids async race in initState)
-  final emulatorHost = await _resolveEmulatorHost();
+      Logger.root.level = Level.ALL;
+      Logger.root.onRecord.listen((record) {
+        print('${record.level.name}: ${record.time}: ${record.message}');
+        logStorage.writeRecord(record);
+      });
 
-  // Wrap app with ProviderScope for Riverpod state management
-  runApp(
-    ProviderScope(
-      overrides: [
-        logStorageServiceProvider.overrideWithValue(logStorage),
-      ],
-      child: RiverpodTaskMasterApp(emulatorHost: emulatorHost),
+      // Initialize timezone database for notifications
+      // This is needed for flutter_local_notifications.zonedSchedule() to handle DST correctly
+      tz.initializeTimeZones();
+      final String timezoneName = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(timezoneName));
+      print('🕐 Timezone initialized: $timezoneName');
+
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+
+      // Resolve emulator host before building widget tree (avoids async race in initState)
+      final emulatorHost = await _resolveEmulatorHost();
+
+      // Wrap app with ProviderScope for Riverpod state management
+      runApp(
+        ProviderScope(
+          overrides: [
+            logStorageServiceProvider.overrideWithValue(logStorage),
+          ],
+          child: RiverpodTaskMasterApp(emulatorHost: emulatorHost),
+        ),
+      );
+    },
+    zoneSpecification: ZoneSpecification(
+      print: (self, parent, zone, line) {
+        parent.print(zone, line); // Still print to console
+        logStorage.writeRaw(line); // Also persist to log file
+      },
     ),
   );
 }

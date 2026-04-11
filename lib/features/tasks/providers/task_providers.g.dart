@@ -47,7 +47,7 @@ final taskRecurrencesProvider =
 // ignore: unused_element
 typedef TaskRecurrencesRef = AutoDisposeStreamProviderRef<List<TaskRecurrence>>;
 String _$tasksWithRecurrencesHash() =>
-    r'2cf4c6e74bbe9f473905dd636cc16c89785d706c';
+    r'c4ea9a7fde162a8bb0c6a181363cbd8bdab73930';
 
 /// Stream of tasks with their recurrences populated
 /// Uses rxdart combineLatest2 for PARALLEL loading of tasks and recurrences

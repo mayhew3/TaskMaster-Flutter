@@ -35,7 +35,7 @@ class LogStorageService {
 
     final line = _formatRecord(record);
     try {
-      await file.writeAsString('$line\n', mode: FileMode.append, flush: false);
+      await file.writeAsString('$line\n', mode: FileMode.append, flush: true);
 
       // Check size and rotate if needed
       final size = await file.length();
@@ -75,6 +75,25 @@ class LogStorageService {
     } catch (e) {
       // ignore: avoid_print
       print('[LogStorageService] Failed to rotate log: $e');
+    }
+  }
+
+  /// Appends a raw line (e.g., captured print output) to the log file.
+  /// Used by the print-capturing zone to preserve console output.
+  Future<void> writeRaw(String line) async {
+    if (!_initialized) await initialize();
+    final file = _logFile!;
+    final ts = DateTime.now().toIso8601String();
+    try {
+      await file.writeAsString('$ts [PRINT  ] $line\n', mode: FileMode.append, flush: true);
+
+      final size = await file.length();
+      if (size > _maxFileSizeBytes) {
+        await _rotate(file);
+      }
+    } catch (e) {
+      // ignore: avoid_print
+      stderr.writeln('[LogStorageService] Failed to write raw log: $e');
     }
   }
 
