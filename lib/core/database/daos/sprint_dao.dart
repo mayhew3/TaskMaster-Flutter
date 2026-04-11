@@ -88,6 +88,35 @@ class SprintDao extends DatabaseAccessor<AppDatabase>
         .write(SprintsCompanion(syncState: Value(SyncState.synced.name)));
   }
 
+  /// Delete all `synced` sprints whose docId is NOT in [remoteIds].
+  /// Safe to call because only the top-N sprints are ever synced to Drift,
+  /// so any synced sprint absent from the remote snapshot is a phantom.
+  Future<void> deleteSyncedSprintsNotIn(Set<String> remoteIds) {
+    return (delete(sprints)
+          ..where((s) =>
+              s.syncState.equals(SyncState.synced.name) &
+              s.docId.isNotIn(remoteIds.toList())))
+        .go();
+  }
+
+  /// Delete synced assignments whose sprint no longer exists in Drift.
+  /// Called after purging phantom sprints to remove their orphaned assignments.
+  Future<void> deleteSyncedOrphanAssignments() async {
+    final allSprints = await (select(sprints)).get();
+    final allSprintIds = allSprints.map((s) => s.docId).toList();
+    if (allSprintIds.isEmpty) {
+      await (delete(sprintAssignments)
+            ..where((a) => a.syncState.equals(SyncState.synced.name)))
+          .go();
+      return;
+    }
+    await (delete(sprintAssignments)
+          ..where((a) =>
+              a.syncState.equals(SyncState.synced.name) &
+              a.sprintDocId.isNotIn(allSprintIds)))
+        .go();
+  }
+
   Future<List<Sprint>> pendingSprintWrites() {
     return (select(sprints)
           ..where((s) =>

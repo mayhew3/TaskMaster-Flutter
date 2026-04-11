@@ -1,64 +1,42 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../core/database/converters.dart';
 import '../../../core/providers/auth_providers.dart';
-import '../../../core/providers/firebase_providers.dart';
+import '../../../core/providers/database_provider.dart';
 import '../../../models/sprint.dart';
-import '../../../models/serializers.dart';
 import '../../../models/task_item.dart';
 import '../../tasks/providers/task_providers.dart';
 
 part 'sprint_providers.g.dart';
 
-/// Stream of all sprints for the current user
+/// Stream of the N most recent sprints for the current user, with assignments.
+/// Streams from the local Drift cache; SyncService keeps it in sync with Firestore.
 @Riverpod(keepAlive: true)
 Stream<List<Sprint>> sprints(Ref ref) {
-  // Get dependencies synchronously
-  final firestore = ref.watch(firestoreProvider);
   final personDocId = ref.watch(personDocIdProvider);
+  final db = ref.watch(databaseProvider);
 
-  // If not authenticated, return empty stream
-  if (personDocId == null) {
-    return Stream.value([]);
-  }
+  if (personDocId == null) return Stream.value([]);
 
-  final stopwatch = Stopwatch()..start();
-  print('⏱️ sprintsProvider: Starting query');
-
-  return firestore
-      .collection('sprints')
-      .where('personDocId', isEqualTo: personDocId)
-      .orderBy('sprintNumber', descending: true)
-      .limit(3)  // Only fetch recent sprints for performance
-      .snapshots()
-      .asyncMap((snapshot) async {
-    print('⏱️ sprintsProvider: Got ${snapshot.docs.length} sprints in ${stopwatch.elapsedMilliseconds}ms');
-
-    // PARALLEL: Fetch all sprint assignments simultaneously using Future.wait
-    final sprintFutures = snapshot.docs.map((doc) async {
-      final json = doc.data();
-      json['docId'] = doc.id;
-
-      // Fetch sprint assignments subcollection
-      final assignmentsSnapshot = await doc.reference
-          .collection('sprintAssignments')
-          .get();
-
-      final assignmentsJson = assignmentsSnapshot.docs.map((assignDoc) {
-        final assignJson = assignDoc.data();
-        assignJson['docId'] = assignDoc.id;
-        return assignJson;
-      }).toList();
-
-      json['sprintAssignments'] = assignmentsJson;
-
-      return serializers.deserializeWith(Sprint.serializer, json)!;
-    });
-
-    // Execute ALL assignment fetches in parallel
-    final sprints = await Future.wait(sprintFutures);
-
-    print('⏱️ sprintsProvider: Completed in ${stopwatch.elapsedMilliseconds}ms');
-    return sprints;
+  return db.sprintDao
+      .watchRecentSprints(personDocId: personDocId, limit: 3)
+      .map((rows) {
+    debugPrint('[sprintsProvider] Drift emitted ${rows.length} sprint row(s)');
+    for (final row in rows) {
+      debugPrint('  sprint ${row.sprint.docId}: sprintNumber=${row.sprint.sprintNumber}, '
+          'start=${row.sprint.startDate}, end=${row.sprint.endDate}, '
+          'syncState=${row.sprint.syncState}, assignments=${row.assignments.length}');
+    }
+    final result = <Sprint>[];
+    for (final row in rows) {
+      try {
+        result.add(sprintFromRow(row.sprint, row.assignments));
+      } catch (e) {
+        debugPrint('⚠️ [sprintsProvider] Failed to convert sprint ${row.sprint.docId}: $e');
+      }
+    }
+    return result;
   });
 }
 

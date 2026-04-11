@@ -14,14 +14,14 @@ class ConnectivityService {
   final Connectivity _connectivity;
 
   Stream<bool> get onlineStream =>
-      _connectivity.onConnectivityChanged.map(_isOnline);
+      _connectivity.onConnectivityChanged.map(isOnlineFromResults);
 
   Future<bool> currentOnline() async {
     final results = await _connectivity.checkConnectivity();
-    return _isOnline(results);
+    return isOnlineFromResults(results);
   }
 
-  static bool _isOnline(List<ConnectivityResult> results) {
+  static bool isOnlineFromResults(List<ConnectivityResult> results) {
     if (results.isEmpty) return false;
     return results.any((r) => r != ConnectivityResult.none);
   }

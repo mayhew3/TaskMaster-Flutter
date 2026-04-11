@@ -3,7 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:rxdart/rxdart.dart';
+import '../../../core/database/converters.dart';
 import '../../../core/providers/auth_providers.dart';
+import '../../../core/providers/database_provider.dart';
 import '../../../core/providers/firebase_providers.dart';
 import '../../../models/bad_schema_task.dart';
 import '../../../models/task_item.dart';
@@ -34,131 +36,108 @@ class BadSchemaTasks extends _$BadSchemaTasks {
 }
 
 /// Stream of incomplete tasks for the current user.
+/// Streams from the local Drift cache; SyncService keeps it in sync with Firestore.
 /// Completed tasks are loaded on demand via [OlderCompletedTasksBatches].
 @riverpod
 Stream<List<TaskItem>> tasks(Ref ref) {
-  // Get dependencies synchronously
-  final firestore = ref.watch(firestoreProvider);
   final personDocId = ref.watch(personDocIdProvider);
+  final db = ref.watch(databaseProvider);
 
-  print('📋 tasksProvider: personDocId = $personDocId');
-
-  // If not authenticated, return empty stream
-  if (personDocId == null) {
-    print('📋 tasksProvider: No personDocId, returning empty stream');
-    return Stream.value([]);
-  }
-
-  print('📋 tasksProvider: Loading tasks for personDocId: $personDocId');
+  if (personDocId == null) return Stream.value([]);
 
   final badSchemaNotifier = ref.read(badSchemaTasksProvider.notifier);
 
-  return firestore
-      .collection('tasks')
-      .where('personDocId', isEqualTo: personDocId)
-      .where('retired', isNull: true)
-      .where('completionDate', isNull: true)
-      .snapshots()
-      .map((snapshot) {
-        print('📋 tasksProvider: Received ${snapshot.docs.length} incomplete tasks from Firestore');
-        final result = _deserializeTasks(snapshot.docs);
-        badSchemaNotifier.replace(result.badTasks);
-        return result.tasks;
-      });
+  return db.taskDao.watchIncompleteTasks(personDocId).map((rows) {
+    final tasks = <TaskItem>[];
+    final badTasks = <BadSchemaTask>[];
+    for (final row in rows) {
+      try {
+        tasks.add(taskItemFromRow(row));
+      } catch (e) {
+        debugPrint('⚠️ [tasksProvider] Failed to convert row ${row.docId}: $e');
+        badTasks.add(BadSchemaTask(
+          docId: row.docId,
+          rawName: row.name,
+          errorMessage: e.toString(),
+        ));
+      }
+    }
+    badSchemaNotifier.replace(badTasks);
+    return tasks;
+  });
 }
 
-/// Stream of task recurrences for the current user
+/// Stream of task recurrences for the current user.
+/// Streams from the local Drift cache; SyncService keeps it in sync with Firestore.
 @riverpod
 Stream<List<TaskRecurrence>> taskRecurrences(Ref ref) {
-  // Get dependencies synchronously
-  final firestore = ref.watch(firestoreProvider);
   final personDocId = ref.watch(personDocIdProvider);
+  final db = ref.watch(databaseProvider);
 
-  // If not authenticated, return empty stream
-  if (personDocId == null) {
-    return Stream.value([]);
-  }
+  if (personDocId == null) return Stream.value([]);
 
-  return firestore
-      .collection('taskRecurrences')
-      .where('personDocId', isEqualTo: personDocId)
-      .where('retired', isNull: true)
-      .snapshots()
-      .map((snapshot) {
-        return snapshot.docs
-            .map((doc) {
-              final json = doc.data();
-              json['docId'] = doc.id;
-              return serializers.deserializeWith(
-                TaskRecurrence.serializer,
-                json,
-              );
-            })
-            .whereType<TaskRecurrence>() // Remove nulls
-            .toList();
-      });
+  return db.taskRecurrenceDao.watchActive(personDocId).map((rows) {
+    final recurrences = <TaskRecurrence>[];
+    for (final row in rows) {
+      try {
+        recurrences.add(taskRecurrenceFromRow(row));
+      } catch (e) {
+        debugPrint('⚠️ [taskRecurrencesProvider] Failed to convert row ${row.docId}: $e');
+      }
+    }
+    return recurrences;
+  });
 }
 
-/// Stream of tasks with their recurrences populated
-/// Uses rxdart combineLatest2 for PARALLEL loading of tasks and recurrences
-/// This is the primary provider that UI should use - it ensures task.recurrence
-/// is always populated for recurring tasks, matching the Redux pattern
+/// Stream of tasks with their recurrences populated.
+/// Combines the two Drift streams so recurrences are always linked on each emit.
 @Riverpod(keepAlive: true)
 Stream<List<TaskItem>> tasksWithRecurrences(Ref ref) {
-  final firestore = ref.watch(firestoreProvider);
   final personDocId = ref.watch(personDocIdProvider);
+  final db = ref.watch(databaseProvider);
 
-  if (personDocId == null) {
-    return Stream.value([]);
-  }
+  if (personDocId == null) return Stream.value([]);
 
-  final stopwatch = Stopwatch()..start();
-  print('⏱️ tasksWithRecurrencesProvider: Starting parallel queries');
+  final badSchemaNotifier = ref.read(badSchemaTasksProvider.notifier);
 
-  // Create tasks stream - only incomplete tasks
-  final tasksStream = firestore
-      .collection('tasks')
-      .where('personDocId', isEqualTo: personDocId)
-      .where('retired', isNull: true)
-      .where('completionDate', isNull: true)
-      .snapshots()
-      .map((snapshot) {
-        print('⏱️ tasksWithRecurrences: Got ${snapshot.docs.length} incomplete task docs at ${stopwatch.elapsedMilliseconds}ms');
-        final result = _deserializeTasks(snapshot.docs);
-        ref.read(badSchemaTasksProvider.notifier).replace(result.badTasks);
-        return result.tasks;
-      });
+  final tasksStream = db.taskDao.watchIncompleteTasks(personDocId).map((rows) {
+    final tasks = <TaskItem>[];
+    final badTasks = <BadSchemaTask>[];
+    for (final row in rows) {
+      try {
+        tasks.add(taskItemFromRow(row));
+      } catch (e) {
+        debugPrint('⚠️ [tasksWithRecurrences] Failed to convert task ${row.docId}: $e');
+        badTasks.add(BadSchemaTask(
+          docId: row.docId,
+          rawName: row.name,
+          errorMessage: e.toString(),
+        ));
+      }
+    }
+    badSchemaNotifier.replace(badTasks);
+    return tasks;
+  });
 
-  // Create recurrences stream
-  final recurrencesStream = firestore
-      .collection('taskRecurrences')
-      .where('personDocId', isEqualTo: personDocId)
-      .where('retired', isNull: true)
-      .snapshots()
-      .map((snapshot) {
-        print('⏱️ tasksWithRecurrences: Got ${snapshot.docs.length} recurrence docs at ${stopwatch.elapsedMilliseconds}ms');
-        return snapshot.docs
-            .map((doc) {
-              final json = doc.data();
-              json['docId'] = doc.id;
-              return serializers.deserializeWith(TaskRecurrence.serializer, json);
-            })
-            .whereType<TaskRecurrence>()
-            .toList();
-      });
+  final recurrencesStream =
+      db.taskRecurrenceDao.watchActive(personDocId).map((rows) {
+    final recurrences = <TaskRecurrence>[];
+    for (final row in rows) {
+      try {
+        recurrences.add(taskRecurrenceFromRow(row));
+      } catch (e) {
+        debugPrint('⚠️ [tasksWithRecurrences] Failed to convert recurrence ${row.docId}: $e');
+      }
+    }
+    return recurrences;
+  });
 
-  // PARALLEL: Combine both streams - fires when EITHER emits, using latest from both
   return Rx.combineLatest2<List<TaskItem>, List<TaskRecurrence>, List<TaskItem>>(
     tasksStream,
     recurrencesStream,
     (tasks, recurrences) {
-      print('⏱️ tasksWithRecurrences: Combining ${tasks.length} tasks with ${recurrences.length} recurrences at ${stopwatch.elapsedMilliseconds}ms');
-
-      // O(1) lookup map instead of O(n) search for each task
-      final recurrenceMap = {for (var r in recurrences) r.docId: r};
-
-      // Link tasks with their recurrences
-      final linkedTasks = tasks.map((task) {
+      final recurrenceMap = {for (final r in recurrences) r.docId: r};
+      return tasks.map((task) {
         if (task.recurrenceDocId != null) {
           final recurrence = recurrenceMap[task.recurrenceDocId];
           if (recurrence != null) {
@@ -167,9 +146,6 @@ Stream<List<TaskItem>> tasksWithRecurrences(Ref ref) {
         }
         return task;
       }).toList();
-
-      print('⏱️ tasksWithRecurrences: Completed in ${stopwatch.elapsedMilliseconds}ms');
-      return linkedTasks;
     },
   );
 }
@@ -269,50 +245,6 @@ Stream<List<TaskItem>> tasksForRecurrence(Ref ref, String recurrenceDocId) {
           })
           .whereType<TaskItem>()
           .toList());
-}
-
-/// Result of deserializing Firestore task documents.
-class _DeserializeResult {
-  final List<TaskItem> tasks;
-  final List<BadSchemaTask> badTasks;
-  _DeserializeResult(this.tasks, this.badTasks);
-}
-
-/// Deserialize Firestore task documents with error handling.
-/// Returns both successfully deserialized tasks and bad-schema entries.
-_DeserializeResult _deserializeTasks(
-  List<QueryDocumentSnapshot<Map<String, dynamic>>> docs,
-) {
-  final tasks = <TaskItem>[];
-  final badTasks = <BadSchemaTask>[];
-  for (final doc in docs) {
-    String? rawName;
-    try {
-      // Defensive copy so any failure in mutation doesn't poison the original snapshot data
-      final json = Map<String, dynamic>.from(doc.data());
-      rawName = json['name']?.toString();
-      json['docId'] = doc.id;
-
-      final task = serializers.deserializeWith(TaskItem.serializer, json);
-      if (task != null) {
-        tasks.add(task);
-      } else {
-        badTasks.add(BadSchemaTask(
-          docId: doc.id,
-          rawName: rawName,
-          errorMessage: 'Deserialization returned null',
-        ));
-      }
-    } catch (e) {
-      debugPrint('⚠️ [TaskDeserialization] Error for doc ${doc.id} "$rawName": $e');
-      badTasks.add(BadSchemaTask(
-        docId: doc.id,
-        rawName: rawName,
-        errorMessage: e.toString(),
-      ));
-    }
-  }
-  return _DeserializeResult(tasks, badTasks);
 }
 
 /// State for progressively loaded older completed tasks

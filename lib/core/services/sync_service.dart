@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -48,10 +49,18 @@ class SyncService {
   String? _currentPersonDocId;
   bool _wasOnline = true;
 
+  // Track whether we've received the first snapshot for each collection.
+  // On the initial snapshot we reconcile: purge synced local rows absent from
+  // Firestore (handles emulator reset / server-side bulk deletes).
+  bool _tasksInitialReceived = false;
+  bool _recurrencesInitialReceived = false;
+  bool _sprintsInitialReceived = false;
+
   Future<void> start(String personDocId) async {
     if (_currentPersonDocId == personDocId) return;
     await stop();
     _currentPersonDocId = personDocId;
+    debugPrint('[SyncService] start() — personDocId=$personDocId');
 
     _tasksSub = firestore
         .collection('tasks')
@@ -101,16 +110,26 @@ class SyncService {
     _sprintsSub = null;
     _connectivitySub = null;
     _currentPersonDocId = null;
+    _tasksInitialReceived = false;
+    _recurrencesInitialReceived = false;
+    _sprintsInitialReceived = false;
   }
 
   // ── Snapshot handlers ──────────────────────────────────────────────────────
 
   Future<void> _onTasksSnapshot(
       QuerySnapshot<Map<String, dynamic>> snapshot) async {
-    for (final doc in snapshot.docs) {
+    final isInitial = !_tasksInitialReceived;
+    _tasksInitialReceived = true;
+
+    for (final change in snapshot.docChanges) {
+      if (change.type == DocumentChangeType.removed) {
+        await db.taskDao.deleteFromRemote(change.doc.id);
+        continue;
+      }
       try {
-        final json = Map<String, dynamic>.from(doc.data());
-        json['docId'] = doc.id;
+        final json = Map<String, dynamic>.from(change.doc.data()!);
+        json['docId'] = change.doc.id;
         final task = serializers.deserializeWith(m.TaskItem.serializer, json);
         if (task != null) {
           await db.taskDao.upsertFromRemote(taskItemToCompanion(task));
@@ -119,14 +138,28 @@ class SyncService {
         _logSyncError(e, s);
       }
     }
+
+    // On the first snapshot, purge any synced local rows that Firestore no
+    // longer has (covers emulator reset and server-side bulk deletes).
+    if (isInitial) {
+      final remoteIds = snapshot.docs.map((d) => d.id).toSet();
+      await db.taskDao.deleteSyncedNotIn(remoteIds);
+    }
   }
 
   Future<void> _onRecurrencesSnapshot(
       QuerySnapshot<Map<String, dynamic>> snapshot) async {
-    for (final doc in snapshot.docs) {
+    final isInitial = !_recurrencesInitialReceived;
+    _recurrencesInitialReceived = true;
+
+    for (final change in snapshot.docChanges) {
+      if (change.type == DocumentChangeType.removed) {
+        await db.taskRecurrenceDao.deleteFromRemote(change.doc.id);
+        continue;
+      }
       try {
-        final json = Map<String, dynamic>.from(doc.data());
-        json['docId'] = doc.id;
+        final json = Map<String, dynamic>.from(change.doc.data()!);
+        json['docId'] = change.doc.id;
         final recurrence =
             serializers.deserializeWith(m.TaskRecurrence.serializer, json);
         if (recurrence != null) {
@@ -137,15 +170,41 @@ class SyncService {
         _logSyncError(e, s);
       }
     }
+
+    if (isInitial) {
+      final remoteIds = snapshot.docs.map((d) => d.id).toSet();
+      await db.taskRecurrenceDao.deleteSyncedNotIn(remoteIds);
+    }
   }
 
   Future<void> _onSprintsSnapshot(
       QuerySnapshot<Map<String, dynamic>> snapshot) async {
-    final seenIds = <String>{};
+    final isInitial = !_sprintsInitialReceived;
+    _sprintsInitialReceived = true;
+
+    debugPrint('[SyncService] _onSprintsSnapshot: ${snapshot.docs.length} docs total, '
+        '${snapshot.docChanges.length} changes');
     for (final doc in snapshot.docs) {
+      final data = doc.data();
+      debugPrint('  sprint ${doc.id}: sprintNumber=${data['sprintNumber']}, '
+          'start=${data['startDate']}, end=${data['endDate']}');
+    }
+
+    final seenIds = <String>{};
+    for (final change in snapshot.docChanges) {
+      final doc = change.doc;
+
+      if (change.type == DocumentChangeType.removed) {
+        // Sprint removed from Firestore — cancel its assignment listener and
+        // remove the local synced row.
+        await _assignmentSubs.remove(doc.id)?.cancel();
+        await db.sprintDao.deleteSprintFromRemote(doc.id);
+        continue;
+      }
+
       seenIds.add(doc.id);
       try {
-        final json = Map<String, dynamic>.from(doc.data());
+        final json = Map<String, dynamic>.from(doc.data()!);
         json['docId'] = doc.id;
         // Sprints in Drift store top-level only; assignments come via
         // per-sprint subcollection listener.
@@ -159,6 +218,16 @@ class SyncService {
         _logSyncError(e, s);
       }
     }
+
+    // On the first snapshot, purge phantom synced sprints: any synced local
+    // sprint absent from the remote snapshot doesn't exist in Firestore.
+    // This is safe because only the top-N sprints are ever synced to Drift.
+    if (isInitial) {
+      final remoteIds = snapshot.docs.map((d) => d.id).toSet();
+      await db.sprintDao.deleteSyncedSprintsNotIn(remoteIds);
+      await db.sprintDao.deleteSyncedOrphanAssignments();
+    }
+
     // Cancel listeners for sprints no longer in the snapshot.
     final stale = _assignmentSubs.keys.where((id) => !seenIds.contains(id)).toList();
     for (final id in stale) {

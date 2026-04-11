@@ -6,9 +6,10 @@ part of 'task_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$tasksHash() => r'00f7af242f67371fdef6619adfaedeba2b9665d6';
+String _$tasksHash() => r'cb5697764d48e5a3906de47f58a0165159ae7067';
 
 /// Stream of incomplete tasks for the current user.
+/// Streams from the local Drift cache; SyncService keeps it in sync with Firestore.
 /// Completed tasks are loaded on demand via [OlderCompletedTasksBatches].
 ///
 /// Copied from [tasks].
@@ -26,9 +27,10 @@ final tasksProvider = AutoDisposeStreamProvider<List<TaskItem>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TasksRef = AutoDisposeStreamProviderRef<List<TaskItem>>;
-String _$taskRecurrencesHash() => r'b101411a9d1388fe94b6907adfc75ffbe7eed52c';
+String _$taskRecurrencesHash() => r'c3d03c40cb17dc6353864bf8228dc7660b4f2ebb';
 
-/// Stream of task recurrences for the current user
+/// Stream of task recurrences for the current user.
+/// Streams from the local Drift cache; SyncService keeps it in sync with Firestore.
 ///
 /// Copied from [taskRecurrences].
 @ProviderFor(taskRecurrences)
@@ -47,12 +49,10 @@ final taskRecurrencesProvider =
 // ignore: unused_element
 typedef TaskRecurrencesRef = AutoDisposeStreamProviderRef<List<TaskRecurrence>>;
 String _$tasksWithRecurrencesHash() =>
-    r'c4ea9a7fde162a8bb0c6a181363cbd8bdab73930';
+    r'd72795364dff685d329e5388e759bd36e526c01f';
 
-/// Stream of tasks with their recurrences populated
-/// Uses rxdart combineLatest2 for PARALLEL loading of tasks and recurrences
-/// This is the primary provider that UI should use - it ensures task.recurrence
-/// is always populated for recurring tasks, matching the Redux pattern
+/// Stream of tasks with their recurrences populated.
+/// Combines the two Drift streams so recurrences are always linked on each emit.
 ///
 /// Copied from [tasksWithRecurrences].
 @ProviderFor(tasksWithRecurrences)

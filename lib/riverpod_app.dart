@@ -15,6 +15,7 @@ import 'package:taskmaster/features/shared/providers/navigation_provider.dart';
 import 'package:taskmaster/helpers/task_selectors.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
+import 'package:taskmaster/features/shared/presentation/offline_banner.dart';
 import 'package:taskmaster/features/shared/presentation/planning_home.dart';
 import 'package:taskmaster/features/tasks/presentation/stats_screen.dart';
 
@@ -424,7 +425,12 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
     // Build with navigation bar - using Scaffold's bottomNavigationBar slot
     // for proper Material 3 layout (not Column which caused excess padding)
     return Scaffold(
-      body: currentScreen,
+      body: Column(
+        children: [
+          const OfflineBanner(),
+          Expanded(child: currentScreen),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
         backgroundColor: TaskColors.menuColor,

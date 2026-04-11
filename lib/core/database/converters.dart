@@ -8,7 +8,9 @@ import '../../models/sprint.dart' as m;
 import '../../models/sprint_assignment.dart' as m;
 import '../../models/task_date_type.dart';
 import '../../models/task_item.dart' as m;
+import '../../models/task_item_blueprint.dart';
 import '../../models/task_recurrence.dart' as m;
+import '../../models/task_recurrence_blueprint.dart';
 import 'app_database.dart';
 
 /// Bidirectional converters between Drift row structs and built_value models.
@@ -16,12 +18,18 @@ import 'app_database.dart';
 /// in-memory domain model. The `syncState` column is intentionally not exposed
 /// here — DAOs manage it.
 
+// Drift stores dateTime() columns as epoch milliseconds and returns local-time
+// DateTimes on read-back. built_value's DatePassThroughSerializer requires UTC,
+// so we normalise every DateTime coming out of Drift.
+DateTime _utc(DateTime dt) => dt.isUtc ? dt : dt.toUtc();
+DateTime? _utcOrNull(DateTime? dt) => dt == null ? null : _utc(dt);
+
 // ── Task ─────────────────────────────────────────────────────────────────────
 
 m.TaskItem taskItemFromRow(Task row) {
   return m.TaskItem((b) => b
     ..docId = row.docId
-    ..dateAdded = row.dateAdded
+    ..dateAdded = _utc(row.dateAdded)
     ..personDocId = row.personDocId
     ..name = row.name
     ..description = row.description
@@ -31,18 +39,18 @@ m.TaskItem taskItemFromRow(Task row) {
     ..priority = row.priority
     ..duration = row.duration
     ..gamePoints = row.gamePoints
-    ..startDate = row.startDate
-    ..targetDate = row.targetDate
-    ..dueDate = row.dueDate
-    ..urgentDate = row.urgentDate
-    ..completionDate = row.completionDate
+    ..startDate = _utcOrNull(row.startDate)
+    ..targetDate = _utcOrNull(row.targetDate)
+    ..dueDate = _utcOrNull(row.dueDate)
+    ..urgentDate = _utcOrNull(row.urgentDate)
+    ..completionDate = _utcOrNull(row.completionDate)
     ..recurNumber = row.recurNumber
     ..recurUnit = row.recurUnit
     ..recurWait = row.recurWait
     ..recurrenceDocId = row.recurrenceDocId
     ..recurIteration = row.recurIteration
     ..retired = row.retired
-    ..retiredDate = row.retiredDate
+    ..retiredDate = _utcOrNull(row.retiredDate)
     ..offCycle = row.offCycle);
 }
 
@@ -80,7 +88,7 @@ TasksCompanion taskItemToCompanion(m.TaskItem task) {
 m.TaskRecurrence taskRecurrenceFromRow(TaskRecurrence row) {
   return m.TaskRecurrence((b) => b
     ..docId = row.docId
-    ..dateAdded = row.dateAdded
+    ..dateAdded = _utc(row.dateAdded)
     ..personDocId = row.personDocId
     ..name = row.name
     ..recurNumber = row.recurNumber
@@ -118,7 +126,7 @@ m.AnchorDate _anchorDateFromJson(String json) {
     throw FormatException('Unknown TaskDateType label: ${map['dateType']}');
   }
   return m.AnchorDate((b) => b
-    ..dateValue = DateTime.parse(map['dateValue'] as String)
+    ..dateValue = _utc(DateTime.parse(map['dateValue'] as String))
     ..dateType = dateType);
 }
 
@@ -127,16 +135,16 @@ m.AnchorDate _anchorDateFromJson(String json) {
 m.Sprint sprintFromRow(Sprint row, List<SprintAssignment> assignmentRows) {
   return m.Sprint((b) => b
     ..docId = row.docId
-    ..dateAdded = row.dateAdded
-    ..startDate = row.startDate
-    ..endDate = row.endDate
-    ..closeDate = row.closeDate
+    ..dateAdded = _utc(row.dateAdded)
+    ..startDate = _utc(row.startDate)
+    ..endDate = _utc(row.endDate)
+    ..closeDate = _utcOrNull(row.closeDate)
     ..numUnits = row.numUnits
     ..unitName = row.unitName
     ..personDocId = row.personDocId
     ..sprintNumber = row.sprintNumber
     ..retired = row.retired
-    ..retiredDate = row.retiredDate
+    ..retiredDate = _utcOrNull(row.retiredDate)
     ..sprintAssignments = ListBuilder<m.SprintAssignment>(
         assignmentRows.map(sprintAssignmentFromRow)));
 }
@@ -163,7 +171,7 @@ m.SprintAssignment sprintAssignmentFromRow(SprintAssignment row) {
     ..taskDocId = row.taskDocId
     ..sprintDocId = row.sprintDocId
     ..retired = row.retired
-    ..retiredDate = row.retiredDate);
+    ..retiredDate = _utcOrNull(row.retiredDate));
 }
 
 SprintAssignmentsCompanion sprintAssignmentToCompanion(
@@ -174,5 +182,121 @@ SprintAssignmentsCompanion sprintAssignmentToCompanion(
     sprintDocId: Value(assignment.sprintDocId),
     retired: Value(assignment.retired),
     retiredDate: Value(assignment.retiredDate),
+  );
+}
+
+// ── Blueprint → Companion (for local-first mutations) ────────────────────────
+
+/// Full companion for inserting a brand-new locally-created task.
+/// All mutable fields are included; [docId] and [dateAdded] are generated
+/// by the caller (from Firestore .doc().id and DateTime.now()).
+TasksCompanion taskBlueprintToCompanion({
+  required String docId,
+  required String personDocId,
+  required DateTime dateAdded,
+  required TaskItemBlueprint blueprint,
+}) {
+  return TasksCompanion(
+    docId: Value(docId),
+    dateAdded: Value(dateAdded),
+    personDocId: Value(personDocId),
+    name: Value(blueprint.name ?? ''),
+    description: Value(blueprint.description),
+    project: Value(blueprint.project),
+    taskContext: Value(blueprint.context),
+    urgency: Value(blueprint.urgency),
+    priority: Value(blueprint.priority),
+    duration: Value(blueprint.duration),
+    gamePoints: Value(blueprint.gamePoints),
+    startDate: Value(blueprint.startDate),
+    targetDate: Value(blueprint.targetDate),
+    dueDate: Value(blueprint.dueDate),
+    urgentDate: Value(blueprint.urgentDate),
+    completionDate: Value(blueprint.completionDate),
+    recurNumber: Value(blueprint.recurNumber),
+    recurUnit: Value(blueprint.recurUnit),
+    recurWait: Value(blueprint.recurWait),
+    recurrenceDocId: Value(blueprint.recurrenceDocId),
+    recurIteration: Value(blueprint.recurIteration),
+    retired: Value(blueprint.retired),
+    retiredDate: Value(blueprint.retiredDate),
+    offCycle: Value(blueprint.offCycle),
+  );
+}
+
+/// Partial companion for updating an existing task. All mutable blueprint
+/// fields are written with Value(...) — including explicit nulls — so the DAO's
+/// markUpdatePending/write call overwrites exactly these columns.
+TasksCompanion taskBlueprintToDiff(TaskItemBlueprint blueprint) {
+  return TasksCompanion(
+    name: Value(blueprint.name ?? ''),
+    description: Value(blueprint.description),
+    project: Value(blueprint.project),
+    taskContext: Value(blueprint.context),
+    urgency: Value(blueprint.urgency),
+    priority: Value(blueprint.priority),
+    duration: Value(blueprint.duration),
+    gamePoints: Value(blueprint.gamePoints),
+    startDate: Value(blueprint.startDate),
+    targetDate: Value(blueprint.targetDate),
+    dueDate: Value(blueprint.dueDate),
+    urgentDate: Value(blueprint.urgentDate),
+    completionDate: Value(blueprint.completionDate),
+    recurNumber: Value(blueprint.recurNumber),
+    recurUnit: Value(blueprint.recurUnit),
+    recurWait: Value(blueprint.recurWait),
+    recurrenceDocId: Value(blueprint.recurrenceDocId),
+    recurIteration: Value(blueprint.recurIteration),
+    retired: Value(blueprint.retired),
+    retiredDate: Value(blueprint.retiredDate),
+    offCycle: Value(blueprint.offCycle),
+  );
+}
+
+/// Full companion for inserting a brand-new locally-created recurrence.
+TaskRecurrencesCompanion recurrenceBlueprintToCompanion({
+  required String docId,
+  required String personDocId,
+  required DateTime dateAdded,
+  required TaskRecurrenceBlueprint blueprint,
+}) {
+  final anchorDate = blueprint.anchorDate;
+  if (anchorDate == null) {
+    throw ArgumentError('TaskRecurrenceBlueprint.anchorDate must not be null when inserting');
+  }
+  return TaskRecurrencesCompanion(
+    docId: Value(docId),
+    dateAdded: Value(dateAdded),
+    personDocId: Value(personDocId),
+    name: Value(blueprint.name ?? ''),
+    recurNumber: Value(blueprint.recurNumber ?? 1),
+    recurUnit: Value(blueprint.recurUnit ?? ''),
+    recurWait: Value(blueprint.recurWait ?? false),
+    recurIteration: Value(blueprint.recurIteration ?? 1),
+    anchorDateJson: Value(_anchorDateToJson(anchorDate)),
+  );
+}
+
+/// Partial companion for updating an existing recurrence.
+TaskRecurrencesCompanion recurrenceBlueprintToDiff(
+    TaskRecurrenceBlueprint blueprint) {
+  final anchorDate = blueprint.anchorDate;
+  return TaskRecurrencesCompanion(
+    name: blueprint.name != null ? Value(blueprint.name!) : const Value.absent(),
+    recurNumber: blueprint.recurNumber != null
+        ? Value(blueprint.recurNumber!)
+        : const Value.absent(),
+    recurUnit: blueprint.recurUnit != null
+        ? Value(blueprint.recurUnit!)
+        : const Value.absent(),
+    recurWait: blueprint.recurWait != null
+        ? Value(blueprint.recurWait!)
+        : const Value.absent(),
+    recurIteration: blueprint.recurIteration != null
+        ? Value(blueprint.recurIteration!)
+        : const Value.absent(),
+    anchorDateJson: anchorDate != null
+        ? Value(_anchorDateToJson(anchorDate))
+        : const Value.absent(),
   );
 }

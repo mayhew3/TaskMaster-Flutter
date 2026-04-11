@@ -114,6 +114,18 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
     return (delete(tasks)..where((t) => t.docId.equals(docId))).go();
   }
 
+  /// Delete all `synced` rows whose docId is NOT in [remoteIds].
+  /// Used during the initial snapshot to purge stale local rows that no longer
+  /// exist in Firestore (e.g. after an emulator reset or server-side bulk delete).
+  /// Pending rows are intentionally left untouched.
+  Future<void> deleteSyncedNotIn(Set<String> remoteIds) {
+    return (delete(tasks)
+          ..where((t) =>
+              t.syncState.equals(SyncState.synced.name) &
+              t.docId.isNotIn(remoteIds.toList())))
+        .go();
+  }
+
   /// Rows that need to be pushed to Firestore.
   Future<List<Task>> pendingWrites() {
     return (select(tasks)
