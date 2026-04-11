@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -60,6 +62,15 @@ Future<void> main() async {
         options: DefaultFirebaseOptions.currentPlatform,
       );
 
+      // Wire up Crashlytics (only collects in release/profile, off in debug)
+      await FirebaseCrashlytics.instance
+          .setCrashlyticsCollectionEnabled(!kDebugMode);
+      FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+      PlatformDispatcher.instance.onError = (error, stack) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        return true;
+      };
+
       // Resolve emulator host before building widget tree (avoids async race in initState)
       final emulatorHost = await _resolveEmulatorHost();
 
@@ -77,6 +88,13 @@ Future<void> main() async {
       print: (self, parent, zone, line) {
         parent.print(zone, line); // Still print to console
         logStorage.writeRaw(line); // Also persist to log file
+      },
+      handleUncaughtError: (self, parent, zone, error, stack) {
+        // Forward uncaught async errors to Crashlytics (no-op in debug)
+        if (!kDebugMode) {
+          FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        }
+        parent.print(zone, '❌ Uncaught zone error: $error\n$stack');
       },
     ),
   );

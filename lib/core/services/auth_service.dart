@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../providers/firebase_providers.dart';
+import 'crash_reporter.dart';
 
 part 'auth_service.g.dart';
 
@@ -303,6 +304,8 @@ class Auth extends _$Auth {
 
       // Success!
       print('🔐 Auth: Fully authenticated - user: ${user.email}, personDocId: $personDocId');
+      // Associate crashes with this user (anonymized — personDocId, not email)
+      await ref.read(crashReporterProvider).setUserIdentifier(personDocId);
       state = AuthState(
         status: AuthStatus.authenticated,
         user: user,
