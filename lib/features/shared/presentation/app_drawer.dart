@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/log_storage_service.dart';
 import '../../../models/task_colors.dart';
 
 /// Riverpod-based navigation drawer
@@ -52,6 +54,22 @@ class AppDrawer extends ConsumerWidget {
                   ),
               ],
             ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.file_download),
+            title: const Text('Export Logs'),
+            onTap: () async {
+              Navigator.of(context).pop(); // Close drawer first
+              final logStorage = ref.read(logStorageServiceProvider);
+              final path = logStorage.getLogFilePath();
+              if (path == null) return;
+              await SharePlus.instance.share(
+                ShareParams(
+                  files: [XFile(path)],
+                  subject: 'TaskMaster logs',
+                ),
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.logout),
