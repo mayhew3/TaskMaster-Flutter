@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskmaster/app_theme.dart';
 import 'package:taskmaster/models/task_colors.dart';
+import 'package:taskmaster/core/providers/auth_providers.dart';
 import 'package:taskmaster/core/providers/notification_providers.dart';
 import 'package:taskmaster/core/services/auth_service.dart';
+import 'package:taskmaster/core/services/sync_service.dart';
 import 'package:taskmaster/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaster/features/tasks/presentation/task_list_screen.dart';
 import 'package:taskmaster/features/tasks/providers/task_providers.dart';
@@ -310,10 +312,20 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
 
     _setupBadgeUpdater();
 
-    // Schedule notification sync for AFTER first frame renders (non-blocking)
+    // Bootstrap SyncService once we know the personDocId.
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final personDocId = ref.read(personDocIdProvider);
+      if (personDocId != null) {
+        ref.read(syncServiceProvider).start(personDocId);
+      }
       _syncNotificationsInBackground();
     });
+  }
+
+  @override
+  void dispose() {
+    ref.read(syncServiceProvider).stop();
+    super.dispose();
   }
 
   void _setupBadgeUpdater() {
