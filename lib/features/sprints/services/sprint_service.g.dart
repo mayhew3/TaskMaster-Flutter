@@ -23,7 +23,7 @@ final sprintServiceProvider = AutoDisposeProvider<SprintService>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SprintServiceRef = AutoDisposeProviderRef<SprintService>;
-String _$createSprintHash() => r'1d98972d92db3d5dba84bbe45a9b8677b535143c';
+String _$createSprintHash() => r'28cfe615f7b32452af824d0d738c8f6336965ea4';
 
 /// Controller for creating sprints
 ///

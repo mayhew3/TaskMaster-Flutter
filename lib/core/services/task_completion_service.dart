@@ -4,6 +4,7 @@ import '../providers/auth_providers.dart';
 import '../providers/firebase_providers.dart';
 import '../providers/notification_providers.dart';
 import '../utils/performance_logger.dart';
+import 'analytics_service.dart';
 import '../../features/tasks/data/firestore_task_repository.dart';
 import '../../features/tasks/domain/task_repository.dart';
 import '../../features/tasks/providers/task_providers.dart';
@@ -151,6 +152,9 @@ class CompleteTask extends _$CompleteTask {
       } else {
         recentlyCompleted.remove(result.completedTask);
       }
+
+      // Analytics: fire-and-forget, non-critical
+      ref.read(analyticsServiceProvider).logTaskCompleted(complete: complete).ignore();
       perf.checkpoint('recentlyCompleted update');
 
       // Clear pending state after success
@@ -188,6 +192,7 @@ class DeleteTask extends _$DeleteTask {
     state = await AsyncValue.guard(() async {
       final repository = ref.read(taskRepositoryProvider);
       await repository.deleteTask(task);
+      ref.read(analyticsServiceProvider).logTaskDeleted().ignore();
     });
   }
 }
@@ -210,6 +215,9 @@ class AddTask extends _$AddTask {
       blueprint.recurrenceBlueprint?.personDocId = personDocId;
 
       await repository.addTask(blueprint);
+      ref.read(analyticsServiceProvider)
+          .logTaskCreated(hasRecurrence: blueprint.recurrenceBlueprint != null)
+          .ignore();
     });
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/providers/firebase_providers.dart';
+import '../../../core/services/analytics_service.dart';
 import '../../../models/sprint_blueprint.dart';
 import '../../../models/task_item.dart';
 import '../../../models/task_item_recur_preview.dart';
@@ -220,6 +221,11 @@ class CreateSprint extends _$CreateSprint {
       taskItems: taskItems,
       taskItemRecurPreviews: taskItemRecurPreviews,
     );
+
+    // Analytics: fire-and-forget, non-critical
+    ref.read(analyticsServiceProvider)
+        .logSprintCreated(taskCount: taskItems.length + taskItemRecurPreviews.length)
+        .ignore();
 
     // TM-325: Invalidate sprints provider to force UI refresh
     // This matches the pattern in AddTasksToSprint (line 225)
