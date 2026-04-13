@@ -47,8 +47,10 @@ Future<void> main() async {
 
       Logger.root.level = Level.ALL;
       Logger.root.onRecord.listen((record) {
+        // The zone's print hook captures this line into the log file, so
+        // we intentionally do NOT also call logStorage.writeRecord(record)
+        // — that would double-write every record.
         print('${record.level.name}: ${record.time}: ${record.message}');
-        logStorage.writeRecord(record);
       });
 
       // Initialize timezone database for notifications

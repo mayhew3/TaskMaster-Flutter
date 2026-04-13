@@ -1,4 +1,5 @@
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
@@ -80,7 +81,9 @@ class AppDrawer extends ConsumerWidget {
               );
             },
           ),
-          ListTile(
+          // Debug-only: expose crash-testing actions so end users in release
+          // builds can't trigger fatal crashes from the drawer.
+          if (kDebugMode) ListTile(
             leading: const Icon(Icons.bug_report, color: Colors.orange),
             title: const Text('Test Crash Reporting'),
             subtitle: const Text('Fatal crash, non-fatal error, and log breadcrumb'),

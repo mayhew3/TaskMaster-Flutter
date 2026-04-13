@@ -17,6 +17,12 @@ class LogStorageService {
   File? _logFile;
   bool _initialized = false;
 
+  // Serialize file writes through a chained Future so concurrent
+  // writeRecord/writeRaw calls don't interleave and corrupt the log file.
+  // Callers generally fire-and-forget (see main.dart), so without this
+  // they could overlap on the same underlying file handle.
+  Future<void> _writeQueue = Future.value();
+
   /// Initializes the log file path. Must be called before writing.
   Future<void> initialize() async {
     if (_initialized) return;
@@ -28,25 +34,35 @@ class LogStorageService {
     _initialized = true;
   }
 
+  /// Chains [work] onto the internal write queue so all file writes run
+  /// sequentially. Swallows errors to keep the sink fault-tolerant.
+  Future<void> _enqueue(Future<void> Function() work) {
+    final next = _writeQueue.then((_) => work()).catchError((_) {});
+    _writeQueue = next;
+    return next;
+  }
+
   /// Writes a single log record to the file. Rotates if file exceeds max size.
-  Future<void> writeRecord(LogRecord record) async {
-    if (!_initialized) await initialize();
-    final file = _logFile!;
+  Future<void> writeRecord(LogRecord record) {
+    return _enqueue(() async {
+      if (!_initialized) await initialize();
+      final file = _logFile!;
 
-    final line = _formatRecord(record);
-    try {
-      await file.writeAsString('$line\n', mode: FileMode.append, flush: true);
+      final line = _formatRecord(record);
+      try {
+        await file.writeAsString('$line\n', mode: FileMode.append, flush: true);
 
-      // Check size and rotate if needed
-      final size = await file.length();
-      if (size > _maxFileSizeBytes) {
-        await _rotate(file);
+        // Check size and rotate if needed
+        final size = await file.length();
+        if (size > _maxFileSizeBytes) {
+          await _rotate(file);
+        }
+      } catch (e) {
+        // Don't throw from the log sink — would create an infinite loop
+        // ignore: avoid_print
+        print('[LogStorageService] Failed to write log: $e');
       }
-    } catch (e) {
-      // Don't throw from the log sink — would create an infinite loop
-      // ignore: avoid_print
-      print('[LogStorageService] Failed to write log: $e');
-    }
+    });
   }
 
   String _formatRecord(LogRecord record) {
@@ -80,21 +96,24 @@ class LogStorageService {
 
   /// Appends a raw line (e.g., captured print output) to the log file.
   /// Used by the print-capturing zone to preserve console output.
-  Future<void> writeRaw(String line) async {
-    if (!_initialized) await initialize();
-    final file = _logFile!;
-    final ts = DateTime.now().toIso8601String();
-    try {
-      await file.writeAsString('$ts [PRINT  ] $line\n', mode: FileMode.append, flush: true);
+  Future<void> writeRaw(String line) {
+    return _enqueue(() async {
+      if (!_initialized) await initialize();
+      final file = _logFile!;
+      final ts = DateTime.now().toIso8601String();
+      try {
+        await file.writeAsString('$ts [PRINT  ] $line\n',
+            mode: FileMode.append, flush: true);
 
-      final size = await file.length();
-      if (size > _maxFileSizeBytes) {
-        await _rotate(file);
+        final size = await file.length();
+        if (size > _maxFileSizeBytes) {
+          await _rotate(file);
+        }
+      } catch (e) {
+        // ignore: avoid_print
+        stderr.writeln('[LogStorageService] Failed to write raw log: $e');
       }
-    } catch (e) {
-      // ignore: avoid_print
-      stderr.writeln('[LogStorageService] Failed to write raw log: $e');
-    }
+    });
   }
 
   /// Returns the current contents of the log file.

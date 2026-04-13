@@ -22,17 +22,21 @@ Stream<List<Sprint>> sprints(Ref ref) {
   return db.sprintDao
       .watchRecentSprints(personDocId: personDocId, limit: 3)
       .map((rows) {
-    debugPrint('[sprintsProvider] Drift emitted ${rows.length} sprint row(s)');
-    for (final row in rows) {
-      debugPrint('  sprint ${row.sprint.docId}: sprintNumber=${row.sprint.sprintNumber}, '
-          'start=${row.sprint.startDate}, end=${row.sprint.endDate}, '
-          'syncState=${row.sprint.syncState}, assignments=${row.assignments.length}');
+    if (kDebugMode) {
+      debugPrint('[sprintsProvider] Drift emitted ${rows.length} sprint row(s)');
+      for (final row in rows) {
+        debugPrint(
+            '  sprint ${row.sprint.docId}: sprintNumber=${row.sprint.sprintNumber}, '
+            'start=${row.sprint.startDate}, end=${row.sprint.endDate}, '
+            'syncState=${row.sprint.syncState}, assignments=${row.assignments.length}');
+      }
     }
     final result = <Sprint>[];
     for (final row in rows) {
       try {
         result.add(sprintFromRow(row.sprint, row.assignments));
       } catch (e) {
+        // Error-path logging kept unconditionally so schema issues surface.
         debugPrint('⚠️ [sprintsProvider] Failed to convert sprint ${row.sprint.docId}: $e');
       }
     }

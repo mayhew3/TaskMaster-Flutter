@@ -21,6 +21,12 @@ import 'crash_reporter.dart';
 
 part 'sync_service.g.dart';
 
+/// Debug-only log helper — no-ops in release/profile builds so the on-device
+/// log file and console aren't flooded with sync diagnostics in production.
+void _syncLog(String message) {
+  if (kDebugMode) debugPrint(message);
+}
+
 /// Bridges Firestore and the local Drift database.
 ///
 /// - On [start], subscribes to Firestore collections and mirrors snapshots
@@ -72,11 +78,11 @@ class SyncService {
 
   void _markInitialSnapshotReceived() {
     _initialSnapshotsReceived++;
-    debugPrint('[SyncService] +${_ms()}ms initialSnapshots=$_initialSnapshotsReceived/3');
+    _syncLog('[SyncService] +${_ms()}ms initialSnapshots=$_initialSnapshotsReceived/3');
     if (_initialSnapshotsReceived >= 3 &&
         _initialPullCompleter != null &&
         !_initialPullCompleter!.isCompleted) {
-      debugPrint('[SyncService] +${_ms()}ms ALL initial snapshots received — unblocking UI');
+      _syncLog('[SyncService] +${_ms()}ms ALL initial snapshots received — unblocking UI');
       _initialPullCompleter!.complete();
     }
   }
@@ -88,7 +94,7 @@ class SyncService {
     _initialPullCompleter = Completer<void>();
     _initialSnapshotsReceived = 0;
     _startTime = DateTime.now();
-    debugPrint('[SyncService] start() — personDocId=$personDocId');
+    _syncLog('[SyncService] start() — personDocId=$personDocId');
 
     _tasksSub = firestore
         .collection('tasks')
@@ -161,7 +167,7 @@ class SyncService {
     final isInitial = !_tasksInitialReceived;
     _tasksInitialReceived = true;
 
-    debugPrint('[SyncService] +${_ms()}ms tasks snapshot arrived: ${snapshot.docs.length} docs, ${snapshot.docChanges.length} changes, isInitial=$isInitial');
+    _syncLog('[SyncService] +${_ms()}ms tasks snapshot arrived: ${snapshot.docs.length} docs, ${snapshot.docChanges.length} changes, isInitial=$isInitial');
 
     final toUpsert = <TasksCompanion>[];
     for (final change in snapshot.docChanges) {
@@ -188,9 +194,9 @@ class SyncService {
       await db.taskDao.deleteSyncedNotIn(remoteIds);
     }
 
-    debugPrint('[SyncService] +${_ms()}ms tasks transaction done');
+    _syncLog('[SyncService] +${_ms()}ms tasks transaction done');
     if (isInitial) _markInitialSnapshotReceived();
-    debugPrint('[SyncService] +${_ms()}ms tasks initial complete');
+    _syncLog('[SyncService] +${_ms()}ms tasks initial complete');
   }
 
   Future<void> _onRecurrencesSnapshot(
@@ -198,7 +204,7 @@ class SyncService {
     final isInitial = !_recurrencesInitialReceived;
     _recurrencesInitialReceived = true;
 
-    debugPrint('[SyncService] +${_ms()}ms recurrences snapshot arrived: ${snapshot.docs.length} docs, isInitial=$isInitial');
+    _syncLog('[SyncService] +${_ms()}ms recurrences snapshot arrived: ${snapshot.docs.length} docs, isInitial=$isInitial');
 
     final toUpsert = <TaskRecurrencesCompanion>[];
     for (final change in snapshot.docChanges) {
@@ -226,9 +232,9 @@ class SyncService {
       await db.taskRecurrenceDao.deleteSyncedNotIn(remoteIds);
     }
 
-    debugPrint('[SyncService] +${_ms()}ms recurrences transaction done');
+    _syncLog('[SyncService] +${_ms()}ms recurrences transaction done');
     if (isInitial) _markInitialSnapshotReceived();
-    debugPrint('[SyncService] +${_ms()}ms recurrences initial complete');
+    _syncLog('[SyncService] +${_ms()}ms recurrences initial complete');
   }
 
   Future<void> _onSprintsSnapshot(
@@ -236,10 +242,10 @@ class SyncService {
     final isInitial = !_sprintsInitialReceived;
     _sprintsInitialReceived = true;
 
-    debugPrint('[SyncService] +${_ms()}ms sprints snapshot arrived: ${snapshot.docs.length} docs, ${snapshot.docChanges.length} changes, isInitial=$isInitial');
+    _syncLog('[SyncService] +${_ms()}ms sprints snapshot arrived: ${snapshot.docs.length} docs, ${snapshot.docChanges.length} changes, isInitial=$isInitial');
     for (final doc in snapshot.docs) {
       final data = doc.data();
-      debugPrint('  sprint ${doc.id}: sprintNumber=${data['sprintNumber']}, '
+      _syncLog('  sprint ${doc.id}: sprintNumber=${data['sprintNumber']}, '
           'start=${data['startDate']}, end=${data['endDate']}');
     }
 
@@ -280,7 +286,7 @@ class SyncService {
       await db.sprintDao.deleteSyncedSprintsNotIn(remoteIds);
       await db.sprintDao.deleteSyncedOrphanAssignments();
       _markInitialSnapshotReceived();
-      debugPrint('[SyncService] +${_ms()}ms sprints initial complete');
+      _syncLog('[SyncService] +${_ms()}ms sprints initial complete');
     }
 
     // Cancel listeners for sprints no longer in the snapshot. Use `remoteIds`
@@ -332,13 +338,13 @@ class SyncService {
 
   Future<void> pushPendingWrites({String caller = 'unknown'}) async {
     if (_isPushing) {
-      debugPrint('[SyncService] pushPendingWrites blocked (already pushing) — caller: $caller');
+      _syncLog('[SyncService] pushPendingWrites blocked (already pushing) — caller: $caller');
       return;
     }
     final online = ref.read(connectivityProvider).valueOrNull ?? false;
     if (!online) return;
 
-    debugPrint('[SyncService] pushPendingWrites START — caller: $caller');
+    _syncLog('[SyncService] pushPendingWrites START — caller: $caller');
     _isPushing = true;
     final statusController = ref.read(syncStatusControllerProvider.notifier);
     statusController.set(SyncStatus.syncing);
@@ -352,34 +358,34 @@ class SyncService {
       statusController.set(SyncStatus.error);
       _logSyncError(e, s);
     } finally {
-      debugPrint('[SyncService] pushPendingWrites END — caller: $caller');
+      _syncLog('[SyncService] pushPendingWrites END — caller: $caller');
       _isPushing = false;
     }
   }
 
   Future<void> _pushPendingTasks() async {
     final pending = await db.taskDao.pendingWrites();
-    debugPrint('[SyncService] _pushPendingTasks: ${pending.length} pending');
+    _syncLog('[SyncService] _pushPendingTasks: ${pending.length} pending');
     for (final row in pending) {
-      debugPrint('  task ${row.docId} state=${row.syncState}');
+      _syncLog('  task ${row.docId} state=${row.syncState}');
       try {
         final docRef = firestore.collection('tasks').doc(row.docId);
         if (row.syncState == SyncState.pendingDelete.name) {
           await docRef.delete();
           await db.taskDao.hardDelete(row.docId);
-          debugPrint('  → deleted ${row.docId}');
+          _syncLog('  → deleted ${row.docId}');
         } else {
           final task = taskItemFromRow(row);
           final json = task.toJson() as Map<String, dynamic>;
           json.remove('docId');
-          debugPrint('  → calling set() for ${row.docId}');
+          _syncLog('  → calling set() for ${row.docId}');
           await docRef.set(json);
-          debugPrint('  → set() complete, calling markSynced');
+          _syncLog('  → set() complete, calling markSynced');
           await db.taskDao.markSynced(row.docId);
-          debugPrint('  → markSynced complete for ${row.docId}');
+          _syncLog('  → markSynced complete for ${row.docId}');
         }
       } catch (e, s) {
-        debugPrint('  → ERROR for ${row.docId}: $e');
+        _syncLog('  → ERROR for ${row.docId}: $e');
         _logSyncError(e, s);
       }
     }
