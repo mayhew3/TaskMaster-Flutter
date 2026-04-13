@@ -227,7 +227,10 @@ class CreateSprint extends _$CreateSprint {
     final now = DateTime.now().toUtc();
 
     // Resolve new tasks from recurrence previews and write to Drift.
-    final List<TaskItem> newTasks = [];
+    // Only docIds are tracked — they're all that the assignment-write loop
+    // below needs, and they're safer than deserializing TaskItems from
+    // blueprint JSON (which can throw mid-operation).
+    final List<String> newTaskDocIds = [];
     for (final preview in taskItemRecurPreviews) {
       final blueprint = preview.toBlueprint();
       final personDocId = sprintBlueprint.personDocId;
@@ -262,11 +265,11 @@ class CreateSprint extends _$CreateSprint {
           blueprint: blueprint,
         ),
       );
-      // Reconstruct a TaskItem in-memory for building the assignment list.
-      final json = Map<String, dynamic>.from(blueprint.toJson());
-      json['docId'] = taskDocId;
-      json['dateAdded'] = now.toIso8601String();
-      newTasks.add(serializers.deserializeWith(TaskItem.serializer, json)!);
+      // Track docId directly — assignment writes only need the docId, and
+      // deserializing a TaskItem from blueprint JSON can throw if required
+      // built_value fields are missing (which would leave pending rows
+      // partially persisted).
+      newTaskDocIds.add(taskDocId);
     }
 
     // Determine next sprint number from local Drift cache (most recent 3 sprints
@@ -293,13 +296,16 @@ class CreateSprint extends _$CreateSprint {
     ));
 
     // Write assignments to Drift for all tasks.
-    final allAssignedTasks = [...taskItems, ...newTasks];
-    for (final task in allAssignedTasks) {
+    final allAssignedTaskDocIds = <String>[
+      for (final t in taskItems) t.docId,
+      ...newTaskDocIds,
+    ];
+    for (final taskDocId in allAssignedTaskDocIds) {
       final assignmentDocId =
           firestore.collection('sprints').doc(sprintDocId).collection('sprintAssignments').doc().id;
       await db.sprintDao.insertAssignmentPending(SprintAssignmentsCompanion(
         docId: Value(assignmentDocId),
-        taskDocId: Value(task.docId),
+        taskDocId: Value(taskDocId),
         sprintDocId: Value(sprintDocId),
       ));
     }
@@ -340,8 +346,9 @@ class AddTasksToSprint extends _$AddTasksToSprint {
       final now = DateTime.now().toUtc();
       final personDocId = sprint.personDocId;
 
-      // Create new tasks from recurrence previews.
-      final List<TaskItem> newTasks = [];
+      // Create new tasks from recurrence previews. Only docIds are tracked
+      // (see CreateSprint for rationale).
+      final List<String> newTaskDocIds = [];
       for (final preview in taskItemRecurPreviews) {
         final blueprint = preview.toBlueprint();
         blueprint.personDocId = personDocId;
@@ -375,20 +382,21 @@ class AddTasksToSprint extends _$AddTasksToSprint {
             blueprint: blueprint,
           ),
         );
-        final json = Map<String, dynamic>.from(blueprint.toJson());
-        json['docId'] = taskDocId;
-        json['dateAdded'] = now.toIso8601String();
-        newTasks.add(serializers.deserializeWith(TaskItem.serializer, json)!);
+        newTaskDocIds.add(taskDocId);
       }
 
       // Write assignments for all tasks.
       final sprintRef = firestore.collection('sprints').doc(sprint.docId);
-      for (final task in [...taskItems, ...newTasks]) {
+      final allAssignedTaskDocIds = <String>[
+        for (final t in taskItems) t.docId,
+        ...newTaskDocIds,
+      ];
+      for (final taskDocId in allAssignedTaskDocIds) {
         final assignmentDocId =
             sprintRef.collection('sprintAssignments').doc().id;
         await db.sprintDao.insertAssignmentPending(SprintAssignmentsCompanion(
           docId: Value(assignmentDocId),
-          taskDocId: Value(task.docId),
+          taskDocId: Value(taskDocId),
           sprintDocId: Value(sprint.docId),
         ));
       }

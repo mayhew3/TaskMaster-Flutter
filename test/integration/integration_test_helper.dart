@@ -273,6 +273,7 @@ class IntegrationTestHelper {
               .collection('tasks')
               .where('personDocId', isEqualTo: pid)
               .where('retired', isNull: true)
+              .where('completionDate', isNull: true)
               .snapshots()
               .map((snap) => snap.docs
                   .map((doc) {

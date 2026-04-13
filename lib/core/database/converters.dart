@@ -224,12 +224,16 @@ TasksCompanion taskBlueprintToCompanion({
   );
 }
 
-/// Partial companion for updating an existing task. All mutable blueprint
-/// fields are written with Value(...) — including explicit nulls — so the DAO's
-/// markUpdatePending/write call overwrites exactly these columns.
+/// Partial companion for updating an existing task. Mutable blueprint fields
+/// are written with Value(...) so the DAO's markUpdatePending/write call
+/// overwrites exactly these columns. `name` is left absent when the blueprint
+/// doesn't set it so the existing stored value is preserved — the full
+/// `taskBlueprintToCompanion` path is responsible for validating that name
+/// is non-null on insert.
 TasksCompanion taskBlueprintToDiff(TaskItemBlueprint blueprint) {
   return TasksCompanion(
-    name: Value(blueprint.name ?? ''),
+    name:
+        blueprint.name != null ? Value(blueprint.name!) : const Value.absent(),
     description: Value(blueprint.description),
     project: Value(blueprint.project),
     taskContext: Value(blueprint.context),

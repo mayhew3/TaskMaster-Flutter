@@ -354,11 +354,15 @@ class SyncService {
     final statusController = ref.read(syncStatusControllerProvider.notifier);
     statusController.set(SyncStatus.syncing);
     try {
-      await _pushPendingTasks();
-      await _pushPendingRecurrences();
-      await _pushPendingSprints();
-      await _pushPendingAssignments();
-      statusController.set(SyncStatus.idle);
+      // OR each phase's failure flag — per-row errors are caught and logged
+      // inside each phase, so we need this to know whether any row failed.
+      var hadFailure = false;
+      hadFailure |= await _pushPendingTasks();
+      hadFailure |= await _pushPendingRecurrences();
+      hadFailure |= await _pushPendingSprints();
+      hadFailure |= await _pushPendingAssignments();
+      statusController
+          .set(hadFailure ? SyncStatus.error : SyncStatus.idle);
     } catch (e, s) {
       statusController.set(SyncStatus.error);
       _logSyncError(e, s);
@@ -368,9 +372,13 @@ class SyncService {
     }
   }
 
-  Future<void> _pushPendingTasks() async {
+  /// Pushes all pending task rows to Firestore. Returns `true` if any row
+  /// failed (the caller uses this to set `SyncStatus.error` rather than
+  /// `idle`).
+  Future<bool> _pushPendingTasks() async {
     final pending = await db.taskDao.pendingWrites();
     _syncLog('[SyncService] _pushPendingTasks: ${pending.length} pending');
+    var hadFailure = false;
     for (final row in pending) {
       _syncLog('  task ${row.docId} state=${row.syncState}');
       try {
@@ -390,14 +398,17 @@ class SyncService {
           _syncLog('  → markSynced complete for ${row.docId}');
         }
       } catch (e, s) {
+        hadFailure = true;
         _syncLog('  → ERROR for ${row.docId}: $e');
         _logSyncError(e, s);
       }
     }
+    return hadFailure;
   }
 
-  Future<void> _pushPendingRecurrences() async {
+  Future<bool> _pushPendingRecurrences() async {
     final pending = await db.taskRecurrenceDao.pendingWrites();
+    var hadFailure = false;
     for (final row in pending) {
       try {
         final docRef = firestore.collection('taskRecurrences').doc(row.docId);
@@ -413,13 +424,16 @@ class SyncService {
           await db.taskRecurrenceDao.markSynced(row.docId);
         }
       } catch (e, s) {
+        hadFailure = true;
         _logSyncError(e, s);
       }
     }
+    return hadFailure;
   }
 
-  Future<void> _pushPendingSprints() async {
+  Future<bool> _pushPendingSprints() async {
     final pending = await db.sprintDao.pendingSprintWrites();
+    var hadFailure = false;
     for (final row in pending) {
       try {
         final docRef = firestore.collection('sprints').doc(row.docId);
@@ -442,13 +456,16 @@ class SyncService {
           await db.sprintDao.markSprintSynced(row.docId);
         }
       } catch (e, s) {
+        hadFailure = true;
         _logSyncError(e, s);
       }
     }
+    return hadFailure;
   }
 
-  Future<void> _pushPendingAssignments() async {
+  Future<bool> _pushPendingAssignments() async {
     final pending = await db.sprintDao.pendingAssignmentWrites();
+    var hadFailure = false;
     for (final row in pending) {
       try {
         final docRef = firestore
@@ -472,9 +489,11 @@ class SyncService {
           await db.sprintDao.markAssignmentSynced(row.docId);
         }
       } catch (e, s) {
+        hadFailure = true;
         _logSyncError(e, s);
       }
     }
+    return hadFailure;
   }
 
   void _logSyncError(Object error, [StackTrace? stack]) {
