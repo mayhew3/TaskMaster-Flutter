@@ -58,9 +58,10 @@ class LogStorageService {
           await _rotate(file);
         }
       } catch (e) {
-        // Don't throw from the log sink — would create an infinite loop
-        // ignore: avoid_print
-        print('[LogStorageService] Failed to write log: $e');
+        // Don't throw from the log sink — report directly to stderr so
+        // failures here don't re-enter application logging via the
+        // print-capturing zone in main.dart.
+        stderr.writeln('[LogStorageService] Failed to write log: $e');
       }
     });
   }
@@ -89,8 +90,8 @@ class LogStorageService {
       final truncated = newlineIdx >= 0 ? contents.substring(newlineIdx + 1) : '';
       await file.writeAsString(truncated, flush: true);
     } catch (e) {
-      // ignore: avoid_print
-      print('[LogStorageService] Failed to rotate log: $e');
+      // Report directly to stderr so sink failures don't re-enter logging.
+      stderr.writeln('[LogStorageService] Failed to rotate log: $e');
     }
   }
 
@@ -110,7 +111,6 @@ class LogStorageService {
           await _rotate(file);
         }
       } catch (e) {
-        // ignore: avoid_print
         stderr.writeln('[LogStorageService] Failed to write raw log: $e');
       }
     });

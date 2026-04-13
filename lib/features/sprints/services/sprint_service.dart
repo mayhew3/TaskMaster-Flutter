@@ -226,89 +226,98 @@ class CreateSprint extends _$CreateSprint {
     final firestore = ref.read(firestoreProvider);
     final now = DateTime.now().toUtc();
 
-    // Resolve new tasks from recurrence previews and write to Drift.
-    // Only docIds are tracked — they're all that the assignment-write loop
-    // below needs, and they're safer than deserializing TaskItems from
-    // blueprint JSON (which can throw mid-operation).
-    final List<String> newTaskDocIds = [];
-    for (final preview in taskItemRecurPreviews) {
-      final blueprint = preview.toBlueprint();
-      final personDocId = sprintBlueprint.personDocId;
-      blueprint.personDocId = personDocId;
+    // docIds are generated outside the transaction (Firestore's .doc().id is
+    // client-side and doesn't require a round-trip) so the transaction body
+    // only contains Drift writes.
+    final sprintDocId = firestore.collection('sprints').doc().id;
+    late final int sprintNumber;
 
-      // Handle recurrence update or creation.
-      final recBp = blueprint.recurrenceBlueprint;
-      if (recBp != null && blueprint.recurrenceDocId == null) {
-        final recurrenceDocId = firestore.collection('taskRecurrences').doc().id;
-        blueprint.recurrenceDocId = recurrenceDocId;
-        await db.taskRecurrenceDao.insertPending(
-          recurrenceBlueprintToCompanion(
-            docId: recurrenceDocId,
+    // Run all local writes in a single transaction so a failure partway
+    // through leaves the local DB consistent instead of with half a sprint
+    // queued for sync.
+    await db.transaction(() async {
+      // Resolve new tasks from recurrence previews and write to Drift.
+      // Only docIds are tracked — they're all that the assignment-write loop
+      // below needs, and they're safer than deserializing TaskItems from
+      // blueprint JSON (which can throw mid-operation).
+      final List<String> newTaskDocIds = [];
+      for (final preview in taskItemRecurPreviews) {
+        final blueprint = preview.toBlueprint();
+        final personDocId = sprintBlueprint.personDocId;
+        blueprint.personDocId = personDocId;
+
+        // Handle recurrence update or creation.
+        final recBp = blueprint.recurrenceBlueprint;
+        if (recBp != null && blueprint.recurrenceDocId == null) {
+          final recurrenceDocId = firestore.collection('taskRecurrences').doc().id;
+          blueprint.recurrenceDocId = recurrenceDocId;
+          await db.taskRecurrenceDao.insertPending(
+            recurrenceBlueprintToCompanion(
+              docId: recurrenceDocId,
+              personDocId: personDocId,
+              dateAdded: now,
+              blueprint: recBp,
+            ),
+          );
+        } else if (recBp != null && blueprint.recurrenceDocId != null) {
+          await db.taskRecurrenceDao.markUpdatePending(
+            blueprint.recurrenceDocId!,
+            recurrenceBlueprintToDiff(recBp),
+          );
+        }
+
+        final taskDocId = firestore.collection('tasks').doc().id;
+        await db.taskDao.insertPending(
+          taskBlueprintToCompanion(
+            docId: taskDocId,
             personDocId: personDocId,
             dateAdded: now,
-            blueprint: recBp,
+            blueprint: blueprint,
           ),
         );
-      } else if (recBp != null && blueprint.recurrenceDocId != null) {
-        await db.taskRecurrenceDao.markUpdatePending(
-          blueprint.recurrenceDocId!,
-          recurrenceBlueprintToDiff(recBp),
-        );
+        newTaskDocIds.add(taskDocId);
       }
 
-      final taskDocId = firestore.collection('tasks').doc().id;
-      await db.taskDao.insertPending(
-        taskBlueprintToCompanion(
-          docId: taskDocId,
-          personDocId: personDocId,
-          dateAdded: now,
-          blueprint: blueprint,
-        ),
-      );
-      // Track docId directly — assignment writes only need the docId, and
-      // deserializing a TaskItem from blueprint JSON can throw if required
-      // built_value fields are missing (which would leave pending rows
-      // partially persisted).
-      newTaskDocIds.add(taskDocId);
-    }
+      // Determine next sprint number from local Drift cache (most recent 3
+      // sprints are always synced, so the max is authoritative).
+      final allLocalSprints = await (db.select(db.sprints)
+            ..where((s) => s.personDocId.equals(sprintBlueprint.personDocId)))
+          .get();
+      final maxSprintNumber = allLocalSprints.fold<int>(
+          0, (max, s) => s.sprintNumber > max ? s.sprintNumber : max);
+      sprintNumber = maxSprintNumber + 1;
 
-    // Determine next sprint number from local Drift cache (most recent 3 sprints
-    // are always synced, so the max is authoritative).
-    final allLocalSprints = await (db.select(db.sprints)
-          ..where((s) => s.personDocId.equals(sprintBlueprint.personDocId)))
-        .get();
-    final maxSprintNumber = allLocalSprints.fold<int>(
-        0, (max, s) => s.sprintNumber > max ? s.sprintNumber : max);
-
-    final sprintDocId = firestore.collection('sprints').doc().id;
-    final sprintNumber = maxSprintNumber + 1;
-
-    // Write sprint to Drift.
-    await db.sprintDao.insertSprintPending(SprintsCompanion(
-      docId: Value(sprintDocId),
-      dateAdded: Value(now),
-      startDate: Value(sprintBlueprint.startDate.toUtc()),
-      endDate: Value(sprintBlueprint.endDate.toUtc()),
-      numUnits: Value(sprintBlueprint.numUnits),
-      unitName: Value(sprintBlueprint.unitName),
-      personDocId: Value(sprintBlueprint.personDocId),
-      sprintNumber: Value(sprintNumber),
-    ));
-
-    // Write assignments to Drift for all tasks.
-    final allAssignedTaskDocIds = <String>[
-      for (final t in taskItems) t.docId,
-      ...newTaskDocIds,
-    ];
-    for (final taskDocId in allAssignedTaskDocIds) {
-      final assignmentDocId =
-          firestore.collection('sprints').doc(sprintDocId).collection('sprintAssignments').doc().id;
-      await db.sprintDao.insertAssignmentPending(SprintAssignmentsCompanion(
-        docId: Value(assignmentDocId),
-        taskDocId: Value(taskDocId),
-        sprintDocId: Value(sprintDocId),
+      // Write sprint to Drift.
+      await db.sprintDao.insertSprintPending(SprintsCompanion(
+        docId: Value(sprintDocId),
+        dateAdded: Value(now),
+        startDate: Value(sprintBlueprint.startDate.toUtc()),
+        endDate: Value(sprintBlueprint.endDate.toUtc()),
+        numUnits: Value(sprintBlueprint.numUnits),
+        unitName: Value(sprintBlueprint.unitName),
+        personDocId: Value(sprintBlueprint.personDocId),
+        sprintNumber: Value(sprintNumber),
       ));
-    }
+
+      // Write assignments to Drift for all tasks.
+      final allAssignedTaskDocIds = <String>[
+        for (final t in taskItems) t.docId,
+        ...newTaskDocIds,
+      ];
+      for (final taskDocId in allAssignedTaskDocIds) {
+        final assignmentDocId = firestore
+            .collection('sprints')
+            .doc(sprintDocId)
+            .collection('sprintAssignments')
+            .doc()
+            .id;
+        await db.sprintDao.insertAssignmentPending(SprintAssignmentsCompanion(
+          docId: Value(assignmentDocId),
+          taskDocId: Value(taskDocId),
+          sprintDocId: Value(sprintDocId),
+        ));
+      }
+    });
 
     ref.read(analyticsServiceProvider)
         .logSprintCreated(taskCount: taskItems.length + taskItemRecurPreviews.length)
@@ -346,60 +355,65 @@ class AddTasksToSprint extends _$AddTasksToSprint {
       final now = DateTime.now().toUtc();
       final personDocId = sprint.personDocId;
 
-      // Create new tasks from recurrence previews. Only docIds are tracked
-      // (see CreateSprint for rationale).
-      final List<String> newTaskDocIds = [];
-      for (final preview in taskItemRecurPreviews) {
-        final blueprint = preview.toBlueprint();
-        blueprint.personDocId = personDocId;
+      // Run all local writes in a single transaction so a failure partway
+      // through leaves the local DB consistent (no tasks queued without
+      // assignments, or vice-versa).
+      await db.transaction(() async {
+        // Create new tasks from recurrence previews. Only docIds are tracked
+        // (see CreateSprint for rationale).
+        final List<String> newTaskDocIds = [];
+        for (final preview in taskItemRecurPreviews) {
+          final blueprint = preview.toBlueprint();
+          blueprint.personDocId = personDocId;
 
-        final recBp = blueprint.recurrenceBlueprint;
-        if (recBp != null && blueprint.recurrenceDocId == null) {
-          final recurrenceDocId =
-              firestore.collection('taskRecurrences').doc().id;
-          blueprint.recurrenceDocId = recurrenceDocId;
-          await db.taskRecurrenceDao.insertPending(
-            recurrenceBlueprintToCompanion(
-              docId: recurrenceDocId,
+          final recBp = blueprint.recurrenceBlueprint;
+          if (recBp != null && blueprint.recurrenceDocId == null) {
+            final recurrenceDocId =
+                firestore.collection('taskRecurrences').doc().id;
+            blueprint.recurrenceDocId = recurrenceDocId;
+            await db.taskRecurrenceDao.insertPending(
+              recurrenceBlueprintToCompanion(
+                docId: recurrenceDocId,
+                personDocId: personDocId,
+                dateAdded: now,
+                blueprint: recBp,
+              ),
+            );
+          } else if (recBp != null && blueprint.recurrenceDocId != null) {
+            await db.taskRecurrenceDao.markUpdatePending(
+              blueprint.recurrenceDocId!,
+              recurrenceBlueprintToDiff(recBp),
+            );
+          }
+
+          final taskDocId = firestore.collection('tasks').doc().id;
+          await db.taskDao.insertPending(
+            taskBlueprintToCompanion(
+              docId: taskDocId,
               personDocId: personDocId,
               dateAdded: now,
-              blueprint: recBp,
+              blueprint: blueprint,
             ),
           );
-        } else if (recBp != null && blueprint.recurrenceDocId != null) {
-          await db.taskRecurrenceDao.markUpdatePending(
-            blueprint.recurrenceDocId!,
-            recurrenceBlueprintToDiff(recBp),
-          );
+          newTaskDocIds.add(taskDocId);
         }
 
-        final taskDocId = firestore.collection('tasks').doc().id;
-        await db.taskDao.insertPending(
-          taskBlueprintToCompanion(
-            docId: taskDocId,
-            personDocId: personDocId,
-            dateAdded: now,
-            blueprint: blueprint,
-          ),
-        );
-        newTaskDocIds.add(taskDocId);
-      }
-
-      // Write assignments for all tasks.
-      final sprintRef = firestore.collection('sprints').doc(sprint.docId);
-      final allAssignedTaskDocIds = <String>[
-        for (final t in taskItems) t.docId,
-        ...newTaskDocIds,
-      ];
-      for (final taskDocId in allAssignedTaskDocIds) {
-        final assignmentDocId =
-            sprintRef.collection('sprintAssignments').doc().id;
-        await db.sprintDao.insertAssignmentPending(SprintAssignmentsCompanion(
-          docId: Value(assignmentDocId),
-          taskDocId: Value(taskDocId),
-          sprintDocId: Value(sprint.docId),
-        ));
-      }
+        // Write assignments for all tasks.
+        final sprintRef = firestore.collection('sprints').doc(sprint.docId);
+        final allAssignedTaskDocIds = <String>[
+          for (final t in taskItems) t.docId,
+          ...newTaskDocIds,
+        ];
+        for (final taskDocId in allAssignedTaskDocIds) {
+          final assignmentDocId =
+              sprintRef.collection('sprintAssignments').doc().id;
+          await db.sprintDao.insertAssignmentPending(SprintAssignmentsCompanion(
+            docId: Value(assignmentDocId),
+            taskDocId: Value(taskDocId),
+            sprintDocId: Value(sprint.docId),
+          ));
+        }
+      });
 
       ref.read(syncServiceProvider).pushPendingWrites(caller: 'AddTasksToSprint').ignore();
     });

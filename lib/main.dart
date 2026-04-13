@@ -37,7 +37,9 @@ Future<void> main() async {
   // same zone (otherwise Flutter throws a Zone mismatch error).
   // This preserves the full runtime output that would otherwise be lost
   // on iOS production devices where console logs aren't accessible.
-  runZoned<Future<void>>(
+  // `await` so any startup error thrown inside the zone chains back to
+  // `main()` instead of becoming an unawaited future.
+  await runZoned<Future<void>>(
     () async {
       // Initialize binding inside the zone so runApp uses the same zone
       WidgetsFlutterBinding.ensureInitialized();
@@ -64,14 +66,21 @@ Future<void> main() async {
         options: DefaultFirebaseOptions.currentPlatform,
       );
 
-      // Wire up Crashlytics (only collects in release/profile, off in debug)
+      // Wire up Crashlytics (only collects in release/profile, off in debug).
+      // Handlers are only installed outside debug mode so:
+      //   1. The `CrashReporter` debug no-op contract isn't bypassed
+      //   2. Uncaught errors in debug/test aren't swallowed by `return true`
+      //      — they still surface via the default Flutter error handling.
       await FirebaseCrashlytics.instance
           .setCrashlyticsCollectionEnabled(!kDebugMode);
-      FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-      PlatformDispatcher.instance.onError = (error, stack) {
-        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-        return true;
-      };
+      if (!kDebugMode) {
+        FlutterError.onError =
+            FirebaseCrashlytics.instance.recordFlutterFatalError;
+        PlatformDispatcher.instance.onError = (error, stack) {
+          FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+          return true;
+        };
+      }
 
       // Resolve emulator host before building widget tree (avoids async race in initState)
       final emulatorHost = await _resolveEmulatorHost();
