@@ -101,6 +101,7 @@ class SyncService {
     _recurrencesSub = firestore
         .collection('taskRecurrences')
         .where('personDocId', isEqualTo: personDocId)
+        .where('retired', isNull: true)
         .snapshots()
         .listen(_onRecurrencesSnapshot, onError: _logSyncError);
 
@@ -242,21 +243,21 @@ class SyncService {
           'start=${data['startDate']}, end=${data['endDate']}');
     }
 
-    final seenIds = <String>{};
+    // Handle removed docs: cancel assignment listeners and delete local rows.
     for (final change in snapshot.docChanges) {
-      final doc = change.doc;
-
       if (change.type == DocumentChangeType.removed) {
-        // Sprint removed from Firestore — cancel its assignment listener and
-        // remove the local synced row.
+        final doc = change.doc;
         await _assignmentSubs.remove(doc.id)?.cancel();
         await db.sprintDao.deleteSprintFromRemote(doc.id);
-        continue;
       }
+    }
 
-      seenIds.add(doc.id);
+    // Upsert all currently-present sprints and ensure each has an assignment
+    // listener. Iterate `snapshot.docs` (not `docChanges`) so unchanged sprints
+    // in a no-change snapshot still have their listeners kept alive below.
+    for (final doc in snapshot.docs) {
       try {
-        final json = Map<String, dynamic>.from(doc.data()!);
+        final json = Map<String, dynamic>.from(doc.data());
         json['docId'] = doc.id;
         // Sprints in Drift store top-level only; assignments come via
         // per-sprint subcollection listener.
@@ -274,16 +275,20 @@ class SyncService {
     // On the first snapshot, purge phantom synced sprints: any synced local
     // sprint absent from the remote snapshot doesn't exist in Firestore.
     // This is safe because only the top-N sprints are ever synced to Drift.
+    final remoteIds = snapshot.docs.map((d) => d.id).toSet();
     if (isInitial) {
-      final remoteIds = snapshot.docs.map((d) => d.id).toSet();
       await db.sprintDao.deleteSyncedSprintsNotIn(remoteIds);
       await db.sprintDao.deleteSyncedOrphanAssignments();
       _markInitialSnapshotReceived();
       debugPrint('[SyncService] +${_ms()}ms sprints initial complete');
     }
 
-    // Cancel listeners for sprints no longer in the snapshot.
-    final stale = _assignmentSubs.keys.where((id) => !seenIds.contains(id)).toList();
+    // Cancel listeners for sprints no longer in the snapshot. Use `remoteIds`
+    // (derived from snapshot.docs) rather than a set built from docChanges —
+    // on a no-change snapshot, docChanges is empty but the sprints are still
+    // live and their listeners must not be cancelled.
+    final stale =
+        _assignmentSubs.keys.where((id) => !remoteIds.contains(id)).toList();
     for (final id in stale) {
       await _assignmentSubs.remove(id)?.cancel();
     }
@@ -297,6 +302,13 @@ class SyncService {
         .snapshots()
         .listen((snap) async {
       await db.transaction(() async {
+        // Handle removals first so deleted Firestore docs are reflected locally.
+        for (final change in snap.docChanges) {
+          if (change.type == DocumentChangeType.removed) {
+            await db.sprintDao.deleteAssignmentFromRemote(change.doc.id);
+          }
+        }
+        // Upsert current assignments.
         for (final assignDoc in snap.docs) {
           try {
             final json = Map<String, dynamic>.from(assignDoc.data());

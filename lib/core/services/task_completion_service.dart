@@ -155,7 +155,11 @@ class CompleteTask extends _$CompleteTask {
           DateTime.now(),
         );
         final nextBlueprint = nextPreview.toBlueprint();
-        final personDocId = ref.read(personDocIdProvider) ?? '';
+        final personDocId = ref.read(personDocIdProvider);
+        if (personDocId == null) {
+          throw StateError(
+              'Cannot create next recurrence iteration: personDocId is null (not authenticated).');
+        }
         final now = DateTime.now().toUtc();
 
         // If the recurrence blueprint signals iteration increment, persist it.
@@ -263,7 +267,11 @@ class AddTask extends _$AddTask {
     state = await AsyncValue.guard(() async {
       final db = ref.read(databaseProvider);
       final firestore = ref.read(firestoreProvider);
-      final personDocId = ref.read(personDocIdProvider) ?? '';
+      final personDocId = ref.read(personDocIdProvider);
+      if (personDocId == null) {
+        throw StateError(
+            'Cannot add task: personDocId is null (not authenticated).');
+      }
 
       blueprint.personDocId = personDocId;
       blueprint.recurrenceBlueprint?.personDocId = personDocId;
@@ -318,7 +326,11 @@ class UpdateTask extends _$UpdateTask {
     state = await AsyncValue.guard(() async {
       final db = ref.read(databaseProvider);
       final firestore = ref.read(firestoreProvider);
-      final personDocId = ref.read(personDocIdProvider) ?? '';
+      final personDocId = ref.read(personDocIdProvider);
+      if (personDocId == null) {
+        throw StateError(
+            'Cannot update task: personDocId is null (not authenticated).');
+      }
 
       blueprint.personDocId = personDocId;
       blueprint.recurrenceBlueprint?.personDocId = personDocId;
