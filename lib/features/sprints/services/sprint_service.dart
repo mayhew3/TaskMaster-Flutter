@@ -226,6 +226,18 @@ class CreateSprint extends _$CreateSprint {
     final firestore = ref.read(firestoreProvider);
     final now = DateTime.now().toUtc();
 
+    // Wait for the initial Firestore pull to complete before deriving the
+    // next sprintNumber from the local cache. Without this, a fresh install
+    // creating a sprint before the first snapshot arrives could generate a
+    // sprintNumber that collides with an existing remote sprint. The wait
+    // falls back to proceeding with local data after a short timeout so
+    // offline sessions aren't indefinitely blocked — callers on fresh
+    // installs are expected to complete the initial pull while online.
+    await ref
+        .read(syncServiceProvider)
+        .initialPullComplete
+        .timeout(const Duration(seconds: 5), onTimeout: () {});
+
     // docIds are generated outside the transaction (Firestore's .doc().id is
     // client-side and doesn't require a round-trip) so the transaction body
     // only contains Drift writes.
@@ -278,8 +290,11 @@ class CreateSprint extends _$CreateSprint {
         newTaskDocIds.add(taskDocId);
       }
 
-      // Determine next sprint number from local Drift cache (most recent 3
-      // sprints are always synced, so the max is authoritative).
+      // Determine next sprint number from local Drift cache. SyncService
+      // streams the top-N most recent sprints, so once initialPullComplete
+      // has fired, the local max equals the remote max. If the timeout
+      // above elapsed (fresh install + offline), this may still produce a
+      // duplicate sprintNumber that later sync will need to reconcile.
       final allLocalSprints = await (db.select(db.sprints)
             ..where((s) => s.personDocId.equals(sprintBlueprint.personDocId)))
           .get();

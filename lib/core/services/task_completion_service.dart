@@ -422,7 +422,7 @@ class SnoozeTask extends _$SnoozeTask {
         previousAnchor: originalValue?.dateValue,
         newAnchor: newAnchorDate,
       );
-      legacyRepository.addSnooze(snooze);
+      await legacyRepository.addSnooze(snooze);
 
       ref.read(syncServiceProvider).pushPendingWrites(caller: 'SnoozeTask').ignore();
     });

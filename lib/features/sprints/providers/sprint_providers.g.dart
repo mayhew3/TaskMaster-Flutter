@@ -6,7 +6,7 @@ part of 'sprint_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$sprintsHash() => r'47b0001ce2d653730b5a6df877751363c059f049';
+String _$sprintsHash() => r'a5b8b0697d9538c4840d0ed887c4a155a5f5e829';
 
 /// Stream of the N most recent sprints for the current user, with assignments.
 /// Streams from the local Drift cache; SyncService keeps it in sync with Firestore.

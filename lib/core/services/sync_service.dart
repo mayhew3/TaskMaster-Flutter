@@ -60,6 +60,10 @@ class SyncService {
   // On the initial snapshot we reconcile: purge synced local rows absent from
   // Firestore (handles emulator reset / server-side bulk deletes).
   bool _isPushing = false;
+  // Set when a push is requested while one is already in flight; the
+  // in-flight push checks this flag in its `finally` and re-runs itself so
+  // callers never get silently dropped.
+  bool _pushRequestedWhilePushing = false;
   bool _tasksInitialReceived = false;
   bool _recurrencesInitialReceived = false;
   bool _sprintsInitialReceived = false;
@@ -343,7 +347,11 @@ class SyncService {
 
   Future<void> pushPendingWrites({String caller = 'unknown'}) async {
     if (_isPushing) {
-      _syncLog('[SyncService] pushPendingWrites blocked (already pushing) — caller: $caller');
+      // Don't drop the request: mark it so the in-flight push re-runs
+      // itself once it finishes, picking up any rows this caller just
+      // queued.
+      _pushRequestedWhilePushing = true;
+      _syncLog('[SyncService] pushPendingWrites queued (already pushing) — caller: $caller');
       return;
     }
     final online = ref.read(connectivityProvider).valueOrNull ?? false;
@@ -351,6 +359,7 @@ class SyncService {
 
     _syncLog('[SyncService] pushPendingWrites START — caller: $caller');
     _isPushing = true;
+    _pushRequestedWhilePushing = false;
     final statusController = ref.read(syncStatusControllerProvider.notifier);
     statusController.set(SyncStatus.syncing);
     try {
@@ -369,6 +378,14 @@ class SyncService {
     } finally {
       _syncLog('[SyncService] pushPendingWrites END — caller: $caller');
       _isPushing = false;
+      // If another caller requested a push while we were running, trigger
+      // a follow-up push so their rows aren't left pending.
+      if (_pushRequestedWhilePushing) {
+        _pushRequestedWhilePushing = false;
+        // Fire-and-forget: the caller of this pushPendingWrites doesn't
+        // wait on the follow-up run.
+        pushPendingWrites(caller: 'followup').ignore();
+      }
     }
   }
 
