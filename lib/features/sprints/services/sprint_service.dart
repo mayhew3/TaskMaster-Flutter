@@ -307,7 +307,7 @@ class CreateSprint extends _$CreateSprint {
     ref.read(analyticsServiceProvider)
         .logSprintCreated(taskCount: taskItems.length + taskItemRecurPreviews.length)
         .ignore();
-    ref.read(syncServiceProvider).pushPendingWrites().ignore();
+    ref.read(syncServiceProvider).pushPendingWrites(caller: 'CreateSprint').ignore();
 
     // Return a Sprint model built from the data we just persisted.
     return Sprint((b) => b
@@ -393,7 +393,7 @@ class AddTasksToSprint extends _$AddTasksToSprint {
         ));
       }
 
-      ref.read(syncServiceProvider).pushPendingWrites().ignore();
+      ref.read(syncServiceProvider).pushPendingWrites(caller: 'AddTasksToSprint').ignore();
     });
   }
 }

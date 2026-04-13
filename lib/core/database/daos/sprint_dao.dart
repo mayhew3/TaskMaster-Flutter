@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../app_database.dart';
 import '../tables.dart';
@@ -19,34 +20,42 @@ class SprintDao extends DatabaseAccessor<AppDatabase>
 
   /// Watches the N most recent sprints (by sprintNumber desc) for a user,
   /// with their assignments joined in.
+  ///
+  /// Uses [Rx.combineLatest2] to watch both the [sprints] and
+  /// [sprintAssignments] tables reactively — assignment changes immediately
+  /// re-emit without waiting for a sprint row to change.
   Stream<List<SprintWithAssignments>> watchRecentSprints({
     required String personDocId,
     int limit = 3,
   }) {
-    final query = select(sprints)
-      ..where((s) =>
-          s.personDocId.equals(personDocId) &
-          s.retired.isNull() &
-          s.syncState.equals(SyncState.pendingDelete.name).not())
-      ..orderBy([
-        (s) => OrderingTerm(expression: s.sprintNumber, mode: OrderingMode.desc),
-      ])
-      ..limit(limit);
+    final sprintStream = (select(sprints)
+          ..where((s) =>
+              s.personDocId.equals(personDocId) &
+              s.retired.isNull() &
+              s.syncState.equals(SyncState.pendingDelete.name).not())
+          ..orderBy([
+            (s) =>
+                OrderingTerm(expression: s.sprintNumber, mode: OrderingMode.desc),
+          ])
+          ..limit(limit))
+        .watch();
 
-    return query.watch().asyncMap((rows) async {
-      if (rows.isEmpty) return <SprintWithAssignments>[];
-      final sprintIds = rows.map((s) => s.docId).toList();
-      final assignments = await (select(sprintAssignments)
-            ..where((a) =>
-                a.sprintDocId.isIn(sprintIds) &
-                a.retired.isNull() &
-                a.syncState.equals(SyncState.pendingDelete.name).not()))
-          .get();
+    final assignmentStream = (select(sprintAssignments)
+          ..where((a) =>
+              a.retired.isNull() &
+              a.syncState.equals(SyncState.pendingDelete.name).not()))
+        .watch();
+
+    return Rx.combineLatest2(sprintStream, assignmentStream,
+        (sprintRows, allAssignments) {
+      final sprintIds = sprintRows.map((s) => s.docId).toSet();
       final grouped = <String, List<SprintAssignment>>{};
-      for (final a in assignments) {
-        (grouped[a.sprintDocId] ??= []).add(a);
+      for (final a in allAssignments) {
+        if (sprintIds.contains(a.sprintDocId)) {
+          (grouped[a.sprintDocId] ??= []).add(a);
+        }
       }
-      return rows
+      return sprintRows
           .map((s) => SprintWithAssignments(s, grouped[s.docId] ?? const []))
           .toList();
     });

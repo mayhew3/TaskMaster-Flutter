@@ -32,6 +32,29 @@ class TaskRecurrenceDao extends DatabaseAccessor<AppDatabase>
     );
   }
 
+  /// Bulk upsert rows from a Firestore snapshot. See [TaskDao.bulkUpsertFromRemote].
+  Future<void> bulkUpsertFromRemote(List<TaskRecurrencesCompanion> rows) async {
+    if (rows.isEmpty) return;
+
+    final pendingIds = await (select(taskRecurrences)
+          ..where((r) => r.syncState.isIn([
+                SyncState.pendingCreate.name,
+                SyncState.pendingUpdate.name,
+                SyncState.pendingDelete.name,
+              ])))
+        .map((r) => r.docId)
+        .get();
+    final pendingSet = pendingIds.toSet();
+
+    final toUpsert = rows
+        .where((r) => !pendingSet.contains(r.docId.value))
+        .map((r) => r.copyWith(syncState: Value(SyncState.synced.name)))
+        .toList();
+
+    if (toUpsert.isEmpty) return;
+    await batch((b) => b.insertAllOnConflictUpdate(taskRecurrences, toUpsert));
+  }
+
   Future<void> deleteFromRemote(String docId) async {
     final current = await (select(taskRecurrences)
           ..where((r) => r.docId.equals(docId)))

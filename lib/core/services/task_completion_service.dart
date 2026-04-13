@@ -199,7 +199,7 @@ class CompleteTask extends _$CompleteTask {
       }
 
       ref.read(analyticsServiceProvider).logTaskCompleted(complete: complete).ignore();
-      ref.read(syncServiceProvider).pushPendingWrites().ignore();
+      ref.read(syncServiceProvider).pushPendingWrites(caller: 'CompleteTask').ignore();
       perf.checkpoint('recentlyCompleted + push');
 
       // Clear pending state after success.
@@ -246,7 +246,7 @@ class DeleteTask extends _$DeleteTask {
       final db = ref.read(databaseProvider);
       await db.taskDao.markDeletePending(task.docId);
       ref.read(analyticsServiceProvider).logTaskDeleted().ignore();
-      ref.read(syncServiceProvider).pushPendingWrites().ignore();
+      ref.read(syncServiceProvider).pushPendingWrites(caller: 'DeleteTask').ignore();
     });
   }
 }
@@ -298,7 +298,7 @@ class AddTask extends _$AddTask {
       ref.read(analyticsServiceProvider)
           .logTaskCreated(hasRecurrence: recurrenceBlueprint != null)
           .ignore();
-      ref.read(syncServiceProvider).pushPendingWrites().ignore();
+      ref.read(syncServiceProvider).pushPendingWrites(caller: 'AddTask').ignore();
     });
   }
 }
@@ -348,7 +348,7 @@ class UpdateTask extends _$UpdateTask {
       }
 
       await db.taskDao.markUpdatePending(task.docId, taskBlueprintToDiff(blueprint));
-      ref.read(syncServiceProvider).pushPendingWrites().ignore();
+      ref.read(syncServiceProvider).pushPendingWrites(caller: 'UpdateTask').ignore();
     });
   }
 }
@@ -412,7 +412,7 @@ class SnoozeTask extends _$SnoozeTask {
       );
       legacyRepository.addSnooze(snooze);
 
-      ref.read(syncServiceProvider).pushPendingWrites().ignore();
+      ref.read(syncServiceProvider).pushPendingWrites(caller: 'SnoozeTask').ignore();
     });
   }
 }

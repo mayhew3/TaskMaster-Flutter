@@ -50,6 +50,31 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
     );
   }
 
+  /// Bulk upsert rows from a Firestore snapshot. Fetches all pending docIds in
+  /// one query (pending-local-wins) then batch-inserts the rest in one shot —
+  /// far fewer SQL round-trips than calling [upsertFromRemote] per row.
+  Future<void> bulkUpsertFromRemote(List<TasksCompanion> rows) async {
+    if (rows.isEmpty) return;
+
+    final pendingIds = await (select(tasks)
+          ..where((t) => t.syncState.isIn([
+                SyncState.pendingCreate.name,
+                SyncState.pendingUpdate.name,
+                SyncState.pendingDelete.name,
+              ])))
+        .map((t) => t.docId)
+        .get();
+    final pendingSet = pendingIds.toSet();
+
+    final toUpsert = rows
+        .where((r) => !pendingSet.contains(r.docId.value))
+        .map((r) => r.copyWith(syncState: Value(SyncState.synced.name)))
+        .toList();
+
+    if (toUpsert.isEmpty) return;
+    await batch((b) => b.insertAllOnConflictUpdate(tasks, toUpsert));
+  }
+
   /// Delete a row that no longer exists in Firestore. Skips if local row is
   /// pending.
   Future<void> deleteFromRemote(String docId) async {

@@ -1,24 +1,56 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:drift/native.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:rxdart/rxdart.dart';
+import 'package:taskmaster/core/database/app_database.dart'
+    hide TaskRecurrence, Sprint, SprintAssignment, Task;
+import 'package:taskmaster/core/database/converters.dart';
 import 'package:taskmaster/core/providers/auth_providers.dart';
+import 'package:taskmaster/core/providers/connectivity_provider.dart';
+import 'package:taskmaster/core/providers/database_provider.dart';
 import 'package:taskmaster/core/providers/firebase_providers.dart';
+import 'package:taskmaster/core/services/analytics_service.dart';
 import 'package:taskmaster/core/services/task_completion_service.dart';
 import 'package:taskmaster/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaster/features/tasks/providers/task_providers.dart';
+import 'package:taskmaster/features/tasks/presentation/task_list_screen.dart';
+import 'package:taskmaster/features/tasks/presentation/stats_screen.dart';
 import 'package:taskmaster/models/serializers.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_recurrence.dart';
-import 'package:taskmaster/features/tasks/presentation/task_list_screen.dart';
-import 'package:taskmaster/features/tasks/presentation/stats_screen.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
 import 'package:taskmaster/features/shared/presentation/planning_home.dart';
 import 'package:taskmaster/timezone_helper.dart';
 
 import '../mocks/mock_timezone_helper.dart';
+
+/// No-op analytics service for tests — avoids FirebaseAnalytics initialization.
+class _StubAnalyticsService implements AnalyticsService {
+  @override
+  bool get isEnabled => false;
+
+  @override
+  Future<void> setUserIdentifier(String personDocId) async {}
+
+  @override
+  Future<void> logTaskCreated({bool hasRecurrence = false}) async {}
+
+  @override
+  Future<void> logTaskCompleted({required bool complete}) async {}
+
+  @override
+  Future<void> logTaskDeleted() async {}
+
+  @override
+  Future<void> logSprintCreated({required int taskCount}) async {}
+
+  @override
+  Future<void> logScreenView(String screenName) async {}
+}
 
 // Test helper for TimezoneHelperNotifier
 class _TestTimezoneHelperNotifier extends TimezoneHelperNotifier {
@@ -102,8 +134,19 @@ class IntegrationTestHelper {
     await tester.pump();
   }
 
-  /// Create a test app with Riverpod providers reading from live Firestore
-  /// This allows tests to work with real Firestore updates instead of static data
+  /// Create a test app with a hybrid read/write architecture:
+  ///
+  /// - **Reads** come from fakeFirestore streams (task/recurrence/sprint
+  ///   providers are overridden to stream directly from Firestore). This
+  ///   avoids Drift's 0-duration stream-cleanup timers, which cause
+  ///   "pending timer" failures in flutter_test's post-test invariant check.
+  /// - **Writes** go to an in-memory Drift DB (via `databaseProvider`
+  ///   override), then SyncService pushes them to fakeFirestore, whose
+  ///   streams then emit the change to the read-side providers.
+  ///
+  /// The explicit `ProviderContainer` lets us pre-warm `connectivityProvider`
+  /// before any widget renders, so `SyncService.pushPendingWrites` sees
+  /// `online == true` and doesn't short-circuit its offline-check.
   static Future<void> pumpAppWithLiveFirestore(
     WidgetTester tester, {
     List<TaskItem>? initialTasks,
@@ -122,7 +165,8 @@ class IntegrationTestHelper {
       'name': 'Test User',
     });
 
-    // Seed initial data into Firestore
+    // Seed initial data into fakeFirestore — this is what the read-side
+    // provider overrides stream from.
     if (initialTasks != null) {
       for (final task in initialTasks) {
         await testFirestore.collection('tasks').doc(task.docId).set({
@@ -178,72 +222,159 @@ class IntegrationTestHelper {
       }
     }
 
+    // In-memory Drift DB for write-side operations (AddTask, UpdateTask, etc.)
+    // Also seeded with the same initial data so that UpdateTask can find
+    // existing rows to mark pendingUpdate.
+    final db = AppDatabase.forTesting(NativeDatabase.memory());
+    if (initialTasks != null) {
+      for (final task in initialTasks) {
+        await db.taskDao.upsertFromRemote(taskItemToCompanion(task));
+      }
+    }
+    if (initialRecurrences != null) {
+      for (final recurrence in initialRecurrences) {
+        await db.taskRecurrenceDao
+            .upsertFromRemote(taskRecurrenceToCompanion(recurrence));
+      }
+    }
+    if (initialSprints != null) {
+      for (final sprint in initialSprints) {
+        await db.sprintDao.upsertSprintFromRemote(sprintToCompanion(sprint));
+        for (final assignment in sprint.sprintAssignments) {
+          await db.sprintDao
+              .upsertAssignmentFromRemote(sprintAssignmentToCompanion(assignment));
+        }
+      }
+    }
+
+    // Explicit ProviderContainer lets us pre-warm connectivityProvider before
+    // widgets render, ensuring SyncService.pushPendingWrites sees online=true.
+    final container = ProviderContainer(
+      overrides: [
+        // Firestore
+        firestoreProvider.overrideWithValue(testFirestore),
+        // Auth
+        personDocIdProvider.overrideWith((ref) => testPersonDocId),
+        // Drift DB — write-side only
+        databaseProvider.overrideWithValue(db),
+        // Analytics stub
+        analyticsServiceProvider.overrideWith((ref) => _StubAnalyticsService()),
+        // Always online — SyncService.pushPendingWrites checks this
+        connectivityProvider.overrideWith((ref) => Stream.value(true)),
+
+        // Read-side overrides: stream from fakeFirestore instead of Drift,
+        // so no Drift stream subscriptions exist when the widget tree is
+        // torn down (no pending cleanup timers).
+        tasksProvider.overrideWith((ref) {
+          final fs = ref.watch(firestoreProvider);
+          final pid = ref.watch(personDocIdProvider);
+          if (pid == null) return Stream.value(<TaskItem>[]);
+          return fs
+              .collection('tasks')
+              .where('personDocId', isEqualTo: pid)
+              .where('retired', isNull: true)
+              .snapshots()
+              .map((snap) => snap.docs
+                  .map((doc) {
+                    final json = doc.data()..['docId'] = doc.id;
+                    return TaskItem.fromJson(json);
+                  })
+                  .toList());
+        }),
+        taskRecurrencesProvider.overrideWith((ref) {
+          final fs = ref.watch(firestoreProvider);
+          final pid = ref.watch(personDocIdProvider);
+          if (pid == null) return Stream.value(<TaskRecurrence>[]);
+          return fs
+              .collection('taskRecurrences')
+              .where('personDocId', isEqualTo: pid)
+              .snapshots()
+              .map((snap) => snap.docs
+                  .map((doc) {
+                    final json = doc.data()..['docId'] = doc.id;
+                    return TaskRecurrence.fromJson(json);
+                  })
+                  .toList());
+        }),
+        tasksWithRecurrencesProvider.overrideWith((ref) {
+          final fs = ref.watch(firestoreProvider);
+          final pid = ref.watch(personDocIdProvider);
+          if (pid == null) return Stream.value(<TaskItem>[]);
+          final tasksStream = fs
+              .collection('tasks')
+              .where('personDocId', isEqualTo: pid)
+              .where('retired', isNull: true)
+              .where('completionDate', isNull: true)
+              .snapshots()
+              .map((snap) => snap.docs
+                  .map((doc) {
+                    final json = doc.data()..['docId'] = doc.id;
+                    return TaskItem.fromJson(json);
+                  })
+                  .toList());
+          final recurrencesStream = fs
+              .collection('taskRecurrences')
+              .where('personDocId', isEqualTo: pid)
+              .snapshots()
+              .map((snap) => snap.docs
+                  .map((doc) {
+                    final json = doc.data()..['docId'] = doc.id;
+                    return TaskRecurrence.fromJson(json);
+                  })
+                  .toList());
+          return Rx.combineLatest2<List<TaskItem>, List<TaskRecurrence>,
+              List<TaskItem>>(
+            tasksStream,
+            recurrencesStream,
+            (tasks, recurrences) {
+              final recurrenceMap = {for (final r in recurrences) r.docId: r};
+              return tasks.map((task) {
+                if (task.recurrenceDocId != null) {
+                  final r = recurrenceMap[task.recurrenceDocId];
+                  if (r != null) {
+                    return task.rebuild((b) => b..recurrence = r.toBuilder());
+                  }
+                }
+                return task;
+              }).toList();
+            },
+          );
+        }),
+        sprintsProvider.overrideWith((ref) {
+          final fs = ref.watch(firestoreProvider);
+          final pid = ref.watch(personDocIdProvider);
+          if (pid == null) return Stream.value(<Sprint>[]);
+          return fs
+              .collection('sprints')
+              .where('personDocId', isEqualTo: pid)
+              .snapshots()
+              .map((snap) => snap.docs
+                  .map((doc) {
+                    final json = doc.data()..['docId'] = doc.id;
+                    return serializers.deserializeWith(Sprint.serializer, json)!;
+                  })
+                  .toList());
+        }),
+
+        // Timezone helper mock
+        timezoneHelperNotifierProvider.overrideWith(() => _TestTimezoneHelperNotifier()),
+      ],
+    );
+
+    addTearDown(() async {
+      container.dispose();
+      await db.close();
+    });
+
+    // Pre-warm connectivityProvider so SyncService.pushPendingWrites sees
+    // online=true the first time it's read (during a task save).
+    await container.read(connectivityProvider.future);
+
     final navigatorKey = GlobalKey<NavigatorState>();
 
-    // Pump the app with Riverpod providers that read from Firestore
     await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          // Override Firestore provider to use test instance
-          firestoreProvider.overrideWithValue(testFirestore),
-          // Override auth providers with test data
-          personDocIdProvider.overrideWith((ref) => testPersonDocId),
-          // Override task providers to read from Firestore
-          tasksProvider.overrideWith((ref) {
-            final firestore = ref.watch(firestoreProvider);
-            final personDocId = ref.watch(personDocIdProvider);
-            if (personDocId == null) return Stream.value(<TaskItem>[]);
-
-            return firestore
-                .collection('tasks')
-                .where('personDocId', isEqualTo: personDocId)
-                .where('retired', isNull: true)
-                .snapshots()
-                .map<List<TaskItem>>((snapshot) {
-                  return snapshot.docs.map((doc) {
-                    final json = doc.data();
-                    json['docId'] = doc.id;
-                    return TaskItem.fromJson(json);
-                  }).toList();
-                });
-          }),
-          sprintsProvider.overrideWith((ref) {
-            final firestore = ref.watch(firestoreProvider);
-            final personDocId = ref.watch(personDocIdProvider);
-            if (personDocId == null) return Stream.value(<Sprint>[]);
-
-            return firestore
-                .collection('sprints')
-                .where('personDocId', isEqualTo: personDocId)
-                .snapshots()
-                .map<List<Sprint>>((snapshot) {
-                  return snapshot.docs.map((doc) {
-                    final json = doc.data();
-                    json['docId'] = doc.id;
-                    return serializers.deserializeWith(Sprint.serializer, json)!;
-                  }).toList();
-                });
-          }),
-          taskRecurrencesProvider.overrideWith((ref) {
-            final firestore = ref.watch(firestoreProvider);
-            final personDocId = ref.watch(personDocIdProvider);
-            if (personDocId == null) return Stream.value(<TaskRecurrence>[]);
-
-            return firestore
-                .collection('taskRecurrences')
-                .where('personDocId', isEqualTo: personDocId)
-                .snapshots()
-                .map<List<TaskRecurrence>>((snapshot) {
-                  return snapshot.docs.map((doc) {
-                    final json = doc.data();
-                    json['docId'] = doc.id;
-                    return TaskRecurrence.fromJson(json);
-                  }).toList();
-                });
-          }),
-          // Override timezone helper notifier to immediately return mock
-          timezoneHelperNotifierProvider.overrideWith(() => _TestTimezoneHelperNotifier()),
-        ],
+      UncontrolledProviderScope(
+        container: container,
         child: MaterialApp(
           navigatorKey: navigatorKey,
           theme: ThemeData(
@@ -256,7 +387,7 @@ class IntegrationTestHelper {
       ),
     );
 
-    // Wait for initial render and Firestore streams to load
+    // Wait for initial render and Firestore streams to emit their first values
     await tester.pumpAndSettle();
   }
 
