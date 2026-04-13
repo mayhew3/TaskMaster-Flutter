@@ -108,6 +108,18 @@ class SprintDao extends DatabaseAccessor<AppDatabase>
         .go();
   }
 
+  /// Delete all synced assignments for a specific sprint. Called when a sprint
+  /// is removed remotely so its assignments don't become orphans (the per-sprint
+  /// subcollection listener is cancelled before it can observe the removals).
+  /// Pending assignments are left untouched so local-only changes aren't lost.
+  Future<void> deleteSyncedAssignmentsForSprint(String sprintDocId) {
+    return (delete(sprintAssignments)
+          ..where((a) =>
+              a.sprintDocId.equals(sprintDocId) &
+              a.syncState.equals(SyncState.synced.name)))
+        .go();
+  }
+
   /// Delete synced assignments whose sprint no longer exists in Drift.
   /// Called after purging phantom sprints to remove their orphaned assignments.
   Future<void> deleteSyncedOrphanAssignments() async {

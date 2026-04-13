@@ -334,7 +334,9 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
 
   @override
   void dispose() {
-    ref.read(syncServiceProvider).stop();
+    // Fire-and-forget: dispose() is sync, so we can't await stop(). The
+    // `.ignore()` marks the intent explicitly so the linter doesn't warn.
+    ref.read(syncServiceProvider).stop().ignore();
     super.dispose();
   }
 

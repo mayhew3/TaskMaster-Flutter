@@ -24,7 +24,6 @@ class FakeConnectivityService extends ConnectivityService {
     _controller.add(online);
   }
 
-  @override
   void dispose() {
     _controller.close();
   }
@@ -62,6 +61,7 @@ void main() {
   group('connectivityProvider stream', () {
     test('emits current state immediately', () async {
       final fake = FakeConnectivityService(initial: false);
+      addTearDown(fake.dispose);
       final container = ProviderContainer(overrides: [
         connectivityServiceProvider.overrideWithValue(fake),
       ]);
@@ -83,6 +83,7 @@ void main() {
 
     test('emits true when connectivity comes back', () async {
       final fake = FakeConnectivityService(initial: false);
+      addTearDown(fake.dispose);
       final container = ProviderContainer(overrides: [
         connectivityServiceProvider.overrideWithValue(fake),
       ]);

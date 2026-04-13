@@ -250,10 +250,15 @@ class SyncService {
     }
 
     // Handle removed docs: cancel assignment listeners and delete local rows.
+    // Explicitly delete synced assignments for the removed sprint — the
+    // per-sprint subcollection listener is cancelled before it can observe
+    // the removals, so without this those rows would linger as orphans until
+    // the next cold start runs deleteSyncedOrphanAssignments.
     for (final change in snapshot.docChanges) {
       if (change.type == DocumentChangeType.removed) {
         final doc = change.doc;
         await _assignmentSubs.remove(doc.id)?.cancel();
+        await db.sprintDao.deleteSyncedAssignmentsForSprint(doc.id);
         await db.sprintDao.deleteSprintFromRemote(doc.id);
       }
     }
