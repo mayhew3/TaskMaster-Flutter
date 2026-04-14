@@ -16,6 +16,7 @@ import '../../shared/presentation/editable_task_item.dart';
 import '../../shared/presentation/widgets/header_list_item.dart';
 import '../../shared/presentation/snooze_dialog.dart';
 import '../../shared/presentation/app_drawer.dart';
+import '../../shared/presentation/connection_status_indicator.dart';
 import '../../shared/presentation/refresh_button.dart';
 
 /// Riverpod version of the Task List screen
@@ -73,6 +74,7 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
               )
             : const Text('Tasks'),
         actions: [
+          const ConnectionStatusIndicator(),
           IconButton(
             icon: Icon(_searchBarVisible ? Icons.close : Icons.search),
             onPressed: _toggleSearch,

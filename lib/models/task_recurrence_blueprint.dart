@@ -21,7 +21,7 @@ part 'task_recurrence_blueprint.g.dart';
 * is NOT, however, I need a separate JsonConverter class to handle it (see
 * JsonAnchorDateConverter as an example.)
 * */
-@JsonSerializable(includeIfNull: true)
+@JsonSerializable(includeIfNull: true, createFactory: false)
 class TaskRecurrenceBlueprint with SprintDisplayTaskRecurrence {
 
   String? personDocId;

@@ -11,10 +11,8 @@ import 'package:taskmaster/core/providers/database_provider.dart';
 import 'package:taskmaster/core/providers/firebase_providers.dart';
 import 'package:taskmaster/core/services/analytics_service.dart';
 import 'package:taskmaster/core/services/sync_service.dart';
-import 'package:taskmaster/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaster/features/sprints/services/sprint_service.dart';
 import 'package:taskmaster/models/sprint_blueprint.dart';
-import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
 
 import 'sprint_creation_bug_test.mocks.dart';

@@ -17,9 +17,6 @@ import 'package:taskmaster/core/services/task_completion_service.dart';
 import 'package:taskmaster/features/tasks/domain/task_repository.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
-import 'package:taskmaster/models/task_recurrence.dart';
-import 'package:taskmaster/models/task_date_type.dart';
-import 'package:taskmaster/models/anchor_date.dart';
 import 'package:taskmaster/timezone_helper.dart';
 
 import 'task_completion_service_test.mocks.dart';

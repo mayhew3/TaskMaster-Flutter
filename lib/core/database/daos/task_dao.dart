@@ -27,6 +27,21 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
         .watchSingleOrNull();
   }
 
+  /// Stream of tasks (both incomplete and completed) whose docId is in [docIds].
+  /// Used by the sprint screen to load all tasks assigned to a sprint —
+  /// completed ones must be included so they can render in the "Completed"
+  /// section below the sprint's active tasks (TM-339).
+  Stream<List<Task>> watchTasksByDocIds(String personDocId, List<String> docIds) {
+    if (docIds.isEmpty) return Stream.value(const []);
+    return (select(tasks)
+          ..where((t) =>
+              t.personDocId.equals(personDocId) &
+              t.retired.isNull() &
+              t.docId.isIn(docIds) &
+              t.syncState.equals(SyncState.pendingDelete.name).not()))
+        .watch();
+  }
+
   /// All rows for a user (including completed), used by history views.
   Future<List<Task>> allForUser(String personDocId) {
     return (select(tasks)

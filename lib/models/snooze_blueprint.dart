@@ -7,7 +7,7 @@ import 'json_datetime_converter.dart';
 /// the star denotes the source file name.
 part 'snooze_blueprint.g.dart';
 
-@JsonSerializable(includeIfNull: true)
+@JsonSerializable(includeIfNull: true, createFactory: false)
 class SnoozeBlueprint {
 
   int? id;

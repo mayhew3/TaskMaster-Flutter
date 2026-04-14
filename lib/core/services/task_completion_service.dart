@@ -196,10 +196,21 @@ class CompleteTask extends _$CompleteTask {
 
       // Track recently completed tasks (matches Redux pattern).
       final recentlyCompleted = ref.read(recentlyCompletedTasksProvider.notifier);
+      final recentlyCompletedIndices =
+          ref.read(recentlyCompletedIndicesProvider.notifier);
       if (complete) {
         recentlyCompleted.add(updatedTask);
+        // Capture the task's current position in the base list so
+        // filteredTasksProvider can re-insert it at the same spot on the
+        // Tasks tab instead of appending at the end (TM-339 Tasks tab).
+        final originalIndex =
+            allTasks.indexWhere((t) => t.docId == task.docId);
+        if (originalIndex >= 0) {
+          recentlyCompletedIndices.set(task.docId, originalIndex);
+        }
       } else {
         recentlyCompleted.remove(updatedTask);
+        recentlyCompletedIndices.remove(task.docId);
       }
 
       ref.read(analyticsServiceProvider).logTaskCompleted(complete: complete).ignore();

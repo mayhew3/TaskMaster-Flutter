@@ -67,14 +67,28 @@ Future<List<TaskItem>> filteredTasks(Ref ref) async {
   List<TaskItem> allTasks = [...tasks];
 
   // Merge recently completed tasks (keeps just-completed tasks visible
-  // even though the base query no longer includes them)
+  // even though the base query no longer includes them). Insert each one
+  // at its captured original index so it doesn't visibly jump to the
+  // bottom of its group (TM-339 Tasks tab follow-up).
   if (recentlyCompleted.isNotEmpty) {
+    final indices = ref.watch(recentlyCompletedIndicesProvider);
     final uniqueRecent = recentlyCompleted
         .where((t) => !taskDocIds.contains(t.docId))
-        .toList();
-    allTasks.addAll(uniqueRecent);
-    for (final t in uniqueRecent) {
-      taskDocIds.add(t.docId);
+        .toList()
+      // Ascending by captured index so earlier positions insert first
+      // and later positions account for the preceding inserts.
+      ..sort((a, b) {
+        final ai = indices[a.docId] ?? allTasks.length;
+        final bi = indices[b.docId] ?? allTasks.length;
+        return ai.compareTo(bi);
+      });
+
+    for (final task in uniqueRecent) {
+      final captured = indices[task.docId];
+      final insertAt =
+          captured == null ? allTasks.length : captured.clamp(0, allTasks.length);
+      allTasks.insert(insertAt, task);
+      taskDocIds.add(task.docId);
     }
   }
 

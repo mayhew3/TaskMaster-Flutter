@@ -27,7 +27,7 @@ part 'task_item_blueprint.g.dart';
 * JsonAnchorDateConverter as an example.)
 * */
 
-@JsonSerializable(includeIfNull: true)
+@JsonSerializable(includeIfNull: true, createFactory: false)
 class TaskItemBlueprint with DateHolder {
 
   String? name;
