@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskmaster/app_theme.dart';
 import 'package:taskmaster/models/task_colors.dart';
+import 'package:taskmaster/core/providers/auth_providers.dart';
 import 'package:taskmaster/core/providers/notification_providers.dart';
 import 'package:taskmaster/core/services/auth_service.dart';
+import 'package:taskmaster/core/services/sync_service.dart';
 import 'package:taskmaster/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaster/features/tasks/presentation/task_list_screen.dart';
 import 'package:taskmaster/features/tasks/providers/task_providers.dart';
@@ -13,6 +15,7 @@ import 'package:taskmaster/features/shared/providers/navigation_provider.dart';
 import 'package:taskmaster/helpers/task_selectors.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
+import 'package:taskmaster/features/shared/presentation/offline_banner.dart';
 import 'package:taskmaster/features/shared/presentation/planning_home.dart';
 import 'package:taskmaster/features/tasks/presentation/stats_screen.dart';
 
@@ -286,6 +289,7 @@ class _AuthenticatedHome extends ConsumerStatefulWidget {
 
 class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
   late final List<TopNavItem> _navItems;
+  bool _initialSyncDone = false;
 
   @override
   void initState() {
@@ -310,10 +314,30 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
 
     _setupBadgeUpdater();
 
-    // Schedule notification sync for AFTER first frame renders (non-blocking)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Bootstrap SyncService and wait for the first round of Firestore snapshots
+    // before showing the main UI. Falls back to local cache after 8 seconds
+    // (covers the offline case).
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final personDocId = ref.read(personDocIdProvider);
+      if (personDocId != null) {
+        final syncService = ref.read(syncServiceProvider);
+        await syncService.start(personDocId);
+        await syncService.initialPullComplete
+            .timeout(const Duration(seconds: 8), onTimeout: () {});
+      }
+      if (mounted) {
+        setState(() => _initialSyncDone = true);
+      }
       _syncNotificationsInBackground();
     });
+  }
+
+  @override
+  void dispose() {
+    // Fire-and-forget: dispose() is sync, so we can't await stop(). The
+    // `.ignore()` marks the intent explicitly so the linter doesn't warn.
+    ref.read(syncServiceProvider).stop().ignore();
+    super.dispose();
   }
 
   void _setupBadgeUpdater() {
@@ -349,62 +373,14 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
 
   @override
   Widget build(BuildContext context) {
-    // Watch data providers to show loading state until data is ready
-    final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
-    final sprintsAsync = ref.watch(sprintsProvider);
+    // Show loading screen until the first round of Firestore snapshots arrives
+    // (or timeout for the offline case — then local cache is used).
+    if (!_initialSyncDone) {
+      return const _SplashScreen(message: 'Loading your tasks...');
+    }
+
     // Watch the tab index provider (also clears recentlyCompleted on tab change - TM-312)
     final selectedIndex = ref.watch(activeTabIndexProvider);
-
-    // NOTE: Notification sync moved to background via addPostFrameCallback in initState
-    // This prevents blocking the initial UI render
-
-    // Show loading indicator until both tasks and sprints are loaded
-    final isLoading = tasksAsync.isLoading || sprintsAsync.isLoading;
-    final hasError = tasksAsync.hasError || sprintsAsync.hasError;
-    final hasData = tasksAsync.hasValue && sprintsAsync.hasValue;
-
-    // Show loading screen while data is being fetched
-    if (isLoading && !hasData) {
-      return const Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 24),
-              Text('Loading your tasks...'),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // Show error screen if there's an error loading data
-    if (hasError && !hasData) {
-      final errorMessage = tasksAsync.error?.toString() ??
-                           sprintsAsync.error?.toString() ??
-                           'Unknown error';
-      return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 64, color: Colors.red),
-              const SizedBox(height: 16),
-              Text('Error loading data: $errorMessage'),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  ref.invalidate(tasksWithRecurrencesProvider);
-                  ref.invalidate(sprintsProvider);
-                },
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
 
     // Get the current screen widget
     final currentScreen = _navItems[selectedIndex].widgetGetter();
@@ -412,7 +388,12 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
     // Build with navigation bar - using Scaffold's bottomNavigationBar slot
     // for proper Material 3 layout (not Column which caused excess padding)
     return Scaffold(
-      body: currentScreen,
+      body: Column(
+        children: [
+          const OfflineBanner(),
+          Expanded(child: currentScreen),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
         backgroundColor: TaskColors.menuColor,

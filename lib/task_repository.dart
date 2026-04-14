@@ -462,12 +462,12 @@ class TaskRepository {
     }
   }
 
-  void addSnooze(SnoozeBlueprint snooze) async {
+  Future<void> addSnooze(SnoozeBlueprint snooze) async {
     var blueprintJson = snooze.toJson();
 
     var addedSnoozeDoc = firestore.collection('snoozes').doc();
     blueprintJson['dateAdded'] = DateTime.now().toUtc();
-    addedSnoozeDoc.set(blueprintJson);
+    await addedSnoozeDoc.set(blueprintJson);
   }
 
 

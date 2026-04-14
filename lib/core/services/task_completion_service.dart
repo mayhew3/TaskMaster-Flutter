@@ -1,9 +1,16 @@
+import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../database/app_database.dart'
+    hide Task, TaskRecurrence, Sprint, SprintAssignment;
+import '../database/converters.dart';
 import '../providers/auth_providers.dart';
+import '../providers/database_provider.dart';
 import '../providers/firebase_providers.dart';
 import '../providers/notification_providers.dart';
 import '../utils/performance_logger.dart';
+import 'analytics_service.dart';
+import 'sync_service.dart';
 import '../../features/tasks/data/firestore_task_repository.dart';
 import '../../features/tasks/domain/task_repository.dart';
 import '../../features/tasks/providers/task_providers.dart';
@@ -116,63 +123,117 @@ class CompleteTask extends _$CompleteTask {
     perf.checkpoint('markPending');
 
     try {
-      final service = ref.read(taskCompletionServiceProvider);
-      perf.checkpoint('getService');
+      final db = ref.read(databaseProvider);
+      final firestore = ref.read(firestoreProvider);
 
       // Use cached data if available (don't wait for stream)
       final tasksAsync = ref.read(tasksProvider);
       final recurrencesAsync = ref.read(taskRecurrencesProvider);
 
-      final List<TaskItem> allTasks;
-      final List<TaskRecurrence> allRecurrences;
+      final List<TaskItem> allTasks = tasksAsync.hasValue
+          ? tasksAsync.value!
+          : await ref.read(tasksProvider.future);
+      final List<TaskRecurrence> allRecurrences = recurrencesAsync.hasValue
+          ? recurrencesAsync.value!
+          : await ref.read(taskRecurrencesProvider.future);
 
-      if (tasksAsync.hasValue && recurrencesAsync.hasValue) {
-        allTasks = tasksAsync.value!;
-        allRecurrences = recurrencesAsync.value!;
-        perf.checkpoint('getData (cached)');
-      } else {
-        allTasks = await ref.read(tasksProvider.future);
-        allRecurrences = await ref.read(taskRecurrencesProvider.future);
-        perf.checkpoint('getData (awaited)');
+      perf.checkpoint('getData');
+
+      // Create next recurrence iteration if needed.
+      if (task.recurrenceDocId != null &&
+          complete &&
+          !_hasNextIteration(task, allTasks)) {
+        final recurrence = allRecurrences.firstWhere(
+          (r) => r.docId == task.recurrenceDocId,
+          orElse: () => throw Exception(
+              'Recurrence not found: ${task.recurrenceDocId}'),
+        );
+        final taskWithRecurrence =
+            task.rebuild((b) => b..recurrence = recurrence.toBuilder());
+        final nextPreview = RecurrenceHelper.createNextIteration(
+          taskWithRecurrence,
+          DateTime.now(),
+        );
+        final nextBlueprint = nextPreview.toBlueprint();
+        final personDocId = ref.read(personDocIdProvider);
+        if (personDocId == null) {
+          throw StateError(
+              'Cannot create next recurrence iteration: personDocId is null (not authenticated).');
+        }
+        final now = DateTime.now().toUtc();
+
+        // If the recurrence blueprint signals iteration increment, persist it.
+        final recBp = nextBlueprint.recurrenceBlueprint;
+        if (recBp != null && nextBlueprint.recurrenceDocId != null) {
+          await db.taskRecurrenceDao.markUpdatePending(
+            nextBlueprint.recurrenceDocId!,
+            recurrenceBlueprintToDiff(recBp),
+          );
+        }
+
+        final nextDocId = firestore.collection('tasks').doc().id;
+        await db.taskDao.insertPending(
+          taskBlueprintToCompanion(
+            docId: nextDocId,
+            personDocId: personDocId,
+            dateAdded: now,
+            blueprint: nextBlueprint,
+          ),
+        );
+        perf.checkpoint('insertNextRecurrence');
       }
 
-      final result = await service.completeTask(
-        task: task,
-        allTasks: allTasks,
-        allRecurrences: allRecurrences,
-        complete: complete,
+      // Toggle completionDate on the current task.
+      final completionDate = complete ? DateTime.now().toUtc() : null;
+      await db.taskDao.markUpdatePending(
+        task.docId,
+        TasksCompanion(completionDate: Value(completionDate)),
       );
-      perf.checkpoint('service.completeTask');
+      perf.checkpoint('markUpdatePending');
 
-      // Track recently completed tasks (matches Redux pattern)
+      // Build updated task for notifications/recentlyCompleted.
+      final updatedTask = task.rebuild((b) => b..completionDate = completionDate);
+
+      // Track recently completed tasks (matches Redux pattern).
       final recentlyCompleted = ref.read(recentlyCompletedTasksProvider.notifier);
       if (complete) {
-        recentlyCompleted.add(result.completedTask);
+        recentlyCompleted.add(updatedTask);
       } else {
-        recentlyCompleted.remove(result.completedTask);
+        recentlyCompleted.remove(updatedTask);
       }
-      perf.checkpoint('recentlyCompleted update');
 
-      // Clear pending state after success
+      ref.read(analyticsServiceProvider).logTaskCompleted(complete: complete).ignore();
+      ref.read(syncServiceProvider).pushPendingWrites(caller: 'CompleteTask').ignore();
+      perf.checkpoint('recentlyCompleted + push');
+
+      // Clear pending state after success.
       ref.read(pendingTasksProvider.notifier).clearPending(task.docId);
       perf.checkpoint('clearPending');
 
       perf.finish('success');
 
-      // Fire-and-forget: Update notification in background (not critical for UI)
+      // Fire-and-forget: Update notification in background.
       final notificationHelper = ref.read(notificationHelperProvider);
-      notificationHelper.updateNotificationForTask(result.completedTask).then((_) {
+      notificationHelper.updateNotificationForTask(updatedTask).then((_) {
         print('⏱️ [CompleteTask] notification updated (background)');
       }).catchError((e) {
         print('⚠️ [CompleteTask] notification error: $e');
       });
     } catch (e, stack) {
       print('❌ [CompleteTask] Error: $e\n$stack');
-      // Clear pending on error so UI reverts to stream state
       ref.read(pendingTasksProvider.notifier).clearPending(task.docId);
       perf.finish('error');
       rethrow;
     }
+  }
+
+  bool _hasNextIteration(TaskItem task, List<TaskItem> allTasks) {
+    final recurIteration = task.recurIteration;
+    if (recurIteration == null) return false;
+    return allTasks.any((ti) =>
+        ti.recurrenceDocId == task.recurrenceDocId &&
+        ti.recurIteration != null &&
+        ti.recurIteration! > recurIteration);
   }
 }
 
@@ -186,8 +247,10 @@ class DeleteTask extends _$DeleteTask {
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() async {
-      final repository = ref.read(taskRepositoryProvider);
-      await repository.deleteTask(task);
+      final db = ref.read(databaseProvider);
+      await db.taskDao.markDeletePending(task.docId);
+      ref.read(analyticsServiceProvider).logTaskDeleted().ignore();
+      ref.read(syncServiceProvider).pushPendingWrites(caller: 'DeleteTask').ignore();
     });
   }
 }
@@ -202,14 +265,48 @@ class AddTask extends _$AddTask {
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() async {
-      final repository = ref.read(taskRepositoryProvider);
+      final db = ref.read(databaseProvider);
+      final firestore = ref.read(firestoreProvider);
       final personDocId = ref.read(personDocIdProvider);
+      if (personDocId == null) {
+        throw StateError(
+            'Cannot add task: personDocId is null (not authenticated).');
+      }
 
-      // Set personDocId on the blueprint (matching Redux middleware behavior)
       blueprint.personDocId = personDocId;
       blueprint.recurrenceBlueprint?.personDocId = personDocId;
 
-      await repository.addTask(blueprint);
+      final now = DateTime.now().toUtc();
+      final recurrenceBlueprint = blueprint.recurrenceBlueprint;
+
+      // If this is a new recurrence (no existing recurrenceDocId), create it first.
+      if (recurrenceBlueprint != null && blueprint.recurrenceDocId == null) {
+        final recurrenceDocId = firestore.collection('taskRecurrences').doc().id;
+        blueprint.recurrenceDocId = recurrenceDocId;
+        await db.taskRecurrenceDao.insertPending(
+          recurrenceBlueprintToCompanion(
+            docId: recurrenceDocId,
+            personDocId: personDocId,
+            dateAdded: now,
+            blueprint: recurrenceBlueprint,
+          ),
+        );
+      }
+
+      final taskDocId = firestore.collection('tasks').doc().id;
+      await db.taskDao.insertPending(
+        taskBlueprintToCompanion(
+          docId: taskDocId,
+          personDocId: personDocId,
+          dateAdded: now,
+          blueprint: blueprint,
+        ),
+      );
+
+      ref.read(analyticsServiceProvider)
+          .logTaskCreated(hasRecurrence: recurrenceBlueprint != null)
+          .ignore();
+      ref.read(syncServiceProvider).pushPendingWrites(caller: 'AddTask').ignore();
     });
   }
 }
@@ -227,15 +324,43 @@ class UpdateTask extends _$UpdateTask {
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() async {
-      final repository = ref.read(taskRepositoryProvider);
+      final db = ref.read(databaseProvider);
+      final firestore = ref.read(firestoreProvider);
       final personDocId = ref.read(personDocIdProvider);
+      if (personDocId == null) {
+        throw StateError(
+            'Cannot update task: personDocId is null (not authenticated).');
+      }
 
-      // Set personDocId on the blueprint (matching AddTask behavior)
-      // This is needed when adding recurrence to an existing task
       blueprint.personDocId = personDocId;
       blueprint.recurrenceBlueprint?.personDocId = personDocId;
 
-      await repository.updateTaskAndRecurrence(task.docId, blueprint);
+      final recurrenceBlueprint = blueprint.recurrenceBlueprint;
+
+      // If adding a brand-new recurrence to an existing task, create the record.
+      if (recurrenceBlueprint != null && blueprint.recurrenceDocId == null) {
+        final recurrenceDocId = firestore.collection('taskRecurrences').doc().id;
+        blueprint.recurrenceDocId = recurrenceDocId;
+        final now = DateTime.now().toUtc();
+        await db.taskRecurrenceDao.insertPending(
+          recurrenceBlueprintToCompanion(
+            docId: recurrenceDocId,
+            personDocId: personDocId,
+            dateAdded: now,
+            blueprint: recurrenceBlueprint,
+          ),
+        );
+      } else if (recurrenceBlueprint != null &&
+          blueprint.recurrenceDocId != null) {
+        // Updating an existing recurrence.
+        await db.taskRecurrenceDao.markUpdatePending(
+          blueprint.recurrenceDocId!,
+          recurrenceBlueprintToDiff(recurrenceBlueprint),
+        );
+      }
+
+      await db.taskDao.markUpdatePending(task.docId, taskBlueprintToDiff(blueprint));
+      ref.read(syncServiceProvider).pushPendingWrites(caller: 'UpdateTask').ignore();
     });
   }
 }
@@ -256,35 +381,50 @@ class SnoozeTask extends _$SnoozeTask {
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() async {
+      final db = ref.read(databaseProvider);
       final legacyRepository = ref.read(legacyTaskRepositoryProvider);
 
-      // Generate the preview (updates blueprint in place)
+      // Generate the preview (updates blueprint in-place with snoozed dates).
       RecurrenceHelper.generatePreview(blueprint, numUnits, unitSize, dateType);
 
-      // Get original anchor date before update
+      // Mirror the anchorDate logic from RecurrenceHelper.updateTaskAndMaybeRecurrenceForSnooze:
+      // if this is a scheduled recurrence (!recurWait) and not offCycle, update anchorDate.
+      final recurrenceBlueprint = blueprint.recurrenceBlueprint;
+      if (recurrenceBlueprint != null) {
+        final recurWait = recurrenceBlueprint.recurWait;
+        if (recurWait != null && !recurWait && !blueprint.offCycle) {
+          recurrenceBlueprint.anchorDate = blueprint.getAnchorDate();
+        }
+      }
+
+      // Get original anchor date before update (for snooze record).
       final originalValue = taskItem.getAnchorDate();
 
-      // Update task and maybe recurrence
-      final result = await RecurrenceHelper.updateTaskAndMaybeRecurrenceForSnooze(
-        repository: legacyRepository,
-        taskItem: taskItem,
-        blueprint: blueprint,
-      );
+      // Write task update to Drift.
+      await db.taskDao.markUpdatePending(
+          taskItem.docId, taskBlueprintToDiff(blueprint));
 
-      // Get new anchor date
-      final newAnchorDate = dateType.dateFieldGetter(result.taskItem)!;
+      // Write recurrence update to Drift if present.
+      if (recurrenceBlueprint != null && blueprint.recurrenceDocId != null) {
+        await db.taskRecurrenceDao.markUpdatePending(
+          blueprint.recurrenceDocId!,
+          recurrenceBlueprintToDiff(recurrenceBlueprint),
+        );
+      }
 
-      // Create snooze record
+      // Snooze record goes directly to Firestore (out of Drift scope).
+      final newAnchorDate = dateType.dateFieldGetter(blueprint)!;
       final snooze = SnoozeBlueprint(
-        taskDocId: result.taskItem.docId,
+        taskDocId: taskItem.docId,
         snoozeNumber: numUnits,
         snoozeUnits: unitSize,
         snoozeAnchor: dateType.label,
         previousAnchor: originalValue?.dateValue,
         newAnchor: newAnchorDate,
       );
+      await legacyRepository.addSnooze(snooze);
 
-      legacyRepository.addSnooze(snooze);
+      ref.read(syncServiceProvider).pushPendingWrites(caller: 'SnoozeTask').ignore();
     });
   }
 }

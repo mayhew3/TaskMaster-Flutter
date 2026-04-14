@@ -523,10 +523,13 @@ class MockTaskRepository extends _i1.Mock implements _i9.TaskRepository {
           as _i4.Future<void>);
 
   @override
-  void addSnooze(_i16.SnoozeBlueprint? snooze) => super.noSuchMethod(
-    Invocation.method(#addSnooze, [snooze]),
-    returnValueForMissingStub: null,
-  );
+  _i4.Future<void> addSnooze(_i16.SnoozeBlueprint? snooze) =>
+      (super.noSuchMethod(
+            Invocation.method(#addSnooze, [snooze]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
 
   @override
   _i4.Future<void> dataFixAll() =>

@@ -47,7 +47,7 @@ final legacyTaskRepositoryProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef LegacyTaskRepositoryRef = AutoDisposeProviderRef<legacy.TaskRepository>;
-String _$completeTaskHash() => r'543e62150eec6f844f1a9e8a7e58edc902df7184';
+String _$completeTaskHash() => r'7194b5941e8cb61b9f0301fbb2059cd4e32efd61';
 
 /// Controller for completing tasks
 ///
@@ -65,7 +65,7 @@ final completeTaskProvider =
     );
 
 typedef _$CompleteTask = AutoDisposeAsyncNotifier<void>;
-String _$deleteTaskHash() => r'a6fc238b8a706c9ff3f097a310f39f8913bba796';
+String _$deleteTaskHash() => r'b697d10289492d804bab9d6cd237ca89f64163ed';
 
 /// Controller for deleting tasks
 ///
@@ -83,7 +83,7 @@ final deleteTaskProvider =
     );
 
 typedef _$DeleteTask = AutoDisposeAsyncNotifier<void>;
-String _$addTaskHash() => r'7ffdfca33b79e369fc3ac322f62a22fb26c25fca';
+String _$addTaskHash() => r'422e6d9ba264f2d6ecb7f7fab8cd31dabacb7fe9';
 
 /// Controller for adding new tasks
 ///
@@ -101,7 +101,7 @@ final addTaskProvider =
     );
 
 typedef _$AddTask = AutoDisposeAsyncNotifier<void>;
-String _$updateTaskHash() => r'49ffd7d68d141aeb6dfe2ce825bb8b5ce7f1bd64';
+String _$updateTaskHash() => r'f388f2f3a5ad904caf552a119286c874991559b9';
 
 /// Controller for updating tasks
 ///
@@ -119,7 +119,7 @@ final updateTaskProvider =
     );
 
 typedef _$UpdateTask = AutoDisposeAsyncNotifier<void>;
-String _$snoozeTaskHash() => r'8d0d9a21bee855a56511d39385d8943f862fae29';
+String _$snoozeTaskHash() => r'517fe60eb30102595472cb5841a25acb076fceff';
 
 /// Controller for snoozing tasks
 ///

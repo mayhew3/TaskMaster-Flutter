@@ -1,0 +1,144 @@
+import 'dart:io';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logging/logging.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'log_storage_service.g.dart';
+
+/// Persistent log sink that writes log records to a rolling file.
+/// Used for retrieving logs from production iOS devices where console
+/// access is not available.
+class LogStorageService {
+  static const String _logFileName = 'taskmaster.log';
+  static const int _maxFileSizeBytes = 5 * 1024 * 1024; // 5 MB
+
+  File? _logFile;
+  bool _initialized = false;
+
+  // Serialize file writes through a chained Future so concurrent
+  // writeRecord/writeRaw calls don't interleave and corrupt the log file.
+  // Callers generally fire-and-forget (see main.dart), so without this
+  // they could overlap on the same underlying file handle.
+  Future<void> _writeQueue = Future.value();
+
+  /// Initializes the log file path. Must be called before writing.
+  Future<void> initialize() async {
+    if (_initialized) return;
+    final dir = await getApplicationDocumentsDirectory();
+    _logFile = File('${dir.path}/$_logFileName');
+    if (!await _logFile!.exists()) {
+      await _logFile!.create(recursive: true);
+    }
+    _initialized = true;
+  }
+
+  /// Chains [work] onto the internal write queue so all file writes run
+  /// sequentially. Swallows errors to keep the sink fault-tolerant.
+  Future<void> _enqueue(Future<void> Function() work) {
+    final next = _writeQueue.then((_) => work()).catchError((_) {});
+    _writeQueue = next;
+    return next;
+  }
+
+  /// Writes a single log record to the file. Rotates if file exceeds max size.
+  Future<void> writeRecord(LogRecord record) {
+    return _enqueue(() async {
+      if (!_initialized) await initialize();
+      final file = _logFile!;
+
+      final line = _formatRecord(record);
+      try {
+        await file.writeAsString('$line\n', mode: FileMode.append, flush: true);
+
+        // Check size and rotate if needed
+        final size = await file.length();
+        if (size > _maxFileSizeBytes) {
+          await _rotate(file);
+        }
+      } catch (e) {
+        // Don't throw from the log sink — report directly to stderr so
+        // failures here don't re-enter application logging via the
+        // print-capturing zone in main.dart.
+        stderr.writeln('[LogStorageService] Failed to write log: $e');
+      }
+    });
+  }
+
+  String _formatRecord(LogRecord record) {
+    final ts = record.time.toIso8601String();
+    final level = record.level.name.padRight(7);
+    final logger = record.loggerName.isEmpty ? 'root' : record.loggerName;
+    var line = '$ts [$level] $logger: ${record.message}';
+    if (record.error != null) {
+      line += ' | error=${record.error}';
+    }
+    if (record.stackTrace != null) {
+      line += '\n${record.stackTrace}';
+    }
+    return line;
+  }
+
+  /// Truncates the oldest 50% of the file when it exceeds the size limit.
+  Future<void> _rotate(File file) async {
+    try {
+      final contents = await file.readAsString();
+      final keepFrom = contents.length ~/ 2;
+      // Round up to next newline to keep entries intact
+      final newlineIdx = contents.indexOf('\n', keepFrom);
+      final truncated = newlineIdx >= 0 ? contents.substring(newlineIdx + 1) : '';
+      await file.writeAsString(truncated, flush: true);
+    } catch (e) {
+      // Report directly to stderr so sink failures don't re-enter logging.
+      stderr.writeln('[LogStorageService] Failed to rotate log: $e');
+    }
+  }
+
+  /// Appends a raw line (e.g., captured print output) to the log file.
+  /// Used by the print-capturing zone to preserve console output.
+  Future<void> writeRaw(String line) {
+    return _enqueue(() async {
+      if (!_initialized) await initialize();
+      final file = _logFile!;
+      final ts = DateTime.now().toIso8601String();
+      try {
+        await file.writeAsString('$ts [PRINT  ] $line\n',
+            mode: FileMode.append, flush: true);
+
+        final size = await file.length();
+        if (size > _maxFileSizeBytes) {
+          await _rotate(file);
+        }
+      } catch (e) {
+        stderr.writeln('[LogStorageService] Failed to write raw log: $e');
+      }
+    });
+  }
+
+  /// Returns the current contents of the log file.
+  Future<String> readLogs() async {
+    if (!_initialized) await initialize();
+    try {
+      return await _logFile!.readAsString();
+    } catch (_) {
+      return '';
+    }
+  }
+
+  /// Clears the log file.
+  Future<void> clearLogs() async {
+    if (!_initialized) await initialize();
+    try {
+      await _logFile!.writeAsString('', flush: true);
+    } catch (_) {
+      // no-op
+    }
+  }
+
+  /// Returns the path to the log file (for sharing via share_plus).
+  String? getLogFilePath() => _logFile?.path;
+}
+
+@Riverpod(keepAlive: true)
+LogStorageService logStorageService(Ref ref) => LogStorageService();

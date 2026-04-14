@@ -1,12 +1,28 @@
+import 'package:drift/native.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
+import 'package:taskmaster/core/database/app_database.dart'
+    hide Sprint, SprintAssignment, Task, TaskRecurrence;
+import 'package:taskmaster/core/database/tables.dart';
+import 'package:taskmaster/core/providers/database_provider.dart';
 import 'package:taskmaster/core/providers/firebase_providers.dart';
+import 'package:taskmaster/core/services/analytics_service.dart';
+import 'package:taskmaster/core/services/sync_service.dart';
 import 'package:taskmaster/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaster/features/sprints/services/sprint_service.dart';
 import 'package:taskmaster/models/sprint_blueprint.dart';
 import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/task_item.dart';
+
+import 'sprint_creation_bug_test.mocks.dart';
+
+@GenerateNiceMocks([
+  MockSpec<SyncService>(),
+  MockSpec<AnalyticsService>(),
+])
 
 /// TM-325: Tests for sprint creation bug fixes
 ///
@@ -144,30 +160,32 @@ void main() {
     });
 
     group('Provider Invalidation', () {
-      test('CreateSprint should invalidate sprintsProvider after creation', () async {
-        // Track whether sprintsProvider was invalidated
-        var invalidationCount = 0;
+      test('CreateSprint should persist a pending sprint to the local database', () async {
+        // With the Drift-based architecture, CreateSprint writes to the local
+        // database first. sprintsProvider (a Drift stream) then emits the new
+        // sprint automatically — no explicit invalidation is needed.
+        final db = AppDatabase.forTesting(NativeDatabase.memory());
+        final mockSync = MockSyncService();
+        final mockAnalytics = MockAnalyticsService();
+        when(mockSync.pushPendingWrites(caller: anyNamed('caller')))
+            .thenAnswer((_) async {});
+        when(mockAnalytics.logSprintCreated(taskCount: anyNamed('taskCount')))
+            .thenAnswer((_) async {});
 
         final container = ProviderContainer(
           overrides: [
+            databaseProvider.overrideWithValue(db),
             firestoreProvider.overrideWithValue(fakeFirestore),
-            // Override sprintsProvider with a custom provider that tracks invalidation
-            sprintsProvider.overrideWith((ref) {
-              ref.onDispose(() {
-                invalidationCount++;
-              });
-              return Stream.value(<Sprint>[]);
-            }),
+            syncServiceProvider.overrideWithValue(mockSync),
+            analyticsServiceProvider.overrideWithValue(mockAnalytics),
           ],
         );
 
-        addTearDown(container.dispose);
+        addTearDown(() async {
+          container.dispose();
+          await db.close();
+        });
 
-        // Read the sprintsProvider to establish it
-        await container.read(sprintsProvider.future);
-        final initialInvalidationCount = invalidationCount;
-
-        // Create a sprint using the notifier
         final createSprint = container.read(createSprintProvider.notifier);
         await createSprint.call(
           sprintBlueprint: SprintBlueprint(
@@ -181,10 +199,17 @@ void main() {
           taskItemRecurPreviews: [],
         );
 
-        // The sprintsProvider should have been invalidated
-        // When a provider is invalidated, it gets disposed and recreated
-        expect(invalidationCount, greaterThan(initialInvalidationCount),
-            reason: 'sprintsProvider should be invalidated after sprint creation');
+        // The sprint should now be in the local DB with pendingCreate.
+        // The Drift stream will emit it to sprintsProvider automatically.
+        final pending = await (db.select(db.sprints)
+              ..where((s) =>
+                  s.syncState.equals(SyncState.pendingCreate.name)))
+            .get();
+        expect(pending, hasLength(1));
+        expect(pending.first.personDocId, 'test-person');
+
+        // Sync push should have been triggered
+        verify(mockSync.pushPendingWrites(caller: 'CreateSprint')).called(1);
       });
     });
 
