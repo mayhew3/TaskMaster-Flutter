@@ -232,5 +232,121 @@ void main() {
       // Assert
       expect(container.read(recentlyCompletedTasksProvider).length, 0);
     });
+
+    test(
+        'recently completed task is re-inserted at its captured index, not appended',
+        () async {
+      // Position-preservation case (TM-339 Tasks tab follow-up): task at
+      // index 1 in the base list is completed. After the Firestore write
+      // it's removed from the base query; the merge in filteredTasksProvider
+      // should re-insert it at index 1, not append at the end.
+      final a = createTask('a', urgentDate: DateTime.now().subtract(const Duration(hours: 3)));
+      final c = createTask('c', urgentDate: DateTime.now().subtract(const Duration(hours: 1)));
+
+      final container = ProviderContainer(
+        overrides: [
+          // Base query has already dropped b (completion propagated)
+          tasksWithPendingStateProvider.overrideWith((ref) async => [a, c]),
+          activeSprintProvider.overrideWith((ref) => null),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      // b was at index 1 when completed
+      final bCompleted = createTask('b',
+          urgentDate: DateTime.now().subtract(const Duration(hours: 2)),
+          completionDate: DateTime.now());
+      container.read(recentlyCompletedTasksProvider.notifier).add(bCompleted);
+      container.read(recentlyCompletedIndicesProvider.notifier).set('b', 1);
+
+      final filtered = await container.read(filteredTasksProvider.future);
+
+      expect(filtered.map((t) => t.docId).toList(), ['a', 'b', 'c'],
+          reason: 'b should be re-inserted at index 1, not appended');
+    });
+
+    test(
+        'multiple recently-completed tasks are inserted in original-index order',
+        () async {
+      // Sanity: complete tasks at indices 0 and 2 in sequence — result
+      // should still be [0, 1, 2] order.
+      final b = createTask('b', urgentDate: DateTime.now().subtract(const Duration(hours: 2)));
+
+      final container = ProviderContainer(
+        overrides: [
+          // Both a and c removed from base after completion
+          tasksWithPendingStateProvider.overrideWith((ref) async => [b]),
+          activeSprintProvider.overrideWith((ref) => null),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final aCompleted = createTask('a',
+          urgentDate: DateTime.now().subtract(const Duration(hours: 3)),
+          completionDate: DateTime.now());
+      final cCompleted = createTask('c',
+          urgentDate: DateTime.now().subtract(const Duration(hours: 1)),
+          completionDate: DateTime.now());
+      container.read(recentlyCompletedTasksProvider.notifier)
+        ..add(aCompleted)
+        ..add(cCompleted);
+      container.read(recentlyCompletedIndicesProvider.notifier)
+        ..set('a', 0)
+        ..set('c', 2);
+
+      final filtered = await container.read(filteredTasksProvider.future);
+
+      expect(filtered.map((t) => t.docId).toList(), ['a', 'b', 'c']);
+    });
+
+    test(
+        'recently completed task without captured index falls back to append',
+        () async {
+      // If the index side table is empty (e.g. legacy path, or cleared),
+      // behavior falls back to appending at the end (safe default).
+      final a = createTask('a');
+      final b = createTask('b', completionDate: DateTime.now());
+
+      final container = ProviderContainer(
+        overrides: [
+          tasksWithPendingStateProvider.overrideWith((ref) async => [a]),
+          activeSprintProvider.overrideWith((ref) => null),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      container.read(recentlyCompletedTasksProvider.notifier).add(b);
+      // Deliberately don't set an index — simulate fallback.
+      container.read(showCompletedProvider.notifier).set(true);
+
+      final filtered = await container.read(filteredTasksProvider.future);
+
+      expect(filtered.length, 2);
+      expect(filtered.last.docId, 'b',
+          reason: 'without captured index, b should be appended');
+    });
+
+    test('tab navigation clears captured indices alongside recentlyCompleted',
+        () async {
+      final a = createTask('a', completionDate: DateTime.now());
+
+      final container = ProviderContainer(
+        overrides: [
+          tasksWithPendingStateProvider.overrideWith((ref) async => []),
+          activeSprintProvider.overrideWith((ref) => null),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      container.read(recentlyCompletedTasksProvider.notifier).add(a);
+      container.read(recentlyCompletedIndicesProvider.notifier).set('a', 5);
+
+      expect(container.read(recentlyCompletedIndicesProvider).length, 1);
+
+      container.read(activeTabIndexProvider.notifier).setTab(1);
+
+      expect(container.read(recentlyCompletedIndicesProvider).length, 0,
+          reason: 'setTab should clear the index side table too');
+    });
   });
 }

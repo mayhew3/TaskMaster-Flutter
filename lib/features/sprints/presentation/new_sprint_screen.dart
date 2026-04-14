@@ -9,6 +9,7 @@ import '../providers/sprint_providers.dart';
 import 'sprint_planning_screen.dart';
 import '../../shared/presentation/widgets/editable_task_field.dart';
 import '../../shared/presentation/widgets/nullable_dropdown.dart';
+import '../../shared/presentation/connection_status_indicator.dart';
 import '../../shared/presentation/refresh_button.dart';
 import '../../shared/presentation/app_drawer.dart';
 
@@ -152,6 +153,7 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
       appBar: AppBar(
         title: const Text('All Tasks'),
         actions: const <Widget>[
+          ConnectionStatusIndicator(),
           RefreshButton(),
         ],
       ),

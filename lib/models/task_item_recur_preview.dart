@@ -25,7 +25,7 @@ part 'task_item_recur_preview.g.dart';
 * is NOT, however, I need a separate JsonConverter class to handle it (see
 * JsonAnchorDateConverter as an example.)
 * */
-@JsonSerializable(includeIfNull: true)
+@JsonSerializable(includeIfNull: true, createFactory: false)
 class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
 
   String key;

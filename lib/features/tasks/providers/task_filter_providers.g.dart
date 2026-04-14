@@ -6,7 +6,7 @@ part of 'task_filter_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$filteredTasksHash() => r'8827a4fd0038bbe673ef8fa8dfb8a7e06459ff6a';
+String _$filteredTasksHash() => r'6510ba7fadeb52d6fc1a9883b97c42e04fdd0dd3';
 
 /// Filtered tasks based on visibility settings
 ///

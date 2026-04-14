@@ -4,7 +4,7 @@ import 'json_datetime_converter.dart';
 
 part 'sprint_blueprint.g.dart';
 
-@JsonSerializable(includeIfNull: true)
+@JsonSerializable(includeIfNull: true, createFactory: false)
 class SprintBlueprint {
 
   @JsonDateTimePassThroughConverter()

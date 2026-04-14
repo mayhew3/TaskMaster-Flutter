@@ -192,6 +192,34 @@ class RecentlyCompletedTasks extends _$RecentlyCompletedTasks {
   }
 }
 
+/// Side table mapping recently-completed task docId → its index in the
+/// Tasks tab base list (tasksProvider) at the moment of completion.
+///
+/// Used by filteredTasksProvider to re-insert just-completed tasks at their
+/// original position instead of appending them to the end — otherwise a
+/// completed task visibly jumps to the bottom of its group (TM-339 Tasks
+/// tab follow-up). The Sprint screen has its own ordering mechanism based
+/// on sprint.sprintAssignments and does not use this.
+@Riverpod(keepAlive: true)
+class RecentlyCompletedIndices extends _$RecentlyCompletedIndices {
+  @override
+  Map<String, int> build() => const {};
+
+  void set(String docId, int index) {
+    state = {...state, docId: index};
+  }
+
+  void remove(String docId) {
+    if (!state.containsKey(docId)) return;
+    state = Map.of(state)..remove(docId);
+  }
+
+  void clear() {
+    if (state.isEmpty) return;
+    state = const {};
+  }
+}
+
 /// Tracks tasks currently being completed (optimistic UI)
 /// This enables immediate visual feedback (pending state) before Firestore confirms
 @Riverpod(keepAlive: true)
