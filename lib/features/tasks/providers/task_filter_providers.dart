@@ -80,7 +80,10 @@ Future<List<TaskItem>> filteredTasks(Ref ref) async {
       ..sort((a, b) {
         final ai = indices[a.docId] ?? allTasks.length;
         final bi = indices[b.docId] ?? allTasks.length;
-        return ai.compareTo(bi);
+        final cmp = ai.compareTo(bi);
+        // Stable tiebreaker: tasks with equal (or absent) captured indices
+        // get a deterministic order so the list doesn't jitter on recompute.
+        return cmp != 0 ? cmp : a.docId.compareTo(b.docId);
       });
 
     for (final task in uniqueRecent) {
