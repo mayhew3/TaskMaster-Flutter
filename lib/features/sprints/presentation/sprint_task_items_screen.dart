@@ -75,8 +75,9 @@ Stream<List<TaskItem>> sprintAllTasks(Ref ref, Sprint sprint) {
     for (final row in rows) {
       try {
         result.add(taskRecurrenceFromRow(row));
-      } catch (_) {
-        // ignore conversion failures; recurrence will just be null-joined
+      } catch (e) {
+        debugPrint(
+            '⚠️ [sprintAllTasks] Failed to convert recurrence ${row.docId}: $e');
       }
     }
     return result;

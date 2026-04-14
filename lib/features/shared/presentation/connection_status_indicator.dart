@@ -9,7 +9,8 @@ import '../../../core/providers/sync_status_provider.dart';
 ///
 /// Priority (highest wins): offline > sync error > syncing > idle.
 /// - **Idle + online:** renders nothing.
-/// - **Syncing:** subtle animated cycling ellipsis (`.`, `..`, `…`).
+/// - **Syncing:** subtle animated three-dot indicator with one dot cycling
+///   at full opacity while the others stay at 30%.
 /// - **Sync error:** red pill with "Sync failed".
 /// - **Offline:** orange pill with "Offline".
 ///

@@ -42,6 +42,7 @@ Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) =>
       'recurWait': instance.recurWait,
       'recurrenceDocId': instance.recurrenceDocId,
       'recurIteration': instance.recurIteration,
+      'recurrenceBlueprint': instance.recurrenceBlueprint,
       'retired': instance.retired,
       'retiredDate': instance.retiredDate?.toIso8601String(),
       'personDocId': instance.personDocId,
