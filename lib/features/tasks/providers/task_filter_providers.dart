@@ -88,8 +88,9 @@ Future<List<TaskItem>> filteredTasks(Ref ref) async {
 
     for (final task in uniqueRecent) {
       final captured = indices[task.docId];
-      final insertAt =
-          captured == null ? allTasks.length : captured.clamp(0, allTasks.length);
+      final insertAt = captured == null
+          ? allTasks.length
+          : (captured < 0 ? 0 : (captured > allTasks.length ? allTasks.length : captured));
       allTasks.insert(insertAt, task);
       taskDocIds.add(task.docId);
     }
