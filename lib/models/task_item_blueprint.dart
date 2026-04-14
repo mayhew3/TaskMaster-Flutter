@@ -27,7 +27,7 @@ part 'task_item_blueprint.g.dart';
 * JsonAnchorDateConverter as an example.)
 * */
 
-@JsonSerializable(includeIfNull: true)
+@JsonSerializable(includeIfNull: true, createFactory: false)
 class TaskItemBlueprint with DateHolder {
 
   String? name;
@@ -67,7 +67,10 @@ class TaskItemBlueprint with DateHolder {
   @override
   int? recurIteration;
 
-  @JsonKey(includeFromJson: false, includeToJson: true)
+  // No @JsonKey needed: createFactory: false above already suppresses any
+  // fromJson handling, so the old `includeFromJson: false` is redundant.
+  // Keeping an explicit JsonKey here triggers a json_serializable bug that
+  // drops the field from toJson entirely.
   TaskRecurrenceBlueprint? recurrenceBlueprint;
 
   String? retired;

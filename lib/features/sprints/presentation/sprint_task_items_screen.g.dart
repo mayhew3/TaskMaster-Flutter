@@ -6,7 +6,7 @@ part of 'sprint_task_items_screen.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$sprintTaskItemsHash() => r'de9208e0f7037b5ee483863936f27154006845d2';
+String _$sprintAllTasksHash() => r'a5163f1ec5a57681c12ecc19ec45158ba221ee25';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -28,6 +28,186 @@ class _SystemHash {
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 }
+
+/// Stream of all tasks assigned to a sprint — INCLUDING completed ones —
+/// with recurrences populated. Used by [sprintTaskItems] so that completed
+/// tasks appear in the "Completed" section at the bottom of the list
+/// (not just recently-completed ones).
+///
+/// The base [tasksProvider] only streams incomplete tasks (TM-317 progressive
+/// loading), which broke the sprint screen's Completed section. This provider
+/// bypasses that restriction via a direct Drift query scoped to the sprint's
+/// task docIds, so the result set is bounded and cheap.
+///
+/// Copied from [sprintAllTasks].
+@ProviderFor(sprintAllTasks)
+const sprintAllTasksProvider = SprintAllTasksFamily();
+
+/// Stream of all tasks assigned to a sprint — INCLUDING completed ones —
+/// with recurrences populated. Used by [sprintTaskItems] so that completed
+/// tasks appear in the "Completed" section at the bottom of the list
+/// (not just recently-completed ones).
+///
+/// The base [tasksProvider] only streams incomplete tasks (TM-317 progressive
+/// loading), which broke the sprint screen's Completed section. This provider
+/// bypasses that restriction via a direct Drift query scoped to the sprint's
+/// task docIds, so the result set is bounded and cheap.
+///
+/// Copied from [sprintAllTasks].
+class SprintAllTasksFamily extends Family<AsyncValue<List<TaskItem>>> {
+  /// Stream of all tasks assigned to a sprint — INCLUDING completed ones —
+  /// with recurrences populated. Used by [sprintTaskItems] so that completed
+  /// tasks appear in the "Completed" section at the bottom of the list
+  /// (not just recently-completed ones).
+  ///
+  /// The base [tasksProvider] only streams incomplete tasks (TM-317 progressive
+  /// loading), which broke the sprint screen's Completed section. This provider
+  /// bypasses that restriction via a direct Drift query scoped to the sprint's
+  /// task docIds, so the result set is bounded and cheap.
+  ///
+  /// Copied from [sprintAllTasks].
+  const SprintAllTasksFamily();
+
+  /// Stream of all tasks assigned to a sprint — INCLUDING completed ones —
+  /// with recurrences populated. Used by [sprintTaskItems] so that completed
+  /// tasks appear in the "Completed" section at the bottom of the list
+  /// (not just recently-completed ones).
+  ///
+  /// The base [tasksProvider] only streams incomplete tasks (TM-317 progressive
+  /// loading), which broke the sprint screen's Completed section. This provider
+  /// bypasses that restriction via a direct Drift query scoped to the sprint's
+  /// task docIds, so the result set is bounded and cheap.
+  ///
+  /// Copied from [sprintAllTasks].
+  SprintAllTasksProvider call(Sprint sprint) {
+    return SprintAllTasksProvider(sprint);
+  }
+
+  @override
+  SprintAllTasksProvider getProviderOverride(
+    covariant SprintAllTasksProvider provider,
+  ) {
+    return call(provider.sprint);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'sprintAllTasksProvider';
+}
+
+/// Stream of all tasks assigned to a sprint — INCLUDING completed ones —
+/// with recurrences populated. Used by [sprintTaskItems] so that completed
+/// tasks appear in the "Completed" section at the bottom of the list
+/// (not just recently-completed ones).
+///
+/// The base [tasksProvider] only streams incomplete tasks (TM-317 progressive
+/// loading), which broke the sprint screen's Completed section. This provider
+/// bypasses that restriction via a direct Drift query scoped to the sprint's
+/// task docIds, so the result set is bounded and cheap.
+///
+/// Copied from [sprintAllTasks].
+class SprintAllTasksProvider extends AutoDisposeStreamProvider<List<TaskItem>> {
+  /// Stream of all tasks assigned to a sprint — INCLUDING completed ones —
+  /// with recurrences populated. Used by [sprintTaskItems] so that completed
+  /// tasks appear in the "Completed" section at the bottom of the list
+  /// (not just recently-completed ones).
+  ///
+  /// The base [tasksProvider] only streams incomplete tasks (TM-317 progressive
+  /// loading), which broke the sprint screen's Completed section. This provider
+  /// bypasses that restriction via a direct Drift query scoped to the sprint's
+  /// task docIds, so the result set is bounded and cheap.
+  ///
+  /// Copied from [sprintAllTasks].
+  SprintAllTasksProvider(Sprint sprint)
+    : this._internal(
+        (ref) => sprintAllTasks(ref as SprintAllTasksRef, sprint),
+        from: sprintAllTasksProvider,
+        name: r'sprintAllTasksProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$sprintAllTasksHash,
+        dependencies: SprintAllTasksFamily._dependencies,
+        allTransitiveDependencies:
+            SprintAllTasksFamily._allTransitiveDependencies,
+        sprint: sprint,
+      );
+
+  SprintAllTasksProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.sprint,
+  }) : super.internal();
+
+  final Sprint sprint;
+
+  @override
+  Override overrideWith(
+    Stream<List<TaskItem>> Function(SprintAllTasksRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: SprintAllTasksProvider._internal(
+        (ref) => create(ref as SprintAllTasksRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        sprint: sprint,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeStreamProviderElement<List<TaskItem>> createElement() {
+    return _SprintAllTasksProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SprintAllTasksProvider && other.sprint == sprint;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, sprint.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin SprintAllTasksRef on AutoDisposeStreamProviderRef<List<TaskItem>> {
+  /// The parameter `sprint` of this provider.
+  Sprint get sprint;
+}
+
+class _SprintAllTasksProviderElement
+    extends AutoDisposeStreamProviderElement<List<TaskItem>>
+    with SprintAllTasksRef {
+  _SprintAllTasksProviderElement(super.provider);
+
+  @override
+  Sprint get sprint => (origin as SprintAllTasksProvider).sprint;
+}
+
+String _$sprintTaskItemsHash() => r'980e6584fc4f778fd82886a3d343ea8148b7ed51';
 
 /// Provider for filtered tasks in the active sprint
 ///

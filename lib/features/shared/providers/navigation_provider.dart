@@ -40,6 +40,7 @@ class ActiveTabIndex extends _$ActiveTabIndex {
       // This allows completed tasks to move from their original section
       // to the "Completed" section after navigation (TM-312)
       ref.read(recentlyCompletedTasksProvider.notifier).clear();
+      ref.read(recentlyCompletedIndicesProvider.notifier).clear();
       ref.read(searchQueryProvider.notifier).clear();
       state = index;
     }

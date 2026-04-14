@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../shared/presentation/app_drawer.dart';
+import '../../shared/presentation/connection_status_indicator.dart';
 import '../providers/task_filter_providers.dart';
 
 /// Riverpod version of the Stats screen
@@ -16,6 +17,7 @@ class StatsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Stats'),
+        actions: const [ConnectionStatusIndicator()],
       ),
       body: Center(
         child: Column(

@@ -26,4 +26,23 @@ Write-Host "Emulator host IP detected: $IP"
 
 # ADB reverse for Firestore emulator port
 Write-Host "Setting up ADB reverse tcp:8085..."
-adb reverse tcp:8085 tcp:8085
+
+# Resolve adb: prefer PATH, then ANDROID_HOME / ANDROID_SDK_ROOT.
+$Adb = (Get-Command adb -ErrorAction SilentlyContinue).Source
+if (-not $Adb) {
+    $SdkRoot = $env:ANDROID_HOME
+    if (-not $SdkRoot) { $SdkRoot = $env:ANDROID_SDK_ROOT }
+    if ($SdkRoot) {
+        $Candidate = Join-Path $SdkRoot "platform-tools\adb.exe"
+        if (Test-Path $Candidate) { $Adb = $Candidate }
+    }
+}
+
+if (-not $Adb) {
+    Write-Host "WARNING: adb not found on PATH or under ANDROID_HOME/ANDROID_SDK_ROOT."
+    Write-Host "         Skipping ADB reverse setup. If running on a physical Android device,"
+    Write-Host "         install Android platform-tools or add them to PATH."
+    exit 0
+}
+
+& $Adb reverse tcp:8085 tcp:8085

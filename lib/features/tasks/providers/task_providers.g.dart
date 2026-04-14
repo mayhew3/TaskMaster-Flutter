@@ -439,6 +439,32 @@ final recentlyCompletedTasksProvider =
     );
 
 typedef _$RecentlyCompletedTasks = Notifier<List<TaskItem>>;
+String _$recentlyCompletedIndicesHash() =>
+    r'ac81ddea7cdcb29b0a2246151b752766ba67da2a';
+
+/// Side table mapping recently-completed task docId → its index in the
+/// Tasks tab base list (tasksProvider) at the moment of completion.
+///
+/// Used by filteredTasksProvider to re-insert just-completed tasks at their
+/// original position instead of appending them to the end — otherwise a
+/// completed task visibly jumps to the bottom of its group (TM-339 Tasks
+/// tab follow-up). The Sprint screen has its own ordering mechanism based
+/// on sprint.sprintAssignments and does not use this.
+///
+/// Copied from [RecentlyCompletedIndices].
+@ProviderFor(RecentlyCompletedIndices)
+final recentlyCompletedIndicesProvider =
+    NotifierProvider<RecentlyCompletedIndices, Map<String, int>>.internal(
+      RecentlyCompletedIndices.new,
+      name: r'recentlyCompletedIndicesProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$recentlyCompletedIndicesHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$RecentlyCompletedIndices = Notifier<Map<String, int>>;
 String _$pendingTasksHash() => r'ea9d1ef0dab3dee2f47eff55d7ff4a64b518c003';
 
 /// Tracks tasks currently being completed (optimistic UI)
