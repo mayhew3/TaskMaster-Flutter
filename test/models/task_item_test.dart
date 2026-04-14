@@ -1,6 +1,7 @@
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
+import 'package:taskmaster/models/task_recurrence_blueprint.dart';
 import 'package:test/test.dart';
 
 import '../mocks/mock_data.dart';
@@ -137,5 +138,51 @@ void main() {
       expect(anchorDate?.dateType, TaskDateTypes.due);
     });
 
+  });
+
+  group('TaskItemBlueprint.toJson', () {
+    test('includes recurrenceBlueprint when set', () {
+      final blueprint = TaskItemBlueprint()
+        ..name = 'test task'
+        ..recurrenceBlueprint = (TaskRecurrenceBlueprint()
+          ..name = 'weekly'
+          ..recurNumber = 1
+          ..recurUnit = 'Weeks');
+
+      final json = blueprint.toJson();
+
+      expect(json.containsKey('recurrenceBlueprint'), isTrue,
+          reason: 'recurrenceBlueprint must be present in toJson output');
+      expect(json['recurrenceBlueprint'], isNotNull);
+      expect(json['recurrenceBlueprint'], isA<TaskRecurrenceBlueprint>());
+      expect((json['recurrenceBlueprint'] as TaskRecurrenceBlueprint).name, equals('weekly'));
+    });
+
+    test('includes recurrenceBlueprint as null when not set', () {
+      final blueprint = TaskItemBlueprint()..name = 'test task';
+
+      final json = blueprint.toJson();
+
+      // includeIfNull: true means the key must be present even when null
+      expect(json.containsKey('recurrenceBlueprint'), isTrue,
+          reason: 'recurrenceBlueprint key must be present (includeIfNull: true)');
+      expect(json['recurrenceBlueprint'], isNull);
+    });
+
+    test('includes all expected top-level fields', () {
+      final blueprint = TaskItemBlueprint()
+        ..name = 'test'
+        ..description = 'desc'
+        ..urgency = 3
+        ..priority = 5;
+
+      final json = blueprint.toJson();
+
+      expect(json.keys, containsAll(['name', 'description', 'urgency', 'priority',
+          'recurrenceBlueprint', 'retired', 'personDocId']));
+      // tmpId must NOT be serialized (it's a client-only field)
+      expect(json.containsKey('tmpId'), isFalse,
+          reason: 'tmpId is annotated @JsonKey(includeToJson: false) and must not appear in JSON');
+    });
   });
 }
