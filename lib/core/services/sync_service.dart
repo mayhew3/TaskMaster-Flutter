@@ -191,11 +191,15 @@ class SyncService {
 
     await db.taskDao.bulkUpsertFromRemote(toUpsert);
 
-    // On the first snapshot, purge any synced local rows that Firestore no
+    // On the first snapshot, purge synced INCOMPLETE rows that Firestore no
     // longer has (covers emulator reset and server-side bulk deletes).
+    // Only incomplete rows are scoped to this listener query
+    // (completionDate: isNull: true), so only they should be reconciled.
+    // Completed rows must not be deleted here — they would be incorrectly
+    // purged because the listener never returns them (TM-341).
     if (isInitial) {
       final remoteIds = snapshot.docs.map((d) => d.id).toSet();
-      await db.taskDao.deleteSyncedNotIn(remoteIds);
+      await db.taskDao.deleteSyncedIncompleteNotIn(_currentPersonDocId!, remoteIds);
     }
 
     _syncLog('[SyncService] +${_ms()}ms tasks transaction done');

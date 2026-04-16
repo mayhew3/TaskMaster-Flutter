@@ -6,6 +6,7 @@ import '../../../core/providers/auth_providers.dart';
 import '../../../core/providers/database_provider.dart';
 import '../../../models/sprint.dart';
 import '../../../models/task_item.dart';
+import '../../tasks/providers/task_filter_providers.dart';
 import '../../tasks/providers/task_providers.dart';
 
 part 'sprint_providers.g.dart';
@@ -94,16 +95,48 @@ List<Sprint> sprintsForTask(Ref ref, TaskItem task) {
   );
 }
 
-/// Get tasks for a specific sprint
+/// Get tasks for a specific sprint.
+/// Includes incomplete tasks from the base stream, recently completed tasks
+/// (visible immediately after completion), and older completed tasks from the
+/// on-demand batch when "Show Completed" is active (TM-341).
 @riverpod
 List<TaskItem> tasksForSprint(Ref ref, Sprint sprint) {
   final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
+  final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
+  final showCompleted = ref.watch(showCompletedProvider);
+  final olderState = ref.watch(olderCompletedTasksBatchesProvider);
 
   return tasksAsync.maybeWhen(
-    data: (tasks) {
-      return tasks.where((t) =>
-        sprint.sprintAssignments.any((sa) => sa.taskDocId == t.docId)
-      ).toList();
+    data: (incompleteTasks) {
+      final sprintDocIds = sprint.sprintAssignments.map((sa) => sa.taskDocId).toSet();
+      // Map-based merge so higher-priority sources overwrite lower-priority ones.
+      final tasksByDocId = <String, TaskItem>{};
+
+      // 1. Older completed sprint tasks (lowest priority — base layer).
+      if (showCompleted) {
+        for (final task in olderState.loadedTasks) {
+          if (sprintDocIds.contains(task.docId)) {
+            tasksByDocId[task.docId] = task;
+          }
+        }
+      }
+
+      // 2. Incomplete sprint tasks override older completed tasks for the same docId.
+      for (final task in incompleteTasks) {
+        if (sprintDocIds.contains(task.docId)) {
+          tasksByDocId[task.docId] = task;
+        }
+      }
+
+      // 3. Recently completed tasks always win — they carry the freshest state
+      //    and ensure accurate banner stats while Drift catches up.
+      for (final task in recentlyCompleted) {
+        if (sprintDocIds.contains(task.docId)) {
+          tasksByDocId[task.docId] = task;
+        }
+      }
+
+      return tasksByDocId.values.toList();
     },
     orElse: () => [],
   );

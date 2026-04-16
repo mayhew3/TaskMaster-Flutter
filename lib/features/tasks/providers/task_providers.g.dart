@@ -69,7 +69,7 @@ final tasksWithRecurrencesProvider = StreamProvider<List<TaskItem>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TasksWithRecurrencesRef = StreamProviderRef<List<TaskItem>>;
-String _$taskHash() => r'f6a858a1ee6af1e76006b0da24add92c64f33dea';
+String _$taskHash() => r'e3a05572e31bf1c64a3eaac470f1133ff49f0c68';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -93,29 +93,41 @@ class _SystemHash {
 }
 
 /// Get a specific task by ID with recurrence populated.
-/// Falls back to already-loaded older completed task batches if not found
-/// in the base query. Does not fetch from Firestore by ID.
+/// Searches four sources in priority order:
+///   1. tasksWithRecurrencesProvider (incomplete tasks from Drift — fastest)
+///   2. recentlyCompletedTasksProvider (just-completed tasks in this session)
+///   3. olderCompletedTasksBatchesProvider (paginated completed tasks from Firestore)
+///   4. taskFromDbProvider (direct Drift lookup — covers force-quit + restart)
 ///
 /// Copied from [task].
 @ProviderFor(task)
 const taskProvider = TaskFamily();
 
 /// Get a specific task by ID with recurrence populated.
-/// Falls back to already-loaded older completed task batches if not found
-/// in the base query. Does not fetch from Firestore by ID.
+/// Searches four sources in priority order:
+///   1. tasksWithRecurrencesProvider (incomplete tasks from Drift — fastest)
+///   2. recentlyCompletedTasksProvider (just-completed tasks in this session)
+///   3. olderCompletedTasksBatchesProvider (paginated completed tasks from Firestore)
+///   4. taskFromDbProvider (direct Drift lookup — covers force-quit + restart)
 ///
 /// Copied from [task].
 class TaskFamily extends Family<TaskItem?> {
   /// Get a specific task by ID with recurrence populated.
-  /// Falls back to already-loaded older completed task batches if not found
-  /// in the base query. Does not fetch from Firestore by ID.
+  /// Searches four sources in priority order:
+  ///   1. tasksWithRecurrencesProvider (incomplete tasks from Drift — fastest)
+  ///   2. recentlyCompletedTasksProvider (just-completed tasks in this session)
+  ///   3. olderCompletedTasksBatchesProvider (paginated completed tasks from Firestore)
+  ///   4. taskFromDbProvider (direct Drift lookup — covers force-quit + restart)
   ///
   /// Copied from [task].
   const TaskFamily();
 
   /// Get a specific task by ID with recurrence populated.
-  /// Falls back to already-loaded older completed task batches if not found
-  /// in the base query. Does not fetch from Firestore by ID.
+  /// Searches four sources in priority order:
+  ///   1. tasksWithRecurrencesProvider (incomplete tasks from Drift — fastest)
+  ///   2. recentlyCompletedTasksProvider (just-completed tasks in this session)
+  ///   3. olderCompletedTasksBatchesProvider (paginated completed tasks from Firestore)
+  ///   4. taskFromDbProvider (direct Drift lookup — covers force-quit + restart)
   ///
   /// Copied from [task].
   TaskProvider call(String taskId) {
@@ -143,14 +155,20 @@ class TaskFamily extends Family<TaskItem?> {
 }
 
 /// Get a specific task by ID with recurrence populated.
-/// Falls back to already-loaded older completed task batches if not found
-/// in the base query. Does not fetch from Firestore by ID.
+/// Searches four sources in priority order:
+///   1. tasksWithRecurrencesProvider (incomplete tasks from Drift — fastest)
+///   2. recentlyCompletedTasksProvider (just-completed tasks in this session)
+///   3. olderCompletedTasksBatchesProvider (paginated completed tasks from Firestore)
+///   4. taskFromDbProvider (direct Drift lookup — covers force-quit + restart)
 ///
 /// Copied from [task].
 class TaskProvider extends AutoDisposeProvider<TaskItem?> {
   /// Get a specific task by ID with recurrence populated.
-  /// Falls back to already-loaded older completed task batches if not found
-  /// in the base query. Does not fetch from Firestore by ID.
+  /// Searches four sources in priority order:
+  ///   1. tasksWithRecurrencesProvider (incomplete tasks from Drift — fastest)
+  ///   2. recentlyCompletedTasksProvider (just-completed tasks in this session)
+  ///   3. olderCompletedTasksBatchesProvider (paginated completed tasks from Firestore)
+  ///   4. taskFromDbProvider (direct Drift lookup — covers force-quit + restart)
   ///
   /// Copied from [task].
   TaskProvider(String taskId)
@@ -226,6 +244,161 @@ class _TaskProviderElement extends AutoDisposeProviderElement<TaskItem?>
 
   @override
   String get taskId => (origin as TaskProvider).taskId;
+}
+
+String _$taskFromDbHash() => r'64b20ef49c36de5a00d5fa689c8f16aace28b5cc';
+
+/// Stream of a single task directly from Drift by docId, with recurrence populated.
+/// Has NO completionDate filter — returns completed tasks too.
+/// Used as the ultimate fallback in [taskProvider] for cases where the task
+/// exists in the local DB but is absent from all in-memory providers
+/// (e.g., completed task after a force-quit + restart before any batches load).
+///
+/// Copied from [taskFromDb].
+@ProviderFor(taskFromDb)
+const taskFromDbProvider = TaskFromDbFamily();
+
+/// Stream of a single task directly from Drift by docId, with recurrence populated.
+/// Has NO completionDate filter — returns completed tasks too.
+/// Used as the ultimate fallback in [taskProvider] for cases where the task
+/// exists in the local DB but is absent from all in-memory providers
+/// (e.g., completed task after a force-quit + restart before any batches load).
+///
+/// Copied from [taskFromDb].
+class TaskFromDbFamily extends Family<AsyncValue<TaskItem?>> {
+  /// Stream of a single task directly from Drift by docId, with recurrence populated.
+  /// Has NO completionDate filter — returns completed tasks too.
+  /// Used as the ultimate fallback in [taskProvider] for cases where the task
+  /// exists in the local DB but is absent from all in-memory providers
+  /// (e.g., completed task after a force-quit + restart before any batches load).
+  ///
+  /// Copied from [taskFromDb].
+  const TaskFromDbFamily();
+
+  /// Stream of a single task directly from Drift by docId, with recurrence populated.
+  /// Has NO completionDate filter — returns completed tasks too.
+  /// Used as the ultimate fallback in [taskProvider] for cases where the task
+  /// exists in the local DB but is absent from all in-memory providers
+  /// (e.g., completed task after a force-quit + restart before any batches load).
+  ///
+  /// Copied from [taskFromDb].
+  TaskFromDbProvider call(String taskId) {
+    return TaskFromDbProvider(taskId);
+  }
+
+  @override
+  TaskFromDbProvider getProviderOverride(
+    covariant TaskFromDbProvider provider,
+  ) {
+    return call(provider.taskId);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'taskFromDbProvider';
+}
+
+/// Stream of a single task directly from Drift by docId, with recurrence populated.
+/// Has NO completionDate filter — returns completed tasks too.
+/// Used as the ultimate fallback in [taskProvider] for cases where the task
+/// exists in the local DB but is absent from all in-memory providers
+/// (e.g., completed task after a force-quit + restart before any batches load).
+///
+/// Copied from [taskFromDb].
+class TaskFromDbProvider extends AutoDisposeStreamProvider<TaskItem?> {
+  /// Stream of a single task directly from Drift by docId, with recurrence populated.
+  /// Has NO completionDate filter — returns completed tasks too.
+  /// Used as the ultimate fallback in [taskProvider] for cases where the task
+  /// exists in the local DB but is absent from all in-memory providers
+  /// (e.g., completed task after a force-quit + restart before any batches load).
+  ///
+  /// Copied from [taskFromDb].
+  TaskFromDbProvider(String taskId)
+    : this._internal(
+        (ref) => taskFromDb(ref as TaskFromDbRef, taskId),
+        from: taskFromDbProvider,
+        name: r'taskFromDbProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$taskFromDbHash,
+        dependencies: TaskFromDbFamily._dependencies,
+        allTransitiveDependencies: TaskFromDbFamily._allTransitiveDependencies,
+        taskId: taskId,
+      );
+
+  TaskFromDbProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.taskId,
+  }) : super.internal();
+
+  final String taskId;
+
+  @override
+  Override overrideWith(
+    Stream<TaskItem?> Function(TaskFromDbRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: TaskFromDbProvider._internal(
+        (ref) => create(ref as TaskFromDbRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        taskId: taskId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeStreamProviderElement<TaskItem?> createElement() {
+    return _TaskFromDbProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TaskFromDbProvider && other.taskId == taskId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, taskId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin TaskFromDbRef on AutoDisposeStreamProviderRef<TaskItem?> {
+  /// The parameter `taskId` of this provider.
+  String get taskId;
+}
+
+class _TaskFromDbProviderElement
+    extends AutoDisposeStreamProviderElement<TaskItem?>
+    with TaskFromDbRef {
+  _TaskFromDbProviderElement(super.provider);
+
+  @override
+  String get taskId => (origin as TaskFromDbProvider).taskId;
 }
 
 String _$tasksWithPendingStateHash() =>

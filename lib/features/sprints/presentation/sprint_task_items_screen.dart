@@ -109,8 +109,12 @@ Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
   final allSprintTasks = await ref.watch(sprintAllTasksProvider(sprint).future);
   final pendingTasks = ref.watch(pendingTasksProvider);
   final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
+  final olderState = ref.watch(olderCompletedTasksBatchesProvider);
   final showCompleted = ref.watch(showCompletedInSprintProvider);
   final showScheduled = ref.watch(showScheduledInSprintProvider);
+
+  final sprintDocIds =
+      sprint.sprintAssignments.map((sa) => sa.taskDocId).toSet();
 
   // Build a docId → task map with pending state overlaid for optimistic UI.
   final taskMap = <String, TaskItem>{};
@@ -118,12 +122,26 @@ Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
     taskMap[task.docId] = pendingTasks[task.docId] ?? task;
   }
   // Include any recentlyCompleted tasks that haven't propagated through the
-  // Drift stream yet (write-confirmation race).
+  // Drift stream yet (write-confirmation race). Overwrite the existing entry
+  // when recentlyCompleted carries a completionDate — Drift may still have the
+  // pre-completion row, which would incorrectly treat the task as incomplete.
   for (final task in recentlyCompleted) {
-    final inThisSprint =
-        sprint.sprintAssignments.any((sa) => sa.taskDocId == task.docId);
-    if (inThisSprint) {
-      taskMap.putIfAbsent(task.docId, () => task);
+    if (sprintDocIds.contains(task.docId)) {
+      if (task.completionDate != null) {
+        taskMap[task.docId] = task;
+      } else {
+        taskMap.putIfAbsent(task.docId, () => task);
+      }
+    }
+  }
+  // Include older completed tasks loaded from Firestore that are absent from
+  // Drift (e.g. purged by the old deleteSyncedNotIn bug before TM-341 fix).
+  // Only bother when showCompleted is on — the filter below drops them anyway.
+  if (showCompleted) {
+    for (final task in olderState.loadedTasks) {
+      if (sprintDocIds.contains(task.docId)) {
+        taskMap.putIfAbsent(task.docId, () => task);
+      }
     }
   }
 

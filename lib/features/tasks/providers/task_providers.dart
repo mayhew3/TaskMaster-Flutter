@@ -151,8 +151,11 @@ Stream<List<TaskItem>> tasksWithRecurrences(Ref ref) {
 }
 
 /// Get a specific task by ID with recurrence populated.
-/// Falls back to already-loaded older completed task batches if not found
-/// in the base query. Does not fetch from Firestore by ID.
+/// Searches four sources in priority order:
+///   1. tasksWithRecurrencesProvider (incomplete tasks from Drift — fastest)
+///   2. recentlyCompletedTasksProvider (just-completed tasks in this session)
+///   3. olderCompletedTasksBatchesProvider (paginated completed tasks from Firestore)
+///   4. taskFromDbProvider (direct Drift lookup — covers force-quit + restart)
 @riverpod
 TaskItem? task(Ref ref, String taskId) {
   final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
@@ -161,12 +164,74 @@ TaskItem? task(Ref ref, String taskId) {
     data: (tasks) => tasks.where((t) => t.docId == taskId).firstOrNull,
     orElse: () => null,
   );
-
   if (baseResult != null) return baseResult;
 
-  // Fall back to older completed tasks batch
+  // Check recently completed tasks (task was just completed this session and
+  // is no longer in the incomplete query but hasn't moved to batches yet).
+  final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
+  final recentResult = recentlyCompleted.where((t) => t.docId == taskId).firstOrNull;
+  if (recentResult != null) return recentResult;
+
+  // Check older completed batches (loaded when user enables "Show Completed").
   final olderState = ref.watch(olderCompletedTasksBatchesProvider);
-  return olderState.loadedTasks.where((t) => t.docId == taskId).firstOrNull;
+  final olderResult = olderState.loadedTasks.where((t) => t.docId == taskId).firstOrNull;
+  if (olderResult != null) return olderResult;
+
+  // Last resort: query Drift directly by docId (covers force-quit + restart when
+  // the task is in the local DB but absent from all in-memory providers — TM-341).
+  final taskFromDbAsync = ref.watch(taskFromDbProvider(taskId));
+  return taskFromDbAsync.valueOrNull;
+}
+
+/// Stream of a single task directly from Drift by docId, with recurrence populated.
+/// Has NO completionDate filter — returns completed tasks too.
+/// Used as the ultimate fallback in [taskProvider] for cases where the task
+/// exists in the local DB but is absent from all in-memory providers
+/// (e.g., completed task after a force-quit + restart before any batches load).
+@riverpod
+Stream<TaskItem?> taskFromDb(Ref ref, String taskId) {
+  final db = ref.watch(databaseProvider);
+  final personDocId = ref.watch(personDocIdProvider);
+
+  if (personDocId == null) return Stream.value(null);
+
+  final taskStream = db.taskDao.watchTaskById(taskId).map((row) {
+    if (row == null) return null;
+    // Guard against stale rows from another user (e.g. after sign-out/sign-in).
+    if (row.personDocId != personDocId) return null;
+    try {
+      return taskItemFromRow(row);
+    } catch (e) {
+      debugPrint('⚠️ [taskFromDbProvider] Failed to convert task $taskId: $e');
+      return null;
+    }
+  });
+
+  final recurrencesStream =
+      db.taskRecurrenceDao.watchActive(personDocId).map((rows) {
+    final recurrences = <TaskRecurrence>[];
+    for (final row in rows) {
+      try {
+        recurrences.add(taskRecurrenceFromRow(row));
+      } catch (e) {
+        debugPrint('⚠️ [taskFromDbProvider] Failed to convert recurrence ${row.docId}: $e');
+      }
+    }
+    return recurrences;
+  });
+
+  return Rx.combineLatest2<TaskItem?, List<TaskRecurrence>, TaskItem?>(
+    taskStream,
+    recurrencesStream,
+    (task, recurrences) {
+      if (task == null) return null;
+      if (task.recurrenceDocId == null) return task;
+      final recurrenceMap = {for (final r in recurrences) r.docId: r};
+      final recurrence = recurrenceMap[task.recurrenceDocId];
+      if (recurrence == null) return task;
+      return task.rebuild((t) => t..recurrence = recurrence.toBuilder());
+    },
+  );
 }
 
 /// Tracks recently completed tasks to keep them visible temporarily

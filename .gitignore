@@ -37,6 +37,7 @@ assets/config/emulator_host.txt
 # Claude
 settings.local.json
 .claude/state/
+.claude/*.lock
 
 # Flutter/Dart/Pub related
 **/doc/api/
