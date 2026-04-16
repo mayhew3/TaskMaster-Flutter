@@ -166,6 +166,20 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
         .go();
   }
 
+  /// Delete all `synced`, incomplete (completionDate IS NULL) rows whose docId
+  /// is NOT in [remoteIds]. The Firestore tasks listener only listens to
+  /// incomplete tasks, so only incomplete rows should be reconciled here.
+  /// Completed rows must NOT be deleted — they are not part of the listener
+  /// query and would be incorrectly purged otherwise (TM-341).
+  Future<void> deleteSyncedIncompleteNotIn(Set<String> remoteIds) {
+    return (delete(tasks)
+          ..where((t) =>
+              t.syncState.equals(SyncState.synced.name) &
+              t.completionDate.isNull() &
+              t.docId.isNotIn(remoteIds.toList())))
+        .go();
+  }
+
   /// Rows that need to be pushed to Firestore.
   Future<List<Task>> pendingWrites() {
     return (select(tasks)

@@ -109,8 +109,12 @@ Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
   final allSprintTasks = await ref.watch(sprintAllTasksProvider(sprint).future);
   final pendingTasks = ref.watch(pendingTasksProvider);
   final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
+  final olderState = ref.watch(olderCompletedTasksBatchesProvider);
   final showCompleted = ref.watch(showCompletedInSprintProvider);
   final showScheduled = ref.watch(showScheduledInSprintProvider);
+
+  final sprintDocIds =
+      sprint.sprintAssignments.map((sa) => sa.taskDocId).toSet();
 
   // Build a docId → task map with pending state overlaid for optimistic UI.
   final taskMap = <String, TaskItem>{};
@@ -120,9 +124,14 @@ Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
   // Include any recentlyCompleted tasks that haven't propagated through the
   // Drift stream yet (write-confirmation race).
   for (final task in recentlyCompleted) {
-    final inThisSprint =
-        sprint.sprintAssignments.any((sa) => sa.taskDocId == task.docId);
-    if (inThisSprint) {
+    if (sprintDocIds.contains(task.docId)) {
+      taskMap.putIfAbsent(task.docId, () => task);
+    }
+  }
+  // Include older completed tasks loaded from Firestore that are absent from
+  // Drift (e.g. purged by the old deleteSyncedNotIn bug before TM-341 fix).
+  for (final task in olderState.loadedTasks) {
+    if (sprintDocIds.contains(task.docId)) {
       taskMap.putIfAbsent(task.docId, () => task);
     }
   }

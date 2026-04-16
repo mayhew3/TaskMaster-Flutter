@@ -218,24 +218,36 @@ class _SprintsForTaskProviderElement
   TaskItem get task => (origin as SprintsForTaskProvider).task;
 }
 
-String _$tasksForSprintHash() => r'9a23175d6d631443a6f1efb1ef91af5a9a21681a';
+String _$tasksForSprintHash() => r'eb55d6d7758af5c59758f8216e8f4475fb8e273c';
 
-/// Get tasks for a specific sprint
+/// Get tasks for a specific sprint.
+/// Includes incomplete tasks from the base stream, recently completed tasks
+/// (visible immediately after completion), and older completed tasks from the
+/// on-demand batch when "Show Completed" is active (TM-341).
 ///
 /// Copied from [tasksForSprint].
 @ProviderFor(tasksForSprint)
 const tasksForSprintProvider = TasksForSprintFamily();
 
-/// Get tasks for a specific sprint
+/// Get tasks for a specific sprint.
+/// Includes incomplete tasks from the base stream, recently completed tasks
+/// (visible immediately after completion), and older completed tasks from the
+/// on-demand batch when "Show Completed" is active (TM-341).
 ///
 /// Copied from [tasksForSprint].
 class TasksForSprintFamily extends Family<List<TaskItem>> {
-  /// Get tasks for a specific sprint
+  /// Get tasks for a specific sprint.
+  /// Includes incomplete tasks from the base stream, recently completed tasks
+  /// (visible immediately after completion), and older completed tasks from the
+  /// on-demand batch when "Show Completed" is active (TM-341).
   ///
   /// Copied from [tasksForSprint].
   const TasksForSprintFamily();
 
-  /// Get tasks for a specific sprint
+  /// Get tasks for a specific sprint.
+  /// Includes incomplete tasks from the base stream, recently completed tasks
+  /// (visible immediately after completion), and older completed tasks from the
+  /// on-demand batch when "Show Completed" is active (TM-341).
   ///
   /// Copied from [tasksForSprint].
   TasksForSprintProvider call(Sprint sprint) {
@@ -264,11 +276,17 @@ class TasksForSprintFamily extends Family<List<TaskItem>> {
   String? get name => r'tasksForSprintProvider';
 }
 
-/// Get tasks for a specific sprint
+/// Get tasks for a specific sprint.
+/// Includes incomplete tasks from the base stream, recently completed tasks
+/// (visible immediately after completion), and older completed tasks from the
+/// on-demand batch when "Show Completed" is active (TM-341).
 ///
 /// Copied from [tasksForSprint].
 class TasksForSprintProvider extends AutoDisposeProvider<List<TaskItem>> {
-  /// Get tasks for a specific sprint
+  /// Get tasks for a specific sprint.
+  /// Includes incomplete tasks from the base stream, recently completed tasks
+  /// (visible immediately after completion), and older completed tasks from the
+  /// on-demand batch when "Show Completed" is active (TM-341).
   ///
   /// Copied from [tasksForSprint].
   TasksForSprintProvider(Sprint sprint)

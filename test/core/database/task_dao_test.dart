@@ -157,6 +157,54 @@ void main() {
     });
   });
 
+  group('TaskDao.deleteSyncedIncompleteNotIn', () {
+    test('deletes synced incomplete row not in the remote set', () async {
+      await db.taskDao.upsertFromRemote(_makeCompanion(docId: 'task-active'));
+      await db.taskDao.deleteSyncedIncompleteNotIn({'other-id'});
+      final all = await db.taskDao.allForUser(personDocId);
+      expect(all, isEmpty, reason: 'Synced incomplete row absent from remote set must be deleted');
+    });
+
+    test('does NOT delete synced completed row absent from remote set (TM-341)', () async {
+      await db.taskDao.upsertFromRemote(
+          _makeCompanion(docId: 'task-done', completionDate: now));
+      await db.taskDao.deleteSyncedIncompleteNotIn({'other-id'});
+      final all = await db.taskDao.allForUser(personDocId);
+      expect(all.length, 1, reason: 'Completed tasks must survive reconciliation');
+      expect(all.first.docId, 'task-done');
+    });
+
+    test('keeps synced incomplete row that IS in the remote set', () async {
+      await db.taskDao.upsertFromRemote(_makeCompanion(docId: 'task-active'));
+      await db.taskDao.deleteSyncedIncompleteNotIn({'task-active'});
+      final all = await db.taskDao.allForUser(personDocId);
+      expect(all.length, 1);
+    });
+
+    test('does not affect pending rows', () async {
+      await db.taskDao.insertPending(_makeCompanion(docId: 'task-pending'));
+      await db.taskDao.deleteSyncedIncompleteNotIn({'other-id'});
+      final all = await db.taskDao.allForUser(personDocId);
+      expect(all.length, 1, reason: 'Pending rows must not be affected');
+    });
+
+    test('mixed: deletes only incomplete+synced rows absent from set', () async {
+      // Should be deleted (incomplete, synced, not in set)
+      await db.taskDao.upsertFromRemote(_makeCompanion(docId: 'incomplete-absent'));
+      // Should be kept (completed, synced)
+      await db.taskDao.upsertFromRemote(
+          _makeCompanion(docId: 'completed', completionDate: now));
+      // Should be kept (in set)
+      await db.taskDao.upsertFromRemote(_makeCompanion(docId: 'in-set'));
+
+      await db.taskDao.deleteSyncedIncompleteNotIn({'in-set'});
+
+      final all = await db.taskDao.allForUser(personDocId);
+      final remaining = all.map((t) => t.docId).toSet();
+      expect(remaining, {'completed', 'in-set'});
+    });
+  });
+
   group('TaskDao.markSynced', () {
     test('flips pendingCreate to synced', () async {
       await db.taskDao.insertPending(_makeCompanion());

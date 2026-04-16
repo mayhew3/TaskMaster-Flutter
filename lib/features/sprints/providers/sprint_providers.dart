@@ -6,6 +6,7 @@ import '../../../core/providers/auth_providers.dart';
 import '../../../core/providers/database_provider.dart';
 import '../../../models/sprint.dart';
 import '../../../models/task_item.dart';
+import '../../tasks/providers/task_filter_providers.dart';
 import '../../tasks/providers/task_providers.dart';
 
 part 'sprint_providers.g.dart';
@@ -94,16 +95,48 @@ List<Sprint> sprintsForTask(Ref ref, TaskItem task) {
   );
 }
 
-/// Get tasks for a specific sprint
+/// Get tasks for a specific sprint.
+/// Includes incomplete tasks from the base stream, recently completed tasks
+/// (visible immediately after completion), and older completed tasks from the
+/// on-demand batch when "Show Completed" is active (TM-341).
 @riverpod
 List<TaskItem> tasksForSprint(Ref ref, Sprint sprint) {
   final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
+  final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
+  final showCompleted = ref.watch(showCompletedProvider);
+  final olderState = ref.watch(olderCompletedTasksBatchesProvider);
 
   return tasksAsync.maybeWhen(
-    data: (tasks) {
-      return tasks.where((t) =>
-        sprint.sprintAssignments.any((sa) => sa.taskDocId == t.docId)
-      ).toList();
+    data: (incompleteTasks) {
+      final sprintDocIds = sprint.sprintAssignments.map((sa) => sa.taskDocId).toSet();
+      final seen = <String>{};
+      final result = <TaskItem>[];
+
+      // 1. Incomplete sprint tasks
+      for (final task in incompleteTasks) {
+        if (sprintDocIds.contains(task.docId) && seen.add(task.docId)) {
+          result.add(task);
+        }
+      }
+
+      // 2. Recently completed sprint tasks (always — for accurate banner stats
+      //    and immediate visibility after completion).
+      for (final task in recentlyCompleted) {
+        if (sprintDocIds.contains(task.docId) && seen.add(task.docId)) {
+          result.add(task);
+        }
+      }
+
+      // 3. Older completed sprint tasks (only when "Show Completed" is active).
+      if (showCompleted) {
+        for (final task in olderState.loadedTasks) {
+          if (sprintDocIds.contains(task.docId) && seen.add(task.docId)) {
+            result.add(task);
+          }
+        }
+      }
+
+      return result;
     },
     orElse: () => [],
   );
