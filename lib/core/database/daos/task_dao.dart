@@ -172,6 +172,16 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
   /// Completed rows must NOT be deleted — they are not part of the listener
   /// query and would be incorrectly purged otherwise (TM-341).
   Future<void> deleteSyncedIncompleteNotIn(Set<String> remoteIds) {
+    // When remoteIds is empty every synced incomplete row is stale — delete
+    // them all without an IN-list predicate to avoid SQL edge-cases with
+    // `NOT IN ()`.
+    if (remoteIds.isEmpty) {
+      return (delete(tasks)
+            ..where((t) =>
+                t.syncState.equals(SyncState.synced.name) &
+                t.completionDate.isNull()))
+          .go();
+    }
     return (delete(tasks)
           ..where((t) =>
               t.syncState.equals(SyncState.synced.name) &

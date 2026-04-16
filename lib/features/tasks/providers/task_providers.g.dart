@@ -246,7 +246,7 @@ class _TaskProviderElement extends AutoDisposeProviderElement<TaskItem?>
   String get taskId => (origin as TaskProvider).taskId;
 }
 
-String _$taskFromDbHash() => r'2f7a30c3cffe5bd2b424ca4ec9bf1f23462dfa6a';
+String _$taskFromDbHash() => r'4ddf6fbded33174e2b9495b4d534dc4ba4934371';
 
 /// Stream of a single task directly from Drift by docId, with recurrence populated.
 /// Has NO completionDate filter — returns completed tasks too.

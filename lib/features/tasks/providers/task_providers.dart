@@ -193,8 +193,12 @@ Stream<TaskItem?> taskFromDb(Ref ref, String taskId) {
   final db = ref.watch(databaseProvider);
   final personDocId = ref.watch(personDocIdProvider);
 
+  if (personDocId == null) return Stream.value(null);
+
   final taskStream = db.taskDao.watchTaskById(taskId).map((row) {
     if (row == null) return null;
+    // Guard against stale rows from another user (e.g. after sign-out/sign-in).
+    if (row.personDocId != personDocId) return null;
     try {
       return taskItemFromRow(row);
     } catch (e) {
@@ -202,8 +206,6 @@ Stream<TaskItem?> taskFromDb(Ref ref, String taskId) {
       return null;
     }
   });
-
-  if (personDocId == null) return taskStream;
 
   final recurrencesStream =
       db.taskRecurrenceDao.watchActive(personDocId).map((rows) {

@@ -41,7 +41,10 @@ void main() {
     return ProviderContainer(
       overrides: [
         personDocIdProvider.overrideWith((ref) => personDocId),
-        databaseProvider.overrideWithValue(testDb),
+        databaseProvider.overrideWith((ref) {
+          if (db == null) ref.onDispose(testDb.close);
+          return testDb;
+        }),
         // Always override the incomplete-task stream so tests don't need Firestore
         tasksWithRecurrencesProvider.overrideWith(
           (ref) => Stream.value(<TaskItem>[]),

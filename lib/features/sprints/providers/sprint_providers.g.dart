@@ -218,7 +218,7 @@ class _SprintsForTaskProviderElement
   TaskItem get task => (origin as SprintsForTaskProvider).task;
 }
 
-String _$tasksForSprintHash() => r'eb55d6d7758af5c59758f8216e8f4475fb8e273c';
+String _$tasksForSprintHash() => r'0bb7218d33fe9b15857fd809e7f9e54e2fb99ce9';
 
 /// Get tasks for a specific sprint.
 /// Includes incomplete tasks from the base stream, recently completed tasks

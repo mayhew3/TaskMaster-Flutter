@@ -122,10 +122,16 @@ Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
     taskMap[task.docId] = pendingTasks[task.docId] ?? task;
   }
   // Include any recentlyCompleted tasks that haven't propagated through the
-  // Drift stream yet (write-confirmation race).
+  // Drift stream yet (write-confirmation race). Overwrite the existing entry
+  // when recentlyCompleted carries a completionDate — Drift may still have the
+  // pre-completion row, which would incorrectly treat the task as incomplete.
   for (final task in recentlyCompleted) {
     if (sprintDocIds.contains(task.docId)) {
-      taskMap.putIfAbsent(task.docId, () => task);
+      if (task.completionDate != null) {
+        taskMap[task.docId] = task;
+      } else {
+        taskMap.putIfAbsent(task.docId, () => task);
+      }
     }
   }
   // Include older completed tasks loaded from Firestore that are absent from

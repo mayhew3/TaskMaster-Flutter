@@ -109,34 +109,34 @@ List<TaskItem> tasksForSprint(Ref ref, Sprint sprint) {
   return tasksAsync.maybeWhen(
     data: (incompleteTasks) {
       final sprintDocIds = sprint.sprintAssignments.map((sa) => sa.taskDocId).toSet();
-      final seen = <String>{};
-      final result = <TaskItem>[];
+      // Map-based merge so higher-priority sources overwrite lower-priority ones.
+      final tasksByDocId = <String, TaskItem>{};
 
-      // 1. Incomplete sprint tasks
-      for (final task in incompleteTasks) {
-        if (sprintDocIds.contains(task.docId) && seen.add(task.docId)) {
-          result.add(task);
-        }
-      }
-
-      // 2. Recently completed sprint tasks (always — for accurate banner stats
-      //    and immediate visibility after completion).
-      for (final task in recentlyCompleted) {
-        if (sprintDocIds.contains(task.docId) && seen.add(task.docId)) {
-          result.add(task);
-        }
-      }
-
-      // 3. Older completed sprint tasks (only when "Show Completed" is active).
+      // 1. Older completed sprint tasks (lowest priority — base layer).
       if (showCompleted) {
         for (final task in olderState.loadedTasks) {
-          if (sprintDocIds.contains(task.docId) && seen.add(task.docId)) {
-            result.add(task);
+          if (sprintDocIds.contains(task.docId)) {
+            tasksByDocId[task.docId] = task;
           }
         }
       }
 
-      return result;
+      // 2. Incomplete sprint tasks override older completed tasks for the same docId.
+      for (final task in incompleteTasks) {
+        if (sprintDocIds.contains(task.docId)) {
+          tasksByDocId[task.docId] = task;
+        }
+      }
+
+      // 3. Recently completed tasks always win — they carry the freshest state
+      //    and ensure accurate banner stats while Drift catches up.
+      for (final task in recentlyCompleted) {
+        if (sprintDocIds.contains(task.docId)) {
+          tasksByDocId[task.docId] = task;
+        }
+      }
+
+      return tasksByDocId.values.toList();
     },
     orElse: () => [],
   );
