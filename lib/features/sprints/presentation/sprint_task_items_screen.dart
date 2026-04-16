@@ -136,9 +136,12 @@ Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
   }
   // Include older completed tasks loaded from Firestore that are absent from
   // Drift (e.g. purged by the old deleteSyncedNotIn bug before TM-341 fix).
-  for (final task in olderState.loadedTasks) {
-    if (sprintDocIds.contains(task.docId)) {
-      taskMap.putIfAbsent(task.docId, () => task);
+  // Only bother when showCompleted is on — the filter below drops them anyway.
+  if (showCompleted) {
+    for (final task in olderState.loadedTasks) {
+      if (sprintDocIds.contains(task.docId)) {
+        taskMap.putIfAbsent(task.docId, () => task);
+      }
     }
   }
 

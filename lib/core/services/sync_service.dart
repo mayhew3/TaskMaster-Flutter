@@ -199,7 +199,7 @@ class SyncService {
     // purged because the listener never returns them (TM-341).
     if (isInitial) {
       final remoteIds = snapshot.docs.map((d) => d.id).toSet();
-      await db.taskDao.deleteSyncedIncompleteNotIn(remoteIds);
+      await db.taskDao.deleteSyncedIncompleteNotIn(_currentPersonDocId!, remoteIds);
     }
 
     _syncLog('[SyncService] +${_ms()}ms tasks transaction done');
