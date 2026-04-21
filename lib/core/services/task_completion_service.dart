@@ -368,6 +368,29 @@ class UpdateTask extends _$UpdateTask {
           blueprint.recurrenceDocId!,
           recurrenceBlueprintToDiff(recurrenceBlueprint),
         );
+
+        // Cascade recurrence field changes to upcoming tasks in the chain
+        // (those with recurIteration > this task's) so they stay in sync with
+        // the updated shared TaskRecurrence (TM-243).
+        final recurIteration = task.recurIteration;
+        if (recurIteration != null) {
+          final cascadeDiff = TasksCompanion(
+            recurWait: recurrenceBlueprint.recurWait != null
+                ? Value(recurrenceBlueprint.recurWait)
+                : const Value.absent(),
+            recurNumber: recurrenceBlueprint.recurNumber != null
+                ? Value(recurrenceBlueprint.recurNumber)
+                : const Value.absent(),
+            recurUnit: recurrenceBlueprint.recurUnit != null
+                ? Value(recurrenceBlueprint.recurUnit)
+                : const Value.absent(),
+          );
+          await db.taskDao.cascadeRecurrenceFieldsToUpcoming(
+            recurrenceDocId: blueprint.recurrenceDocId!,
+            afterIteration: recurIteration,
+            diff: cascadeDiff,
+          );
+        }
       }
 
       await db.taskDao.markUpdatePending(task.docId, taskBlueprintToDiff(blueprint));

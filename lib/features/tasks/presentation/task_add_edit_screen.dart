@@ -577,6 +577,10 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                                                     taskItemBlueprint
                                                             .recurNumber =
                                                         _parseInt(value),
+                                                onChanged: (value) {
+                                                  taskItemBlueprint.recurNumber = _parseInt(value);
+                                                  setState(() {});
+                                                },
                                                 inputType: TextInputType.number,
                                                 validator: (value) {
                                                   if (_repeatOn &&
@@ -596,9 +600,10 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                                                 taskItemBlueprint.recurUnit,
                                             labelText: 'Unit',
                                             possibleValues: possibleRecurUnits,
-                                            valueSetter: (value) =>
-                                                taskItemBlueprint.recurUnit =
-                                                    value,
+                                            valueSetter: (value) {
+                                              taskItemBlueprint.recurUnit = value;
+                                              setState(() {});
+                                            },
                                             validator: (value) {
                                               if (_repeatOn &&
                                                   value == '(none)') {
@@ -615,9 +620,11 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                                           taskItemBlueprint.recurWait),
                                       labelText: 'Anchor',
                                       possibleValues: possibleAnchorDates,
-                                      valueSetter: (value) =>
-                                          taskItemBlueprint.recurWait =
-                                              anchorDateToRecurWait(value!),
+                                      valueSetter: (value) {
+                                        taskItemBlueprint.recurWait =
+                                            anchorDateToRecurWait(value!);
+                                        setState(() {});
+                                      },
                                       validator: (value) {
                                         if (_repeatOn && value == '(none)') {
                                           return 'Anchor Date is required for repeat.';

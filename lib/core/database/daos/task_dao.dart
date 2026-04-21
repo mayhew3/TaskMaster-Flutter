@@ -195,6 +195,34 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
         .go();
   }
 
+  /// Cascade recurrence field changes to all tasks in the same chain whose
+  /// recurIteration is greater than [afterIteration]. Used by UpdateTask when
+  /// editing task N so that upcoming tasks N+1, N+2, ... stay in sync with the
+  /// updated shared TaskRecurrence (TM-243). Skips pendingDelete rows;
+  /// preserves pendingCreate state; transitions synced/pendingUpdate rows to
+  /// pendingUpdate so they get pushed to Firestore on the next sync.
+  Future<void> cascadeRecurrenceFieldsToUpcoming({
+    required String recurrenceDocId,
+    required int afterIteration,
+    required TasksCompanion diff,
+  }) async {
+    final upcoming = await (select(tasks)
+          ..where((t) =>
+              t.recurrenceDocId.equals(recurrenceDocId) &
+              t.recurIteration.isBiggerThan(Variable<int>(afterIteration)) &
+              t.syncState.equals(SyncState.pendingDelete.name).not()))
+        .get();
+
+    for (final row in upcoming) {
+      final nextState = row.syncState == SyncState.pendingCreate.name
+          ? SyncState.pendingCreate.name
+          : SyncState.pendingUpdate.name;
+      await (update(tasks)..where((t) => t.docId.equals(row.docId))).write(
+        diff.copyWith(syncState: Value(nextState)),
+      );
+    }
+  }
+
   /// Rows that need to be pushed to Firestore.
   Future<List<Task>> pendingWrites() {
     return (select(tasks)

@@ -222,4 +222,139 @@ void main() {
       expect(all.first.syncState, SyncState.synced.name);
     });
   });
+
+  group('TaskDao.cascadeRecurrenceFieldsToUpcoming', () {
+    const recurrenceDocId = 'recur-1';
+
+    TasksCompanion _makeRecurringCompanion({
+      required String docId,
+      required int recurIteration,
+      String? syncState,
+      bool? recurWait,
+    }) {
+      return TasksCompanion(
+        docId: Value(docId),
+        dateAdded: Value(now),
+        name: Value('Recurring task $recurIteration'),
+        personDocId: const Value(personDocId),
+        syncState: Value(syncState ?? SyncState.synced.name),
+        offCycle: const Value(false),
+        recurrenceDocId: const Value(recurrenceDocId),
+        recurIteration: Value(recurIteration),
+        recurWait: Value(recurWait ?? false),
+        recurNumber: const Value(7),
+        recurUnit: const Value('Days'),
+      );
+    }
+
+    final _cascadeDiff = const TasksCompanion(
+      recurWait: Value(true),
+      recurNumber: Value(14),
+      recurUnit: Value('Weeks'),
+    );
+
+    test('updates recurWait/recurNumber/recurUnit on tasks with recurIteration > afterIteration', () async {
+      await db.taskDao.upsertFromRemote(_makeRecurringCompanion(docId: 'task-1', recurIteration: 1));
+      await db.taskDao.upsertFromRemote(_makeRecurringCompanion(docId: 'task-2', recurIteration: 2));
+      await db.taskDao.upsertFromRemote(_makeRecurringCompanion(docId: 'task-3', recurIteration: 3));
+
+      await db.taskDao.cascadeRecurrenceFieldsToUpcoming(
+        recurrenceDocId: recurrenceDocId,
+        afterIteration: 1,
+        diff: _cascadeDiff,
+      );
+
+      final all = await db.taskDao.allForUser(personDocId);
+      final byDocId = {for (final t in all) t.docId: t};
+
+      // task-1 (the edited task) must NOT be updated
+      expect(byDocId['task-1']!.recurWait, false);
+      expect(byDocId['task-1']!.recurNumber, 7);
+      expect(byDocId['task-1']!.recurUnit, 'Days');
+
+      // task-2 and task-3 (upcoming) must be updated
+      expect(byDocId['task-2']!.recurWait, true);
+      expect(byDocId['task-2']!.recurNumber, 14);
+      expect(byDocId['task-2']!.recurUnit, 'Weeks');
+      expect(byDocId['task-3']!.recurWait, true);
+      expect(byDocId['task-3']!.recurNumber, 14);
+      expect(byDocId['task-3']!.recurUnit, 'Weeks');
+    });
+
+    test('does NOT update tasks with a different recurrenceDocId', () async {
+      await db.taskDao.upsertFromRemote(_makeRecurringCompanion(docId: 'task-1', recurIteration: 1));
+      // A task in a different recurrence chain
+      await db.taskDao.upsertFromRemote(
+        TasksCompanion(
+          docId: const Value('task-other'),
+          dateAdded: Value(now),
+          name: const Value('Other chain'),
+          personDocId: const Value(personDocId),
+          syncState: Value(SyncState.synced.name),
+          offCycle: const Value(false),
+          recurrenceDocId: const Value('recur-2'),
+          recurIteration: const Value(2),
+          recurWait: const Value(false),
+          recurNumber: const Value(7),
+          recurUnit: const Value('Days'),
+        ),
+      );
+
+      await db.taskDao.cascadeRecurrenceFieldsToUpcoming(
+        recurrenceDocId: recurrenceDocId,
+        afterIteration: 0,
+        diff: _cascadeDiff,
+      );
+
+      final all = await db.taskDao.allForUser(personDocId);
+      final other = all.firstWhere((t) => t.docId == 'task-other');
+      expect(other.recurWait, false, reason: 'Different recurrence chain must not be affected');
+      expect(other.recurNumber, 7);
+    });
+
+    test('preserves pendingCreate state on updated tasks', () async {
+      await db.taskDao.insertPending(_makeRecurringCompanion(docId: 'task-2', recurIteration: 2));
+
+      await db.taskDao.cascadeRecurrenceFieldsToUpcoming(
+        recurrenceDocId: recurrenceDocId,
+        afterIteration: 1,
+        diff: _cascadeDiff,
+      );
+
+      final all = await db.taskDao.allForUser(personDocId);
+      expect(all.first.syncState, SyncState.pendingCreate.name,
+          reason: 'pendingCreate tasks must stay pendingCreate after cascade');
+      expect(all.first.recurWait, true, reason: 'recurrence fields must still be updated');
+    });
+
+    test('transitions synced tasks to pendingUpdate', () async {
+      await db.taskDao.upsertFromRemote(_makeRecurringCompanion(docId: 'task-2', recurIteration: 2));
+
+      await db.taskDao.cascadeRecurrenceFieldsToUpcoming(
+        recurrenceDocId: recurrenceDocId,
+        afterIteration: 1,
+        diff: _cascadeDiff,
+      );
+
+      final all = await db.taskDao.allForUser(personDocId);
+      expect(all.first.syncState, SyncState.pendingUpdate.name,
+          reason: 'synced tasks must be marked pendingUpdate after cascade');
+    });
+
+    test('does NOT update pendingDelete tasks', () async {
+      await db.taskDao.upsertFromRemote(_makeRecurringCompanion(docId: 'task-2', recurIteration: 2));
+      await db.taskDao.markDeletePending('task-2');
+
+      await db.taskDao.cascadeRecurrenceFieldsToUpcoming(
+        recurrenceDocId: recurrenceDocId,
+        afterIteration: 1,
+        diff: _cascadeDiff,
+      );
+
+      // pendingDelete row should still have original recurrence values
+      final pending = await db.taskDao.pendingWrites();
+      final task2 = pending.firstWhere((t) => t.docId == 'task-2');
+      expect(task2.recurWait, false, reason: 'pendingDelete tasks must not be updated by cascade');
+    });
+  });
 }
