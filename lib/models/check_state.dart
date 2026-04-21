@@ -3,7 +3,7 @@ enum CheckState {
   inactive,  // Task not completed
   pending,   // Task completion in progress
   checked,   // Task completed
-  skipped,   // Recurring task instance skipped (stays in active list)
+  skipped,   // Recurring task instance skipped (treated as completed in lists/groups)
 }
 
 /// Callback for cycling through check states

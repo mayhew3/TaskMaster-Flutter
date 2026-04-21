@@ -177,7 +177,7 @@ Future<int> completedTaskCount(Ref ref) async {
       .get();
   final total = result.count ?? 0;
   final skipped = await db.taskDao.skippedTaskCount(personDocId);
-  return total - skipped;
+  return (total - skipped).clamp(0, total);
 }
 
 /// Task grouping for display (Past Due, Urgent, Target, Scheduled, Tasks, Completed)

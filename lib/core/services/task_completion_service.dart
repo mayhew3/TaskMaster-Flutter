@@ -255,7 +255,7 @@ class SkipTask extends _$SkipTask {
   FutureOr<void> build() {}
 
   /// Skip: create next iteration at the normal scheduled date, mark current as
-  /// skipped=true. Does NOT set completionDate so stats are unaffected.
+  /// skipped=true, and set its completionDate for persistence/filtering.
   Future<void> call(TaskItem task) async {
     try {
       final db = ref.read(databaseProvider);
