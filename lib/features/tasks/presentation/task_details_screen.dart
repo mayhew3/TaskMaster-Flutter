@@ -107,10 +107,14 @@ class _TaskDetailsBody extends ConsumerWidget {
                                 ? CheckState.pending
                                 : CheckState.inactive,
                     checkCycleWaiter: (checkState) {
-                      ref.read(completeTaskProvider.notifier).call(
-                        task,
-                        complete: CheckState.inactive == checkState,
-                      );
+                      if (checkState == CheckState.skipped) {
+                        ref.read(skipTaskProvider.notifier).unskip(task);
+                      } else {
+                        ref.read(completeTaskProvider.notifier).call(
+                          task,
+                          complete: CheckState.inactive == checkState,
+                        );
+                      }
                       return null;
                     },
                   ),
