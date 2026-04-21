@@ -371,21 +371,27 @@ class UpdateTask extends _$UpdateTask {
 
         // Cascade recurrence field changes to upcoming tasks in the chain
         // (those with recurIteration > this task's) so they stay in sync with
-        // the updated shared TaskRecurrence (TM-243). Only run when at least one
-        // frequency field changed — avoids unnecessary pendingUpdate flips.
+        // the updated shared TaskRecurrence (TM-243). Compare new values against
+        // the task's current values to detect actual changes — blueprints are
+        // typically fully-populated, so a != null check would trigger on every
+        // save even when nothing changed.
         final recurIteration = task.recurIteration;
-        final anyFrequencyFieldChanged = recurrenceBlueprint.recurWait != null ||
-            recurrenceBlueprint.recurNumber != null ||
-            recurrenceBlueprint.recurUnit != null;
-        if (recurIteration != null && anyFrequencyFieldChanged) {
+        final recurWaitChanged = recurrenceBlueprint.recurWait != null &&
+            recurrenceBlueprint.recurWait != task.recurWait;
+        final recurNumberChanged = recurrenceBlueprint.recurNumber != null &&
+            recurrenceBlueprint.recurNumber != task.recurNumber;
+        final recurUnitChanged = recurrenceBlueprint.recurUnit != null &&
+            recurrenceBlueprint.recurUnit != task.recurUnit;
+        if (recurIteration != null &&
+            (recurWaitChanged || recurNumberChanged || recurUnitChanged)) {
           final cascadeDiff = TasksCompanion(
-            recurWait: recurrenceBlueprint.recurWait != null
+            recurWait: recurWaitChanged
                 ? Value(recurrenceBlueprint.recurWait)
                 : const Value.absent(),
-            recurNumber: recurrenceBlueprint.recurNumber != null
+            recurNumber: recurNumberChanged
                 ? Value(recurrenceBlueprint.recurNumber)
                 : const Value.absent(),
-            recurUnit: recurrenceBlueprint.recurUnit != null
+            recurUnit: recurUnitChanged
                 ? Value(recurrenceBlueprint.recurUnit)
                 : const Value.absent(),
           );

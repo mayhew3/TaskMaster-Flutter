@@ -214,22 +214,25 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
         diff.recurUnit.present;
     if (!hasFrequencyFields) return;
 
-    final upcoming = await (select(tasks)
-          ..where((t) =>
-              t.personDocId.equals(personDocId) &
-              t.recurrenceDocId.equals(recurrenceDocId) &
-              t.recurIteration.isBiggerThan(Variable<int>(afterIteration)) &
-              t.syncState.equals(SyncState.pendingDelete.name).not()))
-        .get();
+    // Two set-based UPDATEs instead of a per-row loop to avoid N+1 SQL:
+    // one to preserve pendingCreate state, one to promote the rest to pendingUpdate.
+    upcomingFilter(Tasks t) =>
+        t.personDocId.equals(personDocId) &
+        t.recurrenceDocId.equals(recurrenceDocId) &
+        t.recurIteration.isBiggerThan(Variable<int>(afterIteration)) &
+        t.syncState.equals(SyncState.pendingDelete.name).not();
 
-    for (final row in upcoming) {
-      final nextState = row.syncState == SyncState.pendingCreate.name
-          ? SyncState.pendingCreate.name
-          : SyncState.pendingUpdate.name;
-      await (update(tasks)..where((t) => t.docId.equals(row.docId))).write(
-        diff.copyWith(syncState: Value(nextState)),
-      );
-    }
+    await (update(tasks)
+          ..where((t) =>
+              upcomingFilter(t) &
+              t.syncState.equals(SyncState.pendingCreate.name)))
+        .write(diff.copyWith(syncState: Value(SyncState.pendingCreate.name)));
+
+    await (update(tasks)
+          ..where((t) =>
+              upcomingFilter(t) &
+              t.syncState.equals(SyncState.pendingCreate.name).not()))
+        .write(diff.copyWith(syncState: Value(SyncState.pendingUpdate.name)));
   }
 
   /// Rows that need to be pushed to Firestore.

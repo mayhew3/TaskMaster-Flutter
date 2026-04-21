@@ -237,7 +237,7 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
       return null;
     }
     var cleanString = _cleanString(str);
-    return cleanString == null ? null : int.parse(str);
+    return cleanString == null ? null : int.tryParse(cleanString);
   }
 
   void _checkForAutoClose() {
