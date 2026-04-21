@@ -38,6 +38,11 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
         object.offCycle,
         specifiedType: const FullType(bool),
       ),
+      'skipped',
+      serializers.serialize(
+        object.skipped,
+        specifiedType: const FullType(bool),
+      ),
     ];
     Object? value;
     value = object.personDocId;
@@ -358,6 +363,14 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
                   )!
                   as bool;
           break;
+        case 'skipped':
+          result.skipped =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )!
+                  as bool;
+          break;
       }
     }
 
@@ -415,6 +428,8 @@ class _$TaskItem extends TaskItem {
   @override
   final bool offCycle;
   @override
+  final bool skipped;
+  @override
   final TaskRecurrence? recurrence;
   @override
   final bool pendingCompletion;
@@ -447,6 +462,7 @@ class _$TaskItem extends TaskItem {
     this.retired,
     this.retiredDate,
     required this.offCycle,
+    required this.skipped,
     this.recurrence,
     required this.pendingCompletion,
   }) : super._();
@@ -485,6 +501,7 @@ class _$TaskItem extends TaskItem {
         retired == other.retired &&
         retiredDate == other.retiredDate &&
         offCycle == other.offCycle &&
+        skipped == other.skipped &&
         recurrence == other.recurrence &&
         pendingCompletion == other.pendingCompletion;
   }
@@ -516,6 +533,7 @@ class _$TaskItem extends TaskItem {
     _$hash = $jc(_$hash, retired.hashCode);
     _$hash = $jc(_$hash, retiredDate.hashCode);
     _$hash = $jc(_$hash, offCycle.hashCode);
+    _$hash = $jc(_$hash, skipped.hashCode);
     _$hash = $jc(_$hash, recurrence.hashCode);
     _$hash = $jc(_$hash, pendingCompletion.hashCode);
     _$hash = $jf(_$hash);
@@ -549,6 +567,7 @@ class _$TaskItem extends TaskItem {
           ..add('retired', retired)
           ..add('retiredDate', retiredDate)
           ..add('offCycle', offCycle)
+          ..add('skipped', skipped)
           ..add('recurrence', recurrence)
           ..add('pendingCompletion', pendingCompletion))
         .toString();
@@ -657,6 +676,10 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   bool? get offCycle => _$this._offCycle;
   set offCycle(bool? offCycle) => _$this._offCycle = offCycle;
 
+  bool? _skipped;
+  bool? get skipped => _$this._skipped;
+  set skipped(bool? skipped) => _$this._skipped = skipped;
+
   TaskRecurrenceBuilder? _recurrence;
   TaskRecurrenceBuilder get recurrence =>
       _$this._recurrence ??= TaskRecurrenceBuilder();
@@ -699,6 +722,7 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
       _retired = $v.retired;
       _retiredDate = $v.retiredDate;
       _offCycle = $v.offCycle;
+      _skipped = $v.skipped;
       _recurrence = $v.recurrence?.toBuilder();
       _pendingCompletion = $v.pendingCompletion;
       _$v = null;
@@ -764,6 +788,11 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
               offCycle,
               r'TaskItem',
               'offCycle',
+            ),
+            skipped: BuiltValueNullFieldError.checkNotNull(
+              skipped,
+              r'TaskItem',
+              'skipped',
             ),
             recurrence: _recurrence?.build(),
             pendingCompletion: BuiltValueNullFieldError.checkNotNull(

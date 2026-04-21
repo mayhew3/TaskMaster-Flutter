@@ -220,6 +220,15 @@ class SnoozeDialogState extends ConsumerState<SnoozeDialog> {
             },
             child: Text('Cancel'),
           ),
+          if (widget.taskItem.recurrenceDocId != null &&
+              blueprint.recurrenceBlueprint?.recurWait == false)
+            TextButton(
+              onPressed: () async {
+                await ref.read(skipTaskProvider.notifier).call(widget.taskItem);
+                if (context.mounted) Navigator.pop(context);
+              },
+              child: const Text('Skip This Instance'),
+            ),
           Visibility(
             child: TextButton(
               onPressed: () async {

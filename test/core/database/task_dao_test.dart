@@ -16,6 +16,7 @@ void main() {
     String? syncState,
     DateTime? completionDate,
     String? retired,
+    bool skipped = false,
   }) {
     return TasksCompanion(
       docId: Value(docId),
@@ -26,6 +27,7 @@ void main() {
       completionDate: Value(completionDate),
       retired: Value(retired),
       offCycle: const Value(false),
+      skipped: Value(skipped),
     );
   }
 
@@ -154,6 +156,92 @@ void main() {
       final result =
           await db.taskDao.watchIncompleteTasks(personDocId).first;
       expect(result, isEmpty);
+    });
+
+    test('includes skipped tasks without completionDate (legacy/invalid data edge case)', () async {
+      await db.taskDao.upsertFromRemote(_makeCompanion(docId: 'task-active'));
+      await db.taskDao.upsertFromRemote(
+          _makeCompanion(docId: 'task-skipped', skipped: true));
+      final result =
+          await db.taskDao.watchIncompleteTasks(personDocId).first;
+      expect(result.length, 2,
+          reason: 'Rows marked skipped but missing completionDate still match the incomplete-task filter');
+      expect(result.map((t) => t.docId).toSet(),
+          {'task-active', 'task-skipped'});
+    });
+
+    test('excludes skipped task that also has completionDate', () async {
+      await db.taskDao.upsertFromRemote(_makeCompanion(docId: 'task-active'));
+      await db.taskDao.upsertFromRemote(
+          _makeCompanion(docId: 'task-skipped-done', skipped: true, completionDate: now));
+      final result =
+          await db.taskDao.watchIncompleteTasks(personDocId).first;
+      expect(result.length, 1);
+      expect(result.first.docId, 'task-active');
+    });
+  });
+
+  group('TaskDao.skipped field', () {
+    test('defaults to false on insert', () async {
+      await db.taskDao.upsertFromRemote(_makeCompanion());
+      final all = await db.taskDao.allForUser(personDocId);
+      expect(all.first.skipped, false);
+    });
+
+    test('round-trips skipped=true', () async {
+      await db.taskDao.upsertFromRemote(_makeCompanion(skipped: true));
+      final all = await db.taskDao.allForUser(personDocId);
+      expect(all.first.skipped, true);
+    });
+
+    test('markUpdatePending can set skipped=true', () async {
+      await db.taskDao.upsertFromRemote(_makeCompanion());
+      await db.taskDao.markUpdatePending(
+          'task-1', const TasksCompanion(skipped: Value(true)));
+      final all = await db.taskDao.allForUser(personDocId);
+      expect(all.first.skipped, true);
+    });
+
+    test('markUpdatePending can clear skipped back to false', () async {
+      await db.taskDao.upsertFromRemote(_makeCompanion(skipped: true));
+      await db.taskDao.markUpdatePending(
+          'task-1', const TasksCompanion(skipped: Value(false)));
+      final all = await db.taskDao.allForUser(personDocId);
+      expect(all.first.skipped, false);
+    });
+  });
+
+  group('TaskDao.skippedTaskCount', () {
+    test('counts only synced skipped rows with completionDate', () async {
+      // Synced + skipped + completionDate → should count
+      await db.taskDao.upsertFromRemote(
+          _makeCompanion(docId: 'skip-synced', skipped: true, completionDate: now));
+      // Pending + skipped + completionDate → should NOT count (not yet in Firestore)
+      await db.taskDao.insertPending(
+          _makeCompanion(docId: 'skip-pending', skipped: true, completionDate: now));
+      // Synced + skipped + no completionDate → should NOT count (legacy edge case)
+      await db.taskDao.upsertFromRemote(
+          _makeCompanion(docId: 'skip-no-date', skipped: true));
+      // Synced + not skipped + completionDate → should NOT count
+      await db.taskDao.upsertFromRemote(
+          _makeCompanion(docId: 'completed-not-skipped', completionDate: now));
+
+      final count = await db.taskDao.skippedTaskCount(personDocId);
+      expect(count, 1, reason: 'Only the synced+skipped+completionDate row qualifies');
+    });
+
+    test('returns 0 when no skipped tasks exist', () async {
+      await db.taskDao.upsertFromRemote(_makeCompanion(completionDate: now));
+      final count = await db.taskDao.skippedTaskCount(personDocId);
+      expect(count, 0);
+    });
+
+    test('excludes retired skipped tasks', () async {
+      await db.taskDao.upsertFromRemote(
+          _makeCompanion(docId: 'skip-retired', skipped: true, completionDate: now,
+              retired: 'skip-retired'));
+      final count = await db.taskDao.skippedTaskCount(personDocId);
+      expect(count, 0);
     });
   });
 

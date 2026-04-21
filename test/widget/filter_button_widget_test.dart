@@ -10,7 +10,7 @@ import 'package:taskmaster/features/shared/presentation/filter_button.dart';
 /// - Shows a PopupMenuButton with filter icon
 /// - Displays checked menu items based on filter state
 /// - Triggers callbacks when items are selected
-/// - Has two filters: "Show Scheduled" and "Show Completed"
+/// - Has two filters: "Show Scheduled" and "Show Finished"
 ///
 /// This tests interaction patterns with popup menus and callbacks.
 void main() {
@@ -64,7 +64,7 @@ void main() {
 
       // Verify: Menu items appear
       expect(find.text('Show Scheduled'), findsOneWidget);
-      expect(find.text('Show Completed'), findsOneWidget);
+      expect(find.text('Show Finished'), findsOneWidget);
     });
 
     testWidgets('Displays unchecked items when both filters are false', (tester) async {
@@ -92,7 +92,7 @@ void main() {
 
       // Verify: Both menu items exist (checked state is internal to CheckedPopupMenuItem)
       expect(find.text('Show Scheduled'), findsOneWidget);
-      expect(find.text('Show Completed'), findsOneWidget);
+      expect(find.text('Show Finished'), findsOneWidget);
     });
 
     testWidgets('Displays checked scheduled item when scheduled filter is true', (tester) async {
@@ -120,7 +120,7 @@ void main() {
 
       // Verify: Menu items appear
       expect(find.text('Show Scheduled'), findsOneWidget);
-      expect(find.text('Show Completed'), findsOneWidget);
+      expect(find.text('Show Finished'), findsOneWidget);
 
       // Verify: Scheduled item has checkmark
       final scheduledMenuItem = tester.widget<CheckedPopupMenuItem<String>>(
@@ -154,7 +154,7 @@ void main() {
 
       // Verify: Completed item has checkmark
       final completedMenuItem = tester.widget<CheckedPopupMenuItem<String>>(
-        find.widgetWithText(CheckedPopupMenuItem<String>, 'Show Completed'),
+        find.widgetWithText(CheckedPopupMenuItem<String>, 'Show Finished'),
       );
       expect(completedMenuItem.checked, true);
     });
@@ -187,7 +187,7 @@ void main() {
         find.widgetWithText(CheckedPopupMenuItem<String>, 'Show Scheduled'),
       );
       final completedMenuItem = tester.widget<CheckedPopupMenuItem<String>>(
-        find.widgetWithText(CheckedPopupMenuItem<String>, 'Show Completed'),
+        find.widgetWithText(CheckedPopupMenuItem<String>, 'Show Finished'),
       );
 
       expect(scheduledMenuItem.checked, true);
@@ -256,8 +256,8 @@ void main() {
       await tester.tap(find.byIcon(Icons.filter_list));
       await tester.pumpAndSettle();
 
-      // Tap "Show Completed" - use warnIfMissed: false to avoid hit test warnings
-      await tester.tap(find.text('Show Completed'), warnIfMissed: false);
+      // Tap "Show Finished" - use warnIfMissed: false to avoid hit test warnings
+      await tester.tap(find.text('Show Finished'), warnIfMissed: false);
       await tester.pumpAndSettle();
 
       // Verify: Callback was invoked
@@ -299,7 +299,7 @@ void main() {
       // Open menu again and tap completed
       await tester.tap(find.byIcon(Icons.filter_list));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Show Completed'), warnIfMissed: false);
+      await tester.tap(find.text('Show Finished'), warnIfMissed: false);
       await tester.pumpAndSettle();
 
       // Verify: Both callbacks invoked once
@@ -363,7 +363,7 @@ void main() {
                     CheckedPopupMenuItem<String>(
                       checked: false,
                       value: 'completed',
-                      child: Text('Show Completed'),
+                      child: Text('Show Finished'),
                     ),
                   ],
                 ),
@@ -385,7 +385,7 @@ void main() {
       // Open menu and tap completed
       await tester.tap(find.byIcon(Icons.filter_list));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Show Completed'), warnIfMissed: false);
+      await tester.tap(find.text('Show Finished'), warnIfMissed: false);
       await tester.pumpAndSettle();
 
       // Verify: Correct value passed

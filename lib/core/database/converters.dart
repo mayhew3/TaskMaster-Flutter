@@ -51,7 +51,8 @@ m.TaskItem taskItemFromRow(Task row) {
     ..recurIteration = row.recurIteration
     ..retired = row.retired
     ..retiredDate = _utcOrNull(row.retiredDate)
-    ..offCycle = row.offCycle);
+    ..offCycle = row.offCycle
+    ..skipped = row.skipped);
 }
 
 TasksCompanion taskItemToCompanion(m.TaskItem task) {
@@ -80,6 +81,7 @@ TasksCompanion taskItemToCompanion(m.TaskItem task) {
     retired: Value(task.retired),
     retiredDate: Value(task.retiredDate),
     offCycle: Value(task.offCycle),
+    skipped: Value(task.skipped),
   );
 }
 

@@ -105,12 +105,14 @@ class PlanTaskItemWidget extends StatelessWidget {
   }
 
   DelayedCheckbox _getCheckbox() {
+    final isRecurring = sprintDisplayTask.recurrence != null;
     return DelayedCheckbox(
       taskName: sprintDisplayTask.name,
       initialState: initialCheckState!,
       checkCycleWaiter: onTaskAssignmentToggle!,
       checkedColor: Colors.green,
       inactiveIcon: Icons.add,
+      inactiveIconColor: isRecurring ? Colors.white38 : null,
     );
   }
 

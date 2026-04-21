@@ -49,12 +49,12 @@ class EditableTaskItemWidget extends StatelessWidget {
     var target = hasPassed(taskItem.targetDate);
     var scheduled = taskItem.isScheduled();
 
-    var tmpTaskItem = taskItem;
-    var completed = tmpTaskItem.completionDate != null;
+    var completed = taskItem.completionDate != null;
+    var skipped = taskItem.skipped;
 
     if (pending) {
       return TaskColors.pendingBackground;
-    } else if (completed) {
+    } else if (completed || skipped) {
       return TaskColors.completedColor;
     } else if (due) {
       return TaskColors.dueColor;
@@ -122,27 +122,37 @@ class EditableTaskItemWidget extends StatelessWidget {
   }
 
   DelayedCheckbox _getCheckbox() {
-    var tmpTaskItem = taskItem;
-    var completed = tmpTaskItem.completionDate != null;
-
-    var pending = tmpTaskItem.pendingCompletion;
+    var completed = taskItem.completionDate != null;
+    var pending = taskItem.pendingCompletion;
+    var skipped = taskItem.skipped;
+    final isRecurring = taskItem.recurrenceDocId != null;
 
     return DelayedCheckbox(
       taskName: taskItem.name,
-      initialState: completed ? CheckState.checked : pending ? CheckState.pending : CheckState.inactive,
+      initialState: skipped
+          ? CheckState.skipped
+          : completed
+              ? CheckState.checked
+              : pending
+                  ? CheckState.pending
+                  : CheckState.inactive,
       checkCycleWaiter: onTaskCompleteToggle!,
+      inactiveIcon: isRecurring ? Icons.autorenew : null,
+      inactiveIconColor: isRecurring ? Colors.white38 : null,
     );
   }
 
   Widget _getDateWarnings() {
     List<Widget> dateWarnings = [];
 
-    if (taskItem.isCompleted() && !taskItem.pendingCompletion) {
+    if (taskItem.skipped && !taskItem.pendingCompletion) {
+      dateWarnings.add(_getSkippedLabel());
+    } else if (taskItem.isCompleted() && !taskItem.pendingCompletion) {
       dateWarnings.add(_getDateFromNow(TaskDateTypes.completed));
     }
 
     for (TaskDateType taskDateType in TaskDateTypes.allTypes) {
-      if (!taskItem.isCompleted() &&
+      if (!taskItem.isCompleted() && !taskItem.skipped &&
           taskDateType.inListBeforeDisplayThreshold(taskItem) &&
           dateWarnings.isEmpty) {
         dateWarnings.add(_getDateFromNow(taskDateType));
@@ -150,7 +160,7 @@ class EditableTaskItemWidget extends StatelessWidget {
     }
 
     for (TaskDateType taskDateType in TaskDateTypes.allTypes.reversed) {
-      if (!taskItem.isCompleted() &&
+      if (!taskItem.isCompleted() && !taskItem.skipped &&
           taskDateType.inListAfterDisplayThreshold(taskItem) &&
           TaskDateTypes.start != taskDateType &&
           dateWarnings.isEmpty) {
@@ -175,6 +185,18 @@ class EditableTaskItemWidget extends StatelessWidget {
         getStringForDateType(taskDateType),
         style: TextStyle(fontSize: 14.0, color: taskDateType.textColor),
       ),
+    );
+  }
+
+  Widget _getSkippedLabel() {
+    final completionDate = taskItem.completionDate;
+    final formatted = completionDate == null ? '' : formatDateTime(completionDate);
+    final text = formatted.isEmpty || formatted == 'now'
+        ? 'Skipped just now'
+        : 'Skipped $formatted ago';
+    return Container(
+      padding: const EdgeInsets.only(top: 5.0, bottom: 5.0, right: 5.0, left: 5.0),
+      child: Text(text, style: const TextStyle(fontSize: 14.0, color: Colors.white70)),
     );
   }
 

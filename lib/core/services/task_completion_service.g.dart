@@ -65,6 +65,24 @@ final completeTaskProvider =
     );
 
 typedef _$CompleteTask = AutoDisposeAsyncNotifier<void>;
+String _$skipTaskHash() => r'9588cc3a71ab9c481d70266f165b7c564374d7b1';
+
+/// Controller for skipping a recurring task instance
+///
+/// Copied from [SkipTask].
+@ProviderFor(SkipTask)
+final skipTaskProvider =
+    AutoDisposeAsyncNotifierProvider<SkipTask, void>.internal(
+      SkipTask.new,
+      name: r'skipTaskProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$skipTaskHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$SkipTask = AutoDisposeAsyncNotifier<void>;
 String _$deleteTaskHash() => r'b697d10289492d804bab9d6cd237ca89f64163ed';
 
 /// Controller for deleting tasks
@@ -101,7 +119,7 @@ final addTaskProvider =
     );
 
 typedef _$AddTask = AutoDisposeAsyncNotifier<void>;
-String _$updateTaskHash() => r'f388f2f3a5ad904caf552a119286c874991559b9';
+String _$updateTaskHash() => r'4ba3d1a29f15da4d5656196838dfb2f0c85da99f';
 
 /// Controller for updating tasks
 ///

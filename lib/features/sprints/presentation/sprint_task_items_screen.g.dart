@@ -207,7 +207,7 @@ class _SprintAllTasksProviderElement
   Sprint get sprint => (origin as SprintAllTasksProvider).sprint;
 }
 
-String _$sprintTaskItemsHash() => r'59b83575acca138835b7393dd76b7383bf27547b';
+String _$sprintTaskItemsHash() => r'f3ba7560354bb19401b67902f446967740f62854';
 
 /// Provider for filtered tasks in the active sprint
 ///

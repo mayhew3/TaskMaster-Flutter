@@ -45,6 +45,7 @@ class Tasks extends Table {
   TextColumn get retired => text().nullable()();
   DateTimeColumn get retiredDate => dateTime().nullable()();
   BoolColumn get offCycle => boolean().withDefault(const Constant(false))();
+  BoolColumn get skipped => boolean().withDefault(const Constant(false))();
 
   TextColumn get syncState =>
       text().withDefault(const Constant('synced'))();

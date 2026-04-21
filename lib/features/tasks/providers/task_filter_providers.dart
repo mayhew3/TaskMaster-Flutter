@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/providers/auth_providers.dart';
+import '../../../core/providers/database_provider.dart';
 import '../../../core/providers/firebase_providers.dart';
 import '../../../models/task_item.dart';
 import 'task_providers.dart';
@@ -126,7 +127,7 @@ Future<List<TaskItem>> filteredTasks(Ref ref) async {
       }
     }
 
-    // Completed tasks: show when showCompleted is true OR if recently completed (TM-323)
+    // Completed/skipped tasks: show when showCompleted is true OR if recently completed (TM-323)
     if (task.completionDate != null) {
       final isRecentlyCompleted =
           recentlyCompleted.any((t) => t.docId == task.docId);
@@ -157,12 +158,13 @@ int activeTaskCount(Ref ref) {
   );
 }
 
-/// Count of all completed (non-retired) tasks using Firestore aggregation.
-/// Uses count() instead of fetching documents since the base query
-/// only returns incomplete tasks.
+/// Count of completed (non-skipped, non-retired) tasks.
+/// Uses Firestore aggregation for the total (too many to store locally),
+/// then subtracts the local skipped count (always present since skip is local-first).
 @riverpod
 Future<int> completedTaskCount(Ref ref) async {
   final firestore = ref.watch(firestoreProvider);
+  final db = ref.watch(databaseProvider);
   final personDocId = ref.watch(personDocIdProvider);
   if (personDocId == null) return 0;
 
@@ -173,7 +175,9 @@ Future<int> completedTaskCount(Ref ref) async {
       .where('completionDate', isNull: false)
       .count()
       .get();
-  return result.count ?? 0;
+  final total = result.count ?? 0;
+  final skipped = await db.taskDao.skippedTaskCount(personDocId);
+  return (total - skipped).clamp(0, total);
 }
 
 /// Task grouping for display (Past Due, Urgent, Target, Scheduled, Tasks, Completed)

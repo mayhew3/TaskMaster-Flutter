@@ -248,6 +248,117 @@ class CompleteTask extends _$CompleteTask {
   }
 }
 
+/// Controller for skipping a recurring task instance
+@riverpod
+class SkipTask extends _$SkipTask {
+  @override
+  FutureOr<void> build() {}
+
+  /// Skip: create next iteration at the normal scheduled date, mark current as
+  /// skipped=true, and set its completionDate for persistence/filtering.
+  Future<void> call(TaskItem task) async {
+    try {
+      final db = ref.read(databaseProvider);
+      final firestore = ref.read(firestoreProvider);
+      final personDocId = ref.read(personDocIdProvider);
+      if (personDocId == null) {
+        throw StateError('Cannot skip task: personDocId is null (not authenticated).');
+      }
+
+      final tasksAsync = ref.read(tasksProvider);
+      final recurrencesAsync = ref.read(taskRecurrencesProvider);
+      final List<TaskItem> allTasks = tasksAsync.hasValue
+          ? tasksAsync.value!
+          : await ref.read(tasksProvider.future);
+      final List<TaskRecurrence> allRecurrences = recurrencesAsync.hasValue
+          ? recurrencesAsync.value!
+          : await ref.read(taskRecurrencesProvider.future);
+
+      if (task.recurrenceDocId != null && !_hasNextIteration(task, allTasks)) {
+        final recurrence = allRecurrences.firstWhere(
+          (r) => r.docId == task.recurrenceDocId,
+          orElse: () => throw Exception('Recurrence not found: ${task.recurrenceDocId}'),
+        );
+        final taskWithRecurrence = task.rebuild((b) => b..recurrence = recurrence.toBuilder());
+        final nextPreview = RecurrenceHelper.createNextIteration(
+          taskWithRecurrence,
+          DateTime.now(),
+        );
+        final nextBlueprint = nextPreview.toBlueprint();
+
+        final recBp = nextBlueprint.recurrenceBlueprint;
+        if (recBp != null && nextBlueprint.recurrenceDocId != null) {
+          await db.taskRecurrenceDao.markUpdatePending(
+            nextBlueprint.recurrenceDocId!,
+            recurrenceBlueprintToDiff(recBp),
+          );
+        }
+
+        final nextDocId = firestore.collection('tasks').doc().id;
+        final now = DateTime.now().toUtc();
+        await db.taskDao.insertPending(
+          taskBlueprintToCompanion(
+            docId: nextDocId,
+            personDocId: personDocId,
+            dateAdded: now,
+            blueprint: nextBlueprint,
+          ),
+        );
+      }
+
+      // Mark current instance as skipped, set completionDate so it sorts/filters like completed
+      final skippedAt = DateTime.now().toUtc();
+      await db.taskDao.markUpdatePending(
+        task.docId,
+        TasksCompanion(skipped: const Value(true), completionDate: Value(skippedAt)),
+      );
+
+      // Keep task in place until user leaves tab (mirrors CompleteTask behaviour)
+      final updatedTask = task.rebuild((b) => b
+        ..skipped = true
+        ..completionDate = skippedAt);
+      final recentlyCompleted = ref.read(recentlyCompletedTasksProvider.notifier);
+      final recentlyCompletedIndices = ref.read(recentlyCompletedIndicesProvider.notifier);
+      recentlyCompleted.add(updatedTask);
+      final originalIndex = allTasks.indexWhere((t) => t.docId == task.docId);
+      if (originalIndex >= 0) {
+        recentlyCompletedIndices.set(task.docId, originalIndex);
+      }
+
+      ref.read(syncServiceProvider).pushPendingWrites(caller: 'SkipTask').ignore();
+    } catch (e, stack) {
+      print('❌ [SkipTask] Error: $e\n$stack');
+      rethrow;
+    }
+  }
+
+  /// Un-skip: revert skipped=true back to false
+  Future<void> unskip(TaskItem task) async {
+    try {
+      final db = ref.read(databaseProvider);
+      await db.taskDao.markUpdatePending(
+        task.docId,
+        const TasksCompanion(skipped: Value(false), completionDate: Value(null)),
+      );
+      ref.read(recentlyCompletedTasksProvider.notifier).remove(task);
+      ref.read(recentlyCompletedIndicesProvider.notifier).remove(task.docId);
+      ref.read(syncServiceProvider).pushPendingWrites(caller: 'SkipTask.unskip').ignore();
+    } catch (e, stack) {
+      print('❌ [SkipTask.unskip] Error: $e\n$stack');
+      rethrow;
+    }
+  }
+
+  bool _hasNextIteration(TaskItem task, List<TaskItem> allTasks) {
+    final recurIteration = task.recurIteration;
+    if (recurIteration == null) return false;
+    return allTasks.any((ti) =>
+        ti.recurrenceDocId == task.recurrenceDocId &&
+        ti.recurIteration != null &&
+        ti.recurIteration! > recurIteration);
+  }
+}
+
 /// Controller for deleting tasks
 @riverpod
 class DeleteTask extends _$DeleteTask {

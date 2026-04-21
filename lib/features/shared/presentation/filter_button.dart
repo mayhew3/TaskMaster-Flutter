@@ -36,7 +36,7 @@ class FilterButton extends StatelessWidget {
         CheckedPopupMenuItem<String>(
           checked: completedGetter(),
           value: 'completed',
-          child: Text('Show Completed'),
+          child: Text('Show Finished'),
         ),
       ],
     );

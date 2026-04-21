@@ -9,6 +9,7 @@ class DelayedCheckbox extends StatefulWidget {
   final CheckState initialState;
   final Color? checkedColor;
   final IconData? inactiveIcon;
+  final Color? inactiveIconColor;
   final String taskName;
 
   const DelayedCheckbox({
@@ -17,6 +18,7 @@ class DelayedCheckbox extends StatefulWidget {
     required this.initialState,
     this.checkedColor,
     this.inactiveIcon,
+    this.inactiveIconColor,
     required this.taskName,
   });
 
@@ -49,9 +51,10 @@ class _DelayedCheckboxState extends State<DelayedCheckbox> {
         themeData.checkboxTheme.fillColor?.resolve({WidgetState.selected}) ??
         TaskColors.cardColor;
     Map<CheckState, Color> colorMap = {
-      CheckState.inactive: Color.fromARGB(0, 0, 0, 0),
+      CheckState.inactive: const Color.fromARGB(0, 0, 0, 0),
       CheckState.pending: TaskColors.pendingCheckbox,
       CheckState.checked: checkedColor,
+      CheckState.skipped: Colors.red.withValues(alpha: 0.3),
     };
     return colorMap[_currentState];
   }
@@ -61,13 +64,25 @@ class _DelayedCheckboxState extends State<DelayedCheckbox> {
       CheckState.inactive: widget.inactiveIcon,
       CheckState.pending: Icons.more_horiz,
       CheckState.checked: Icons.done_outline,
+      CheckState.skipped: Icons.close,
     };
     return iconMap[_currentState];
+  }
+
+  Color? getIconColor() {
+    if (_currentState == CheckState.inactive) return widget.inactiveIconColor;
+    return null;
   }
 
   void _onTap() {
     // Don't process taps while already pending
     if (_currentState == CheckState.pending) {
+      return;
+    }
+
+    // Skipped state: un-skip immediately without going through pending
+    if (_currentState == CheckState.skipped) {
+      widget.checkCycleWaiter(widget.initialState);
       return;
     }
 
@@ -106,7 +121,7 @@ class _DelayedCheckboxState extends State<DelayedCheckbox> {
                   ),
                 ),
                 color: getColor(context),
-                child: Icon(getInnerIcon(), size: 24.0),
+                child: Icon(getInnerIcon(), size: 24.0, color: getIconColor()),
               ),
             ),
           )
