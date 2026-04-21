@@ -235,6 +235,19 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
         .write(diff.copyWith(syncState: Value(SyncState.pendingUpdate.name)));
   }
 
+  /// Count of locally-tracked skipped tasks for a user (used to adjust Firestore completed count).
+  Future<int> skippedTaskCount(String personDocId) async {
+    final countExpr = tasks.docId.count();
+    final query = selectOnly(tasks)
+      ..addColumns([countExpr])
+      ..where(tasks.personDocId.equals(personDocId) &
+          tasks.skipped.equals(true) &
+          tasks.retired.isNull() &
+          tasks.syncState.equals(SyncState.pendingDelete.name).not());
+    final row = await query.getSingle();
+    return row.read(countExpr) ?? 0;
+  }
+
   /// Rows that need to be pushed to Firestore.
   Future<List<Task>> pendingWrites() {
     return (select(tasks)

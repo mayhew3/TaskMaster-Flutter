@@ -124,12 +124,15 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
       onLongPress: () => snoozeDialog(taskItem),
       onForcePress: (ForcePressDetails forcePressDetails) => snoozeDialog(taskItem),
       onTaskCompleteToggle: (checkState) {
-        if (checkState != CheckState.pending) {
-          ref.read(completeTaskProvider.notifier).call(
-            taskItem,
-            complete: checkState == CheckState.inactive,
-          );
+        if (checkState == CheckState.pending) return null;
+        if (checkState == CheckState.skipped) {
+          ref.read(skipTaskProvider.notifier).unskip(taskItem);
+          return null;
         }
+        ref.read(completeTaskProvider.notifier).call(
+          taskItem,
+          complete: checkState == CheckState.inactive,
+        );
         return null;
       },
       onDismissed: (direction) async {

@@ -61,6 +61,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   DateTime? get retiredDate;
 
   bool get offCycle;
+  bool get skipped;
 
   @override
   @BuiltValueField(serialize: false)
@@ -76,7 +77,8 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   @BuiltValueHook(initializeBuilder: true)
   static void _setDefaults(TaskItemBuilder b) =>
       b
-        ..pendingCompletion = false;
+        ..pendingCompletion = false
+        ..skipped = false;
 
   DateTime? getFinishedCompletionDate() {
     return pendingCompletion ? null : completionDate;

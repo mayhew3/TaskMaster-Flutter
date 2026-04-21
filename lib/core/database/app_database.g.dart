@@ -276,6 +276,21 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _skippedMeta = const VerificationMeta(
+    'skipped',
+  );
+  @override
+  late final GeneratedColumn<bool> skipped = GeneratedColumn<bool>(
+    'skipped',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("skipped" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _syncStateMeta = const VerificationMeta(
     'syncState',
   );
@@ -314,6 +329,7 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     retired,
     retiredDate,
     offCycle,
+    skipped,
     syncState,
   ];
   @override
@@ -502,6 +518,12 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         offCycle.isAcceptableOrUnknown(data['off_cycle']!, _offCycleMeta),
       );
     }
+    if (data.containsKey('skipped')) {
+      context.handle(
+        _skippedMeta,
+        skipped.isAcceptableOrUnknown(data['skipped']!, _skippedMeta),
+      );
+    }
     if (data.containsKey('sync_state')) {
       context.handle(
         _syncStateMeta,
@@ -613,6 +635,10 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         DriftSqlType.bool,
         data['${effectivePrefix}off_cycle'],
       )!,
+      skipped: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}skipped'],
+      )!,
       syncState: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}sync_state'],
@@ -651,6 +677,7 @@ class Task extends DataClass implements Insertable<Task> {
   final String? retired;
   final DateTime? retiredDate;
   final bool offCycle;
+  final bool skipped;
   final String syncState;
   const Task({
     required this.docId,
@@ -677,6 +704,7 @@ class Task extends DataClass implements Insertable<Task> {
     this.retired,
     this.retiredDate,
     required this.offCycle,
+    required this.skipped,
     required this.syncState,
   });
   @override
@@ -746,6 +774,7 @@ class Task extends DataClass implements Insertable<Task> {
       map['retired_date'] = Variable<DateTime>(retiredDate);
     }
     map['off_cycle'] = Variable<bool>(offCycle);
+    map['skipped'] = Variable<bool>(skipped);
     map['sync_state'] = Variable<String>(syncState);
     return map;
   }
@@ -816,6 +845,7 @@ class Task extends DataClass implements Insertable<Task> {
           ? const Value.absent()
           : Value(retiredDate),
       offCycle: Value(offCycle),
+      skipped: Value(skipped),
       syncState: Value(syncState),
     );
   }
@@ -850,6 +880,7 @@ class Task extends DataClass implements Insertable<Task> {
       retired: serializer.fromJson<String?>(json['retired']),
       retiredDate: serializer.fromJson<DateTime?>(json['retiredDate']),
       offCycle: serializer.fromJson<bool>(json['offCycle']),
+      skipped: serializer.fromJson<bool>(json['skipped']),
       syncState: serializer.fromJson<String>(json['syncState']),
     );
   }
@@ -881,6 +912,7 @@ class Task extends DataClass implements Insertable<Task> {
       'retired': serializer.toJson<String?>(retired),
       'retiredDate': serializer.toJson<DateTime?>(retiredDate),
       'offCycle': serializer.toJson<bool>(offCycle),
+      'skipped': serializer.toJson<bool>(skipped),
       'syncState': serializer.toJson<String>(syncState),
     };
   }
@@ -910,6 +942,7 @@ class Task extends DataClass implements Insertable<Task> {
     Value<String?> retired = const Value.absent(),
     Value<DateTime?> retiredDate = const Value.absent(),
     bool? offCycle,
+    bool? skipped,
     String? syncState,
   }) => Task(
     docId: docId ?? this.docId,
@@ -942,6 +975,7 @@ class Task extends DataClass implements Insertable<Task> {
     retired: retired.present ? retired.value : this.retired,
     retiredDate: retiredDate.present ? retiredDate.value : this.retiredDate,
     offCycle: offCycle ?? this.offCycle,
+    skipped: skipped ?? this.skipped,
     syncState: syncState ?? this.syncState,
   );
   Task copyWithCompanion(TasksCompanion data) {
@@ -992,6 +1026,7 @@ class Task extends DataClass implements Insertable<Task> {
           ? data.retiredDate.value
           : this.retiredDate,
       offCycle: data.offCycle.present ? data.offCycle.value : this.offCycle,
+      skipped: data.skipped.present ? data.skipped.value : this.skipped,
       syncState: data.syncState.present ? data.syncState.value : this.syncState,
     );
   }
@@ -1023,6 +1058,7 @@ class Task extends DataClass implements Insertable<Task> {
           ..write('retired: $retired, ')
           ..write('retiredDate: $retiredDate, ')
           ..write('offCycle: $offCycle, ')
+          ..write('skipped: $skipped, ')
           ..write('syncState: $syncState')
           ..write(')'))
         .toString();
@@ -1054,6 +1090,7 @@ class Task extends DataClass implements Insertable<Task> {
     retired,
     retiredDate,
     offCycle,
+    skipped,
     syncState,
   ]);
   @override
@@ -1084,6 +1121,7 @@ class Task extends DataClass implements Insertable<Task> {
           other.retired == this.retired &&
           other.retiredDate == this.retiredDate &&
           other.offCycle == this.offCycle &&
+          other.skipped == this.skipped &&
           other.syncState == this.syncState);
 }
 
@@ -1112,6 +1150,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
   final Value<String?> retired;
   final Value<DateTime?> retiredDate;
   final Value<bool> offCycle;
+  final Value<bool> skipped;
   final Value<String> syncState;
   final Value<int> rowid;
   const TasksCompanion({
@@ -1139,6 +1178,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.retired = const Value.absent(),
     this.retiredDate = const Value.absent(),
     this.offCycle = const Value.absent(),
+    this.skipped = const Value.absent(),
     this.syncState = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1167,6 +1207,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.retired = const Value.absent(),
     this.retiredDate = const Value.absent(),
     this.offCycle = const Value.absent(),
+    this.skipped = const Value.absent(),
     this.syncState = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : docId = Value(docId),
@@ -1197,6 +1238,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Expression<String>? retired,
     Expression<DateTime>? retiredDate,
     Expression<bool>? offCycle,
+    Expression<bool>? skipped,
     Expression<String>? syncState,
     Expression<int>? rowid,
   }) {
@@ -1225,6 +1267,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
       if (retired != null) 'retired': retired,
       if (retiredDate != null) 'retired_date': retiredDate,
       if (offCycle != null) 'off_cycle': offCycle,
+      if (skipped != null) 'skipped': skipped,
       if (syncState != null) 'sync_state': syncState,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1255,6 +1298,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Value<String?>? retired,
     Value<DateTime?>? retiredDate,
     Value<bool>? offCycle,
+    Value<bool>? skipped,
     Value<String>? syncState,
     Value<int>? rowid,
   }) {
@@ -1283,6 +1327,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
       retired: retired ?? this.retired,
       retiredDate: retiredDate ?? this.retiredDate,
       offCycle: offCycle ?? this.offCycle,
+      skipped: skipped ?? this.skipped,
       syncState: syncState ?? this.syncState,
       rowid: rowid ?? this.rowid,
     );
@@ -1363,6 +1408,9 @@ class TasksCompanion extends UpdateCompanion<Task> {
     if (offCycle.present) {
       map['off_cycle'] = Variable<bool>(offCycle.value);
     }
+    if (skipped.present) {
+      map['skipped'] = Variable<bool>(skipped.value);
+    }
     if (syncState.present) {
       map['sync_state'] = Variable<String>(syncState.value);
     }
@@ -1399,6 +1447,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
           ..write('retired: $retired, ')
           ..write('retiredDate: $retiredDate, ')
           ..write('offCycle: $offCycle, ')
+          ..write('skipped: $skipped, ')
           ..write('syncState: $syncState, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -3344,6 +3393,7 @@ typedef $$TasksTableCreateCompanionBuilder =
       Value<String?> retired,
       Value<DateTime?> retiredDate,
       Value<bool> offCycle,
+      Value<bool> skipped,
       Value<String> syncState,
       Value<int> rowid,
     });
@@ -3373,6 +3423,7 @@ typedef $$TasksTableUpdateCompanionBuilder =
       Value<String?> retired,
       Value<DateTime?> retiredDate,
       Value<bool> offCycle,
+      Value<bool> skipped,
       Value<String> syncState,
       Value<int> rowid,
     });
@@ -3502,6 +3553,11 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
 
   ColumnFilters<bool> get offCycle => $composableBuilder(
     column: $table.offCycle,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get skipped => $composableBuilder(
+    column: $table.skipped,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3640,6 +3696,11 @@ class $$TasksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get skipped => $composableBuilder(
+    column: $table.skipped,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get syncState => $composableBuilder(
     column: $table.syncState,
     builder: (column) => ColumnOrderings(column),
@@ -3749,6 +3810,9 @@ class $$TasksTableAnnotationComposer
   GeneratedColumn<bool> get offCycle =>
       $composableBuilder(column: $table.offCycle, builder: (column) => column);
 
+  GeneratedColumn<bool> get skipped =>
+      $composableBuilder(column: $table.skipped, builder: (column) => column);
+
   GeneratedColumn<String> get syncState =>
       $composableBuilder(column: $table.syncState, builder: (column) => column);
 }
@@ -3805,6 +3869,7 @@ class $$TasksTableTableManager
                 Value<String?> retired = const Value.absent(),
                 Value<DateTime?> retiredDate = const Value.absent(),
                 Value<bool> offCycle = const Value.absent(),
+                Value<bool> skipped = const Value.absent(),
                 Value<String> syncState = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TasksCompanion(
@@ -3832,6 +3897,7 @@ class $$TasksTableTableManager
                 retired: retired,
                 retiredDate: retiredDate,
                 offCycle: offCycle,
+                skipped: skipped,
                 syncState: syncState,
                 rowid: rowid,
               ),
@@ -3861,6 +3927,7 @@ class $$TasksTableTableManager
                 Value<String?> retired = const Value.absent(),
                 Value<DateTime?> retiredDate = const Value.absent(),
                 Value<bool> offCycle = const Value.absent(),
+                Value<bool> skipped = const Value.absent(),
                 Value<String> syncState = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TasksCompanion.insert(
@@ -3888,6 +3955,7 @@ class $$TasksTableTableManager
                 retired: retired,
                 retiredDate: retiredDate,
                 offCycle: offCycle,
+                skipped: skipped,
                 syncState: syncState,
                 rowid: rowid,
               ),

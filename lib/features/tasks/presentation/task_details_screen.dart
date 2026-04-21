@@ -99,11 +99,13 @@ class _TaskDetailsBody extends ConsumerWidget {
                   padding: const EdgeInsets.all(4.0),
                   child: DelayedCheckbox(
                     taskName: task.name,
-                    initialState: task.isCompleted()
-                        ? CheckState.checked
-                        : task.pendingCompletion
-                            ? CheckState.pending
-                            : CheckState.inactive,
+                    initialState: task.skipped
+                        ? CheckState.skipped
+                        : task.isCompleted()
+                            ? CheckState.checked
+                            : task.pendingCompletion
+                                ? CheckState.pending
+                                : CheckState.inactive,
                     checkCycleWaiter: (checkState) {
                       ref.read(completeTaskProvider.notifier).call(
                         task,

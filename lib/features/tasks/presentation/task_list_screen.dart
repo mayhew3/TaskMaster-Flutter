@@ -153,7 +153,7 @@ class _FilterPopupMenu extends ConsumerWidget {
         CheckedPopupMenuItem<String>(
           checked: showCompleted,
           value: 'completed',
-          child: const Text('Show Completed'),
+          child: const Text('Show Finished'),
         ),
       ],
     );
@@ -456,13 +456,15 @@ class _TaskListItem extends ConsumerWidget {
         );
       },
       onTaskCompleteToggle: (checkState) {
-        if (checkState != CheckState.pending) {
-          final shouldComplete = checkState == CheckState.inactive;
-          ref.read(completeTaskProvider.notifier).call(
-                task,
-                complete: shouldComplete,
-              );
+        if (checkState == CheckState.pending) return null;
+        if (checkState == CheckState.skipped) {
+          ref.read(skipTaskProvider.notifier).unskip(task);
+          return null;
         }
+        ref.read(completeTaskProvider.notifier).call(
+          task,
+          complete: checkState == CheckState.inactive,
+        );
         return null;
       },
       onDismissed: (direction) async {

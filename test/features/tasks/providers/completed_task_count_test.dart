@@ -1,12 +1,27 @@
+import 'package:drift/native.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:taskmaster/core/database/app_database.dart';
 import 'package:taskmaster/core/providers/auth_providers.dart';
+import 'package:taskmaster/core/providers/database_provider.dart';
 import 'package:taskmaster/core/providers/firebase_providers.dart';
 import 'package:taskmaster/features/tasks/providers/task_filter_providers.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   const testPersonDocId = 'test-person-123';
+
+  late AppDatabase db;
+
+  setUp(() {
+    db = AppDatabase.forTesting(NativeDatabase.memory());
+  });
+
+  tearDown(() async {
+    await db.close();
+  });
 
   Future<FakeFirebaseFirestore> seedFirestore({
     int incomplete = 0,
@@ -70,6 +85,7 @@ void main() {
         overrides: [
           firestoreProvider.overrideWithValue(firestore),
           personDocIdProvider.overrideWith((ref) => testPersonDocId),
+          databaseProvider.overrideWithValue(db),
         ],
       );
       addTearDown(container.dispose);
@@ -84,6 +100,7 @@ void main() {
         overrides: [
           firestoreProvider.overrideWithValue(firestore),
           personDocIdProvider.overrideWith((ref) => testPersonDocId),
+          databaseProvider.overrideWithValue(db),
         ],
       );
       addTearDown(container.dispose);
@@ -98,6 +115,7 @@ void main() {
         overrides: [
           firestoreProvider.overrideWithValue(firestore),
           personDocIdProvider.overrideWith((ref) => testPersonDocId),
+          databaseProvider.overrideWithValue(db),
         ],
       );
       addTearDown(container.dispose);
@@ -112,6 +130,7 @@ void main() {
         overrides: [
           firestoreProvider.overrideWithValue(firestore),
           personDocIdProvider.overrideWith((ref) => testPersonDocId),
+          databaseProvider.overrideWithValue(db),
         ],
       );
       addTearDown(container.dispose);
@@ -126,6 +145,7 @@ void main() {
         overrides: [
           firestoreProvider.overrideWithValue(firestore),
           personDocIdProvider.overrideWith((ref) => null),
+          databaseProvider.overrideWithValue(db),
         ],
       );
       addTearDown(container.dispose);

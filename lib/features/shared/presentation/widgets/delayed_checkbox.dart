@@ -9,6 +9,7 @@ class DelayedCheckbox extends StatelessWidget {
   final CheckState initialState;
   final Color? checkedColor;
   final IconData? inactiveIcon;
+  final Color? inactiveIconColor;
   final String taskName;
 
   const DelayedCheckbox({
@@ -17,15 +18,17 @@ class DelayedCheckbox extends StatelessWidget {
     required this.initialState,
     this.checkedColor,
     this.inactiveIcon,
+    this.inactiveIconColor,
     required this.taskName,
   });
 
   Color? getColor(BuildContext context) {
     final ThemeData themeData = Theme.of(context);
     Map<CheckState, Color> colorMap = {
-      CheckState.inactive: Color.fromARGB(0, 0, 0, 0),
+      CheckState.inactive: const Color.fromARGB(0, 0, 0, 0),
       CheckState.pending: TaskColors.pendingCheckbox,
       CheckState.checked: checkedColor ?? themeData.checkboxTheme.fillColor!.resolve({WidgetState.selected}) ?? TaskColors.cardColor,
+      CheckState.skipped: Colors.red.withValues(alpha: 0.3),
     };
     return colorMap[initialState];
   }
@@ -35,8 +38,14 @@ class DelayedCheckbox extends StatelessWidget {
       CheckState.inactive: inactiveIcon,
       CheckState.pending: Icons.more_horiz,
       CheckState.checked: Icons.done_outline,
+      CheckState.skipped: Icons.close,
     };
     return iconMap[initialState];
+  }
+
+  Color? getIconColor() {
+    if (initialState == CheckState.inactive) return inactiveIconColor;
+    return null;
   }
 
   @override
@@ -65,7 +74,7 @@ class DelayedCheckbox extends StatelessWidget {
                   ),
                 ),
                 color: getColor(context),
-                child: Icon(getInnerIcon(), size: 24.0),
+                child: Icon(getInnerIcon(), size: 24.0, color: getIconColor()),
               ),
             ),
           )
