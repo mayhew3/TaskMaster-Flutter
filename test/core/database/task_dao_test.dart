@@ -259,6 +259,7 @@ void main() {
       await db.taskDao.upsertFromRemote(_makeRecurringCompanion(docId: 'task-3', recurIteration: 3));
 
       await db.taskDao.cascadeRecurrenceFieldsToUpcoming(
+        personDocId: personDocId,
         recurrenceDocId: recurrenceDocId,
         afterIteration: 1,
         diff: _cascadeDiff,
@@ -301,6 +302,7 @@ void main() {
       );
 
       await db.taskDao.cascadeRecurrenceFieldsToUpcoming(
+        personDocId: personDocId,
         recurrenceDocId: recurrenceDocId,
         afterIteration: 0,
         diff: _cascadeDiff,
@@ -316,6 +318,7 @@ void main() {
       await db.taskDao.insertPending(_makeRecurringCompanion(docId: 'task-2', recurIteration: 2));
 
       await db.taskDao.cascadeRecurrenceFieldsToUpcoming(
+        personDocId: personDocId,
         recurrenceDocId: recurrenceDocId,
         afterIteration: 1,
         diff: _cascadeDiff,
@@ -331,6 +334,7 @@ void main() {
       await db.taskDao.upsertFromRemote(_makeRecurringCompanion(docId: 'task-2', recurIteration: 2));
 
       await db.taskDao.cascadeRecurrenceFieldsToUpcoming(
+        personDocId: personDocId,
         recurrenceDocId: recurrenceDocId,
         afterIteration: 1,
         diff: _cascadeDiff,
@@ -346,6 +350,7 @@ void main() {
       await db.taskDao.markDeletePending('task-2');
 
       await db.taskDao.cascadeRecurrenceFieldsToUpcoming(
+        personDocId: personDocId,
         recurrenceDocId: recurrenceDocId,
         afterIteration: 1,
         diff: _cascadeDiff,

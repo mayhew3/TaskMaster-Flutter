@@ -371,9 +371,13 @@ class UpdateTask extends _$UpdateTask {
 
         // Cascade recurrence field changes to upcoming tasks in the chain
         // (those with recurIteration > this task's) so they stay in sync with
-        // the updated shared TaskRecurrence (TM-243).
+        // the updated shared TaskRecurrence (TM-243). Only run when at least one
+        // frequency field changed — avoids unnecessary pendingUpdate flips.
         final recurIteration = task.recurIteration;
-        if (recurIteration != null) {
+        final anyFrequencyFieldChanged = recurrenceBlueprint.recurWait != null ||
+            recurrenceBlueprint.recurNumber != null ||
+            recurrenceBlueprint.recurUnit != null;
+        if (recurIteration != null && anyFrequencyFieldChanged) {
           final cascadeDiff = TasksCompanion(
             recurWait: recurrenceBlueprint.recurWait != null
                 ? Value(recurrenceBlueprint.recurWait)
@@ -386,6 +390,7 @@ class UpdateTask extends _$UpdateTask {
                 : const Value.absent(),
           );
           await db.taskDao.cascadeRecurrenceFieldsToUpcoming(
+            personDocId: personDocId,
             recurrenceDocId: blueprint.recurrenceDocId!,
             afterIteration: recurIteration,
             diff: cascadeDiff,

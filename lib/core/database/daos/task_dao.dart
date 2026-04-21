@@ -201,13 +201,22 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
   /// updated shared TaskRecurrence (TM-243). Skips pendingDelete rows;
   /// preserves pendingCreate state; transitions synced/pendingUpdate rows to
   /// pendingUpdate so they get pushed to Firestore on the next sync.
+  /// Scoped to [personDocId] to prevent cross-user updates after sign-out/sign-in.
+  /// No-ops if [diff] contains no frequency fields (recurWait/recurNumber/recurUnit).
   Future<void> cascadeRecurrenceFieldsToUpcoming({
+    required String personDocId,
     required String recurrenceDocId,
     required int afterIteration,
     required TasksCompanion diff,
   }) async {
+    final hasFrequencyFields = diff.recurWait.present ||
+        diff.recurNumber.present ||
+        diff.recurUnit.present;
+    if (!hasFrequencyFields) return;
+
     final upcoming = await (select(tasks)
           ..where((t) =>
+              t.personDocId.equals(personDocId) &
               t.recurrenceDocId.equals(recurrenceDocId) &
               t.recurIteration.isBiggerThan(Variable<int>(afterIteration)) &
               t.syncState.equals(SyncState.pendingDelete.name).not()))
