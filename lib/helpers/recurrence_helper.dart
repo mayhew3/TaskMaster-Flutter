@@ -23,8 +23,8 @@ class RecurrenceHelper {
             'Recurrence has a value, so recur_iteration should be non-null!');
       }
 
-      var recurNumber = recurrence.recurNumber!;
-      var recurUnit = recurrence.recurUnit!;
+      var recurNumber = taskItem.recurNumber ?? recurrence.recurNumber!;
+      var recurUnit = taskItem.recurUnit ?? recurrence.recurUnit!;
       var recurWait = taskItem.recurWait ?? recurrence.recurWait!;
 
       AnchorDate anchorDate = recurrence.anchorDate!;

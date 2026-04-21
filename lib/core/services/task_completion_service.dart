@@ -368,6 +368,45 @@ class UpdateTask extends _$UpdateTask {
           blueprint.recurrenceDocId!,
           recurrenceBlueprintToDiff(recurrenceBlueprint),
         );
+
+        // Cascade recurrence field changes to upcoming tasks in the chain
+        // (those with recurIteration > this task's) so they stay in sync with
+        // the updated shared TaskRecurrence (TM-243). Compare new values against
+        // the task's effective values (task-level fields with shared-recurrence
+        // fallback) to detect actual changes — blueprints are typically
+        // fully-populated, so a raw != null check would trigger on every save.
+        final recurIteration = task.recurIteration;
+        final effectiveRecurWait = task.recurWait ?? task.recurrence?.recurWait;
+        final effectiveRecurNumber =
+            task.recurNumber ?? task.recurrence?.recurNumber;
+        final effectiveRecurUnit =
+            task.recurUnit ?? task.recurrence?.recurUnit;
+        final recurWaitChanged = recurrenceBlueprint.recurWait != null &&
+            recurrenceBlueprint.recurWait != effectiveRecurWait;
+        final recurNumberChanged = recurrenceBlueprint.recurNumber != null &&
+            recurrenceBlueprint.recurNumber != effectiveRecurNumber;
+        final recurUnitChanged = recurrenceBlueprint.recurUnit != null &&
+            recurrenceBlueprint.recurUnit != effectiveRecurUnit;
+        if (recurIteration != null &&
+            (recurWaitChanged || recurNumberChanged || recurUnitChanged)) {
+          final cascadeDiff = TasksCompanion(
+            recurWait: recurWaitChanged
+                ? Value(recurrenceBlueprint.recurWait)
+                : const Value.absent(),
+            recurNumber: recurNumberChanged
+                ? Value(recurrenceBlueprint.recurNumber)
+                : const Value.absent(),
+            recurUnit: recurUnitChanged
+                ? Value(recurrenceBlueprint.recurUnit)
+                : const Value.absent(),
+          );
+          await db.taskDao.cascadeRecurrenceFieldsToUpcoming(
+            personDocId: personDocId,
+            recurrenceDocId: blueprint.recurrenceDocId!,
+            afterIteration: recurIteration,
+            diff: cascadeDiff,
+          );
+        }
       }
 
       await db.taskDao.markUpdatePending(task.docId, taskBlueprintToDiff(blueprint));

@@ -195,6 +195,46 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
         .go();
   }
 
+  /// Cascade recurrence field changes to all tasks in the same chain whose
+  /// recurIteration is greater than [afterIteration]. Used by UpdateTask when
+  /// editing task N so that upcoming tasks N+1, N+2, ... stay in sync with the
+  /// updated shared TaskRecurrence (TM-243). Skips pendingDelete rows;
+  /// preserves pendingCreate state; transitions synced/pendingUpdate rows to
+  /// pendingUpdate so they get pushed to Firestore on the next sync.
+  /// Scoped to [personDocId] to prevent cross-user updates after sign-out/sign-in.
+  /// No-ops if [diff] contains no frequency fields (recurWait/recurNumber/recurUnit).
+  Future<void> cascadeRecurrenceFieldsToUpcoming({
+    required String personDocId,
+    required String recurrenceDocId,
+    required int afterIteration,
+    required TasksCompanion diff,
+  }) async {
+    final hasFrequencyFields = diff.recurWait.present ||
+        diff.recurNumber.present ||
+        diff.recurUnit.present;
+    if (!hasFrequencyFields) return;
+
+    // Two set-based UPDATEs instead of a per-row loop to avoid N+1 SQL:
+    // one to preserve pendingCreate state, one to promote the rest to pendingUpdate.
+    upcomingFilter(Tasks t) =>
+        t.personDocId.equals(personDocId) &
+        t.recurrenceDocId.equals(recurrenceDocId) &
+        t.recurIteration.isBiggerThan(Variable<int>(afterIteration)) &
+        t.syncState.equals(SyncState.pendingDelete.name).not();
+
+    await (update(tasks)
+          ..where((t) =>
+              upcomingFilter(t) &
+              t.syncState.equals(SyncState.pendingCreate.name)))
+        .write(diff.copyWith(syncState: Value(SyncState.pendingCreate.name)));
+
+    await (update(tasks)
+          ..where((t) =>
+              upcomingFilter(t) &
+              t.syncState.equals(SyncState.pendingCreate.name).not()))
+        .write(diff.copyWith(syncState: Value(SyncState.pendingUpdate.name)));
+  }
+
   /// Rows that need to be pushed to Firestore.
   Future<List<Task>> pendingWrites() {
     return (select(tasks)

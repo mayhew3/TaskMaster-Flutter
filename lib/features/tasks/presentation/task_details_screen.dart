@@ -280,7 +280,7 @@ class _RecurrenceField extends StatelessWidget {
     final recurrence = task.recurrence;
     final hasRecurrence = recurrence != null;
     final recurrenceText = hasRecurrence
-        ? _getFormattedRecurrence(recurrence)
+        ? _getFormattedRecurrence(task, recurrence)
         : 'No recurrence.';
 
     return Card(
@@ -332,16 +332,17 @@ class _RecurrenceField extends StatelessWidget {
     );
   }
 
-  String _getFormattedRecurrence(TaskRecurrence recurrence) {
-    final recurNumber = recurrence.recurNumber;
-    final recurWait = recurrence.recurWait;
-    return 'Every $recurNumber ${_getFormattedRecurUnit(recurrence)}${recurWait ? ' (after completion)' : ''}';
+  String _getFormattedRecurrence(TaskItem task, TaskRecurrence recurrence) {
+    final recurNumber = task.recurNumber ?? recurrence.recurNumber;
+    final recurWait = task.recurWait ?? recurrence.recurWait;
+    return 'Every $recurNumber ${_getFormattedRecurUnit(task, recurrence)}${recurWait ? ' (after completion)' : ''}';
   }
 
-  String _getFormattedRecurUnit(TaskRecurrence taskRecurrence) {
-    String unit = taskRecurrence.recurUnit;
-    if (taskRecurrence.recurNumber == 1) {
-      unit = unit.substring(0, unit.length - 1);
+  String _getFormattedRecurUnit(TaskItem task, TaskRecurrence taskRecurrence) {
+    final unit = task.recurUnit ?? taskRecurrence.recurUnit;
+    final rn = task.recurNumber ?? taskRecurrence.recurNumber;
+    if (rn == 1) {
+      return unit.substring(0, unit.length - 1).toLowerCase();
     }
     return unit.toLowerCase();
   }
