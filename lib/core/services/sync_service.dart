@@ -108,10 +108,13 @@ class SyncService {
         .snapshots()
         .listen(_onTasksSnapshot, onError: _logSyncError);
 
+    // Filter `retired` client-side rather than server-side: Firestore's
+    // `isNull: true` excludes documents that lack the field entirely, and we
+    // have legacy recurrence docs without a `retired` field (TM-343). Filtering
+    // client-side after fetch ensures those reach Drift.
     _recurrencesSub = firestore
         .collection('taskRecurrences')
         .where('personDocId', isEqualTo: personDocId)
-        .where('retired', isNull: true)
         .snapshots()
         .listen(_onRecurrencesSnapshot, onError: _logSyncError);
 
@@ -220,8 +223,17 @@ class SyncService {
         await db.taskRecurrenceDao.deleteFromRemote(change.doc.id);
         continue;
       }
+      final data = change.doc.data();
+      // Skip retired recurrences — the local Drift converter does not write
+      // the `retired` column, so retired rows would appear active locally.
+      if (data == null || data['retired'] != null) {
+        // If this row was previously synced as active and is now retired,
+        // drop the local copy so watchActive stops emitting it.
+        await db.taskRecurrenceDao.deleteFromRemote(change.doc.id);
+        continue;
+      }
       try {
-        final json = Map<String, dynamic>.from(change.doc.data()!);
+        final json = Map<String, dynamic>.from(data);
         json['docId'] = change.doc.id;
         final recurrence =
             serializers.deserializeWith(m.TaskRecurrence.serializer, json);
@@ -236,7 +248,12 @@ class SyncService {
     await db.taskRecurrenceDao.bulkUpsertFromRemote(toUpsert);
 
     if (isInitial) {
-      final remoteIds = snapshot.docs.map((d) => d.id).toSet();
+      // Only consider active (non-retired) docs for reconciliation; retired
+      // docs were already removed from Drift in the loop above.
+      final remoteIds = snapshot.docs
+          .where((d) => d.data()['retired'] == null)
+          .map((d) => d.id)
+          .toSet();
       await db.taskRecurrenceDao.deleteSyncedNotIn(remoteIds);
     }
 

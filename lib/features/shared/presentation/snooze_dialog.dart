@@ -11,6 +11,7 @@ import 'package:taskmaster/parse_helper.dart';
 import '../../../core/services/task_completion_service.dart';
 import './widgets/editable_task_field.dart';
 import './widgets/nullable_dropdown.dart';
+import 'task_action_error_helper.dart';
 
 /// Riverpod version of SnoozeDialog
 ///
@@ -224,8 +225,12 @@ class SnoozeDialogState extends ConsumerState<SnoozeDialog> {
               blueprint.recurrenceBlueprint?.recurWait == false)
             TextButton(
               onPressed: () async {
-                await ref.read(skipTaskProvider.notifier).call(widget.taskItem);
-                if (context.mounted) Navigator.pop(context);
+                try {
+                  await ref.read(skipTaskProvider.notifier).call(widget.taskItem);
+                  if (context.mounted) Navigator.pop(context);
+                } catch (e) {
+                  if (context.mounted) showTaskActionError(context, e);
+                }
               },
               child: const Text('Skip This Instance'),
             ),
