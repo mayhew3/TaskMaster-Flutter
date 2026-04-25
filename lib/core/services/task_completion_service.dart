@@ -25,6 +25,19 @@ import '../../timezone_helper.dart';
 
 part 'task_completion_service.g.dart';
 
+/// Thrown when a recurring task references a recurrence that is missing from
+/// the local cache. Callers can catch this to show a user-friendly message.
+class RecurrenceNotFoundException implements Exception {
+  RecurrenceNotFoundException({required this.recurrenceDocId, required this.taskDocId});
+
+  final String recurrenceDocId;
+  final String taskDocId;
+
+  @override
+  String toString() =>
+      'RecurrenceNotFoundException(recurrenceDocId: $recurrenceDocId, taskDocId: $taskDocId)';
+}
+
 class TaskCompletionResult {
   const TaskCompletionResult({
     required this.completedTask,
@@ -58,7 +71,10 @@ class TaskCompletionService {
       // Find and populate the recurrence on the task
       final recurrence = allRecurrences.firstWhere(
         (r) => r.docId == task.recurrenceDocId,
-        orElse: () => throw Exception('Recurrence not found: ${task.recurrenceDocId}'),
+        orElse: () => throw RecurrenceNotFoundException(
+          recurrenceDocId: task.recurrenceDocId!,
+          taskDocId: task.docId,
+        ),
       );
 
       // Rebuild task with recurrence populated
@@ -145,8 +161,10 @@ class CompleteTask extends _$CompleteTask {
           !_hasNextIteration(task, allTasks)) {
         final recurrence = allRecurrences.firstWhere(
           (r) => r.docId == task.recurrenceDocId,
-          orElse: () => throw Exception(
-              'Recurrence not found: ${task.recurrenceDocId}'),
+          orElse: () => throw RecurrenceNotFoundException(
+            recurrenceDocId: task.recurrenceDocId!,
+            taskDocId: task.docId,
+          ),
         );
         final taskWithRecurrence =
             task.rebuild((b) => b..recurrence = recurrence.toBuilder());
@@ -277,7 +295,10 @@ class SkipTask extends _$SkipTask {
       if (task.recurrenceDocId != null && !_hasNextIteration(task, allTasks)) {
         final recurrence = allRecurrences.firstWhere(
           (r) => r.docId == task.recurrenceDocId,
-          orElse: () => throw Exception('Recurrence not found: ${task.recurrenceDocId}'),
+          orElse: () => throw RecurrenceNotFoundException(
+            recurrenceDocId: task.recurrenceDocId!,
+            taskDocId: task.docId,
+          ),
         );
         final taskWithRecurrence = task.rebuild((b) => b..recurrence = recurrence.toBuilder());
         final nextPreview = RecurrenceHelper.createNextIteration(

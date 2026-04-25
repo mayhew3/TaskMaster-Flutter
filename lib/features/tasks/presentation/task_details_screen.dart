@@ -12,6 +12,7 @@ import '../providers/task_providers.dart';
 import 'task_add_edit_screen.dart';
 import 'recurrence_detail_screen.dart';
 import '../../shared/presentation/delayed_checkbox.dart';
+import '../../shared/presentation/task_action_error_helper.dart';
 import '../../shared/presentation/widgets/readonly_task_field.dart';
 import '../../shared/presentation/widgets/readonly_task_field_small.dart';
 
@@ -108,12 +109,16 @@ class _TaskDetailsBody extends ConsumerWidget {
                                 : CheckState.inactive,
                     checkCycleWaiter: (checkState) {
                       if (checkState == CheckState.skipped) {
-                        ref.read(skipTaskProvider.notifier).unskip(task);
+                        ref.read(skipTaskProvider.notifier).unskip(task).catchError(
+                            (Object e, StackTrace st) =>
+                                showTaskActionError(context, e, st));
                       } else {
-                        ref.read(completeTaskProvider.notifier).call(
-                          task,
-                          complete: CheckState.inactive == checkState,
-                        );
+                        ref
+                            .read(completeTaskProvider.notifier)
+                            .call(task,
+                                complete: CheckState.inactive == checkState)
+                            .catchError((Object e, StackTrace st) =>
+                                showTaskActionError(context, e, st));
                       }
                       return null;
                     },

@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' hide isNotNull;
+import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -311,6 +311,97 @@ void main() {
       // The provider should be defined and use keepAlive=true
       // (Tested indirectly by checking it compiles and is exported)
       expect(timezoneHelperNotifierProvider, isNotNull);
+    });
+  });
+
+  // ── CompleteTask / SkipTask: orphan recurrence (TM-343) ────────────────────
+
+  group('CompleteTask / SkipTask orphan recurrence (TM-343)', () {
+    late AppDatabase db;
+    late MockSyncService mockSyncService;
+    late MockAnalyticsService mockAnalytics;
+    late ProviderContainer container;
+
+    setUp(() async {
+      db = AppDatabase.forTesting(NativeDatabase.memory());
+      mockSyncService = MockSyncService();
+      mockAnalytics = MockAnalyticsService();
+      when(mockSyncService.pushPendingWrites(caller: anyNamed('caller')))
+          .thenAnswer((_) async {});
+
+      container = ProviderContainer(overrides: [
+        databaseProvider.overrideWithValue(db),
+        firestoreProvider.overrideWithValue(FakeFirebaseFirestore()),
+        syncServiceProvider.overrideWithValue(mockSyncService),
+        analyticsServiceProvider.overrideWithValue(mockAnalytics),
+        personDocIdProvider.overrideWith((ref) => 'person123'),
+      ]);
+
+      // Seed a synced recurring task whose recurrenceDocId points to a
+      // recurrence row that does NOT exist locally — the bug condition.
+      await db.taskDao.upsertFromRemote(TasksCompanion(
+        docId: const Value('orphan-task'),
+        name: const Value('Orphan'),
+        personDocId: const Value('person123'),
+        dateAdded: Value(DateTime.now().toUtc()),
+        recurrenceDocId: const Value('missing-recurrence'),
+        recurIteration: const Value(1),
+        recurNumber: const Value(1),
+        recurUnit: const Value('Weeks'),
+        recurWait: const Value(false),
+        offCycle: const Value(false),
+        syncState: Value(SyncState.synced.name),
+      ));
+    });
+
+    tearDown(() async {
+      container.dispose();
+      await db.close();
+    });
+
+    TaskItem _orphanTaskModel() => TaskItem((t) => t
+      ..docId = 'orphan-task'
+      ..name = 'Orphan'
+      ..personDocId = 'person123'
+      ..dateAdded = DateTime.now().toUtc()
+      ..recurrenceDocId = 'missing-recurrence'
+      ..recurIteration = 1
+      ..recurNumber = 1
+      ..recurUnit = 'Weeks'
+      ..recurWait = false
+      ..offCycle = false);
+
+    test('CompleteTask throws RecurrenceNotFoundException when recurrence missing locally',
+        () async {
+      final notifier = container.read(completeTaskProvider.notifier);
+      await expectLater(
+        notifier.call(_orphanTaskModel(), complete: true),
+        throwsA(isA<RecurrenceNotFoundException>()
+            .having((e) => e.recurrenceDocId, 'recurrenceDocId',
+                'missing-recurrence')
+            .having((e) => e.taskDocId, 'taskDocId', 'orphan-task')),
+      );
+
+      // Task must remain not-completed — Drift should have no completionDate.
+      final stored = await db.taskDao.allForUser('person123');
+      final task = stored.firstWhere((t) => t.docId == 'orphan-task');
+      expect(task.completionDate, isNull,
+          reason: 'Task must not be marked completed when next iteration could not be created');
+    });
+
+    test('SkipTask throws RecurrenceNotFoundException when recurrence missing locally',
+        () async {
+      final notifier = container.read(skipTaskProvider.notifier);
+      await expectLater(
+        notifier.call(_orphanTaskModel()),
+        throwsA(isA<RecurrenceNotFoundException>()),
+      );
+
+      // Task must remain not-skipped.
+      final stored = await db.taskDao.allForUser('person123');
+      final task = stored.firstWhere((t) => t.docId == 'orphan-task');
+      expect(task.skipped, false,
+          reason: 'Task must not be marked skipped when next iteration could not be created');
     });
   });
 }

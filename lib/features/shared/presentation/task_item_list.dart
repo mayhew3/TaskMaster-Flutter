@@ -12,6 +12,7 @@ import '../../../models/check_state.dart';
 import './widgets/header_list_item.dart';
 import 'snooze_dialog.dart';
 import 'plan_task_list.dart';
+import 'task_action_error_helper.dart';
 import '../../../helpers/task_selectors.dart';
 import '../../../core/services/task_completion_service.dart';
 import '../../tasks/providers/task_providers.dart';
@@ -126,13 +127,16 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
       onTaskCompleteToggle: (checkState) {
         if (checkState == CheckState.pending) return null;
         if (checkState == CheckState.skipped) {
-          ref.read(skipTaskProvider.notifier).unskip(taskItem);
+          ref.read(skipTaskProvider.notifier).unskip(taskItem).catchError(
+              (Object e, StackTrace st) =>
+                  showTaskActionError(context, e, st));
           return null;
         }
-        ref.read(completeTaskProvider.notifier).call(
-          taskItem,
-          complete: checkState == CheckState.inactive,
-        );
+        ref
+            .read(completeTaskProvider.notifier)
+            .call(taskItem, complete: checkState == CheckState.inactive)
+            .catchError((Object e, StackTrace st) =>
+                showTaskActionError(context, e, st));
         return null;
       },
       onDismissed: (direction) async {

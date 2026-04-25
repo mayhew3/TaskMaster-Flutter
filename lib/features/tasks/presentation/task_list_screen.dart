@@ -18,6 +18,7 @@ import '../../shared/presentation/snooze_dialog.dart';
 import '../../shared/presentation/app_drawer.dart';
 import '../../shared/presentation/connection_status_indicator.dart';
 import '../../shared/presentation/refresh_button.dart';
+import '../../shared/presentation/task_action_error_helper.dart';
 
 /// Riverpod version of the Task List screen
 /// Displays grouped tasks with filtering and completion functionality
@@ -458,13 +459,16 @@ class _TaskListItem extends ConsumerWidget {
       onTaskCompleteToggle: (checkState) {
         if (checkState == CheckState.pending) return null;
         if (checkState == CheckState.skipped) {
-          ref.read(skipTaskProvider.notifier).unskip(task);
+          ref.read(skipTaskProvider.notifier).unskip(task).catchError(
+              (Object e, StackTrace st) =>
+                  showTaskActionError(context, e, st));
           return null;
         }
-        ref.read(completeTaskProvider.notifier).call(
-          task,
-          complete: checkState == CheckState.inactive,
-        );
+        ref
+            .read(completeTaskProvider.notifier)
+            .call(task, complete: checkState == CheckState.inactive)
+            .catchError((Object e, StackTrace st) =>
+                showTaskActionError(context, e, st));
         return null;
       },
       onDismissed: (direction) async {
