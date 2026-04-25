@@ -110,15 +110,15 @@ class _TaskDetailsBody extends ConsumerWidget {
                     checkCycleWaiter: (checkState) {
                       if (checkState == CheckState.skipped) {
                         ref.read(skipTaskProvider.notifier).unskip(task).catchError(
-                            (Object e, StackTrace _) =>
-                                showTaskActionError(context, e));
+                            (Object e, StackTrace st) =>
+                                showTaskActionError(context, e, st));
                       } else {
                         ref
                             .read(completeTaskProvider.notifier)
                             .call(task,
                                 complete: CheckState.inactive == checkState)
-                            .catchError((Object e, StackTrace _) =>
-                                showTaskActionError(context, e));
+                            .catchError((Object e, StackTrace st) =>
+                                showTaskActionError(context, e, st));
                       }
                       return null;
                     },

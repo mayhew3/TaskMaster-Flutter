@@ -128,14 +128,15 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
         if (checkState == CheckState.pending) return null;
         if (checkState == CheckState.skipped) {
           ref.read(skipTaskProvider.notifier).unskip(taskItem).catchError(
-              (Object e, StackTrace _) => showTaskActionError(context, e));
+              (Object e, StackTrace st) =>
+                  showTaskActionError(context, e, st));
           return null;
         }
         ref
             .read(completeTaskProvider.notifier)
             .call(taskItem, complete: checkState == CheckState.inactive)
-            .catchError(
-                (Object e, StackTrace _) => showTaskActionError(context, e));
+            .catchError((Object e, StackTrace st) =>
+                showTaskActionError(context, e, st));
         return null;
       },
       onDismissed: (direction) async {

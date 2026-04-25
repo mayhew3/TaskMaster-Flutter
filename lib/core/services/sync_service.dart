@@ -249,12 +249,15 @@ class SyncService {
 
     if (isInitial) {
       // Only consider active (non-retired) docs for reconciliation; retired
-      // docs were already removed from Drift in the loop above.
+      // docs were already removed from Drift in the loop above. Scope by
+      // personDocId so a sign-out/sign-in cycle with a different account does
+      // not purge the previous user's rows that may still be cached locally.
       final remoteIds = snapshot.docs
           .where((d) => d.data()['retired'] == null)
           .map((d) => d.id)
           .toSet();
-      await db.taskRecurrenceDao.deleteSyncedNotIn(remoteIds);
+      await db.taskRecurrenceDao
+          .deleteSyncedNotInForPerson(_currentPersonDocId!, remoteIds);
     }
 
     _syncLog('[SyncService] +${_ms()}ms recurrences transaction done');

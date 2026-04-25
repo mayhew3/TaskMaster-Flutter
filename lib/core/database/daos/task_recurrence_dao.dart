@@ -105,6 +105,27 @@ class TaskRecurrenceDao extends DatabaseAccessor<AppDatabase>
         .go();
   }
 
+  /// Delete all `synced` rows for [personDocId] whose docId is NOT in
+  /// [remoteIds]. Scoped to [personDocId] so a sign-out/sign-in cycle with a
+  /// different account never touches the new user's rows. Mirrors
+  /// [TaskDao.deleteSyncedIncompleteNotIn].
+  Future<void> deleteSyncedNotInForPerson(
+      String personDocId, Set<String> remoteIds) {
+    if (remoteIds.isEmpty) {
+      return (delete(taskRecurrences)
+            ..where((r) =>
+                r.personDocId.equals(personDocId) &
+                r.syncState.equals(SyncState.synced.name)))
+          .go();
+    }
+    return (delete(taskRecurrences)
+          ..where((r) =>
+              r.personDocId.equals(personDocId) &
+              r.syncState.equals(SyncState.synced.name) &
+              r.docId.isNotIn(remoteIds.toList())))
+        .go();
+  }
+
   Future<List<TaskRecurrence>> pendingWrites() {
     return (select(taskRecurrences)
           ..where((r) =>

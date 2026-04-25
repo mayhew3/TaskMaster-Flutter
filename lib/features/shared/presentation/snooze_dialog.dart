@@ -228,8 +228,8 @@ class SnoozeDialogState extends ConsumerState<SnoozeDialog> {
                 try {
                   await ref.read(skipTaskProvider.notifier).call(widget.taskItem);
                   if (context.mounted) Navigator.pop(context);
-                } catch (e) {
-                  if (context.mounted) showTaskActionError(context, e);
+                } catch (e, st) {
+                  if (context.mounted) showTaskActionError(context, e, st);
                 }
               },
               child: const Text('Skip This Instance'),
