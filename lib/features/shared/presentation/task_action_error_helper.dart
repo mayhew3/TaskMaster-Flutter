@@ -12,7 +12,10 @@ void showTaskActionError(BuildContext context, Object error) {
     message =
         "Couldn't update task — recurrence data isn't loaded yet. Pull to refresh and try again.";
   } else {
-    message = 'Error updating task: $error';
+    // Log the underlying error for diagnostics; show a generic message to
+    // avoid leaking raw exception text (e.g. "Instance of ...") to users.
+    debugPrint('Error updating task: $error');
+    message = "Couldn't update task. Please try again.";
   }
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(content: Text(message)),
