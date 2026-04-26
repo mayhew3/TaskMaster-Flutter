@@ -12,8 +12,9 @@ class InviteeNotFoundException implements Exception {
   String toString() => 'InviteeNotFoundException(email: $email)';
 }
 
-/// Thrown when an invitation already exists for the same inviter+invitee+family
-/// in the `pending` state. Stops accidental double-invites.
+/// Thrown when a `pending` invitation already exists for the same family +
+/// invitee email (regardless of which member sent it). Stops accidental
+/// double-invites when multiple members try to invite the same person.
 class DuplicateInvitationException implements Exception {
   DuplicateInvitationException(this.email);
   final String email;
@@ -88,7 +89,8 @@ class FamilyRepository {
   /// Send an invitation to [email]. The invitee must already have a `persons`
   /// doc (the current sign-in flow rejects unknown emails); throws
   /// [InviteeNotFoundException] if not. Throws [DuplicateInvitationException]
-  /// if a pending invitation for the same inviter+family+email already exists.
+  /// if any pending invitation for this family + invitee email already exists
+  /// (regardless of which member sent it).
   Future<String> inviteByEmail({
     required String inviterPersonDocId,
     required String inviterFamilyDocId,

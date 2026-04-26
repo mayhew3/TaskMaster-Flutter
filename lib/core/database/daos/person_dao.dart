@@ -107,6 +107,21 @@ class PersonDao extends DatabaseAccessor<AppDatabase> with _$PersonDaoMixin {
         .go();
   }
 
+  /// Clear `familyDocId` on every locally-cached person row whose docId is
+  /// in [removedDocIds] (i.e. members that just left the family). Without
+  /// this, stale rows remain matched by [watchByFamily] until something
+  /// else evicts them, so the manage-screen roster + "Added by" lookup
+  /// keep showing the removed member.
+  Future<void> clearFamilyForRemovedMembers(
+      String familyDocId, Iterable<String> removedDocIds) async {
+    final ids = removedDocIds.toList();
+    if (ids.isEmpty) return;
+    await (update(persons)
+          ..where((p) =>
+              p.docId.isIn(ids) & p.familyDocId.equals(familyDocId)))
+        .write(const PersonsCompanion(familyDocId: Value(null)));
+  }
+
   Future<List<Person>> pendingWrites() {
     return (select(persons)
           ..where((p) => p.syncState.isIn([

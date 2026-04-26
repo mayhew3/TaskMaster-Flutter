@@ -549,6 +549,19 @@ class SyncService {
       return;
     }
 
+    // Identify members that just left the family. Their local persons row
+    // still has familyDocId set (the personsListener's whereIn no longer
+    // includes them, so the clearing update from FamilyRepository.removeMember
+    // never reaches this device through the regular persons stream). Clear
+    // familyDocId locally so PersonDao.watchByFamily stops surfacing them in
+    // the manage-screen roster + "Added by" lookup.
+    final removed = (_familyMembersWatchedSet ?? const <String>{})
+        .difference(newSet);
+    final familyDocId = _currentFamilyDocId;
+    if (removed.isNotEmpty && familyDocId != null) {
+      await db.personDao.clearFamilyForRemovedMembers(familyDocId, removed);
+    }
+
     await _familyMembersSub?.cancel();
     _familyMembersSub = null;
     _familyMembersWatchedSet = null;
