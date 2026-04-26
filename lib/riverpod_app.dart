@@ -401,6 +401,16 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
       _navItems[2], // Stats
     ];
     final clampedIndex = selectedIndex.clamp(0, liveNavItems.length - 1).toInt();
+    // Write the clamped value back to the provider when a layout change (e.g.
+    // leaving the family) makes the stored index out of range. Done in a
+    // post-frame callback to avoid mutating provider state during build.
+    if (clampedIndex != selectedIndex) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ref.read(activeTabIndexProvider.notifier).clampToLayout(liveNavItems.length);
+        }
+      });
+    }
     final currentScreen = liveNavItems[clampedIndex].widgetGetter();
 
     // Status-bar inset handling depends on whether the banner is visible:

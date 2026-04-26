@@ -75,6 +75,27 @@ class NotificationHelperImpl {
     }
   }
 
+  /// Batch variant of [updateNotificationForTask] that fetches pending requests
+  /// once and processes all tasks against that snapshot, reducing platform
+  /// channel round trips from O(N) to 1.
+  Future<void> updateNotificationsForTasks(List<TaskItem> taskItems) async {
+    if (taskItems.isEmpty) return;
+    final requests = await plugin.pendingNotificationRequests();
+    for (final task in taskItems) {
+      if (task.isCompleted() || task.retired != null) {
+        final taskSearch = 'task:${task.docId}';
+        final existing = requests.where(
+          (n) => n.payload != null && n.payload!.startsWith(taskSearch));
+        for (final notification in existing) {
+          print('Removing task: ${notification.payload}');
+          await plugin.cancel(notification.id);
+        }
+      } else {
+        await _syncNotificationForTask(task, requests);
+      }
+    }
+  }
+
   Future<void> _syncNotificationForSprint(Sprint sprint, List<PendingNotificationRequest> requests) async {
     String sprintSearch = 'sprint:${sprint.docId}';
     String sprintName = 'Sprint ${sprint.sprintNumber}';

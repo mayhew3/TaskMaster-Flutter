@@ -51,10 +51,11 @@ class ActiveTabIndex extends _$ActiveTabIndex {
   void setTab(int index) {
     // Clamp to [0, maxIndex] where maxIndex is the last index in the
     // widest possible tab layout (4 tabs with the Family tab present).
-    // Consumers that render fewer tabs should also clamp on read
-    // (riverpod_app.dart does this with `selectedIndex.clamp(0, liveNavItems.length - 1)`).
+    // riverpod_app.dart calls clampToLayout() when the live layout shrinks
+    // so the stored value stays in range without each consumer needing to
+    // clamp on read.
     final maxIndex = NavTabs.forUser(inFamily: true).length - 1;
-    final clamped = index.clamp(0, maxIndex);
+    final clamped = index.clamp(0, maxIndex).toInt();
     // Clear recently completed tasks when navigating between tabs
     // This allows completed tasks to move from their original section
     // to the "Completed" section after navigation (TM-312)
@@ -62,5 +63,16 @@ class ActiveTabIndex extends _$ActiveTabIndex {
     ref.read(recentlyCompletedIndicesProvider.notifier).clear();
     ref.read(searchQueryProvider.notifier).clear();
     state = clamped;
+  }
+
+  /// Silently adjusts the stored index when a layout change makes it
+  /// out of range. Unlike [setTab], this does NOT reset per-tab UI state
+  /// (search query, recently-completed lists) because it is a layout-driven
+  /// correction, not a user action.
+  void clampToLayout(int liveTabCount) {
+    final maxIndex = liveTabCount - 1;
+    if (state > maxIndex) {
+      state = maxIndex;
+    }
   }
 }

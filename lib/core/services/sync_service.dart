@@ -335,10 +335,8 @@ class SyncService {
       // Helper unavailable (tests, init race) — silently skip.
       return;
     }
-    for (final task in tasks) {
-      helper.updateNotificationForTask(task).catchError(
-          (e) => _syncLog('[SyncService] notification refresh error for ${task.docId}: $e'));
-    }
+    helper.updateNotificationsForTasks(tasks).catchError(
+        (e) => _syncLog('[SyncService] notification batch refresh error: $e'));
   }
 
   Future<void> _onRecurrencesSnapshot(
