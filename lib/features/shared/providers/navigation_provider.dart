@@ -49,17 +49,18 @@ class ActiveTabIndex extends _$ActiveTabIndex {
   int build() => 0; // Default to Plan tab
 
   void setTab(int index) {
-    // The valid range depends on whether the Family tab is present, so the
-    // widget layer is responsible for clamping. Treat any non-negative input
-    // as valid here; the active screen is a switch on `index < navItems.length`.
-    if (index >= 0) {
-      // Clear recently completed tasks when navigating between tabs
-      // This allows completed tasks to move from their original section
-      // to the "Completed" section after navigation (TM-312)
-      ref.read(recentlyCompletedTasksProvider.notifier).clear();
-      ref.read(recentlyCompletedIndicesProvider.notifier).clear();
-      ref.read(searchQueryProvider.notifier).clear();
-      state = index;
-    }
+    // Clamp to [0, maxIndex] where maxIndex is the last index in the
+    // widest possible tab layout (4 tabs with the Family tab present).
+    // Consumers that render fewer tabs should also clamp on read
+    // (riverpod_app.dart does this with `selectedIndex.clamp(0, liveNavItems.length - 1)`).
+    final maxIndex = NavTabs.forUser(inFamily: true).length - 1;
+    final clamped = index.clamp(0, maxIndex);
+    // Clear recently completed tasks when navigating between tabs
+    // This allows completed tasks to move from their original section
+    // to the "Completed" section after navigation (TM-312)
+    ref.read(recentlyCompletedTasksProvider.notifier).clear();
+    ref.read(recentlyCompletedIndicesProvider.notifier).clear();
+    ref.read(searchQueryProvider.notifier).clear();
+    state = clamped;
   }
 }
