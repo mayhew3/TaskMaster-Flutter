@@ -33,58 +33,60 @@ class PendingInvitationBanner extends ConsumerWidget {
         top: true,
         bottom: false,
         child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-        child: Row(
-          children: [
-            const Icon(Icons.family_restroom, color: Colors.white),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                '$inviter invited you to a family.',
-                style: const TextStyle(color: Colors.white),
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+          child: Row(
+            children: [
+              const Icon(Icons.family_restroom, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  '$inviter invited you to a family.',
+                  style: const TextStyle(color: Colors.white),
+                ),
               ),
-            ),
-            TextButton(
-              onPressed: () async {
-                try {
-                  await ref
-                      .read(declineInvitationProvider.notifier)
-                      .call(invitation.docId);
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Failed to decline: $e')),
-                    );
+              TextButton(
+                onPressed: () async {
+                  try {
+                    await ref
+                        .read(declineInvitationProvider.notifier)
+                        .call(invitation.docId);
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to decline: $e')),
+                      );
+                    }
                   }
-                }
-              },
-              child:
-                  const Text('Decline', style: TextStyle(color: Colors.white)),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                try {
-                  await ref
-                      .read(acceptInvitationProvider.notifier)
-                      .call(invitation.docId);
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Joined family.')),
-                    );
+                },
+                child: const Text(
+                  'Decline',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  try {
+                    await ref
+                        .read(acceptInvitationProvider.notifier)
+                        .call(invitation.docId);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Joined family.')),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to accept: $e')),
+                      );
+                    }
                   }
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Failed to accept: $e')),
-                    );
-                  }
-                }
-              },
-              child: const Text('Accept'),
-            ),
-          ],
+                },
+                child: const Text('Accept'),
+              ),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }

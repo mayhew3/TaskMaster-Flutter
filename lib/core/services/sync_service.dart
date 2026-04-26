@@ -263,11 +263,25 @@ class SyncService {
     for (final change in snapshot.docChanges) {
       if (change.type == DocumentChangeType.removed) {
         // The personal listener filters incomplete-only, so a doc leaving its
-        // view usually means completion (not deletion). For family-shared tasks
-        // the family listener still owns the row — deleting here would race
-        // with the family listener's upsert and lose it. Skip the delete when
-        // the id is in the family-tasks set; the family listener will deliver
-        // its own removed event when the task is truly retired/deleted.
+        // view usually means completion (not deletion). The doc data is still
+        // available on the change and typically has completionDate set; adding
+        // it to the refresh list lets the notification helper cancel any
+        // scheduled alerts for the now-completed task.
+        try {
+          final data = change.doc.data();
+          if (data != null && !isInitial) {
+            final json = Map<String, dynamic>.from(data);
+            json['docId'] = change.doc.id;
+            final task = serializers.deserializeWith(m.TaskItem.serializer, json);
+            if (task != null) toRefreshNotifications.add(task);
+          }
+        } catch (e, s) {
+          _logSyncError(e, s);
+        }
+        // For family-shared tasks the family listener still owns the row —
+        // deleting here would race with the family listener's upsert and lose
+        // it. Skip the delete; the family listener will deliver its own removed
+        // event when the task is truly retired/deleted.
         if (_familyTaskDocIds.contains(change.doc.id)) continue;
         await db.taskDao.deleteFromRemote(change.doc.id);
         continue;
@@ -619,6 +633,20 @@ class SyncService {
     final toRefreshNotifications = <m.TaskItem>[];
     for (final change in snapshot.docChanges) {
       if (change.type == DocumentChangeType.removed) {
+        // Deserialize the last-known doc data so the notification helper can
+        // cancel any scheduled alerts for this task (e.g. when a task is
+        // retired, un-shared, or the member leaves the family).
+        try {
+          final data = change.doc.data();
+          if (data != null && !isInitial) {
+            final json = Map<String, dynamic>.from(data);
+            json['docId'] = change.doc.id;
+            final task = serializers.deserializeWith(m.TaskItem.serializer, json);
+            if (task != null) toRefreshNotifications.add(task);
+          }
+        } catch (e, s) {
+          _logSyncError(e, s);
+        }
         await db.taskDao.deleteFromRemote(change.doc.id);
         continue;
       }
