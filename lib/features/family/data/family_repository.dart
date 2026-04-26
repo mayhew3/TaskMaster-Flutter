@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../core/database/app_database.dart';
 
@@ -239,21 +240,35 @@ class FamilyRepository {
         // remover's own pending-writes pipeline, so we have to write them
         // to Firestore directly. Batched (Firestore caps at 500/batch);
         // chunk just in case a family has >500 active tasks per member.
-        final query = await firestore
-            .collection('tasks')
-            .where('familyDocId', isEqualTo: removedTasksFamilyDocId)
-            .where('personDocId', isEqualTo: targetPersonDocId)
-            .get();
-        const batchSize = 400;
-        for (var i = 0; i < query.docs.length; i += batchSize) {
-          final batch = firestore.batch();
-          final end = (i + batchSize < query.docs.length)
-              ? i + batchSize
-              : query.docs.length;
-          for (final doc in query.docs.sublist(i, end)) {
-            batch.update(doc.reference, {'familyDocId': null});
+        // Best-effort: if the batch write fails, the member is already
+        // removed from the family but their tasks may still carry familyDocId
+        // until the next sync or a retry. The family-tasks listener will stop
+        // delivering them once the removed member's person doc loses its
+        // familyDocId, so the inconsistency window is bounded by Firestore's
+        // propagation latency. A server-side Function would make this atomic
+        // (deferred to TM-336).
+        try {
+          final query = await firestore
+              .collection('tasks')
+              .where('familyDocId', isEqualTo: removedTasksFamilyDocId)
+              .where('personDocId', isEqualTo: targetPersonDocId)
+              .get();
+          const batchSize = 400;
+          for (var i = 0; i < query.docs.length; i += batchSize) {
+            final batch = firestore.batch();
+            final end = (i + batchSize < query.docs.length)
+                ? i + batchSize
+                : query.docs.length;
+            for (final doc in query.docs.sublist(i, end)) {
+              batch.update(doc.reference, {'familyDocId': null});
+            }
+            await batch.commit();
           }
-          await batch.commit();
+        } catch (e, s) {
+          // Log but don't rethrow — membership removal already succeeded.
+          // Remaining tasks will linger in family view until the person doc
+          // propagates or the next manual sync (see comment above).
+          debugPrint('⚠️ [removeMember] task-cleanup batch failed: $e\n$s');
         }
       }
     }

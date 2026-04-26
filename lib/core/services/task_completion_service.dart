@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../database/app_database.dart'
@@ -468,11 +469,12 @@ class AddTask extends _$AddTask {
         ref
             .read(notificationHelperProvider)
             .updateNotificationForTask(newTask)
-            .then((_) => print('⏱️ [AddTask] notification updated (background)'))
-            .catchError((e) => print('⚠️ [AddTask] notification error: $e'));
+            .catchError((e) {
+          if (kDebugMode) debugPrint('⚠️ [AddTask] notification error: $e');
+        });
       }
     } catch (e) {
-      print('⚠️ [AddTask] notification refresh skipped: $e');
+      if (kDebugMode) debugPrint('⚠️ [AddTask] notification refresh skipped: $e');
     }
   }
 }
@@ -575,13 +577,14 @@ class UpdateTask extends _$UpdateTask {
         ref
             .read(notificationHelperProvider)
             .updateNotificationForTask(updatedTask)
-            .then((_) =>
-                print('⏱️ [UpdateTask] notification updated (background)'))
-            .catchError(
-                (e) => print('⚠️ [UpdateTask] notification error: $e'));
+            .catchError((e) {
+          if (kDebugMode) debugPrint('⚠️ [UpdateTask] notification error: $e');
+        });
       }
     } catch (e) {
-      print('⚠️ [UpdateTask] notification refresh skipped: $e');
+      if (kDebugMode) {
+        debugPrint('⚠️ [UpdateTask] notification refresh skipped: $e');
+      }
     }
   }
 }
@@ -654,13 +657,14 @@ class SnoozeTask extends _$SnoozeTask {
         ref
             .read(notificationHelperProvider)
             .updateNotificationForTask(updatedTask)
-            .then((_) =>
-                print('⏱️ [SnoozeTask] notification updated (background)'))
-            .catchError(
-                (e) => print('⚠️ [SnoozeTask] notification error: $e'));
+            .catchError((e) {
+          if (kDebugMode) debugPrint('⚠️ [SnoozeTask] notification error: $e');
+        });
       }
     } catch (e) {
-      print('⚠️ [SnoozeTask] notification refresh skipped: $e');
+      if (kDebugMode) {
+        debugPrint('⚠️ [SnoozeTask] notification refresh skipped: $e');
+      }
     }
   }
 }

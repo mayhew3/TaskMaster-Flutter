@@ -255,17 +255,8 @@ class SyncService {
     final toRefreshNotifications = <m.TaskItem>[];
     for (final change in snapshot.docChanges) {
       if (change.type == DocumentChangeType.removed) {
-        // The personal listener filters incomplete-only. A doc leaving the
-        // view typically means it was completed (not deleted). For
-        // family-shared tasks (TM-335), the family listener still keeps the
-        // row in sync — deleting here would race with the family listener's
-        // upsert and could lose the row entirely. Skip the delete in that
-        // case; if the row is truly retired/deleted, the family listener
-        // will deliver its own removed event.
-        final local = await db.taskDao.getByDocId(change.doc.id);
-        if (local != null && local.familyDocId != null) {
-          continue;
-        }
+        // deleteFromRemote skips the delete when familyDocId != null, so no
+        // explicit check is needed here — the guard now lives in the DAO.
         await db.taskDao.deleteFromRemote(change.doc.id);
         continue;
       }

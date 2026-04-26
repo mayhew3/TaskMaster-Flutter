@@ -117,6 +117,13 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
         .getSingleOrNull();
     if (current == null) return;
     if (current.syncState != SyncState.synced.name) return;
+    // Skip the delete when the row is still tracked by the family-tasks
+    // listener (familyDocId != null). The personal-tasks listener removes
+    // completed tasks from its view, but the family listener keeps them; if
+    // we delete here we'd race with the family listener's upsert and lose the
+    // row. The family listener will deliver its own removed event if the row
+    // is truly retired/deleted.
+    if (current.familyDocId != null) return;
     await (delete(tasks)..where((t) => t.docId.equals(docId))).go();
   }
 
