@@ -32,9 +32,12 @@ class NotFamilyOwnerException implements Exception {
 /// `families.members` list and `persons/{...}.familyDocId` field stay in sync,
 /// even on flaky networks.
 ///
-/// Local Drift mirrors are updated by SyncService listeners; this repository
-/// does not write Drift directly except for the on-join backfill in
-/// [acceptInvitation] / [createFamilyForCurrentUser].
+/// Local Drift mirrors are primarily updated by SyncService listeners. This
+/// repository may still perform limited direct Drift writes for specific
+/// local-cleanup flows (currently only the self-leave path of
+/// [removeMember], which clears `familyDocId` on the leaver's own tasks via
+/// the local pendingWrites pipeline). Callers should not assume Drift is
+/// only ever updated via sync.
 class FamilyRepository {
   FamilyRepository({required this.firestore, required this.db});
 
@@ -42,20 +45,26 @@ class FamilyRepository {
   final AppDatabase db;
 
   /// Create a new family with the current user as sole member and owner.
-  /// Returns the new family's docId.
+  /// Returns the resulting family's docId — either the freshly-created one,
+  /// or the user's existing `familyDocId` if they were already in a family
+  /// when this raced with another device.
   Future<String> createFamilyForCurrentUser({
     required String personDocId,
   }) async {
     final familyRef = firestore.collection('families').doc();
     final personRef = firestore.collection('persons').doc(personDocId);
     final now = DateTime.now().toUtc();
+    String? existingFamilyDocId;
 
     await firestore.runTransaction((txn) async {
       final personSnap = await txn.get(personRef);
       if (personSnap.exists &&
           (personSnap.data()?['familyDocId'] as String?) != null) {
-        // Already in a family — bail. UI shouldn't trigger this path, but the
-        // transaction guards against double-creation if multiple devices race.
+        // Already in a family — bail. UI shouldn't trigger this path, but
+        // the transaction guards against double-creation if multiple devices
+        // race. Capture the existing id so callers don't proceed with the
+        // unused `familyRef.id` (which has no Firestore doc behind it).
+        existingFamilyDocId = personSnap.data()!['familyDocId'] as String;
         return;
       }
       txn.set(familyRef, {
@@ -73,7 +82,7 @@ class FamilyRepository {
     // This matches the user's intuition that the Family tab is what we've
     // added together, not the entire history each member brought in.
 
-    return familyRef.id;
+    return existingFamilyDocId ?? familyRef.id;
   }
 
   /// Send an invitation to [email]. The invitee must already have a `persons`

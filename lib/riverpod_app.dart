@@ -403,19 +403,30 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
     final clampedIndex = selectedIndex.clamp(0, liveNavItems.length - 1);
     final currentScreen = liveNavItems[clampedIndex].widgetGetter();
 
+    // Status-bar inset handling depends on whether the banner is visible:
+    // - When showing, the banner self-wraps in SafeArea(top: true) so it
+    //   sits below the system icons; we then strip MediaQuery.padding.top
+    //   for currentScreen so the inner-tab AppBar doesn't double-inset
+    //   (which would leave a status-bar-tall dead strip below the banner).
+    // - When hidden, the banner collapses to SizedBox.shrink and the inner
+    //   AppBar handles its own status-bar inset normally.
+    final hasPendingInvite =
+        (ref.watch(pendingInvitationsForMeProvider).valueOrNull ?? const [])
+            .isNotEmpty;
+    final tabBody = hasPendingInvite
+        ? MediaQuery.removePadding(
+            context: context,
+            removeTop: true,
+            child: currentScreen,
+          )
+        : currentScreen;
+
     return Scaffold(
-      // Consume the status-bar padding here so the banner and the inner-tab
-      // Scaffolds don't both inset for it (which produced a ~status-bar-tall
-      // dead strip between the banner and the active tab's AppBar).
-      body: SafeArea(
-        top: true,
-        bottom: false,
-        child: Column(
-          children: [
-            const PendingInvitationBanner(),
-            Expanded(child: currentScreen),
-          ],
-        ),
+      body: Column(
+        children: [
+          const PendingInvitationBanner(),
+          Expanded(child: tabBody),
+        ],
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: clampedIndex,

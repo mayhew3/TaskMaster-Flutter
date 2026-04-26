@@ -41,9 +41,10 @@ class _NoopNotificationHelper extends NotificationHelperImpl {
   _NoopNotificationHelper() : super(plugin: FlutterLocalNotificationsPlugin());
 
   @override
-  Future<void> updateNotificationForTask(taskItem) async {}
+  Future<void> updateNotificationForTask(TaskItem taskItem) async {}
   @override
-  Future<void> syncNotificationForTasksAndSprint(tasks, sprint) async {}
+  Future<void> syncNotificationForTasksAndSprint(
+      List<TaskItem> taskItems, Sprint? sprint) async {}
   @override
   Future<void> cancelAllNotifications() async {}
   @override

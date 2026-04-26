@@ -620,11 +620,17 @@ class SyncService {
     }
     await db.taskDao.bulkUpsertFromRemote(toUpsert);
 
-    // Reconcile incomplete family tasks against the snapshot. Scoped to
-    // familyDocId so a leave/rejoin cycle with a different family doesn't
-    // touch the new family's rows.
-    final remoteIds = snapshot.docs.map((d) => d.id).toSet();
-    await db.taskDao.deleteSyncedFamilyTasksNotIn(familyDocId, remoteIds);
+    // Reconcile family tasks against the initial snapshot only — steady-state
+    // deletes are already covered by Firestore `removed` docChanges above.
+    // Running this on every snapshot turned each modification into an O(N)
+    // NOT-IN delete across the whole family-task table, which gets expensive
+    // as completed family tasks accumulate. Scoped to familyDocId so a
+    // leave/rejoin cycle with a different family doesn't touch the new
+    // family's rows.
+    if (isInitial) {
+      final remoteIds = snapshot.docs.map((d) => d.id).toSet();
+      await db.taskDao.deleteSyncedFamilyTasksNotIn(familyDocId, remoteIds);
+    }
 
     _refreshNotificationsForTasks(toRefreshNotifications);
   }

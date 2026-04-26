@@ -72,7 +72,9 @@ class FamilyTabScreen extends ConsumerWidget {
         tooltip: 'Add task',
         child: const Icon(Icons.add),
         onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const TaskAddEditScreen()),
+          MaterialPageRoute(
+              builder: (_) =>
+                  const TaskAddEditScreen(defaultFamilyShared: true)),
         ),
       ),
     );

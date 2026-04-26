@@ -11,7 +11,6 @@ import '../providers/notification_providers.dart';
 import '../utils/performance_logger.dart';
 import 'analytics_service.dart';
 import 'sync_service.dart';
-import '../../features/family/providers/family_providers.dart';
 import '../../features/tasks/data/firestore_task_repository.dart';
 import '../../features/tasks/domain/task_repository.dart';
 import '../../features/tasks/providers/task_providers.dart';
@@ -417,10 +416,11 @@ class AddTask extends _$AddTask {
     }
 
     blueprint.personDocId = personDocId;
-    // Stamp familyDocId on the new task if the user is currently in a family
-    // (TM-335). The blueprint may already carry a value if a caller wants to
-    // override; only fill when unset.
-    blueprint.familyDocId ??= ref.read(currentFamilyDocIdProvider);
+    // familyDocId is supplied by the caller via the blueprint (TaskAddEditScreen
+    // pre-sets it when launched with `defaultFamilyShared: true` from the
+    // Family tab). Auto-stamping based on the user's current family was
+    // surprising on the Tasks tab — newly-added tasks vanished from the tab
+    // because filteredTasksProvider hides familyDocId-bearing rows.
     blueprint.recurrenceBlueprint?.personDocId = personDocId;
 
     final now = DateTime.now().toUtc();

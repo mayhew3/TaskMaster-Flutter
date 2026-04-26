@@ -20,10 +20,16 @@ import '../providers/task_providers.dart';
 /// Handles creating new tasks and editing existing tasks
 class TaskAddEditScreen extends ConsumerStatefulWidget {
   final String? taskItemId;
+  /// When `true` and adding a new task (no [taskItemId]), pre-stamp the
+  /// blueprint with the current user's `familyDocId` so the task becomes
+  /// family-shared. Set by the Family-tab FAB; the Tasks-tab FAB leaves
+  /// this `false` so additions stay personal even while in a family.
+  final bool defaultFamilyShared;
 
   const TaskAddEditScreen({
     super.key,
     this.taskItemId,
+    this.defaultFamilyShared = false,
   });
 
   @override
@@ -119,6 +125,13 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
     taskItem = task;
     taskItemBlueprint =
         task == null ? TaskItemBlueprint() : task.createBlueprint();
+    // For brand-new tasks added from the Family tab (defaultFamilyShared),
+    // pre-stamp familyDocId so AddTask saves them as family-shared. Tasks
+    // added from the Tasks tab leave this null and stay personal even
+    // while the user is in a family.
+    if (task == null && widget.defaultFamilyShared) {
+      taskItemBlueprint.familyDocId = ref.read(currentFamilyDocIdProvider);
+    }
     var existingRecurrence = task?.recurrence;
     taskRecurrenceBlueprint = (existingRecurrence == null)
         ? TaskRecurrenceBlueprint()

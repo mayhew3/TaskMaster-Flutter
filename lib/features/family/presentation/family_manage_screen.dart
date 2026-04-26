@@ -201,8 +201,9 @@ class _MemberTile extends StatelessWidget {
                 visualDensity: VisualDensity.compact),
         ],
       ),
-      // Email is never surfaced in the UI (TM-335 follow-up). The persons
-      // doc keeps email only for sign-in lookup.
+      // Roster intentionally shows the member's display name only — keeps
+      // tiles compact and avoids long-email truncation. Email still appears
+      // on TaskDetailsScreen's "Added by" field where there's room for it.
       trailing: onRemove != null
           ? IconButton(
               icon: Icon(isMe ? Icons.exit_to_app : Icons.person_remove,

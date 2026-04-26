@@ -22,9 +22,17 @@ class PendingInvitationBanner extends ConsumerWidget {
     final invitation = pending.first;
     final inviter = invitation.inviterDisplayName ?? 'Someone';
 
+    // Material extends behind the status bar so the indigo color shows
+    // around the system icons; SafeArea pushes the actual banner content
+    // below the status bar / camera notch. The home Scaffold strips
+    // MediaQuery.padding.top for the rest of the body when this banner is
+    // visible, so the inner-tab AppBar doesn't double-inset.
     return Material(
       color: Colors.indigo.shade700,
-      child: Padding(
+      child: SafeArea(
+        top: true,
+        bottom: false,
+        child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
         child: Row(
           children: [
@@ -76,6 +84,7 @@ class PendingInvitationBanner extends ConsumerWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }
