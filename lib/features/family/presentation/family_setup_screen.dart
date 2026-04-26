@@ -63,8 +63,9 @@ class FamilySetupScreen extends ConsumerWidget {
                           // Pop the setup screen so the user lands back on
                           // the bottom-nav home. Switch the active tab to
                           // index 2; once the persons-self listener delivers
-                          // the new familyDocId, NavTabs.forUser splices the
-                          // Family tab in at index 2 and the user is on it.
+                          // the new familyDocId, the Riverpod app home
+                          // rebuilds its bottom-nav items with the Family tab
+                          // at index 2, so the user lands on it.
                           Navigator.of(context).pop();
                           ref
                               .read(activeTabIndexProvider.notifier)

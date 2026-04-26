@@ -541,10 +541,12 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                         // recurring. Existing broken tasks (saved before this
                         // guard) still show the toggle so the user can turn
                         // recurrence off to keep family sharing.
+                        // Read from the blueprint, not from family membership:
+                        // tasks added on the Tasks tab while in a family stay
+                        // personal (familyDocId == null), so they should still
+                        // get the recurrence toggle.
                         final willBeFamilyShared =
-                            taskItem != null
-                                ? taskItem!.familyDocId != null
-                                : ref.watch(currentFamilyDocIdProvider) != null;
+                            taskItemBlueprint.familyDocId != null;
                         final alreadyRecurring = _initialRepeatOn;
                         if (willBeFamilyShared && !alreadyRecurring) {
                           return Card(

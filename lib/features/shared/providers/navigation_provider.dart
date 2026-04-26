@@ -5,35 +5,36 @@ import '../../tasks/providers/task_providers.dart';
 
 part 'navigation_provider.g.dart';
 
-/// Navigation tab definition for Riverpod-based navigation
+/// Navigation tab definition for Riverpod-based navigation. The active index
+/// is owned by [ActiveTabIndex] and the live tab order is determined by the
+/// widget that renders the bottom-nav (currently the Riverpod app home in
+/// `riverpod_app.dart`, which splices in the Family tab when in a family);
+/// individual `NavTab` instances do not carry their own index.
 class NavTab {
   const NavTab({
     required this.label,
     required this.icon,
-    required this.index,
   });
 
   final String label;
   final IconData icon;
-  final int index;
 }
 
 /// Predefined navigation tabs
 class NavTabs {
-  static const plan = NavTab(label: 'Plan', icon: Icons.assignment, index: 0);
-  static const tasks = NavTab(label: 'Tasks', icon: Icons.list, index: 1);
-  // Family tab is appended dynamically when the user is in a family (TM-335);
-  // its index is computed at render time so it slots in between Tasks and
-  // Stats without breaking the existing static indices.
+  static const plan = NavTab(label: 'Plan', icon: Icons.assignment);
+  static const tasks = NavTab(label: 'Tasks', icon: Icons.list);
   static const family =
-      NavTab(label: 'Family', icon: Icons.family_restroom, index: 2);
-  static const stats = NavTab(label: 'Stats', icon: Icons.show_chart, index: 2);
+      NavTab(label: 'Family', icon: Icons.family_restroom);
+  static const stats = NavTab(label: 'Stats', icon: Icons.show_chart);
 
   static const List<NavTab> all = [plan, tasks, stats];
 
   /// Tabs visible to the current user. The Family tab is included only when
   /// [inFamily] is true; otherwise the layout matches the legacy 3-tab
-  /// arrangement.
+  /// arrangement. Currently used as a reference layout — the live nav-item
+  /// list is constructed inline in `riverpod_app.dart` so it can also wire
+  /// up `widgetGetter` per tab.
   static List<NavTab> forUser({required bool inFamily}) {
     if (!inFamily) return [plan, tasks, stats];
     return [plan, tasks, family, stats];
