@@ -141,7 +141,15 @@ class FamilyRepository {
     await firestore.runTransaction((txn) async {
       final invitationRef =
           firestore.collection('familyInvitations').doc(invitationDocId);
-      final invitationSnap = await txn.get(invitationRef);
+      final personRef = firestore.collection('persons').doc(myPersonDocId);
+
+      final results = await Future.wait([
+        txn.get(invitationRef),
+        txn.get(personRef),
+      ]);
+      final invitationSnap = results[0];
+      final personSnap = results[1];
+
       if (!invitationSnap.exists) {
         throw StateError('Invitation $invitationDocId not found');
       }
@@ -154,9 +162,17 @@ class FamilyRepository {
         throw StateError('Invitation is not addressed to $myEmail');
       }
 
+      // Guard against double-joining: if the user is already in a family,
+      // reject rather than placing them in two families.members arrays.
+      final existingFamilyDocId =
+          personSnap.data()?['familyDocId'] as String?;
+      if (existingFamilyDocId != null && existingFamilyDocId.isNotEmpty) {
+        throw StateError(
+            'Already a member of family $existingFamilyDocId; leave first before joining another.');
+      }
+
       final familyDocId = invitation['inviterFamilyDocId'] as String;
       final familyRef = firestore.collection('families').doc(familyDocId);
-      final personRef = firestore.collection('persons').doc(myPersonDocId);
 
       txn.update(familyRef, {
         'members': FieldValue.arrayUnion([myPersonDocId]),

@@ -64,6 +64,12 @@ class SyncService {
   // tearing down + rebuilding the Firestore listener on family-doc snapshots
   // that didn't actually change membership.
   Set<String>? _familyMembersWatchedSet;
+  // In-memory set of task docIds currently tracked by the family-tasks
+  // listener. Used by _onTasksSnapshot to avoid deleting rows that are still
+  // live under the family listener (completing your own family-shared task
+  // removes it from the personal incomplete-only query, but the family listener
+  // still holds it). Updated on every family-tasks snapshot; cleared on detach.
+  Set<String> _familyTaskDocIds = {};
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _familyTasksSub;
   ProviderSubscription<AsyncValue<bool>>? _connectivitySub;
 
@@ -235,6 +241,7 @@ class SyncService {
     _familyMembersSub = null;
     _familyTasksSub = null;
     _familyMembersWatchedSet = null;
+    _familyTaskDocIds = {};
     // Reset so the next attach treats its first snapshot as initial again.
     _familyTasksInitialReceived = false;
   }
@@ -255,8 +262,13 @@ class SyncService {
     final toRefreshNotifications = <m.TaskItem>[];
     for (final change in snapshot.docChanges) {
       if (change.type == DocumentChangeType.removed) {
-        // deleteFromRemote skips the delete when familyDocId != null, so no
-        // explicit check is needed here — the guard now lives in the DAO.
+        // The personal listener filters incomplete-only, so a doc leaving its
+        // view usually means completion (not deletion). For family-shared tasks
+        // the family listener still owns the row — deleting here would race
+        // with the family listener's upsert and lose it. Skip the delete when
+        // the id is in the family-tasks set; the family listener will deliver
+        // its own removed event when the task is truly retired/deleted.
+        if (_familyTaskDocIds.contains(change.doc.id)) continue;
         await db.taskDao.deleteFromRemote(change.doc.id);
         continue;
       }
@@ -626,6 +638,10 @@ class SyncService {
       }
     }
     await db.taskDao.bulkUpsertFromRemote(toUpsert);
+
+    // Keep the in-memory family-task ID set up to date so the personal-tasks
+    // listener can skip deleting rows that are still live here.
+    _familyTaskDocIds = snapshot.docs.map((d) => d.id).toSet();
 
     // Reconcile family tasks against the initial snapshot only — steady-state
     // deletes are already covered by Firestore `removed` docChanges above.

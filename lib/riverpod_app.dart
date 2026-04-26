@@ -400,7 +400,7 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
         ),
       _navItems[2], // Stats
     ];
-    final clampedIndex = selectedIndex.clamp(0, liveNavItems.length - 1);
+    final clampedIndex = selectedIndex.clamp(0, liveNavItems.length - 1).toInt();
     final currentScreen = liveNavItems[clampedIndex].widgetGetter();
 
     // Status-bar inset handling depends on whether the banner is visible:
