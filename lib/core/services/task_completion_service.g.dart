@@ -47,7 +47,7 @@ final legacyTaskRepositoryProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef LegacyTaskRepositoryRef = AutoDisposeProviderRef<legacy.TaskRepository>;
-String _$completeTaskHash() => r'09eb4183234b7a6c783e3540c4bda420f862d480';
+String _$completeTaskHash() => r'3fd182ac744139a005094da91cbecccfb0c13580';
 
 /// Controller for completing tasks
 ///
@@ -65,7 +65,7 @@ final completeTaskProvider =
     );
 
 typedef _$CompleteTask = AutoDisposeAsyncNotifier<void>;
-String _$skipTaskHash() => r'9588cc3a71ab9c481d70266f165b7c564374d7b1';
+String _$skipTaskHash() => r'34b2b385586596c1dc8432a42ede8b18439b2c43';
 
 /// Controller for skipping a recurring task instance
 ///
@@ -83,9 +83,15 @@ final skipTaskProvider =
     );
 
 typedef _$SkipTask = AutoDisposeAsyncNotifier<void>;
-String _$deleteTaskHash() => r'b697d10289492d804bab9d6cd237ca89f64163ed';
+String _$deleteTaskHash() => r'75b5d13720fc5386dfd53999721eda028959ab36';
 
-/// Controller for deleting tasks
+/// Controller for deleting tasks.
+///
+/// Notifier `state` is intentionally NOT mutated from `call`. With a sync
+/// `FutureOr<void> build()` the AsyncNotifier's internal future completer
+/// is settled at construction; subsequent `state = AsyncLoading/AsyncData`
+/// re-completes it and throws "Bad state: Future already completed". UI
+/// loading state is handled locally by callers (e.g. `_busy` flags).
 ///
 /// Copied from [DeleteTask].
 @ProviderFor(DeleteTask)
@@ -101,9 +107,9 @@ final deleteTaskProvider =
     );
 
 typedef _$DeleteTask = AutoDisposeAsyncNotifier<void>;
-String _$addTaskHash() => r'422e6d9ba264f2d6ecb7f7fab8cd31dabacb7fe9';
+String _$addTaskHash() => r'51ea6d3782719a3c66736de8dde7136e96d558bd';
 
-/// Controller for adding new tasks
+/// Controller for adding new tasks.
 ///
 /// Copied from [AddTask].
 @ProviderFor(AddTask)
@@ -119,9 +125,9 @@ final addTaskProvider =
     );
 
 typedef _$AddTask = AutoDisposeAsyncNotifier<void>;
-String _$updateTaskHash() => r'4ba3d1a29f15da4d5656196838dfb2f0c85da99f';
+String _$updateTaskHash() => r'266fd392d8a7756777b4420817179c93a3c79728';
 
-/// Controller for updating tasks
+/// Controller for updating tasks.
 ///
 /// Copied from [UpdateTask].
 @ProviderFor(UpdateTask)
@@ -137,7 +143,7 @@ final updateTaskProvider =
     );
 
 typedef _$UpdateTask = AutoDisposeAsyncNotifier<void>;
-String _$snoozeTaskHash() => r'517fe60eb30102595472cb5841a25acb076fceff';
+String _$snoozeTaskHash() => r'41a16ac60a87691b0270be27a67eb2a58f54f4d3';
 
 /// Controller for snoozing tasks
 ///

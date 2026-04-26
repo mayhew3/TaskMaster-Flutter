@@ -11,6 +11,7 @@ import '../../../models/bad_schema_task.dart';
 import '../../../models/task_item.dart';
 import '../../../models/task_recurrence.dart';
 import '../../../models/serializers.dart';
+import '../../family/providers/family_providers.dart';
 
 part 'task_providers.g.dart';
 
@@ -63,6 +64,29 @@ Stream<List<TaskItem>> tasks(Ref ref) {
       }
     }
     badSchemaNotifier.replace(badTasks);
+    return tasks;
+  });
+}
+
+/// Stream of active (non-retired) tasks across all members of the current
+/// user's family (TM-335). Includes completed rows so the Family tab can
+/// reveal them when "Show Completed" is on. Empty when the user is solo.
+@riverpod
+Stream<List<TaskItem>> familyTasks(Ref ref) {
+  final familyDocId = ref.watch(currentFamilyDocIdProvider);
+  if (familyDocId == null) return Stream.value(const []);
+  final db = ref.watch(databaseProvider);
+
+  return db.taskDao.watchFamilyActiveTasks(familyDocId).map((rows) {
+    final tasks = <TaskItem>[];
+    for (final row in rows) {
+      try {
+        tasks.add(taskItemFromRow(row));
+      } catch (e) {
+        debugPrint(
+            '⚠️ [familyTasksProvider] Failed to convert row ${row.docId}: $e');
+      }
+    }
     return tasks;
   });
 }
@@ -166,6 +190,15 @@ TaskItem? task(Ref ref, String taskId) {
   );
   if (baseResult != null) return baseResult;
 
+  // Check family-shared tasks (TM-335) — when a non-owner taps a tile on the
+  // Family tab, the task isn't in the personal stream above.
+  final familyTasksAsync = ref.watch(familyTasksProvider);
+  final familyResult = familyTasksAsync.maybeWhen(
+    data: (tasks) => tasks.where((t) => t.docId == taskId).firstOrNull,
+    orElse: () => null,
+  );
+  if (familyResult != null) return familyResult;
+
   // Check recently completed tasks (task was just completed this session and
   // is no longer in the incomplete query but hasn't moved to batches yet).
   final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
@@ -192,13 +225,18 @@ TaskItem? task(Ref ref, String taskId) {
 Stream<TaskItem?> taskFromDb(Ref ref, String taskId) {
   final db = ref.watch(databaseProvider);
   final personDocId = ref.watch(personDocIdProvider);
+  final myFamilyDocId = ref.watch(currentFamilyDocIdProvider);
 
   if (personDocId == null) return Stream.value(null);
 
   final taskStream = db.taskDao.watchTaskById(taskId).map((row) {
     if (row == null) return null;
     // Guard against stale rows from another user (e.g. after sign-out/sign-in).
-    if (row.personDocId != personDocId) return null;
+    // Tasks belonging to a family member are also accessible (TM-335).
+    final isMine = row.personDocId == personDocId;
+    final isFamily =
+        myFamilyDocId != null && row.familyDocId == myFamilyDocId;
+    if (!isMine && !isFamily) return null;
     try {
       return taskItemFromRow(row);
     } catch (e) {

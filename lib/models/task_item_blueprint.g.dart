@@ -46,6 +46,7 @@ Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) =>
       'retired': instance.retired,
       'retiredDate': instance.retiredDate?.toIso8601String(),
       'personDocId': instance.personDocId,
+      'familyDocId': instance.familyDocId,
     };
 
 Json? _$JsonConverterToJson<Json, Value>(

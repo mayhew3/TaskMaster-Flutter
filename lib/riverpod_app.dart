@@ -17,6 +17,9 @@ import 'package:taskmaster/models/sprint.dart';
 import 'package:taskmaster/models/top_nav_item.dart';
 import 'package:taskmaster/features/shared/presentation/planning_home.dart';
 import 'package:taskmaster/features/tasks/presentation/stats_screen.dart';
+import 'package:taskmaster/features/family/presentation/family_tab_screen.dart';
+import 'package:taskmaster/features/family/presentation/pending_invitation_banner.dart';
+import 'package:taskmaster/features/family/providers/family_providers.dart';
 
 /// Riverpod-based main app widget
 /// This replaces the Redux-based TaskMasterApp when useRiverpodForAuth is enabled
@@ -320,7 +323,8 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
       final personDocId = ref.read(personDocIdProvider);
       if (personDocId != null) {
         final syncService = ref.read(syncServiceProvider);
-        await syncService.start(personDocId);
+        final email = ref.read(currentUserProvider)?.email;
+        await syncService.start(personDocId, email: email);
         await syncService.initialPullComplete
             .timeout(const Duration(seconds: 8), onTimeout: () {});
       }
@@ -381,23 +385,68 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
     // Watch the tab index provider (also clears recentlyCompleted on tab change - TM-312)
     final selectedIndex = ref.watch(activeTabIndexProvider);
 
-    // Get the current screen widget
-    final currentScreen = _navItems[selectedIndex].widgetGetter();
+    // Compose the live nav-item list. The Family tab is spliced in between
+    // Tasks and Stats only when the current user is in a family (TM-335);
+    // when solo, the layout matches the original 3-tab arrangement.
+    final inFamily = ref.watch(currentFamilyDocIdProvider) != null;
+    final liveNavItems = <TopNavItem>[
+      _navItems[0], // Plan
+      _navItems[1], // Tasks
+      if (inFamily)
+        TopNavItem.init(
+          label: 'Family',
+          icon: Icons.family_restroom,
+          widgetGetter: () => const FamilyTabScreen(),
+        ),
+      _navItems[2], // Stats
+    ];
+    final clampedIndex = selectedIndex.clamp(0, liveNavItems.length - 1).toInt();
+    // Write the clamped value back to the provider when a layout change (e.g.
+    // leaving the family) makes the stored index out of range. Done in a
+    // post-frame callback to avoid mutating provider state during build.
+    if (clampedIndex != selectedIndex) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ref.read(activeTabIndexProvider.notifier).clampToLayout(liveNavItems.length);
+        }
+      });
+    }
+    final currentScreen = liveNavItems[clampedIndex].widgetGetter();
 
-    // Build with navigation bar - using Scaffold's bottomNavigationBar slot
-    // for proper Material 3 layout (not Column which caused excess padding)
+    // Status-bar inset handling depends on whether the banner is visible:
+    // - When showing, the banner self-wraps in SafeArea(top: true) so it
+    //   sits below the system icons; we then strip MediaQuery.padding.top
+    //   for currentScreen so the inner-tab AppBar doesn't double-inset
+    //   (which would leave a status-bar-tall dead strip below the banner).
+    // - When hidden, the banner collapses to SizedBox.shrink and the inner
+    //   AppBar handles its own status-bar inset normally.
+    final hasPendingInvite =
+        (ref.watch(pendingInvitationsForMeProvider).valueOrNull ?? const [])
+            .isNotEmpty;
+    final tabBody = hasPendingInvite
+        ? MediaQuery.removePadding(
+            context: context,
+            removeTop: true,
+            child: currentScreen,
+          )
+        : currentScreen;
+
     return Scaffold(
-      body: currentScreen,
+      body: Column(
+        children: [
+          const PendingInvitationBanner(),
+          Expanded(child: tabBody),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: selectedIndex,
+        selectedIndex: clampedIndex,
         backgroundColor: TaskColors.menuColor,
         indicatorColor: TaskColors.backgroundColor,
         height: 70,
         onDestinationSelected: (index) {
-          // Use provider to change tab - this also clears recentlyCompleted (TM-312)
           ref.read(activeTabIndexProvider.notifier).setTab(index);
         },
-        destinations: _navItems.map((item) {
+        destinations: liveNavItems.map((item) {
           return NavigationDestination(
             icon: Icon(item.icon),
             label: item.label,

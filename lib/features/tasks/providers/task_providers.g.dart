@@ -27,6 +27,27 @@ final tasksProvider = AutoDisposeStreamProvider<List<TaskItem>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TasksRef = AutoDisposeStreamProviderRef<List<TaskItem>>;
+String _$familyTasksHash() => r'92c29c589854674a7fd323010b3d90e69df14d89';
+
+/// Stream of active (non-retired) tasks across all members of the current
+/// user's family (TM-335). Includes completed rows so the Family tab can
+/// reveal them when "Show Completed" is on. Empty when the user is solo.
+///
+/// Copied from [familyTasks].
+@ProviderFor(familyTasks)
+final familyTasksProvider = AutoDisposeStreamProvider<List<TaskItem>>.internal(
+  familyTasks,
+  name: r'familyTasksProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$familyTasksHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef FamilyTasksRef = AutoDisposeStreamProviderRef<List<TaskItem>>;
 String _$taskRecurrencesHash() => r'c3d03c40cb17dc6353864bf8228dc7660b4f2ebb';
 
 /// Stream of task recurrences for the current user.
@@ -69,7 +90,7 @@ final tasksWithRecurrencesProvider = StreamProvider<List<TaskItem>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TasksWithRecurrencesRef = StreamProviderRef<List<TaskItem>>;
-String _$taskHash() => r'e3a05572e31bf1c64a3eaac470f1133ff49f0c68';
+String _$taskHash() => r'7c6292da2303c3c218da2d011a6e732142af8912';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -246,7 +267,7 @@ class _TaskProviderElement extends AutoDisposeProviderElement<TaskItem?>
   String get taskId => (origin as TaskProvider).taskId;
 }
 
-String _$taskFromDbHash() => r'4ddf6fbded33174e2b9495b4d534dc4ba4934371';
+String _$taskFromDbHash() => r'bbfc5ee5bb792bece1b3dd688f073fad64c51483';
 
 /// Stream of a single task directly from Drift by docId, with recurrence populated.
 /// Has NO completionDate filter — returns completed tasks too.

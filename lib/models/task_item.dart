@@ -23,6 +23,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   DateTime get dateAdded;
 
   String? get personDocId;
+  String? get familyDocId;
 
   @override
   String get name;
@@ -106,6 +107,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
     blueprint.gamePoints = gamePoints;
     blueprint.offCycle = offCycle;
     blueprint.personDocId = personDocId;
+    blueprint.familyDocId = familyDocId;
     blueprint.recurNumber = recurNumber;
     blueprint.recurUnit = recurUnit;
     blueprint.recurWait = recurWait;
@@ -129,6 +131,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
 
     return new TaskItemRecurPreview(name)
       ..personDocId = personDocId
+      ..familyDocId = familyDocId
       ..name = name
       ..description = description
       ..project = project

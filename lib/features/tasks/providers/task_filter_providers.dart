@@ -113,6 +113,10 @@ Future<List<TaskItem>> filteredTasks(Ref ref) async {
     // Always hide retired tasks
     if (task.retired != null) return false;
 
+    // Hide family-shared tasks — they live exclusively on the Family tab
+    // (TM-335). The Tasks tab is the user's personal queue.
+    if (task.familyDocId != null) return false;
+
     // Apply text search filter
     if (searchQuery.isNotEmpty) {
       if (!task.name.toLowerCase().contains(searchQuery)) return false;

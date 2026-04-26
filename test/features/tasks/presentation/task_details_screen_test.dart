@@ -2,6 +2,7 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:taskmaster/core/providers/auth_providers.dart';
 import 'package:taskmaster/core/providers/firebase_providers.dart';
 import 'package:taskmaster/core/services/task_completion_service.dart';
 import 'package:taskmaster/features/tasks/presentation/task_add_edit_screen.dart';
@@ -48,6 +49,10 @@ void main() {
         ProviderScope(
           overrides: [
             firestoreProvider.overrideWithValue(fakeFirestore),
+            // Tests use 'person-123' as the task owner; mirror that on the
+            // auth provider so the new ownership-gated UI (TM-335 Edit FAB,
+            // recurrence-edit guard) keeps treating the task as "mine".
+            personDocIdProvider.overrideWith((ref) => 'person-123'),
             tasksProvider.overrideWith((ref) => Stream.value([taskWithRecurrence])),
             tasksWithRecurrencesProvider.overrideWith((ref) => Stream.value([taskWithRecurrence])),
             taskRecurrencesProvider.overrideWith((ref) => Stream.value(

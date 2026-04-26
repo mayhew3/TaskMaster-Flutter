@@ -52,6 +52,13 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
       ..add(
         serializers.serialize(value, specifiedType: const FullType(String)),
       );
+    value = object.familyDocId;
+
+    result
+      ..add('familyDocId')
+      ..add(
+        serializers.serialize(value, specifiedType: const FullType(String)),
+      );
     value = object.description;
 
     result
@@ -207,6 +214,14 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
           break;
         case 'personDocId':
           result.personDocId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
+          break;
+        case 'familyDocId':
+          result.familyDocId =
               serializers.deserialize(
                     value,
                     specifiedType: const FullType(String),
@@ -386,6 +401,8 @@ class _$TaskItem extends TaskItem {
   @override
   final String? personDocId;
   @override
+  final String? familyDocId;
+  @override
   final String name;
   @override
   final String? description;
@@ -441,6 +458,7 @@ class _$TaskItem extends TaskItem {
     required this.docId,
     required this.dateAdded,
     this.personDocId,
+    this.familyDocId,
     required this.name,
     this.description,
     this.project,
@@ -480,6 +498,7 @@ class _$TaskItem extends TaskItem {
         docId == other.docId &&
         dateAdded == other.dateAdded &&
         personDocId == other.personDocId &&
+        familyDocId == other.familyDocId &&
         name == other.name &&
         description == other.description &&
         project == other.project &&
@@ -512,6 +531,7 @@ class _$TaskItem extends TaskItem {
     _$hash = $jc(_$hash, docId.hashCode);
     _$hash = $jc(_$hash, dateAdded.hashCode);
     _$hash = $jc(_$hash, personDocId.hashCode);
+    _$hash = $jc(_$hash, familyDocId.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
     _$hash = $jc(_$hash, project.hashCode);
@@ -546,6 +566,7 @@ class _$TaskItem extends TaskItem {
           ..add('docId', docId)
           ..add('dateAdded', dateAdded)
           ..add('personDocId', personDocId)
+          ..add('familyDocId', familyDocId)
           ..add('name', name)
           ..add('description', description)
           ..add('project', project)
@@ -588,6 +609,10 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   String? _personDocId;
   String? get personDocId => _$this._personDocId;
   set personDocId(String? personDocId) => _$this._personDocId = personDocId;
+
+  String? _familyDocId;
+  String? get familyDocId => _$this._familyDocId;
+  set familyDocId(String? familyDocId) => _$this._familyDocId = familyDocId;
 
   String? _name;
   String? get name => _$this._name;
@@ -701,6 +726,7 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
       _docId = $v.docId;
       _dateAdded = $v.dateAdded;
       _personDocId = $v.personDocId;
+      _familyDocId = $v.familyDocId;
       _name = $v.name;
       _description = $v.description;
       _project = $v.project;
@@ -760,6 +786,7 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
               'dateAdded',
             ),
             personDocId: personDocId,
+            familyDocId: familyDocId,
             name: BuiltValueNullFieldError.checkNotNull(
               name,
               r'TaskItem',

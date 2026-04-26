@@ -11,7 +11,9 @@ import 'package:taskmaster/core/database/tables.dart';
 import 'package:taskmaster/core/providers/auth_providers.dart';
 import 'package:taskmaster/core/providers/database_provider.dart';
 import 'package:taskmaster/core/providers/firebase_providers.dart';
+import 'package:taskmaster/core/providers/notification_providers.dart';
 import 'package:taskmaster/core/services/analytics_service.dart';
+import 'package:taskmaster/core/services/notification_helper_impl.dart';
 import 'package:taskmaster/core/services/sync_service.dart';
 import 'package:taskmaster/core/services/task_completion_service.dart';
 import 'package:taskmaster/features/tasks/domain/task_repository.dart';
@@ -26,6 +28,7 @@ import 'task_completion_service_test.mocks.dart';
   MockSpec<TimezoneHelper>(),
   MockSpec<SyncService>(),
   MockSpec<AnalyticsService>(),
+  MockSpec<NotificationHelperImpl>(),
 ])
 void main() {
   // ── Shared helpers ──────────────────────────────────────────────────────────
@@ -69,6 +72,9 @@ void main() {
           syncServiceProvider.overrideWithValue(mockSyncService),
           analyticsServiceProvider.overrideWithValue(mockAnalytics),
           personDocIdProvider.overrideWith((ref) => 'person123'),
+          // Mock the notification helper — the real one initializes the
+          // platform plugin which isn't available in unit tests.
+          notificationHelperProvider.overrideWithValue(MockNotificationHelperImpl()),
         ],
       );
     });
@@ -140,6 +146,7 @@ void main() {
           firestoreProvider.overrideWithValue(FakeFirebaseFirestore()),
           syncServiceProvider.overrideWithValue(mockSyncService),
           personDocIdProvider.overrideWith((ref) => 'person123'),
+          notificationHelperProvider.overrideWithValue(MockNotificationHelperImpl()),
         ],
       );
 
@@ -239,6 +246,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           syncServiceProvider.overrideWithValue(mockSyncService),
           analyticsServiceProvider.overrideWithValue(mockAnalytics),
+          notificationHelperProvider.overrideWithValue(MockNotificationHelperImpl()),
         ],
       );
 
@@ -335,6 +343,7 @@ void main() {
         syncServiceProvider.overrideWithValue(mockSyncService),
         analyticsServiceProvider.overrideWithValue(mockAnalytics),
         personDocIdProvider.overrideWith((ref) => 'person123'),
+        notificationHelperProvider.overrideWithValue(MockNotificationHelperImpl()),
       ]);
 
       // Seed a synced recurring task whose recurrenceDocId points to a

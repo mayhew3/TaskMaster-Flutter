@@ -5,6 +5,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../models/family.dart' as m;
+import '../../models/family_invitation.dart' as m;
+import '../../models/person.dart' as m;
 import '../../models/serializers.dart';
 import '../../models/sprint.dart' as m;
 import '../../models/sprint_assignment.dart' as m;
@@ -16,8 +19,10 @@ import '../database/tables.dart';
 import '../providers/connectivity_provider.dart';
 import '../providers/database_provider.dart';
 import '../providers/firebase_providers.dart';
+import '../providers/notification_providers.dart';
 import '../providers/sync_status_provider.dart';
 import 'crash_reporter.dart';
+import 'notification_helper_impl.dart';
 
 part 'sync_service.g.dart';
 
@@ -50,9 +55,27 @@ class SyncService {
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _sprintsSub;
   final Map<String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>
       _assignmentSubs = {};
+  // Family-feature subscriptions (TM-335).
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _personSelfSub;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _invitationsSub;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _familyDocSub;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _familyMembersSub;
+  // Last set of member docIds this listener is watching, so we can skip
+  // tearing down + rebuilding the Firestore listener on family-doc snapshots
+  // that didn't actually change membership.
+  Set<String>? _familyMembersWatchedSet;
+  // In-memory set of task docIds currently tracked by the family-tasks
+  // listener. Used by _onTasksSnapshot to avoid deleting rows that are still
+  // live under the family listener (completing your own family-shared task
+  // removes it from the personal incomplete-only query, but the family listener
+  // still holds it). Updated on every family-tasks snapshot; cleared on detach.
+  Set<String> _familyTaskDocIds = {};
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _familyTasksSub;
   ProviderSubscription<AsyncValue<bool>>? _connectivitySub;
 
   String? _currentPersonDocId;
+  String? _currentEmail;
+  String? _currentFamilyDocId;
   bool _wasOnline = true;
   DateTime? _startTime;
 
@@ -67,6 +90,7 @@ class SyncService {
   bool _tasksInitialReceived = false;
   bool _recurrencesInitialReceived = false;
   bool _sprintsInitialReceived = false;
+  bool _familyTasksInitialReceived = false;
 
   // Completes once all 3 collections have delivered their first snapshot.
   // The UI awaits this to show a loading screen on cold start.
@@ -91,14 +115,34 @@ class SyncService {
     }
   }
 
-  Future<void> start(String personDocId) async {
-    if (_currentPersonDocId == personDocId) return;
+  Future<void> start(String personDocId, {String? email}) async {
+    if (_currentPersonDocId == personDocId) {
+      // Same user — but the email may have arrived after the original
+      // start() (e.g. auth resolved later). If we never attached the
+      // invitations listener, attach it now without tearing down the
+      // already-running listeners. If the email actually changed, restart
+      // the invitations listener to point at the new address.
+      if (email != null &&
+          email.isNotEmpty &&
+          email != _currentEmail) {
+        _currentEmail = email;
+        await _invitationsSub?.cancel();
+        _invitationsSub = firestore
+            .collection('familyInvitations')
+            .where('inviteeEmail', isEqualTo: email)
+            .snapshots()
+            .listen(_onInvitationsSnapshot, onError: _logSyncError);
+        _syncLog('[SyncService] reattached invitations listener (email=$email)');
+      }
+      return;
+    }
     await stop();
     _currentPersonDocId = personDocId;
+    _currentEmail = email;
     _initialPullCompleter = Completer<void>();
     _initialSnapshotsReceived = 0;
     _startTime = DateTime.now();
-    _syncLog('[SyncService] start() — personDocId=$personDocId');
+    _syncLog('[SyncService] start() — personDocId=$personDocId email=$email');
 
     _tasksSub = firestore
         .collection('tasks')
@@ -126,6 +170,22 @@ class SyncService {
         .snapshots()
         .listen(_onSprintsSnapshot, onError: _logSyncError);
 
+    // Family feature (TM-335): listen to my own Person doc to detect family
+    // membership changes; listen to invitations addressed to my email.
+    _personSelfSub = firestore
+        .collection('persons')
+        .doc(personDocId)
+        .snapshots()
+        .listen(_onPersonSelfSnapshot, onError: _logSyncError);
+
+    if (email != null && email.isNotEmpty) {
+      _invitationsSub = firestore
+          .collection('familyInvitations')
+          .where('inviteeEmail', isEqualTo: email)
+          .snapshots()
+          .listen(_onInvitationsSnapshot, onError: _logSyncError);
+    }
+
     _connectivitySub = ref.listen<AsyncValue<bool>>(
       connectivityProvider,
       (prev, next) {
@@ -148,12 +208,19 @@ class SyncService {
       await sub.cancel();
     }
     _assignmentSubs.clear();
+    await _detachFamilyListeners();
+    await _personSelfSub?.cancel();
+    await _invitationsSub?.cancel();
     _connectivitySub?.close();
     _tasksSub = null;
     _recurrencesSub = null;
     _sprintsSub = null;
+    _personSelfSub = null;
+    _invitationsSub = null;
     _connectivitySub = null;
     _currentPersonDocId = null;
+    _currentEmail = null;
+    _currentFamilyDocId = null;
     _tasksInitialReceived = false;
     _recurrencesInitialReceived = false;
     _sprintsInitialReceived = false;
@@ -162,6 +229,21 @@ class SyncService {
     }
     _initialPullCompleter = null;
     _initialSnapshotsReceived = 0;
+  }
+
+  /// Cancel all family-scoped listeners. Called when [_currentFamilyDocId]
+  /// changes (or becomes null) and on [stop].
+  Future<void> _detachFamilyListeners() async {
+    await _familyDocSub?.cancel();
+    await _familyMembersSub?.cancel();
+    await _familyTasksSub?.cancel();
+    _familyDocSub = null;
+    _familyMembersSub = null;
+    _familyTasksSub = null;
+    _familyMembersWatchedSet = null;
+    _familyTaskDocIds = {};
+    // Reset so the next attach treats its first snapshot as initial again.
+    _familyTasksInitialReceived = false;
   }
 
   // ── Snapshot handlers ──────────────────────────────────────────────────────
@@ -177,8 +259,30 @@ class SyncService {
     _syncLog('[SyncService] +${_ms()}ms tasks snapshot arrived: ${snapshot.docs.length} docs, ${snapshot.docChanges.length} changes, isInitial=$isInitial');
 
     final toUpsert = <TasksCompanion>[];
+    final toRefreshNotifications = <m.TaskItem>[];
     for (final change in snapshot.docChanges) {
       if (change.type == DocumentChangeType.removed) {
+        // The personal listener filters incomplete-only, so a doc leaving its
+        // view usually means completion (not deletion). The doc data is still
+        // available on the change and typically has completionDate set; adding
+        // it to the refresh list lets the notification helper cancel any
+        // scheduled alerts for the now-completed task.
+        try {
+          final data = change.doc.data();
+          if (data != null && !isInitial) {
+            final json = Map<String, dynamic>.from(data);
+            json['docId'] = change.doc.id;
+            final task = serializers.deserializeWith(m.TaskItem.serializer, json);
+            if (task != null) toRefreshNotifications.add(task);
+          }
+        } catch (e, s) {
+          _logSyncError(e, s);
+        }
+        // For family-shared tasks the family listener still owns the row —
+        // deleting here would race with the family listener's upsert and lose
+        // it. Skip the delete; the family listener will deliver its own removed
+        // event when the task is truly retired/deleted.
+        if (_familyTaskDocIds.contains(change.doc.id)) continue;
         await db.taskDao.deleteFromRemote(change.doc.id);
         continue;
       }
@@ -186,7 +290,13 @@ class SyncService {
         final json = Map<String, dynamic>.from(change.doc.data()!);
         json['docId'] = change.doc.id;
         final task = serializers.deserializeWith(m.TaskItem.serializer, json);
-        if (task != null) toUpsert.add(taskItemToCompanion(task));
+        if (task != null) {
+          toUpsert.add(taskItemToCompanion(task));
+          // Schedule notification refresh post-snapshot. Skip on initial
+          // because notificationSyncProvider does a full bulk sync on app
+          // startup; per-task updates here would just duplicate work.
+          if (!isInitial) toRefreshNotifications.add(task);
+        }
       } catch (e, s) {
         _logSyncError(e, s);
       }
@@ -205,9 +315,28 @@ class SyncService {
       await db.taskDao.deleteSyncedIncompleteNotIn(_currentPersonDocId!, remoteIds);
     }
 
+    _refreshNotificationsForTasks(toRefreshNotifications);
+
     _syncLog('[SyncService] +${_ms()}ms tasks transaction done');
     if (isInitial) _markInitialSnapshotReceived();
     _syncLog('[SyncService] +${_ms()}ms tasks initial complete');
+  }
+
+  /// Fire-and-forget per-task notification refresh. Each task is sent through
+  /// the helper which decides whether to schedule (active) or cancel
+  /// (completed / retired) based on its current state. Errors are logged but
+  /// don't affect sync; notifications are best-effort by design.
+  void _refreshNotificationsForTasks(List<m.TaskItem> tasks) {
+    if (tasks.isEmpty) return;
+    final NotificationHelperImpl helper;
+    try {
+      helper = ref.read(notificationHelperProvider);
+    } catch (_) {
+      // Helper unavailable (tests, init race) — silently skip.
+      return;
+    }
+    helper.updateNotificationsForTasks(tasks).catchError(
+        (e) => _syncLog('[SyncService] notification batch refresh error: $e'));
   }
 
   Future<void> _onRecurrencesSnapshot(
@@ -331,6 +460,257 @@ class SyncService {
     for (final id in stale) {
       await _assignmentSubs.remove(id)?.cancel();
     }
+  }
+
+  // ── Family snapshot handlers (TM-335) ──────────────────────────────────────
+
+  Future<void> _onPersonSelfSnapshot(
+      DocumentSnapshot<Map<String, dynamic>> snapshot) async {
+    final data = snapshot.data();
+    if (data == null) {
+      // Person doc was deleted (or never existed). Detach any family listeners
+      // and clear the local row.
+      if (_currentPersonDocId != null) {
+        await db.personDao.deleteFromRemote(_currentPersonDocId!);
+      }
+      if (_currentFamilyDocId != null) {
+        _currentFamilyDocId = null;
+        await _detachFamilyListeners();
+      }
+      return;
+    }
+    try {
+      final json = Map<String, dynamic>.from(data);
+      json['docId'] = snapshot.id;
+      final person = serializers.deserializeWith(m.Person.serializer, json);
+      if (person != null) {
+        await db.personDao.upsertFromRemote(personToCompanion(person));
+      }
+      final newFamilyDocId = data['familyDocId'] as String?;
+      if (newFamilyDocId != _currentFamilyDocId) {
+        _currentFamilyDocId = newFamilyDocId;
+        await _detachFamilyListeners();
+        if (newFamilyDocId != null && newFamilyDocId.isNotEmpty) {
+          _attachFamilyListeners(newFamilyDocId);
+        }
+      }
+    } catch (e, s) {
+      _logSyncError(e, s);
+    }
+  }
+
+  void _attachFamilyListeners(String familyDocId) {
+    _familyDocSub = firestore
+        .collection('families')
+        .doc(familyDocId)
+        .snapshots()
+        .listen(_onFamilyDocSnapshot, onError: _logSyncError);
+
+    // Family-tasks listener intentionally does NOT filter `completionDate`
+    // so the "Show Completed" toggle on the Family tab can surface completed
+    // family tasks after the user navigates away and back. Cost: every
+    // completed family task ever flows into Drift; acceptable at MVP family
+    // sizes. Tier 2 (TM-336) can paginate if this becomes an issue.
+    _familyTasksSub = firestore
+        .collection('tasks')
+        .where('familyDocId', isEqualTo: familyDocId)
+        .where('retired', isNull: true)
+        .snapshots()
+        .listen(_onFamilyTasksSnapshot, onError: _logSyncError);
+  }
+
+  Future<void> _onFamilyDocSnapshot(
+      DocumentSnapshot<Map<String, dynamic>> snapshot) async {
+    final data = snapshot.data();
+    if (data == null) {
+      // Family was deleted server-side (e.g. last member left). Drop the
+      // local row and detach every family-scoped listener — leaving the
+      // family-tasks listener running here would keep mirroring tasks for a
+      // family that no longer exists. _currentFamilyDocId is reset so the
+      // next persons-self snapshot can reattach if the user joins another.
+      await db.familyDao.deleteFromRemote(snapshot.id);
+      await _detachFamilyListeners();
+      _currentFamilyDocId = null;
+      return;
+    }
+    try {
+      final json = Map<String, dynamic>.from(data);
+      json['docId'] = snapshot.id;
+      final family = serializers.deserializeWith(m.Family.serializer, json);
+      if (family != null) {
+        await db.familyDao.upsertFromRemote(familyToCompanion(family));
+      }
+      final members = (data['members'] as List<dynamic>?)
+              ?.cast<String>()
+              .where((id) => id.isNotEmpty)
+              .toList() ??
+          const <String>[];
+      await _ensureFamilyMembersListener(members);
+    } catch (e, s) {
+      _logSyncError(e, s);
+    }
+  }
+
+  Future<void> _ensureFamilyMembersListener(List<String> memberDocIds) async {
+    final newSet = memberDocIds.toSet();
+    // Skip when the watched set is unchanged — most family-doc snapshots are
+    // unrelated to membership (e.g. ownership transfer or denormalized
+    // metadata edits) and recreating the listener on every one causes
+    // unnecessary churn + brief gaps in the persons stream.
+    if (_familyMembersWatchedSet != null &&
+        _familyMembersSub != null &&
+        _familyMembersWatchedSet!.length == newSet.length &&
+        _familyMembersWatchedSet!.containsAll(newSet)) {
+      return;
+    }
+
+    // Identify members that just left the family. Their local persons row
+    // still has familyDocId set (the personsListener's whereIn no longer
+    // includes them, so the clearing update from FamilyRepository.removeMember
+    // never reaches this device through the regular persons stream). Clear
+    // familyDocId locally so PersonDao.watchByFamily stops surfacing them in
+    // the manage-screen roster + "Added by" lookup.
+    final removed = (_familyMembersWatchedSet ?? const <String>{})
+        .difference(newSet);
+    final familyDocId = _currentFamilyDocId;
+    if (removed.isNotEmpty && familyDocId != null) {
+      await db.personDao.clearFamilyForRemovedMembers(familyDocId, removed);
+    }
+
+    await _familyMembersSub?.cancel();
+    _familyMembersSub = null;
+    _familyMembersWatchedSet = null;
+
+    if (memberDocIds.isEmpty) return;
+    // Firestore `whereIn` supports up to 30 elements per query; family size
+    // for MVP is well under that. If a future Tier 2 supports larger groups
+    // we'll need to chunk.
+    _familyMembersSub = firestore
+        .collection('persons')
+        .where(FieldPath.documentId, whereIn: memberDocIds)
+        .snapshots()
+        .listen(_onFamilyMembersSnapshot, onError: _logSyncError);
+    _familyMembersWatchedSet = newSet;
+  }
+
+  Future<void> _onFamilyMembersSnapshot(
+      QuerySnapshot<Map<String, dynamic>> snapshot) async {
+    final toUpsert = <PersonsCompanion>[];
+    for (final change in snapshot.docChanges) {
+      if (change.type == DocumentChangeType.removed) {
+        // Member dropped from the family — its persons doc still exists, but
+        // it's no longer reachable through the family lens. Leave the local
+        // row alone; the personSelf listener (if any) for that user will
+        // refresh it from their side.
+        continue;
+      }
+      try {
+        final data = change.doc.data();
+        if (data == null) continue;
+        final json = Map<String, dynamic>.from(data);
+        json['docId'] = change.doc.id;
+        final person = serializers.deserializeWith(m.Person.serializer, json);
+        if (person != null) {
+          toUpsert.add(personToCompanion(person));
+        }
+      } catch (e, s) {
+        _logSyncError(e, s);
+      }
+    }
+    await db.personDao.bulkUpsertFromRemote(toUpsert);
+  }
+
+  Future<void> _onFamilyTasksSnapshot(
+      QuerySnapshot<Map<String, dynamic>> snapshot) async {
+    final familyDocId = _currentFamilyDocId;
+    if (familyDocId == null) return;
+    final isInitial = !_familyTasksInitialReceived;
+    _familyTasksInitialReceived = true;
+
+    final toUpsert = <TasksCompanion>[];
+    final toRefreshNotifications = <m.TaskItem>[];
+    for (final change in snapshot.docChanges) {
+      if (change.type == DocumentChangeType.removed) {
+        // Deserialize the last-known doc data so the notification helper can
+        // cancel any scheduled alerts for this task (e.g. when a task is
+        // retired, un-shared, or the member leaves the family).
+        try {
+          final data = change.doc.data();
+          if (data != null && !isInitial) {
+            final json = Map<String, dynamic>.from(data);
+            json['docId'] = change.doc.id;
+            final task = serializers.deserializeWith(m.TaskItem.serializer, json);
+            if (task != null) toRefreshNotifications.add(task);
+          }
+        } catch (e, s) {
+          _logSyncError(e, s);
+        }
+        await db.taskDao.deleteFromRemote(change.doc.id);
+        continue;
+      }
+      try {
+        final json = Map<String, dynamic>.from(change.doc.data()!);
+        json['docId'] = change.doc.id;
+        final task = serializers.deserializeWith(m.TaskItem.serializer, json);
+        if (task != null) {
+          toUpsert.add(taskItemToCompanion(task));
+          // Skip on initial — notificationSyncProvider does the bulk sync at
+          // app start. Per-task refresh after the initial snapshot covers
+          // family-shared task changes from other devices (TM-335 follow-up).
+          if (!isInitial) toRefreshNotifications.add(task);
+        }
+      } catch (e, s) {
+        _logSyncError(e, s);
+      }
+    }
+    await db.taskDao.bulkUpsertFromRemote(toUpsert);
+
+    // Keep the in-memory family-task ID set up to date so the personal-tasks
+    // listener can skip deleting rows that are still live here.
+    _familyTaskDocIds = snapshot.docs.map((d) => d.id).toSet();
+
+    // Reconcile family tasks against the initial snapshot only — steady-state
+    // deletes are already covered by Firestore `removed` docChanges above.
+    // Running this on every snapshot turned each modification into an O(N)
+    // NOT-IN delete across the whole family-task table, which gets expensive
+    // as completed family tasks accumulate. Scoped to familyDocId so a
+    // leave/rejoin cycle with a different family doesn't touch the new
+    // family's rows.
+    if (isInitial) {
+      final remoteIds = snapshot.docs.map((d) => d.id).toSet();
+      await db.taskDao.deleteSyncedFamilyTasksNotIn(familyDocId, remoteIds);
+    }
+
+    _refreshNotificationsForTasks(toRefreshNotifications);
+  }
+
+  Future<void> _onInvitationsSnapshot(
+      QuerySnapshot<Map<String, dynamic>> snapshot) async {
+    final email = _currentEmail;
+    if (email == null) return;
+    final toUpsert = <FamilyInvitationsCompanion>[];
+    for (final change in snapshot.docChanges) {
+      if (change.type == DocumentChangeType.removed) {
+        await db.familyInvitationDao.deleteFromRemote(change.doc.id);
+        continue;
+      }
+      try {
+        final json = Map<String, dynamic>.from(change.doc.data()!);
+        json['docId'] = change.doc.id;
+        final invitation =
+            serializers.deserializeWith(m.FamilyInvitation.serializer, json);
+        if (invitation != null) {
+          toUpsert.add(familyInvitationToCompanion(invitation));
+        }
+      } catch (e, s) {
+        _logSyncError(e, s);
+      }
+    }
+    await db.familyInvitationDao.bulkUpsertFromRemote(toUpsert);
+
+    final remoteIds = snapshot.docs.map((d) => d.id).toSet();
+    await db.familyInvitationDao
+        .deleteSyncedNotInForEmail(email, remoteIds);
   }
 
   void _ensureAssignmentListener(

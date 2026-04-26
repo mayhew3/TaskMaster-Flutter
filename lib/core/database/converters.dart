@@ -4,6 +4,9 @@ import 'package:built_collection/built_collection.dart';
 import 'package:drift/drift.dart';
 
 import '../../models/anchor_date.dart' as m;
+import '../../models/family.dart' as m;
+import '../../models/family_invitation.dart' as m;
+import '../../models/person.dart' as m;
 import '../../models/sprint.dart' as m;
 import '../../models/sprint_assignment.dart' as m;
 import '../../models/task_date_type.dart';
@@ -31,6 +34,7 @@ m.TaskItem taskItemFromRow(Task row) {
     ..docId = row.docId
     ..dateAdded = _utc(row.dateAdded)
     ..personDocId = row.personDocId
+    ..familyDocId = row.familyDocId
     ..name = row.name
     ..description = row.description
     ..project = row.project
@@ -60,6 +64,7 @@ TasksCompanion taskItemToCompanion(m.TaskItem task) {
     docId: Value(task.docId),
     dateAdded: Value(task.dateAdded),
     personDocId: Value(task.personDocId),
+    familyDocId: Value(task.familyDocId),
     name: Value(task.name),
     description: Value(task.description),
     project: Value(task.project),
@@ -202,6 +207,7 @@ TasksCompanion taskBlueprintToCompanion({
     docId: Value(docId),
     dateAdded: Value(dateAdded),
     personDocId: Value(personDocId),
+    familyDocId: Value(blueprint.familyDocId),
     name: Value(blueprint.name ?? ''),
     description: Value(blueprint.description),
     project: Value(blueprint.project),
@@ -236,6 +242,9 @@ TasksCompanion taskBlueprintToDiff(TaskItemBlueprint blueprint) {
   return TasksCompanion(
     name:
         blueprint.name != null ? Value(blueprint.name!) : const Value.absent(),
+    familyDocId: blueprint.familyDocId != null
+        ? Value(blueprint.familyDocId)
+        : const Value.absent(),
     description: Value(blueprint.description),
     project: Value(blueprint.project),
     taskContext: Value(blueprint.context),
@@ -280,6 +289,78 @@ TaskRecurrencesCompanion recurrenceBlueprintToCompanion({
     recurWait: Value(blueprint.recurWait ?? false),
     recurIteration: Value(blueprint.recurIteration ?? 1),
     anchorDateJson: Value(_anchorDateToJson(anchorDate)),
+  );
+}
+
+// ── Family / FamilyInvitation / Person ──────────────────────────────────────
+
+m.Family familyFromRow(Family row) {
+  final List<dynamic> raw = jsonDecode(row.membersJson) as List<dynamic>;
+  final members = raw.map((e) => e as String);
+  return m.Family((b) => b
+    ..docId = row.docId
+    ..dateAdded = _utc(row.dateAdded)
+    ..ownerPersonDocId = row.ownerPersonDocId
+    ..members = ListBuilder<String>(members)
+    ..retired = row.retired
+    ..retiredDate = _utcOrNull(row.retiredDate));
+}
+
+FamiliesCompanion familyToCompanion(m.Family family) {
+  return FamiliesCompanion(
+    docId: Value(family.docId),
+    dateAdded: Value(family.dateAdded),
+    ownerPersonDocId: Value(family.ownerPersonDocId),
+    membersJson: Value(jsonEncode(family.members.toList())),
+    retired: Value(family.retired),
+    retiredDate: Value(family.retiredDate),
+  );
+}
+
+m.FamilyInvitation familyInvitationFromRow(FamilyInvitation row) {
+  return m.FamilyInvitation((b) => b
+    ..docId = row.docId
+    ..dateAdded = _utc(row.dateAdded)
+    ..inviterPersonDocId = row.inviterPersonDocId
+    ..inviterFamilyDocId = row.inviterFamilyDocId
+    ..inviterDisplayName = row.inviterDisplayName
+    ..inviteeEmail = row.inviteeEmail
+    ..status = row.status);
+}
+
+FamilyInvitationsCompanion familyInvitationToCompanion(
+    m.FamilyInvitation invitation) {
+  return FamilyInvitationsCompanion(
+    docId: Value(invitation.docId),
+    dateAdded: Value(invitation.dateAdded),
+    inviterPersonDocId: Value(invitation.inviterPersonDocId),
+    inviterFamilyDocId: Value(invitation.inviterFamilyDocId),
+    inviterDisplayName: Value(invitation.inviterDisplayName),
+    inviteeEmail: Value(invitation.inviteeEmail),
+    status: Value(invitation.status),
+  );
+}
+
+m.Person personFromRow(Person row) {
+  return m.Person((b) => b
+    ..docId = row.docId
+    ..dateAdded = _utc(row.dateAdded)
+    ..email = row.email
+    ..displayName = row.displayName
+    ..familyDocId = row.familyDocId
+    ..retired = row.retired
+    ..retiredDate = _utcOrNull(row.retiredDate));
+}
+
+PersonsCompanion personToCompanion(m.Person person) {
+  return PersonsCompanion(
+    docId: Value(person.docId),
+    dateAdded: Value(person.dateAdded),
+    email: Value(person.email),
+    displayName: Value(person.displayName),
+    familyDocId: Value(person.familyDocId),
+    retired: Value(person.retired),
+    retiredDate: Value(person.retiredDate),
   );
 }
 

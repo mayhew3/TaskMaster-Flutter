@@ -13,16 +13,23 @@ import 'package:taskmaster/features/shared/presentation/widgets/nullable_dropdow
 import 'package:taskmaster/helpers/task_selectors.dart';
 import 'package:taskmaster/timezone_helper.dart';
 import '../../../core/services/task_completion_service.dart';
+import '../../family/providers/family_providers.dart';
 import '../providers/task_providers.dart';
 
 /// Riverpod version of the Add/Edit Task screen
 /// Handles creating new tasks and editing existing tasks
 class TaskAddEditScreen extends ConsumerStatefulWidget {
   final String? taskItemId;
+  /// When `true` and adding a new task (no [taskItemId]), pre-stamp the
+  /// blueprint with the current user's `familyDocId` so the task becomes
+  /// family-shared. Set by the Family-tab FAB; the Tasks-tab FAB leaves
+  /// this `false` so additions stay personal even while in a family.
+  final bool defaultFamilyShared;
 
   const TaskAddEditScreen({
     super.key,
     this.taskItemId,
+    this.defaultFamilyShared = false,
   });
 
   @override
@@ -118,6 +125,13 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
     taskItem = task;
     taskItemBlueprint =
         task == null ? TaskItemBlueprint() : task.createBlueprint();
+    // For brand-new tasks added from the Family tab (defaultFamilyShared),
+    // pre-stamp familyDocId so AddTask saves them as family-shared. Tasks
+    // added from the Tasks tab leave this null and stay personal even
+    // while the user is in a family.
+    if (task == null && widget.defaultFamilyShared) {
+      taskItemBlueprint.familyDocId = ref.read(currentFamilyDocIdProvider);
+    }
     var existingRecurrence = task?.recurrence;
     taskRecurrenceBlueprint = (existingRecurrence == null)
         ? TaskRecurrenceBlueprint()
@@ -517,7 +531,49 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                     ),
                     Visibility(
                       visible: hasDate(),
-                      child: Card(
+                      child: Builder(builder: (context) {
+                        // Family-shared tasks can't carry recurrence in MVP:
+                        // the recurrence rule isn't synced to family members,
+                        // so completing such a task on a non-owner device
+                        // throws RecurrenceNotFoundException (TM-335 follow-up).
+                        // Hide the toggle (with a hint) when the task is or
+                        // will become family-shared AND isn't already
+                        // recurring. Existing broken tasks (saved before this
+                        // guard) still show the toggle so the user can turn
+                        // recurrence off to keep family sharing.
+                        // Read from the blueprint, not from family membership:
+                        // tasks added on the Tasks tab while in a family stay
+                        // personal (familyDocId == null), so they should still
+                        // get the recurrence toggle.
+                        final willBeFamilyShared =
+                            taskItemBlueprint.familyDocId != null;
+                        final alreadyRecurring = _initialRepeatOn;
+                        if (willBeFamilyShared && !alreadyRecurring) {
+                          return Card(
+                            elevation: 3.0,
+                            color: TaskColors.cardColor,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 14.0, horizontal: 16.0),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.autorenew,
+                                      color: Colors.white38, size: 20),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      "Repeating tasks aren't supported in family view yet.",
+                                      style: TextStyle(
+                                          color: Colors.white54,
+                                          fontSize: 13),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+                        return Card(
                         elevation: 3.0,
                         color: TaskColors.cardColor,
                         child: Padding(
@@ -638,7 +694,8 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                             ],
                           ),
                         ),
-                      ),
+                        );
+                      }),
                     ),
                     EditableTaskField(
                       initialText: taskItemBlueprint.description,

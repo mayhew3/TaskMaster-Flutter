@@ -23,6 +23,7 @@ class Tasks extends Table {
   TextColumn get docId => text()();
   DateTimeColumn get dateAdded => dateTime()();
   TextColumn get personDocId => text().nullable()();
+  TextColumn get familyDocId => text().nullable()();
   TextColumn get name => text()();
   TextColumn get description => text().nullable()();
   TextColumn get project => text().nullable()();
@@ -105,6 +106,61 @@ class SprintAssignments extends Table {
   TextColumn get docId => text()();
   TextColumn get taskDocId => text()();
   TextColumn get sprintDocId => text()();
+  TextColumn get retired => text().nullable()();
+  DateTimeColumn get retiredDate => dateTime().nullable()();
+
+  TextColumn get syncState =>
+      text().withDefault(const Constant('synced'))();
+
+  @override
+  Set<Column> get primaryKey => {docId};
+}
+
+/// Local mirror of Firestore `families` collection.
+/// `members` is JSON-encoded as `["personDocId", ...]`.
+class Families extends Table {
+  TextColumn get docId => text()();
+  DateTimeColumn get dateAdded => dateTime()();
+  TextColumn get ownerPersonDocId => text()();
+  TextColumn get membersJson => text()();
+
+  TextColumn get retired => text().nullable()();
+  DateTimeColumn get retiredDate => dateTime().nullable()();
+
+  TextColumn get syncState =>
+      text().withDefault(const Constant('synced'))();
+
+  @override
+  Set<Column> get primaryKey => {docId};
+}
+
+/// Local mirror of Firestore `familyInvitations` collection.
+class FamilyInvitations extends Table {
+  TextColumn get docId => text()();
+  DateTimeColumn get dateAdded => dateTime()();
+  TextColumn get inviterPersonDocId => text()();
+  TextColumn get inviterFamilyDocId => text()();
+  TextColumn get inviterDisplayName => text().nullable()();
+  TextColumn get inviteeEmail => text()();
+  TextColumn get status => text()();
+
+  TextColumn get syncState =>
+      text().withDefault(const Constant('synced'))();
+
+  @override
+  Set<Column> get primaryKey => {docId};
+}
+
+/// Local mirror of Firestore `persons` collection (subset of fields needed
+/// for the Family feature). The full server-side Person doc may have
+/// additional fields not surfaced here.
+class Persons extends Table {
+  TextColumn get docId => text()();
+  DateTimeColumn get dateAdded => dateTime()();
+  TextColumn get email => text()();
+  TextColumn get displayName => text().nullable()();
+  TextColumn get familyDocId => text().nullable()();
+
   TextColumn get retired => text().nullable()();
   DateTimeColumn get retiredDate => dateTime().nullable()();
 

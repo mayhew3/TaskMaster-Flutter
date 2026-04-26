@@ -21,10 +21,29 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
         .watch();
   }
 
+  /// Stream of non-retired, non-pending-delete tasks for a family (union of
+  /// every member's tasks). Includes completed rows so the Family tab's
+  /// "Show Completed" toggle can surface them after the user navigates away
+  /// and back; the filter provider hides them when the toggle is off.
+  Stream<List<Task>> watchFamilyActiveTasks(String familyDocId) {
+    return (select(tasks)
+          ..where((t) =>
+              t.familyDocId.equals(familyDocId) &
+              t.retired.isNull() &
+              t.syncState.equals(SyncState.pendingDelete.name).not()))
+        .watch();
+  }
+
   /// Stream of a single task by docId (or null if not present).
   Stream<Task?> watchTaskById(String docId) {
     return (select(tasks)..where((t) => t.docId.equals(docId)))
         .watchSingleOrNull();
+  }
+
+  /// One-shot fetch of a single task by docId.
+  Future<Task?> getByDocId(String docId) {
+    return (select(tasks)..where((t) => t.docId.equals(docId)))
+        .getSingleOrNull();
   }
 
   /// Stream of tasks (both incomplete and completed) whose docId is in [docIds].
@@ -195,6 +214,31 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
         .go();
   }
 
+  /// Delete all `synced`, non-retired rows for [familyDocId] whose docId is
+  /// NOT in [remoteIds]. Used by the family-tasks listener (TM-335) on
+  /// initial snapshot reconciliation. Scoped to [familyDocId] so leaving and
+  /// rejoining a different family doesn't purge stale rows that belong to
+  /// the old family. Includes both completed and incomplete rows because the
+  /// listener pulls both (so "Show Completed" survives tab navigation).
+  Future<void> deleteSyncedFamilyTasksNotIn(
+      String familyDocId, Set<String> remoteIds) {
+    if (remoteIds.isEmpty) {
+      return (delete(tasks)
+            ..where((t) =>
+                t.familyDocId.equals(familyDocId) &
+                t.syncState.equals(SyncState.synced.name) &
+                t.retired.isNull()))
+          .go();
+    }
+    return (delete(tasks)
+          ..where((t) =>
+              t.familyDocId.equals(familyDocId) &
+              t.syncState.equals(SyncState.synced.name) &
+              t.retired.isNull() &
+              t.docId.isNotIn(remoteIds.toList())))
+        .go();
+  }
+
   /// Cascade recurrence field changes to all tasks in the same chain whose
   /// recurIteration is greater than [afterIteration]. Used by UpdateTask when
   /// editing task N so that upcoming tasks N+1, N+2, ... stay in sync with the
@@ -231,6 +275,41 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
     await (update(tasks)
           ..where((t) =>
               upcomingFilter(t) &
+              t.syncState.equals(SyncState.pendingCreate.name).not()))
+        .write(diff.copyWith(syncState: Value(SyncState.pendingUpdate.name)));
+  }
+
+  /// Update [familyDocId] on every active (non-retired, non-pending-delete)
+  /// task owned by [personDocId]. Currently only used for self-leave cleanup
+  /// (called with `null` to clear the user's own family-shared tasks back to
+  /// personal). MVP intentionally does NOT backfill on join — tasks created
+  /// before joining stay personal; only AddTask stamps `familyDocId` on
+  /// newly-added tasks while in a family. Synced rows are promoted to
+  /// pendingUpdate; pendingCreate rows stay pendingCreate; rows already at
+  /// the target value are skipped to avoid pointless writes.
+  Future<void> setFamilyDocIdForAllTasksOfPerson(
+      String personDocId, String? familyDocId) async {
+    backfillFilter(Tasks t) =>
+        t.personDocId.equals(personDocId) &
+        t.retired.isNull() &
+        t.syncState.equals(SyncState.pendingDelete.name).not() &
+        (familyDocId == null
+            ? t.familyDocId.isNotNull()
+            : t.familyDocId.equals(familyDocId).not() | t.familyDocId.isNull());
+
+    final diff = TasksCompanion(familyDocId: Value(familyDocId));
+
+    // Preserve pendingCreate rows' state; promote synced/pendingUpdate to
+    // pendingUpdate so they get pushed to Firestore on the next sync.
+    await (update(tasks)
+          ..where((t) =>
+              backfillFilter(t) &
+              t.syncState.equals(SyncState.pendingCreate.name)))
+        .write(diff.copyWith(syncState: Value(SyncState.pendingCreate.name)));
+
+    await (update(tasks)
+          ..where((t) =>
+              backfillFilter(t) &
               t.syncState.equals(SyncState.pendingCreate.name).not()))
         .write(diff.copyWith(syncState: Value(SyncState.pendingUpdate.name)));
   }

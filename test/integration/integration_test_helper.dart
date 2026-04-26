@@ -12,7 +12,10 @@ import 'package:taskmaster/core/providers/auth_providers.dart';
 import 'package:taskmaster/core/providers/connectivity_provider.dart';
 import 'package:taskmaster/core/providers/database_provider.dart';
 import 'package:taskmaster/core/providers/firebase_providers.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:taskmaster/core/providers/notification_providers.dart';
 import 'package:taskmaster/core/services/analytics_service.dart';
+import 'package:taskmaster/core/services/notification_helper_impl.dart';
 import 'package:taskmaster/core/services/task_completion_service.dart';
 import 'package:taskmaster/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaster/features/tasks/providers/task_providers.dart';
@@ -27,6 +30,26 @@ import 'package:taskmaster/features/shared/presentation/planning_home.dart';
 import 'package:taskmaster/timezone_helper.dart';
 
 import '../mocks/mock_timezone_helper.dart';
+
+/// No-op notification helper for tests. The production helper calls
+/// `FlutterLocalNotificationsPlugin.initialize()` which requires platform
+/// setup not available in unit/widget tests, and the in-app notifier paths
+/// (AddTask / UpdateTask / SnoozeTask / CompleteTask) all fire-and-forget
+/// `updateNotificationForTask` post-write. Overriding the provider with this
+/// stub keeps those calls quiet.
+class _NoopNotificationHelper extends NotificationHelperImpl {
+  _NoopNotificationHelper() : super(plugin: FlutterLocalNotificationsPlugin());
+
+  @override
+  Future<void> updateNotificationForTask(TaskItem taskItem) async {}
+  @override
+  Future<void> syncNotificationForTasksAndSprint(
+      List<TaskItem> taskItems, Sprint? sprint) async {}
+  @override
+  Future<void> cancelAllNotifications() async {}
+  @override
+  Future<void> cancelNotificationsForTaskId(String taskId) async {}
+}
 
 /// No-op analytics service for tests — avoids FirebaseAnalytics initialization.
 class _StubAnalyticsService implements AnalyticsService {
@@ -112,6 +135,7 @@ class IntegrationTestHelper {
           sprintsProvider.overrideWith((ref) => Stream.value(initialSprints ?? [])),
           // Override timezone helper notifier to immediately return mock
           timezoneHelperNotifierProvider.overrideWith(() => _TestTimezoneHelperNotifier()),
+          notificationHelperProvider.overrideWithValue(_NoopNotificationHelper()),
         ],
         child: MaterialApp(
           navigatorKey: navigatorKey,
@@ -259,6 +283,8 @@ class IntegrationTestHelper {
         databaseProvider.overrideWithValue(db),
         // Analytics stub
         analyticsServiceProvider.overrideWith((ref) => _StubAnalyticsService()),
+        // Notification helper stub (real one needs platform plugin init)
+        notificationHelperProvider.overrideWithValue(_NoopNotificationHelper()),
         // Always online — SyncService.pushPendingWrites checks this
         connectivityProvider.overrideWith((ref) => Stream.value(true)),
 
