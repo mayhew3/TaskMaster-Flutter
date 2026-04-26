@@ -458,14 +458,21 @@ class AddTask extends _$AddTask {
     // Fire-and-forget: schedule notifications for the new task's dates.
     // Re-reads the just-saved row so the helper sees exactly what landed in
     // Drift instead of duplicating field-mapping logic from the blueprint.
-    final savedRow = await db.taskDao.getByDocId(taskDocId);
-    if (savedRow != null) {
-      final newTask = taskItemFromRow(savedRow);
-      ref
-          .read(notificationHelperProvider)
-          .updateNotificationForTask(newTask)
-          .then((_) => print('⏱️ [AddTask] notification updated (background)'))
-          .catchError((e) => print('⚠️ [AddTask] notification error: $e'));
+    // Best-effort only — must not fail AddTask after Drift/Firestore writes
+    // have already succeeded, so any error during conversion or helper
+    // lookup is swallowed.
+    try {
+      final savedRow = await db.taskDao.getByDocId(taskDocId);
+      if (savedRow != null) {
+        final newTask = taskItemFromRow(savedRow);
+        ref
+            .read(notificationHelperProvider)
+            .updateNotificationForTask(newTask)
+            .then((_) => print('⏱️ [AddTask] notification updated (background)'))
+            .catchError((e) => print('⚠️ [AddTask] notification error: $e'));
+      }
+    } catch (e) {
+      print('⚠️ [AddTask] notification refresh skipped: $e');
     }
   }
 }
@@ -558,15 +565,23 @@ class UpdateTask extends _$UpdateTask {
     ref.read(syncServiceProvider).pushPendingWrites(caller: 'UpdateTask').ignore();
 
     // Fire-and-forget: refresh notifications for the (possibly changed) dates.
-    final savedRow = await db.taskDao.getByDocId(task.docId);
-    if (savedRow != null) {
-      final updatedTask = taskItemFromRow(savedRow);
-      ref
-          .read(notificationHelperProvider)
-          .updateNotificationForTask(updatedTask)
-          .then((_) =>
-              print('⏱️ [UpdateTask] notification updated (background)'))
-          .catchError((e) => print('⚠️ [UpdateTask] notification error: $e'));
+    // Best-effort only — must not fail UpdateTask after Drift/Firestore writes
+    // have already succeeded, so any error during conversion or helper lookup
+    // is swallowed.
+    try {
+      final savedRow = await db.taskDao.getByDocId(task.docId);
+      if (savedRow != null) {
+        final updatedTask = taskItemFromRow(savedRow);
+        ref
+            .read(notificationHelperProvider)
+            .updateNotificationForTask(updatedTask)
+            .then((_) =>
+                print('⏱️ [UpdateTask] notification updated (background)'))
+            .catchError(
+                (e) => print('⚠️ [UpdateTask] notification error: $e'));
+      }
+    } catch (e) {
+      print('⚠️ [UpdateTask] notification refresh skipped: $e');
     }
   }
 }
@@ -630,16 +645,22 @@ class SnoozeTask extends _$SnoozeTask {
     ref.read(syncServiceProvider).pushPendingWrites(caller: 'SnoozeTask').ignore();
 
     // Fire-and-forget: snooze shifted dates, so notifications need to move
-    // with them.
-    final savedRow = await db.taskDao.getByDocId(taskItem.docId);
-    if (savedRow != null) {
-      final updatedTask = taskItemFromRow(savedRow);
-      ref
-          .read(notificationHelperProvider)
-          .updateNotificationForTask(updatedTask)
-          .then((_) =>
-              print('⏱️ [SnoozeTask] notification updated (background)'))
-          .catchError((e) => print('⚠️ [SnoozeTask] notification error: $e'));
+    // with them. Best-effort only — must not fail SnoozeTask after the snooze
+    // and Drift writes have already succeeded.
+    try {
+      final savedRow = await db.taskDao.getByDocId(taskItem.docId);
+      if (savedRow != null) {
+        final updatedTask = taskItemFromRow(savedRow);
+        ref
+            .read(notificationHelperProvider)
+            .updateNotificationForTask(updatedTask)
+            .then((_) =>
+                print('⏱️ [SnoozeTask] notification updated (background)'))
+            .catchError(
+                (e) => print('⚠️ [SnoozeTask] notification error: $e'));
+      }
+    } catch (e) {
+      print('⚠️ [SnoozeTask] notification refresh skipped: $e');
     }
   }
 }
