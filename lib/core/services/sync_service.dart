@@ -508,11 +508,14 @@ class SyncService {
       DocumentSnapshot<Map<String, dynamic>> snapshot) async {
     final data = snapshot.data();
     if (data == null) {
-      // Family was deleted server-side. Drop the local row and detach members.
+      // Family was deleted server-side (e.g. last member left). Drop the
+      // local row and detach every family-scoped listener — leaving the
+      // family-tasks listener running here would keep mirroring tasks for a
+      // family that no longer exists. _currentFamilyDocId is reset so the
+      // next persons-self snapshot can reattach if the user joins another.
       await db.familyDao.deleteFromRemote(snapshot.id);
-      await _familyMembersSub?.cancel();
-      _familyMembersSub = null;
-      _familyMembersWatchedSet = null;
+      await _detachFamilyListeners();
+      _currentFamilyDocId = null;
       return;
     }
     try {
