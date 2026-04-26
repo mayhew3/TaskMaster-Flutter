@@ -10,13 +10,16 @@ class FamilyInvitationDao extends DatabaseAccessor<AppDatabase>
     with _$FamilyInvitationDaoMixin {
   FamilyInvitationDao(super.db);
 
-  /// Pending invitations addressed to [email]. Used by the recipient's UI.
+  /// Pending invitations addressed to [email], newest first. Used by the
+  /// recipient's UI; [PendingInvitationBanner] takes the head of the list as
+  /// "the most recent invite", so the ordering is contractual.
   Stream<List<FamilyInvitation>> watchPendingForEmail(String email) {
     return (select(familyInvitations)
           ..where((i) =>
               i.inviteeEmail.equals(email) &
               i.status.equals('pending') &
-              i.syncState.equals(SyncState.pendingDelete.name).not()))
+              i.syncState.equals(SyncState.pendingDelete.name).not())
+          ..orderBy([(i) => OrderingTerm.desc(i.dateAdded)]))
         .watch();
   }
 

@@ -118,8 +118,9 @@ class FamilyRepository {
     return invitationRef.id;
   }
 
-  /// Accept [invitationDocId]: add me to the family, mark the invitation
-  /// accepted, and backfill my existing tasks with the new familyDocId.
+  /// Accept [invitationDocId]: add me to the family and mark the invitation
+  /// accepted. Tasks created before joining remain personal; only tasks
+  /// added after joining get stamped with the new familyDocId (by AddTask).
   Future<void> acceptInvitation({
     required String invitationDocId,
     required String myPersonDocId,
@@ -214,15 +215,35 @@ class FamilyRepository {
 
     if (removedTasksFamilyDocId != null) {
       // Clear familyDocId on the removed person's tasks so they no longer
-      // surface to the rest of the family. The push path runs against the
-      // removed person's own pending writes; if removerPersonDocId !=
-      // targetPersonDocId, the target's app will pick up the persons-doc
-      // change via SyncService and the cleanup runs there too — but doing it
-      // on the remover's side as well keeps the data eventually consistent
-      // even if the target's device is offline.
+      // surface to the rest of the family (the family-tasks listener is
+      // keyed on familyDocId; without this, removed members' tasks linger).
       if (removerPersonDocId == targetPersonDocId) {
+        // Self-leave: write through the local Drift → pendingWrites → push
+        // path so the change is offline-safe and merges cleanly with any
+        // local pending edits.
         await db.taskDao
             .setFamilyDocIdForAllTasksOfPerson(targetPersonDocId, null);
+      } else {
+        // Owner removes another member: target's tasks aren't in the
+        // remover's own pending-writes pipeline, so we have to write them
+        // to Firestore directly. Batched (Firestore caps at 500/batch);
+        // chunk just in case a family has >500 active tasks per member.
+        final query = await firestore
+            .collection('tasks')
+            .where('familyDocId', isEqualTo: removedTasksFamilyDocId)
+            .where('personDocId', isEqualTo: targetPersonDocId)
+            .get();
+        const batchSize = 400;
+        for (var i = 0; i < query.docs.length; i += batchSize) {
+          final batch = firestore.batch();
+          final end = (i + batchSize < query.docs.length)
+              ? i + batchSize
+              : query.docs.length;
+          for (final doc in query.docs.sublist(i, end)) {
+            batch.update(doc.reference, {'familyDocId': null});
+          }
+          await batch.commit();
+        }
       }
     }
   }

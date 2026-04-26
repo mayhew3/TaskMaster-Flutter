@@ -279,11 +279,14 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
         .write(diff.copyWith(syncState: Value(SyncState.pendingUpdate.name)));
   }
 
-  /// Stamp [familyDocId] on every active (non-retired, non-pending-delete)
-  /// task owned by [personDocId]. Called when a user joins a family so their
-  /// existing tasks become visible to the rest of the family. Synced rows are
-  /// promoted to pendingUpdate; pendingCreate rows stay pendingCreate; rows
-  /// already in [familyDocId] are skipped to avoid pointless writes.
+  /// Update [familyDocId] on every active (non-retired, non-pending-delete)
+  /// task owned by [personDocId]. Currently only used for self-leave cleanup
+  /// (called with `null` to clear the user's own family-shared tasks back to
+  /// personal). MVP intentionally does NOT backfill on join — tasks created
+  /// before joining stay personal; only AddTask stamps `familyDocId` on
+  /// newly-added tasks while in a family. Synced rows are promoted to
+  /// pendingUpdate; pendingCreate rows stay pendingCreate; rows already at
+  /// the target value are skipped to avoid pointless writes.
   Future<void> setFamilyDocIdForAllTasksOfPerson(
       String personDocId, String? familyDocId) async {
     backfillFilter(Tasks t) =>

@@ -60,6 +60,10 @@ class SyncService {
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _invitationsSub;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _familyDocSub;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _familyMembersSub;
+  // Last set of member docIds this listener is watching, so we can skip
+  // tearing down + rebuilding the Firestore listener on family-doc snapshots
+  // that didn't actually change membership.
+  Set<String>? _familyMembersWatchedSet;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _familyTasksSub;
   ProviderSubscription<AsyncValue<bool>>? _connectivitySub;
 
@@ -106,7 +110,26 @@ class SyncService {
   }
 
   Future<void> start(String personDocId, {String? email}) async {
-    if (_currentPersonDocId == personDocId) return;
+    if (_currentPersonDocId == personDocId) {
+      // Same user — but the email may have arrived after the original
+      // start() (e.g. auth resolved later). If we never attached the
+      // invitations listener, attach it now without tearing down the
+      // already-running listeners. If the email actually changed, restart
+      // the invitations listener to point at the new address.
+      if (email != null &&
+          email.isNotEmpty &&
+          email != _currentEmail) {
+        _currentEmail = email;
+        await _invitationsSub?.cancel();
+        _invitationsSub = firestore
+            .collection('familyInvitations')
+            .where('inviteeEmail', isEqualTo: email)
+            .snapshots()
+            .listen(_onInvitationsSnapshot, onError: _logSyncError);
+        _syncLog('[SyncService] reattached invitations listener (email=$email)');
+      }
+      return;
+    }
     await stop();
     _currentPersonDocId = personDocId;
     _currentEmail = email;
@@ -211,6 +234,7 @@ class SyncService {
     _familyDocSub = null;
     _familyMembersSub = null;
     _familyTasksSub = null;
+    _familyMembersWatchedSet = null;
     // Reset so the next attach treats its first snapshot as initial again.
     _familyTasksInitialReceived = false;
   }
@@ -488,6 +512,7 @@ class SyncService {
       await db.familyDao.deleteFromRemote(snapshot.id);
       await _familyMembersSub?.cancel();
       _familyMembersSub = null;
+      _familyMembersWatchedSet = null;
       return;
     }
     try {
@@ -509,11 +534,23 @@ class SyncService {
   }
 
   Future<void> _ensureFamilyMembersListener(List<String> memberDocIds) async {
-    await _familyMembersSub?.cancel();
-    if (memberDocIds.isEmpty) {
-      _familyMembersSub = null;
+    final newSet = memberDocIds.toSet();
+    // Skip when the watched set is unchanged — most family-doc snapshots are
+    // unrelated to membership (e.g. ownership transfer or denormalized
+    // metadata edits) and recreating the listener on every one causes
+    // unnecessary churn + brief gaps in the persons stream.
+    if (_familyMembersWatchedSet != null &&
+        _familyMembersSub != null &&
+        _familyMembersWatchedSet!.length == newSet.length &&
+        _familyMembersWatchedSet!.containsAll(newSet)) {
       return;
     }
+
+    await _familyMembersSub?.cancel();
+    _familyMembersSub = null;
+    _familyMembersWatchedSet = null;
+
+    if (memberDocIds.isEmpty) return;
     // Firestore `whereIn` supports up to 30 elements per query; family size
     // for MVP is well under that. If a future Tier 2 supports larger groups
     // we'll need to chunk.
@@ -522,6 +559,7 @@ class SyncService {
         .where(FieldPath.documentId, whereIn: memberDocIds)
         .snapshots()
         .listen(_onFamilyMembersSnapshot, onError: _logSyncError);
+    _familyMembersWatchedSet = newSet;
   }
 
   Future<void> _onFamilyMembersSnapshot(
