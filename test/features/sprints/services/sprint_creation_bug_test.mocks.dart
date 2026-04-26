@@ -96,9 +96,9 @@ class MockSyncService extends _i1.Mock implements _i5.SyncService {
           as _i6.Future<void>);
 
   @override
-  _i6.Future<void> start(String? personDocId) =>
+  _i6.Future<void> start(String? personDocId, {String? email}) =>
       (super.noSuchMethod(
-            Invocation.method(#start, [personDocId]),
+            Invocation.method(#start, [personDocId], {#email: email}),
             returnValue: _i6.Future<void>.value(),
             returnValueForMissingStub: _i6.Future<void>.value(),
           )

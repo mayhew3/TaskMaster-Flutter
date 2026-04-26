@@ -3,21 +3,25 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i8;
+import 'dart:async' as _i9;
 
 import 'package:cloud_firestore/cloud_firestore.dart' as _i5;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart'
+    as _i7;
 import 'package:flutter_riverpod/flutter_riverpod.dart' as _i6;
-import 'package:intl/intl.dart' as _i13;
+import 'package:intl/intl.dart' as _i14;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i12;
+import 'package:mockito/src/dummies.dart' as _i13;
 import 'package:taskmaster/core/database/app_database.dart' as _i4;
-import 'package:taskmaster/core/services/analytics_service.dart' as _i15;
-import 'package:taskmaster/core/services/sync_service.dart' as _i14;
-import 'package:taskmaster/features/tasks/domain/task_repository.dart' as _i7;
+import 'package:taskmaster/core/services/analytics_service.dart' as _i16;
+import 'package:taskmaster/core/services/notification_helper_impl.dart' as _i17;
+import 'package:taskmaster/core/services/sync_service.dart' as _i15;
+import 'package:taskmaster/features/tasks/domain/task_repository.dart' as _i8;
+import 'package:taskmaster/models/sprint.dart' as _i18;
 import 'package:taskmaster/models/task_item.dart' as _i2;
-import 'package:taskmaster/models/task_item_blueprint.dart' as _i9;
-import 'package:taskmaster/models/task_recurrence.dart' as _i10;
-import 'package:taskmaster/timezone_helper.dart' as _i11;
+import 'package:taskmaster/models/task_item_blueprint.dart' as _i10;
+import 'package:taskmaster/models/task_recurrence.dart' as _i11;
+import 'package:taskmaster/timezone_helper.dart' as _i12;
 import 'package:timezone/timezone.dart' as _i3;
 
 // ignore_for_file: type=lint
@@ -61,24 +65,32 @@ class _FakeRef_4<State extends Object?> extends _i1.SmartFake
     : super(parent, parentInvocation);
 }
 
+class _FakeFlutterLocalNotificationsPlugin_5 extends _i1.SmartFake
+    implements _i7.FlutterLocalNotificationsPlugin {
+  _FakeFlutterLocalNotificationsPlugin_5(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(parent, parentInvocation);
+}
+
 /// A class which mocks [TaskRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
+class MockTaskRepository extends _i1.Mock implements _i8.TaskRepository {
   @override
-  _i8.Future<void> addTask(_i9.TaskItemBlueprint? blueprint) =>
+  _i9.Future<void> addTask(_i10.TaskItemBlueprint? blueprint) =>
       (super.noSuchMethod(
             Invocation.method(#addTask, [blueprint]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i9.Future<void>);
 
   @override
-  _i8.Future<({_i10.TaskRecurrence? recurrence, _i2.TaskItem taskItem})>
+  _i9.Future<({_i11.TaskRecurrence? recurrence, _i2.TaskItem taskItem})>
   updateTaskAndRecurrence(
     String? taskItemDocId,
-    _i9.TaskItemBlueprint? blueprint,
+    _i10.TaskItemBlueprint? blueprint,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#updateTaskAndRecurrence, [
@@ -86,8 +98,8 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
               blueprint,
             ]),
             returnValue:
-                _i8.Future<
-                  ({_i10.TaskRecurrence? recurrence, _i2.TaskItem taskItem})
+                _i9.Future<
+                  ({_i11.TaskRecurrence? recurrence, _i2.TaskItem taskItem})
                 >.value((
                   recurrence: null,
                   taskItem: _FakeTaskItem_0(
@@ -99,8 +111,8 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
                   ),
                 )),
             returnValueForMissingStub:
-                _i8.Future<
-                  ({_i10.TaskRecurrence? recurrence, _i2.TaskItem taskItem})
+                _i9.Future<
+                  ({_i11.TaskRecurrence? recurrence, _i2.TaskItem taskItem})
                 >.value((
                   recurrence: null,
                   taskItem: _FakeTaskItem_0(
@@ -112,21 +124,21 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
                   ),
                 )),
           )
-          as _i8.Future<
-            ({_i10.TaskRecurrence? recurrence, _i2.TaskItem taskItem})
+          as _i9.Future<
+            ({_i11.TaskRecurrence? recurrence, _i2.TaskItem taskItem})
           >);
 
   @override
-  _i8.Future<void> deleteTask(_i2.TaskItem? taskItem) =>
+  _i9.Future<void> deleteTask(_i2.TaskItem? taskItem) =>
       (super.noSuchMethod(
             Invocation.method(#deleteTask, [taskItem]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i9.Future<void>);
 
   @override
-  _i8.Future<_i2.TaskItem> toggleTaskCompletion(
+  _i9.Future<_i2.TaskItem> toggleTaskCompletion(
     _i2.TaskItem? task, {
     required bool? complete,
   }) =>
@@ -136,7 +148,7 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
               [task],
               {#complete: complete},
             ),
-            returnValue: _i8.Future<_i2.TaskItem>.value(
+            returnValue: _i9.Future<_i2.TaskItem>.value(
               _FakeTaskItem_0(
                 this,
                 Invocation.method(
@@ -146,7 +158,7 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
                 ),
               ),
             ),
-            returnValueForMissingStub: _i8.Future<_i2.TaskItem>.value(
+            returnValueForMissingStub: _i9.Future<_i2.TaskItem>.value(
               _FakeTaskItem_0(
                 this,
                 Invocation.method(
@@ -157,13 +169,13 @@ class MockTaskRepository extends _i1.Mock implements _i7.TaskRepository {
               ),
             ),
           )
-          as _i8.Future<_i2.TaskItem>);
+          as _i9.Future<_i2.TaskItem>);
 }
 
 /// A class which mocks [TimezoneHelper].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockTimezoneHelper extends _i1.Mock implements _i11.TimezoneHelper {
+class MockTimezoneHelper extends _i1.Mock implements _i12.TimezoneHelper {
   @override
   bool get timezoneInitialized =>
       (super.noSuchMethod(
@@ -174,13 +186,13 @@ class MockTimezoneHelper extends _i1.Mock implements _i11.TimezoneHelper {
           as bool);
 
   @override
-  _i8.Future<void> configureLocalTimeZone() =>
+  _i9.Future<void> configureLocalTimeZone() =>
       (super.noSuchMethod(
             Invocation.method(#configureLocalTimeZone, []),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i9.Future<void>);
 
   @override
   _i3.TZDateTime getLocalTime(DateTime? dateTime) =>
@@ -201,11 +213,11 @@ class MockTimezoneHelper extends _i1.Mock implements _i11.TimezoneHelper {
   String getFormattedLocalTime(DateTime? dateTime, String? format) =>
       (super.noSuchMethod(
             Invocation.method(#getFormattedLocalTime, [dateTime, format]),
-            returnValue: _i12.dummyValue<String>(
+            returnValue: _i13.dummyValue<String>(
               this,
               Invocation.method(#getFormattedLocalTime, [dateTime, format]),
             ),
-            returnValueForMissingStub: _i12.dummyValue<String>(
+            returnValueForMissingStub: _i13.dummyValue<String>(
               this,
               Invocation.method(#getFormattedLocalTime, [dateTime, format]),
             ),
@@ -215,21 +227,21 @@ class MockTimezoneHelper extends _i1.Mock implements _i11.TimezoneHelper {
   @override
   String getFormattedLocalTimeFromFormat(
     DateTime? dateTime,
-    _i13.DateFormat? dateFormat,
+    _i14.DateFormat? dateFormat,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#getFormattedLocalTimeFromFormat, [
               dateTime,
               dateFormat,
             ]),
-            returnValue: _i12.dummyValue<String>(
+            returnValue: _i13.dummyValue<String>(
               this,
               Invocation.method(#getFormattedLocalTimeFromFormat, [
                 dateTime,
                 dateFormat,
               ]),
             ),
-            returnValueForMissingStub: _i12.dummyValue<String>(
+            returnValueForMissingStub: _i13.dummyValue<String>(
               this,
               Invocation.method(#getFormattedLocalTimeFromFormat, [
                 dateTime,
@@ -243,7 +255,7 @@ class MockTimezoneHelper extends _i1.Mock implements _i11.TimezoneHelper {
 /// A class which mocks [SyncService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockSyncService extends _i1.Mock implements _i14.SyncService {
+class MockSyncService extends _i1.Mock implements _i15.SyncService {
   @override
   _i4.AppDatabase get db =>
       (super.noSuchMethod(
@@ -284,46 +296,46 @@ class MockSyncService extends _i1.Mock implements _i14.SyncService {
           as _i6.Ref<Object?>);
 
   @override
-  _i8.Future<void> get initialPullComplete =>
+  _i9.Future<void> get initialPullComplete =>
       (super.noSuchMethod(
             Invocation.getter(#initialPullComplete),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i9.Future<void>);
 
   @override
-  _i8.Future<void> start(String? personDocId) =>
+  _i9.Future<void> start(String? personDocId, {String? email}) =>
       (super.noSuchMethod(
-            Invocation.method(#start, [personDocId]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            Invocation.method(#start, [personDocId], {#email: email}),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i9.Future<void>);
 
   @override
-  _i8.Future<void> stop() =>
+  _i9.Future<void> stop() =>
       (super.noSuchMethod(
             Invocation.method(#stop, []),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i9.Future<void>);
 
   @override
-  _i8.Future<void> pushPendingWrites({String? caller = 'unknown'}) =>
+  _i9.Future<void> pushPendingWrites({String? caller = 'unknown'}) =>
       (super.noSuchMethod(
             Invocation.method(#pushPendingWrites, [], {#caller: caller}),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i9.Future<void>);
 }
 
 /// A class which mocks [AnalyticsService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockAnalyticsService extends _i1.Mock implements _i15.AnalyticsService {
+class MockAnalyticsService extends _i1.Mock implements _i16.AnalyticsService {
   @override
   bool get isEnabled =>
       (super.noSuchMethod(
@@ -334,58 +346,145 @@ class MockAnalyticsService extends _i1.Mock implements _i15.AnalyticsService {
           as bool);
 
   @override
-  _i8.Future<void> setUserIdentifier(String? personDocId) =>
+  _i9.Future<void> setUserIdentifier(String? personDocId) =>
       (super.noSuchMethod(
             Invocation.method(#setUserIdentifier, [personDocId]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i9.Future<void>);
 
   @override
-  _i8.Future<void> logTaskCreated({bool? hasRecurrence = false}) =>
+  _i9.Future<void> logTaskCreated({bool? hasRecurrence = false}) =>
       (super.noSuchMethod(
             Invocation.method(#logTaskCreated, [], {
               #hasRecurrence: hasRecurrence,
             }),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i9.Future<void>);
 
   @override
-  _i8.Future<void> logTaskCompleted({required bool? complete}) =>
+  _i9.Future<void> logTaskCompleted({required bool? complete}) =>
       (super.noSuchMethod(
             Invocation.method(#logTaskCompleted, [], {#complete: complete}),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i9.Future<void>);
 
   @override
-  _i8.Future<void> logTaskDeleted() =>
+  _i9.Future<void> logTaskDeleted() =>
       (super.noSuchMethod(
             Invocation.method(#logTaskDeleted, []),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i9.Future<void>);
 
   @override
-  _i8.Future<void> logSprintCreated({required int? taskCount}) =>
+  _i9.Future<void> logSprintCreated({required int? taskCount}) =>
       (super.noSuchMethod(
             Invocation.method(#logSprintCreated, [], {#taskCount: taskCount}),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i9.Future<void>);
 
   @override
-  _i8.Future<void> logScreenView(String? screenName) =>
+  _i9.Future<void> logScreenView(String? screenName) =>
       (super.noSuchMethod(
             Invocation.method(#logScreenView, [screenName]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
           )
-          as _i8.Future<void>);
+          as _i9.Future<void>);
+}
+
+/// A class which mocks [NotificationHelperImpl].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockNotificationHelperImpl extends _i1.Mock
+    implements _i17.NotificationHelperImpl {
+  @override
+  int get nextId =>
+      (super.noSuchMethod(
+            Invocation.getter(#nextId),
+            returnValue: 0,
+            returnValueForMissingStub: 0,
+          )
+          as int);
+
+  @override
+  _i7.FlutterLocalNotificationsPlugin get plugin =>
+      (super.noSuchMethod(
+            Invocation.getter(#plugin),
+            returnValue: _FakeFlutterLocalNotificationsPlugin_5(
+              this,
+              Invocation.getter(#plugin),
+            ),
+            returnValueForMissingStub: _FakeFlutterLocalNotificationsPlugin_5(
+              this,
+              Invocation.getter(#plugin),
+            ),
+          )
+          as _i7.FlutterLocalNotificationsPlugin);
+
+  @override
+  set nextId(int? _nextId) => super.noSuchMethod(
+    Invocation.setter(#nextId, _nextId),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  _i9.Future<void> cancelAllNotifications() =>
+      (super.noSuchMethod(
+            Invocation.method(#cancelAllNotifications, []),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
+
+  @override
+  _i9.Future<void> cancelNotificationsForTaskId(String? taskId) =>
+      (super.noSuchMethod(
+            Invocation.method(#cancelNotificationsForTaskId, [taskId]),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
+
+  @override
+  _i9.Future<void> syncNotificationForSprint(_i18.Sprint? sprint) =>
+      (super.noSuchMethod(
+            Invocation.method(#syncNotificationForSprint, [sprint]),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
+
+  @override
+  _i9.Future<void> syncNotificationForTasksAndSprint(
+    List<_i2.TaskItem>? taskItems,
+    _i18.Sprint? sprint,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#syncNotificationForTasksAndSprint, [
+              taskItems,
+              sprint,
+            ]),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
+
+  @override
+  _i9.Future<void> updateNotificationForTask(_i2.TaskItem? taskItem) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateNotificationForTask, [taskItem]),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
 }

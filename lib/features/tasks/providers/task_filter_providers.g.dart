@@ -6,7 +6,7 @@ part of 'task_filter_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$filteredTasksHash() => r'b59418ee77f750ef2553c6d53a1744ea7d825e97';
+String _$filteredTasksHash() => r'4b8793f333774ed7b111b1605bcd8dd7014a09b8';
 
 /// Filtered tasks based on visibility settings
 ///
@@ -46,11 +46,11 @@ final activeTaskCountProvider = AutoDisposeProvider<int>.internal(
 // ignore: unused_element
 typedef ActiveTaskCountRef = AutoDisposeProviderRef<int>;
 String _$completedTaskCountHash() =>
-    r'128685e43b99c155d02a7bbfe5637d99c25231f7';
+    r'cb5b1d8c3f28f87537a1a5e4a285b3f8bd6d37e6';
 
-/// Count of all completed (non-retired) tasks using Firestore aggregation.
-/// Uses count() instead of fetching documents since the base query
-/// only returns incomplete tasks.
+/// Count of completed (non-skipped, non-retired) tasks.
+/// Uses Firestore aggregation for the total (too many to store locally),
+/// then subtracts the local skipped count (always present since skip is local-first).
 ///
 /// Copied from [completedTaskCount].
 @ProviderFor(completedTaskCount)

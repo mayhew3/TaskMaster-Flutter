@@ -8,6 +8,8 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/services/crash_reporter.dart';
 import '../../../core/services/log_storage_service.dart';
 import '../../../models/task_colors.dart';
+import '../../family/presentation/family_setup_screen.dart';
+import '../../family/providers/family_providers.dart';
 
 /// Riverpod-based navigation drawer
 /// Replaces Redux TaskMainMenu widget
@@ -58,6 +60,22 @@ class AppDrawer extends ConsumerWidget {
               ],
             ),
           ),
+          // Solo-only entry point for the Family feature (TM-335). When the
+          // user is in a family, the dedicated Family tab in the bottom nav
+          // takes over; this ListTile disappears.
+          if (ref.watch(currentFamilyDocIdProvider) == null)
+            ListTile(
+              leading: const Icon(Icons.family_restroom),
+              title: const Text('Family'),
+              onTap: () {
+                Navigator.of(context).pop(); // Close drawer first
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const FamilySetupScreen(),
+                  ),
+                );
+              },
+            ),
           ListTile(
             leading: const Icon(Icons.file_download),
             title: const Text('Export Logs'),

@@ -7,7 +7,9 @@ import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/check_state.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import '../../../core/providers/auth_providers.dart';
 import '../../../core/services/task_completion_service.dart';
+import '../../family/providers/family_providers.dart';
 import '../providers/task_providers.dart';
 import 'task_add_edit_screen.dart';
 import 'recurrence_detail_screen.dart';
@@ -187,27 +189,42 @@ class _TaskDetailsBody extends ConsumerWidget {
               optionalSubText: _getFormattedAgo(task.getFinishedCompletionDate()),
               optionalBackgroundColor: _getCompletedBackgroundColor(task),
             ),
-            _RecurrenceField(task: task),
+            _RecurrenceField(
+              task: task,
+              // Recurrence rules are owned by the task's owner; family members
+              // can see but not edit them (TM-335).
+              editable: task.personDocId == ref.watch(personDocIdProvider),
+            ),
             ReadOnlyTaskField(
               headerName: 'Notes',
               textToShow: task.description,
             ),
+            ReadOnlyTaskField(
+              headerName: 'Added by',
+              textToShow: _ownerEmail(ref, task.personDocId),
+            ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: null,
-        key: TaskMasterKeys.editTaskItemFab,
-        tooltip: 'Edit Task Item',
-        child: const Icon(Icons.edit),
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => TaskAddEditScreen(taskItemId: task.docId),
-            ),
-          );
-        },
-      ),
+      // Edit is hidden for tasks owned by another family member (TM-335 MVP).
+      // The Family tab still allows view + complete + skip; editing fields
+      // (notably recurrence rules) stays with the task's owner.
+      floatingActionButton: task.personDocId == ref.watch(personDocIdProvider)
+          ? FloatingActionButton(
+              heroTag: null,
+              key: TaskMasterKeys.editTaskItemFab,
+              tooltip: 'Edit Task Item',
+              child: const Icon(Icons.edit),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        TaskAddEditScreen(taskItemId: task.docId),
+                  ),
+                );
+              },
+            )
+          : null,
     );
   }
 
@@ -277,14 +294,32 @@ class _TaskDetailsBody extends ConsumerWidget {
     return completed ? TaskColors.completedColor : TaskColors.cardColor;
   }
 
+  /// Email of the task's owner, looked up from the locally cached Person
+  /// docs. Sources are the current user (via [currentPersonProvider]) and
+  /// the family roster (via [familyMembersProvider]). Returns null when
+  /// neither source has the owner — the surrounding ReadOnlyTaskField hides
+  /// itself for null values, so solo users / unknown owners just don't see
+  /// the field.
+  String? _ownerEmail(WidgetRef ref, String? personDocId) {
+    if (personDocId == null) return null;
+    final me = ref.watch(currentPersonProvider).valueOrNull;
+    if (me != null && me.docId == personDocId) return me.email;
+    final members = ref.watch(familyMembersProvider).valueOrNull ?? const [];
+    for (final m in members) {
+      if (m.docId == personDocId) return m.email;
+    }
+    return null;
+  }
+
 }
 
 /// Displays recurrence info as a tappable card that navigates to RecurrenceDetailScreen.
 /// Shows "No recurrence." for non-recurring tasks, and a tappable row for recurring tasks.
 class _RecurrenceField extends StatelessWidget {
   final TaskItem task;
+  final bool editable;
 
-  const _RecurrenceField({required this.task});
+  const _RecurrenceField({required this.task, this.editable = true});
 
   @override
   Widget build(BuildContext context) {
@@ -293,12 +328,13 @@ class _RecurrenceField extends StatelessWidget {
     final recurrenceText = hasRecurrence
         ? _getFormattedRecurrence(task, recurrence)
         : 'No recurrence.';
+    final tappable = editable && hasRecurrence;
 
     return Card(
       elevation: 3.0,
       color: TaskColors.cardColor,
       child: InkWell(
-        onTap: hasRecurrence ? () => _navigateToRecurrenceDetail(context) : null,
+        onTap: tappable ? () => _navigateToRecurrenceDetail(context) : null,
         borderRadius: BorderRadius.circular(4.0),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -320,7 +356,7 @@ class _RecurrenceField extends StatelessWidget {
                   ),
                 ),
               ),
-              if (hasRecurrence)
+              if (tappable)
                 const Icon(
                   Icons.chevron_right,
                   color: Colors.white54,

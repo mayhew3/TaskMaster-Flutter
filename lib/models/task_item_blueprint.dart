@@ -77,6 +77,7 @@ class TaskItemBlueprint with DateHolder {
   DateTime? retiredDate;
 
   String? personDocId;
+  String? familyDocId;
 
   @JsonKey(includeToJson: false)
   late int tmpId;

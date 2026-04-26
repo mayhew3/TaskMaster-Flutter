@@ -1,8 +1,10 @@
+import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaster/core/database/app_database.dart';
+import 'package:taskmaster/core/database/tables.dart';
 import 'package:taskmaster/core/providers/connectivity_provider.dart';
 import 'package:taskmaster/core/providers/database_provider.dart';
 import 'package:taskmaster/core/providers/firebase_providers.dart';
@@ -117,4 +119,115 @@ void main() {
               'Retired recurrences must not be synced into Drift (watchActive cannot filter them locally because the converter does not write the retired column)');
     });
   });
+
+  // ── TM-335: family listeners ───────────────────────────────────────────────
+
+  Map<String, Object?> _familyMemberTask({
+    required String name,
+    required String familyDocId,
+    required String personDocId,
+  }) {
+    return <String, Object?>{
+      'name': name,
+      'personDocId': personDocId,
+      'familyDocId': familyDocId,
+      'dateAdded': DateTime.utc(2024, 1, 1),
+      'completionDate': null,
+      'retired': null,
+      'offCycle': false,
+      'pendingCompletion': false,
+    };
+  }
+
+  Future<void> _settleSnapshots() async {
+    // Give fake_cloud_firestore listeners + Drift writes a few microtask
+    // cycles to settle. `pumpEventQueue` works under flutter_test bindings.
+    for (var i = 0; i < 4; i++) {
+      await Future<void>.delayed(Duration.zero);
+    }
+  }
+
+  group('SyncService family-tasks listener (TM-335)', () {
+    const familyDocId = 'fam-1';
+    const otherMemberDocId = 'pB';
+
+    setUp(() async {
+      // My persons doc with familyDocId set so the family listeners attach.
+      await firestore.collection('persons').doc(testPersonDocId).set({
+        'email': 'me@x.com',
+        'familyDocId': familyDocId,
+        'dateAdded': DateTime.utc(2024, 1, 1),
+        'retired': null,
+      });
+      // The other family member's persons doc.
+      await firestore.collection('persons').doc(otherMemberDocId).set({
+        'email': 'other@x.com',
+        'familyDocId': familyDocId,
+        'dateAdded': DateTime.utc(2024, 1, 1),
+        'retired': null,
+      });
+      // The family doc.
+      await firestore.collection('families').doc(familyDocId).set({
+        'ownerPersonDocId': testPersonDocId,
+        'members': [testPersonDocId, otherMemberDocId],
+        'dateAdded': DateTime.utc(2024, 1, 1),
+        'retired': null,
+      });
+    });
+
+    test("syncs another family member's task into local Drift", () async {
+      await firestore.collection('tasks').doc('shared-task').set(
+            _familyMemberTask(
+              name: "Other member's task",
+              familyDocId: familyDocId,
+              personDocId: otherMemberDocId,
+            ),
+          );
+
+      await service.start(testPersonDocId);
+      await service.initialPullComplete;
+      await _settleSnapshots();
+
+      final familyTasks =
+          await db.taskDao.watchFamilyActiveTasks(familyDocId).first;
+      expect(familyTasks.map((t) => t.docId), contains('shared-task'));
+    });
+
+    test('reconciles stale family-task rows on initial snapshot', () async {
+      // Seed Drift with a synced family-task row that is NOT present in
+      // Firestore (simulating a removed/retired task that the previous
+      // session cached).
+      await db.taskDao.upsertFromRemote(_taskCompanion(
+        docId: 'stale-task',
+        familyDocId: familyDocId,
+        personDocId: otherMemberDocId,
+      ));
+
+      await service.start(testPersonDocId);
+      await service.initialPullComplete;
+      await _settleSnapshots();
+
+      final familyTasks =
+          await db.taskDao.watchFamilyActiveTasks(familyDocId).first;
+      expect(familyTasks.map((t) => t.docId).contains('stale-task'), false,
+          reason:
+              'Stale family-task rows must be reconciled out on initial snapshot');
+    });
+  });
+}
+
+TasksCompanion _taskCompanion({
+  required String docId,
+  required String familyDocId,
+  required String personDocId,
+}) {
+  return TasksCompanion(
+    docId: Value(docId),
+    name: const Value('Stale'),
+    personDocId: Value(personDocId),
+    familyDocId: Value(familyDocId),
+    dateAdded: Value(DateTime.utc(2024, 1, 1)),
+    offCycle: const Value(false),
+    syncState: Value(SyncState.synced.name),
+  );
 }

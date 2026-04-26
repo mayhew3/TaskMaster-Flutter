@@ -13,6 +13,7 @@ import 'package:taskmaster/features/shared/presentation/widgets/nullable_dropdow
 import 'package:taskmaster/helpers/task_selectors.dart';
 import 'package:taskmaster/timezone_helper.dart';
 import '../../../core/services/task_completion_service.dart';
+import '../../family/providers/family_providers.dart';
 import '../providers/task_providers.dart';
 
 /// Riverpod version of the Add/Edit Task screen
@@ -517,7 +518,47 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                     ),
                     Visibility(
                       visible: hasDate(),
-                      child: Card(
+                      child: Builder(builder: (context) {
+                        // Family-shared tasks can't carry recurrence in MVP:
+                        // the recurrence rule isn't synced to family members,
+                        // so completing such a task on a non-owner device
+                        // throws RecurrenceNotFoundException (TM-335 follow-up).
+                        // Hide the toggle (with a hint) when the task is or
+                        // will become family-shared AND isn't already
+                        // recurring. Existing broken tasks (saved before this
+                        // guard) still show the toggle so the user can turn
+                        // recurrence off to keep family sharing.
+                        final willBeFamilyShared =
+                            taskItem != null
+                                ? taskItem!.familyDocId != null
+                                : ref.watch(currentFamilyDocIdProvider) != null;
+                        final alreadyRecurring = _initialRepeatOn;
+                        if (willBeFamilyShared && !alreadyRecurring) {
+                          return Card(
+                            elevation: 3.0,
+                            color: TaskColors.cardColor,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 14.0, horizontal: 16.0),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.autorenew,
+                                      color: Colors.white38, size: 20),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      "Repeating tasks aren't supported in family view yet.",
+                                      style: TextStyle(
+                                          color: Colors.white54,
+                                          fontSize: 13),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+                        return Card(
                         elevation: 3.0,
                         color: TaskColors.cardColor,
                         child: Padding(
@@ -638,7 +679,8 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                             ],
                           ),
                         ),
-                      ),
+                        );
+                      }),
                     ),
                     EditableTaskField(
                       initialText: taskItemBlueprint.description,

@@ -9,6 +9,9 @@ part of 'serializers.dart';
 Serializers _$serializers =
     (Serializers().toBuilder()
           ..add(AnchorDate.serializer)
+          ..add(Family.serializer)
+          ..add(FamilyInvitation.serializer)
+          ..add(Person.serializer)
           ..add(Snooze.serializer)
           ..add(Sprint.serializer)
           ..add(SprintAssignment.serializer)
@@ -17,6 +20,10 @@ Serializers _$serializers =
           ..addBuilderFactory(
             const FullType(BuiltList, const [const FullType(SprintAssignment)]),
             () => ListBuilder<SprintAssignment>(),
+          )
+          ..addBuilderFactory(
+            const FullType(BuiltList, const [const FullType(String)]),
+            () => ListBuilder<String>(),
           ))
         .build();
 

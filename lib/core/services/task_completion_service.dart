@@ -11,6 +11,7 @@ import '../providers/notification_providers.dart';
 import '../utils/performance_logger.dart';
 import 'analytics_service.dart';
 import 'sync_service.dart';
+import '../../features/family/providers/family_providers.dart';
 import '../../features/tasks/data/firestore_task_repository.dart';
 import '../../features/tasks/domain/task_repository.dart';
 import '../../features/tasks/providers/task_providers.dart';
@@ -380,81 +381,96 @@ class SkipTask extends _$SkipTask {
   }
 }
 
-/// Controller for deleting tasks
+/// Controller for deleting tasks.
+///
+/// Notifier `state` is intentionally NOT mutated from `call`. With a sync
+/// `FutureOr<void> build()` the AsyncNotifier's internal future completer
+/// is settled at construction; subsequent `state = AsyncLoading/AsyncData`
+/// re-completes it and throws "Bad state: Future already completed". UI
+/// loading state is handled locally by callers (e.g. `_busy` flags).
 @riverpod
 class DeleteTask extends _$DeleteTask {
   @override
   FutureOr<void> build() {}
 
   Future<void> call(TaskItem task) async {
-    state = const AsyncLoading();
-
-    state = await AsyncValue.guard(() async {
-      final db = ref.read(databaseProvider);
-      await db.taskDao.markDeletePending(task.docId);
-      ref.read(analyticsServiceProvider).logTaskDeleted().ignore();
-      ref.read(syncServiceProvider).pushPendingWrites(caller: 'DeleteTask').ignore();
-    });
+    final db = ref.read(databaseProvider);
+    await db.taskDao.markDeletePending(task.docId);
+    ref.read(analyticsServiceProvider).logTaskDeleted().ignore();
+    ref.read(syncServiceProvider).pushPendingWrites(caller: 'DeleteTask').ignore();
   }
 }
 
-/// Controller for adding new tasks
+/// Controller for adding new tasks.
 @riverpod
 class AddTask extends _$AddTask {
   @override
   FutureOr<void> build() {}
 
   Future<void> call(TaskItemBlueprint blueprint) async {
-    state = const AsyncLoading();
+    final db = ref.read(databaseProvider);
+    final firestore = ref.read(firestoreProvider);
+    final personDocId = ref.read(personDocIdProvider);
+    if (personDocId == null) {
+      throw StateError(
+          'Cannot add task: personDocId is null (not authenticated).');
+    }
 
-    state = await AsyncValue.guard(() async {
-      final db = ref.read(databaseProvider);
-      final firestore = ref.read(firestoreProvider);
-      final personDocId = ref.read(personDocIdProvider);
-      if (personDocId == null) {
-        throw StateError(
-            'Cannot add task: personDocId is null (not authenticated).');
-      }
+    blueprint.personDocId = personDocId;
+    // Stamp familyDocId on the new task if the user is currently in a family
+    // (TM-335). The blueprint may already carry a value if a caller wants to
+    // override; only fill when unset.
+    blueprint.familyDocId ??= ref.read(currentFamilyDocIdProvider);
+    blueprint.recurrenceBlueprint?.personDocId = personDocId;
 
-      blueprint.personDocId = personDocId;
-      blueprint.recurrenceBlueprint?.personDocId = personDocId;
+    final now = DateTime.now().toUtc();
+    final recurrenceBlueprint = blueprint.recurrenceBlueprint;
 
-      final now = DateTime.now().toUtc();
-      final recurrenceBlueprint = blueprint.recurrenceBlueprint;
-
-      // If this is a new recurrence (no existing recurrenceDocId), create it first.
-      if (recurrenceBlueprint != null && blueprint.recurrenceDocId == null) {
-        final recurrenceDocId = firestore.collection('taskRecurrences').doc().id;
-        blueprint.recurrenceDocId = recurrenceDocId;
-        await db.taskRecurrenceDao.insertPending(
-          recurrenceBlueprintToCompanion(
-            docId: recurrenceDocId,
-            personDocId: personDocId,
-            dateAdded: now,
-            blueprint: recurrenceBlueprint,
-          ),
-        );
-      }
-
-      final taskDocId = firestore.collection('tasks').doc().id;
-      await db.taskDao.insertPending(
-        taskBlueprintToCompanion(
-          docId: taskDocId,
+    // If this is a new recurrence (no existing recurrenceDocId), create it first.
+    if (recurrenceBlueprint != null && blueprint.recurrenceDocId == null) {
+      final recurrenceDocId = firestore.collection('taskRecurrences').doc().id;
+      blueprint.recurrenceDocId = recurrenceDocId;
+      await db.taskRecurrenceDao.insertPending(
+        recurrenceBlueprintToCompanion(
+          docId: recurrenceDocId,
           personDocId: personDocId,
           dateAdded: now,
-          blueprint: blueprint,
+          blueprint: recurrenceBlueprint,
         ),
       );
+    }
 
-      ref.read(analyticsServiceProvider)
-          .logTaskCreated(hasRecurrence: recurrenceBlueprint != null)
-          .ignore();
-      ref.read(syncServiceProvider).pushPendingWrites(caller: 'AddTask').ignore();
-    });
+    final taskDocId = firestore.collection('tasks').doc().id;
+    await db.taskDao.insertPending(
+      taskBlueprintToCompanion(
+        docId: taskDocId,
+        personDocId: personDocId,
+        dateAdded: now,
+        blueprint: blueprint,
+      ),
+    );
+
+    ref.read(analyticsServiceProvider)
+        .logTaskCreated(hasRecurrence: recurrenceBlueprint != null)
+        .ignore();
+    ref.read(syncServiceProvider).pushPendingWrites(caller: 'AddTask').ignore();
+
+    // Fire-and-forget: schedule notifications for the new task's dates.
+    // Re-reads the just-saved row so the helper sees exactly what landed in
+    // Drift instead of duplicating field-mapping logic from the blueprint.
+    final savedRow = await db.taskDao.getByDocId(taskDocId);
+    if (savedRow != null) {
+      final newTask = taskItemFromRow(savedRow);
+      ref
+          .read(notificationHelperProvider)
+          .updateNotificationForTask(newTask)
+          .then((_) => print('⏱️ [AddTask] notification updated (background)'))
+          .catchError((e) => print('⚠️ [AddTask] notification error: $e'));
+    }
   }
 }
 
-/// Controller for updating tasks
+/// Controller for updating tasks.
 @riverpod
 class UpdateTask extends _$UpdateTask {
   @override
@@ -464,86 +480,94 @@ class UpdateTask extends _$UpdateTask {
     required TaskItem task,
     required TaskItemBlueprint blueprint,
   }) async {
-    state = const AsyncLoading();
+    final db = ref.read(databaseProvider);
+    final firestore = ref.read(firestoreProvider);
+    final personDocId = ref.read(personDocIdProvider);
+    if (personDocId == null) {
+      throw StateError(
+          'Cannot update task: personDocId is null (not authenticated).');
+    }
 
-    state = await AsyncValue.guard(() async {
-      final db = ref.read(databaseProvider);
-      final firestore = ref.read(firestoreProvider);
-      final personDocId = ref.read(personDocIdProvider);
-      if (personDocId == null) {
-        throw StateError(
-            'Cannot update task: personDocId is null (not authenticated).');
-      }
+    blueprint.personDocId = personDocId;
+    blueprint.recurrenceBlueprint?.personDocId = personDocId;
 
-      blueprint.personDocId = personDocId;
-      blueprint.recurrenceBlueprint?.personDocId = personDocId;
+    final recurrenceBlueprint = blueprint.recurrenceBlueprint;
 
-      final recurrenceBlueprint = blueprint.recurrenceBlueprint;
+    // If adding a brand-new recurrence to an existing task, create the record.
+    if (recurrenceBlueprint != null && blueprint.recurrenceDocId == null) {
+      final recurrenceDocId = firestore.collection('taskRecurrences').doc().id;
+      blueprint.recurrenceDocId = recurrenceDocId;
+      final now = DateTime.now().toUtc();
+      await db.taskRecurrenceDao.insertPending(
+        recurrenceBlueprintToCompanion(
+          docId: recurrenceDocId,
+          personDocId: personDocId,
+          dateAdded: now,
+          blueprint: recurrenceBlueprint,
+        ),
+      );
+    } else if (recurrenceBlueprint != null &&
+        blueprint.recurrenceDocId != null) {
+      // Updating an existing recurrence.
+      await db.taskRecurrenceDao.markUpdatePending(
+        blueprint.recurrenceDocId!,
+        recurrenceBlueprintToDiff(recurrenceBlueprint),
+      );
 
-      // If adding a brand-new recurrence to an existing task, create the record.
-      if (recurrenceBlueprint != null && blueprint.recurrenceDocId == null) {
-        final recurrenceDocId = firestore.collection('taskRecurrences').doc().id;
-        blueprint.recurrenceDocId = recurrenceDocId;
-        final now = DateTime.now().toUtc();
-        await db.taskRecurrenceDao.insertPending(
-          recurrenceBlueprintToCompanion(
-            docId: recurrenceDocId,
-            personDocId: personDocId,
-            dateAdded: now,
-            blueprint: recurrenceBlueprint,
-          ),
+      // Cascade recurrence field changes to upcoming tasks in the chain
+      // (those with recurIteration > this task's) so they stay in sync with
+      // the updated shared TaskRecurrence (TM-243). Compare new values against
+      // the task's effective values (task-level fields with shared-recurrence
+      // fallback) to detect actual changes — blueprints are typically
+      // fully-populated, so a raw != null check would trigger on every save.
+      final recurIteration = task.recurIteration;
+      final effectiveRecurWait = task.recurWait ?? task.recurrence?.recurWait;
+      final effectiveRecurNumber =
+          task.recurNumber ?? task.recurrence?.recurNumber;
+      final effectiveRecurUnit =
+          task.recurUnit ?? task.recurrence?.recurUnit;
+      final recurWaitChanged = recurrenceBlueprint.recurWait != null &&
+          recurrenceBlueprint.recurWait != effectiveRecurWait;
+      final recurNumberChanged = recurrenceBlueprint.recurNumber != null &&
+          recurrenceBlueprint.recurNumber != effectiveRecurNumber;
+      final recurUnitChanged = recurrenceBlueprint.recurUnit != null &&
+          recurrenceBlueprint.recurUnit != effectiveRecurUnit;
+      if (recurIteration != null &&
+          (recurWaitChanged || recurNumberChanged || recurUnitChanged)) {
+        final cascadeDiff = TasksCompanion(
+          recurWait: recurWaitChanged
+              ? Value(recurrenceBlueprint.recurWait)
+              : const Value.absent(),
+          recurNumber: recurNumberChanged
+              ? Value(recurrenceBlueprint.recurNumber)
+              : const Value.absent(),
+          recurUnit: recurUnitChanged
+              ? Value(recurrenceBlueprint.recurUnit)
+              : const Value.absent(),
         );
-      } else if (recurrenceBlueprint != null &&
-          blueprint.recurrenceDocId != null) {
-        // Updating an existing recurrence.
-        await db.taskRecurrenceDao.markUpdatePending(
-          blueprint.recurrenceDocId!,
-          recurrenceBlueprintToDiff(recurrenceBlueprint),
+        await db.taskDao.cascadeRecurrenceFieldsToUpcoming(
+          personDocId: personDocId,
+          recurrenceDocId: blueprint.recurrenceDocId!,
+          afterIteration: recurIteration,
+          diff: cascadeDiff,
         );
-
-        // Cascade recurrence field changes to upcoming tasks in the chain
-        // (those with recurIteration > this task's) so they stay in sync with
-        // the updated shared TaskRecurrence (TM-243). Compare new values against
-        // the task's effective values (task-level fields with shared-recurrence
-        // fallback) to detect actual changes — blueprints are typically
-        // fully-populated, so a raw != null check would trigger on every save.
-        final recurIteration = task.recurIteration;
-        final effectiveRecurWait = task.recurWait ?? task.recurrence?.recurWait;
-        final effectiveRecurNumber =
-            task.recurNumber ?? task.recurrence?.recurNumber;
-        final effectiveRecurUnit =
-            task.recurUnit ?? task.recurrence?.recurUnit;
-        final recurWaitChanged = recurrenceBlueprint.recurWait != null &&
-            recurrenceBlueprint.recurWait != effectiveRecurWait;
-        final recurNumberChanged = recurrenceBlueprint.recurNumber != null &&
-            recurrenceBlueprint.recurNumber != effectiveRecurNumber;
-        final recurUnitChanged = recurrenceBlueprint.recurUnit != null &&
-            recurrenceBlueprint.recurUnit != effectiveRecurUnit;
-        if (recurIteration != null &&
-            (recurWaitChanged || recurNumberChanged || recurUnitChanged)) {
-          final cascadeDiff = TasksCompanion(
-            recurWait: recurWaitChanged
-                ? Value(recurrenceBlueprint.recurWait)
-                : const Value.absent(),
-            recurNumber: recurNumberChanged
-                ? Value(recurrenceBlueprint.recurNumber)
-                : const Value.absent(),
-            recurUnit: recurUnitChanged
-                ? Value(recurrenceBlueprint.recurUnit)
-                : const Value.absent(),
-          );
-          await db.taskDao.cascadeRecurrenceFieldsToUpcoming(
-            personDocId: personDocId,
-            recurrenceDocId: blueprint.recurrenceDocId!,
-            afterIteration: recurIteration,
-            diff: cascadeDiff,
-          );
-        }
       }
+    }
 
-      await db.taskDao.markUpdatePending(task.docId, taskBlueprintToDiff(blueprint));
-      ref.read(syncServiceProvider).pushPendingWrites(caller: 'UpdateTask').ignore();
-    });
+    await db.taskDao.markUpdatePending(task.docId, taskBlueprintToDiff(blueprint));
+    ref.read(syncServiceProvider).pushPendingWrites(caller: 'UpdateTask').ignore();
+
+    // Fire-and-forget: refresh notifications for the (possibly changed) dates.
+    final savedRow = await db.taskDao.getByDocId(task.docId);
+    if (savedRow != null) {
+      final updatedTask = taskItemFromRow(savedRow);
+      ref
+          .read(notificationHelperProvider)
+          .updateNotificationForTask(updatedTask)
+          .then((_) =>
+              print('⏱️ [UpdateTask] notification updated (background)'))
+          .catchError((e) => print('⚠️ [UpdateTask] notification error: $e'));
+    }
   }
 }
 
@@ -560,54 +584,63 @@ class SnoozeTask extends _$SnoozeTask {
     required String unitSize,
     required TaskDateType dateType,
   }) async {
-    state = const AsyncLoading();
+    final db = ref.read(databaseProvider);
+    final legacyRepository = ref.read(legacyTaskRepositoryProvider);
 
-    state = await AsyncValue.guard(() async {
-      final db = ref.read(databaseProvider);
-      final legacyRepository = ref.read(legacyTaskRepositoryProvider);
+    // Generate the preview (updates blueprint in-place with snoozed dates).
+    RecurrenceHelper.generatePreview(blueprint, numUnits, unitSize, dateType);
 
-      // Generate the preview (updates blueprint in-place with snoozed dates).
-      RecurrenceHelper.generatePreview(blueprint, numUnits, unitSize, dateType);
-
-      // Mirror the anchorDate logic from RecurrenceHelper.updateTaskAndMaybeRecurrenceForSnooze:
-      // if this is a scheduled recurrence (!recurWait) and not offCycle, update anchorDate.
-      final recurrenceBlueprint = blueprint.recurrenceBlueprint;
-      if (recurrenceBlueprint != null) {
-        final recurWait = recurrenceBlueprint.recurWait;
-        if (recurWait != null && !recurWait && !blueprint.offCycle) {
-          recurrenceBlueprint.anchorDate = blueprint.getAnchorDate();
-        }
+    // Mirror the anchorDate logic from RecurrenceHelper.updateTaskAndMaybeRecurrenceForSnooze:
+    // if this is a scheduled recurrence (!recurWait) and not offCycle, update anchorDate.
+    final recurrenceBlueprint = blueprint.recurrenceBlueprint;
+    if (recurrenceBlueprint != null) {
+      final recurWait = recurrenceBlueprint.recurWait;
+      if (recurWait != null && !recurWait && !blueprint.offCycle) {
+        recurrenceBlueprint.anchorDate = blueprint.getAnchorDate();
       }
+    }
 
-      // Get original anchor date before update (for snooze record).
-      final originalValue = taskItem.getAnchorDate();
+    // Get original anchor date before update (for snooze record).
+    final originalValue = taskItem.getAnchorDate();
 
-      // Write task update to Drift.
-      await db.taskDao.markUpdatePending(
-          taskItem.docId, taskBlueprintToDiff(blueprint));
+    // Write task update to Drift.
+    await db.taskDao.markUpdatePending(
+        taskItem.docId, taskBlueprintToDiff(blueprint));
 
-      // Write recurrence update to Drift if present.
-      if (recurrenceBlueprint != null && blueprint.recurrenceDocId != null) {
-        await db.taskRecurrenceDao.markUpdatePending(
-          blueprint.recurrenceDocId!,
-          recurrenceBlueprintToDiff(recurrenceBlueprint),
-        );
-      }
-
-      // Snooze record goes directly to Firestore (out of Drift scope).
-      final newAnchorDate = dateType.dateFieldGetter(blueprint)!;
-      final snooze = SnoozeBlueprint(
-        taskDocId: taskItem.docId,
-        snoozeNumber: numUnits,
-        snoozeUnits: unitSize,
-        snoozeAnchor: dateType.label,
-        previousAnchor: originalValue?.dateValue,
-        newAnchor: newAnchorDate,
+    // Write recurrence update to Drift if present.
+    if (recurrenceBlueprint != null && blueprint.recurrenceDocId != null) {
+      await db.taskRecurrenceDao.markUpdatePending(
+        blueprint.recurrenceDocId!,
+        recurrenceBlueprintToDiff(recurrenceBlueprint),
       );
-      await legacyRepository.addSnooze(snooze);
+    }
 
-      ref.read(syncServiceProvider).pushPendingWrites(caller: 'SnoozeTask').ignore();
-    });
+    // Snooze record goes directly to Firestore (out of Drift scope).
+    final newAnchorDate = dateType.dateFieldGetter(blueprint)!;
+    final snooze = SnoozeBlueprint(
+      taskDocId: taskItem.docId,
+      snoozeNumber: numUnits,
+      snoozeUnits: unitSize,
+      snoozeAnchor: dateType.label,
+      previousAnchor: originalValue?.dateValue,
+      newAnchor: newAnchorDate,
+    );
+    await legacyRepository.addSnooze(snooze);
+
+    ref.read(syncServiceProvider).pushPendingWrites(caller: 'SnoozeTask').ignore();
+
+    // Fire-and-forget: snooze shifted dates, so notifications need to move
+    // with them.
+    final savedRow = await db.taskDao.getByDocId(taskItem.docId);
+    if (savedRow != null) {
+      final updatedTask = taskItemFromRow(savedRow);
+      ref
+          .read(notificationHelperProvider)
+          .updateNotificationForTask(updatedTask)
+          .then((_) =>
+              print('⏱️ [SnoozeTask] notification updated (background)'))
+          .catchError((e) => print('⚠️ [SnoozeTask] notification error: $e'));
+    }
   }
 }
 

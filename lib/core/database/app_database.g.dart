@@ -39,6 +39,17 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _familyDocIdMeta = const VerificationMeta(
+    'familyDocId',
+  );
+  @override
+  late final GeneratedColumn<String> familyDocId = GeneratedColumn<String>(
+    'family_doc_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
@@ -308,6 +319,7 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     docId,
     dateAdded,
     personDocId,
+    familyDocId,
     name,
     description,
     project,
@@ -366,6 +378,15 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         personDocId.isAcceptableOrUnknown(
           data['person_doc_id']!,
           _personDocIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('family_doc_id')) {
+      context.handle(
+        _familyDocIdMeta,
+        familyDocId.isAcceptableOrUnknown(
+          data['family_doc_id']!,
+          _familyDocIdMeta,
         ),
       );
     }
@@ -551,6 +572,10 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         DriftSqlType.string,
         data['${effectivePrefix}person_doc_id'],
       ),
+      familyDocId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}family_doc_id'],
+      ),
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
@@ -656,6 +681,7 @@ class Task extends DataClass implements Insertable<Task> {
   final String docId;
   final DateTime dateAdded;
   final String? personDocId;
+  final String? familyDocId;
   final String name;
   final String? description;
   final String? project;
@@ -683,6 +709,7 @@ class Task extends DataClass implements Insertable<Task> {
     required this.docId,
     required this.dateAdded,
     this.personDocId,
+    this.familyDocId,
     required this.name,
     this.description,
     this.project,
@@ -714,6 +741,9 @@ class Task extends DataClass implements Insertable<Task> {
     map['date_added'] = Variable<DateTime>(dateAdded);
     if (!nullToAbsent || personDocId != null) {
       map['person_doc_id'] = Variable<String>(personDocId);
+    }
+    if (!nullToAbsent || familyDocId != null) {
+      map['family_doc_id'] = Variable<String>(familyDocId);
     }
     map['name'] = Variable<String>(name);
     if (!nullToAbsent || description != null) {
@@ -786,6 +816,9 @@ class Task extends DataClass implements Insertable<Task> {
       personDocId: personDocId == null && nullToAbsent
           ? const Value.absent()
           : Value(personDocId),
+      familyDocId: familyDocId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(familyDocId),
       name: Value(name),
       description: description == null && nullToAbsent
           ? const Value.absent()
@@ -859,6 +892,7 @@ class Task extends DataClass implements Insertable<Task> {
       docId: serializer.fromJson<String>(json['docId']),
       dateAdded: serializer.fromJson<DateTime>(json['dateAdded']),
       personDocId: serializer.fromJson<String?>(json['personDocId']),
+      familyDocId: serializer.fromJson<String?>(json['familyDocId']),
       name: serializer.fromJson<String>(json['name']),
       description: serializer.fromJson<String?>(json['description']),
       project: serializer.fromJson<String?>(json['project']),
@@ -891,6 +925,7 @@ class Task extends DataClass implements Insertable<Task> {
       'docId': serializer.toJson<String>(docId),
       'dateAdded': serializer.toJson<DateTime>(dateAdded),
       'personDocId': serializer.toJson<String?>(personDocId),
+      'familyDocId': serializer.toJson<String?>(familyDocId),
       'name': serializer.toJson<String>(name),
       'description': serializer.toJson<String?>(description),
       'project': serializer.toJson<String?>(project),
@@ -921,6 +956,7 @@ class Task extends DataClass implements Insertable<Task> {
     String? docId,
     DateTime? dateAdded,
     Value<String?> personDocId = const Value.absent(),
+    Value<String?> familyDocId = const Value.absent(),
     String? name,
     Value<String?> description = const Value.absent(),
     Value<String?> project = const Value.absent(),
@@ -948,6 +984,7 @@ class Task extends DataClass implements Insertable<Task> {
     docId: docId ?? this.docId,
     dateAdded: dateAdded ?? this.dateAdded,
     personDocId: personDocId.present ? personDocId.value : this.personDocId,
+    familyDocId: familyDocId.present ? familyDocId.value : this.familyDocId,
     name: name ?? this.name,
     description: description.present ? description.value : this.description,
     project: project.present ? project.value : this.project,
@@ -985,6 +1022,9 @@ class Task extends DataClass implements Insertable<Task> {
       personDocId: data.personDocId.present
           ? data.personDocId.value
           : this.personDocId,
+      familyDocId: data.familyDocId.present
+          ? data.familyDocId.value
+          : this.familyDocId,
       name: data.name.present ? data.name.value : this.name,
       description: data.description.present
           ? data.description.value
@@ -1037,6 +1077,7 @@ class Task extends DataClass implements Insertable<Task> {
           ..write('docId: $docId, ')
           ..write('dateAdded: $dateAdded, ')
           ..write('personDocId: $personDocId, ')
+          ..write('familyDocId: $familyDocId, ')
           ..write('name: $name, ')
           ..write('description: $description, ')
           ..write('project: $project, ')
@@ -1069,6 +1110,7 @@ class Task extends DataClass implements Insertable<Task> {
     docId,
     dateAdded,
     personDocId,
+    familyDocId,
     name,
     description,
     project,
@@ -1100,6 +1142,7 @@ class Task extends DataClass implements Insertable<Task> {
           other.docId == this.docId &&
           other.dateAdded == this.dateAdded &&
           other.personDocId == this.personDocId &&
+          other.familyDocId == this.familyDocId &&
           other.name == this.name &&
           other.description == this.description &&
           other.project == this.project &&
@@ -1129,6 +1172,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
   final Value<String> docId;
   final Value<DateTime> dateAdded;
   final Value<String?> personDocId;
+  final Value<String?> familyDocId;
   final Value<String> name;
   final Value<String?> description;
   final Value<String?> project;
@@ -1157,6 +1201,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.docId = const Value.absent(),
     this.dateAdded = const Value.absent(),
     this.personDocId = const Value.absent(),
+    this.familyDocId = const Value.absent(),
     this.name = const Value.absent(),
     this.description = const Value.absent(),
     this.project = const Value.absent(),
@@ -1186,6 +1231,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     required String docId,
     required DateTime dateAdded,
     this.personDocId = const Value.absent(),
+    this.familyDocId = const Value.absent(),
     required String name,
     this.description = const Value.absent(),
     this.project = const Value.absent(),
@@ -1217,6 +1263,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Expression<String>? docId,
     Expression<DateTime>? dateAdded,
     Expression<String>? personDocId,
+    Expression<String>? familyDocId,
     Expression<String>? name,
     Expression<String>? description,
     Expression<String>? project,
@@ -1246,6 +1293,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
       if (docId != null) 'doc_id': docId,
       if (dateAdded != null) 'date_added': dateAdded,
       if (personDocId != null) 'person_doc_id': personDocId,
+      if (familyDocId != null) 'family_doc_id': familyDocId,
       if (name != null) 'name': name,
       if (description != null) 'description': description,
       if (project != null) 'project': project,
@@ -1277,6 +1325,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Value<String>? docId,
     Value<DateTime>? dateAdded,
     Value<String?>? personDocId,
+    Value<String?>? familyDocId,
     Value<String>? name,
     Value<String?>? description,
     Value<String?>? project,
@@ -1306,6 +1355,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
       docId: docId ?? this.docId,
       dateAdded: dateAdded ?? this.dateAdded,
       personDocId: personDocId ?? this.personDocId,
+      familyDocId: familyDocId ?? this.familyDocId,
       name: name ?? this.name,
       description: description ?? this.description,
       project: project ?? this.project,
@@ -1344,6 +1394,9 @@ class TasksCompanion extends UpdateCompanion<Task> {
     }
     if (personDocId.present) {
       map['person_doc_id'] = Variable<String>(personDocId.value);
+    }
+    if (familyDocId.present) {
+      map['family_doc_id'] = Variable<String>(familyDocId.value);
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
@@ -1426,6 +1479,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
           ..write('docId: $docId, ')
           ..write('dateAdded: $dateAdded, ')
           ..write('personDocId: $personDocId, ')
+          ..write('familyDocId: $familyDocId, ')
           ..write('name: $name, ')
           ..write('description: $description, ')
           ..write('project: $project, ')
@@ -3340,6 +3394,1560 @@ class SprintAssignmentsCompanion extends UpdateCompanion<SprintAssignment> {
   }
 }
 
+class $FamiliesTable extends Families with TableInfo<$FamiliesTable, Family> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FamiliesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _docIdMeta = const VerificationMeta('docId');
+  @override
+  late final GeneratedColumn<String> docId = GeneratedColumn<String>(
+    'doc_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateAddedMeta = const VerificationMeta(
+    'dateAdded',
+  );
+  @override
+  late final GeneratedColumn<DateTime> dateAdded = GeneratedColumn<DateTime>(
+    'date_added',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ownerPersonDocIdMeta = const VerificationMeta(
+    'ownerPersonDocId',
+  );
+  @override
+  late final GeneratedColumn<String> ownerPersonDocId = GeneratedColumn<String>(
+    'owner_person_doc_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _membersJsonMeta = const VerificationMeta(
+    'membersJson',
+  );
+  @override
+  late final GeneratedColumn<String> membersJson = GeneratedColumn<String>(
+    'members_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _retiredMeta = const VerificationMeta(
+    'retired',
+  );
+  @override
+  late final GeneratedColumn<String> retired = GeneratedColumn<String>(
+    'retired',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _retiredDateMeta = const VerificationMeta(
+    'retiredDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> retiredDate = GeneratedColumn<DateTime>(
+    'retired_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncStateMeta = const VerificationMeta(
+    'syncState',
+  );
+  @override
+  late final GeneratedColumn<String> syncState = GeneratedColumn<String>(
+    'sync_state',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('synced'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    docId,
+    dateAdded,
+    ownerPersonDocId,
+    membersJson,
+    retired,
+    retiredDate,
+    syncState,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'families';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Family> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('doc_id')) {
+      context.handle(
+        _docIdMeta,
+        docId.isAcceptableOrUnknown(data['doc_id']!, _docIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_docIdMeta);
+    }
+    if (data.containsKey('date_added')) {
+      context.handle(
+        _dateAddedMeta,
+        dateAdded.isAcceptableOrUnknown(data['date_added']!, _dateAddedMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateAddedMeta);
+    }
+    if (data.containsKey('owner_person_doc_id')) {
+      context.handle(
+        _ownerPersonDocIdMeta,
+        ownerPersonDocId.isAcceptableOrUnknown(
+          data['owner_person_doc_id']!,
+          _ownerPersonDocIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_ownerPersonDocIdMeta);
+    }
+    if (data.containsKey('members_json')) {
+      context.handle(
+        _membersJsonMeta,
+        membersJson.isAcceptableOrUnknown(
+          data['members_json']!,
+          _membersJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_membersJsonMeta);
+    }
+    if (data.containsKey('retired')) {
+      context.handle(
+        _retiredMeta,
+        retired.isAcceptableOrUnknown(data['retired']!, _retiredMeta),
+      );
+    }
+    if (data.containsKey('retired_date')) {
+      context.handle(
+        _retiredDateMeta,
+        retiredDate.isAcceptableOrUnknown(
+          data['retired_date']!,
+          _retiredDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sync_state')) {
+      context.handle(
+        _syncStateMeta,
+        syncState.isAcceptableOrUnknown(data['sync_state']!, _syncStateMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {docId};
+  @override
+  Family map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Family(
+      docId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}doc_id'],
+      )!,
+      dateAdded: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date_added'],
+      )!,
+      ownerPersonDocId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_person_doc_id'],
+      )!,
+      membersJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}members_json'],
+      )!,
+      retired: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}retired'],
+      ),
+      retiredDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}retired_date'],
+      ),
+      syncState: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_state'],
+      )!,
+    );
+  }
+
+  @override
+  $FamiliesTable createAlias(String alias) {
+    return $FamiliesTable(attachedDatabase, alias);
+  }
+}
+
+class Family extends DataClass implements Insertable<Family> {
+  final String docId;
+  final DateTime dateAdded;
+  final String ownerPersonDocId;
+  final String membersJson;
+  final String? retired;
+  final DateTime? retiredDate;
+  final String syncState;
+  const Family({
+    required this.docId,
+    required this.dateAdded,
+    required this.ownerPersonDocId,
+    required this.membersJson,
+    this.retired,
+    this.retiredDate,
+    required this.syncState,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['doc_id'] = Variable<String>(docId);
+    map['date_added'] = Variable<DateTime>(dateAdded);
+    map['owner_person_doc_id'] = Variable<String>(ownerPersonDocId);
+    map['members_json'] = Variable<String>(membersJson);
+    if (!nullToAbsent || retired != null) {
+      map['retired'] = Variable<String>(retired);
+    }
+    if (!nullToAbsent || retiredDate != null) {
+      map['retired_date'] = Variable<DateTime>(retiredDate);
+    }
+    map['sync_state'] = Variable<String>(syncState);
+    return map;
+  }
+
+  FamiliesCompanion toCompanion(bool nullToAbsent) {
+    return FamiliesCompanion(
+      docId: Value(docId),
+      dateAdded: Value(dateAdded),
+      ownerPersonDocId: Value(ownerPersonDocId),
+      membersJson: Value(membersJson),
+      retired: retired == null && nullToAbsent
+          ? const Value.absent()
+          : Value(retired),
+      retiredDate: retiredDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(retiredDate),
+      syncState: Value(syncState),
+    );
+  }
+
+  factory Family.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Family(
+      docId: serializer.fromJson<String>(json['docId']),
+      dateAdded: serializer.fromJson<DateTime>(json['dateAdded']),
+      ownerPersonDocId: serializer.fromJson<String>(json['ownerPersonDocId']),
+      membersJson: serializer.fromJson<String>(json['membersJson']),
+      retired: serializer.fromJson<String?>(json['retired']),
+      retiredDate: serializer.fromJson<DateTime?>(json['retiredDate']),
+      syncState: serializer.fromJson<String>(json['syncState']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'docId': serializer.toJson<String>(docId),
+      'dateAdded': serializer.toJson<DateTime>(dateAdded),
+      'ownerPersonDocId': serializer.toJson<String>(ownerPersonDocId),
+      'membersJson': serializer.toJson<String>(membersJson),
+      'retired': serializer.toJson<String?>(retired),
+      'retiredDate': serializer.toJson<DateTime?>(retiredDate),
+      'syncState': serializer.toJson<String>(syncState),
+    };
+  }
+
+  Family copyWith({
+    String? docId,
+    DateTime? dateAdded,
+    String? ownerPersonDocId,
+    String? membersJson,
+    Value<String?> retired = const Value.absent(),
+    Value<DateTime?> retiredDate = const Value.absent(),
+    String? syncState,
+  }) => Family(
+    docId: docId ?? this.docId,
+    dateAdded: dateAdded ?? this.dateAdded,
+    ownerPersonDocId: ownerPersonDocId ?? this.ownerPersonDocId,
+    membersJson: membersJson ?? this.membersJson,
+    retired: retired.present ? retired.value : this.retired,
+    retiredDate: retiredDate.present ? retiredDate.value : this.retiredDate,
+    syncState: syncState ?? this.syncState,
+  );
+  Family copyWithCompanion(FamiliesCompanion data) {
+    return Family(
+      docId: data.docId.present ? data.docId.value : this.docId,
+      dateAdded: data.dateAdded.present ? data.dateAdded.value : this.dateAdded,
+      ownerPersonDocId: data.ownerPersonDocId.present
+          ? data.ownerPersonDocId.value
+          : this.ownerPersonDocId,
+      membersJson: data.membersJson.present
+          ? data.membersJson.value
+          : this.membersJson,
+      retired: data.retired.present ? data.retired.value : this.retired,
+      retiredDate: data.retiredDate.present
+          ? data.retiredDate.value
+          : this.retiredDate,
+      syncState: data.syncState.present ? data.syncState.value : this.syncState,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Family(')
+          ..write('docId: $docId, ')
+          ..write('dateAdded: $dateAdded, ')
+          ..write('ownerPersonDocId: $ownerPersonDocId, ')
+          ..write('membersJson: $membersJson, ')
+          ..write('retired: $retired, ')
+          ..write('retiredDate: $retiredDate, ')
+          ..write('syncState: $syncState')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    docId,
+    dateAdded,
+    ownerPersonDocId,
+    membersJson,
+    retired,
+    retiredDate,
+    syncState,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Family &&
+          other.docId == this.docId &&
+          other.dateAdded == this.dateAdded &&
+          other.ownerPersonDocId == this.ownerPersonDocId &&
+          other.membersJson == this.membersJson &&
+          other.retired == this.retired &&
+          other.retiredDate == this.retiredDate &&
+          other.syncState == this.syncState);
+}
+
+class FamiliesCompanion extends UpdateCompanion<Family> {
+  final Value<String> docId;
+  final Value<DateTime> dateAdded;
+  final Value<String> ownerPersonDocId;
+  final Value<String> membersJson;
+  final Value<String?> retired;
+  final Value<DateTime?> retiredDate;
+  final Value<String> syncState;
+  final Value<int> rowid;
+  const FamiliesCompanion({
+    this.docId = const Value.absent(),
+    this.dateAdded = const Value.absent(),
+    this.ownerPersonDocId = const Value.absent(),
+    this.membersJson = const Value.absent(),
+    this.retired = const Value.absent(),
+    this.retiredDate = const Value.absent(),
+    this.syncState = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FamiliesCompanion.insert({
+    required String docId,
+    required DateTime dateAdded,
+    required String ownerPersonDocId,
+    required String membersJson,
+    this.retired = const Value.absent(),
+    this.retiredDate = const Value.absent(),
+    this.syncState = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : docId = Value(docId),
+       dateAdded = Value(dateAdded),
+       ownerPersonDocId = Value(ownerPersonDocId),
+       membersJson = Value(membersJson);
+  static Insertable<Family> custom({
+    Expression<String>? docId,
+    Expression<DateTime>? dateAdded,
+    Expression<String>? ownerPersonDocId,
+    Expression<String>? membersJson,
+    Expression<String>? retired,
+    Expression<DateTime>? retiredDate,
+    Expression<String>? syncState,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (docId != null) 'doc_id': docId,
+      if (dateAdded != null) 'date_added': dateAdded,
+      if (ownerPersonDocId != null) 'owner_person_doc_id': ownerPersonDocId,
+      if (membersJson != null) 'members_json': membersJson,
+      if (retired != null) 'retired': retired,
+      if (retiredDate != null) 'retired_date': retiredDate,
+      if (syncState != null) 'sync_state': syncState,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FamiliesCompanion copyWith({
+    Value<String>? docId,
+    Value<DateTime>? dateAdded,
+    Value<String>? ownerPersonDocId,
+    Value<String>? membersJson,
+    Value<String?>? retired,
+    Value<DateTime?>? retiredDate,
+    Value<String>? syncState,
+    Value<int>? rowid,
+  }) {
+    return FamiliesCompanion(
+      docId: docId ?? this.docId,
+      dateAdded: dateAdded ?? this.dateAdded,
+      ownerPersonDocId: ownerPersonDocId ?? this.ownerPersonDocId,
+      membersJson: membersJson ?? this.membersJson,
+      retired: retired ?? this.retired,
+      retiredDate: retiredDate ?? this.retiredDate,
+      syncState: syncState ?? this.syncState,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (docId.present) {
+      map['doc_id'] = Variable<String>(docId.value);
+    }
+    if (dateAdded.present) {
+      map['date_added'] = Variable<DateTime>(dateAdded.value);
+    }
+    if (ownerPersonDocId.present) {
+      map['owner_person_doc_id'] = Variable<String>(ownerPersonDocId.value);
+    }
+    if (membersJson.present) {
+      map['members_json'] = Variable<String>(membersJson.value);
+    }
+    if (retired.present) {
+      map['retired'] = Variable<String>(retired.value);
+    }
+    if (retiredDate.present) {
+      map['retired_date'] = Variable<DateTime>(retiredDate.value);
+    }
+    if (syncState.present) {
+      map['sync_state'] = Variable<String>(syncState.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FamiliesCompanion(')
+          ..write('docId: $docId, ')
+          ..write('dateAdded: $dateAdded, ')
+          ..write('ownerPersonDocId: $ownerPersonDocId, ')
+          ..write('membersJson: $membersJson, ')
+          ..write('retired: $retired, ')
+          ..write('retiredDate: $retiredDate, ')
+          ..write('syncState: $syncState, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $FamilyInvitationsTable extends FamilyInvitations
+    with TableInfo<$FamilyInvitationsTable, FamilyInvitation> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FamilyInvitationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _docIdMeta = const VerificationMeta('docId');
+  @override
+  late final GeneratedColumn<String> docId = GeneratedColumn<String>(
+    'doc_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateAddedMeta = const VerificationMeta(
+    'dateAdded',
+  );
+  @override
+  late final GeneratedColumn<DateTime> dateAdded = GeneratedColumn<DateTime>(
+    'date_added',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _inviterPersonDocIdMeta =
+      const VerificationMeta('inviterPersonDocId');
+  @override
+  late final GeneratedColumn<String> inviterPersonDocId =
+      GeneratedColumn<String>(
+        'inviter_person_doc_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _inviterFamilyDocIdMeta =
+      const VerificationMeta('inviterFamilyDocId');
+  @override
+  late final GeneratedColumn<String> inviterFamilyDocId =
+      GeneratedColumn<String>(
+        'inviter_family_doc_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _inviterDisplayNameMeta =
+      const VerificationMeta('inviterDisplayName');
+  @override
+  late final GeneratedColumn<String> inviterDisplayName =
+      GeneratedColumn<String>(
+        'inviter_display_name',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _inviteeEmailMeta = const VerificationMeta(
+    'inviteeEmail',
+  );
+  @override
+  late final GeneratedColumn<String> inviteeEmail = GeneratedColumn<String>(
+    'invitee_email',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _syncStateMeta = const VerificationMeta(
+    'syncState',
+  );
+  @override
+  late final GeneratedColumn<String> syncState = GeneratedColumn<String>(
+    'sync_state',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('synced'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    docId,
+    dateAdded,
+    inviterPersonDocId,
+    inviterFamilyDocId,
+    inviterDisplayName,
+    inviteeEmail,
+    status,
+    syncState,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'family_invitations';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FamilyInvitation> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('doc_id')) {
+      context.handle(
+        _docIdMeta,
+        docId.isAcceptableOrUnknown(data['doc_id']!, _docIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_docIdMeta);
+    }
+    if (data.containsKey('date_added')) {
+      context.handle(
+        _dateAddedMeta,
+        dateAdded.isAcceptableOrUnknown(data['date_added']!, _dateAddedMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateAddedMeta);
+    }
+    if (data.containsKey('inviter_person_doc_id')) {
+      context.handle(
+        _inviterPersonDocIdMeta,
+        inviterPersonDocId.isAcceptableOrUnknown(
+          data['inviter_person_doc_id']!,
+          _inviterPersonDocIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_inviterPersonDocIdMeta);
+    }
+    if (data.containsKey('inviter_family_doc_id')) {
+      context.handle(
+        _inviterFamilyDocIdMeta,
+        inviterFamilyDocId.isAcceptableOrUnknown(
+          data['inviter_family_doc_id']!,
+          _inviterFamilyDocIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_inviterFamilyDocIdMeta);
+    }
+    if (data.containsKey('inviter_display_name')) {
+      context.handle(
+        _inviterDisplayNameMeta,
+        inviterDisplayName.isAcceptableOrUnknown(
+          data['inviter_display_name']!,
+          _inviterDisplayNameMeta,
+        ),
+      );
+    }
+    if (data.containsKey('invitee_email')) {
+      context.handle(
+        _inviteeEmailMeta,
+        inviteeEmail.isAcceptableOrUnknown(
+          data['invitee_email']!,
+          _inviteeEmailMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_inviteeEmailMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('sync_state')) {
+      context.handle(
+        _syncStateMeta,
+        syncState.isAcceptableOrUnknown(data['sync_state']!, _syncStateMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {docId};
+  @override
+  FamilyInvitation map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FamilyInvitation(
+      docId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}doc_id'],
+      )!,
+      dateAdded: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date_added'],
+      )!,
+      inviterPersonDocId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}inviter_person_doc_id'],
+      )!,
+      inviterFamilyDocId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}inviter_family_doc_id'],
+      )!,
+      inviterDisplayName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}inviter_display_name'],
+      ),
+      inviteeEmail: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}invitee_email'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      syncState: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_state'],
+      )!,
+    );
+  }
+
+  @override
+  $FamilyInvitationsTable createAlias(String alias) {
+    return $FamilyInvitationsTable(attachedDatabase, alias);
+  }
+}
+
+class FamilyInvitation extends DataClass
+    implements Insertable<FamilyInvitation> {
+  final String docId;
+  final DateTime dateAdded;
+  final String inviterPersonDocId;
+  final String inviterFamilyDocId;
+  final String? inviterDisplayName;
+  final String inviteeEmail;
+  final String status;
+  final String syncState;
+  const FamilyInvitation({
+    required this.docId,
+    required this.dateAdded,
+    required this.inviterPersonDocId,
+    required this.inviterFamilyDocId,
+    this.inviterDisplayName,
+    required this.inviteeEmail,
+    required this.status,
+    required this.syncState,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['doc_id'] = Variable<String>(docId);
+    map['date_added'] = Variable<DateTime>(dateAdded);
+    map['inviter_person_doc_id'] = Variable<String>(inviterPersonDocId);
+    map['inviter_family_doc_id'] = Variable<String>(inviterFamilyDocId);
+    if (!nullToAbsent || inviterDisplayName != null) {
+      map['inviter_display_name'] = Variable<String>(inviterDisplayName);
+    }
+    map['invitee_email'] = Variable<String>(inviteeEmail);
+    map['status'] = Variable<String>(status);
+    map['sync_state'] = Variable<String>(syncState);
+    return map;
+  }
+
+  FamilyInvitationsCompanion toCompanion(bool nullToAbsent) {
+    return FamilyInvitationsCompanion(
+      docId: Value(docId),
+      dateAdded: Value(dateAdded),
+      inviterPersonDocId: Value(inviterPersonDocId),
+      inviterFamilyDocId: Value(inviterFamilyDocId),
+      inviterDisplayName: inviterDisplayName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(inviterDisplayName),
+      inviteeEmail: Value(inviteeEmail),
+      status: Value(status),
+      syncState: Value(syncState),
+    );
+  }
+
+  factory FamilyInvitation.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FamilyInvitation(
+      docId: serializer.fromJson<String>(json['docId']),
+      dateAdded: serializer.fromJson<DateTime>(json['dateAdded']),
+      inviterPersonDocId: serializer.fromJson<String>(
+        json['inviterPersonDocId'],
+      ),
+      inviterFamilyDocId: serializer.fromJson<String>(
+        json['inviterFamilyDocId'],
+      ),
+      inviterDisplayName: serializer.fromJson<String?>(
+        json['inviterDisplayName'],
+      ),
+      inviteeEmail: serializer.fromJson<String>(json['inviteeEmail']),
+      status: serializer.fromJson<String>(json['status']),
+      syncState: serializer.fromJson<String>(json['syncState']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'docId': serializer.toJson<String>(docId),
+      'dateAdded': serializer.toJson<DateTime>(dateAdded),
+      'inviterPersonDocId': serializer.toJson<String>(inviterPersonDocId),
+      'inviterFamilyDocId': serializer.toJson<String>(inviterFamilyDocId),
+      'inviterDisplayName': serializer.toJson<String?>(inviterDisplayName),
+      'inviteeEmail': serializer.toJson<String>(inviteeEmail),
+      'status': serializer.toJson<String>(status),
+      'syncState': serializer.toJson<String>(syncState),
+    };
+  }
+
+  FamilyInvitation copyWith({
+    String? docId,
+    DateTime? dateAdded,
+    String? inviterPersonDocId,
+    String? inviterFamilyDocId,
+    Value<String?> inviterDisplayName = const Value.absent(),
+    String? inviteeEmail,
+    String? status,
+    String? syncState,
+  }) => FamilyInvitation(
+    docId: docId ?? this.docId,
+    dateAdded: dateAdded ?? this.dateAdded,
+    inviterPersonDocId: inviterPersonDocId ?? this.inviterPersonDocId,
+    inviterFamilyDocId: inviterFamilyDocId ?? this.inviterFamilyDocId,
+    inviterDisplayName: inviterDisplayName.present
+        ? inviterDisplayName.value
+        : this.inviterDisplayName,
+    inviteeEmail: inviteeEmail ?? this.inviteeEmail,
+    status: status ?? this.status,
+    syncState: syncState ?? this.syncState,
+  );
+  FamilyInvitation copyWithCompanion(FamilyInvitationsCompanion data) {
+    return FamilyInvitation(
+      docId: data.docId.present ? data.docId.value : this.docId,
+      dateAdded: data.dateAdded.present ? data.dateAdded.value : this.dateAdded,
+      inviterPersonDocId: data.inviterPersonDocId.present
+          ? data.inviterPersonDocId.value
+          : this.inviterPersonDocId,
+      inviterFamilyDocId: data.inviterFamilyDocId.present
+          ? data.inviterFamilyDocId.value
+          : this.inviterFamilyDocId,
+      inviterDisplayName: data.inviterDisplayName.present
+          ? data.inviterDisplayName.value
+          : this.inviterDisplayName,
+      inviteeEmail: data.inviteeEmail.present
+          ? data.inviteeEmail.value
+          : this.inviteeEmail,
+      status: data.status.present ? data.status.value : this.status,
+      syncState: data.syncState.present ? data.syncState.value : this.syncState,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FamilyInvitation(')
+          ..write('docId: $docId, ')
+          ..write('dateAdded: $dateAdded, ')
+          ..write('inviterPersonDocId: $inviterPersonDocId, ')
+          ..write('inviterFamilyDocId: $inviterFamilyDocId, ')
+          ..write('inviterDisplayName: $inviterDisplayName, ')
+          ..write('inviteeEmail: $inviteeEmail, ')
+          ..write('status: $status, ')
+          ..write('syncState: $syncState')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    docId,
+    dateAdded,
+    inviterPersonDocId,
+    inviterFamilyDocId,
+    inviterDisplayName,
+    inviteeEmail,
+    status,
+    syncState,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FamilyInvitation &&
+          other.docId == this.docId &&
+          other.dateAdded == this.dateAdded &&
+          other.inviterPersonDocId == this.inviterPersonDocId &&
+          other.inviterFamilyDocId == this.inviterFamilyDocId &&
+          other.inviterDisplayName == this.inviterDisplayName &&
+          other.inviteeEmail == this.inviteeEmail &&
+          other.status == this.status &&
+          other.syncState == this.syncState);
+}
+
+class FamilyInvitationsCompanion extends UpdateCompanion<FamilyInvitation> {
+  final Value<String> docId;
+  final Value<DateTime> dateAdded;
+  final Value<String> inviterPersonDocId;
+  final Value<String> inviterFamilyDocId;
+  final Value<String?> inviterDisplayName;
+  final Value<String> inviteeEmail;
+  final Value<String> status;
+  final Value<String> syncState;
+  final Value<int> rowid;
+  const FamilyInvitationsCompanion({
+    this.docId = const Value.absent(),
+    this.dateAdded = const Value.absent(),
+    this.inviterPersonDocId = const Value.absent(),
+    this.inviterFamilyDocId = const Value.absent(),
+    this.inviterDisplayName = const Value.absent(),
+    this.inviteeEmail = const Value.absent(),
+    this.status = const Value.absent(),
+    this.syncState = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FamilyInvitationsCompanion.insert({
+    required String docId,
+    required DateTime dateAdded,
+    required String inviterPersonDocId,
+    required String inviterFamilyDocId,
+    this.inviterDisplayName = const Value.absent(),
+    required String inviteeEmail,
+    required String status,
+    this.syncState = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : docId = Value(docId),
+       dateAdded = Value(dateAdded),
+       inviterPersonDocId = Value(inviterPersonDocId),
+       inviterFamilyDocId = Value(inviterFamilyDocId),
+       inviteeEmail = Value(inviteeEmail),
+       status = Value(status);
+  static Insertable<FamilyInvitation> custom({
+    Expression<String>? docId,
+    Expression<DateTime>? dateAdded,
+    Expression<String>? inviterPersonDocId,
+    Expression<String>? inviterFamilyDocId,
+    Expression<String>? inviterDisplayName,
+    Expression<String>? inviteeEmail,
+    Expression<String>? status,
+    Expression<String>? syncState,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (docId != null) 'doc_id': docId,
+      if (dateAdded != null) 'date_added': dateAdded,
+      if (inviterPersonDocId != null)
+        'inviter_person_doc_id': inviterPersonDocId,
+      if (inviterFamilyDocId != null)
+        'inviter_family_doc_id': inviterFamilyDocId,
+      if (inviterDisplayName != null)
+        'inviter_display_name': inviterDisplayName,
+      if (inviteeEmail != null) 'invitee_email': inviteeEmail,
+      if (status != null) 'status': status,
+      if (syncState != null) 'sync_state': syncState,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FamilyInvitationsCompanion copyWith({
+    Value<String>? docId,
+    Value<DateTime>? dateAdded,
+    Value<String>? inviterPersonDocId,
+    Value<String>? inviterFamilyDocId,
+    Value<String?>? inviterDisplayName,
+    Value<String>? inviteeEmail,
+    Value<String>? status,
+    Value<String>? syncState,
+    Value<int>? rowid,
+  }) {
+    return FamilyInvitationsCompanion(
+      docId: docId ?? this.docId,
+      dateAdded: dateAdded ?? this.dateAdded,
+      inviterPersonDocId: inviterPersonDocId ?? this.inviterPersonDocId,
+      inviterFamilyDocId: inviterFamilyDocId ?? this.inviterFamilyDocId,
+      inviterDisplayName: inviterDisplayName ?? this.inviterDisplayName,
+      inviteeEmail: inviteeEmail ?? this.inviteeEmail,
+      status: status ?? this.status,
+      syncState: syncState ?? this.syncState,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (docId.present) {
+      map['doc_id'] = Variable<String>(docId.value);
+    }
+    if (dateAdded.present) {
+      map['date_added'] = Variable<DateTime>(dateAdded.value);
+    }
+    if (inviterPersonDocId.present) {
+      map['inviter_person_doc_id'] = Variable<String>(inviterPersonDocId.value);
+    }
+    if (inviterFamilyDocId.present) {
+      map['inviter_family_doc_id'] = Variable<String>(inviterFamilyDocId.value);
+    }
+    if (inviterDisplayName.present) {
+      map['inviter_display_name'] = Variable<String>(inviterDisplayName.value);
+    }
+    if (inviteeEmail.present) {
+      map['invitee_email'] = Variable<String>(inviteeEmail.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (syncState.present) {
+      map['sync_state'] = Variable<String>(syncState.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FamilyInvitationsCompanion(')
+          ..write('docId: $docId, ')
+          ..write('dateAdded: $dateAdded, ')
+          ..write('inviterPersonDocId: $inviterPersonDocId, ')
+          ..write('inviterFamilyDocId: $inviterFamilyDocId, ')
+          ..write('inviterDisplayName: $inviterDisplayName, ')
+          ..write('inviteeEmail: $inviteeEmail, ')
+          ..write('status: $status, ')
+          ..write('syncState: $syncState, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PersonsTable extends Persons with TableInfo<$PersonsTable, Person> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PersonsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _docIdMeta = const VerificationMeta('docId');
+  @override
+  late final GeneratedColumn<String> docId = GeneratedColumn<String>(
+    'doc_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateAddedMeta = const VerificationMeta(
+    'dateAdded',
+  );
+  @override
+  late final GeneratedColumn<DateTime> dateAdded = GeneratedColumn<DateTime>(
+    'date_added',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _emailMeta = const VerificationMeta('email');
+  @override
+  late final GeneratedColumn<String> email = GeneratedColumn<String>(
+    'email',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _displayNameMeta = const VerificationMeta(
+    'displayName',
+  );
+  @override
+  late final GeneratedColumn<String> displayName = GeneratedColumn<String>(
+    'display_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _familyDocIdMeta = const VerificationMeta(
+    'familyDocId',
+  );
+  @override
+  late final GeneratedColumn<String> familyDocId = GeneratedColumn<String>(
+    'family_doc_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _retiredMeta = const VerificationMeta(
+    'retired',
+  );
+  @override
+  late final GeneratedColumn<String> retired = GeneratedColumn<String>(
+    'retired',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _retiredDateMeta = const VerificationMeta(
+    'retiredDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> retiredDate = GeneratedColumn<DateTime>(
+    'retired_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncStateMeta = const VerificationMeta(
+    'syncState',
+  );
+  @override
+  late final GeneratedColumn<String> syncState = GeneratedColumn<String>(
+    'sync_state',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('synced'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    docId,
+    dateAdded,
+    email,
+    displayName,
+    familyDocId,
+    retired,
+    retiredDate,
+    syncState,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'persons';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Person> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('doc_id')) {
+      context.handle(
+        _docIdMeta,
+        docId.isAcceptableOrUnknown(data['doc_id']!, _docIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_docIdMeta);
+    }
+    if (data.containsKey('date_added')) {
+      context.handle(
+        _dateAddedMeta,
+        dateAdded.isAcceptableOrUnknown(data['date_added']!, _dateAddedMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateAddedMeta);
+    }
+    if (data.containsKey('email')) {
+      context.handle(
+        _emailMeta,
+        email.isAcceptableOrUnknown(data['email']!, _emailMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_emailMeta);
+    }
+    if (data.containsKey('display_name')) {
+      context.handle(
+        _displayNameMeta,
+        displayName.isAcceptableOrUnknown(
+          data['display_name']!,
+          _displayNameMeta,
+        ),
+      );
+    }
+    if (data.containsKey('family_doc_id')) {
+      context.handle(
+        _familyDocIdMeta,
+        familyDocId.isAcceptableOrUnknown(
+          data['family_doc_id']!,
+          _familyDocIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('retired')) {
+      context.handle(
+        _retiredMeta,
+        retired.isAcceptableOrUnknown(data['retired']!, _retiredMeta),
+      );
+    }
+    if (data.containsKey('retired_date')) {
+      context.handle(
+        _retiredDateMeta,
+        retiredDate.isAcceptableOrUnknown(
+          data['retired_date']!,
+          _retiredDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sync_state')) {
+      context.handle(
+        _syncStateMeta,
+        syncState.isAcceptableOrUnknown(data['sync_state']!, _syncStateMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {docId};
+  @override
+  Person map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Person(
+      docId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}doc_id'],
+      )!,
+      dateAdded: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date_added'],
+      )!,
+      email: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}email'],
+      )!,
+      displayName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}display_name'],
+      ),
+      familyDocId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}family_doc_id'],
+      ),
+      retired: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}retired'],
+      ),
+      retiredDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}retired_date'],
+      ),
+      syncState: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_state'],
+      )!,
+    );
+  }
+
+  @override
+  $PersonsTable createAlias(String alias) {
+    return $PersonsTable(attachedDatabase, alias);
+  }
+}
+
+class Person extends DataClass implements Insertable<Person> {
+  final String docId;
+  final DateTime dateAdded;
+  final String email;
+  final String? displayName;
+  final String? familyDocId;
+  final String? retired;
+  final DateTime? retiredDate;
+  final String syncState;
+  const Person({
+    required this.docId,
+    required this.dateAdded,
+    required this.email,
+    this.displayName,
+    this.familyDocId,
+    this.retired,
+    this.retiredDate,
+    required this.syncState,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['doc_id'] = Variable<String>(docId);
+    map['date_added'] = Variable<DateTime>(dateAdded);
+    map['email'] = Variable<String>(email);
+    if (!nullToAbsent || displayName != null) {
+      map['display_name'] = Variable<String>(displayName);
+    }
+    if (!nullToAbsent || familyDocId != null) {
+      map['family_doc_id'] = Variable<String>(familyDocId);
+    }
+    if (!nullToAbsent || retired != null) {
+      map['retired'] = Variable<String>(retired);
+    }
+    if (!nullToAbsent || retiredDate != null) {
+      map['retired_date'] = Variable<DateTime>(retiredDate);
+    }
+    map['sync_state'] = Variable<String>(syncState);
+    return map;
+  }
+
+  PersonsCompanion toCompanion(bool nullToAbsent) {
+    return PersonsCompanion(
+      docId: Value(docId),
+      dateAdded: Value(dateAdded),
+      email: Value(email),
+      displayName: displayName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(displayName),
+      familyDocId: familyDocId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(familyDocId),
+      retired: retired == null && nullToAbsent
+          ? const Value.absent()
+          : Value(retired),
+      retiredDate: retiredDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(retiredDate),
+      syncState: Value(syncState),
+    );
+  }
+
+  factory Person.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Person(
+      docId: serializer.fromJson<String>(json['docId']),
+      dateAdded: serializer.fromJson<DateTime>(json['dateAdded']),
+      email: serializer.fromJson<String>(json['email']),
+      displayName: serializer.fromJson<String?>(json['displayName']),
+      familyDocId: serializer.fromJson<String?>(json['familyDocId']),
+      retired: serializer.fromJson<String?>(json['retired']),
+      retiredDate: serializer.fromJson<DateTime?>(json['retiredDate']),
+      syncState: serializer.fromJson<String>(json['syncState']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'docId': serializer.toJson<String>(docId),
+      'dateAdded': serializer.toJson<DateTime>(dateAdded),
+      'email': serializer.toJson<String>(email),
+      'displayName': serializer.toJson<String?>(displayName),
+      'familyDocId': serializer.toJson<String?>(familyDocId),
+      'retired': serializer.toJson<String?>(retired),
+      'retiredDate': serializer.toJson<DateTime?>(retiredDate),
+      'syncState': serializer.toJson<String>(syncState),
+    };
+  }
+
+  Person copyWith({
+    String? docId,
+    DateTime? dateAdded,
+    String? email,
+    Value<String?> displayName = const Value.absent(),
+    Value<String?> familyDocId = const Value.absent(),
+    Value<String?> retired = const Value.absent(),
+    Value<DateTime?> retiredDate = const Value.absent(),
+    String? syncState,
+  }) => Person(
+    docId: docId ?? this.docId,
+    dateAdded: dateAdded ?? this.dateAdded,
+    email: email ?? this.email,
+    displayName: displayName.present ? displayName.value : this.displayName,
+    familyDocId: familyDocId.present ? familyDocId.value : this.familyDocId,
+    retired: retired.present ? retired.value : this.retired,
+    retiredDate: retiredDate.present ? retiredDate.value : this.retiredDate,
+    syncState: syncState ?? this.syncState,
+  );
+  Person copyWithCompanion(PersonsCompanion data) {
+    return Person(
+      docId: data.docId.present ? data.docId.value : this.docId,
+      dateAdded: data.dateAdded.present ? data.dateAdded.value : this.dateAdded,
+      email: data.email.present ? data.email.value : this.email,
+      displayName: data.displayName.present
+          ? data.displayName.value
+          : this.displayName,
+      familyDocId: data.familyDocId.present
+          ? data.familyDocId.value
+          : this.familyDocId,
+      retired: data.retired.present ? data.retired.value : this.retired,
+      retiredDate: data.retiredDate.present
+          ? data.retiredDate.value
+          : this.retiredDate,
+      syncState: data.syncState.present ? data.syncState.value : this.syncState,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Person(')
+          ..write('docId: $docId, ')
+          ..write('dateAdded: $dateAdded, ')
+          ..write('email: $email, ')
+          ..write('displayName: $displayName, ')
+          ..write('familyDocId: $familyDocId, ')
+          ..write('retired: $retired, ')
+          ..write('retiredDate: $retiredDate, ')
+          ..write('syncState: $syncState')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    docId,
+    dateAdded,
+    email,
+    displayName,
+    familyDocId,
+    retired,
+    retiredDate,
+    syncState,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Person &&
+          other.docId == this.docId &&
+          other.dateAdded == this.dateAdded &&
+          other.email == this.email &&
+          other.displayName == this.displayName &&
+          other.familyDocId == this.familyDocId &&
+          other.retired == this.retired &&
+          other.retiredDate == this.retiredDate &&
+          other.syncState == this.syncState);
+}
+
+class PersonsCompanion extends UpdateCompanion<Person> {
+  final Value<String> docId;
+  final Value<DateTime> dateAdded;
+  final Value<String> email;
+  final Value<String?> displayName;
+  final Value<String?> familyDocId;
+  final Value<String?> retired;
+  final Value<DateTime?> retiredDate;
+  final Value<String> syncState;
+  final Value<int> rowid;
+  const PersonsCompanion({
+    this.docId = const Value.absent(),
+    this.dateAdded = const Value.absent(),
+    this.email = const Value.absent(),
+    this.displayName = const Value.absent(),
+    this.familyDocId = const Value.absent(),
+    this.retired = const Value.absent(),
+    this.retiredDate = const Value.absent(),
+    this.syncState = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PersonsCompanion.insert({
+    required String docId,
+    required DateTime dateAdded,
+    required String email,
+    this.displayName = const Value.absent(),
+    this.familyDocId = const Value.absent(),
+    this.retired = const Value.absent(),
+    this.retiredDate = const Value.absent(),
+    this.syncState = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : docId = Value(docId),
+       dateAdded = Value(dateAdded),
+       email = Value(email);
+  static Insertable<Person> custom({
+    Expression<String>? docId,
+    Expression<DateTime>? dateAdded,
+    Expression<String>? email,
+    Expression<String>? displayName,
+    Expression<String>? familyDocId,
+    Expression<String>? retired,
+    Expression<DateTime>? retiredDate,
+    Expression<String>? syncState,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (docId != null) 'doc_id': docId,
+      if (dateAdded != null) 'date_added': dateAdded,
+      if (email != null) 'email': email,
+      if (displayName != null) 'display_name': displayName,
+      if (familyDocId != null) 'family_doc_id': familyDocId,
+      if (retired != null) 'retired': retired,
+      if (retiredDate != null) 'retired_date': retiredDate,
+      if (syncState != null) 'sync_state': syncState,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PersonsCompanion copyWith({
+    Value<String>? docId,
+    Value<DateTime>? dateAdded,
+    Value<String>? email,
+    Value<String?>? displayName,
+    Value<String?>? familyDocId,
+    Value<String?>? retired,
+    Value<DateTime?>? retiredDate,
+    Value<String>? syncState,
+    Value<int>? rowid,
+  }) {
+    return PersonsCompanion(
+      docId: docId ?? this.docId,
+      dateAdded: dateAdded ?? this.dateAdded,
+      email: email ?? this.email,
+      displayName: displayName ?? this.displayName,
+      familyDocId: familyDocId ?? this.familyDocId,
+      retired: retired ?? this.retired,
+      retiredDate: retiredDate ?? this.retiredDate,
+      syncState: syncState ?? this.syncState,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (docId.present) {
+      map['doc_id'] = Variable<String>(docId.value);
+    }
+    if (dateAdded.present) {
+      map['date_added'] = Variable<DateTime>(dateAdded.value);
+    }
+    if (email.present) {
+      map['email'] = Variable<String>(email.value);
+    }
+    if (displayName.present) {
+      map['display_name'] = Variable<String>(displayName.value);
+    }
+    if (familyDocId.present) {
+      map['family_doc_id'] = Variable<String>(familyDocId.value);
+    }
+    if (retired.present) {
+      map['retired'] = Variable<String>(retired.value);
+    }
+    if (retiredDate.present) {
+      map['retired_date'] = Variable<DateTime>(retiredDate.value);
+    }
+    if (syncState.present) {
+      map['sync_state'] = Variable<String>(syncState.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PersonsCompanion(')
+          ..write('docId: $docId, ')
+          ..write('dateAdded: $dateAdded, ')
+          ..write('email: $email, ')
+          ..write('displayName: $displayName, ')
+          ..write('familyDocId: $familyDocId, ')
+          ..write('retired: $retired, ')
+          ..write('retiredDate: $retiredDate, ')
+          ..write('syncState: $syncState, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3350,11 +4958,20 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SprintsTable sprints = $SprintsTable(this);
   late final $SprintAssignmentsTable sprintAssignments =
       $SprintAssignmentsTable(this);
+  late final $FamiliesTable families = $FamiliesTable(this);
+  late final $FamilyInvitationsTable familyInvitations =
+      $FamilyInvitationsTable(this);
+  late final $PersonsTable persons = $PersonsTable(this);
   late final TaskDao taskDao = TaskDao(this as AppDatabase);
   late final TaskRecurrenceDao taskRecurrenceDao = TaskRecurrenceDao(
     this as AppDatabase,
   );
   late final SprintDao sprintDao = SprintDao(this as AppDatabase);
+  late final FamilyDao familyDao = FamilyDao(this as AppDatabase);
+  late final FamilyInvitationDao familyInvitationDao = FamilyInvitationDao(
+    this as AppDatabase,
+  );
+  late final PersonDao personDao = PersonDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3364,6 +4981,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     taskRecurrences,
     sprints,
     sprintAssignments,
+    families,
+    familyInvitations,
+    persons,
   ];
 }
 
@@ -3372,6 +4992,7 @@ typedef $$TasksTableCreateCompanionBuilder =
       required String docId,
       required DateTime dateAdded,
       Value<String?> personDocId,
+      Value<String?> familyDocId,
       required String name,
       Value<String?> description,
       Value<String?> project,
@@ -3402,6 +5023,7 @@ typedef $$TasksTableUpdateCompanionBuilder =
       Value<String> docId,
       Value<DateTime> dateAdded,
       Value<String?> personDocId,
+      Value<String?> familyDocId,
       Value<String> name,
       Value<String?> description,
       Value<String?> project,
@@ -3448,6 +5070,11 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
 
   ColumnFilters<String> get personDocId => $composableBuilder(
     column: $table.personDocId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get familyDocId => $composableBuilder(
+    column: $table.familyDocId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3591,6 +5218,11 @@ class $$TasksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get familyDocId => $composableBuilder(
+    column: $table.familyDocId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
@@ -3727,6 +5359,11 @@ class $$TasksTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get familyDocId => $composableBuilder(
+    column: $table.familyDocId,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
@@ -3848,6 +5485,7 @@ class $$TasksTableTableManager
                 Value<String> docId = const Value.absent(),
                 Value<DateTime> dateAdded = const Value.absent(),
                 Value<String?> personDocId = const Value.absent(),
+                Value<String?> familyDocId = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String?> description = const Value.absent(),
                 Value<String?> project = const Value.absent(),
@@ -3876,6 +5514,7 @@ class $$TasksTableTableManager
                 docId: docId,
                 dateAdded: dateAdded,
                 personDocId: personDocId,
+                familyDocId: familyDocId,
                 name: name,
                 description: description,
                 project: project,
@@ -3906,6 +5545,7 @@ class $$TasksTableTableManager
                 required String docId,
                 required DateTime dateAdded,
                 Value<String?> personDocId = const Value.absent(),
+                Value<String?> familyDocId = const Value.absent(),
                 required String name,
                 Value<String?> description = const Value.absent(),
                 Value<String?> project = const Value.absent(),
@@ -3934,6 +5574,7 @@ class $$TasksTableTableManager
                 docId: docId,
                 dateAdded: dateAdded,
                 personDocId: personDocId,
+                familyDocId: familyDocId,
                 name: name,
                 description: description,
                 project: project,
@@ -4899,6 +6540,779 @@ typedef $$SprintAssignmentsTableProcessedTableManager =
       SprintAssignment,
       PrefetchHooks Function()
     >;
+typedef $$FamiliesTableCreateCompanionBuilder =
+    FamiliesCompanion Function({
+      required String docId,
+      required DateTime dateAdded,
+      required String ownerPersonDocId,
+      required String membersJson,
+      Value<String?> retired,
+      Value<DateTime?> retiredDate,
+      Value<String> syncState,
+      Value<int> rowid,
+    });
+typedef $$FamiliesTableUpdateCompanionBuilder =
+    FamiliesCompanion Function({
+      Value<String> docId,
+      Value<DateTime> dateAdded,
+      Value<String> ownerPersonDocId,
+      Value<String> membersJson,
+      Value<String?> retired,
+      Value<DateTime?> retiredDate,
+      Value<String> syncState,
+      Value<int> rowid,
+    });
+
+class $$FamiliesTableFilterComposer
+    extends Composer<_$AppDatabase, $FamiliesTable> {
+  $$FamiliesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get docId => $composableBuilder(
+    column: $table.docId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get dateAdded => $composableBuilder(
+    column: $table.dateAdded,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ownerPersonDocId => $composableBuilder(
+    column: $table.ownerPersonDocId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get membersJson => $composableBuilder(
+    column: $table.membersJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get retired => $composableBuilder(
+    column: $table.retired,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get retiredDate => $composableBuilder(
+    column: $table.retiredDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncState => $composableBuilder(
+    column: $table.syncState,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FamiliesTableOrderingComposer
+    extends Composer<_$AppDatabase, $FamiliesTable> {
+  $$FamiliesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get docId => $composableBuilder(
+    column: $table.docId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get dateAdded => $composableBuilder(
+    column: $table.dateAdded,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ownerPersonDocId => $composableBuilder(
+    column: $table.ownerPersonDocId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get membersJson => $composableBuilder(
+    column: $table.membersJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get retired => $composableBuilder(
+    column: $table.retired,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get retiredDate => $composableBuilder(
+    column: $table.retiredDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncState => $composableBuilder(
+    column: $table.syncState,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FamiliesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FamiliesTable> {
+  $$FamiliesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get docId =>
+      $composableBuilder(column: $table.docId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get dateAdded =>
+      $composableBuilder(column: $table.dateAdded, builder: (column) => column);
+
+  GeneratedColumn<String> get ownerPersonDocId => $composableBuilder(
+    column: $table.ownerPersonDocId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get membersJson => $composableBuilder(
+    column: $table.membersJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get retired =>
+      $composableBuilder(column: $table.retired, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get retiredDate => $composableBuilder(
+    column: $table.retiredDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get syncState =>
+      $composableBuilder(column: $table.syncState, builder: (column) => column);
+}
+
+class $$FamiliesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FamiliesTable,
+          Family,
+          $$FamiliesTableFilterComposer,
+          $$FamiliesTableOrderingComposer,
+          $$FamiliesTableAnnotationComposer,
+          $$FamiliesTableCreateCompanionBuilder,
+          $$FamiliesTableUpdateCompanionBuilder,
+          (Family, BaseReferences<_$AppDatabase, $FamiliesTable, Family>),
+          Family,
+          PrefetchHooks Function()
+        > {
+  $$FamiliesTableTableManager(_$AppDatabase db, $FamiliesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FamiliesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FamiliesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FamiliesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> docId = const Value.absent(),
+                Value<DateTime> dateAdded = const Value.absent(),
+                Value<String> ownerPersonDocId = const Value.absent(),
+                Value<String> membersJson = const Value.absent(),
+                Value<String?> retired = const Value.absent(),
+                Value<DateTime?> retiredDate = const Value.absent(),
+                Value<String> syncState = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FamiliesCompanion(
+                docId: docId,
+                dateAdded: dateAdded,
+                ownerPersonDocId: ownerPersonDocId,
+                membersJson: membersJson,
+                retired: retired,
+                retiredDate: retiredDate,
+                syncState: syncState,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String docId,
+                required DateTime dateAdded,
+                required String ownerPersonDocId,
+                required String membersJson,
+                Value<String?> retired = const Value.absent(),
+                Value<DateTime?> retiredDate = const Value.absent(),
+                Value<String> syncState = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FamiliesCompanion.insert(
+                docId: docId,
+                dateAdded: dateAdded,
+                ownerPersonDocId: ownerPersonDocId,
+                membersJson: membersJson,
+                retired: retired,
+                retiredDate: retiredDate,
+                syncState: syncState,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FamiliesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FamiliesTable,
+      Family,
+      $$FamiliesTableFilterComposer,
+      $$FamiliesTableOrderingComposer,
+      $$FamiliesTableAnnotationComposer,
+      $$FamiliesTableCreateCompanionBuilder,
+      $$FamiliesTableUpdateCompanionBuilder,
+      (Family, BaseReferences<_$AppDatabase, $FamiliesTable, Family>),
+      Family,
+      PrefetchHooks Function()
+    >;
+typedef $$FamilyInvitationsTableCreateCompanionBuilder =
+    FamilyInvitationsCompanion Function({
+      required String docId,
+      required DateTime dateAdded,
+      required String inviterPersonDocId,
+      required String inviterFamilyDocId,
+      Value<String?> inviterDisplayName,
+      required String inviteeEmail,
+      required String status,
+      Value<String> syncState,
+      Value<int> rowid,
+    });
+typedef $$FamilyInvitationsTableUpdateCompanionBuilder =
+    FamilyInvitationsCompanion Function({
+      Value<String> docId,
+      Value<DateTime> dateAdded,
+      Value<String> inviterPersonDocId,
+      Value<String> inviterFamilyDocId,
+      Value<String?> inviterDisplayName,
+      Value<String> inviteeEmail,
+      Value<String> status,
+      Value<String> syncState,
+      Value<int> rowid,
+    });
+
+class $$FamilyInvitationsTableFilterComposer
+    extends Composer<_$AppDatabase, $FamilyInvitationsTable> {
+  $$FamilyInvitationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get docId => $composableBuilder(
+    column: $table.docId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get dateAdded => $composableBuilder(
+    column: $table.dateAdded,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get inviterPersonDocId => $composableBuilder(
+    column: $table.inviterPersonDocId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get inviterFamilyDocId => $composableBuilder(
+    column: $table.inviterFamilyDocId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get inviterDisplayName => $composableBuilder(
+    column: $table.inviterDisplayName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get inviteeEmail => $composableBuilder(
+    column: $table.inviteeEmail,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncState => $composableBuilder(
+    column: $table.syncState,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FamilyInvitationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FamilyInvitationsTable> {
+  $$FamilyInvitationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get docId => $composableBuilder(
+    column: $table.docId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get dateAdded => $composableBuilder(
+    column: $table.dateAdded,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get inviterPersonDocId => $composableBuilder(
+    column: $table.inviterPersonDocId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get inviterFamilyDocId => $composableBuilder(
+    column: $table.inviterFamilyDocId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get inviterDisplayName => $composableBuilder(
+    column: $table.inviterDisplayName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get inviteeEmail => $composableBuilder(
+    column: $table.inviteeEmail,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncState => $composableBuilder(
+    column: $table.syncState,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FamilyInvitationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FamilyInvitationsTable> {
+  $$FamilyInvitationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get docId =>
+      $composableBuilder(column: $table.docId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get dateAdded =>
+      $composableBuilder(column: $table.dateAdded, builder: (column) => column);
+
+  GeneratedColumn<String> get inviterPersonDocId => $composableBuilder(
+    column: $table.inviterPersonDocId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get inviterFamilyDocId => $composableBuilder(
+    column: $table.inviterFamilyDocId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get inviterDisplayName => $composableBuilder(
+    column: $table.inviterDisplayName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get inviteeEmail => $composableBuilder(
+    column: $table.inviteeEmail,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get syncState =>
+      $composableBuilder(column: $table.syncState, builder: (column) => column);
+}
+
+class $$FamilyInvitationsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FamilyInvitationsTable,
+          FamilyInvitation,
+          $$FamilyInvitationsTableFilterComposer,
+          $$FamilyInvitationsTableOrderingComposer,
+          $$FamilyInvitationsTableAnnotationComposer,
+          $$FamilyInvitationsTableCreateCompanionBuilder,
+          $$FamilyInvitationsTableUpdateCompanionBuilder,
+          (
+            FamilyInvitation,
+            BaseReferences<
+              _$AppDatabase,
+              $FamilyInvitationsTable,
+              FamilyInvitation
+            >,
+          ),
+          FamilyInvitation,
+          PrefetchHooks Function()
+        > {
+  $$FamilyInvitationsTableTableManager(
+    _$AppDatabase db,
+    $FamilyInvitationsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FamilyInvitationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FamilyInvitationsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FamilyInvitationsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> docId = const Value.absent(),
+                Value<DateTime> dateAdded = const Value.absent(),
+                Value<String> inviterPersonDocId = const Value.absent(),
+                Value<String> inviterFamilyDocId = const Value.absent(),
+                Value<String?> inviterDisplayName = const Value.absent(),
+                Value<String> inviteeEmail = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String> syncState = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FamilyInvitationsCompanion(
+                docId: docId,
+                dateAdded: dateAdded,
+                inviterPersonDocId: inviterPersonDocId,
+                inviterFamilyDocId: inviterFamilyDocId,
+                inviterDisplayName: inviterDisplayName,
+                inviteeEmail: inviteeEmail,
+                status: status,
+                syncState: syncState,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String docId,
+                required DateTime dateAdded,
+                required String inviterPersonDocId,
+                required String inviterFamilyDocId,
+                Value<String?> inviterDisplayName = const Value.absent(),
+                required String inviteeEmail,
+                required String status,
+                Value<String> syncState = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FamilyInvitationsCompanion.insert(
+                docId: docId,
+                dateAdded: dateAdded,
+                inviterPersonDocId: inviterPersonDocId,
+                inviterFamilyDocId: inviterFamilyDocId,
+                inviterDisplayName: inviterDisplayName,
+                inviteeEmail: inviteeEmail,
+                status: status,
+                syncState: syncState,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FamilyInvitationsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FamilyInvitationsTable,
+      FamilyInvitation,
+      $$FamilyInvitationsTableFilterComposer,
+      $$FamilyInvitationsTableOrderingComposer,
+      $$FamilyInvitationsTableAnnotationComposer,
+      $$FamilyInvitationsTableCreateCompanionBuilder,
+      $$FamilyInvitationsTableUpdateCompanionBuilder,
+      (
+        FamilyInvitation,
+        BaseReferences<
+          _$AppDatabase,
+          $FamilyInvitationsTable,
+          FamilyInvitation
+        >,
+      ),
+      FamilyInvitation,
+      PrefetchHooks Function()
+    >;
+typedef $$PersonsTableCreateCompanionBuilder =
+    PersonsCompanion Function({
+      required String docId,
+      required DateTime dateAdded,
+      required String email,
+      Value<String?> displayName,
+      Value<String?> familyDocId,
+      Value<String?> retired,
+      Value<DateTime?> retiredDate,
+      Value<String> syncState,
+      Value<int> rowid,
+    });
+typedef $$PersonsTableUpdateCompanionBuilder =
+    PersonsCompanion Function({
+      Value<String> docId,
+      Value<DateTime> dateAdded,
+      Value<String> email,
+      Value<String?> displayName,
+      Value<String?> familyDocId,
+      Value<String?> retired,
+      Value<DateTime?> retiredDate,
+      Value<String> syncState,
+      Value<int> rowid,
+    });
+
+class $$PersonsTableFilterComposer
+    extends Composer<_$AppDatabase, $PersonsTable> {
+  $$PersonsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get docId => $composableBuilder(
+    column: $table.docId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get dateAdded => $composableBuilder(
+    column: $table.dateAdded,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get email => $composableBuilder(
+    column: $table.email,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get familyDocId => $composableBuilder(
+    column: $table.familyDocId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get retired => $composableBuilder(
+    column: $table.retired,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get retiredDate => $composableBuilder(
+    column: $table.retiredDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncState => $composableBuilder(
+    column: $table.syncState,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PersonsTableOrderingComposer
+    extends Composer<_$AppDatabase, $PersonsTable> {
+  $$PersonsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get docId => $composableBuilder(
+    column: $table.docId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get dateAdded => $composableBuilder(
+    column: $table.dateAdded,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get email => $composableBuilder(
+    column: $table.email,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get familyDocId => $composableBuilder(
+    column: $table.familyDocId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get retired => $composableBuilder(
+    column: $table.retired,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get retiredDate => $composableBuilder(
+    column: $table.retiredDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncState => $composableBuilder(
+    column: $table.syncState,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PersonsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PersonsTable> {
+  $$PersonsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get docId =>
+      $composableBuilder(column: $table.docId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get dateAdded =>
+      $composableBuilder(column: $table.dateAdded, builder: (column) => column);
+
+  GeneratedColumn<String> get email =>
+      $composableBuilder(column: $table.email, builder: (column) => column);
+
+  GeneratedColumn<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get familyDocId => $composableBuilder(
+    column: $table.familyDocId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get retired =>
+      $composableBuilder(column: $table.retired, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get retiredDate => $composableBuilder(
+    column: $table.retiredDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get syncState =>
+      $composableBuilder(column: $table.syncState, builder: (column) => column);
+}
+
+class $$PersonsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PersonsTable,
+          Person,
+          $$PersonsTableFilterComposer,
+          $$PersonsTableOrderingComposer,
+          $$PersonsTableAnnotationComposer,
+          $$PersonsTableCreateCompanionBuilder,
+          $$PersonsTableUpdateCompanionBuilder,
+          (Person, BaseReferences<_$AppDatabase, $PersonsTable, Person>),
+          Person,
+          PrefetchHooks Function()
+        > {
+  $$PersonsTableTableManager(_$AppDatabase db, $PersonsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PersonsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PersonsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PersonsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> docId = const Value.absent(),
+                Value<DateTime> dateAdded = const Value.absent(),
+                Value<String> email = const Value.absent(),
+                Value<String?> displayName = const Value.absent(),
+                Value<String?> familyDocId = const Value.absent(),
+                Value<String?> retired = const Value.absent(),
+                Value<DateTime?> retiredDate = const Value.absent(),
+                Value<String> syncState = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PersonsCompanion(
+                docId: docId,
+                dateAdded: dateAdded,
+                email: email,
+                displayName: displayName,
+                familyDocId: familyDocId,
+                retired: retired,
+                retiredDate: retiredDate,
+                syncState: syncState,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String docId,
+                required DateTime dateAdded,
+                required String email,
+                Value<String?> displayName = const Value.absent(),
+                Value<String?> familyDocId = const Value.absent(),
+                Value<String?> retired = const Value.absent(),
+                Value<DateTime?> retiredDate = const Value.absent(),
+                Value<String> syncState = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PersonsCompanion.insert(
+                docId: docId,
+                dateAdded: dateAdded,
+                email: email,
+                displayName: displayName,
+                familyDocId: familyDocId,
+                retired: retired,
+                retiredDate: retiredDate,
+                syncState: syncState,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PersonsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PersonsTable,
+      Person,
+      $$PersonsTableFilterComposer,
+      $$PersonsTableOrderingComposer,
+      $$PersonsTableAnnotationComposer,
+      $$PersonsTableCreateCompanionBuilder,
+      $$PersonsTableUpdateCompanionBuilder,
+      (Person, BaseReferences<_$AppDatabase, $PersonsTable, Person>),
+      Person,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4911,4 +7325,10 @@ class $AppDatabaseManager {
       $$SprintsTableTableManager(_db, _db.sprints);
   $$SprintAssignmentsTableTableManager get sprintAssignments =>
       $$SprintAssignmentsTableTableManager(_db, _db.sprintAssignments);
+  $$FamiliesTableTableManager get families =>
+      $$FamiliesTableTableManager(_db, _db.families);
+  $$FamilyInvitationsTableTableManager get familyInvitations =>
+      $$FamilyInvitationsTableTableManager(_db, _db.familyInvitations);
+  $$PersonsTableTableManager get persons =>
+      $$PersonsTableTableManager(_db, _db.persons);
 }

@@ -31,6 +31,7 @@ class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
   String key;
 
   String? personDocId;
+  String? familyDocId;
 
   @override
   String name;
@@ -83,6 +84,7 @@ class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
   }) {
     return new TaskItemRecurPreview(name)
       ..personDocId = personDocId
+      ..familyDocId = familyDocId
       ..name = name
       ..description = description
       ..project = project
@@ -135,6 +137,7 @@ class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
     blueprint.gamePoints = gamePoints;
     blueprint.offCycle = offCycle;
     blueprint.personDocId = personDocId;
+    blueprint.familyDocId = familyDocId;
     blueprint.recurNumber = recurNumber;
     blueprint.recurUnit = recurUnit;
     blueprint.recurWait = recurWait;
