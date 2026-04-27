@@ -341,12 +341,10 @@ class SyncService {
       _logSyncError(e, s);
     }
 
-    // Schedule notification refresh for the disappearing task — skip on
-    // initial because notificationSyncProvider does a full bulk sync on
-    // startup; per-task updates here would just duplicate work.
-    if (cachedTask != null && !isInitial) {
-      toRefreshNotifications.add(cachedTask);
-    }
+    // Notifications are refreshed only AFTER the final state is known —
+    // never with the pre-change cached snapshot, because the helper would
+    // see completionDate/retired still null and reschedule notifications
+    // for a task that has actually been completed (TM-342 round 1).
 
     // Fast path: cached data already shows this is a completion or retire.
     // Upsert with the new state instead of deleting so it remains visible
@@ -354,6 +352,7 @@ class SyncService {
     if (cachedTask != null &&
         (cachedTask.completionDate != null || cachedTask.retired != null)) {
       await db.taskDao.upsertFromRemote(taskItemToCompanion(cachedTask));
+      if (!isInitial) toRefreshNotifications.add(cachedTask);
       return;
     }
 
@@ -365,6 +364,20 @@ class SyncService {
           const GetOptions(source: Source.server));
       if (!snap.exists) {
         await db.taskDao.deleteFromRemote(change.doc.id);
+        // Cancel any local notifications scheduled for the now-deleted task.
+        // We don't have a final TaskItem to feed the bulk helper, so go
+        // direct to cancelNotificationsForTaskId.
+        if (!isInitial) {
+          try {
+            ref
+                .read(notificationHelperProvider)
+                .cancelNotificationsForTaskId(change.doc.id)
+                .catchError((e) => _syncLog(
+                    '[SyncService] cancel-on-delete failed for ${change.doc.id}: $e'));
+          } catch (_) {
+            // Helper unavailable (tests, init race) — silently skip.
+          }
+        }
         return;
       }
       final data = snap.data();
@@ -374,6 +387,9 @@ class SyncService {
       final task = serializers.deserializeWith(m.TaskItem.serializer, json);
       if (task != null) {
         await db.taskDao.upsertFromRemote(taskItemToCompanion(task));
+        // Use the server-fetched task — its state is authoritative — rather
+        // than the (possibly pre-change) cached one.
+        if (!isInitial) toRefreshNotifications.add(task);
       }
     } catch (e, s) {
       _syncLog(

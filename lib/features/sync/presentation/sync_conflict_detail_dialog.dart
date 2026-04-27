@@ -146,17 +146,20 @@ class SyncConflictDetailDialog extends ConsumerWidget {
 
   Future<void> _resolve(BuildContext context, WidgetRef ref,
       {required bool useLatest}) async {
-    final messenger = ScaffoldMessenger.maybeOf(context);
-    final navigator = Navigator.of(context);
     try {
       if (useLatest) {
         await onUseLatest(ref);
       } else {
         await onKeepMine(ref);
       }
-      navigator.pop();
+      // The user could have dismissed the dialog (back gesture / tap-outside)
+      // while the resolution was running. Calling Navigator.pop() blindly
+      // would pop the underlying route in that case.
+      if (!context.mounted) return;
+      Navigator.of(context).pop();
     } catch (e) {
-      messenger?.showSnackBar(
+      if (!context.mounted) return;
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
         SnackBar(content: Text('Failed to resolve: $e')),
       );
     }
