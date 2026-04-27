@@ -149,12 +149,17 @@ Stream<List<RecurrenceConflict>> recurrenceConflicts(Ref ref) {
 }
 
 /// Combined count across task + recurrence conflicts for the banner. Returns
-/// 0 while either stream is loading.
+/// 0 unless BOTH underlying streams have emitted at least once — partial
+/// loading would otherwise flash the banner with a wrong (under-)count
+/// before the second stream lands.
 @riverpod
 int allConflictsCount(Ref ref) {
-  final tasks = ref.watch(taskConflictsProvider).valueOrNull ?? const [];
+  final tasksAsync = ref.watch(taskConflictsProvider);
+  final recurrencesAsync = ref.watch(recurrenceConflictsProvider);
+  if (!tasksAsync.hasValue || !recurrencesAsync.hasValue) return 0;
+  final tasks = tasksAsync.value ?? const <TaskConflict>[];
   final recurrences =
-      ref.watch(recurrenceConflictsProvider).valueOrNull ?? const [];
+      recurrencesAsync.value ?? const <RecurrenceConflict>[];
   return tasks.length + recurrences.length;
 }
 

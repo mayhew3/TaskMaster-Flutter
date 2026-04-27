@@ -41,7 +41,10 @@ class TaskRecurrenceBlueprint with SprintDisplayTaskRecurrence {
   DateTime? retiredDate;
 
   // TM-342: server-authoritative timestamp from Firestore; round-tripped
-  // through serialization but not edited by the UI.
+  // through serialization but not edited by the UI. includeIfNull:false so
+  // legacy `doc.update(blueprint.toJson())` paths don't overwrite the
+  // server-written timestamp with null and defeat conflict detection.
+  @JsonKey(includeIfNull: false)
   DateTime? lastModified;
 
   /// `toJson` is the convention for a class to declare support for serialization

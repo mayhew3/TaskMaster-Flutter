@@ -81,6 +81,10 @@ class TaskItemBlueprint with DateHolder {
 
   // TM-342: round-tripped through serialization but not edited by the UI.
   // SyncService stamps this on push with FieldValue.serverTimestamp().
+  // includeIfNull:false so legacy `doc.update(blueprint.toJson())` paths
+  // (TaskRepository) don't write `lastModified: null` and clobber the
+  // server-written timestamp, which would defeat TM-342 conflict detection.
+  @JsonKey(includeIfNull: false)
   @JsonDateTimePassThroughConverter()
   DateTime? lastModified;
 

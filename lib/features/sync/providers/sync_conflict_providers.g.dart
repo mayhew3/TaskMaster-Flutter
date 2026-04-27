@@ -49,10 +49,12 @@ final recurrenceConflictsProvider =
 // ignore: unused_element
 typedef RecurrenceConflictsRef =
     AutoDisposeStreamProviderRef<List<RecurrenceConflict>>;
-String _$allConflictsCountHash() => r'66c68a72c6f87cb3682aa584ac834f864cb77fb4';
+String _$allConflictsCountHash() => r'479241182d2ccae1be17ccfd3d68291b106ad326';
 
 /// Combined count across task + recurrence conflicts for the banner. Returns
-/// 0 while either stream is loading.
+/// 0 unless BOTH underlying streams have emitted at least once — partial
+/// loading would otherwise flash the banner with a wrong (under-)count
+/// before the second stream lands.
 ///
 /// Copied from [allConflictsCount].
 @ProviderFor(allConflictsCount)

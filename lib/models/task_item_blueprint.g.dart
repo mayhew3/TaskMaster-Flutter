@@ -47,10 +47,12 @@ Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) =>
       'retiredDate': instance.retiredDate?.toIso8601String(),
       'personDocId': instance.personDocId,
       'familyDocId': instance.familyDocId,
-      'lastModified': _$JsonConverterToJson<DateTime, DateTime>(
-        instance.lastModified,
-        const JsonDateTimePassThroughConverter().toJson,
-      ),
+      if (_$JsonConverterToJson<DateTime, DateTime>(
+            instance.lastModified,
+            const JsonDateTimePassThroughConverter().toJson,
+          )
+          case final value?)
+        'lastModified': value,
     };
 
 Json? _$JsonConverterToJson<Json, Value>(
