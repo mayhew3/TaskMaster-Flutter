@@ -16,12 +16,17 @@ import 'package:taskmaster/models/task_item.dart';
 
 /// Test stub for [NotificationHelperImpl] that no-ops so SyncService snapshot
 /// handlers don't trip the FlutterLocalNotifications platform interface (which
-/// is uninitialized in the unit-test environment).
+/// is uninitialized in the unit-test environment). Overrides every method
+/// SyncService currently calls — `updateNotificationsForTasks` (snapshot push
+/// path) and `cancelNotificationsForTaskId` (TM-342 delete-confirmed path).
 class _NoopNotificationHelper extends NotificationHelperImpl {
   _NoopNotificationHelper() : super(plugin: FlutterLocalNotificationsPlugin());
 
   @override
   Future<void> updateNotificationsForTasks(List<TaskItem> taskItems) async {}
+
+  @override
+  Future<void> cancelNotificationsForTaskId(String taskId) async {}
 }
 
 void main() {

@@ -142,6 +142,20 @@ class TaskRecurrenceDao extends DatabaseAccessor<AppDatabase>
         .watch();
   }
 
+  /// TM-342: see [TaskDao.forceClearStuckConflicts].
+  Future<void> forceClearStuckConflicts(String personDocId,
+      {DateTime? now}) {
+    return (update(taskRecurrences)
+          ..where((r) =>
+              r.personDocId.equals(personDocId) &
+              r.syncState.equals(SyncState.pendingConflict.name)))
+        .write(TaskRecurrencesCompanion(
+      syncState: Value(SyncState.pendingUpdate.name),
+      conflictRemoteJson: const Value(null),
+      lastModified: Value(now ?? DateTime.now().toUtc()),
+    ));
+  }
+
   Future<void> hardDelete(String docId) {
     return (delete(taskRecurrences)..where((r) => r.docId.equals(docId))).go();
   }

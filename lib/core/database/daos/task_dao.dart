@@ -237,6 +237,28 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
         .watch();
   }
 
+  /// TM-342: force-resolve every pendingConflict row for [personDocId] by
+  /// keeping the local edit. Used as a recovery when a row's
+  /// `conflictRemoteJson` envelope can't be decoded (schema drift, corrupt
+  /// data) — without this, those rows would be permanently stuck with no
+  /// way to exit pendingConflict via the normal Keep mine / Use latest UI.
+  /// Refreshes `lastModified` so the next push wins; the row's prior
+  /// pending state is unknowable here so we conservatively restore to
+  /// pendingUpdate (a stuck pendingDelete becomes a normal update — the
+  /// user can re-issue the delete from the UI if that was their intent).
+  Future<void> forceClearStuckConflicts(String personDocId,
+      {DateTime? now}) {
+    return (update(tasks)
+          ..where((t) =>
+              t.personDocId.equals(personDocId) &
+              t.syncState.equals(SyncState.pendingConflict.name)))
+        .write(TasksCompanion(
+      syncState: Value(SyncState.pendingUpdate.name),
+      conflictRemoteJson: const Value(null),
+      lastModified: Value(now ?? DateTime.now().toUtc()),
+    ));
+  }
+
   /// Remove a row outright (used to finalize a pending-delete after Firestore
   /// confirms the delete).
   Future<void> hardDelete(String docId) {
