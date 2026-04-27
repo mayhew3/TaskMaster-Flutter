@@ -20,6 +20,8 @@ import 'package:taskmaster/features/tasks/presentation/stats_screen.dart';
 import 'package:taskmaster/features/family/presentation/family_tab_screen.dart';
 import 'package:taskmaster/features/family/presentation/pending_invitation_banner.dart';
 import 'package:taskmaster/features/family/providers/family_providers.dart';
+import 'package:taskmaster/features/sync/presentation/sync_conflict_banner.dart';
+import 'package:taskmaster/features/sync/providers/sync_conflict_providers.dart';
 
 /// Riverpod-based main app widget
 /// This replaces the Redux-based TaskMasterApp when useRiverpodForAuth is enabled
@@ -413,7 +415,7 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
     }
     final currentScreen = liveNavItems[clampedIndex].widgetGetter();
 
-    // Status-bar inset handling depends on whether the banner is visible:
+    // Status-bar inset handling depends on whether any banner is visible:
     // - When showing, the banner self-wraps in SafeArea(top: true) so it
     //   sits below the system icons; we then strip MediaQuery.padding.top
     //   for currentScreen so the inner-tab AppBar doesn't double-inset
@@ -423,7 +425,9 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
     final hasPendingInvite =
         (ref.watch(pendingInvitationsForMeProvider).valueOrNull ?? const [])
             .isNotEmpty;
-    final tabBody = hasPendingInvite
+    final hasSyncConflict = ref.watch(allConflictsCountProvider) > 0;
+    final hasAnyBanner = hasPendingInvite || hasSyncConflict;
+    final tabBody = hasAnyBanner
         ? MediaQuery.removePadding(
             context: context,
             removeTop: true,
@@ -435,6 +439,7 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
       body: Column(
         children: [
           const PendingInvitationBanner(),
+          const SyncConflictBanner(),
           Expanded(child: tabBody),
         ],
       ),

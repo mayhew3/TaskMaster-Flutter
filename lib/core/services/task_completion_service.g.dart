@@ -107,7 +107,7 @@ final deleteTaskProvider =
     );
 
 typedef _$DeleteTask = AutoDisposeAsyncNotifier<void>;
-String _$addTaskHash() => r'51ea6d3782719a3c66736de8dde7136e96d558bd';
+String _$addTaskHash() => r'0f96b22cf04235abe274be4d8869d6fca3010a9a';
 
 /// Controller for adding new tasks.
 ///
@@ -125,7 +125,7 @@ final addTaskProvider =
     );
 
 typedef _$AddTask = AutoDisposeAsyncNotifier<void>;
-String _$updateTaskHash() => r'266fd392d8a7756777b4420817179c93a3c79728';
+String _$updateTaskHash() => r'8bb8c502dd05d7a2830670163db55a44686aed94';
 
 /// Controller for updating tasks.
 ///
@@ -143,7 +143,7 @@ final updateTaskProvider =
     );
 
 typedef _$UpdateTask = AutoDisposeAsyncNotifier<void>;
-String _$snoozeTaskHash() => r'41a16ac60a87691b0270be27a67eb2a58f54f4d3';
+String _$snoozeTaskHash() => r'7fc6c953aa372c8d82d62fdc567d699324f57a09';
 
 /// Controller for snoozing tasks
 ///

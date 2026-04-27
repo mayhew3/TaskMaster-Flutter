@@ -79,6 +79,11 @@ class TaskItemBlueprint with DateHolder {
   String? personDocId;
   String? familyDocId;
 
+  // TM-342: round-tripped through serialization but not edited by the UI.
+  // SyncService stamps this on push with FieldValue.serverTimestamp().
+  @JsonDateTimePassThroughConverter()
+  DateTime? lastModified;
+
   @JsonKey(includeToJson: false)
   late int tmpId;
 

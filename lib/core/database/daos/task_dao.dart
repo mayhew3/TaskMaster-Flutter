@@ -70,7 +70,9 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
   }
 
   /// Upsert a row coming from Firestore. Skips rows whose current sync_state
-  /// is anything other than `synced` (pending-local-wins).
+  /// is anything other than `synced` — that catches pendingCreate /
+  /// pendingUpdate / pendingDelete (pending-local-wins) and pendingConflict
+  /// (TM-342: don't overwrite a row the user is actively resolving).
   Future<void> upsertFromRemote(TasksCompanion row) async {
     final current = await (select(tasks)
           ..where((t) => t.docId.equals(row.docId.value)))
@@ -87,6 +89,7 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
   /// Bulk upsert rows from a Firestore snapshot. Fetches all pending docIds in
   /// one query (pending-local-wins) then batch-inserts the rest in one shot —
   /// far fewer SQL round-trips than calling [upsertFromRemote] per row.
+  /// pendingConflict rows are also skipped (TM-342).
   Future<void> bulkUpsertFromRemote(List<TasksCompanion> rows) async {
     if (rows.isEmpty) return;
 
@@ -95,6 +98,7 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
                 SyncState.pendingCreate.name,
                 SyncState.pendingUpdate.name,
                 SyncState.pendingDelete.name,
+                SyncState.pendingConflict.name,
               ])))
         .map((t) => t.docId)
         .get();
@@ -120,17 +124,25 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
     await (delete(tasks)..where((t) => t.docId.equals(docId))).go();
   }
 
-  /// Insert a brand-new locally-created row as pendingCreate.
-  Future<void> insertPending(TasksCompanion row) {
+  /// Insert a brand-new locally-created row as pendingCreate. Stamps
+  /// `lastModified` with [now] (or the current UTC time) for TM-342 conflict
+  /// detection.
+  Future<void> insertPending(TasksCompanion row, {DateTime? now}) {
     return into(tasks).insert(
-      row.copyWith(syncState: Value(SyncState.pendingCreate.name)),
+      row.copyWith(
+        syncState: Value(SyncState.pendingCreate.name),
+        lastModified: Value(now ?? DateTime.now().toUtc()),
+      ),
       mode: InsertMode.insertOrReplace,
     );
   }
 
   /// Update an existing row, marking it pendingUpdate unless it is already
-  /// pendingCreate (in which case it stays pendingCreate).
-  Future<void> markUpdatePending(String docId, TasksCompanion diff) async {
+  /// pendingCreate (in which case it stays pendingCreate). Stamps
+  /// `lastModified` with [now] (or the current UTC time) for TM-342 conflict
+  /// detection.
+  Future<void> markUpdatePending(String docId, TasksCompanion diff,
+      {DateTime? now}) async {
     final current = await (select(tasks)
           ..where((t) => t.docId.equals(docId)))
         .getSingleOrNull();
@@ -140,13 +152,17 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
             ? SyncState.pendingCreate.name
             : SyncState.pendingUpdate.name;
     await (update(tasks)..where((t) => t.docId.equals(docId))).write(
-      diff.copyWith(syncState: Value(nextSyncState)),
+      diff.copyWith(
+        syncState: Value(nextSyncState),
+        lastModified: Value(now ?? DateTime.now().toUtc()),
+      ),
     );
   }
 
   /// Mark a row for delete. If it was pendingCreate (never pushed), delete
-  /// outright.
-  Future<void> markDeletePending(String docId) async {
+  /// outright. Stamps `lastModified` for TM-342 conflict detection so the
+  /// push-time comparison can decide local-delete vs newer-remote-update.
+  Future<void> markDeletePending(String docId, {DateTime? now}) async {
     final current = await (select(tasks)
           ..where((t) => t.docId.equals(docId)))
         .getSingleOrNull();
@@ -156,7 +172,10 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
       return;
     }
     await (update(tasks)..where((t) => t.docId.equals(docId))).write(
-      TasksCompanion(syncState: Value(SyncState.pendingDelete.name)),
+      TasksCompanion(
+        syncState: Value(SyncState.pendingDelete.name),
+        lastModified: Value(now ?? DateTime.now().toUtc()),
+      ),
     );
   }
 
@@ -165,6 +184,57 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
     return (update(tasks)..where((t) => t.docId.equals(docId))).write(
       TasksCompanion(syncState: Value(SyncState.synced.name)),
     );
+  }
+
+  /// TM-342: record a sync conflict. Sets syncState to pendingConflict and
+  /// stashes the remote envelope JSON for later resolution. The local row's
+  /// data fields are intentionally left intact so the conflict UI can render
+  /// the user's pending edit alongside the remote version.
+  Future<void> markPendingConflict(String docId, String remoteEnvelopeJson) {
+    return (update(tasks)..where((t) => t.docId.equals(docId))).write(
+      TasksCompanion(
+        syncState: Value(SyncState.pendingConflict.name),
+        conflictRemoteJson: Value(remoteEnvelopeJson),
+      ),
+    );
+  }
+
+  /// TM-342: resolve a conflict by accepting the remote version. Replaces the
+  /// local row with [remoteRow], clears the conflict envelope, and marks the
+  /// row synced.
+  Future<void> clearConflictAndAcceptRemote(
+      String docId, TasksCompanion remoteRow) async {
+    await into(tasks).insertOnConflictUpdate(
+      remoteRow.copyWith(
+        syncState: Value(SyncState.synced.name),
+        conflictRemoteJson: const Value(null),
+      ),
+    );
+  }
+
+  /// TM-342: resolve a conflict by keeping the local pending edit. Restores
+  /// the row to [restoreTo] (pendingUpdate or pendingDelete) and refreshes
+  /// `lastModified` so the next push wins against the remote that beat us.
+  /// Clears the conflict envelope.
+  Future<void> clearConflictAndRestorePending(
+      String docId, SyncState restoreTo,
+      {DateTime? now}) {
+    return (update(tasks)..where((t) => t.docId.equals(docId))).write(
+      TasksCompanion(
+        syncState: Value(restoreTo.name),
+        conflictRemoteJson: const Value(null),
+        lastModified: Value(now ?? DateTime.now().toUtc()),
+      ),
+    );
+  }
+
+  /// TM-342: stream of rows currently in conflict for [personDocId].
+  Stream<List<Task>> watchTasksWithConflicts(String personDocId) {
+    return (select(tasks)
+          ..where((t) =>
+              t.personDocId.equals(personDocId) &
+              t.syncState.equals(SyncState.pendingConflict.name)))
+        .watch();
   }
 
   /// Remove a row outright (used to finalize a pending-delete after Firestore

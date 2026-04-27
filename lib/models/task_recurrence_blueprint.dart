@@ -40,6 +40,10 @@ class TaskRecurrenceBlueprint with SprintDisplayTaskRecurrence {
   String? retired;
   DateTime? retiredDate;
 
+  // TM-342: server-authoritative timestamp from Firestore; round-tripped
+  // through serialization but not edited by the UI.
+  DateTime? lastModified;
+
   /// `toJson` is the convention for a class to declare support for serialization
   /// to JSON. The implementation simply calls the private, generated
   /// helper method `_$TaskItemFormToJson`.

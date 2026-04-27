@@ -64,6 +64,11 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   bool get offCycle;
   bool get skipped;
 
+  /// Last modification timestamp written by Firestore via
+  /// `FieldValue.serverTimestamp()`. Used by the sync layer to detect
+  /// concurrent edits before pushing pending writes (TM-342).
+  DateTime? get lastModified;
+
   @override
   @BuiltValueField(serialize: false)
   TaskRecurrence? get recurrence;
