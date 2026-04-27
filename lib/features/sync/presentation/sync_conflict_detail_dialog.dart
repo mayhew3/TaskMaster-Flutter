@@ -105,8 +105,11 @@ class SyncConflictDetailDialog extends ConsumerWidget {
     final isDelete = priorSyncState == 'pendingDelete';
     return AlertDialog(
       title: Text(title),
-      content: SizedBox(
-        width: 480,
+      // ConstrainedBox max-width keeps the comparison readable on tablets but
+      // lets the dialog shrink on narrow phones rather than overflowing the
+      // dialog's available width.
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

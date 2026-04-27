@@ -910,7 +910,20 @@ class SyncService {
     required DateTime? Function(TModel model) extractLastModified,
     required Future<void> Function(String envelopeJson) markConflict,
   }) async {
-    final remoteSnap = await docRef.get();
+    // Conflict detection must use a server-authoritative snapshot — a stale
+    // cached snapshot could falsely indicate "no conflict" and let this
+    // device overwrite a newer remote change. If the server read fails
+    // (e.g. offline), rethrow so the per-row catch in the calling
+    // _pushPending* records a failure and the row stays pending for retry,
+    // rather than letting the push proceed against unverifiable data.
+    final DocumentSnapshot<Map<String, dynamic>> remoteSnap;
+    try {
+      remoteSnap =
+          await docRef.get(const GetOptions(source: Source.server));
+    } catch (e, s) {
+      _logSyncError(e, s);
+      rethrow;
+    }
     if (!remoteSnap.exists) return false;
     final remoteData = remoteSnap.data();
     if (remoteData == null) return false;
