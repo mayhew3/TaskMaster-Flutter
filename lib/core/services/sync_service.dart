@@ -959,8 +959,17 @@ class SyncService {
     }
 
     // Remote is newer → record conflict.
-    final remoteJsonMap = serializers.serializeWith(serializer, remoteModel)
-        as Map<String, Object?>;
+    // built_value's StandardJsonPlugin returns Map<String, dynamic>; Dart's
+    // generic invariance means a direct `as Map<String, Object?>` cast can
+    // throw at runtime. Use Map.from to copy safely (and bail with a log if
+    // the serializer somehow didn't produce a Map at all).
+    final serializedRemote = serializers.serializeWith(serializer, remoteModel);
+    if (serializedRemote is! Map) {
+      _syncLog(
+          '[SyncService] conflict NOT recorded for $localDocId: serialized remote was ${serializedRemote.runtimeType}, not a Map');
+      return false;
+    }
+    final remoteJsonMap = Map<String, Object?>.from(serializedRemote);
     final envelope = _encodeConflictEnvelope(
       priorSyncState: localSyncState,
       remoteJsonMap: remoteJsonMap,

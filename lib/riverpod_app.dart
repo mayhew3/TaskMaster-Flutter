@@ -439,7 +439,14 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
       body: Column(
         children: [
           const PendingInvitationBanner(),
-          const SyncConflictBanner(),
+          // Both banners self-wrap in SafeArea(top: true). When the
+          // invitation banner is also visible above us, strip our top
+          // status-bar inset so we don't double-pad below it.
+          MediaQuery.removePadding(
+            context: context,
+            removeTop: hasPendingInvite,
+            child: const SyncConflictBanner(),
+          ),
           Expanded(child: tabBody),
         ],
       ),
