@@ -219,7 +219,13 @@ class _FieldComparison {
 
   Widget build(BuildContext context) {
     final differs = local != remote;
-    final highlight = differs ? Colors.orange.shade50 : null;
+    // Translucent warm tint for differing rows. The previous Colors.orange
+    // shade-50 was unreadable on this app's dark theme (the row's light text
+    // sat on a near-white background). A low-alpha orange tint stays warm
+    // enough to read as "differs" while keeping enough contrast for the
+    // light text.
+    final highlight =
+        differs ? Colors.orange.withValues(alpha: 0.18) : null;
     return Container(
       color: highlight,
       padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
