@@ -103,8 +103,23 @@ class SyncConflictDetailDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDelete = priorSyncState == 'pendingDelete';
+    final scheme = Theme.of(context).colorScheme;
+    // Material 3 elevates dialogs with a tinted surface overlay that, under
+    // this app's dark seed-derived ColorScheme, can render the dialog itself
+    // near-white while text widgets keep their dark-theme (light-gray)
+    // defaults — leaving the title unreadable. Pin both the background and
+    // the title text color to the configured surface / onSurface pair and
+    // disable surfaceTint so the two stay in step.
     return AlertDialog(
-      title: Text(title),
+      backgroundColor: scheme.surface,
+      surfaceTintColor: Colors.transparent,
+      title: Text(
+        title,
+        style: TextStyle(
+          color: scheme.onSurface,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       // ConstrainedBox max-width keeps the comparison readable on tablets but
       // lets the dialog shrink on narrow phones rather than overflowing the
       // dialog's available width.
