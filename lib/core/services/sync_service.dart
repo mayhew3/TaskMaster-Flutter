@@ -895,6 +895,33 @@ class SyncService {
     });
   }
 
+  /// TM-342: server-source `get()` with backoff retry on transient
+  /// `unavailable` / `deadline-exceeded` errors. The Firestore SDK can
+  /// briefly reject server reads while reconnecting after a connectivity
+  /// flip; Firestore's own error message recommends a backoff-and-retry,
+  /// which is what this does. Total worst-case wait is ~6s across 3
+  /// retries (500ms / 1500ms / 4000ms).
+  Future<DocumentSnapshot<Map<String, dynamic>>> _serverGetWithRetry(
+      DocumentReference<Map<String, dynamic>> docRef) async {
+    const delays = <Duration>[
+      Duration(milliseconds: 500),
+      Duration(milliseconds: 1500),
+      Duration(milliseconds: 4000),
+    ];
+    for (var attempt = 0;; attempt++) {
+      try {
+        return await docRef.get(const GetOptions(source: Source.server));
+      } on FirebaseException catch (e) {
+        final isTransient =
+            e.code == 'unavailable' || e.code == 'deadline-exceeded';
+        if (!isTransient || attempt >= delays.length) rethrow;
+        _syncLog(
+            '[SyncService] conflict-check transient ${e.code} on ${docRef.path} (attempt ${attempt + 1}); retrying after ${delays[attempt].inMilliseconds}ms');
+        await Future<void>.delayed(delays[attempt]);
+      }
+    }
+  }
+
   /// TM-342: pre-push conflict check. Reads the remote doc and compares
   /// `lastModified`. Returns `true` if a conflict was detected (and recorded
   /// via [markConflict]); `false` if the push should proceed.
@@ -912,14 +939,18 @@ class SyncService {
   }) async {
     // Conflict detection must use a server-authoritative snapshot — a stale
     // cached snapshot could falsely indicate "no conflict" and let this
-    // device overwrite a newer remote change. If the server read fails
-    // (e.g. offline), rethrow so the per-row catch in the calling
-    // _pushPending* records a failure and the row stays pending for retry,
-    // rather than letting the push proceed against unverifiable data.
+    // device overwrite a newer remote change.
+    //
+    // Connectivity flips can trigger a push before the Firestore SDK has
+    // finished reconnecting (TM-342 manual testing): Source.server then
+    // throws `cloud_firestore/unavailable`. Firestore's own error message
+    // says "may be corrected by retrying with a backoff" — so we do.
+    // After the retries exhaust, rethrow so the per-row catch in the
+    // calling _pushPending* records a failure and the row stays pending
+    // for retry on the next push.
     final DocumentSnapshot<Map<String, dynamic>> remoteSnap;
     try {
-      remoteSnap =
-          await docRef.get(const GetOptions(source: Source.server));
+      remoteSnap = await _serverGetWithRetry(docRef);
     } catch (e, s) {
       _logSyncError(e, s);
       rethrow;
