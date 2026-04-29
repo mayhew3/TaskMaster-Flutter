@@ -946,15 +946,10 @@ class SyncService {
     // throws `cloud_firestore/unavailable`. Firestore's own error message
     // says "may be corrected by retrying with a backoff" — so we do.
     // After the retries exhaust, rethrow so the per-row catch in the
-    // calling _pushPending* records a failure and the row stays pending
-    // for retry on the next push.
-    final DocumentSnapshot<Map<String, dynamic>> remoteSnap;
-    try {
-      remoteSnap = await _serverGetWithRetry(docRef);
-    } catch (e, s) {
-      _logSyncError(e, s);
-      rethrow;
-    }
+    // calling _pushPending* records a failure (and logs once) and the row
+    // stays pending for retry on the next push. We don't log here too —
+    // that would double-report a single transient failure.
+    final remoteSnap = await _serverGetWithRetry(docRef);
     if (!remoteSnap.exists) return false;
     final remoteData = remoteSnap.data();
     if (remoteData == null) return false;
