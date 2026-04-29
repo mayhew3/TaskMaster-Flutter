@@ -37,7 +37,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -50,6 +50,22 @@ class AppDatabase extends _$AppDatabase {
         await m.createTable(families);
         await m.createTable(familyInvitations);
         await m.createTable(persons);
+      }
+      if (from < 4) {
+        // TM-342: conflict detection columns.
+        await m.addColumn(tasks, tasks.lastModified);
+        await m.addColumn(tasks, tasks.conflictRemoteJson);
+        await m.addColumn(taskRecurrences, taskRecurrences.lastModified);
+        await m.addColumn(taskRecurrences, taskRecurrences.conflictRemoteJson);
+        // Backfill lastModified from dateAdded so existing rows have a
+        // best-effort baseline timestamp; the next push or remote snapshot
+        // will overwrite with the authoritative server value.
+        await customStatement(
+          'UPDATE tasks SET last_modified = date_added WHERE last_modified IS NULL',
+        );
+        await customStatement(
+          'UPDATE task_recurrences SET last_modified = date_added WHERE last_modified IS NULL',
+        );
       }
     },
   );

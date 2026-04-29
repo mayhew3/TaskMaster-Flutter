@@ -487,4 +487,13 @@ class MockNotificationHelperImpl extends _i1.Mock
             returnValueForMissingStub: _i9.Future<void>.value(),
           )
           as _i9.Future<void>);
+
+  @override
+  _i9.Future<void> updateNotificationsForTasks(List<_i2.TaskItem>? taskItems) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateNotificationsForTasks, [taskItems]),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
 }

@@ -7,6 +7,10 @@ import 'package:drift/drift.dart';
 /// - [pendingCreate] — created locally, not yet pushed
 /// - [pendingUpdate] — updated locally, not yet pushed
 /// - [pendingDelete] — soft-deleted locally, pending remote delete
+/// - [pendingConflict] — push detected a newer remote version (TM-342); the
+///   local row preserves the user's pending edit, the remote version is
+///   stashed in `conflictRemoteJson`, and the user must resolve via the
+///   sync conflicts UI before sync resumes for this doc
 ///
 /// Pending-local-wins conflict resolution: remote snapshots must not overwrite
 /// a row whose sync_state != synced.
@@ -15,6 +19,7 @@ enum SyncState {
   pendingCreate,
   pendingUpdate,
   pendingDelete,
+  pendingConflict,
 }
 
 /// Local mirror of Firestore `tasks` collection.
@@ -48,6 +53,17 @@ class Tasks extends Table {
   BoolColumn get offCycle => boolean().withDefault(const Constant(false))();
   BoolColumn get skipped => boolean().withDefault(const Constant(false))();
 
+  // Last-modified timestamp for conflict detection (TM-342). Populated on
+  // every local mutation (insertPending/markUpdatePending/markDeletePending)
+  // and overwritten by the server-authoritative value when a remote snapshot
+  // is upserted.
+  DateTimeColumn get lastModified => dateTime().nullable()();
+
+  // When push detects that the remote was modified after the local edit,
+  // the remote version is JSON-stashed here and `syncState` becomes
+  // `pendingConflict`. Cleared once the user resolves via the sync conflicts UI.
+  TextColumn get conflictRemoteJson => text().nullable()();
+
   TextColumn get syncState =>
       text().withDefault(const Constant('synced'))();
 
@@ -71,6 +87,10 @@ class TaskRecurrences extends Table {
 
   TextColumn get retired => text().nullable()();
   DateTimeColumn get retiredDate => dateTime().nullable()();
+
+  // See `Tasks.lastModified` (TM-342).
+  DateTimeColumn get lastModified => dateTime().nullable()();
+  TextColumn get conflictRemoteJson => text().nullable()();
 
   TextColumn get syncState =>
       text().withDefault(const Constant('synced'))();

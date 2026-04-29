@@ -31,6 +31,10 @@ abstract class TaskRecurrence with SprintDisplayTaskRecurrence implements Built<
 
   AnchorDate get anchorDate;
 
+  /// Last modification timestamp from Firestore (TM-342). See
+  /// `TaskItem.lastModified` for details.
+  DateTime? get lastModified;
+
   TaskRecurrence._();
 
   factory TaskRecurrence([Function(TaskRecurrenceBuilder) updates]) = _$TaskRecurrence;

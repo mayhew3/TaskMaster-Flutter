@@ -56,7 +56,8 @@ m.TaskItem taskItemFromRow(Task row) {
     ..retired = row.retired
     ..retiredDate = _utcOrNull(row.retiredDate)
     ..offCycle = row.offCycle
-    ..skipped = row.skipped);
+    ..skipped = row.skipped
+    ..lastModified = _utcOrNull(row.lastModified));
 }
 
 TasksCompanion taskItemToCompanion(m.TaskItem task) {
@@ -87,6 +88,7 @@ TasksCompanion taskItemToCompanion(m.TaskItem task) {
     retiredDate: Value(task.retiredDate),
     offCycle: Value(task.offCycle),
     skipped: Value(task.skipped),
+    lastModified: Value(task.lastModified),
   );
 }
 
@@ -102,7 +104,8 @@ m.TaskRecurrence taskRecurrenceFromRow(TaskRecurrence row) {
     ..recurUnit = row.recurUnit
     ..recurWait = row.recurWait
     ..recurIteration = row.recurIteration
-    ..anchorDate = _anchorDateFromJson(row.anchorDateJson).toBuilder());
+    ..anchorDate = _anchorDateFromJson(row.anchorDateJson).toBuilder()
+    ..lastModified = _utcOrNull(row.lastModified));
 }
 
 TaskRecurrencesCompanion taskRecurrenceToCompanion(m.TaskRecurrence recurrence) {
@@ -116,6 +119,7 @@ TaskRecurrencesCompanion taskRecurrenceToCompanion(m.TaskRecurrence recurrence) 
     recurWait: Value(recurrence.recurWait),
     recurIteration: Value(recurrence.recurIteration),
     anchorDateJson: Value(_anchorDateToJson(recurrence.anchorDate)),
+    lastModified: Value(recurrence.lastModified),
   );
 }
 

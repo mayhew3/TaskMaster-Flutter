@@ -302,6 +302,28 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _lastModifiedMeta = const VerificationMeta(
+    'lastModified',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastModified = GeneratedColumn<DateTime>(
+    'last_modified',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _conflictRemoteJsonMeta =
+      const VerificationMeta('conflictRemoteJson');
+  @override
+  late final GeneratedColumn<String> conflictRemoteJson =
+      GeneratedColumn<String>(
+        'conflict_remote_json',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _syncStateMeta = const VerificationMeta(
     'syncState',
   );
@@ -342,6 +364,8 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     retiredDate,
     offCycle,
     skipped,
+    lastModified,
+    conflictRemoteJson,
     syncState,
   ];
   @override
@@ -545,6 +569,24 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         skipped.isAcceptableOrUnknown(data['skipped']!, _skippedMeta),
       );
     }
+    if (data.containsKey('last_modified')) {
+      context.handle(
+        _lastModifiedMeta,
+        lastModified.isAcceptableOrUnknown(
+          data['last_modified']!,
+          _lastModifiedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('conflict_remote_json')) {
+      context.handle(
+        _conflictRemoteJsonMeta,
+        conflictRemoteJson.isAcceptableOrUnknown(
+          data['conflict_remote_json']!,
+          _conflictRemoteJsonMeta,
+        ),
+      );
+    }
     if (data.containsKey('sync_state')) {
       context.handle(
         _syncStateMeta,
@@ -664,6 +706,14 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         DriftSqlType.bool,
         data['${effectivePrefix}skipped'],
       )!,
+      lastModified: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_modified'],
+      ),
+      conflictRemoteJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}conflict_remote_json'],
+      ),
       syncState: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}sync_state'],
@@ -704,6 +754,8 @@ class Task extends DataClass implements Insertable<Task> {
   final DateTime? retiredDate;
   final bool offCycle;
   final bool skipped;
+  final DateTime? lastModified;
+  final String? conflictRemoteJson;
   final String syncState;
   const Task({
     required this.docId,
@@ -732,6 +784,8 @@ class Task extends DataClass implements Insertable<Task> {
     this.retiredDate,
     required this.offCycle,
     required this.skipped,
+    this.lastModified,
+    this.conflictRemoteJson,
     required this.syncState,
   });
   @override
@@ -805,6 +859,12 @@ class Task extends DataClass implements Insertable<Task> {
     }
     map['off_cycle'] = Variable<bool>(offCycle);
     map['skipped'] = Variable<bool>(skipped);
+    if (!nullToAbsent || lastModified != null) {
+      map['last_modified'] = Variable<DateTime>(lastModified);
+    }
+    if (!nullToAbsent || conflictRemoteJson != null) {
+      map['conflict_remote_json'] = Variable<String>(conflictRemoteJson);
+    }
     map['sync_state'] = Variable<String>(syncState);
     return map;
   }
@@ -879,6 +939,12 @@ class Task extends DataClass implements Insertable<Task> {
           : Value(retiredDate),
       offCycle: Value(offCycle),
       skipped: Value(skipped),
+      lastModified: lastModified == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastModified),
+      conflictRemoteJson: conflictRemoteJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(conflictRemoteJson),
       syncState: Value(syncState),
     );
   }
@@ -915,6 +981,10 @@ class Task extends DataClass implements Insertable<Task> {
       retiredDate: serializer.fromJson<DateTime?>(json['retiredDate']),
       offCycle: serializer.fromJson<bool>(json['offCycle']),
       skipped: serializer.fromJson<bool>(json['skipped']),
+      lastModified: serializer.fromJson<DateTime?>(json['lastModified']),
+      conflictRemoteJson: serializer.fromJson<String?>(
+        json['conflictRemoteJson'],
+      ),
       syncState: serializer.fromJson<String>(json['syncState']),
     );
   }
@@ -948,6 +1018,8 @@ class Task extends DataClass implements Insertable<Task> {
       'retiredDate': serializer.toJson<DateTime?>(retiredDate),
       'offCycle': serializer.toJson<bool>(offCycle),
       'skipped': serializer.toJson<bool>(skipped),
+      'lastModified': serializer.toJson<DateTime?>(lastModified),
+      'conflictRemoteJson': serializer.toJson<String?>(conflictRemoteJson),
       'syncState': serializer.toJson<String>(syncState),
     };
   }
@@ -979,6 +1051,8 @@ class Task extends DataClass implements Insertable<Task> {
     Value<DateTime?> retiredDate = const Value.absent(),
     bool? offCycle,
     bool? skipped,
+    Value<DateTime?> lastModified = const Value.absent(),
+    Value<String?> conflictRemoteJson = const Value.absent(),
     String? syncState,
   }) => Task(
     docId: docId ?? this.docId,
@@ -1013,6 +1087,10 @@ class Task extends DataClass implements Insertable<Task> {
     retiredDate: retiredDate.present ? retiredDate.value : this.retiredDate,
     offCycle: offCycle ?? this.offCycle,
     skipped: skipped ?? this.skipped,
+    lastModified: lastModified.present ? lastModified.value : this.lastModified,
+    conflictRemoteJson: conflictRemoteJson.present
+        ? conflictRemoteJson.value
+        : this.conflictRemoteJson,
     syncState: syncState ?? this.syncState,
   );
   Task copyWithCompanion(TasksCompanion data) {
@@ -1067,6 +1145,12 @@ class Task extends DataClass implements Insertable<Task> {
           : this.retiredDate,
       offCycle: data.offCycle.present ? data.offCycle.value : this.offCycle,
       skipped: data.skipped.present ? data.skipped.value : this.skipped,
+      lastModified: data.lastModified.present
+          ? data.lastModified.value
+          : this.lastModified,
+      conflictRemoteJson: data.conflictRemoteJson.present
+          ? data.conflictRemoteJson.value
+          : this.conflictRemoteJson,
       syncState: data.syncState.present ? data.syncState.value : this.syncState,
     );
   }
@@ -1100,6 +1184,8 @@ class Task extends DataClass implements Insertable<Task> {
           ..write('retiredDate: $retiredDate, ')
           ..write('offCycle: $offCycle, ')
           ..write('skipped: $skipped, ')
+          ..write('lastModified: $lastModified, ')
+          ..write('conflictRemoteJson: $conflictRemoteJson, ')
           ..write('syncState: $syncState')
           ..write(')'))
         .toString();
@@ -1133,6 +1219,8 @@ class Task extends DataClass implements Insertable<Task> {
     retiredDate,
     offCycle,
     skipped,
+    lastModified,
+    conflictRemoteJson,
     syncState,
   ]);
   @override
@@ -1165,6 +1253,8 @@ class Task extends DataClass implements Insertable<Task> {
           other.retiredDate == this.retiredDate &&
           other.offCycle == this.offCycle &&
           other.skipped == this.skipped &&
+          other.lastModified == this.lastModified &&
+          other.conflictRemoteJson == this.conflictRemoteJson &&
           other.syncState == this.syncState);
 }
 
@@ -1195,6 +1285,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
   final Value<DateTime?> retiredDate;
   final Value<bool> offCycle;
   final Value<bool> skipped;
+  final Value<DateTime?> lastModified;
+  final Value<String?> conflictRemoteJson;
   final Value<String> syncState;
   final Value<int> rowid;
   const TasksCompanion({
@@ -1224,6 +1316,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.retiredDate = const Value.absent(),
     this.offCycle = const Value.absent(),
     this.skipped = const Value.absent(),
+    this.lastModified = const Value.absent(),
+    this.conflictRemoteJson = const Value.absent(),
     this.syncState = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1254,6 +1348,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.retiredDate = const Value.absent(),
     this.offCycle = const Value.absent(),
     this.skipped = const Value.absent(),
+    this.lastModified = const Value.absent(),
+    this.conflictRemoteJson = const Value.absent(),
     this.syncState = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : docId = Value(docId),
@@ -1286,6 +1382,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Expression<DateTime>? retiredDate,
     Expression<bool>? offCycle,
     Expression<bool>? skipped,
+    Expression<DateTime>? lastModified,
+    Expression<String>? conflictRemoteJson,
     Expression<String>? syncState,
     Expression<int>? rowid,
   }) {
@@ -1316,6 +1414,9 @@ class TasksCompanion extends UpdateCompanion<Task> {
       if (retiredDate != null) 'retired_date': retiredDate,
       if (offCycle != null) 'off_cycle': offCycle,
       if (skipped != null) 'skipped': skipped,
+      if (lastModified != null) 'last_modified': lastModified,
+      if (conflictRemoteJson != null)
+        'conflict_remote_json': conflictRemoteJson,
       if (syncState != null) 'sync_state': syncState,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1348,6 +1449,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Value<DateTime?>? retiredDate,
     Value<bool>? offCycle,
     Value<bool>? skipped,
+    Value<DateTime?>? lastModified,
+    Value<String?>? conflictRemoteJson,
     Value<String>? syncState,
     Value<int>? rowid,
   }) {
@@ -1378,6 +1481,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
       retiredDate: retiredDate ?? this.retiredDate,
       offCycle: offCycle ?? this.offCycle,
       skipped: skipped ?? this.skipped,
+      lastModified: lastModified ?? this.lastModified,
+      conflictRemoteJson: conflictRemoteJson ?? this.conflictRemoteJson,
       syncState: syncState ?? this.syncState,
       rowid: rowid ?? this.rowid,
     );
@@ -1464,6 +1569,12 @@ class TasksCompanion extends UpdateCompanion<Task> {
     if (skipped.present) {
       map['skipped'] = Variable<bool>(skipped.value);
     }
+    if (lastModified.present) {
+      map['last_modified'] = Variable<DateTime>(lastModified.value);
+    }
+    if (conflictRemoteJson.present) {
+      map['conflict_remote_json'] = Variable<String>(conflictRemoteJson.value);
+    }
     if (syncState.present) {
       map['sync_state'] = Variable<String>(syncState.value);
     }
@@ -1502,6 +1613,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
           ..write('retiredDate: $retiredDate, ')
           ..write('offCycle: $offCycle, ')
           ..write('skipped: $skipped, ')
+          ..write('lastModified: $lastModified, ')
+          ..write('conflictRemoteJson: $conflictRemoteJson, ')
           ..write('syncState: $syncState, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1635,6 +1748,28 @@ class $TaskRecurrencesTable extends TaskRecurrences
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _lastModifiedMeta = const VerificationMeta(
+    'lastModified',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastModified = GeneratedColumn<DateTime>(
+    'last_modified',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _conflictRemoteJsonMeta =
+      const VerificationMeta('conflictRemoteJson');
+  @override
+  late final GeneratedColumn<String> conflictRemoteJson =
+      GeneratedColumn<String>(
+        'conflict_remote_json',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _syncStateMeta = const VerificationMeta(
     'syncState',
   );
@@ -1660,6 +1795,8 @@ class $TaskRecurrencesTable extends TaskRecurrences
     anchorDateJson,
     retired,
     retiredDate,
+    lastModified,
+    conflictRemoteJson,
     syncState,
   ];
   @override
@@ -1773,6 +1910,24 @@ class $TaskRecurrencesTable extends TaskRecurrences
         ),
       );
     }
+    if (data.containsKey('last_modified')) {
+      context.handle(
+        _lastModifiedMeta,
+        lastModified.isAcceptableOrUnknown(
+          data['last_modified']!,
+          _lastModifiedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('conflict_remote_json')) {
+      context.handle(
+        _conflictRemoteJsonMeta,
+        conflictRemoteJson.isAcceptableOrUnknown(
+          data['conflict_remote_json']!,
+          _conflictRemoteJsonMeta,
+        ),
+      );
+    }
     if (data.containsKey('sync_state')) {
       context.handle(
         _syncStateMeta,
@@ -1832,6 +1987,14 @@ class $TaskRecurrencesTable extends TaskRecurrences
         DriftSqlType.dateTime,
         data['${effectivePrefix}retired_date'],
       ),
+      lastModified: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_modified'],
+      ),
+      conflictRemoteJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}conflict_remote_json'],
+      ),
       syncState: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}sync_state'],
@@ -1857,6 +2020,8 @@ class TaskRecurrence extends DataClass implements Insertable<TaskRecurrence> {
   final String anchorDateJson;
   final String? retired;
   final DateTime? retiredDate;
+  final DateTime? lastModified;
+  final String? conflictRemoteJson;
   final String syncState;
   const TaskRecurrence({
     required this.docId,
@@ -1870,6 +2035,8 @@ class TaskRecurrence extends DataClass implements Insertable<TaskRecurrence> {
     required this.anchorDateJson,
     this.retired,
     this.retiredDate,
+    this.lastModified,
+    this.conflictRemoteJson,
     required this.syncState,
   });
   @override
@@ -1889,6 +2056,12 @@ class TaskRecurrence extends DataClass implements Insertable<TaskRecurrence> {
     }
     if (!nullToAbsent || retiredDate != null) {
       map['retired_date'] = Variable<DateTime>(retiredDate);
+    }
+    if (!nullToAbsent || lastModified != null) {
+      map['last_modified'] = Variable<DateTime>(lastModified);
+    }
+    if (!nullToAbsent || conflictRemoteJson != null) {
+      map['conflict_remote_json'] = Variable<String>(conflictRemoteJson);
     }
     map['sync_state'] = Variable<String>(syncState);
     return map;
@@ -1911,6 +2084,12 @@ class TaskRecurrence extends DataClass implements Insertable<TaskRecurrence> {
       retiredDate: retiredDate == null && nullToAbsent
           ? const Value.absent()
           : Value(retiredDate),
+      lastModified: lastModified == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastModified),
+      conflictRemoteJson: conflictRemoteJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(conflictRemoteJson),
       syncState: Value(syncState),
     );
   }
@@ -1932,6 +2111,10 @@ class TaskRecurrence extends DataClass implements Insertable<TaskRecurrence> {
       anchorDateJson: serializer.fromJson<String>(json['anchorDateJson']),
       retired: serializer.fromJson<String?>(json['retired']),
       retiredDate: serializer.fromJson<DateTime?>(json['retiredDate']),
+      lastModified: serializer.fromJson<DateTime?>(json['lastModified']),
+      conflictRemoteJson: serializer.fromJson<String?>(
+        json['conflictRemoteJson'],
+      ),
       syncState: serializer.fromJson<String>(json['syncState']),
     );
   }
@@ -1950,6 +2133,8 @@ class TaskRecurrence extends DataClass implements Insertable<TaskRecurrence> {
       'anchorDateJson': serializer.toJson<String>(anchorDateJson),
       'retired': serializer.toJson<String?>(retired),
       'retiredDate': serializer.toJson<DateTime?>(retiredDate),
+      'lastModified': serializer.toJson<DateTime?>(lastModified),
+      'conflictRemoteJson': serializer.toJson<String?>(conflictRemoteJson),
       'syncState': serializer.toJson<String>(syncState),
     };
   }
@@ -1966,6 +2151,8 @@ class TaskRecurrence extends DataClass implements Insertable<TaskRecurrence> {
     String? anchorDateJson,
     Value<String?> retired = const Value.absent(),
     Value<DateTime?> retiredDate = const Value.absent(),
+    Value<DateTime?> lastModified = const Value.absent(),
+    Value<String?> conflictRemoteJson = const Value.absent(),
     String? syncState,
   }) => TaskRecurrence(
     docId: docId ?? this.docId,
@@ -1979,6 +2166,10 @@ class TaskRecurrence extends DataClass implements Insertable<TaskRecurrence> {
     anchorDateJson: anchorDateJson ?? this.anchorDateJson,
     retired: retired.present ? retired.value : this.retired,
     retiredDate: retiredDate.present ? retiredDate.value : this.retiredDate,
+    lastModified: lastModified.present ? lastModified.value : this.lastModified,
+    conflictRemoteJson: conflictRemoteJson.present
+        ? conflictRemoteJson.value
+        : this.conflictRemoteJson,
     syncState: syncState ?? this.syncState,
   );
   TaskRecurrence copyWithCompanion(TaskRecurrencesCompanion data) {
@@ -2004,6 +2195,12 @@ class TaskRecurrence extends DataClass implements Insertable<TaskRecurrence> {
       retiredDate: data.retiredDate.present
           ? data.retiredDate.value
           : this.retiredDate,
+      lastModified: data.lastModified.present
+          ? data.lastModified.value
+          : this.lastModified,
+      conflictRemoteJson: data.conflictRemoteJson.present
+          ? data.conflictRemoteJson.value
+          : this.conflictRemoteJson,
       syncState: data.syncState.present ? data.syncState.value : this.syncState,
     );
   }
@@ -2022,6 +2219,8 @@ class TaskRecurrence extends DataClass implements Insertable<TaskRecurrence> {
           ..write('anchorDateJson: $anchorDateJson, ')
           ..write('retired: $retired, ')
           ..write('retiredDate: $retiredDate, ')
+          ..write('lastModified: $lastModified, ')
+          ..write('conflictRemoteJson: $conflictRemoteJson, ')
           ..write('syncState: $syncState')
           ..write(')'))
         .toString();
@@ -2040,6 +2239,8 @@ class TaskRecurrence extends DataClass implements Insertable<TaskRecurrence> {
     anchorDateJson,
     retired,
     retiredDate,
+    lastModified,
+    conflictRemoteJson,
     syncState,
   );
   @override
@@ -2057,6 +2258,8 @@ class TaskRecurrence extends DataClass implements Insertable<TaskRecurrence> {
           other.anchorDateJson == this.anchorDateJson &&
           other.retired == this.retired &&
           other.retiredDate == this.retiredDate &&
+          other.lastModified == this.lastModified &&
+          other.conflictRemoteJson == this.conflictRemoteJson &&
           other.syncState == this.syncState);
 }
 
@@ -2072,6 +2275,8 @@ class TaskRecurrencesCompanion extends UpdateCompanion<TaskRecurrence> {
   final Value<String> anchorDateJson;
   final Value<String?> retired;
   final Value<DateTime?> retiredDate;
+  final Value<DateTime?> lastModified;
+  final Value<String?> conflictRemoteJson;
   final Value<String> syncState;
   final Value<int> rowid;
   const TaskRecurrencesCompanion({
@@ -2086,6 +2291,8 @@ class TaskRecurrencesCompanion extends UpdateCompanion<TaskRecurrence> {
     this.anchorDateJson = const Value.absent(),
     this.retired = const Value.absent(),
     this.retiredDate = const Value.absent(),
+    this.lastModified = const Value.absent(),
+    this.conflictRemoteJson = const Value.absent(),
     this.syncState = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -2101,6 +2308,8 @@ class TaskRecurrencesCompanion extends UpdateCompanion<TaskRecurrence> {
     required String anchorDateJson,
     this.retired = const Value.absent(),
     this.retiredDate = const Value.absent(),
+    this.lastModified = const Value.absent(),
+    this.conflictRemoteJson = const Value.absent(),
     this.syncState = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : docId = Value(docId),
@@ -2124,6 +2333,8 @@ class TaskRecurrencesCompanion extends UpdateCompanion<TaskRecurrence> {
     Expression<String>? anchorDateJson,
     Expression<String>? retired,
     Expression<DateTime>? retiredDate,
+    Expression<DateTime>? lastModified,
+    Expression<String>? conflictRemoteJson,
     Expression<String>? syncState,
     Expression<int>? rowid,
   }) {
@@ -2139,6 +2350,9 @@ class TaskRecurrencesCompanion extends UpdateCompanion<TaskRecurrence> {
       if (anchorDateJson != null) 'anchor_date_json': anchorDateJson,
       if (retired != null) 'retired': retired,
       if (retiredDate != null) 'retired_date': retiredDate,
+      if (lastModified != null) 'last_modified': lastModified,
+      if (conflictRemoteJson != null)
+        'conflict_remote_json': conflictRemoteJson,
       if (syncState != null) 'sync_state': syncState,
       if (rowid != null) 'rowid': rowid,
     });
@@ -2156,6 +2370,8 @@ class TaskRecurrencesCompanion extends UpdateCompanion<TaskRecurrence> {
     Value<String>? anchorDateJson,
     Value<String?>? retired,
     Value<DateTime?>? retiredDate,
+    Value<DateTime?>? lastModified,
+    Value<String?>? conflictRemoteJson,
     Value<String>? syncState,
     Value<int>? rowid,
   }) {
@@ -2171,6 +2387,8 @@ class TaskRecurrencesCompanion extends UpdateCompanion<TaskRecurrence> {
       anchorDateJson: anchorDateJson ?? this.anchorDateJson,
       retired: retired ?? this.retired,
       retiredDate: retiredDate ?? this.retiredDate,
+      lastModified: lastModified ?? this.lastModified,
+      conflictRemoteJson: conflictRemoteJson ?? this.conflictRemoteJson,
       syncState: syncState ?? this.syncState,
       rowid: rowid ?? this.rowid,
     );
@@ -2212,6 +2430,12 @@ class TaskRecurrencesCompanion extends UpdateCompanion<TaskRecurrence> {
     if (retiredDate.present) {
       map['retired_date'] = Variable<DateTime>(retiredDate.value);
     }
+    if (lastModified.present) {
+      map['last_modified'] = Variable<DateTime>(lastModified.value);
+    }
+    if (conflictRemoteJson.present) {
+      map['conflict_remote_json'] = Variable<String>(conflictRemoteJson.value);
+    }
     if (syncState.present) {
       map['sync_state'] = Variable<String>(syncState.value);
     }
@@ -2235,6 +2459,8 @@ class TaskRecurrencesCompanion extends UpdateCompanion<TaskRecurrence> {
           ..write('anchorDateJson: $anchorDateJson, ')
           ..write('retired: $retired, ')
           ..write('retiredDate: $retiredDate, ')
+          ..write('lastModified: $lastModified, ')
+          ..write('conflictRemoteJson: $conflictRemoteJson, ')
           ..write('syncState: $syncState, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -5015,6 +5241,8 @@ typedef $$TasksTableCreateCompanionBuilder =
       Value<DateTime?> retiredDate,
       Value<bool> offCycle,
       Value<bool> skipped,
+      Value<DateTime?> lastModified,
+      Value<String?> conflictRemoteJson,
       Value<String> syncState,
       Value<int> rowid,
     });
@@ -5046,6 +5274,8 @@ typedef $$TasksTableUpdateCompanionBuilder =
       Value<DateTime?> retiredDate,
       Value<bool> offCycle,
       Value<bool> skipped,
+      Value<DateTime?> lastModified,
+      Value<String?> conflictRemoteJson,
       Value<String> syncState,
       Value<int> rowid,
     });
@@ -5185,6 +5415,16 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
 
   ColumnFilters<bool> get skipped => $composableBuilder(
     column: $table.skipped,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastModified => $composableBuilder(
+    column: $table.lastModified,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get conflictRemoteJson => $composableBuilder(
+    column: $table.conflictRemoteJson,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5333,6 +5573,16 @@ class $$TasksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get lastModified => $composableBuilder(
+    column: $table.lastModified,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get conflictRemoteJson => $composableBuilder(
+    column: $table.conflictRemoteJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get syncState => $composableBuilder(
     column: $table.syncState,
     builder: (column) => ColumnOrderings(column),
@@ -5450,6 +5700,16 @@ class $$TasksTableAnnotationComposer
   GeneratedColumn<bool> get skipped =>
       $composableBuilder(column: $table.skipped, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get lastModified => $composableBuilder(
+    column: $table.lastModified,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get conflictRemoteJson => $composableBuilder(
+    column: $table.conflictRemoteJson,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get syncState =>
       $composableBuilder(column: $table.syncState, builder: (column) => column);
 }
@@ -5508,6 +5768,8 @@ class $$TasksTableTableManager
                 Value<DateTime?> retiredDate = const Value.absent(),
                 Value<bool> offCycle = const Value.absent(),
                 Value<bool> skipped = const Value.absent(),
+                Value<DateTime?> lastModified = const Value.absent(),
+                Value<String?> conflictRemoteJson = const Value.absent(),
                 Value<String> syncState = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TasksCompanion(
@@ -5537,6 +5799,8 @@ class $$TasksTableTableManager
                 retiredDate: retiredDate,
                 offCycle: offCycle,
                 skipped: skipped,
+                lastModified: lastModified,
+                conflictRemoteJson: conflictRemoteJson,
                 syncState: syncState,
                 rowid: rowid,
               ),
@@ -5568,6 +5832,8 @@ class $$TasksTableTableManager
                 Value<DateTime?> retiredDate = const Value.absent(),
                 Value<bool> offCycle = const Value.absent(),
                 Value<bool> skipped = const Value.absent(),
+                Value<DateTime?> lastModified = const Value.absent(),
+                Value<String?> conflictRemoteJson = const Value.absent(),
                 Value<String> syncState = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TasksCompanion.insert(
@@ -5597,6 +5863,8 @@ class $$TasksTableTableManager
                 retiredDate: retiredDate,
                 offCycle: offCycle,
                 skipped: skipped,
+                lastModified: lastModified,
+                conflictRemoteJson: conflictRemoteJson,
                 syncState: syncState,
                 rowid: rowid,
               ),
@@ -5635,6 +5903,8 @@ typedef $$TaskRecurrencesTableCreateCompanionBuilder =
       required String anchorDateJson,
       Value<String?> retired,
       Value<DateTime?> retiredDate,
+      Value<DateTime?> lastModified,
+      Value<String?> conflictRemoteJson,
       Value<String> syncState,
       Value<int> rowid,
     });
@@ -5651,6 +5921,8 @@ typedef $$TaskRecurrencesTableUpdateCompanionBuilder =
       Value<String> anchorDateJson,
       Value<String?> retired,
       Value<DateTime?> retiredDate,
+      Value<DateTime?> lastModified,
+      Value<String?> conflictRemoteJson,
       Value<String> syncState,
       Value<int> rowid,
     });
@@ -5716,6 +5988,16 @@ class $$TaskRecurrencesTableFilterComposer
 
   ColumnFilters<DateTime> get retiredDate => $composableBuilder(
     column: $table.retiredDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastModified => $composableBuilder(
+    column: $table.lastModified,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get conflictRemoteJson => $composableBuilder(
+    column: $table.conflictRemoteJson,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5789,6 +6071,16 @@ class $$TaskRecurrencesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get lastModified => $composableBuilder(
+    column: $table.lastModified,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get conflictRemoteJson => $composableBuilder(
+    column: $table.conflictRemoteJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get syncState => $composableBuilder(
     column: $table.syncState,
     builder: (column) => ColumnOrderings(column),
@@ -5847,6 +6139,16 @@ class $$TaskRecurrencesTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<DateTime> get lastModified => $composableBuilder(
+    column: $table.lastModified,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get conflictRemoteJson => $composableBuilder(
+    column: $table.conflictRemoteJson,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get syncState =>
       $composableBuilder(column: $table.syncState, builder: (column) => column);
 }
@@ -5899,6 +6201,8 @@ class $$TaskRecurrencesTableTableManager
                 Value<String> anchorDateJson = const Value.absent(),
                 Value<String?> retired = const Value.absent(),
                 Value<DateTime?> retiredDate = const Value.absent(),
+                Value<DateTime?> lastModified = const Value.absent(),
+                Value<String?> conflictRemoteJson = const Value.absent(),
                 Value<String> syncState = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TaskRecurrencesCompanion(
@@ -5913,6 +6217,8 @@ class $$TaskRecurrencesTableTableManager
                 anchorDateJson: anchorDateJson,
                 retired: retired,
                 retiredDate: retiredDate,
+                lastModified: lastModified,
+                conflictRemoteJson: conflictRemoteJson,
                 syncState: syncState,
                 rowid: rowid,
               ),
@@ -5929,6 +6235,8 @@ class $$TaskRecurrencesTableTableManager
                 required String anchorDateJson,
                 Value<String?> retired = const Value.absent(),
                 Value<DateTime?> retiredDate = const Value.absent(),
+                Value<DateTime?> lastModified = const Value.absent(),
+                Value<String?> conflictRemoteJson = const Value.absent(),
                 Value<String> syncState = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TaskRecurrencesCompanion.insert(
@@ -5943,6 +6251,8 @@ class $$TaskRecurrencesTableTableManager
                 anchorDateJson: anchorDateJson,
                 retired: retired,
                 retiredDate: retiredDate,
+                lastModified: lastModified,
+                conflictRemoteJson: conflictRemoteJson,
                 syncState: syncState,
                 rowid: rowid,
               ),

@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:built_value/serializer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,7 +24,6 @@ import '../providers/firebase_providers.dart';
 import '../providers/notification_providers.dart';
 import '../providers/sync_status_provider.dart';
 import 'crash_reporter.dart';
-import 'notification_helper_impl.dart';
 
 part 'sync_service.g.dart';
 
@@ -262,28 +263,7 @@ class SyncService {
     final toRefreshNotifications = <m.TaskItem>[];
     for (final change in snapshot.docChanges) {
       if (change.type == DocumentChangeType.removed) {
-        // The personal listener filters incomplete-only, so a doc leaving its
-        // view usually means completion (not deletion). The doc data is still
-        // available on the change and typically has completionDate set; adding
-        // it to the refresh list lets the notification helper cancel any
-        // scheduled alerts for the now-completed task.
-        try {
-          final data = change.doc.data();
-          if (data != null && !isInitial) {
-            final json = Map<String, dynamic>.from(data);
-            json['docId'] = change.doc.id;
-            final task = serializers.deserializeWith(m.TaskItem.serializer, json);
-            if (task != null) toRefreshNotifications.add(task);
-          }
-        } catch (e, s) {
-          _logSyncError(e, s);
-        }
-        // For family-shared tasks the family listener still owns the row —
-        // deleting here would race with the family listener's upsert and lose
-        // it. Skip the delete; the family listener will deliver its own removed
-        // event when the task is truly retired/deleted.
-        if (_familyTaskDocIds.contains(change.doc.id)) continue;
-        await db.taskDao.deleteFromRemote(change.doc.id);
+        await _resolveRemovedTask(change, isInitial, toRefreshNotifications);
         continue;
       }
       try {
@@ -322,21 +302,118 @@ class SyncService {
     _syncLog('[SyncService] +${_ms()}ms tasks initial complete');
   }
 
+  /// TM-342: handle a `DocumentChangeType.removed` event on the personal
+  /// tasks listener. The personal listener filters `completionDate isNull`
+  /// (and `retired isNull`), so a doc leaving its view usually means the task
+  /// was completed or retired on another device — NOT hard-deleted. Without
+  /// this, completing a task on Device B would cause Device A to delete the
+  /// row from Drift and lose it from the Sprint Completed view.
+  ///
+  /// Decision tree:
+  ///   - cached `change.doc.data()` shows `completionDate` or `retired` set →
+  ///     upsert from cached data (fast path; no server fetch needed).
+  ///   - cached data missing or has neither set → ambiguous; do a server
+  ///     `get()` to confirm:
+  ///       - doc exists → upsert from fetched data.
+  ///       - doc absent → true delete; remove from Drift.
+  ///       - fetch throws (offline / transient error) → fail closed: leave
+  ///         the Drift row alone. The next snapshot will retry.
+  Future<void> _resolveRemovedTask(
+    DocumentChange<Map<String, dynamic>> change,
+    bool isInitial,
+    List<m.TaskItem> toRefreshNotifications,
+  ) async {
+    // Family-shared tasks: the family listener owns this row's lifecycle.
+    // Skip everything; the family listener will deliver its own removed event
+    // when the task is truly retired/deleted (TM-335).
+    if (_familyTaskDocIds.contains(change.doc.id)) return;
+
+    m.TaskItem? cachedTask;
+    try {
+      final data = change.doc.data();
+      if (data != null) {
+        final json = Map<String, dynamic>.from(data);
+        json['docId'] = change.doc.id;
+        cachedTask =
+            serializers.deserializeWith(m.TaskItem.serializer, json);
+      }
+    } catch (e, s) {
+      _logSyncError(e, s);
+    }
+
+    // Notifications are refreshed only AFTER the final state is known —
+    // never with the pre-change cached snapshot, because the helper would
+    // see completionDate/retired still null and reschedule notifications
+    // for a task that has actually been completed (TM-342 round 1).
+
+    // Fast path: cached data already shows this is a completion or retire.
+    // Upsert with the new state instead of deleting so it remains visible
+    // in Sprint Completed view (TM-342).
+    if (cachedTask != null &&
+        (cachedTask.completionDate != null || cachedTask.retired != null)) {
+      await db.taskDao.upsertFromRemote(taskItemToCompanion(cachedTask));
+      if (!isInitial) toRefreshNotifications.add(cachedTask);
+      return;
+    }
+
+    // Ambiguous: cached data unavailable or pre-completion. Confirm via
+    // server fetch. Fail-closed on error — preserve Drift row, let the next
+    // snapshot retry.
+    try {
+      final snap = await change.doc.reference.get(
+          const GetOptions(source: Source.server));
+      if (!snap.exists) {
+        await db.taskDao.deleteFromRemote(change.doc.id);
+        // Cancel any local notifications scheduled for the now-deleted task.
+        // We don't have a final TaskItem to feed the bulk helper, so go
+        // direct to cancelNotificationsForTaskId.
+        if (!isInitial) {
+          try {
+            ref
+                .read(notificationHelperProvider)
+                .cancelNotificationsForTaskId(change.doc.id)
+                .catchError((e) => _syncLog(
+                    '[SyncService] cancel-on-delete failed for ${change.doc.id}: $e'));
+          } catch (_) {
+            // Helper unavailable (tests, init race) — silently skip.
+          }
+        }
+        return;
+      }
+      final data = snap.data();
+      if (data == null) return; // defensive
+      final json = Map<String, dynamic>.from(data);
+      json['docId'] = snap.id;
+      final task = serializers.deserializeWith(m.TaskItem.serializer, json);
+      if (task != null) {
+        await db.taskDao.upsertFromRemote(taskItemToCompanion(task));
+        // Use the server-fetched task — its state is authoritative — rather
+        // than the (possibly pre-change) cached one.
+        if (!isInitial) toRefreshNotifications.add(task);
+      }
+    } catch (e, s) {
+      _syncLog(
+          '[SyncService] _resolveRemovedTask server fetch failed for ${change.doc.id}: $e — deferring');
+      _logSyncError(e, s);
+      // Fail closed — do not delete.
+    }
+  }
+
   /// Fire-and-forget per-task notification refresh. Each task is sent through
   /// the helper which decides whether to schedule (active) or cancel
   /// (completed / retired) based on its current state. Errors are logged but
   /// don't affect sync; notifications are best-effort by design.
   void _refreshNotificationsForTasks(List<m.TaskItem> tasks) {
     if (tasks.isEmpty) return;
-    final NotificationHelperImpl helper;
     try {
-      helper = ref.read(notificationHelperProvider);
-    } catch (_) {
-      // Helper unavailable (tests, init race) — silently skip.
-      return;
+      final helper = ref.read(notificationHelperProvider);
+      helper.updateNotificationsForTasks(tasks).catchError(
+          (e) => _syncLog('[SyncService] notification batch refresh error: $e'));
+    } catch (e) {
+      // Helper unavailable (tests, init race) or synchronous throw from the
+      // helper's method — silently skip; notifications are best-effort.
+      _syncLog('[SyncService] notification refresh skipped: $e');
     }
-    helper.updateNotificationsForTasks(tasks).catchError(
-        (e) => _syncLog('[SyncService] notification batch refresh error: $e'));
   }
 
   Future<void> _onRecurrencesSnapshot(
@@ -793,6 +870,142 @@ class SyncService {
     }
   }
 
+  /// TM-342: encode a conflict envelope for storage in
+  /// `conflictRemoteJson`. The envelope captures the remote version (so the
+  /// UI can render local-vs-remote) plus the priorSyncState so "Keep mine"
+  /// knows whether to restore pendingUpdate or pendingDelete.
+  ///
+  /// `remoteJsonMap` is the built_value-serialized form of the remote model,
+  /// which still contains DateTime objects — `toEncodable` converts them to
+  /// ISO strings so the result is `jsonEncode`-able. On read, the
+  /// DatePassThroughSerializer handles String → DateTime round-trips
+  /// transparently.
+  String _encodeConflictEnvelope({
+    required String priorSyncState,
+    required Map<String, Object?> remoteJsonMap,
+  }) {
+    return jsonEncode({
+      'priorSyncState': priorSyncState,
+      'remote': remoteJsonMap,
+    }, toEncodable: (obj) {
+      if (obj is DateTime) return obj.toUtc().toIso8601String();
+      if (obj is Timestamp) return obj.toDate().toUtc().toIso8601String();
+      throw UnsupportedError(
+          'Cannot encode ${obj.runtimeType} in conflict envelope');
+    });
+  }
+
+  /// TM-342: server-source `get()` with backoff retry on transient
+  /// `unavailable` / `deadline-exceeded` errors. The Firestore SDK can
+  /// briefly reject server reads while reconnecting after a connectivity
+  /// flip; Firestore's own error message recommends a backoff-and-retry,
+  /// which is what this does. Total worst-case wait is ~6s across 3
+  /// retries (500ms / 1500ms / 4000ms).
+  Future<DocumentSnapshot<Map<String, dynamic>>> _serverGetWithRetry(
+      DocumentReference<Map<String, dynamic>> docRef) async {
+    const delays = <Duration>[
+      Duration(milliseconds: 500),
+      Duration(milliseconds: 1500),
+      Duration(milliseconds: 4000),
+    ];
+    for (var attempt = 0;; attempt++) {
+      try {
+        return await docRef.get(const GetOptions(source: Source.server));
+      } on FirebaseException catch (e) {
+        final isTransient =
+            e.code == 'unavailable' || e.code == 'deadline-exceeded';
+        if (!isTransient || attempt >= delays.length) rethrow;
+        _syncLog(
+            '[SyncService] conflict-check transient ${e.code} on ${docRef.path} (attempt ${attempt + 1}); retrying after ${delays[attempt].inMilliseconds}ms');
+        await Future<void>.delayed(delays[attempt]);
+      }
+    }
+  }
+
+  /// TM-342: pre-push conflict check. Reads the remote doc and compares
+  /// `lastModified`. Returns `true` if a conflict was detected (and recorded
+  /// via [markConflict]); `false` if the push should proceed.
+  /// The push proceeds if: doc absent (insert), local lastModified is null
+  /// (legacy / never-stamped local row), remote lastModified is null
+  /// (legacy remote), or remote is not strictly newer than local.
+  Future<bool> _checkAndRecordConflict<TModel>({
+    required DocumentReference<Map<String, dynamic>> docRef,
+    required String localDocId,
+    required DateTime? localLastModified,
+    required String localSyncState,
+    required Serializer<TModel> serializer,
+    required DateTime? Function(TModel model) extractLastModified,
+    required Future<void> Function(String envelopeJson) markConflict,
+  }) async {
+    // Conflict detection must use a server-authoritative snapshot — a stale
+    // cached snapshot could falsely indicate "no conflict" and let this
+    // device overwrite a newer remote change.
+    //
+    // Connectivity flips can trigger a push before the Firestore SDK has
+    // finished reconnecting (TM-342 manual testing): Source.server then
+    // throws `cloud_firestore/unavailable`. Firestore's own error message
+    // says "may be corrected by retrying with a backoff" — so we do.
+    // After the retries exhaust, rethrow so the per-row catch in the
+    // calling _pushPending* records a failure (and logs once) and the row
+    // stays pending for retry on the next push. We don't log here too —
+    // that would double-report a single transient failure.
+    final remoteSnap = await _serverGetWithRetry(docRef);
+    if (!remoteSnap.exists) return false;
+    final remoteData = remoteSnap.data();
+    if (remoteData == null) return false;
+
+    if (localLastModified == null) {
+      // Local row predates the lastModified mechanism — treat as legacy and
+      // push (last-write-wins by client request order).
+      return false;
+    }
+
+    final json = Map<String, dynamic>.from(remoteData);
+    json['docId'] = localDocId;
+    final TModel? remoteModel;
+    try {
+      remoteModel = serializers.deserializeWith(serializer, json);
+    } catch (e, s) {
+      // If we can't deserialize the remote (schema drift, bad data), don't
+      // block the push — log and proceed.
+      _logSyncError(e, s);
+      return false;
+    }
+    if (remoteModel == null) return false;
+
+    final remoteLastModified = extractLastModified(remoteModel);
+    if (remoteLastModified == null) {
+      // Remote was written by a pre-TM-342 client without a timestamp.
+      // Push wins — the next push from any TM-342 client will populate it.
+      return false;
+    }
+    if (!remoteLastModified.isAfter(localLastModified)) {
+      // Local is newer than (or tied with) remote — push wins.
+      return false;
+    }
+
+    // Remote is newer → record conflict.
+    // built_value's StandardJsonPlugin returns Map<String, dynamic>; Dart's
+    // generic invariance means a direct `as Map<String, Object?>` cast can
+    // throw at runtime. Use Map.from to copy safely (and bail with a log if
+    // the serializer somehow didn't produce a Map at all).
+    final serializedRemote = serializers.serializeWith(serializer, remoteModel);
+    if (serializedRemote is! Map) {
+      _syncLog(
+          '[SyncService] conflict NOT recorded for $localDocId: serialized remote was ${serializedRemote.runtimeType}, not a Map');
+      return false;
+    }
+    final remoteJsonMap = Map<String, Object?>.from(serializedRemote);
+    final envelope = _encodeConflictEnvelope(
+      priorSyncState: localSyncState,
+      remoteJsonMap: remoteJsonMap,
+    );
+    await markConflict(envelope);
+    _syncLog(
+        '[SyncService] conflict recorded for $localDocId: remote=$remoteLastModified > local=$localLastModified');
+    return true;
+  }
+
   /// Pushes all pending task rows to Firestore. Returns `true` if any row
   /// failed (the caller uses this to set `SyncStatus.error` rather than
   /// `idle`).
@@ -804,6 +1017,23 @@ class SyncService {
       _syncLog('  task ${row.docId} state=${row.syncState}');
       try {
         final docRef = firestore.collection('tasks').doc(row.docId);
+
+        // TM-342: pre-push conflict check.
+        final conflicted = await _checkAndRecordConflict<m.TaskItem>(
+          docRef: docRef,
+          localDocId: row.docId,
+          localLastModified: row.lastModified,
+          localSyncState: row.syncState,
+          serializer: m.TaskItem.serializer,
+          extractLastModified: (t) => t.lastModified,
+          markConflict: (envelope) =>
+              db.taskDao.markPendingConflict(row.docId, envelope),
+        );
+        if (conflicted) {
+          _syncLog('  → conflict for ${row.docId}, skipping push');
+          continue;
+        }
+
         if (row.syncState == SyncState.pendingDelete.name) {
           await docRef.delete();
           await db.taskDao.hardDelete(row.docId);
@@ -812,6 +1042,8 @@ class SyncService {
           final task = taskItemFromRow(row);
           final json = task.toJson() as Map<String, dynamic>;
           json.remove('docId');
+          // TM-342: server-authoritative timestamp.
+          json['lastModified'] = FieldValue.serverTimestamp();
           _syncLog('  → calling set() for ${row.docId}');
           await docRef.set(json);
           _syncLog('  → set() complete, calling markSynced');
@@ -833,6 +1065,20 @@ class SyncService {
     for (final row in pending) {
       try {
         final docRef = firestore.collection('taskRecurrences').doc(row.docId);
+
+        // TM-342: pre-push conflict check.
+        final conflicted = await _checkAndRecordConflict<m.TaskRecurrence>(
+          docRef: docRef,
+          localDocId: row.docId,
+          localLastModified: row.lastModified,
+          localSyncState: row.syncState,
+          serializer: m.TaskRecurrence.serializer,
+          extractLastModified: (r) => r.lastModified,
+          markConflict: (envelope) =>
+              db.taskRecurrenceDao.markPendingConflict(row.docId, envelope),
+        );
+        if (conflicted) continue;
+
         if (row.syncState == SyncState.pendingDelete.name) {
           await docRef.delete();
           await db.taskRecurrenceDao.hardDelete(row.docId);
@@ -841,6 +1087,8 @@ class SyncService {
           final json = serializers.serializeWith(
               m.TaskRecurrence.serializer, recurrence) as Map<String, dynamic>;
           json.remove('docId');
+          // TM-342: server-authoritative timestamp.
+          json['lastModified'] = FieldValue.serverTimestamp();
           await docRef.set(json);
           await db.taskRecurrenceDao.markSynced(row.docId);
         }

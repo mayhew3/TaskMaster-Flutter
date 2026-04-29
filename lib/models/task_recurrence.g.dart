@@ -66,6 +66,14 @@ class _$TaskRecurrenceSerializer
         specifiedType: const FullType(AnchorDate),
       ),
     ];
+    Object? value;
+    value = object.lastModified;
+
+    result
+      ..add('lastModified')
+      ..add(
+        serializers.serialize(value, specifiedType: const FullType(DateTime)),
+      );
 
     return result;
   }
@@ -157,6 +165,14 @@ class _$TaskRecurrenceSerializer
                 as AnchorDate,
           );
           break;
+        case 'lastModified':
+          result.lastModified =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(DateTime),
+                  )
+                  as DateTime?;
+          break;
       }
     }
 
@@ -183,6 +199,8 @@ class _$TaskRecurrence extends TaskRecurrence {
   final int recurIteration;
   @override
   final AnchorDate anchorDate;
+  @override
+  final DateTime? lastModified;
 
   factory _$TaskRecurrence([void Function(TaskRecurrenceBuilder)? updates]) =>
       (TaskRecurrenceBuilder()..update(updates))._build();
@@ -197,6 +215,7 @@ class _$TaskRecurrence extends TaskRecurrence {
     required this.recurWait,
     required this.recurIteration,
     required this.anchorDate,
+    this.lastModified,
   }) : super._();
   @override
   TaskRecurrence rebuild(void Function(TaskRecurrenceBuilder) updates) =>
@@ -217,7 +236,8 @@ class _$TaskRecurrence extends TaskRecurrence {
         recurUnit == other.recurUnit &&
         recurWait == other.recurWait &&
         recurIteration == other.recurIteration &&
-        anchorDate == other.anchorDate;
+        anchorDate == other.anchorDate &&
+        lastModified == other.lastModified;
   }
 
   @override
@@ -232,6 +252,7 @@ class _$TaskRecurrence extends TaskRecurrence {
     _$hash = $jc(_$hash, recurWait.hashCode);
     _$hash = $jc(_$hash, recurIteration.hashCode);
     _$hash = $jc(_$hash, anchorDate.hashCode);
+    _$hash = $jc(_$hash, lastModified.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -247,7 +268,8 @@ class _$TaskRecurrence extends TaskRecurrence {
           ..add('recurUnit', recurUnit)
           ..add('recurWait', recurWait)
           ..add('recurIteration', recurIteration)
-          ..add('anchorDate', anchorDate))
+          ..add('anchorDate', anchorDate)
+          ..add('lastModified', lastModified))
         .toString();
   }
 }
@@ -295,6 +317,11 @@ class TaskRecurrenceBuilder
   set anchorDate(AnchorDateBuilder? anchorDate) =>
       _$this._anchorDate = anchorDate;
 
+  DateTime? _lastModified;
+  DateTime? get lastModified => _$this._lastModified;
+  set lastModified(DateTime? lastModified) =>
+      _$this._lastModified = lastModified;
+
   TaskRecurrenceBuilder();
 
   TaskRecurrenceBuilder get _$this {
@@ -309,6 +336,7 @@ class TaskRecurrenceBuilder
       _recurWait = $v.recurWait;
       _recurIteration = $v.recurIteration;
       _anchorDate = $v.anchorDate.toBuilder();
+      _lastModified = $v.lastModified;
       _$v = null;
     }
     return this;
@@ -374,6 +402,7 @@ class TaskRecurrenceBuilder
               'recurIteration',
             ),
             anchorDate: anchorDate.build(),
+            lastModified: lastModified,
           );
     } catch (_) {
       late String _$failedField;
