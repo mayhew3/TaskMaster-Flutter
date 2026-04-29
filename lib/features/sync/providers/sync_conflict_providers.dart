@@ -214,8 +214,8 @@ int stuckConflictsCount(Ref ref) {
 }
 
 /// Resolution: keep the local pending edit, restore the prior pending state,
-/// and trigger another push (which will win because clearConflictAndRestorePending
-/// refreshes lastModified).
+/// and trigger another push (which must win the next conflict-detection
+/// comparison so the user's intent isn't bounced right back into a conflict).
 @riverpod
 class KeepLocalConflict extends _$KeepLocalConflict {
   @override
@@ -224,8 +224,11 @@ class KeepLocalConflict extends _$KeepLocalConflict {
   Future<void> callTask(TaskConflict conflict) async {
     final db = ref.read(databaseProvider);
     final restoreTo = _parseSyncState(conflict.priorSyncState);
-    await db.taskDao
-        .clearConflictAndRestorePending(conflict.docId, restoreTo);
+    await db.taskDao.clearConflictAndRestorePending(
+      conflict.docId,
+      restoreTo,
+      now: _resolutionTimestamp(conflict.remote.lastModified),
+    );
     ref
         .read(syncServiceProvider)
         .pushPendingWrites(caller: 'KeepLocalConflict.task')
@@ -235,13 +238,30 @@ class KeepLocalConflict extends _$KeepLocalConflict {
   Future<void> callRecurrence(RecurrenceConflict conflict) async {
     final db = ref.read(databaseProvider);
     final restoreTo = _parseSyncState(conflict.priorSyncState);
-    await db.taskRecurrenceDao
-        .clearConflictAndRestorePending(conflict.docId, restoreTo);
+    await db.taskRecurrenceDao.clearConflictAndRestorePending(
+      conflict.docId,
+      restoreTo,
+      now: _resolutionTimestamp(conflict.remote.lastModified),
+    );
     ref
         .read(syncServiceProvider)
         .pushPendingWrites(caller: 'KeepLocalConflict.recurrence')
         .ignore();
   }
+}
+
+/// Pick a `lastModified` for "Keep mine" that is guaranteed to beat the
+/// remote we conflicted against, even on a device with a slow clock. Falling
+/// back to plain `DateTime.now()` could leave the new local timestamp behind
+/// the server-stamped remote one and cause the next push to detect the same
+/// conflict again — making "Keep mine" effectively impossible to complete
+/// (Copilot round 7).
+DateTime _resolutionTimestamp(DateTime? remoteLastModified) {
+  final now = DateTime.now().toUtc();
+  if (remoteLastModified == null) return now;
+  final beatsRemote =
+      remoteLastModified.toUtc().add(const Duration(milliseconds: 1));
+  return now.isAfter(beatsRemote) ? now : beatsRemote;
 }
 
 /// Resolution: accept the remote version, overwriting the local pending edit.

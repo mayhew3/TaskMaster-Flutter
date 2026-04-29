@@ -50,7 +50,7 @@ final recurrenceConflictRowsProvider =
 // ignore: unused_element
 typedef RecurrenceConflictRowsRef =
     AutoDisposeStreamProviderRef<List<drift.TaskRecurrence>>;
-String _$taskConflictsHash() => r'97f3a11cc9de250d8a39991e620c49e667ffb4aa';
+String _$taskConflictsHash() => r'e997490a7751d43711ca5be49339443cd14f2905';
 
 /// Stream of task conflicts for the current user — only entries whose
 /// `conflictRemoteJson` envelope decodes cleanly. Use [taskConflictRowsProvider]
@@ -74,7 +74,7 @@ final taskConflictsProvider =
 // ignore: unused_element
 typedef TaskConflictsRef = AutoDisposeStreamProviderRef<List<TaskConflict>>;
 String _$recurrenceConflictsHash() =>
-    r'd76e61336b26b04920a53e42df1645961da097d1';
+    r'a01d93718b308dae72b1e0142e6a88e80b464c7d';
 
 /// Stream of recurrence conflicts for the current user. Same caveat as
 /// [taskConflictsProvider] re: rows with undecodable envelopes.
@@ -143,11 +143,11 @@ final stuckConflictsCountProvider = AutoDisposeProvider<int>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef StuckConflictsCountRef = AutoDisposeProviderRef<int>;
-String _$keepLocalConflictHash() => r'ba28201b1700599eb574d52d258483cb5803c5c2';
+String _$keepLocalConflictHash() => r'b67b5ba5370803a26c993d33b77b2f30080f1481';
 
 /// Resolution: keep the local pending edit, restore the prior pending state,
-/// and trigger another push (which will win because clearConflictAndRestorePending
-/// refreshes lastModified).
+/// and trigger another push (which must win the next conflict-detection
+/// comparison so the user's intent isn't bounced right back into a conflict).
 ///
 /// Copied from [KeepLocalConflict].
 @ProviderFor(KeepLocalConflict)

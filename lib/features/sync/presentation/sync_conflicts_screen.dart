@@ -49,15 +49,40 @@ class SyncConflictsScreen extends ConsumerWidget {
     }
 
     if (taskConflictsAsync.hasError || recurrenceConflictsAsync.hasError) {
-      final error =
-          taskConflictsAsync.error ?? recurrenceConflictsAsync.error;
+      // Log the underlying error/stack for diagnostics, but show the user a
+      // generic message — raw exception text can leak internal details
+      // (DB paths, framework strings) and isn't actionable.
+      final failedAsync = taskConflictsAsync.hasError
+          ? taskConflictsAsync
+          : recurrenceConflictsAsync;
+      debugPrint('Failed to load sync conflicts: ${failedAsync.error}');
+      final stackTrace = failedAsync.stackTrace;
+      if (stackTrace != null) {
+        debugPrintStack(
+            stackTrace: stackTrace, label: 'Sync conflicts load failure');
+      }
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
-          child: Text(
-            'Failed to load conflicts: $error',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.red.shade700),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "We couldn't load sync conflicts right now. Please try again.",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.red.shade700),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  ref.invalidate(taskConflictsProvider);
+                  ref.invalidate(recurrenceConflictsProvider);
+                  ref.invalidate(taskConflictRowsProvider);
+                  ref.invalidate(recurrenceConflictRowsProvider);
+                },
+                child: const Text('Retry'),
+              ),
+            ],
           ),
         ),
       );
@@ -239,10 +264,21 @@ class _StuckConflictsCard extends ConsumerWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Force-cleared stuck conflicts.')),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // Log diagnostics; show the user a generic message instead of the raw
+      // exception text.
+      FlutterError.reportError(FlutterErrorDetails(
+        exception: e,
+        stack: stackTrace,
+        library: 'sync_conflicts_screen',
+        context: ErrorDescription('while force-clearing stuck conflicts'),
+      ));
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to clear: $e')),
+        const SnackBar(
+          content:
+              Text('Failed to clear stuck conflicts. Please try again.'),
+        ),
       );
     }
   }

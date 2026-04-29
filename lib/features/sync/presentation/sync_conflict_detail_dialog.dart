@@ -175,10 +175,17 @@ class SyncConflictDetailDialog extends ConsumerWidget {
       // would pop the underlying route in that case.
       if (!context.mounted) return;
       Navigator.of(context).pop();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // Log details for diagnostics, but don't surface the raw exception
+      // text in the SnackBar — that can leak internal details and isn't
+      // actionable for the user.
+      debugPrint('Failed to resolve sync conflict: $e');
+      debugPrintStack(stackTrace: stackTrace);
       if (!context.mounted) return;
       ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-        SnackBar(content: Text('Failed to resolve: $e')),
+        const SnackBar(
+          content: Text("Couldn't resolve conflict. Please try again."),
+        ),
       );
     }
   }
