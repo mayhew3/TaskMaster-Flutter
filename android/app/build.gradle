@@ -47,6 +47,10 @@ android {
         targetCompatibility JavaVersion.VERSION_21
     }
 
+    kotlinOptions {
+        jvmTarget = '21'
+    }
+
     defaultConfig {
         applicationId "com.mayhew3.taskmaster"
         minSdkVersion 23
