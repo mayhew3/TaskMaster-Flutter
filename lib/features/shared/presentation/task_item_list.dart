@@ -164,6 +164,7 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
     var completed = activeSprintItems?.where((taskItem) => taskItem.completionDate != null) ?? [];
     var taskStr = '${completed.length}/${activeSprintItems?.length ?? 0} Tasks Complete';
 
+    // Active-sprint summary card: intentionally distinct (red tint, sprint-color outline).
     return Card(
       color: Color.fromARGB(100, 100, 20, 20),
       shape: RoundedRectangleBorder(
@@ -232,10 +233,10 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
   }
 
   Card _createNoTasksFoundCard() {
+    // Borderless empty-state card: blends with the screen background.
     return Card(
       shadowColor: TaskColors.invisible,
       color: TaskColors.backgroundColor,
-      elevation: 3.0,
       margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
       child: ClipPath(
         clipper: ShapeBorderClipper(

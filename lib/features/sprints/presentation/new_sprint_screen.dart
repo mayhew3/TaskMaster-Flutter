@@ -200,7 +200,6 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
                       controller: sprintStartDateController,
                       decoration: const InputDecoration(
                         labelText: 'Start Date',
-                        filled: false,
                         border: OutlineInputBorder(),
                       ),
                       onChanged: (value) => updateDateForDateField(value),
@@ -223,7 +222,6 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
                       controller: sprintStartTimeController,
                       decoration: const InputDecoration(
                         labelText: 'Start Time',
-                        filled: false,
                         border: OutlineInputBorder(),
                       ),
                       onChanged: (value) => updateTimeForDateField(value),

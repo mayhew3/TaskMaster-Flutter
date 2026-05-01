@@ -57,7 +57,6 @@ class NullableDropdownState extends State<NullableDropdown> {
         isDense: true,
         decoration: InputDecoration(
           labelText: widget.labelText,
-          filled: false,
           border: OutlineInputBorder(),
           // workaround for flutter issue #60624 (https://github.com/flutter/flutter/issues/60624).
           // when this is closed, you should be able to remove this.

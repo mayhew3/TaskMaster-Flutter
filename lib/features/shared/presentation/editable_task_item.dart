@@ -268,7 +268,6 @@ class EditableTaskItemWidget extends StatelessWidget {
           shadowColor: _getShadowColor(),
           color: getBackgroundColor(),
           shape: _getBorder(),
-          elevation: 3.0,
           margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
           child: ClipPath(
             clipper: ShapeBorderClipper(

@@ -42,7 +42,6 @@ class ClearableDateTimeField extends StatelessWidget {
       child: DateTimeField(
         decoration: InputDecoration(
           labelText: labelText,
-          filled: false,
           border: OutlineInputBorder(),
         ),
         format: longDateFormat,

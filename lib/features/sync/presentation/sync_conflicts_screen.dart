@@ -73,7 +73,7 @@ class SyncConflictsScreen extends ConsumerWidget {
                 style: TextStyle(color: Colors.red.shade700),
               ),
               const SizedBox(height: 16),
-              ElevatedButton(
+              FilledButton(
                 onPressed: () {
                   ref.invalidate(taskConflictsProvider);
                   ref.invalidate(recurrenceConflictsProvider);
@@ -246,7 +246,7 @@ class _StuckConflictsCard extends ConsumerWidget {
             const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerRight,
-              child: ElevatedButton(
+              child: FilledButton(
                 onPressed: () => _forceClear(context, ref),
                 child: const Text('Force clear'),
               ),

@@ -1,6 +1,5 @@
 
 import 'package:flutter/material.dart';
-import 'package:taskmaster/models/task_colors.dart';
 
 class ReadOnlyTaskFieldSmall extends StatelessWidget {
   final String headerName;
@@ -18,8 +17,6 @@ class ReadOnlyTaskFieldSmall extends StatelessWidget {
       visible: textToShow.isNotEmpty,
       child: Expanded(
         child: Card(
-          elevation: 3.0,
-          color: TaskColors.cardColor,
           child: Padding(
             padding: EdgeInsets.symmetric(vertical: 12.0),
             child: Column(

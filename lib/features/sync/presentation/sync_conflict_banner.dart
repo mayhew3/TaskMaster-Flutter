@@ -36,7 +36,7 @@ class SyncConflictBanner extends ConsumerWidget {
                   style: const TextStyle(color: Colors.white),
                 ),
               ),
-              ElevatedButton(
+              FilledButton(
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(

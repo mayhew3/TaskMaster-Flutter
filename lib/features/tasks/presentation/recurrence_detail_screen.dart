@@ -60,7 +60,7 @@ class RecurrenceDetailScreen extends ConsumerWidget {
                     children: [
                       const Text('Unable to load recurrence history. Please try again.'),
                       const SizedBox(height: 12),
-                      ElevatedButton.icon(
+                      FilledButton.icon(
                         onPressed: () => ref.invalidate(tasksForRecurrenceProvider(recurrenceDocId)),
                         icon: const Icon(Icons.refresh),
                         label: const Text('Retry'),

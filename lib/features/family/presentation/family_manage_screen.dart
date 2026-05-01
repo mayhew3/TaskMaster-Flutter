@@ -60,7 +60,7 @@ class FamilyManageScreen extends ConsumerWidget {
             const Divider(),
             Padding(
               padding: const EdgeInsets.all(16.0),
-              child: ElevatedButton.icon(
+              child: FilledButton.icon(
                 icon: const Icon(Icons.person_add),
                 label: const Text('Invite a family member'),
                 onPressed: () => showDialog<void>(
@@ -111,7 +111,7 @@ class FamilyManageScreen extends ConsumerWidget {
           TextButton(
               onPressed: () => Navigator.of(context).pop(false),
               child: const Text('Cancel')),
-          ElevatedButton(
+          FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
               child: const Text('Leave')),
         ],
@@ -145,7 +145,7 @@ class FamilyManageScreen extends ConsumerWidget {
           TextButton(
               onPressed: () => Navigator.of(context).pop(false),
               child: const Text('Cancel')),
-          ElevatedButton(
+          FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
               child: const Text('Remove')),
         ],

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskmaster/date_util.dart';
 import 'package:taskmaster/models/models.dart';
-import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
@@ -550,8 +549,6 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                         final alreadyRecurring = _initialRepeatOn;
                         if (willBeFamilyShared && !alreadyRecurring) {
                           return Card(
-                            elevation: 3.0,
-                            color: TaskColors.cardColor,
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
                                   vertical: 14.0, horizontal: 16.0),
@@ -574,8 +571,6 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                           );
                         }
                         return Card(
-                        elevation: 3.0,
-                        color: TaskColors.cardColor,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                               vertical: 6.0, horizontal: 8.0),

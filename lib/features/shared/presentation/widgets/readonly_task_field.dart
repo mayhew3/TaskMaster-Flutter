@@ -67,7 +67,6 @@ class ReadOnlyTaskField extends StatelessWidget {
       visible: textToShow != null && textToShow!.isNotEmpty,
       child: Card(
         shadowColor: hasShadow ? Colors.black : TaskColors.invisible,
-        elevation: 3.0,
         shape: _getBorder(),
         color: getBackgroundColor(),
         child: Padding(

@@ -154,7 +154,7 @@ class SyncConflictDetailDialog extends ConsumerWidget {
           onPressed: () => _resolve(context, ref, useLatest: false),
           child: Text(isDelete ? 'Keep delete' : 'Keep mine'),
         ),
-        ElevatedButton(
+        FilledButton(
           onPressed: () => _resolve(context, ref, useLatest: true),
           child: const Text('Use latest'),
         ),

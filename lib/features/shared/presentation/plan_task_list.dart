@@ -283,10 +283,10 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
   }
 
   Card _createNoTasksFoundCard() {
+    // Borderless empty-state card: blends with the screen background.
     return Card(
       shadowColor: TaskColors.invisible,
       color: TaskColors.backgroundColor,
-      elevation: 3.0,
       margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
       child: ClipPath(
         clipper: ShapeBorderClipper(

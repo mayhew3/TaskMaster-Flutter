@@ -68,6 +68,8 @@ class _RiverpodTaskMasterAppState extends ConsumerState<RiverpodTaskMasterApp> {
     return MaterialApp(
       title: 'TaskMaster 3000',
       theme: taskMasterTheme,
+      darkTheme: taskMasterTheme,
+      themeMode: ThemeMode.dark,
       home: _buildHome(authState),
     );
   }
@@ -160,7 +162,7 @@ class _SignInScreen extends StatelessWidget {
             ),
             Column(
               children: [
-                ElevatedButton(
+                FilledButton(
                   onPressed: onSignIn,
                   child: const Text('SIGN IN'),
                 ),
@@ -265,11 +267,11 @@ class _ConnectionErrorScreen extends StatelessWidget {
                 ),
               ],
               const SizedBox(height: 32),
-              ElevatedButton.icon(
+              FilledButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh),
                 label: const Text('RETRY'),
-                style: ElevatedButton.styleFrom(
+                style: FilledButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: Colors.red.shade900,
                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),

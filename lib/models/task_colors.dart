@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 class TaskColors {
   static final Color highlight = Color.fromRGBO(217, 71, 142, 1.0);
   static final Color menuColor = Color.fromRGBO(102, 106, 186, 1.0);
+  static final Color primaryLight = Color.fromRGBO(179, 181, 221, 1.0);
   static final Color backgroundColor = Color.fromRGBO(55, 56, 81, 1.0);
 
   static const Color cardColor = Color.fromRGBO(76, 77, 105, 1.0);
@@ -29,4 +30,7 @@ class TaskColors {
   static final Color completedColor = Color.fromRGBO(95, 49, 92, 1.0);
 
   static final Color invisible = Color.fromRGBO(0, 0, 0, 0.0);
+
+  static const Color connectionWarning = Color(0xFFE65100);
+  static const Color connectionError = Color(0xFFC62828);
 }
