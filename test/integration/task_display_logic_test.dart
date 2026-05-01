@@ -320,7 +320,7 @@ void main() {
           ..dateAdded = now
           ..name = 'Work Task'
           ..personDocId = 'test-person-123'
-          ..project = 'Work'
+          ..area = 'Work'
           ..completionDate = null
           ..retired = null
           ..offCycle = false
@@ -330,7 +330,7 @@ void main() {
           ..dateAdded = now
           ..name = 'Personal Task'
           ..personDocId = 'test-person-123'
-          ..project = 'Personal'
+          ..area = 'Personal'
           ..completionDate = null
           ..retired = null
           ..offCycle = false

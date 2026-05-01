@@ -200,7 +200,7 @@ class IntegrationTestHelper {
           'offCycle': task.offCycle,
           'pendingCompletion': task.pendingCompletion,
           if (task.description != null) 'description': task.description,
-          if (task.project != null) 'project': task.project,
+          if (task.area != null) 'area': task.area,
           if (task.context != null) 'context': task.context,
           if (task.completionDate != null) 'completionDate': task.completionDate,
           if (task.retired != null) 'retired': task.retired,

@@ -135,7 +135,7 @@ void main() {
       ..dateAdded = original.dateAdded
       ..personDocId = MockTaskItemBuilder.me
       ..description = blueprint.description
-      ..project = blueprint.project
+      ..area = blueprint.area
       ..context = blueprint.context
       ..urgency = blueprint.urgency
       ..priority = blueprint.priority

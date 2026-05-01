@@ -14,7 +14,7 @@ class MockTaskItemBuilder with DateHolder {
   String? docId;
   late String name;
   late String description;
-  late String project;
+  late String area;
   late String context;
   late int urgency;
   late int priority;
@@ -53,7 +53,7 @@ class MockTaskItemBuilder with DateHolder {
 
     taskItem.name = name;
     taskItem.description = description;
-    taskItem.project = project;
+    taskItem.area = area;
     taskItem.context = context;
     taskItem.urgency = urgency;
     taskItem.priority = priority;
@@ -85,7 +85,7 @@ class MockTaskItemBuilder with DateHolder {
       ..personDocId = me
       ..name = name
       ..description = description
-      ..project = project
+      ..area = area
       ..context = context
       ..urgency = urgency
       ..priority = priority
@@ -113,7 +113,7 @@ class MockTaskItemBuilder with DateHolder {
   factory MockTaskItemBuilder.asPreCommit() {
     return MockTaskItemBuilder()
       ..name = 'Test Task'
-      ..project = 'Maintenance'
+      ..area = 'Maintenance'
       ..description = 'A thing for me to do.'
       ..context = 'Home'
       ..urgency = 3
