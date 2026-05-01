@@ -40,7 +40,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -73,6 +73,15 @@ class AppDatabase extends _$AppDatabase {
       if (from < 5) {
         // TM-345: areas collection (replaces hard-coded project list).
         await m.createTable(areas);
+      }
+      if (from < 6) {
+        // TM-345: rename tasks.project → tasks.area. The Phase 0 server-side
+        // migration script handles the Firestore-side rename before deploy;
+        // this preserves any locally-cached project values during the upgrade
+        // (the next remote snapshot will overwrite anyway).
+        // SQLite supports RENAME COLUMN since 3.25; the project's drift
+        // dependency is well above that minimum.
+        await customStatement('ALTER TABLE tasks RENAME COLUMN project TO area');
       }
     },
   );

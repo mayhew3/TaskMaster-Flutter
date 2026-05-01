@@ -14,7 +14,7 @@ Map<String, dynamic> _$TaskItemRecurPreviewToJson(
   'familyDocId': instance.familyDocId,
   'name': instance.name,
   'description': instance.description,
-  'project': instance.project,
+  'area': instance.area,
   'context': instance.context,
   'urgency': instance.urgency,
   'priority': instance.priority,

@@ -377,10 +377,10 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                   wordCaps: true,
                 ),
                 NullableDropdown(
-                  initialValue: taskItemBlueprint.project,
-                  labelText: 'Project',
+                  initialValue: taskItemBlueprint.area,
+                  labelText: 'Area',
                   possibleValues: possibleProjects,
-                  valueSetter: (value) => taskItemBlueprint.project = value,
+                  valueSetter: (value) => taskItemBlueprint.area = value,
                 ),
                 NullableDropdown(
                   initialValue: taskItemBlueprint.context,

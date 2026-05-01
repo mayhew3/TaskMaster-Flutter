@@ -30,7 +30,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
 
   String? get description;
   @override
-  String? get project;
+  String? get area;
   String? get context;
 
   int? get urgency;
@@ -100,7 +100,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
 
     blueprint.name = name;
     blueprint.description = description;
-    blueprint.project = project;
+    blueprint.area = area;
     blueprint.context = context;
     blueprint.urgency = urgency;
     blueprint.priority = priority;
@@ -139,7 +139,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
       ..familyDocId = familyDocId
       ..name = name
       ..description = description
-      ..project = project
+      ..area = area
       ..context = context
       ..urgency = urgency
       ..priority = priority
@@ -162,7 +162,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
     return
       other.name != name ||
           other.description != description ||
-          other.project != project ||
+          other.area != area ||
           other.context != context ||
           other.urgency != urgency ||
           other.priority != priority ||
@@ -186,7 +186,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
     return
       other.name != name ||
           other.description != description ||
-          other.project != project ||
+          other.area != area ||
           other.context != context ||
           other.urgency != urgency ||
           other.priority != priority ||

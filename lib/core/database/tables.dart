@@ -31,7 +31,7 @@ class Tasks extends Table {
   TextColumn get familyDocId => text().nullable()();
   TextColumn get name => text()();
   TextColumn get description => text().nullable()();
-  TextColumn get project => text().nullable()();
+  TextColumn get area => text().nullable()();
   // `context` would collide with `BuildContext` imports; use taskContext
   TextColumn get taskContext => text().nullable()();
   IntColumn get urgency => integer().nullable()();

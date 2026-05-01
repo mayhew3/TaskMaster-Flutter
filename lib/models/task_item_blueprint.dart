@@ -32,7 +32,7 @@ class TaskItemBlueprint with DateHolder {
 
   String? name;
   String? description;
-  String? project;
+  String? area;
   String? context;
 
   int? urgency;
@@ -113,7 +113,7 @@ class TaskItemBlueprint with DateHolder {
   bool hasChanges(TaskItem other) {
     var allMismatch = other.name != name ||
         other.description != description ||
-        other.project != project ||
+        other.area != area ||
         other.context != context ||
         other.urgency != urgency ||
         other.priority != priority ||
@@ -140,7 +140,7 @@ class TaskItemBlueprint with DateHolder {
     return
       other.name != name ||
           other.description != description ||
-          other.project != project ||
+          other.area != area ||
           other.context != context ||
           other.urgency != urgency ||
           other.priority != priority ||

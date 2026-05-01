@@ -8,7 +8,7 @@ import 'anchor_date.dart';
 mixin SprintDisplayTask implements DateHolder {
   String get name;
 
-  String? get project;
+  String? get area;
 
   @override
   DateTime? get startDate;

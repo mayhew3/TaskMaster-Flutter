@@ -70,12 +70,10 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _projectMeta = const VerificationMeta(
-    'project',
-  );
+  static const VerificationMeta _areaMeta = const VerificationMeta('area');
   @override
-  late final GeneratedColumn<String> project = GeneratedColumn<String>(
-    'project',
+  late final GeneratedColumn<String> area = GeneratedColumn<String>(
+    'area',
     aliasedName,
     true,
     type: DriftSqlType.string,
@@ -344,7 +342,7 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     familyDocId,
     name,
     description,
-    project,
+    area,
     taskContext,
     urgency,
     priority,
@@ -431,10 +429,10 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         ),
       );
     }
-    if (data.containsKey('project')) {
+    if (data.containsKey('area')) {
       context.handle(
-        _projectMeta,
-        project.isAcceptableOrUnknown(data['project']!, _projectMeta),
+        _areaMeta,
+        area.isAcceptableOrUnknown(data['area']!, _areaMeta),
       );
     }
     if (data.containsKey('task_context')) {
@@ -626,9 +624,9 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         DriftSqlType.string,
         data['${effectivePrefix}description'],
       ),
-      project: attachedDatabase.typeMapping.read(
+      area: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}project'],
+        data['${effectivePrefix}area'],
       ),
       taskContext: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -734,7 +732,7 @@ class Task extends DataClass implements Insertable<Task> {
   final String? familyDocId;
   final String name;
   final String? description;
-  final String? project;
+  final String? area;
   final String? taskContext;
   final int? urgency;
   final int? priority;
@@ -764,7 +762,7 @@ class Task extends DataClass implements Insertable<Task> {
     this.familyDocId,
     required this.name,
     this.description,
-    this.project,
+    this.area,
     this.taskContext,
     this.urgency,
     this.priority,
@@ -803,8 +801,8 @@ class Task extends DataClass implements Insertable<Task> {
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String>(description);
     }
-    if (!nullToAbsent || project != null) {
-      map['project'] = Variable<String>(project);
+    if (!nullToAbsent || area != null) {
+      map['area'] = Variable<String>(area);
     }
     if (!nullToAbsent || taskContext != null) {
       map['task_context'] = Variable<String>(taskContext);
@@ -883,9 +881,7 @@ class Task extends DataClass implements Insertable<Task> {
       description: description == null && nullToAbsent
           ? const Value.absent()
           : Value(description),
-      project: project == null && nullToAbsent
-          ? const Value.absent()
-          : Value(project),
+      area: area == null && nullToAbsent ? const Value.absent() : Value(area),
       taskContext: taskContext == null && nullToAbsent
           ? const Value.absent()
           : Value(taskContext),
@@ -961,7 +957,7 @@ class Task extends DataClass implements Insertable<Task> {
       familyDocId: serializer.fromJson<String?>(json['familyDocId']),
       name: serializer.fromJson<String>(json['name']),
       description: serializer.fromJson<String?>(json['description']),
-      project: serializer.fromJson<String?>(json['project']),
+      area: serializer.fromJson<String?>(json['area']),
       taskContext: serializer.fromJson<String?>(json['taskContext']),
       urgency: serializer.fromJson<int?>(json['urgency']),
       priority: serializer.fromJson<int?>(json['priority']),
@@ -998,7 +994,7 @@ class Task extends DataClass implements Insertable<Task> {
       'familyDocId': serializer.toJson<String?>(familyDocId),
       'name': serializer.toJson<String>(name),
       'description': serializer.toJson<String?>(description),
-      'project': serializer.toJson<String?>(project),
+      'area': serializer.toJson<String?>(area),
       'taskContext': serializer.toJson<String?>(taskContext),
       'urgency': serializer.toJson<int?>(urgency),
       'priority': serializer.toJson<int?>(priority),
@@ -1031,7 +1027,7 @@ class Task extends DataClass implements Insertable<Task> {
     Value<String?> familyDocId = const Value.absent(),
     String? name,
     Value<String?> description = const Value.absent(),
-    Value<String?> project = const Value.absent(),
+    Value<String?> area = const Value.absent(),
     Value<String?> taskContext = const Value.absent(),
     Value<int?> urgency = const Value.absent(),
     Value<int?> priority = const Value.absent(),
@@ -1061,7 +1057,7 @@ class Task extends DataClass implements Insertable<Task> {
     familyDocId: familyDocId.present ? familyDocId.value : this.familyDocId,
     name: name ?? this.name,
     description: description.present ? description.value : this.description,
-    project: project.present ? project.value : this.project,
+    area: area.present ? area.value : this.area,
     taskContext: taskContext.present ? taskContext.value : this.taskContext,
     urgency: urgency.present ? urgency.value : this.urgency,
     priority: priority.present ? priority.value : this.priority,
@@ -1107,7 +1103,7 @@ class Task extends DataClass implements Insertable<Task> {
       description: data.description.present
           ? data.description.value
           : this.description,
-      project: data.project.present ? data.project.value : this.project,
+      area: data.area.present ? data.area.value : this.area,
       taskContext: data.taskContext.present
           ? data.taskContext.value
           : this.taskContext,
@@ -1164,7 +1160,7 @@ class Task extends DataClass implements Insertable<Task> {
           ..write('familyDocId: $familyDocId, ')
           ..write('name: $name, ')
           ..write('description: $description, ')
-          ..write('project: $project, ')
+          ..write('area: $area, ')
           ..write('taskContext: $taskContext, ')
           ..write('urgency: $urgency, ')
           ..write('priority: $priority, ')
@@ -1199,7 +1195,7 @@ class Task extends DataClass implements Insertable<Task> {
     familyDocId,
     name,
     description,
-    project,
+    area,
     taskContext,
     urgency,
     priority,
@@ -1233,7 +1229,7 @@ class Task extends DataClass implements Insertable<Task> {
           other.familyDocId == this.familyDocId &&
           other.name == this.name &&
           other.description == this.description &&
-          other.project == this.project &&
+          other.area == this.area &&
           other.taskContext == this.taskContext &&
           other.urgency == this.urgency &&
           other.priority == this.priority &&
@@ -1265,7 +1261,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
   final Value<String?> familyDocId;
   final Value<String> name;
   final Value<String?> description;
-  final Value<String?> project;
+  final Value<String?> area;
   final Value<String?> taskContext;
   final Value<int?> urgency;
   final Value<int?> priority;
@@ -1296,7 +1292,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.familyDocId = const Value.absent(),
     this.name = const Value.absent(),
     this.description = const Value.absent(),
-    this.project = const Value.absent(),
+    this.area = const Value.absent(),
     this.taskContext = const Value.absent(),
     this.urgency = const Value.absent(),
     this.priority = const Value.absent(),
@@ -1328,7 +1324,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.familyDocId = const Value.absent(),
     required String name,
     this.description = const Value.absent(),
-    this.project = const Value.absent(),
+    this.area = const Value.absent(),
     this.taskContext = const Value.absent(),
     this.urgency = const Value.absent(),
     this.priority = const Value.absent(),
@@ -1362,7 +1358,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Expression<String>? familyDocId,
     Expression<String>? name,
     Expression<String>? description,
-    Expression<String>? project,
+    Expression<String>? area,
     Expression<String>? taskContext,
     Expression<int>? urgency,
     Expression<int>? priority,
@@ -1394,7 +1390,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
       if (familyDocId != null) 'family_doc_id': familyDocId,
       if (name != null) 'name': name,
       if (description != null) 'description': description,
-      if (project != null) 'project': project,
+      if (area != null) 'area': area,
       if (taskContext != null) 'task_context': taskContext,
       if (urgency != null) 'urgency': urgency,
       if (priority != null) 'priority': priority,
@@ -1429,7 +1425,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Value<String?>? familyDocId,
     Value<String>? name,
     Value<String?>? description,
-    Value<String?>? project,
+    Value<String?>? area,
     Value<String?>? taskContext,
     Value<int?>? urgency,
     Value<int?>? priority,
@@ -1461,7 +1457,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
       familyDocId: familyDocId ?? this.familyDocId,
       name: name ?? this.name,
       description: description ?? this.description,
-      project: project ?? this.project,
+      area: area ?? this.area,
       taskContext: taskContext ?? this.taskContext,
       urgency: urgency ?? this.urgency,
       priority: priority ?? this.priority,
@@ -1509,8 +1505,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
     if (description.present) {
       map['description'] = Variable<String>(description.value);
     }
-    if (project.present) {
-      map['project'] = Variable<String>(project.value);
+    if (area.present) {
+      map['area'] = Variable<String>(area.value);
     }
     if (taskContext.present) {
       map['task_context'] = Variable<String>(taskContext.value);
@@ -1593,7 +1589,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
           ..write('familyDocId: $familyDocId, ')
           ..write('name: $name, ')
           ..write('description: $description, ')
-          ..write('project: $project, ')
+          ..write('area: $area, ')
           ..write('taskContext: $taskContext, ')
           ..write('urgency: $urgency, ')
           ..write('priority: $priority, ')
@@ -5749,7 +5745,7 @@ typedef $$TasksTableCreateCompanionBuilder =
       Value<String?> familyDocId,
       required String name,
       Value<String?> description,
-      Value<String?> project,
+      Value<String?> area,
       Value<String?> taskContext,
       Value<int?> urgency,
       Value<int?> priority,
@@ -5782,7 +5778,7 @@ typedef $$TasksTableUpdateCompanionBuilder =
       Value<String?> familyDocId,
       Value<String> name,
       Value<String?> description,
-      Value<String?> project,
+      Value<String?> area,
       Value<String?> taskContext,
       Value<int?> urgency,
       Value<int?> priority,
@@ -5846,8 +5842,8 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get project => $composableBuilder(
-    column: $table.project,
+  ColumnFilters<String> get area => $composableBuilder(
+    column: $table.area,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6001,8 +5997,8 @@ class $$TasksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get project => $composableBuilder(
-    column: $table.project,
+  ColumnOrderings<String> get area => $composableBuilder(
+    column: $table.area,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -6150,8 +6146,8 @@ class $$TasksTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get project =>
-      $composableBuilder(column: $table.project, builder: (column) => column);
+  GeneratedColumn<String> get area =>
+      $composableBuilder(column: $table.area, builder: (column) => column);
 
   GeneratedColumn<String> get taskContext => $composableBuilder(
     column: $table.taskContext,
@@ -6276,7 +6272,7 @@ class $$TasksTableTableManager
                 Value<String?> familyDocId = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String?> description = const Value.absent(),
-                Value<String?> project = const Value.absent(),
+                Value<String?> area = const Value.absent(),
                 Value<String?> taskContext = const Value.absent(),
                 Value<int?> urgency = const Value.absent(),
                 Value<int?> priority = const Value.absent(),
@@ -6307,7 +6303,7 @@ class $$TasksTableTableManager
                 familyDocId: familyDocId,
                 name: name,
                 description: description,
-                project: project,
+                area: area,
                 taskContext: taskContext,
                 urgency: urgency,
                 priority: priority,
@@ -6340,7 +6336,7 @@ class $$TasksTableTableManager
                 Value<String?> familyDocId = const Value.absent(),
                 required String name,
                 Value<String?> description = const Value.absent(),
-                Value<String?> project = const Value.absent(),
+                Value<String?> area = const Value.absent(),
                 Value<String?> taskContext = const Value.absent(),
                 Value<int?> urgency = const Value.absent(),
                 Value<int?> priority = const Value.absent(),
@@ -6371,7 +6367,7 @@ class $$TasksTableTableManager
                 familyDocId: familyDocId,
                 name: name,
                 description: description,
-                project: project,
+                area: area,
                 taskContext: taskContext,
                 urgency: urgency,
                 priority: priority,

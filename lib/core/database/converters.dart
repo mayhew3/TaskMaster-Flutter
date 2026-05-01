@@ -39,7 +39,7 @@ m.TaskItem taskItemFromRow(Task row) {
     ..familyDocId = row.familyDocId
     ..name = row.name
     ..description = row.description
-    ..project = row.project
+    ..area = row.area
     ..context = row.taskContext
     ..urgency = row.urgency
     ..priority = row.priority
@@ -70,7 +70,7 @@ TasksCompanion taskItemToCompanion(m.TaskItem task) {
     familyDocId: Value(task.familyDocId),
     name: Value(task.name),
     description: Value(task.description),
-    project: Value(task.project),
+    area: Value(task.area),
     taskContext: Value(task.context),
     urgency: Value(task.urgency),
     priority: Value(task.priority),
@@ -216,7 +216,7 @@ TasksCompanion taskBlueprintToCompanion({
     familyDocId: Value(blueprint.familyDocId),
     name: Value(blueprint.name ?? ''),
     description: Value(blueprint.description),
-    project: Value(blueprint.project),
+    area: Value(blueprint.area),
     taskContext: Value(blueprint.context),
     urgency: Value(blueprint.urgency),
     priority: Value(blueprint.priority),
@@ -252,7 +252,7 @@ TasksCompanion taskBlueprintToDiff(TaskItemBlueprint blueprint) {
         ? Value(blueprint.familyDocId)
         : const Value.absent(),
     description: Value(blueprint.description),
-    project: Value(blueprint.project),
+    area: Value(blueprint.area),
     taskContext: Value(blueprint.context),
     urgency: Value(blueprint.urgency),
     priority: Value(blueprint.priority),
