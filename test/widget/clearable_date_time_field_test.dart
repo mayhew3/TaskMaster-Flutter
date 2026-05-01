@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:taskmaster/app_theme.dart';
 import 'package:taskmaster/features/shared/presentation/widgets/clearable_date_time_field.dart';
 
 import '../mocks/mock_timezone_helper.dart';
@@ -341,10 +342,13 @@ void main() {
       );
     });
 
-    testWidgets('TextField has OutlineInputBorder decoration', (tester) async {
-      // Setup: Widget
+    testWidgets('TextField has labelText and inherits OutlineInputBorder from theme', (tester) async {
+      // Setup: Widget pumped under the app theme so inputDecorationTheme applies.
+      // Post-TM-254, the widget no longer sets `border` directly — the
+      // OutlineInputBorder (8px radius) comes from taskMasterTheme.
       await tester.pumpWidget(
         MaterialApp(
+          theme: taskMasterTheme,
           home: Scaffold(
             body: ClearableDateTimeField(
               labelText: 'Test Date',
@@ -357,11 +361,16 @@ void main() {
         ),
       );
 
-      // Verify: TextField has correct decoration
       final textField = tester.widget<TextField>(find.byType(TextField));
       expect(textField.decoration, isNotNull);
-      expect(textField.decoration!.border, isA<OutlineInputBorder>());
       expect(textField.decoration!.labelText, 'Test Date');
+
+      // Border is provided by the theme, not the widget.
+      final BuildContext context = tester.element(find.byType(TextField));
+      expect(
+        Theme.of(context).inputDecorationTheme.border,
+        isA<OutlineInputBorder>(),
+      );
     });
 
     testWidgets('Widget has margin around it', (tester) async {
