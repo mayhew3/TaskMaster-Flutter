@@ -67,7 +67,9 @@ void main() {
           ),
         ),
       );
-      final shape = dialogTheme.shape as RoundedRectangleBorder;
+      expect(dialogTheme.shape, isA<RoundedRectangleBorder>());
+      final shape = dialogTheme.shape! as RoundedRectangleBorder;
+      expect(shape.borderRadius, isA<BorderRadius>());
       final radius = shape.borderRadius as BorderRadius;
       expect(radius.topLeft.x, 20.0);
     });

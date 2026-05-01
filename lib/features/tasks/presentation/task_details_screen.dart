@@ -333,7 +333,7 @@ class _RecurrenceField extends StatelessWidget {
     return Card(
       child: InkWell(
         onTap: tappable ? () => _navigateToRecurrenceDetail(context) : null,
-        borderRadius: BorderRadius.circular(4.0),
+        borderRadius: BorderRadius.circular(12.0),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
