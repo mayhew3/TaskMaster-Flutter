@@ -6,6 +6,7 @@ import 'package:taskmaster/models/models.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
+import 'package:taskmaster/features/areas/presentation/area_picker.dart';
 import 'package:taskmaster/features/shared/presentation/widgets/clearable_date_time_field.dart';
 import 'package:taskmaster/features/shared/presentation/widgets/editable_task_field.dart';
 import 'package:taskmaster/features/shared/presentation/widgets/nullable_dropdown.dart';
@@ -39,7 +40,6 @@ class TaskAddEditScreen extends ConsumerStatefulWidget {
 class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
   static final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  late BuiltList<String> possibleProjects;
   late BuiltList<String> possibleContexts;
   late BuiltList<String> possibleAnchorDates;
   late BuiltList<String> possibleRecurUnits;
@@ -63,24 +63,9 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
   void initState() {
     super.initState();
 
-    // Initialize dropdown options
-    possibleProjects = ListBuilder<String>([
-      '(none)',
-      'Career',
-      'Hobby',
-      'Friends',
-      'Family',
-      'Health',
-      'Maintenance',
-      'Organization',
-      'Shopping',
-      'Entertainment',
-      'WIG Mentorship',
-      'Writing',
-      'Bugs',
-      'Projects',
-    ]).build();
-
+    // Initialize dropdown options.
+    // The Area picker no longer uses a hard-coded list — it's driven by the
+    // user's customizable `areas` collection (TM-345). See AreaPicker.
     possibleContexts = ListBuilder<String>([
       '(none)',
       'Computer',
@@ -376,10 +361,8 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                   isRequired: true,
                   wordCaps: true,
                 ),
-                NullableDropdown(
+                AreaPicker(
                   initialValue: taskItemBlueprint.area,
-                  labelText: 'Area',
-                  possibleValues: possibleProjects,
                   valueSetter: (value) => taskItemBlueprint.area = value,
                 ),
                 NullableDropdown(
