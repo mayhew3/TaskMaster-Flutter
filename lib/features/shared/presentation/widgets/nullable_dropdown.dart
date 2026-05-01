@@ -57,7 +57,6 @@ class NullableDropdownState extends State<NullableDropdown> {
         isDense: true,
         decoration: InputDecoration(
           labelText: widget.labelText,
-          border: OutlineInputBorder(),
           // workaround for flutter issue #60624 (https://github.com/flutter/flutter/issues/60624).
           // when this is closed, you should be able to remove this.
           contentPadding: EdgeInsets.fromLTRB(12, 21, 12, 14),
