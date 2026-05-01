@@ -136,6 +136,33 @@ class SprintAssignments extends Table {
   Set<Column> get primaryKey => {docId};
 }
 
+/// Local mirror of Firestore `areas` collection (TM-345).
+///
+/// Per-user customizable list of categories/areas-of-responsibility that
+/// replaces the previously hard-coded `project` list. Tasks reference areas
+/// by [Areas.name], not by [Areas.docId], so this table is loosely coupled
+/// to the tasks table.
+class Areas extends Table {
+  TextColumn get docId => text()();
+  DateTimeColumn get dateAdded => dateTime()();
+  TextColumn get name => text()();
+
+  /// Lower values sort earlier in the picker / management screen.
+  /// User-defined drag-to-reorder rewrites the entire list's sortOrder.
+  IntColumn get sortOrder => integer()();
+
+  TextColumn get personDocId => text()();
+
+  TextColumn get retired => text().nullable()();
+  DateTimeColumn get retiredDate => dateTime().nullable()();
+
+  TextColumn get syncState =>
+      text().withDefault(const Constant('synced'))();
+
+  @override
+  Set<Column> get primaryKey => {docId};
+}
+
 /// Local mirror of Firestore `families` collection.
 /// `members` is JSON-encoded as `["personDocId", ...]`.
 class Families extends Table {

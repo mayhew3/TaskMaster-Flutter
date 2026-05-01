@@ -3,6 +3,7 @@ library;
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/serializer.dart';
 import 'package:built_value/standard_json_plugin.dart';
+import 'package:taskmaster/models/area.dart';
 import 'package:taskmaster/models/date_pass_through_serializer.dart';
 import 'package:taskmaster/models/family.dart';
 import 'package:taskmaster/models/family_invitation.dart';
@@ -19,6 +20,7 @@ part 'serializers.g.dart';
 
 @SerializersFor([
   AnchorDate,
+  Area,
   Family,
   FamilyInvitation,
   Person,

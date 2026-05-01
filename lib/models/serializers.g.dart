@@ -9,6 +9,7 @@ part of 'serializers.dart';
 Serializers _$serializers =
     (Serializers().toBuilder()
           ..add(AnchorDate.serializer)
+          ..add(Area.serializer)
           ..add(Family.serializer)
           ..add(FamilyInvitation.serializer)
           ..add(Person.serializer)

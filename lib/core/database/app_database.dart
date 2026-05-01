@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 
+import 'daos/area_dao.dart';
 import 'daos/family_dao.dart';
 import 'daos/family_invitation_dao.dart';
 import 'daos/person_dao.dart';
@@ -17,6 +18,7 @@ part 'app_database.g.dart';
     TaskRecurrences,
     Sprints,
     SprintAssignments,
+    Areas,
     Families,
     FamilyInvitations,
     Persons,
@@ -25,6 +27,7 @@ part 'app_database.g.dart';
     TaskDao,
     TaskRecurrenceDao,
     SprintDao,
+    AreaDao,
     FamilyDao,
     FamilyInvitationDao,
     PersonDao,
@@ -37,7 +40,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -66,6 +69,10 @@ class AppDatabase extends _$AppDatabase {
         await customStatement(
           'UPDATE task_recurrences SET last_modified = date_added WHERE last_modified IS NULL',
         );
+      }
+      if (from < 5) {
+        // TM-345: areas collection (replaces hard-coded project list).
+        await m.createTable(areas);
       }
     },
   );

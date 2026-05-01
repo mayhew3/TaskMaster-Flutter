@@ -3620,6 +3620,531 @@ class SprintAssignmentsCompanion extends UpdateCompanion<SprintAssignment> {
   }
 }
 
+class $AreasTable extends Areas with TableInfo<$AreasTable, Area> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AreasTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _docIdMeta = const VerificationMeta('docId');
+  @override
+  late final GeneratedColumn<String> docId = GeneratedColumn<String>(
+    'doc_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateAddedMeta = const VerificationMeta(
+    'dateAdded',
+  );
+  @override
+  late final GeneratedColumn<DateTime> dateAdded = GeneratedColumn<DateTime>(
+    'date_added',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _personDocIdMeta = const VerificationMeta(
+    'personDocId',
+  );
+  @override
+  late final GeneratedColumn<String> personDocId = GeneratedColumn<String>(
+    'person_doc_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _retiredMeta = const VerificationMeta(
+    'retired',
+  );
+  @override
+  late final GeneratedColumn<String> retired = GeneratedColumn<String>(
+    'retired',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _retiredDateMeta = const VerificationMeta(
+    'retiredDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> retiredDate = GeneratedColumn<DateTime>(
+    'retired_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncStateMeta = const VerificationMeta(
+    'syncState',
+  );
+  @override
+  late final GeneratedColumn<String> syncState = GeneratedColumn<String>(
+    'sync_state',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('synced'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    docId,
+    dateAdded,
+    name,
+    sortOrder,
+    personDocId,
+    retired,
+    retiredDate,
+    syncState,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'areas';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Area> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('doc_id')) {
+      context.handle(
+        _docIdMeta,
+        docId.isAcceptableOrUnknown(data['doc_id']!, _docIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_docIdMeta);
+    }
+    if (data.containsKey('date_added')) {
+      context.handle(
+        _dateAddedMeta,
+        dateAdded.isAcceptableOrUnknown(data['date_added']!, _dateAddedMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateAddedMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sortOrderMeta);
+    }
+    if (data.containsKey('person_doc_id')) {
+      context.handle(
+        _personDocIdMeta,
+        personDocId.isAcceptableOrUnknown(
+          data['person_doc_id']!,
+          _personDocIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_personDocIdMeta);
+    }
+    if (data.containsKey('retired')) {
+      context.handle(
+        _retiredMeta,
+        retired.isAcceptableOrUnknown(data['retired']!, _retiredMeta),
+      );
+    }
+    if (data.containsKey('retired_date')) {
+      context.handle(
+        _retiredDateMeta,
+        retiredDate.isAcceptableOrUnknown(
+          data['retired_date']!,
+          _retiredDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sync_state')) {
+      context.handle(
+        _syncStateMeta,
+        syncState.isAcceptableOrUnknown(data['sync_state']!, _syncStateMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {docId};
+  @override
+  Area map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Area(
+      docId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}doc_id'],
+      )!,
+      dateAdded: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date_added'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+      personDocId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}person_doc_id'],
+      )!,
+      retired: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}retired'],
+      ),
+      retiredDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}retired_date'],
+      ),
+      syncState: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_state'],
+      )!,
+    );
+  }
+
+  @override
+  $AreasTable createAlias(String alias) {
+    return $AreasTable(attachedDatabase, alias);
+  }
+}
+
+class Area extends DataClass implements Insertable<Area> {
+  final String docId;
+  final DateTime dateAdded;
+  final String name;
+
+  /// Lower values sort earlier in the picker / management screen.
+  /// User-defined drag-to-reorder rewrites the entire list's sortOrder.
+  final int sortOrder;
+  final String personDocId;
+  final String? retired;
+  final DateTime? retiredDate;
+  final String syncState;
+  const Area({
+    required this.docId,
+    required this.dateAdded,
+    required this.name,
+    required this.sortOrder,
+    required this.personDocId,
+    this.retired,
+    this.retiredDate,
+    required this.syncState,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['doc_id'] = Variable<String>(docId);
+    map['date_added'] = Variable<DateTime>(dateAdded);
+    map['name'] = Variable<String>(name);
+    map['sort_order'] = Variable<int>(sortOrder);
+    map['person_doc_id'] = Variable<String>(personDocId);
+    if (!nullToAbsent || retired != null) {
+      map['retired'] = Variable<String>(retired);
+    }
+    if (!nullToAbsent || retiredDate != null) {
+      map['retired_date'] = Variable<DateTime>(retiredDate);
+    }
+    map['sync_state'] = Variable<String>(syncState);
+    return map;
+  }
+
+  AreasCompanion toCompanion(bool nullToAbsent) {
+    return AreasCompanion(
+      docId: Value(docId),
+      dateAdded: Value(dateAdded),
+      name: Value(name),
+      sortOrder: Value(sortOrder),
+      personDocId: Value(personDocId),
+      retired: retired == null && nullToAbsent
+          ? const Value.absent()
+          : Value(retired),
+      retiredDate: retiredDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(retiredDate),
+      syncState: Value(syncState),
+    );
+  }
+
+  factory Area.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Area(
+      docId: serializer.fromJson<String>(json['docId']),
+      dateAdded: serializer.fromJson<DateTime>(json['dateAdded']),
+      name: serializer.fromJson<String>(json['name']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      personDocId: serializer.fromJson<String>(json['personDocId']),
+      retired: serializer.fromJson<String?>(json['retired']),
+      retiredDate: serializer.fromJson<DateTime?>(json['retiredDate']),
+      syncState: serializer.fromJson<String>(json['syncState']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'docId': serializer.toJson<String>(docId),
+      'dateAdded': serializer.toJson<DateTime>(dateAdded),
+      'name': serializer.toJson<String>(name),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'personDocId': serializer.toJson<String>(personDocId),
+      'retired': serializer.toJson<String?>(retired),
+      'retiredDate': serializer.toJson<DateTime?>(retiredDate),
+      'syncState': serializer.toJson<String>(syncState),
+    };
+  }
+
+  Area copyWith({
+    String? docId,
+    DateTime? dateAdded,
+    String? name,
+    int? sortOrder,
+    String? personDocId,
+    Value<String?> retired = const Value.absent(),
+    Value<DateTime?> retiredDate = const Value.absent(),
+    String? syncState,
+  }) => Area(
+    docId: docId ?? this.docId,
+    dateAdded: dateAdded ?? this.dateAdded,
+    name: name ?? this.name,
+    sortOrder: sortOrder ?? this.sortOrder,
+    personDocId: personDocId ?? this.personDocId,
+    retired: retired.present ? retired.value : this.retired,
+    retiredDate: retiredDate.present ? retiredDate.value : this.retiredDate,
+    syncState: syncState ?? this.syncState,
+  );
+  Area copyWithCompanion(AreasCompanion data) {
+    return Area(
+      docId: data.docId.present ? data.docId.value : this.docId,
+      dateAdded: data.dateAdded.present ? data.dateAdded.value : this.dateAdded,
+      name: data.name.present ? data.name.value : this.name,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+      personDocId: data.personDocId.present
+          ? data.personDocId.value
+          : this.personDocId,
+      retired: data.retired.present ? data.retired.value : this.retired,
+      retiredDate: data.retiredDate.present
+          ? data.retiredDate.value
+          : this.retiredDate,
+      syncState: data.syncState.present ? data.syncState.value : this.syncState,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Area(')
+          ..write('docId: $docId, ')
+          ..write('dateAdded: $dateAdded, ')
+          ..write('name: $name, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('personDocId: $personDocId, ')
+          ..write('retired: $retired, ')
+          ..write('retiredDate: $retiredDate, ')
+          ..write('syncState: $syncState')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    docId,
+    dateAdded,
+    name,
+    sortOrder,
+    personDocId,
+    retired,
+    retiredDate,
+    syncState,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Area &&
+          other.docId == this.docId &&
+          other.dateAdded == this.dateAdded &&
+          other.name == this.name &&
+          other.sortOrder == this.sortOrder &&
+          other.personDocId == this.personDocId &&
+          other.retired == this.retired &&
+          other.retiredDate == this.retiredDate &&
+          other.syncState == this.syncState);
+}
+
+class AreasCompanion extends UpdateCompanion<Area> {
+  final Value<String> docId;
+  final Value<DateTime> dateAdded;
+  final Value<String> name;
+  final Value<int> sortOrder;
+  final Value<String> personDocId;
+  final Value<String?> retired;
+  final Value<DateTime?> retiredDate;
+  final Value<String> syncState;
+  final Value<int> rowid;
+  const AreasCompanion({
+    this.docId = const Value.absent(),
+    this.dateAdded = const Value.absent(),
+    this.name = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.personDocId = const Value.absent(),
+    this.retired = const Value.absent(),
+    this.retiredDate = const Value.absent(),
+    this.syncState = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AreasCompanion.insert({
+    required String docId,
+    required DateTime dateAdded,
+    required String name,
+    required int sortOrder,
+    required String personDocId,
+    this.retired = const Value.absent(),
+    this.retiredDate = const Value.absent(),
+    this.syncState = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : docId = Value(docId),
+       dateAdded = Value(dateAdded),
+       name = Value(name),
+       sortOrder = Value(sortOrder),
+       personDocId = Value(personDocId);
+  static Insertable<Area> custom({
+    Expression<String>? docId,
+    Expression<DateTime>? dateAdded,
+    Expression<String>? name,
+    Expression<int>? sortOrder,
+    Expression<String>? personDocId,
+    Expression<String>? retired,
+    Expression<DateTime>? retiredDate,
+    Expression<String>? syncState,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (docId != null) 'doc_id': docId,
+      if (dateAdded != null) 'date_added': dateAdded,
+      if (name != null) 'name': name,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (personDocId != null) 'person_doc_id': personDocId,
+      if (retired != null) 'retired': retired,
+      if (retiredDate != null) 'retired_date': retiredDate,
+      if (syncState != null) 'sync_state': syncState,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AreasCompanion copyWith({
+    Value<String>? docId,
+    Value<DateTime>? dateAdded,
+    Value<String>? name,
+    Value<int>? sortOrder,
+    Value<String>? personDocId,
+    Value<String?>? retired,
+    Value<DateTime?>? retiredDate,
+    Value<String>? syncState,
+    Value<int>? rowid,
+  }) {
+    return AreasCompanion(
+      docId: docId ?? this.docId,
+      dateAdded: dateAdded ?? this.dateAdded,
+      name: name ?? this.name,
+      sortOrder: sortOrder ?? this.sortOrder,
+      personDocId: personDocId ?? this.personDocId,
+      retired: retired ?? this.retired,
+      retiredDate: retiredDate ?? this.retiredDate,
+      syncState: syncState ?? this.syncState,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (docId.present) {
+      map['doc_id'] = Variable<String>(docId.value);
+    }
+    if (dateAdded.present) {
+      map['date_added'] = Variable<DateTime>(dateAdded.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (personDocId.present) {
+      map['person_doc_id'] = Variable<String>(personDocId.value);
+    }
+    if (retired.present) {
+      map['retired'] = Variable<String>(retired.value);
+    }
+    if (retiredDate.present) {
+      map['retired_date'] = Variable<DateTime>(retiredDate.value);
+    }
+    if (syncState.present) {
+      map['sync_state'] = Variable<String>(syncState.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AreasCompanion(')
+          ..write('docId: $docId, ')
+          ..write('dateAdded: $dateAdded, ')
+          ..write('name: $name, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('personDocId: $personDocId, ')
+          ..write('retired: $retired, ')
+          ..write('retiredDate: $retiredDate, ')
+          ..write('syncState: $syncState, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $FamiliesTable extends Families with TableInfo<$FamiliesTable, Family> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -5184,6 +5709,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SprintsTable sprints = $SprintsTable(this);
   late final $SprintAssignmentsTable sprintAssignments =
       $SprintAssignmentsTable(this);
+  late final $AreasTable areas = $AreasTable(this);
   late final $FamiliesTable families = $FamiliesTable(this);
   late final $FamilyInvitationsTable familyInvitations =
       $FamilyInvitationsTable(this);
@@ -5193,6 +5719,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this as AppDatabase,
   );
   late final SprintDao sprintDao = SprintDao(this as AppDatabase);
+  late final AreaDao areaDao = AreaDao(this as AppDatabase);
   late final FamilyDao familyDao = FamilyDao(this as AppDatabase);
   late final FamilyInvitationDao familyInvitationDao = FamilyInvitationDao(
     this as AppDatabase,
@@ -5207,6 +5734,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     taskRecurrences,
     sprints,
     sprintAssignments,
+    areas,
     families,
     familyInvitations,
     persons,
@@ -6850,6 +7378,260 @@ typedef $$SprintAssignmentsTableProcessedTableManager =
       SprintAssignment,
       PrefetchHooks Function()
     >;
+typedef $$AreasTableCreateCompanionBuilder =
+    AreasCompanion Function({
+      required String docId,
+      required DateTime dateAdded,
+      required String name,
+      required int sortOrder,
+      required String personDocId,
+      Value<String?> retired,
+      Value<DateTime?> retiredDate,
+      Value<String> syncState,
+      Value<int> rowid,
+    });
+typedef $$AreasTableUpdateCompanionBuilder =
+    AreasCompanion Function({
+      Value<String> docId,
+      Value<DateTime> dateAdded,
+      Value<String> name,
+      Value<int> sortOrder,
+      Value<String> personDocId,
+      Value<String?> retired,
+      Value<DateTime?> retiredDate,
+      Value<String> syncState,
+      Value<int> rowid,
+    });
+
+class $$AreasTableFilterComposer extends Composer<_$AppDatabase, $AreasTable> {
+  $$AreasTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get docId => $composableBuilder(
+    column: $table.docId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get dateAdded => $composableBuilder(
+    column: $table.dateAdded,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get personDocId => $composableBuilder(
+    column: $table.personDocId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get retired => $composableBuilder(
+    column: $table.retired,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get retiredDate => $composableBuilder(
+    column: $table.retiredDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncState => $composableBuilder(
+    column: $table.syncState,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AreasTableOrderingComposer
+    extends Composer<_$AppDatabase, $AreasTable> {
+  $$AreasTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get docId => $composableBuilder(
+    column: $table.docId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get dateAdded => $composableBuilder(
+    column: $table.dateAdded,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get personDocId => $composableBuilder(
+    column: $table.personDocId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get retired => $composableBuilder(
+    column: $table.retired,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get retiredDate => $composableBuilder(
+    column: $table.retiredDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncState => $composableBuilder(
+    column: $table.syncState,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AreasTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AreasTable> {
+  $$AreasTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get docId =>
+      $composableBuilder(column: $table.docId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get dateAdded =>
+      $composableBuilder(column: $table.dateAdded, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<String> get personDocId => $composableBuilder(
+    column: $table.personDocId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get retired =>
+      $composableBuilder(column: $table.retired, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get retiredDate => $composableBuilder(
+    column: $table.retiredDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get syncState =>
+      $composableBuilder(column: $table.syncState, builder: (column) => column);
+}
+
+class $$AreasTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AreasTable,
+          Area,
+          $$AreasTableFilterComposer,
+          $$AreasTableOrderingComposer,
+          $$AreasTableAnnotationComposer,
+          $$AreasTableCreateCompanionBuilder,
+          $$AreasTableUpdateCompanionBuilder,
+          (Area, BaseReferences<_$AppDatabase, $AreasTable, Area>),
+          Area,
+          PrefetchHooks Function()
+        > {
+  $$AreasTableTableManager(_$AppDatabase db, $AreasTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AreasTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AreasTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AreasTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> docId = const Value.absent(),
+                Value<DateTime> dateAdded = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<String> personDocId = const Value.absent(),
+                Value<String?> retired = const Value.absent(),
+                Value<DateTime?> retiredDate = const Value.absent(),
+                Value<String> syncState = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AreasCompanion(
+                docId: docId,
+                dateAdded: dateAdded,
+                name: name,
+                sortOrder: sortOrder,
+                personDocId: personDocId,
+                retired: retired,
+                retiredDate: retiredDate,
+                syncState: syncState,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String docId,
+                required DateTime dateAdded,
+                required String name,
+                required int sortOrder,
+                required String personDocId,
+                Value<String?> retired = const Value.absent(),
+                Value<DateTime?> retiredDate = const Value.absent(),
+                Value<String> syncState = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AreasCompanion.insert(
+                docId: docId,
+                dateAdded: dateAdded,
+                name: name,
+                sortOrder: sortOrder,
+                personDocId: personDocId,
+                retired: retired,
+                retiredDate: retiredDate,
+                syncState: syncState,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AreasTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AreasTable,
+      Area,
+      $$AreasTableFilterComposer,
+      $$AreasTableOrderingComposer,
+      $$AreasTableAnnotationComposer,
+      $$AreasTableCreateCompanionBuilder,
+      $$AreasTableUpdateCompanionBuilder,
+      (Area, BaseReferences<_$AppDatabase, $AreasTable, Area>),
+      Area,
+      PrefetchHooks Function()
+    >;
 typedef $$FamiliesTableCreateCompanionBuilder =
     FamiliesCompanion Function({
       required String docId,
@@ -7635,6 +8417,8 @@ class $AppDatabaseManager {
       $$SprintsTableTableManager(_db, _db.sprints);
   $$SprintAssignmentsTableTableManager get sprintAssignments =>
       $$SprintAssignmentsTableTableManager(_db, _db.sprintAssignments);
+  $$AreasTableTableManager get areas =>
+      $$AreasTableTableManager(_db, _db.areas);
   $$FamiliesTableTableManager get families =>
       $$FamiliesTableTableManager(_db, _db.families);
   $$FamilyInvitationsTableTableManager get familyInvitations =>
