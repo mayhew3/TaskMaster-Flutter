@@ -4,7 +4,8 @@
   "description": "CLI tools for TaskMaster Firestore maintenance",
   "scripts": {
     "repair": "node firestore-repair.js",
-    "export": "node firestore-export.js"
+    "export": "node firestore-export.js",
+    "migrate-project-to-area": "node firestore-migrate-project-to-area.js"
   },
   "dependencies": {
     "firebase-admin": "^12.0.0"
