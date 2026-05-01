@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskmaster/date_util.dart';
 import 'package:taskmaster/models/models.dart';
-import 'package:taskmaster/models/task_colors.dart';
 import 'package:taskmaster/models/task_date_type.dart';
 import 'package:taskmaster/models/task_item_blueprint.dart';
 import 'package:taskmaster/models/task_recurrence_blueprint.dart';
@@ -20,6 +19,7 @@ import '../providers/task_providers.dart';
 /// Handles creating new tasks and editing existing tasks
 class TaskAddEditScreen extends ConsumerStatefulWidget {
   final String? taskItemId;
+
   /// When `true` and adding a new task (no [taskItemId]), pre-stamp the
   /// blueprint with the current user's `familyDocId` so the task becomes
   /// family-shared. Set by the Family-tab FAB; the Tasks-tab FAB leaves
@@ -56,7 +56,8 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
   bool popped = false;
   int? _initialTaskCount; // Track initial task count for new task detection
   bool _submitting = false; // Track if submit was pressed
-  bool _initialized = false; // Track if task has been initialized to prevent re-init on rebuild
+  bool _initialized =
+      false; // Track if task has been initialized to prevent re-init on rebuild
 
   @override
   void initState() {
@@ -123,8 +124,9 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
 
   void _initializeTask(TaskItem? task) {
     taskItem = task;
-    taskItemBlueprint =
-        task == null ? TaskItemBlueprint() : task.createBlueprint();
+    taskItemBlueprint = task == null
+        ? TaskItemBlueprint()
+        : task.createBlueprint();
     // For brand-new tasks added from the Family tab (defaultFamilyShared),
     // pre-stamp familyDocId so AddTask saves them as family-shared. Tasks
     // added from the Tasks tab leave this null and stay personal even
@@ -161,8 +163,8 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
     return (recurWait == null)
         ? '(none)'
         : !recurWait
-            ? 'Schedule Dates'
-            : 'Completed Date';
+        ? 'Schedule Dates'
+        : 'Completed Date';
   }
 
   void clearRepeatOn() {
@@ -273,10 +275,13 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
 
             var latestTask = taskItemSelector(builtTasks, taskItem!.docId);
             var latestRecurrence = taskRecurrenceSelector(
-                builtRecurrences, taskItem!.recurrence?.docId);
+              builtRecurrences,
+              taskItem!.recurrence?.docId,
+            );
             var hasTaskChanges =
                 latestTask != null && latestTask.hasChanges(taskItem!);
-            var hasRecurrenceChanges = latestRecurrence != null &&
+            var hasRecurrenceChanges =
+                latestRecurrence != null &&
                 latestRecurrence.hasChanges(taskItem!.recurrence);
             if (hasTaskChanges || hasRecurrenceChanges) {
               popped = true;
@@ -284,7 +289,8 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
             }
           } else {
             // For new tasks, check if count increased after submitting
-            if (_initialTaskCount != null && tasks.length > _initialTaskCount!) {
+            if (_initialTaskCount != null &&
+                tasks.length > _initialTaskCount!) {
               popped = true;
               Navigator.pop(context);
             }
@@ -299,12 +305,17 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
     final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
 
     // Listen for changes to auto-close
-    ref.listen<AsyncValue<List<TaskItem>>>(tasksWithRecurrencesProvider, (prev, next) {
+    ref.listen<AsyncValue<List<TaskItem>>>(tasksWithRecurrencesProvider, (
+      prev,
+      next,
+    ) {
       _checkForAutoClose();
     });
 
-    ref.listen<AsyncValue<List<TaskRecurrence>>>(taskRecurrencesProvider,
-        (prev, next) {
+    ref.listen<AsyncValue<List<TaskRecurrence>>>(taskRecurrencesProvider, (
+      prev,
+      next,
+    ) {
       _checkForAutoClose();
     });
 
@@ -340,245 +351,257 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
 
   Widget _buildForm(BuildContext context, TimezoneHelper timezoneHelper) {
     return Scaffold(
-          appBar: AppBar(
-            title: const Text('Task Details'),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Form(
-              key: formKey,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              onChanged: () {
-                setState(() {});
-              },
-              child: SingleChildScrollView(
-                child: Column(
+      appBar: AppBar(title: const Text('Task Details')),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Form(
+          key: formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          onChanged: () {
+            setState(() {});
+          },
+          child: SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
+                EditableTaskField(
+                  key: const Key('task_name_field'),
+                  initialText: taskItemBlueprint.name,
+                  labelText: 'Name',
+                  onChanged: (value) {
+                    taskItemBlueprint.name = value;
+                    setState(() {}); // Trigger rebuild to update FAB visibility
+                  },
+                  fieldSetter: (value) => taskItemBlueprint.name = value,
+                  inputType: TextInputType.multiline,
+                  isRequired: true,
+                  wordCaps: true,
+                ),
+                NullableDropdown(
+                  initialValue: taskItemBlueprint.project,
+                  labelText: 'Project',
+                  possibleValues: possibleProjects,
+                  valueSetter: (value) => taskItemBlueprint.project = value,
+                ),
+                NullableDropdown(
+                  initialValue: taskItemBlueprint.context,
+                  labelText: 'Context',
+                  possibleValues: possibleContexts,
+                  valueSetter: (value) => taskItemBlueprint.context = value,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
-                    EditableTaskField(
-                      key: const Key('task_name_field'),
-                      initialText: taskItemBlueprint.name,
-                      labelText: 'Name',
-                      onChanged: (value) {
-                        taskItemBlueprint.name = value;
-                        setState(() {}); // Trigger rebuild to update FAB visibility
-                      },
-                      fieldSetter: (value) => taskItemBlueprint.name = value,
-                      inputType: TextInputType.multiline,
-                      isRequired: true,
-                      wordCaps: true,
-                    ),
-                    NullableDropdown(
-                      initialValue: taskItemBlueprint.project,
-                      labelText: 'Project',
-                      possibleValues: possibleProjects,
-                      valueSetter: (value) => taskItemBlueprint.project = value,
-                    ),
-                    NullableDropdown(
-                      initialValue: taskItemBlueprint.context,
-                      labelText: 'Context',
-                      possibleValues: possibleContexts,
-                      valueSetter: (value) => taskItemBlueprint.context = value,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: <Widget>[
-                        Expanded(
-                          child: EditableTaskField(
-                            initialText:
-                                _getInputDisplay(taskItemBlueprint.priority),
-                            labelText: 'Priority',
-                            onChanged: (value) {
-                              setState(() {
-                                taskItemBlueprint.priority = _parseInt(value);
-                              });
-                            },
-                            fieldSetter: (value) =>
-                                taskItemBlueprint.priority = _parseInt(value),
-                            inputType: TextInputType.number,
-                          ),
+                    Expanded(
+                      child: EditableTaskField(
+                        initialText: _getInputDisplay(
+                          taskItemBlueprint.priority,
                         ),
-                        Expanded(
-                          child: EditableTaskField(
-                            initialText:
-                                _getInputDisplay(taskItemBlueprint.gamePoints),
-                            labelText: 'Points',
-                            onChanged: (value) {
-                              setState(() {
-                                taskItemBlueprint.gamePoints = _parseInt(value);
-                              });
-                            },
-                            fieldSetter: (value) =>
-                                taskItemBlueprint.gamePoints = _parseInt(value),
-                            inputType: TextInputType.number,
-                          ),
+                        labelText: 'Priority',
+                        onChanged: (value) {
+                          setState(() {
+                            taskItemBlueprint.priority = _parseInt(value);
+                          });
+                        },
+                        fieldSetter: (value) =>
+                            taskItemBlueprint.priority = _parseInt(value),
+                        inputType: TextInputType.number,
+                      ),
+                    ),
+                    Expanded(
+                      child: EditableTaskField(
+                        initialText: _getInputDisplay(
+                          taskItemBlueprint.gamePoints,
                         ),
-                        Expanded(
-                          child: EditableTaskField(
-                            initialText:
-                                _getInputDisplay(taskItemBlueprint.duration),
-                            labelText: 'Length',
-                            onChanged: (value) {
-                              setState(() {
-                                taskItemBlueprint.duration = _parseInt(value);
-                              });
-                            },
-                            fieldSetter: (value) =>
-                                taskItemBlueprint.duration = _parseInt(value),
-                            inputType: TextInputType.number,
-                          ),
+                        labelText: 'Points',
+                        onChanged: (value) {
+                          setState(() {
+                            taskItemBlueprint.gamePoints = _parseInt(value);
+                          });
+                        },
+                        fieldSetter: (value) =>
+                            taskItemBlueprint.gamePoints = _parseInt(value),
+                        inputType: TextInputType.number,
+                      ),
+                    ),
+                    Expanded(
+                      child: EditableTaskField(
+                        initialText: _getInputDisplay(
+                          taskItemBlueprint.duration,
                         ),
-                      ],
+                        labelText: 'Length',
+                        onChanged: (value) {
+                          setState(() {
+                            taskItemBlueprint.duration = _parseInt(value);
+                          });
+                        },
+                        fieldSetter: (value) =>
+                            taskItemBlueprint.duration = _parseInt(value),
+                        inputType: TextInputType.number,
+                      ),
                     ),
-                    ClearableDateTimeField(
-                      labelText: 'Start Date',
-                      dateGetter: () {
-                        return taskItemBlueprint.startDate;
-                      },
-                      initialPickerGetter: () {
-                        return DateTime.now();
-                      },
-                      dateSetter: (DateTime? pickedDate) {
-                        print('[TM-300 DEBUG] Start Date dateSetter called with: $pickedDate');
-                        print('[TM-300 DEBUG] hasDate() before: ${hasDate()}');
-                        setState(() {
-                          taskItemBlueprint.startDate = pickedDate;
-                          print('[TM-300 DEBUG] blueprint.startDate now: ${taskItemBlueprint.startDate}');
-                          print('[TM-300 DEBUG] hasDate() after: ${hasDate()}');
-                          if (!hasDate()) {
-                            clearRepeatOn();
-                          }
-                        });
-                      },
-                      timezoneHelper: timezoneHelper,
-                    ),
-                    ClearableDateTimeField(
-                      labelText: 'Target Date',
-                      dateGetter: () {
-                        return taskItemBlueprint.targetDate;
-                      },
-                      initialPickerGetter: () {
-                        return _getOnePastPreviousDateOrNow(
-                            TaskDateTypes.target);
-                      },
-                      firstDateGetter: () {
-                        return taskItemBlueprint.startDate;
-                      },
-                      currentDateGetter: () {
-                        return _getPreviousDateOrNow(TaskDateTypes.target);
-                      },
-                      dateSetter: (DateTime? pickedDate) {
-                        print('[TM-300 DEBUG] Target Date dateSetter called with: $pickedDate');
-                        print('[TM-300 DEBUG] hasDate() before: ${hasDate()}');
-                        setState(() {
-                          taskItemBlueprint.targetDate = pickedDate;
-                          print('[TM-300 DEBUG] blueprint.targetDate now: ${taskItemBlueprint.targetDate}');
-                          print('[TM-300 DEBUG] hasDate() after: ${hasDate()}');
-                          if (!hasDate()) {
-                            clearRepeatOn();
-                          }
-                        });
-                      },
-                      timezoneHelper: timezoneHelper,
-                    ),
-                    ClearableDateTimeField(
-                      labelText: 'Urgent Date',
-                      dateGetter: () {
-                        return taskItemBlueprint.urgentDate;
-                      },
-                      initialPickerGetter: () {
-                        return _getOnePastPreviousDateOrNow(
-                            TaskDateTypes.urgent);
-                      },
-                      firstDateGetter: () {
-                        return taskItemBlueprint.startDate;
-                      },
-                      currentDateGetter: () {
-                        return _getPreviousDateOrNow(TaskDateTypes.urgent);
-                      },
-                      dateSetter: (DateTime? pickedDate) {
-                        setState(() {
-                          taskItemBlueprint.urgentDate = pickedDate;
-                          if (!hasDate()) {
-                            clearRepeatOn();
-                          }
-                        });
-                      },
-                      timezoneHelper: timezoneHelper,
-                    ),
-                    ClearableDateTimeField(
-                      labelText: 'Due Date',
-                      dateGetter: () {
-                        return taskItemBlueprint.dueDate;
-                      },
-                      initialPickerGetter: () {
-                        return _getOnePastPreviousDateOrNow(TaskDateTypes.due);
-                      },
-                      firstDateGetter: () {
-                        return taskItemBlueprint.startDate;
-                      },
-                      currentDateGetter: () {
-                        return _getPreviousDateOrNow(TaskDateTypes.due);
-                      },
-                      dateSetter: (DateTime? pickedDate) {
-                        setState(() {
-                          taskItemBlueprint.dueDate = pickedDate;
-                          if (!hasDate()) {
-                            clearRepeatOn();
-                          }
-                        });
-                      },
-                      timezoneHelper: timezoneHelper,
-                    ),
-                    Visibility(
-                      visible: hasDate(),
-                      child: Builder(builder: (context) {
-                        // Family-shared tasks can't carry recurrence in MVP:
-                        // the recurrence rule isn't synced to family members,
-                        // so completing such a task on a non-owner device
-                        // throws RecurrenceNotFoundException (TM-335 follow-up).
-                        // Hide the toggle (with a hint) when the task is or
-                        // will become family-shared AND isn't already
-                        // recurring. Existing broken tasks (saved before this
-                        // guard) still show the toggle so the user can turn
-                        // recurrence off to keep family sharing.
-                        // Read from the blueprint, not from family membership:
-                        // tasks added on the Tasks tab while in a family stay
-                        // personal (familyDocId == null), so they should still
-                        // get the recurrence toggle.
-                        final willBeFamilyShared =
-                            taskItemBlueprint.familyDocId != null;
-                        final alreadyRecurring = _initialRepeatOn;
-                        if (willBeFamilyShared && !alreadyRecurring) {
-                          return Card(
-                            elevation: 3.0,
-                            color: TaskColors.cardColor,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 14.0, horizontal: 16.0),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.autorenew,
-                                      color: Colors.white38, size: 20),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      "Repeating tasks aren't supported in family view yet.",
-                                      style: TextStyle(
-                                          color: Colors.white54,
-                                          fontSize: 13),
+                  ],
+                ),
+                ClearableDateTimeField(
+                  labelText: 'Start Date',
+                  dateGetter: () {
+                    return taskItemBlueprint.startDate;
+                  },
+                  initialPickerGetter: () {
+                    return DateTime.now();
+                  },
+                  dateSetter: (DateTime? pickedDate) {
+                    print(
+                      '[TM-300 DEBUG] Start Date dateSetter called with: $pickedDate',
+                    );
+                    print('[TM-300 DEBUG] hasDate() before: ${hasDate()}');
+                    setState(() {
+                      taskItemBlueprint.startDate = pickedDate;
+                      print(
+                        '[TM-300 DEBUG] blueprint.startDate now: ${taskItemBlueprint.startDate}',
+                      );
+                      print('[TM-300 DEBUG] hasDate() after: ${hasDate()}');
+                      if (!hasDate()) {
+                        clearRepeatOn();
+                      }
+                    });
+                  },
+                  timezoneHelper: timezoneHelper,
+                ),
+                ClearableDateTimeField(
+                  labelText: 'Target Date',
+                  dateGetter: () {
+                    return taskItemBlueprint.targetDate;
+                  },
+                  initialPickerGetter: () {
+                    return _getOnePastPreviousDateOrNow(TaskDateTypes.target);
+                  },
+                  firstDateGetter: () {
+                    return taskItemBlueprint.startDate;
+                  },
+                  currentDateGetter: () {
+                    return _getPreviousDateOrNow(TaskDateTypes.target);
+                  },
+                  dateSetter: (DateTime? pickedDate) {
+                    print(
+                      '[TM-300 DEBUG] Target Date dateSetter called with: $pickedDate',
+                    );
+                    print('[TM-300 DEBUG] hasDate() before: ${hasDate()}');
+                    setState(() {
+                      taskItemBlueprint.targetDate = pickedDate;
+                      print(
+                        '[TM-300 DEBUG] blueprint.targetDate now: ${taskItemBlueprint.targetDate}',
+                      );
+                      print('[TM-300 DEBUG] hasDate() after: ${hasDate()}');
+                      if (!hasDate()) {
+                        clearRepeatOn();
+                      }
+                    });
+                  },
+                  timezoneHelper: timezoneHelper,
+                ),
+                ClearableDateTimeField(
+                  labelText: 'Urgent Date',
+                  dateGetter: () {
+                    return taskItemBlueprint.urgentDate;
+                  },
+                  initialPickerGetter: () {
+                    return _getOnePastPreviousDateOrNow(TaskDateTypes.urgent);
+                  },
+                  firstDateGetter: () {
+                    return taskItemBlueprint.startDate;
+                  },
+                  currentDateGetter: () {
+                    return _getPreviousDateOrNow(TaskDateTypes.urgent);
+                  },
+                  dateSetter: (DateTime? pickedDate) {
+                    setState(() {
+                      taskItemBlueprint.urgentDate = pickedDate;
+                      if (!hasDate()) {
+                        clearRepeatOn();
+                      }
+                    });
+                  },
+                  timezoneHelper: timezoneHelper,
+                ),
+                ClearableDateTimeField(
+                  labelText: 'Due Date',
+                  dateGetter: () {
+                    return taskItemBlueprint.dueDate;
+                  },
+                  initialPickerGetter: () {
+                    return _getOnePastPreviousDateOrNow(TaskDateTypes.due);
+                  },
+                  firstDateGetter: () {
+                    return taskItemBlueprint.startDate;
+                  },
+                  currentDateGetter: () {
+                    return _getPreviousDateOrNow(TaskDateTypes.due);
+                  },
+                  dateSetter: (DateTime? pickedDate) {
+                    setState(() {
+                      taskItemBlueprint.dueDate = pickedDate;
+                      if (!hasDate()) {
+                        clearRepeatOn();
+                      }
+                    });
+                  },
+                  timezoneHelper: timezoneHelper,
+                ),
+                Visibility(
+                  visible: hasDate(),
+                  child: Builder(
+                    builder: (context) {
+                      // Family-shared tasks can't carry recurrence in MVP:
+                      // the recurrence rule isn't synced to family members,
+                      // so completing such a task on a non-owner device
+                      // throws RecurrenceNotFoundException (TM-335 follow-up).
+                      // Hide the toggle (with a hint) when the task is or
+                      // will become family-shared AND isn't already
+                      // recurring. Existing broken tasks (saved before this
+                      // guard) still show the toggle so the user can turn
+                      // recurrence off to keep family sharing.
+                      // Read from the blueprint, not from family membership:
+                      // tasks added on the Tasks tab while in a family stay
+                      // personal (familyDocId == null), so they should still
+                      // get the recurrence toggle.
+                      final willBeFamilyShared =
+                          taskItemBlueprint.familyDocId != null;
+                      final alreadyRecurring = _initialRepeatOn;
+                      if (willBeFamilyShared && !alreadyRecurring) {
+                        return Card(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 14.0,
+                              horizontal: 16.0,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.autorenew,
+                                  color: Colors.white38,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    "Repeating tasks aren't supported in family view yet.",
+                                    style: TextStyle(
+                                      color: Colors.white54,
+                                      fontSize: 13,
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          );
-                        }
-                        return Card(
-                        elevation: 3.0,
-                        color: TaskColors.cardColor,
+                          ),
+                        );
+                      }
+                      return Card(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                              vertical: 6.0, horizontal: 8.0),
+                            vertical: 6.0,
+                            horizontal: 8.0,
+                          ),
                           child: Column(
                             children: <Widget>[
                               Row(
@@ -586,12 +609,14 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                                   Expanded(
                                     child: Padding(
                                       padding: const EdgeInsets.symmetric(
-                                          vertical: 0.0, horizontal: 8.0),
+                                        vertical: 0.0,
+                                        horizontal: 8.0,
+                                      ),
                                       child: Text(
                                         'Repeat',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleMedium,
                                       ),
                                     ),
                                   ),
@@ -626,15 +651,18 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                                               width: 80.0,
                                               child: EditableTaskField(
                                                 initialText: _getInputDisplay(
-                                                    taskItemBlueprint
-                                                        .recurNumber),
+                                                  taskItemBlueprint.recurNumber,
+                                                ),
                                                 labelText: 'Num',
                                                 fieldSetter: (value) =>
                                                     taskItemBlueprint
                                                             .recurNumber =
                                                         _parseInt(value),
                                                 onChanged: (value) {
-                                                  taskItemBlueprint.recurNumber = _parseInt(value);
+                                                  taskItemBlueprint
+                                                      .recurNumber = _parseInt(
+                                                    value,
+                                                  );
                                                   setState(() {});
                                                 },
                                                 inputType: TextInputType.number,
@@ -657,7 +685,8 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                                             labelText: 'Unit',
                                             possibleValues: possibleRecurUnits,
                                             valueSetter: (value) {
-                                              taskItemBlueprint.recurUnit = value;
+                                              taskItemBlueprint.recurUnit =
+                                                  value;
                                               setState(() {});
                                             },
                                             validator: (value) {
@@ -673,7 +702,8 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                                     ),
                                     NullableDropdown(
                                       initialValue: recurWaitToAnchorDate(
-                                          taskItemBlueprint.recurWait),
+                                        taskItemBlueprint.recurWait,
+                                      ),
                                       labelText: 'Anchor',
                                       possibleValues: possibleAnchorDates,
                                       valueSetter: (value) {
@@ -694,79 +724,77 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                             ],
                           ),
                         ),
-                        );
-                      }),
-                    ),
-                    EditableTaskField(
-                      initialText: taskItemBlueprint.description,
-                      labelText: 'Notes',
-                      onChanged: (value) {
-                        setState(() {
-                          taskItemBlueprint.description =
-                              value == null || value.isEmpty ? null : value;
-                        });
-                      },
-                      fieldSetter: (value) => taskItemBlueprint.description =
-                          value == null || value.isEmpty ? null : value,
-                      inputType: TextInputType.multiline,
-                    ),
-                  ],
+                      );
+                    },
+                  ),
                 ),
-              ),
+                EditableTaskField(
+                  initialText: taskItemBlueprint.description,
+                  labelText: 'Notes',
+                  onChanged: (value) {
+                    setState(() {
+                      taskItemBlueprint.description =
+                          value == null || value.isEmpty ? null : value;
+                    });
+                  },
+                  fieldSetter: (value) => taskItemBlueprint.description =
+                      value == null || value.isEmpty ? null : value,
+                  inputType: TextInputType.multiline,
+                ),
+              ],
             ),
           ),
-          floatingActionButton: Visibility(
-            visible: !isEditing || hasChanges(),
-            child: FloatingActionButton(
-              heroTag: null,
-              child: Icon(isEditing ? Icons.check : Icons.add),
-              onPressed: () {
-              final form = formKey.currentState;
+        ),
+      ),
+      floatingActionButton: Visibility(
+        visible: !isEditing || hasChanges(),
+        child: FloatingActionButton(
+          heroTag: null,
+          child: Icon(isEditing ? Icons.check : Icons.add),
+          onPressed: () {
+            final form = formKey.currentState;
 
-              if (!_repeatOn) {
-                clearRecurrenceFieldsFromTask();
+            if (!_repeatOn) {
+              clearRecurrenceFieldsFromTask();
+            }
+
+            if (form != null && form.validate()) {
+              form.save();
+
+              if (_repeatOn) {
+                if (!_initialRepeatOn) {
+                  taskItemBlueprint.recurIteration = 1;
+                }
+                updateRecurrenceBlueprint();
               }
 
-              if (form != null && form.validate()) {
-                form.save();
+              // Mark as submitting for auto-close detection (new tasks)
+              setState(() {
+                _submitting = true;
+              });
 
-                if (_repeatOn) {
-                  if (!_initialRepeatOn) {
-                    taskItemBlueprint.recurIteration = 1;
-                  }
-                  updateRecurrenceBlueprint();
-                }
+              // Debug logging before save
+              print('[TM-300 DEBUG] About to save task:');
+              print('  startDate: ${taskItemBlueprint.startDate}');
+              print('  targetDate: ${taskItemBlueprint.targetDate}');
+              print('  dueDate: ${taskItemBlueprint.dueDate}');
+              print('  urgentDate: ${taskItemBlueprint.urgentDate}');
+              print('  hasDate(): ${hasDate()}');
 
-                // Mark as submitting for auto-close detection (new tasks)
-                setState(() {
-                  _submitting = true;
-                });
-
-                // Debug logging before save
-                print('[TM-300 DEBUG] About to save task:');
-                print('  startDate: ${taskItemBlueprint.startDate}');
-                print('  targetDate: ${taskItemBlueprint.targetDate}');
-                print('  dueDate: ${taskItemBlueprint.dueDate}');
-                print('  urgentDate: ${taskItemBlueprint.urgentDate}');
-                print('  hasDate(): ${hasDate()}');
-
-                // Use Riverpod providers for task operations
-                // Don't await - let the auto-close mechanism handle closing via stream updates
-                if (editMode()) {
-                  ref.read(updateTaskProvider.notifier).call(
-                    task: taskItem!,
-                    blueprint: taskItemBlueprint,
-                  );
-                } else {
-                  // add mode
-                  ref.read(addTaskProvider.notifier).call(
-                    taskItemBlueprint,
-                  );
-                }
+              // Use Riverpod providers for task operations
+              // Don't await - let the auto-close mechanism handle closing via stream updates
+              if (editMode()) {
+                ref
+                    .read(updateTaskProvider.notifier)
+                    .call(task: taskItem!, blueprint: taskItemBlueprint);
+              } else {
+                // add mode
+                ref.read(addTaskProvider.notifier).call(taskItemBlueprint);
               }
-            },
-            ),
-          ),
-        );
+            }
+          },
+        ),
+      ),
+    );
   }
 }

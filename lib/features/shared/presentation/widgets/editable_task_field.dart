@@ -51,8 +51,6 @@ class EditableTaskFieldState extends State<EditableTaskField> {
         textCapitalization: widget.wordCaps ? TextCapitalization.words : TextCapitalization.sentences,
         decoration: InputDecoration(
           labelText: widget.labelText,
-          filled: false,
-          border: OutlineInputBorder(),
         ),
         initialValue: initialText,
         onChanged: widget.onChanged,

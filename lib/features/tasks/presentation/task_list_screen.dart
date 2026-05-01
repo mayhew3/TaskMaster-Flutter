@@ -101,7 +101,7 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
               children: [
                 const Text('Unable to load tasks. Please try again.'),
                 const SizedBox(height: 12),
-                ElevatedButton.icon(
+                FilledButton.icon(
                   onPressed: () => ref.invalidate(tasksWithRecurrencesProvider),
                   icon: const Icon(Icons.refresh),
                   label: const Text('Retry'),
@@ -272,6 +272,7 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
     final completed = sprintTasks.where((task) => task.completionDate != null).length;
     final taskStr = '$completed/${sprintTasks.length} Tasks Complete';
 
+    // Active-sprint summary card: intentionally distinct (red tint, sprint-color outline).
     return Card(
       color: const Color.fromARGB(100, 100, 20, 20),
       shape: RoundedRectangleBorder(

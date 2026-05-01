@@ -63,7 +63,7 @@ class PendingInvitationBanner extends ConsumerWidget {
                   style: TextStyle(color: Colors.white),
                 ),
               ),
-              ElevatedButton(
+              FilledButton(
                 onPressed: () async {
                   try {
                     await ref

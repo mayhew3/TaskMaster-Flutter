@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'models/task_colors.dart';
 
 ThemeData taskMasterTheme = ThemeData(
+  useMaterial3: true,
   colorScheme: ColorScheme.fromSeed(
     brightness: Brightness.dark,
     seedColor: TaskColors.menuColor,
-    primary: TaskColors.backgroundColor,
+    primary: TaskColors.primaryLight,
     secondary: TaskColors.highlight,
     surface: TaskColors.backgroundColor,
   ),
@@ -23,17 +24,48 @@ ThemeData taskMasterTheme = ThemeData(
   floatingActionButtonTheme: FloatingActionButtonThemeData(
     backgroundColor: TaskColors.highlight,
   ),
-  elevatedButtonTheme: ElevatedButtonThemeData(
-      style: TextButton.styleFrom(
-          foregroundColor: Colors.white,
-          backgroundColor: TaskColors.menuColor
-      )
+  filledButtonTheme: FilledButtonThemeData(
+    style: FilledButton.styleFrom(
+      foregroundColor: Colors.white,
+      backgroundColor: TaskColors.menuColor,
+    ),
   ),
   textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
-          foregroundColor: Colors.white,
-          backgroundColor: TaskColors.menuColor
-      )
+    style: TextButton.styleFrom(
+      foregroundColor: Colors.white,
+      backgroundColor: TaskColors.menuColor,
+    ),
+  ),
+  cardTheme: CardThemeData(
+    elevation: 2.0,
+    color: TaskColors.cardColor,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    clipBehavior: Clip.antiAlias,
+  ),
+  dialogTheme: DialogThemeData(
+    backgroundColor: TaskColors.cardColor,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+  ),
+  inputDecorationTheme: InputDecorationTheme(
+    filled: true,
+    fillColor: TaskColors.cardColor,
+    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+  ),
+  dividerTheme: DividerThemeData(
+    color: Colors.white24,
+    space: 1,
+    thickness: 1,
+  ),
+  chipTheme: ChipThemeData(
+    shape: StadiumBorder(),
+    side: BorderSide.none,
+  ),
+  snackBarTheme: SnackBarThemeData(
+    behavior: SnackBarBehavior.floating,
+    backgroundColor: TaskColors.cardColor,
+    contentTextStyle: TextStyle(color: Colors.white),
+    actionTextColor: TaskColors.primaryLight,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
   ),
   checkboxTheme: CheckboxThemeData(
     fillColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {

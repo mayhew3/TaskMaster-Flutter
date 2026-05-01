@@ -154,7 +154,7 @@ class _InviteMemberDialogState extends ConsumerState<InviteMemberDialog> {
           onPressed: _busy ? null : () => Navigator.of(context).pop(false),
           child: const Text('Cancel'),
         ),
-        ElevatedButton(
+        FilledButton(
           // Disabled until the email looks valid AND we're not already in
           // flight on a previous submit.
           onPressed: (_busy || !_emailValid) ? null : _submit,

@@ -226,7 +226,7 @@ class SprintTaskItemsScreen extends ConsumerWidget {
               children: [
                 const Text('Unable to load sprint tasks. Please try again.'),
                 const SizedBox(height: 12),
-                ElevatedButton.icon(
+                FilledButton.icon(
                   onPressed: () => ref.invalidate(sprintTaskItemsProvider(sprint)),
                   icon: const Icon(Icons.refresh),
                   label: const Text('Retry'),

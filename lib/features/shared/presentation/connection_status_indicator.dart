@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/connectivity_provider.dart';
 import '../../../core/providers/sync_status_provider.dart';
+import '../../../models/task_colors.dart';
 
 /// AppBar-embedded indicator that reflects offline / sync-failed / syncing state
 /// without shifting page layout.
@@ -55,7 +56,7 @@ class _ConnectionStatusIndicatorState
     if (!online) {
       _stopAnimation();
       return const _StatusPill(
-        color: Color(0xFFE65100), // Colors.orange.shade700
+        color: TaskColors.connectionWarning,
         icon: Icons.cloud_off,
         label: 'Offline',
       );
@@ -63,7 +64,7 @@ class _ConnectionStatusIndicatorState
     if (syncStatus == SyncStatus.error) {
       _stopAnimation();
       return const _StatusPill(
-        color: Color(0xFFC62828), // Colors.red.shade700
+        color: TaskColors.connectionError,
         icon: Icons.error_outline,
         label: 'Sync failed',
       );

@@ -45,7 +45,7 @@ class FamilySetupScreen extends ConsumerWidget {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
-                    ElevatedButton.icon(
+                    FilledButton.icon(
                       icon: const Icon(Icons.person_add),
                       label: const Text('Invite a family member'),
                       onPressed: () async {

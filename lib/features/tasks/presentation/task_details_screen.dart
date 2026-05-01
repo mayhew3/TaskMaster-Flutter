@@ -331,11 +331,9 @@ class _RecurrenceField extends StatelessWidget {
     final tappable = editable && hasRecurrence;
 
     return Card(
-      elevation: 3.0,
-      color: TaskColors.cardColor,
       child: InkWell(
         onTap: tappable ? () => _navigateToRecurrenceDetail(context) : null,
-        borderRadius: BorderRadius.circular(4.0),
+        borderRadius: BorderRadius.circular(12.0),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
