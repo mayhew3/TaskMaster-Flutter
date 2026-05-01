@@ -8,6 +8,7 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/services/crash_reporter.dart';
 import '../../../core/services/log_storage_service.dart';
 import '../../../models/task_colors.dart';
+import '../../areas/presentation/area_manage_screen.dart';
 import '../../family/presentation/family_setup_screen.dart';
 import '../../family/providers/family_providers.dart';
 
@@ -76,6 +77,18 @@ class AppDrawer extends ConsumerWidget {
                 );
               },
             ),
+          ListTile(
+            leading: const Icon(Icons.label_outline),
+            title: const Text('Manage Areas'),
+            onTap: () {
+              Navigator.of(context).pop(); // Close drawer first
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const AreaManageScreen(),
+                ),
+              );
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.file_download),
             title: const Text('Export Logs'),
