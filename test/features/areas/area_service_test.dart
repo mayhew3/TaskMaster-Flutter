@@ -127,6 +127,31 @@ void main() {
     });
   });
 
+  group('AreaService reserved name rejection', () {
+    test('createArea throws on the (none) sentinel', () async {
+      await expectLater(
+        getService().createArea(name: '(none)', personDocId: 'me'),
+        throwsA(isA<ReservedAreaNameException>()),
+      );
+    });
+
+    test('createArea throws on the + Add new area… sentinel', () async {
+      await expectLater(
+        getService().createArea(name: '+ Add new area…', personDocId: 'me'),
+        throwsA(isA<ReservedAreaNameException>()),
+      );
+    });
+
+    test('renameArea throws when renaming to a sentinel', () async {
+      final svc = getService();
+      final area = await svc.createArea(name: 'Home', personDocId: 'me');
+      await expectLater(
+        svc.renameArea(area, '(none)'),
+        throwsA(isA<ReservedAreaNameException>()),
+      );
+    });
+  });
+
   group('AreaService.deleteArea', () {
     test('marks the area pendingDelete and stamps retired', () async {
       final area =

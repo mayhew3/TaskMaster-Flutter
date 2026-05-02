@@ -29,8 +29,10 @@ class AreaPicker extends ConsumerStatefulWidget {
   ConsumerState<AreaPicker> createState() => _AreaPickerState();
 }
 
-const String _noneSentinel = '(none)';
-const String _addSentinel = '+ Add new area…';
+// Use the shared sentinel constants from area_service.dart so the service's
+// reserved-name rejection stays in sync with the picker's UI strings.
+const String _noneSentinel = kNoneSentinelName;
+const String _addSentinel = kAddNewSentinelName;
 
 class _AreaPickerState extends ConsumerState<AreaPicker> {
   late String _selected;
@@ -164,6 +166,15 @@ class _AreaPickerState extends ConsumerState<AreaPicker> {
           SnackBar(content: Text(e.toString())),
         );
       }
+    } on ReservedAreaNameException catch (e) {
+      // Should be unreachable: the dialog validator rejects reserved names
+      // before submit. Belt-and-suspenders for programmatic callers.
+      _formFieldKey.currentState?.didChange(previous);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
     }
   }
 }
@@ -218,6 +229,7 @@ class _AddAreaDialogState extends State<_AddAreaDialog> {
   String? _validate(String? raw) {
     final value = (raw ?? '').trim();
     if (value.isEmpty) return 'Name required';
+    if (kReservedAreaNames.contains(value)) return 'Reserved name; choose another';
     final exists = widget.existingNames
         .any((n) => n.toLowerCase() == value.toLowerCase());
     if (exists) return 'Already in your list';

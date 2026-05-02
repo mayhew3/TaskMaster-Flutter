@@ -85,6 +85,12 @@ class AreaManageScreen extends ConsumerWidget {
           SnackBar(content: Text(e.toString())),
         );
       }
+    } on ReservedAreaNameException catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
     }
   }
 }
@@ -141,6 +147,12 @@ class _AreaTile extends ConsumerWidget {
     try {
       await ref.read(areaServiceProvider).renameArea(area, newName);
     } on DuplicateAreaNameException catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } on ReservedAreaNameException catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString())),
@@ -239,6 +251,7 @@ class _AreaNameDialogState extends State<_AreaNameDialog> {
   String? _validate(String? raw) {
     final value = (raw ?? '').trim();
     if (value.isEmpty) return 'Name required';
+    if (kReservedAreaNames.contains(value)) return 'Reserved name; choose another';
     final exists = widget.existingNames
         .any((n) => n.toLowerCase() == value.toLowerCase());
     if (exists) return 'Already in your list';

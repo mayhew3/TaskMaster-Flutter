@@ -13,6 +13,19 @@ import '../../../models/area_blueprint.dart';
 
 part 'area_service.g.dart';
 
+/// Names the picker UI uses as sentinels in the dropdown. Creating or
+/// renaming an area to one of these breaks the picker's contract:
+///   - `(none)` would re-persist as `null` when selected later
+///   - `+ Add new area…` would reopen the inline-add dialog instead of
+///     selecting the area
+/// The service rejects these names up front via [ReservedAreaNameException].
+const String kNoneSentinelName = '(none)';
+const String kAddNewSentinelName = '+ Add new area…';
+const Set<String> kReservedAreaNames = {
+  kNoneSentinelName,
+  kAddNewSentinelName,
+};
+
 /// Thrown by [AreaService.createArea] / [AreaService.renameArea] when the
 /// requested name (case-insensitive) collides with another non-retired area
 /// the same user already has. UI dialogs validate against the in-memory list
@@ -25,6 +38,15 @@ class DuplicateAreaNameException implements Exception {
   final String name;
   @override
   String toString() => 'Area "$name" already exists.';
+}
+
+/// Thrown by [AreaService.createArea] / [AreaService.renameArea] when the
+/// requested name matches a picker sentinel (see [kReservedAreaNames]).
+class ReservedAreaNameException implements Exception {
+  ReservedAreaNameException(this.name);
+  final String name;
+  @override
+  String toString() => 'Area name "$name" is reserved.';
 }
 
 /// Service for creating, updating, deleting, and reordering areas (TM-345).
@@ -67,6 +89,11 @@ class AreaService {
           .read(syncServiceProvider)
           .areasInitialPullComplete
           .timeout(const Duration(seconds: 30), onTimeout: () {});
+    }
+
+    // Reject reserved sentinel names — the picker can't represent them.
+    if (kReservedAreaNames.contains(name)) {
+      throw ReservedAreaNameException(name);
     }
 
     final now = DateTime.now().toUtc();
@@ -115,14 +142,21 @@ class AreaService {
   /// string value (no cascade) — see DESIGN doc for rationale.
   ///
   /// Throws [DuplicateAreaNameException] if another non-retired area in the
-  /// same user's list already has [newName] (case-insensitive).
+  /// same user's list already has [newName] (case-insensitive), or
+  /// [ReservedAreaNameException] if [newName] matches a picker sentinel.
   Future<void> renameArea(Area area, String newName) async {
+    // Reject reserved sentinel names — the picker can't represent them.
+    if (kReservedAreaNames.contains(newName)) {
+      throw ReservedAreaNameException(newName);
+    }
+
     // Wait for the server snapshot so the duplicate check below is against
-    // the user's true area set, not a stale local cache.
+    // the user's true area set, not a stale local cache. 30s tolerates slow
+    // mobile networks; same rationale as createArea.
     await ref
         .read(syncServiceProvider)
         .areasInitialPullComplete
-        .timeout(const Duration(seconds: 5), onTimeout: () {});
+        .timeout(const Duration(seconds: 30), onTimeout: () {});
 
     final existing = await db.areaDao.getAreasForUser(area.personDocId);
     final lower = newName.toLowerCase();

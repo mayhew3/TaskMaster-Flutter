@@ -32,6 +32,12 @@ const path = require('path');
 const DEFAULT_EMAIL = 'scorpy@gmail.com';
 const PROJECT_ID = 'm3-taskmaster-3000';
 
+// Names the picker UI reserves as sentinels (see lib/features/areas/services/
+// area_service.dart). Seeding an Area with one of these would break the
+// picker's contract — skip them at migration time even if the user happened
+// to have a `project` value with that exact text.
+const RESERVED_AREA_NAMES = new Set(['(none)', '+ Add new area…']);
+
 async function main() {
   const config = parseArgs(process.argv.slice(2));
 
@@ -204,6 +210,7 @@ async function migrateUser(db, personDocId, apply) {
   const now = admin.firestore.FieldValue.serverTimestamp();
   for (let i = 0; i < sorted.length; i++) {
     const name = sorted[i];
+    if (RESERVED_AREA_NAMES.has(name)) continue;
     if (existingNames.has(name)) continue;
     if (apply) {
       await db.collection('areas').add({

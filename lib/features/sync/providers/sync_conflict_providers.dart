@@ -65,15 +65,23 @@ class RecurrenceConflict implements SyncConflict {
 /// Decodes a conflict envelope JSON written by SyncService into the local +
 /// remote pair plus the priorSyncState. Returns null on malformed envelopes
 /// (logged) so a corrupt row doesn't crash the UI.
+///
+/// [normalize] is an optional pre-deserialization hook on the remote JSON
+/// map. Used by the TaskItem decode path to map the legacy `project` key to
+/// `area` for envelopes written by pre-TM-345 builds — without the remap,
+/// "Use latest" would deserialize the remote with `area == null` and
+/// silently drop the area tag.
 ({TModel remote, String priorSyncState})? _decodeEnvelope<TModel>({
   required String envelopeJson,
   required String docId,
   required Serializer<TModel> serializer,
+  Map<String, dynamic> Function(Map<String, dynamic>)? normalize,
 }) {
   try {
     final envelope = jsonDecode(envelopeJson) as Map<String, dynamic>;
     final priorSyncState = envelope['priorSyncState'] as String? ?? 'pendingUpdate';
-    final remoteJson = Map<String, dynamic>.from(envelope['remote'] as Map);
+    var remoteJson = Map<String, dynamic>.from(envelope['remote'] as Map);
+    if (normalize != null) remoteJson = normalize(remoteJson);
     remoteJson['docId'] = docId;
     final remote = serializers.deserializeWith(serializer, remoteJson);
     if (remote == null) return null;
@@ -82,6 +90,18 @@ class RecurrenceConflict implements SyncConflict {
     debugPrint('⚠️ [_decodeEnvelope] failed for $docId: $e\n$s');
     return null;
   }
+}
+
+/// TM-345 backwards compat: pre-rename builds wrote envelopes with a
+/// `project` key. Re-key to `area` so the new TaskItem serializer reads it
+/// (otherwise "Use latest" silently drops the task's area tag). The Drift
+/// schema migration renames the column on disk, but stored
+/// `conflictRemoteJson` blobs are opaque text and need this in-flight remap.
+Map<String, dynamic> _renameProjectToArea(Map<String, dynamic> json) {
+  if (json.containsKey('project') && !json.containsKey('area')) {
+    json['area'] = json.remove('project');
+  }
+  return json;
 }
 
 /// Raw stream of Drift rows currently in `pendingConflict` for the user.
@@ -122,6 +142,7 @@ Stream<List<TaskConflict>> taskConflicts(Ref ref) {
         envelopeJson: envelope,
         docId: row.docId,
         serializer: TaskItem.serializer,
+        normalize: _renameProjectToArea,
       );
       if (decoded == null) continue;
       try {
