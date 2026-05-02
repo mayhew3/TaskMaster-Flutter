@@ -101,14 +101,21 @@ class AreasWithDefaults extends _$AreasWithDefaults {
 
     final service = ref.read(areaServiceProvider);
     for (final name in defaultAreaNames) {
-      // Pass skipInitialPullWait: true — we've already awaited the gate
-      // above. Without this, an offline batch hits the 5s timeout 5 times
-      // in a row (~25s before all defaults appear).
-      await service.createArea(
-        name: name,
-        personDocId: personDocId,
-        skipInitialPullWait: true,
-      );
+      try {
+        // Pass skipInitialPullWait: true — we've already awaited the gate
+        // above. Without this, an offline batch hits the 5s timeout 5 times
+        // in a row (~25s before all defaults appear).
+        await service.createArea(
+          name: name,
+          personDocId: personDocId,
+          skipInitialPullWait: true,
+        );
+      } on DuplicateAreaNameException {
+        // A default name might have been created during the wait — by the
+        // user manually, or via cross-device sync. Skip it and continue
+        // seeding the rest. Without this catch the whole pass aborts and
+        // _seededForPersonDocIds blocks any retry in this session.
+      }
     }
   }
 }

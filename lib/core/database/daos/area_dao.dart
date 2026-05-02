@@ -112,6 +112,16 @@ class AreaDao extends DatabaseAccessor<AppDatabase> with _$AreaDaoMixin {
   /// to other users (their docIds aren't in the new account's snapshot).
   Future<void> deleteSyncedAreasNotInForPerson(
       String personDocId, Set<String> remoteIds) {
+    // SQLite's `NOT IN ()` (empty list) is a known edge case the rest of the
+    // codebase explicitly avoids. Take the simpler "delete every synced row
+    // for this user" branch when the snapshot is empty.
+    if (remoteIds.isEmpty) {
+      return (delete(areas)
+            ..where((a) =>
+                a.personDocId.equals(personDocId) &
+                a.syncState.equals(SyncState.synced.name)))
+          .go();
+    }
     return (delete(areas)
           ..where((a) =>
               a.personDocId.equals(personDocId) &

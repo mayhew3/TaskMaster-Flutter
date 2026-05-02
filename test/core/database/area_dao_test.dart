@@ -129,6 +129,22 @@ void main() {
       expect(ids, {'a-1', 'a-3'});
     });
 
+    test('handles empty remoteIds without NOT IN () SQL edge case', () async {
+      // Server snapshot is empty; the user has both synced and pending rows.
+      await db.areaDao
+          .upsertAreaFromRemote(makeArea(docId: 'a-1', person: 'me'));
+      await db.areaDao
+          .upsertAreaFromRemote(makeArea(docId: 'a-2', person: 'me'));
+      await db.areaDao
+          .insertAreaPending(makeArea(docId: 'a-3', person: 'me'));
+
+      await db.areaDao.deleteSyncedAreasNotInForPerson('me', const <String>{});
+
+      final all = await (db.select(db.areas)).get();
+      // a-1 and a-2 deleted (synced + absent from remote), a-3 stays (pending).
+      expect(all.map((a) => a.docId), ['a-3']);
+    });
+
     test('does NOT delete other users\' synced rows', () async {
       // Person A has a-1 (in snapshot) and a-2 (NOT in snapshot).
       await db.areaDao
