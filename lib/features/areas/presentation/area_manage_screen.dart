@@ -75,9 +75,17 @@ class AreaManageScreen extends ConsumerWidget {
     if (newName == null) return;
     final personDocId = ref.read(personDocIdProvider);
     if (personDocId == null) return;
-    await ref
-        .read(areaServiceProvider)
-        .createArea(name: newName, personDocId: personDocId);
+    try {
+      await ref
+          .read(areaServiceProvider)
+          .createArea(name: newName, personDocId: personDocId);
+    } on DuplicateAreaNameException catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    }
   }
 }
 
@@ -130,7 +138,15 @@ class _AreaTile extends ConsumerWidget {
     );
     if (newName == null) return;
     if (newName == area.name) return;
-    await ref.read(areaServiceProvider).renameArea(area, newName);
+    try {
+      await ref.read(areaServiceProvider).renameArea(area, newName);
+    } on DuplicateAreaNameException catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    }
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {

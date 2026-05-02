@@ -143,13 +143,25 @@ class _AreaPickerState extends ConsumerState<AreaPicker> {
       return;
     }
     final service = ref.read(areaServiceProvider);
-    final created =
-        await service.createArea(name: newName, personDocId: personDocId);
-    // Route through didChange so the FormField's internal state updates,
-    // Form.onChanged fires on the parent, and the FAB's hasChanges() check
-    // sees the blueprint.area mutation. didChange triggers our own onChanged
-    // again with the new value, which handles setState + valueSetter.
-    _formFieldKey.currentState?.didChange(created.name);
+    try {
+      final created =
+          await service.createArea(name: newName, personDocId: personDocId);
+      // Route through didChange so the FormField's internal state updates,
+      // Form.onChanged fires on the parent, and the FAB's hasChanges() check
+      // sees the blueprint.area mutation. didChange triggers our own onChanged
+      // again with the new value, which handles setState + valueSetter.
+      _formFieldKey.currentState?.didChange(created.name);
+    } on DuplicateAreaNameException catch (e) {
+      // The dialog validator catches dups in the in-memory list; this catches
+      // races where a second area with the same name synced down between the
+      // dialog opening and submit.
+      _formFieldKey.currentState?.didChange(previous);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    }
   }
 }
 

@@ -13,6 +13,20 @@ import '../../../models/area_blueprint.dart';
 
 part 'area_service.g.dart';
 
+/// Thrown by [AreaService.createArea] / [AreaService.renameArea] when the
+/// requested name (case-insensitive) collides with another non-retired area
+/// the same user already has. UI dialogs validate against the in-memory list
+/// up front, but the service re-checks just before the write so a stale UI
+/// or programmatic caller still can't create duplicates within a single
+/// device. Cross-device simultaneous creation can still produce two docs
+/// briefly; the user can resolve from the management screen.
+class DuplicateAreaNameException implements Exception {
+  DuplicateAreaNameException(this.name);
+  final String name;
+  @override
+  String toString() => 'Area "$name" already exists.';
+}
+
 /// Service for creating, updating, deleting, and reordering areas (TM-345).
 ///
 /// Mirrors the offline-first pattern used by SprintService: writes go to Drift
@@ -46,6 +60,15 @@ class AreaService {
     final docId = firestore.collection('areas').doc().id;
 
     final existing = await db.areaDao.getAreasForUser(personDocId);
+
+    // Service-level duplicate-name check (case-insensitive). Belt-and-
+    // suspenders against a stale UI list — by this point the await above has
+    // ensured the local cache reflects the server's view of this user.
+    final lower = name.toLowerCase();
+    if (existing.any((a) => a.name.toLowerCase() == lower)) {
+      throw DuplicateAreaNameException(name);
+    }
+
     final nextSortOrder = existing.isEmpty
         ? 0
         : existing.map((a) => a.sortOrder).reduce((a, b) => a > b ? a : b) + 1;
@@ -77,7 +100,24 @@ class AreaService {
 
   /// Rename an existing area. Tasks tagged with the old name keep the old
   /// string value (no cascade) — see DESIGN doc for rationale.
+  ///
+  /// Throws [DuplicateAreaNameException] if another non-retired area in the
+  /// same user's list already has [newName] (case-insensitive).
   Future<void> renameArea(Area area, String newName) async {
+    // Wait for the server snapshot so the duplicate check below is against
+    // the user's true area set, not a stale local cache.
+    await ref
+        .read(syncServiceProvider)
+        .areasInitialPullComplete
+        .timeout(const Duration(seconds: 5), onTimeout: () {});
+
+    final existing = await db.areaDao.getAreasForUser(area.personDocId);
+    final lower = newName.toLowerCase();
+    if (existing.any((a) =>
+        a.docId != area.docId && a.name.toLowerCase() == lower)) {
+      throw DuplicateAreaNameException(newName);
+    }
+
     await db.areaDao.markAreaUpdatePending(
       area.docId,
       AreasCompanion(name: Value(newName)),

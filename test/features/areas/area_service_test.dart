@@ -86,6 +86,47 @@ void main() {
     });
   });
 
+  group('AreaService.createArea duplicate rejection', () {
+    test('throws DuplicateAreaNameException on case-insensitive collision',
+        () async {
+      final svc = getService();
+      await svc.createArea(name: 'Home', personDocId: 'me');
+      await expectLater(
+        svc.createArea(name: 'home', personDocId: 'me'),
+        throwsA(isA<DuplicateAreaNameException>()),
+      );
+    });
+
+    test('still allows the same name for a DIFFERENT user', () async {
+      final svc = getService();
+      await svc.createArea(name: 'Home', personDocId: 'alice');
+      // Bob isn't blocked by Alice's "Home".
+      final bobHome = await svc.createArea(name: 'Home', personDocId: 'bob');
+      expect(bobHome.name, 'Home');
+    });
+  });
+
+  group('AreaService.renameArea duplicate rejection', () {
+    test('throws when renaming to an existing name', () async {
+      final svc = getService();
+      await svc.createArea(name: 'Home', personDocId: 'me');
+      final work = await svc.createArea(name: 'Work', personDocId: 'me');
+
+      await expectLater(
+        svc.renameArea(work, 'home'),
+        throwsA(isA<DuplicateAreaNameException>()),
+      );
+    });
+
+    test('allows renaming to its own current name (no self-collision)',
+        () async {
+      final svc = getService();
+      final home = await svc.createArea(name: 'Home', personDocId: 'me');
+      // Renaming Home → Home is a no-op but must not throw.
+      await svc.renameArea(home, 'Home');
+    });
+  });
+
   group('AreaService.deleteArea', () {
     test('marks the area pendingDelete and stamps retired', () async {
       final area =
