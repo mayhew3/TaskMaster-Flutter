@@ -34,6 +34,13 @@ const String _addSentinel = '+ Add new area…';
 
 class _AreaPickerState extends ConsumerState<AreaPicker> {
   late String _selected;
+  // GlobalKey on the DropdownButtonFormField so we can reach into its
+  // FormFieldState and call didChange(...) to update the displayed value.
+  // Required because DropdownButtonFormField is uncontrolled by `value:`
+  // after init — the field tracks its own internal state, and we need to
+  // mutate that state from outside (after the inline-add dialog) so the
+  // parent's enclosing Form.onChanged fires and hasChanges() re-evaluates.
+  final _formFieldKey = GlobalKey<FormFieldState<String>>();
 
   @override
   void initState() {
@@ -60,18 +67,45 @@ class _AreaPickerState extends ConsumerState<AreaPicker> {
       _addSentinel,
     ];
 
+    final secondary = Theme.of(context).colorScheme.secondary;
+
     return Container(
       margin: const EdgeInsets.all(7.0),
       child: DropdownButtonFormField<String>(
+        key: _formFieldKey,
         isDense: true,
         decoration: InputDecoration(
           labelText: widget.labelText,
           contentPadding: const EdgeInsets.fromLTRB(12, 21, 12, 14),
         ),
         value: _selected,
-        items: values
-            .map((v) => DropdownMenuItem<String>(value: v, child: Text(v)))
-            .toList(),
+        // Closed-state display: render every value as plain text. Avoids the
+        // sentinel briefly rendering with its divider+colored styling between
+        // the user's pick and the dialog opening.
+        selectedItemBuilder: (context) =>
+            values.map((v) => Text(v)).toList(),
+        items: values.map((v) {
+          if (v == _addSentinel) {
+            return DropdownMenuItem<String>(
+              value: v,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Divider(height: 1),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Text(
+                      v,
+                      style: TextStyle(color: secondary),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+          return DropdownMenuItem<String>(value: v, child: Text(v));
+        }).toList(),
         onChanged: (String? newValue) async {
           if (newValue == null) return;
           if (newValue == _addSentinel) {
@@ -86,24 +120,36 @@ class _AreaPickerState extends ConsumerState<AreaPicker> {
   }
 
   Future<void> _handleAddNew(List<Area> existing) async {
+    // Snapshot the previous selection before opening the dialog so we can
+    // revert if the user cancels. Do NOT use _selected after the dialog —
+    // it's the local state, which is fine here since the sentinel pick
+    // didn't update _selected (the if-branch returns early in onChanged).
+    final previous = _selected;
+
     final newName = await showDialog<String>(
       context: context,
-      builder: (_) => _AddAreaDialog(existingNames: existing.map((a) => a.name).toList()),
+      builder: (_) => _AddAreaDialog(
+          existingNames: existing.map((a) => a.name).toList()),
     );
     if (newName == null) {
-      // Cancelled — revert dropdown to previous selection by rebuilding.
-      setState(() {});
+      // Cancelled — push the previous value back into the FormField so the
+      // dropdown stops showing the sentinel.
+      _formFieldKey.currentState?.didChange(previous);
       return;
     }
     final personDocId = ref.read(personDocIdProvider);
     if (personDocId == null) {
-      setState(() {});
+      _formFieldKey.currentState?.didChange(previous);
       return;
     }
     final service = ref.read(areaServiceProvider);
-    final created = await service.createArea(name: newName, personDocId: personDocId);
-    setState(() => _selected = created.name);
-    widget.valueSetter(created.name);
+    final created =
+        await service.createArea(name: newName, personDocId: personDocId);
+    // Route through didChange so the FormField's internal state updates,
+    // Form.onChanged fires on the parent, and the FAB's hasChanges() check
+    // sees the blueprint.area mutation. didChange triggers our own onChanged
+    // again with the new value, which handles setState + valueSetter.
+    _formFieldKey.currentState?.didChange(created.name);
   }
 }
 
