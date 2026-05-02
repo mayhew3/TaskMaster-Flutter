@@ -55,6 +55,21 @@ BuiltList<TaskItem> taskItemsForSprintSelector(BuiltList<TaskItem> taskItems, Sp
   return taskItems.where((t) => sprint.sprintAssignments.where((sa) => sa.taskDocId == t.docId).isNotEmpty).toBuiltList();
 }
 
+/// Tasks already assigned to [sprint] from which the planning popups generate
+/// future recurrence-iteration previews (TM-348). Excludes family-shared
+/// tasks: a legacy family-shared recurring task that was added to a personal
+/// sprint (before the TM-348 base-list filter) would otherwise still leak its
+/// next iteration into the picker via [TaskItem.createNextRecurPreview],
+/// which preserves `familyDocId`. The picker is personal-only, so we cut the
+/// chain here at the seed list rather than scattering the filter through
+/// every preview step.
+BuiltList<TaskItem> recurrencePreviewSeedTasksForSprint(
+    BuiltList<TaskItem> taskItems, Sprint sprint) {
+  return taskItemsForSprintSelector(taskItems, sprint)
+      .where((t) => t.familyDocId == null)
+      .toBuiltList();
+}
+
 /// Get tasks eligible for placing on a new sprint: personal (non-family-shared)
 /// tasks that are not scheduled after the sprint's end date and not completed.
 /// Family-shared tasks (TM-348) are excluded — sprints are personal queues

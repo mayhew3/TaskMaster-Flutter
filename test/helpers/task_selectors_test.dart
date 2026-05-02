@@ -131,4 +131,58 @@ void main() {
       expect(result, isEmpty);
     });
   });
+
+  group('recurrencePreviewSeedTasksForSprint', () {
+    test('excludes a family-shared task already in the sprint (TM-348)', () {
+      // Regression test for the second flavor of the bug: a legacy
+      // family-shared recurring task in a personal sprint would still
+      // generate next-iteration previews via TaskItem.createNextRecurPreview
+      // (which preserves familyDocId), and those previews leak into the
+      // "Add Tasks to Sprint…" picker. Filter at the seed list so the
+      // preview chain never starts for family tasks.
+      final personal = makeTask(docId: 't-personal', name: 'Personal');
+      final family = makeTask(
+          docId: 't-family', name: 'Family', familyDocId: 'fam-1');
+      final sprint = makeSprint(assignments: [
+        SprintAssignment((b) => b
+          ..docId = 'a-1'
+          ..taskDocId = 't-personal'
+          ..sprintDocId = 'sprint-1'),
+        SprintAssignment((b) => b
+          ..docId = 'a-2'
+          ..taskDocId = 't-family'
+          ..sprintDocId = 'sprint-1'),
+      ]);
+
+      final result = recurrencePreviewSeedTasksForSprint(
+        BuiltList<TaskItem>([personal, family]),
+        sprint,
+      );
+
+      expect(result.map((t) => t.docId), ['t-personal']);
+    });
+
+    test('keeps personal tasks already in the sprint (sanity)', () {
+      final personal = makeTask(docId: 't-1', name: 'Personal');
+      final sprint = makeSprint(assignments: [
+        SprintAssignment((b) => b
+          ..docId = 'a-1'
+          ..taskDocId = 't-1'
+          ..sprintDocId = 'sprint-1'),
+      ]);
+
+      final result = recurrencePreviewSeedTasksForSprint(
+        BuiltList<TaskItem>([personal]),
+        sprint,
+      );
+
+      expect(result.map((t) => t.docId), ['t-1']);
+    });
+  });
+
+  // (No standalone test for TaskItem.createNextRecurPreview's familyDocId
+  // propagation — exercising it cleanly requires a full TaskRecurrence
+  // setup. The propagation is documented on
+  // [recurrencePreviewSeedTasksForSprint], which is the chokepoint that
+  // makes the leak unobservable in the picker.)
 }

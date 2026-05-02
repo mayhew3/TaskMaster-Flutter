@@ -148,7 +148,10 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
     eligibleItems.addAll(getBaseList(allTaskItems));
     var sprint = activeSprint;
     if (sprint != null) {
-      eligibleItems.addAll(taskItemsForSprintSelector(allTaskItems, sprint));
+      // TM-348: family-shared tasks already in the sprint must not seed
+      // recurrence previews — see recurrencePreviewSeedTasksForSprint docs.
+      eligibleItems
+          .addAll(recurrencePreviewSeedTasksForSprint(allTaskItems, sprint));
     }
     Set<String> recurIDs = HashSet();
 

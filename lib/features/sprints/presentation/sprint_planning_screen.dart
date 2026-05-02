@@ -176,8 +176,10 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
 
     var sprint = activeSprint;
     if (sprint != null) {
+      // TM-348: family-shared tasks already in the sprint must not seed
+      // recurrence previews — see recurrencePreviewSeedTasksForSprint docs.
       eligibleItems.addAll(
-        taskItemsForSprintSelector(allTasks.toBuiltList(), sprint),
+        recurrencePreviewSeedTasksForSprint(allTasks.toBuiltList(), sprint),
       );
     }
 
