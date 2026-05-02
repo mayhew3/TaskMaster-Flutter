@@ -90,20 +90,20 @@ void main() {
       expect(find.text('Task Item Details'), findsOneWidget);
     });
 
-    testWidgets('Displays project field when present', (tester) async {
+    testWidgets('Displays area field when present', (tester) async {
       final task = TaskItem((b) => b
         ..docId = 'task-1'
-        ..name = 'Task With Project'
+        ..name = 'Task With Area'
         ..personDocId = 'person-123'
         ..dateAdded = DateTime.now().toUtc()
-        ..project = 'Work Project'
+        ..area = 'Work Area'
         ..offCycle = false
         ..pendingCompletion = false);
 
       await pumpDetailsScreen(tester, task: task);
 
-      expect(find.text('Project'), findsOneWidget);
-      expect(find.text('Work Project'), findsOneWidget);
+      expect(find.text('Area'), findsOneWidget);
+      expect(find.text('Work Area'), findsOneWidget);
     });
 
     testWidgets('Displays context field when present', (tester) async {
@@ -373,7 +373,7 @@ void main() {
         ..name = 'Complete Task'
         ..personDocId = 'person-123'
         ..dateAdded = now
-        ..project = 'Work'
+        ..area = 'Work'
         ..context = '@office'
         ..priority = 2
         ..gamePoints = 10

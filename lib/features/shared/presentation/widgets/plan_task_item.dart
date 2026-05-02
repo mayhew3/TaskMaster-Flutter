@@ -238,9 +238,9 @@ class PlanTaskItemWidget extends StatelessWidget {
                       style: _getHeaderStyle(),
                     ),
                     Visibility(
-                      visible: sprintDisplayTask.project != null,
+                      visible: sprintDisplayTask.area != null,
                       child: Text(
-                        sprintDisplayTask.project == null ? '' : sprintDisplayTask.project!,
+                        sprintDisplayTask.area == null ? '' : sprintDisplayTask.area!,
                         style: const TextStyle(fontSize: 12.0,
                             color: Colors.white70),
                       ),

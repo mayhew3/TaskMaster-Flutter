@@ -293,10 +293,10 @@ class EditableTaskItemWidget extends StatelessWidget {
                           style: _getHeaderStyle(),
                         ),
                         Visibility(
-                          key: TaskMasterKeys.editableTaskItemCardProjectField(getKey()),
-                          visible: taskItem.project != null,
+                          key: TaskMasterKeys.editableTaskItemCardAreaField(getKey()),
+                          visible: taskItem.area != null,
                           child: Text(
-                            taskItem.project == null ? '' : taskItem.project!,
+                            taskItem.area == null ? '' : taskItem.area!,
                             style: const TextStyle(fontSize: 12.0,
                                 color: Colors.white70),
                           ),

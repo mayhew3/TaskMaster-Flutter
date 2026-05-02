@@ -51,14 +51,14 @@ void main() {
       expect(find.text('Test Task Name'), findsOneWidget);
     });
 
-    testWidgets('Displays project field when present', (tester) async {
-      // Setup: Task with project
+    testWidgets('Displays area field when present', (tester) async {
+      // Setup: Task with area
       final task = TaskItem((b) => b
         ..docId = 'test-task'
         ..dateAdded = DateTime.now().toUtc()
         ..name = 'Task With Project'
         ..personDocId = 'person-123'
-        ..project = 'Work Project'
+        ..area = 'Work Project'
         ..completionDate = null
         ..retired = null
         ..offCycle = false
@@ -81,19 +81,19 @@ void main() {
         ),
       );
 
-      // Verify: Both task name and project appear
+      // Verify: Both task name and area appear
       expect(find.text('Task With Project'), findsOneWidget);
       expect(find.text('Work Project'), findsOneWidget);
     });
 
-    testWidgets('Hides project field when not present', (tester) async {
-      // Setup: Task without project
+    testWidgets('Hides area field when not present', (tester) async {
+      // Setup: Task without area
       final task = TaskItem((b) => b
         ..docId = 'test-task'
         ..dateAdded = DateTime.now().toUtc()
         ..name = 'Task Without Project'
         ..personDocId = 'person-123'
-        ..project = null
+        ..area = null
         ..completionDate = null
         ..retired = null
         ..offCycle = false
@@ -116,10 +116,10 @@ void main() {
         ),
       );
 
-      // Verify: Task name appears, project field is hidden
+      // Verify: Task name appears, area field is hidden
       expect(find.text('Task Without Project'), findsOneWidget);
 
-      // The project Visibility widget should exist but not be visible
+      // The area Visibility widget should exist but not be visible
       final visibility = tester.widget<Visibility>(
         find.byType(Visibility).first,
       );
@@ -487,7 +487,7 @@ void main() {
         ..dateAdded = DateTime.now().toUtc()
         ..name = 'Second Task'
         ..personDocId = 'person-123'
-        ..project = 'Project A'
+        ..area = 'Project A'
         ..completionDate = null
         ..retired = null
         ..offCycle = false

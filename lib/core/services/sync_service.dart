@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../models/area.dart' as m;
 import '../../models/family.dart' as m;
 import '../../models/family_invitation.dart' as m;
 import '../../models/person.dart' as m;
@@ -54,6 +55,7 @@ class SyncService {
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _tasksSub;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _recurrencesSub;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _sprintsSub;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _areasSub;
   final Map<String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>
       _assignmentSubs = {};
   // Family-feature subscriptions (TM-335).
@@ -92,6 +94,7 @@ class SyncService {
   bool _recurrencesInitialReceived = false;
   bool _sprintsInitialReceived = false;
   bool _familyTasksInitialReceived = false;
+  bool _areasInitialReceived = false;
 
   // Completes once all 3 collections have delivered their first snapshot.
   // The UI awaits this to show a loading screen on cold start.
@@ -104,6 +107,17 @@ class SyncService {
   /// offline.
   Future<void> get initialPullComplete =>
       _initialPullCompleter?.future ?? Future.value();
+
+  // TM-345: areas are NOT part of `initialPullCompleter` (the main UI doesn't
+  // block on them) but consumers that DO need to know "have I heard from the
+  // server about areas yet?" can await this. Used by AreaService.createArea
+  // (so sortOrder isn't computed from a stale empty cache and collide with
+  // remote rows) and AreasWithDefaults (so default-seed only fires when the
+  // user truly has zero areas server-side).
+  Completer<void>? _areasInitialPullCompleter;
+
+  Future<void> get areasInitialPullComplete =>
+      _areasInitialPullCompleter?.future ?? Future.value();
 
   void _markInitialSnapshotReceived() {
     _initialSnapshotsReceived++;
@@ -142,6 +156,7 @@ class SyncService {
     _currentEmail = email;
     _initialPullCompleter = Completer<void>();
     _initialSnapshotsReceived = 0;
+    _areasInitialPullCompleter = Completer<void>();
     _startTime = DateTime.now();
     _syncLog('[SyncService] start() — personDocId=$personDocId email=$email');
 
@@ -170,6 +185,15 @@ class SyncService {
         .limit(3)
         .snapshots()
         .listen(_onSprintsSnapshot, onError: _logSyncError);
+
+    // TM-345: areas (per-user customizable picker values). Filtering `retired`
+    // client-side to match the recurrences pattern (Firestore's `isNull: true`
+    // excludes docs missing the field, which would skip legacy seeds).
+    _areasSub = firestore
+        .collection('areas')
+        .where('personDocId', isEqualTo: personDocId)
+        .snapshots()
+        .listen(_onAreasSnapshot, onError: _logSyncError);
 
     // Family feature (TM-335): listen to my own Person doc to detect family
     // membership changes; listen to invitations addressed to my email.
@@ -205,6 +229,7 @@ class SyncService {
     await _tasksSub?.cancel();
     await _recurrencesSub?.cancel();
     await _sprintsSub?.cancel();
+    await _areasSub?.cancel();
     for (final sub in _assignmentSubs.values) {
       await sub.cancel();
     }
@@ -216,6 +241,7 @@ class SyncService {
     _tasksSub = null;
     _recurrencesSub = null;
     _sprintsSub = null;
+    _areasSub = null;
     _personSelfSub = null;
     _invitationsSub = null;
     _connectivitySub = null;
@@ -225,11 +251,17 @@ class SyncService {
     _tasksInitialReceived = false;
     _recurrencesInitialReceived = false;
     _sprintsInitialReceived = false;
+    _areasInitialReceived = false;
     if (_initialPullCompleter != null && !_initialPullCompleter!.isCompleted) {
       _initialPullCompleter!.complete();
     }
     _initialPullCompleter = null;
     _initialSnapshotsReceived = 0;
+    if (_areasInitialPullCompleter != null &&
+        !_areasInitialPullCompleter!.isCompleted) {
+      _areasInitialPullCompleter!.complete();
+    }
+    _areasInitialPullCompleter = null;
   }
 
   /// Cancel all family-scoped listeners. Called when [_currentFamilyDocId]
@@ -536,6 +568,64 @@ class SyncService {
         _assignmentSubs.keys.where((id) => !remoteIds.contains(id)).toList();
     for (final id in stale) {
       await _assignmentSubs.remove(id)?.cancel();
+    }
+  }
+
+  /// TM-345: areas snapshot. Simpler than tasks/recurrences/sprints — areas
+  /// have no conflict detection (they're list-management items, not data with
+  /// rich edit history) and no subcollections. Retired areas are filtered
+  /// out client-side; matching retired entries in Drift are deleted.
+  ///
+  /// Not counted toward [_initialPullCompleter] — areas are not blocking for
+  /// the main UI. But we DO complete a separate [_areasInitialPullCompleter]
+  /// on the first snapshot so AreaService.createArea (sortOrder) and
+  /// AreasWithDefaults (lazy-seed defaults) can wait for server confirmation
+  /// of the user's true area set before computing values from local cache.
+  Future<void> _onAreasSnapshot(
+      QuerySnapshot<Map<String, dynamic>> snapshot) async {
+    final isInitial = !_areasInitialReceived;
+    _areasInitialReceived = true;
+
+    for (final change in snapshot.docChanges) {
+      if (change.type == DocumentChangeType.removed) {
+        await db.areaDao.deleteAreaFromRemote(change.doc.id);
+        continue;
+      }
+      final data = change.doc.data();
+      if (data == null) continue;
+      // Treat retired remotely as a delete locally so the watch stream stops
+      // emitting it (matches the recurrences pattern).
+      if (data['retired'] != null) {
+        await db.areaDao.deleteAreaFromRemote(change.doc.id);
+        continue;
+      }
+      try {
+        final json = Map<String, dynamic>.from(data);
+        json['docId'] = change.doc.id;
+        final area = serializers.deserializeWith(m.Area.serializer, json);
+        if (area != null) {
+          await db.areaDao.upsertAreaFromRemote(areaToCompanion(area));
+        }
+      } catch (e, s) {
+        _logSyncError(e, s);
+      }
+    }
+
+    // Reconcile every snapshot: prune synced rows whose docId is no longer
+    // present (covers emulator reset / bulk server-side delete). Pending rows
+    // are preserved. Scope by personDocId so a sign-out/sign-in cycle with a
+    // different account does not purge the previous user's cached areas.
+    final remoteIds = snapshot.docs
+        .where((d) => d.data()['retired'] == null)
+        .map((d) => d.id)
+        .toSet();
+    await db.areaDao
+        .deleteSyncedAreasNotInForPerson(_currentPersonDocId!, remoteIds);
+
+    if (isInitial &&
+        _areasInitialPullCompleter != null &&
+        !_areasInitialPullCompleter!.isCompleted) {
+      _areasInitialPullCompleter!.complete();
     }
   }
 
@@ -851,6 +941,7 @@ class SyncService {
       hadFailure |= await _pushPendingRecurrences();
       hadFailure |= await _pushPendingSprints();
       hadFailure |= await _pushPendingAssignments();
+      hadFailure |= await _pushPendingAreas();
       statusController
           .set(hadFailure ? SyncStatus.error : SyncStatus.idle);
     } catch (e, s) {
@@ -1156,6 +1247,36 @@ class SyncService {
             'dateAdded': DateTime.now().toUtc(),
           });
           await db.sprintDao.markAssignmentSynced(row.docId);
+        }
+      } catch (e, s) {
+        hadFailure = true;
+        _logSyncError(e, s);
+      }
+    }
+    return hadFailure;
+  }
+
+  /// TM-345: push pending area writes. No conflict detection — areas don't
+  /// carry a lastModified timestamp; last-write-wins is acceptable for list
+  /// management items.
+  Future<bool> _pushPendingAreas() async {
+    final pending = await db.areaDao.pendingAreaWrites();
+    var hadFailure = false;
+    for (final row in pending) {
+      try {
+        final docRef = firestore.collection('areas').doc(row.docId);
+        if (row.syncState == SyncState.pendingDelete.name) {
+          await docRef.delete();
+          await (db.delete(db.areas)..where((a) => a.docId.equals(row.docId)))
+              .go();
+        } else {
+          final area = areaFromRow(row);
+          final json =
+              serializers.serializeWith(m.Area.serializer, area)
+                  as Map<String, dynamic>;
+          json.remove('docId');
+          await docRef.set(json);
+          await db.areaDao.markAreaSynced(row.docId);
         }
       } catch (e, s) {
         hadFailure = true;

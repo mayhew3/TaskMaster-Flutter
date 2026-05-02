@@ -10,7 +10,7 @@ Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) =>
     <String, dynamic>{
       'name': instance.name,
       'description': instance.description,
-      'project': instance.project,
+      'area': instance.area,
       'context': instance.context,
       'urgency': instance.urgency,
       'priority': instance.priority,

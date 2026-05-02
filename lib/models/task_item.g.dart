@@ -66,10 +66,10 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
       ..add(
         serializers.serialize(value, specifiedType: const FullType(String)),
       );
-    value = object.project;
+    value = object.area;
 
     result
-      ..add('project')
+      ..add('area')
       ..add(
         serializers.serialize(value, specifiedType: const FullType(String)),
       );
@@ -251,8 +251,8 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
                   )
                   as String?;
           break;
-        case 'project':
-          result.project =
+        case 'area':
+          result.area =
               serializers.deserialize(
                     value,
                     specifiedType: const FullType(String),
@@ -422,7 +422,7 @@ class _$TaskItem extends TaskItem {
   @override
   final String? description;
   @override
-  final String? project;
+  final String? area;
   @override
   final String? context;
   @override
@@ -478,7 +478,7 @@ class _$TaskItem extends TaskItem {
     this.familyDocId,
     required this.name,
     this.description,
-    this.project,
+    this.area,
     this.context,
     this.urgency,
     this.priority,
@@ -519,7 +519,7 @@ class _$TaskItem extends TaskItem {
         familyDocId == other.familyDocId &&
         name == other.name &&
         description == other.description &&
-        project == other.project &&
+        area == other.area &&
         context == other.context &&
         urgency == other.urgency &&
         priority == other.priority &&
@@ -553,7 +553,7 @@ class _$TaskItem extends TaskItem {
     _$hash = $jc(_$hash, familyDocId.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
-    _$hash = $jc(_$hash, project.hashCode);
+    _$hash = $jc(_$hash, area.hashCode);
     _$hash = $jc(_$hash, context.hashCode);
     _$hash = $jc(_$hash, urgency.hashCode);
     _$hash = $jc(_$hash, priority.hashCode);
@@ -589,7 +589,7 @@ class _$TaskItem extends TaskItem {
           ..add('familyDocId', familyDocId)
           ..add('name', name)
           ..add('description', description)
-          ..add('project', project)
+          ..add('area', area)
           ..add('context', context)
           ..add('urgency', urgency)
           ..add('priority', priority)
@@ -643,9 +643,9 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   String? get description => _$this._description;
   set description(String? description) => _$this._description = description;
 
-  String? _project;
-  String? get project => _$this._project;
-  set project(String? project) => _$this._project = project;
+  String? _area;
+  String? get area => _$this._area;
+  set area(String? area) => _$this._area = area;
 
   String? _context;
   String? get context => _$this._context;
@@ -755,7 +755,7 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
       _familyDocId = $v.familyDocId;
       _name = $v.name;
       _description = $v.description;
-      _project = $v.project;
+      _area = $v.area;
       _context = $v.context;
       _urgency = $v.urgency;
       _priority = $v.priority;
@@ -820,7 +820,7 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
               'name',
             ),
             description: description,
-            project: project,
+            area: area,
             context: context,
             urgency: urgency,
             priority: priority,

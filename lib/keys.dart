@@ -37,6 +37,6 @@ class TaskMasterKeys {
 
   // Task Item Card
   static final editableTaskItemCard = (String id) => Key('__editableTaskItem_mainCard__${id}__');
-  static final editableTaskItemCardProjectField = (String id) => Key('__editableTaskItem_projectField__${id}__');
+  static final editableTaskItemCardAreaField = (String id) => Key('__editableTaskItem_areaField__${id}__');
   static final editableTaskItemCardSprintIcon = (String id) => Key('__editableTaskItem_sprintIcon__${id}__');
 }

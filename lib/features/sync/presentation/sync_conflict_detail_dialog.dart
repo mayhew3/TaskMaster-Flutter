@@ -26,8 +26,8 @@ class SyncConflictDetailDialog extends ConsumerWidget {
       _FieldComparison('Name', conflict.local.name, conflict.remote.name),
       _FieldComparison('Description', conflict.local.description ?? '—',
           conflict.remote.description ?? '—'),
-      _FieldComparison('Project', conflict.local.project ?? '—',
-          conflict.remote.project ?? '—'),
+      _FieldComparison('Area', conflict.local.area ?? '—',
+          conflict.remote.area ?? '—'),
       _FieldComparison('Context', conflict.local.context ?? '—',
           conflict.remote.context ?? '—'),
       _FieldComparison(

@@ -58,7 +58,7 @@ class TestMockHelper {
       ..docId = id
       ..personDocId = MockTaskItemBuilder.me
       ..description = blueprint.description
-      ..project = blueprint.project
+      ..area = blueprint.area
       ..context = blueprint.context
       ..urgency = blueprint.urgency
       ..priority = blueprint.priority
@@ -106,7 +106,7 @@ class TestMockHelper {
       ..dateAdded = original.dateAdded
       ..personDocId = original.personDocId
       ..description = blueprint.description
-      ..project = blueprint.project
+      ..area = blueprint.area
       ..context = blueprint.context
       ..urgency = blueprint.urgency
       ..priority = blueprint.priority

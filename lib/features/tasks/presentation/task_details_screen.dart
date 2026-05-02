@@ -129,8 +129,8 @@ class _TaskDetailsBody extends ConsumerWidget {
               ],
             ),
             ReadOnlyTaskField(
-              headerName: 'Project',
-              textToShow: task.project,
+              headerName: 'Area',
+              textToShow: task.area,
             ),
             ReadOnlyTaskField(
               headerName: 'Context',

@@ -38,7 +38,7 @@ class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
 
   String? description;
   @override
-  String? project;
+  String? area;
   String? context;
 
   int? urgency;
@@ -87,7 +87,7 @@ class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
       ..familyDocId = familyDocId
       ..name = name
       ..description = description
-      ..project = project
+      ..area = area
       ..context = context
       ..urgency = urgency
       ..priority = priority
@@ -125,7 +125,7 @@ class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
 
     blueprint.name = name;
     blueprint.description = description;
-    blueprint.project = project;
+    blueprint.area = area;
     blueprint.context = context;
     blueprint.urgency = urgency;
     blueprint.priority = priority;

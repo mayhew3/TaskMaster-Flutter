@@ -4,6 +4,8 @@ import 'package:built_collection/built_collection.dart';
 import 'package:drift/drift.dart';
 
 import '../../models/anchor_date.dart' as m;
+import '../../models/area.dart' as m;
+import '../../models/area_blueprint.dart';
 import '../../models/family.dart' as m;
 import '../../models/family_invitation.dart' as m;
 import '../../models/person.dart' as m;
@@ -37,7 +39,7 @@ m.TaskItem taskItemFromRow(Task row) {
     ..familyDocId = row.familyDocId
     ..name = row.name
     ..description = row.description
-    ..project = row.project
+    ..area = row.area
     ..context = row.taskContext
     ..urgency = row.urgency
     ..priority = row.priority
@@ -68,7 +70,7 @@ TasksCompanion taskItemToCompanion(m.TaskItem task) {
     familyDocId: Value(task.familyDocId),
     name: Value(task.name),
     description: Value(task.description),
-    project: Value(task.project),
+    area: Value(task.area),
     taskContext: Value(task.context),
     urgency: Value(task.urgency),
     priority: Value(task.priority),
@@ -214,7 +216,7 @@ TasksCompanion taskBlueprintToCompanion({
     familyDocId: Value(blueprint.familyDocId),
     name: Value(blueprint.name ?? ''),
     description: Value(blueprint.description),
-    project: Value(blueprint.project),
+    area: Value(blueprint.area),
     taskContext: Value(blueprint.context),
     urgency: Value(blueprint.urgency),
     priority: Value(blueprint.priority),
@@ -250,7 +252,7 @@ TasksCompanion taskBlueprintToDiff(TaskItemBlueprint blueprint) {
         ? Value(blueprint.familyDocId)
         : const Value.absent(),
     description: Value(blueprint.description),
-    project: Value(blueprint.project),
+    area: Value(blueprint.area),
     taskContext: Value(blueprint.context),
     urgency: Value(blueprint.urgency),
     priority: Value(blueprint.priority),
@@ -388,6 +390,51 @@ TaskRecurrencesCompanion recurrenceBlueprintToDiff(
         : const Value.absent(),
     anchorDateJson: anchorDate != null
         ? Value(_anchorDateToJson(anchorDate))
+        : const Value.absent(),
+  );
+}
+
+// ── Area (TM-345) ────────────────────────────────────────────────────────────
+
+m.Area areaFromRow(Area row) {
+  return m.Area((b) => b
+    ..docId = row.docId
+    ..dateAdded = _utc(row.dateAdded)
+    ..name = row.name
+    ..sortOrder = row.sortOrder
+    ..personDocId = row.personDocId
+    ..retired = row.retired
+    ..retiredDate = _utcOrNull(row.retiredDate));
+}
+
+AreasCompanion areaToCompanion(m.Area area) {
+  return AreasCompanion(
+    docId: Value(area.docId),
+    dateAdded: Value(area.dateAdded),
+    name: Value(area.name),
+    sortOrder: Value(area.sortOrder),
+    personDocId: Value(area.personDocId),
+    retired: Value(area.retired),
+    retiredDate: Value(area.retiredDate),
+  );
+}
+
+AreasCompanion areaBlueprintToCompanion({
+  required String docId,
+  required DateTime dateAdded,
+  required AreaBlueprint blueprint,
+}) {
+  return AreasCompanion(
+    docId: Value(docId),
+    dateAdded: Value(dateAdded),
+    name: Value(blueprint.name),
+    sortOrder: Value(blueprint.sortOrder),
+    personDocId: Value(blueprint.personDocId),
+    retired: blueprint.retired != null
+        ? Value(blueprint.retired)
+        : const Value.absent(),
+    retiredDate: blueprint.retiredDate != null
+        ? Value(blueprint.retiredDate)
         : const Value.absent(),
   );
 }
