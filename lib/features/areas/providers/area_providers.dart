@@ -84,10 +84,16 @@ class AreasWithDefaults extends _$AreasWithDefaults {
     // Wait for the first server snapshot of `areas` so we know an empty list
     // really means empty (not just "not synced yet"). Time out so offline
     // sessions still get defaults eventually.
+    //
+    // 30s timeout (was 5s): a slow-but-online existing user could have their
+    // real areas still in flight when 5s elapsed, causing the seed to
+    // overlay defaults onto a populated server list. 30s tolerates realistic
+    // mobile networks; truly offline users still get defaults eventually
+    // but pay a one-time wait when first opening the picker / manage screen.
     await ref
         .read(syncServiceProvider)
         .areasInitialPullComplete
-        .timeout(const Duration(seconds: 5), onTimeout: () {});
+        .timeout(const Duration(seconds: 30), onTimeout: () {});
 
     // Bail if anything changed while we were waiting.
     if (ref.read(personDocIdProvider) != personDocId) {

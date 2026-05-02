@@ -44,8 +44,8 @@ class AreaService {
   /// [skipInitialPullWait] is for batch callers (like the default-seeding
   /// loop) that have already awaited [SyncService.areasInitialPullComplete]
   /// once at the call site. Without this, an offline batch of N creates
-  /// would hit the 5s timeout N times in a row (~25s for the 5 defaults).
-  /// Defaults to false; safe to omit for normal user-driven creates.
+  /// would hit the 30s timeout N times in a row. Defaults to false; safe
+  /// to omit for normal user-driven creates.
   Future<Area> createArea({
     required String name,
     required String personDocId,
@@ -55,14 +55,18 @@ class AreaService {
     // sortOrder. Areas are NOT part of the blocking initialPullCompleter, so
     // without this guard, a fresh install creating an area before the first
     // areas snapshot arrives could compute sortOrder=0 (or another value) that
-    // collides with a remote row syncing in moments later. Falls back to
-    // proceeding with local data after a short timeout so offline sessions
-    // aren't blocked indefinitely.
+    // collides with a remote row syncing in moments later.
+    //
+    // 30s timeout (was 5s): bounds offline waits but tolerates slow networks.
+    // A 5s ceiling treated slow-but-online the same as offline, which let an
+    // existing user with un-synced areas slip past the gate and create a
+    // duplicate-sortOrder row. 30s covers realistic mobile-network round
+    // trips; truly offline users still get unblocked but pay a one-time wait.
     if (!skipInitialPullWait) {
       await ref
           .read(syncServiceProvider)
           .areasInitialPullComplete
-          .timeout(const Duration(seconds: 5), onTimeout: () {});
+          .timeout(const Duration(seconds: 30), onTimeout: () {});
     }
 
     final now = DateTime.now().toUtc();
@@ -149,7 +153,17 @@ class AreaService {
 
   /// Persist a new ordering. sortOrder is rewritten as 0..N-1 in a single
   /// transaction so a partial failure can't leave the list half-ordered.
+  ///
+  /// Waits for [SyncService.areasInitialPullComplete] before rewriting so a
+  /// stale local cache (snapshot not yet pulled) doesn't assign 0..N-1 over
+  /// an incomplete subset, which would let later remote rows arrive with
+  /// duplicate sortOrders and unstable ordering.
   Future<void> reorderAreas(List<Area> orderedAreas) async {
+    await ref
+        .read(syncServiceProvider)
+        .areasInitialPullComplete
+        .timeout(const Duration(seconds: 30), onTimeout: () {});
+
     await db.transaction(() async {
       for (var i = 0; i < orderedAreas.length; i++) {
         final area = orderedAreas[i];
