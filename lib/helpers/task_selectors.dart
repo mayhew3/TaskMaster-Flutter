@@ -83,20 +83,19 @@ BuiltList<TaskItem> recurrencePreviewSeedTasksForSprint(
 /// inherits that. **Do not bypass this aggregator at call sites** — the
 /// preview seed step is what stops legacy family-shared recurring tasks
 /// already in a sprint from leaking their next iteration into the picker.
-List<TaskItem> eligibleItemsForPlanningPicker({
+BuiltList<TaskItem> eligibleItemsForPlanningPicker({
   required BuiltList<TaskItem> allTaskItems,
   required Sprint? activeSprint,
   required DateTime endDate,
 }) {
-  final result = <TaskItem>[];
+  final builder = ListBuilder<TaskItem>();
   if (activeSprint == null) {
-    result.addAll(taskItemsForPlacingOnNewSprint(allTaskItems, endDate));
+    builder.addAll(taskItemsForPlacingOnNewSprint(allTaskItems, endDate));
   } else {
-    result
-        .addAll(taskItemsForPlacingOnExistingSprint(allTaskItems, activeSprint));
-    result.addAll(recurrencePreviewSeedTasksForSprint(allTaskItems, activeSprint));
+    builder.addAll(taskItemsForPlacingOnExistingSprint(allTaskItems, activeSprint));
+    builder.addAll(recurrencePreviewSeedTasksForSprint(allTaskItems, activeSprint));
   }
-  return result;
+  return builder.build();
 }
 
 /// Get tasks eligible for placing on a new sprint: personal (non-family-shared)

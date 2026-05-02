@@ -181,11 +181,13 @@ void main() {
   });
 
   group('eligibleItemsForPlanningPicker', () {
-    // The aggregator is the single function both planning-popup call sites
-    // route through. These tests pin the contract across both branches so a
-    // call-site revert (e.g., re-adding `taskItemsForSprintSelector` instead
-    // of going through `recurrencePreviewSeedTasksForSprint`) would force
-    // updating these tests, making the regression visible.
+    // These tests pin the aggregator's contract for both branches (no active
+    // sprint / active sprint). They protect the helper itself — a future
+    // edit that drops the recurrencePreviewSeedTasksForSprint call inside
+    // the aggregator would fail the active-sprint case here. They do NOT
+    // catch a call-site regression that bypasses the aggregator entirely
+    // (e.g., a UI file switching back to taskItemsForSprintSelector); that
+    // class of regression needs widget-level coverage on the planning popup.
 
     test('no active sprint: excludes family tasks via the new-sprint selector',
         () {
