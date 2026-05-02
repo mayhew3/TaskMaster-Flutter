@@ -144,15 +144,16 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
   }
 
   void createTemporaryIterations(BuiltList<TaskItem> allTaskItems) {
-    List<TaskItem> eligibleItems = [];
-    eligibleItems.addAll(getBaseList(allTaskItems));
-    var sprint = activeSprint;
-    if (sprint != null) {
-      // TM-348: family-shared tasks already in the sprint must not seed
-      // recurrence previews — see recurrencePreviewSeedTasksForSprint docs.
-      eligibleItems
-          .addAll(recurrencePreviewSeedTasksForSprint(allTaskItems, sprint));
-    }
+    // TM-348: routed through eligibleItemsForPlanningPicker so the base set
+    // and recurrence-preview seed set always flow through the same
+    // family-exclusion filters. Do NOT split this back into two addAll
+    // calls — the aggregator is the single point that guarantees both
+    // sources are family-filtered.
+    final eligibleItems = eligibleItemsForPlanningPicker(
+      allTaskItems: allTaskItems,
+      activeSprint: activeSprint,
+      endDate: endDate,
+    );
     Set<String> recurIDs = HashSet();
 
     for (var taskItem in eligibleItems) {

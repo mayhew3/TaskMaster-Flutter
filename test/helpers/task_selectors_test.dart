@@ -180,6 +180,74 @@ void main() {
     });
   });
 
+  group('eligibleItemsForPlanningPicker', () {
+    // The aggregator is the single function both planning-popup call sites
+    // route through. These tests pin the contract across both branches so a
+    // call-site revert (e.g., re-adding `taskItemsForSprintSelector` instead
+    // of going through `recurrencePreviewSeedTasksForSprint`) would force
+    // updating these tests, making the regression visible.
+
+    test('no active sprint: excludes family tasks via the new-sprint selector',
+        () {
+      final personal = makeTask(docId: 't-personal', name: 'Personal');
+      final family = makeTask(
+          docId: 't-family', name: 'Family', familyDocId: 'fam-1');
+
+      final result = eligibleItemsForPlanningPicker(
+        allTaskItems: BuiltList<TaskItem>([personal, family]),
+        activeSprint: null,
+        endDate: sprintEnd,
+      );
+
+      expect(result.map((t) => t.docId), ['t-personal']);
+    });
+
+    test('active sprint: excludes family tasks from BOTH base and preview seeds',
+        () {
+      // Personal task NOT in the sprint → should appear via base selector.
+      final personalNotIn = makeTask(docId: 't-p1', name: 'Personal Free');
+      // Family task NOT in the sprint → should be excluded by base.
+      final familyNotIn = makeTask(
+          docId: 't-f1', name: 'Family Free', familyDocId: 'fam-1');
+      // Family task IN the sprint → should be excluded by the recurrence-
+      // preview seed step. Without the aggregator's
+      // recurrencePreviewSeedTasksForSprint call, this would still leak.
+      final familyInSprint = makeTask(
+          docId: 't-f2', name: 'Family In Sprint', familyDocId: 'fam-1');
+      // Personal task IN the sprint → should appear via preview-seed step.
+      final personalInSprint = makeTask(docId: 't-p2', name: 'Personal In Sprint');
+
+      final sprint = makeSprint(assignments: [
+        SprintAssignment((b) => b
+          ..docId = 'a-1'
+          ..taskDocId = 't-f2'
+          ..sprintDocId = 'sprint-1'),
+        SprintAssignment((b) => b
+          ..docId = 'a-2'
+          ..taskDocId = 't-p2'
+          ..sprintDocId = 'sprint-1'),
+      ]);
+
+      final result = eligibleItemsForPlanningPicker(
+        allTaskItems: BuiltList<TaskItem>(
+            [personalNotIn, familyNotIn, familyInSprint, personalInSprint]),
+        activeSprint: sprint,
+        endDate: sprintEnd,
+      );
+
+      // Should contain personalNotIn (base) and personalInSprint (preview seed).
+      // Should NOT contain familyNotIn (filtered by base) or familyInSprint
+      // (filtered by preview-seed step — the regression case).
+      final ids = result.map((t) => t.docId).toSet();
+      expect(ids.contains('t-p1'), isTrue);
+      expect(ids.contains('t-p2'), isTrue);
+      expect(ids.contains('t-f1'), isFalse);
+      expect(ids.contains('t-f2'), isFalse,
+          reason:
+              'TM-348: family-shared task in active sprint must not appear in eligible items via the recurrence-preview seed path');
+    });
+  });
+
   // (No standalone test for TaskItem.createNextRecurPreview's familyDocId
   // propagation — exercising it cleanly requires a full TaskRecurrence
   // setup. The propagation is documented on

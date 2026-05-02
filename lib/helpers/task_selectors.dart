@@ -70,6 +70,35 @@ BuiltList<TaskItem> recurrencePreviewSeedTasksForSprint(
       .toBuiltList();
 }
 
+/// Aggregate selector for both sprint-planning popups ("Create Sprint" and
+/// "Add Tasks to Sprint…", TM-348). Returns the full set of tasks the picker
+/// uses for both:
+///   1. Direct candidate rows in the picker — sourced from
+///      [taskItemsForPlacingOnNewSprint] (no active sprint) or
+///      [taskItemsForPlacingOnExistingSprint] (active sprint).
+///   2. Seeds for future-iteration recurrence previews — sourced from
+///      [recurrencePreviewSeedTasksForSprint] when there's an active sprint.
+///
+/// All three component selectors exclude family-shared tasks; this aggregator
+/// inherits that. **Do not bypass this aggregator at call sites** — the
+/// preview seed step is what stops legacy family-shared recurring tasks
+/// already in a sprint from leaking their next iteration into the picker.
+List<TaskItem> eligibleItemsForPlanningPicker({
+  required BuiltList<TaskItem> allTaskItems,
+  required Sprint? activeSprint,
+  required DateTime endDate,
+}) {
+  final result = <TaskItem>[];
+  if (activeSprint == null) {
+    result.addAll(taskItemsForPlacingOnNewSprint(allTaskItems, endDate));
+  } else {
+    result
+        .addAll(taskItemsForPlacingOnExistingSprint(allTaskItems, activeSprint));
+    result.addAll(recurrencePreviewSeedTasksForSprint(allTaskItems, activeSprint));
+  }
+  return result;
+}
+
 /// Get tasks eligible for placing on a new sprint: personal (non-family-shared)
 /// tasks that are not scheduled after the sprint's end date and not completed.
 /// Family-shared tasks (TM-348) are excluded — sprints are personal queues
