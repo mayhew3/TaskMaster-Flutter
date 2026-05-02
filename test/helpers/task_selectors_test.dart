@@ -15,6 +15,7 @@ void main() {
     required String name,
     String? familyDocId,
     DateTime? completionDate,
+    DateTime? startDate,
   }) {
     return TaskItem((b) => b
       ..docId = docId
@@ -23,6 +24,7 @@ void main() {
       ..familyDocId = familyDocId
       ..dateAdded = now
       ..completionDate = completionDate
+      ..startDate = startDate
       ..retired = null
       ..offCycle = false
       ..pendingCompletion = false);
@@ -62,7 +64,11 @@ void main() {
     });
 
     test('keeps personal incomplete tasks scheduled within the sprint', () {
-      final personal = makeTask(docId: 't-1', name: 'A');
+      final personal = makeTask(
+        docId: 't-1',
+        name: 'A',
+        startDate: now.add(const Duration(days: 2)),
+      );
 
       final result = taskItemsForPlacingOnNewSprint(
         BuiltList<TaskItem>([personal]),
@@ -71,6 +77,29 @@ void main() {
 
       expect(result, hasLength(1));
       expect(result.first.docId, 't-1');
+    });
+
+    test('excludes tasks scheduled after the sprint end date (sanity)', () {
+      // Boundary coverage for the isScheduledAfter predicate. The "in" task
+      // starts during the sprint window; the "out" task starts after the
+      // sprint ends and must be filtered.
+      final inWindow = makeTask(
+        docId: 't-in',
+        name: 'In',
+        startDate: now.add(const Duration(days: 2)),
+      );
+      final afterEnd = makeTask(
+        docId: 't-out',
+        name: 'Out',
+        startDate: sprintEnd.add(const Duration(days: 1)),
+      );
+
+      final result = taskItemsForPlacingOnNewSprint(
+        BuiltList<TaskItem>([inWindow, afterEnd]),
+        sprintEnd,
+      );
+
+      expect(result.map((t) => t.docId), ['t-in']);
     });
 
     test('still excludes completed tasks (sanity)', () {
@@ -129,6 +158,29 @@ void main() {
       );
 
       expect(result, isEmpty);
+    });
+
+    test('excludes tasks scheduled after the sprint end date (sanity)', () {
+      // Boundary coverage for the isScheduledAfter predicate on the
+      // existing-sprint selector.
+      final inWindow = makeTask(
+        docId: 't-in',
+        name: 'In',
+        startDate: now.add(const Duration(days: 2)),
+      );
+      final afterEnd = makeTask(
+        docId: 't-out',
+        name: 'Out',
+        startDate: sprintEnd.add(const Duration(days: 1)),
+      );
+      final sprint = makeSprint();
+
+      final result = taskItemsForPlacingOnExistingSprint(
+        BuiltList<TaskItem>([inWindow, afterEnd]),
+        sprint,
+      );
+
+      expect(result.map((t) => t.docId), ['t-in']);
     });
   });
 

@@ -70,14 +70,22 @@ BuiltList<TaskItem> recurrencePreviewSeedTasksForSprint(
       .toBuiltList();
 }
 
-/// Aggregate selector for both sprint-planning popups ("Create Sprint" and
-/// "Add Tasks to Sprint…", TM-348). Returns the full set of tasks the picker
-/// uses for both:
-///   1. Direct candidate rows in the picker — sourced from
-///      [taskItemsForPlacingOnNewSprint] (no active sprint) or
-///      [taskItemsForPlacingOnExistingSprint] (active sprint).
-///   2. Seeds for future-iteration recurrence previews — sourced from
+/// Seed pool for the planning popups' recurrence-preview generator
+/// (`createTemporaryIterations`, TM-348). The picker's directly-displayed
+/// candidate rows come from a separate path inside the screens
+/// (`getBaseList`); this aggregator's only consumer is the preview-iteration
+/// pass, which scans this set for `recurrenceDocId`s and projects future
+/// iterations from each.
+///
+/// The set is composed of:
+///   1. Eligible base tasks — sourced from [taskItemsForPlacingOnNewSprint]
+///      (no active sprint) or [taskItemsForPlacingOnExistingSprint] (active
+///      sprint). These are the recurring tasks not yet in the sprint whose
+///      next iterations should appear as previews.
+///   2. Tasks already in the sprint — sourced from
 ///      [recurrencePreviewSeedTasksForSprint] when there's an active sprint.
+///      These cover legacy assignments whose next iteration must still
+///      appear as a preview.
 ///
 /// All three component selectors exclude family-shared tasks; this aggregator
 /// inherits that. **Do not bypass this aggregator at call sites** — the
