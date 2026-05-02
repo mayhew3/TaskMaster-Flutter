@@ -270,18 +270,32 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                 latestRecurrence.hasChanges(taskItem!.recurrence);
             if (hasTaskChanges || hasRecurrenceChanges) {
               popped = true;
-              Navigator.pop(context);
+              _scheduleAutoClose();
             }
           } else {
             // For new tasks, check if count increased after submitting
             if (_initialTaskCount != null &&
                 tasks.length > _initialTaskCount!) {
               popped = true;
-              Navigator.pop(context);
+              _scheduleAutoClose();
             }
           }
         }
       });
+    });
+  }
+
+  /// Defer the Navigator.pop until after the current notification cycle
+  /// completes. This screen has multiple ref.watch / ref.listen subscribers
+  /// on the same providers; popping synchronously from inside a listener
+  /// disposes the element mid-cycle, and the other watchers then call
+  /// markNeedsBuild on the now-defunct element (the zone catches the
+  /// assertion but it logs loudly). Post-frame defers the pop to a clean
+  /// boundary; the mounted check covers a second emit landing in between.
+  void _scheduleAutoClose() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.pop(context);
     });
   }
 

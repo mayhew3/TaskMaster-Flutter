@@ -55,18 +55,79 @@ BuiltList<TaskItem> taskItemsForSprintSelector(BuiltList<TaskItem> taskItems, Sp
   return taskItems.where((t) => sprint.sprintAssignments.where((sa) => sa.taskDocId == t.docId).isNotEmpty).toBuiltList();
 }
 
-/// Get tasks eligible for placing on a new sprint (not scheduled after end date, not completed)
+/// Tasks already assigned to [sprint] from which the planning popups generate
+/// future recurrence-iteration previews (TM-348). Excludes family-shared
+/// tasks: a legacy family-shared recurring task that was added to a personal
+/// sprint (before the TM-348 base-list filter) would otherwise still leak its
+/// next iteration into the picker via [TaskItem.createNextRecurPreview],
+/// which preserves `familyDocId`. The picker is personal-only, so we cut the
+/// chain here at the seed list rather than scattering the filter through
+/// every preview step.
+BuiltList<TaskItem> recurrencePreviewSeedTasksForSprint(
+    BuiltList<TaskItem> taskItems, Sprint sprint) {
+  return taskItemsForSprintSelector(taskItems, sprint)
+      .where((t) => t.familyDocId == null)
+      .toBuiltList();
+}
+
+/// Seed pool for the planning popups' recurrence-preview generator
+/// (`createTemporaryIterations`, TM-348). The picker's directly-displayed
+/// candidate rows come from a separate path inside the screens
+/// (`getBaseList`); this aggregator's only consumer is the preview-iteration
+/// pass, which scans this set for `recurrenceDocId`s and projects future
+/// iterations from each.
+///
+/// The set is composed of:
+///   1. Eligible base tasks — sourced from [taskItemsForPlacingOnNewSprint]
+///      (no active sprint) or [taskItemsForPlacingOnExistingSprint] (active
+///      sprint). These are the recurring tasks not yet in the sprint whose
+///      next iterations should appear as previews.
+///   2. Tasks already in the sprint — sourced from
+///      [recurrencePreviewSeedTasksForSprint] when there's an active sprint.
+///      These cover legacy assignments whose next iteration must still
+///      appear as a preview.
+///
+/// All three component selectors exclude family-shared tasks; this aggregator
+/// inherits that. **Do not bypass this aggregator at call sites** — the
+/// preview seed step is what stops legacy family-shared recurring tasks
+/// already in a sprint from leaking their next iteration into the picker.
+BuiltList<TaskItem> eligibleItemsForPlanningPicker({
+  required BuiltList<TaskItem> allTaskItems,
+  required Sprint? activeSprint,
+  required DateTime endDate,
+}) {
+  final builder = ListBuilder<TaskItem>();
+  if (activeSprint == null) {
+    builder.addAll(taskItemsForPlacingOnNewSprint(allTaskItems, endDate));
+  } else {
+    builder.addAll(taskItemsForPlacingOnExistingSprint(allTaskItems, activeSprint));
+    builder.addAll(recurrencePreviewSeedTasksForSprint(allTaskItems, activeSprint));
+  }
+  return builder.build();
+}
+
+/// Get tasks eligible for placing on a new sprint: personal (non-family-shared)
+/// tasks that are not scheduled after the sprint's end date and not completed.
+/// Family-shared tasks (TM-348) are excluded — sprints are personal queues
+/// and the family tab is the home for shared tasks.
 BuiltList<TaskItem> taskItemsForPlacingOnNewSprint(BuiltList<TaskItem> allTaskItems, DateTime endDate) {
   var taskItems = allTaskItems.toList();
-  var forScheduling = taskItems.where((taskItem) => !taskItem.isScheduledAfter(endDate) && !taskItem.isCompleted());
+  var forScheduling = taskItems.where((taskItem) =>
+      taskItem.familyDocId == null &&
+      !taskItem.isScheduledAfter(endDate) &&
+      !taskItem.isCompleted());
   return forScheduling.toBuiltList();
 }
 
-/// Get tasks eligible for placing on an existing sprint
+/// Get tasks eligible for placing on an existing sprint. Same family-shared
+/// exclusion as [taskItemsForPlacingOnNewSprint] (TM-348).
 BuiltList<TaskItem> taskItemsForPlacingOnExistingSprint(BuiltList<TaskItem> allTaskItems, Sprint sprint) {
   var taskItems = allTaskItems.toList();
   return taskItems.where((taskItem) {
-    return !taskItem.isScheduledAfter(sprint.endDate) && !taskItem.isCompleted() && !taskItemIsInSprint(taskItem, sprint);
+    return taskItem.familyDocId == null &&
+        !taskItem.isScheduledAfter(sprint.endDate) &&
+        !taskItem.isCompleted() &&
+        !taskItemIsInSprint(taskItem, sprint);
   }).toBuiltList();
 }
 

@@ -171,15 +171,16 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
 
   void createTemporaryIterations() {
     final allTasks = ref.read(tasksWithRecurrencesProvider).value ?? [];
-    List<TaskItem> eligibleItems = [];
-    eligibleItems.addAll(_getBaseList(allTasks));
-
-    var sprint = activeSprint;
-    if (sprint != null) {
-      eligibleItems.addAll(
-        taskItemsForSprintSelector(allTasks.toBuiltList(), sprint),
-      );
-    }
+    // TM-348: routed through eligibleItemsForPlanningPicker so the base set
+    // and recurrence-preview seed set always flow through the same
+    // family-exclusion filters. Do NOT split this back into two addAll
+    // calls — the aggregator is the single point that guarantees both
+    // sources are family-filtered.
+    final eligibleItems = eligibleItemsForPlanningPicker(
+      allTaskItems: allTasks.toBuiltList(),
+      activeSprint: activeSprint,
+      endDate: endDate,
+    );
 
     Set<String> recurIDs = HashSet();
 

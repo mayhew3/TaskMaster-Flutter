@@ -160,6 +160,108 @@ void main() {
       // Verify task name was updated
       expect(find.text('Updated Task Name'), findsOneWidget);
     });
+
+    testWidgets(
+      'Creating a new task does not trip a lifecycle assertion (TM-348)',
+      (tester) async {
+        // Same auto-close race as the edit case below, but for the new-task
+        // branch of _checkForAutoClose (separate Navigator.pop call site,
+        // same bug pattern). Without this companion test the new-task
+        // branch could regress silently.
+        await IntegrationTestHelper.pumpAppWithLiveFirestore(
+          tester,
+          firestore: fakeFirestore,
+          initialTasks: [],
+          initialSprints: [],
+        );
+        await tester.pumpAndSettle();
+
+        final tasksDestination = find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.byWidgetPredicate((widget) =>
+              widget is NavigationDestination &&
+              widget.label == 'Tasks'),
+        );
+        if (tasksDestination.evaluate().isNotEmpty) {
+          await tester.tap(tasksDestination);
+          await tester.pumpAndSettle();
+        }
+
+        await tester.tap(find.byType(FloatingActionButton));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(
+            find.byKey(const Key('task_name_field')), 'Brand New Task');
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byIcon(Icons.add));
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+
+        expect(tester.takeException(), isNull,
+            reason:
+                'Creating a new task must not trip any Flutter lifecycle assertions. Same race as the edit-task path — _checkForAutoClose was popping synchronously inside a provider listener.');
+      },
+    );
+
+    testWidgets(
+      'Saving an edited task does not trip a lifecycle assertion (TM-348)',
+      (tester) async {
+        // Regression test for the auto-close race fixed in TM-348:
+        // _checkForAutoClose was popping synchronously from inside a
+        // ref.listen callback, starting element disposal mid-notification-
+        // cycle. Other ref.watch listeners on the same provider then fired
+        // markNeedsBuild on the now-defunct element, tripping
+        // `_lifecycleState != _ElementLifecycle.defunct`. The existing
+        // navigation tests above only verify that the screen closes —
+        // they'd still pass with the synchronous pop. tester.takeException()
+        // catches the assertion specifically.
+        final now = DateTime.now().toUtc();
+
+        await IntegrationTestHelper.pumpAppWithLiveFirestore(
+          tester,
+          firestore: fakeFirestore,
+          initialTasks: [
+            TaskItem((b) => b
+              ..docId = 'task-1'
+              ..name = 'Original Task Name'
+              ..personDocId = 'test-person-123'
+              ..dateAdded = now
+              ..completionDate = null
+              ..retired = null
+              ..offCycle = false
+              ..pendingCompletion = false),
+          ],
+          initialSprints: [],
+        );
+        await tester.pumpAndSettle();
+
+        final tasksDestination = find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.byWidgetPredicate((widget) =>
+              widget is NavigationDestination && widget.label == 'Tasks'),
+        );
+        if (tasksDestination.evaluate().isNotEmpty) {
+          await tester.tap(tasksDestination);
+          await tester.pumpAndSettle();
+        }
+
+        await tester.tap(find.text('Original Task Name'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byIcon(Icons.edit));
+        await tester.pumpAndSettle();
+
+        final nameField = find.byKey(const Key('task_name_field'));
+        await tester.enterText(nameField, 'Updated Task Name');
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byIcon(Icons.check));
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+
+        expect(tester.takeException(), isNull,
+            reason:
+                'Saving a task must not trip any Flutter lifecycle assertions. The original bug was a markNeedsBuild on a defunct element after the screen popped synchronously from inside a provider listener.');
+      },
+    );
   });
 
   group('TaskAddEditScreen Validation Tests (TM-297)', () {
