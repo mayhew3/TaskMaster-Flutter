@@ -4,6 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/database/converters.dart';
 import '../../../core/providers/auth_providers.dart';
 import '../../../core/providers/database_provider.dart';
+import '../../../core/services/sync_service.dart';
 import '../../../models/area.dart';
 import '../services/area_service.dart';
 
@@ -33,33 +34,71 @@ Stream<List<Area>> areas(Ref ref) {
   );
 }
 
-/// Lazily seeds [defaultAreaNames] on first read if the user has zero areas.
+/// Lazily seeds [defaultAreaNames] on first read when the user has zero areas
+/// AND the first server snapshot has confirmed they really do have zero.
 /// Returns the same data as [areasProvider] but with the side effect of
-/// kicking off seeding in the background. Idempotent: only seeds once per
-/// session (the in-memory `_seedAttempted` flag is reset only by hot restart).
+/// kicking off seeding in the background.
+///
+/// Two race conditions to avoid:
+///   1. Existing user opens the picker before their server-side areas have
+///      synced down → local list is empty → without an initial-pull gate, we
+///      would seed defaults that then duplicate/conflict with their real
+///      areas a few hundred milliseconds later. Fix: await
+///      [SyncService.areasInitialPullComplete] before deciding to seed.
+///   2. Sign-out → sign-in as a different brand-new user during the same app
+///      session. Without per-user state, the "already attempted" flag stays
+///      true and the new user gets no defaults. Fix: track a Set of
+///      personDocIds we have seeded for, not a single bool.
 ///
 /// Use this from the picker / management screen entry points, not from
-/// background queries — those should use [areasProvider] directly to avoid
-/// triggering a seed on a transient empty state during initial pull.
+/// background queries.
 @Riverpod(keepAlive: true)
 class AreasWithDefaults extends _$AreasWithDefaults {
-  bool _seedAttempted = false;
+  final Set<String> _seededForPersonDocIds = {};
 
   @override
   AsyncValue<List<Area>> build() {
+    final personDocId = ref.watch(personDocIdProvider);
     final asyncAreas = ref.watch(areasProvider);
-    asyncAreas.whenData((areas) {
-      if (areas.isEmpty && !_seedAttempted) {
-        _seedAttempted = true;
-        _seedDefaults();
-      }
-    });
+
+    if (personDocId != null &&
+        !_seededForPersonDocIds.contains(personDocId)) {
+      asyncAreas.whenData((areas) {
+        if (areas.isEmpty) {
+          // Fire-and-forget: actual seeding waits for the server snapshot
+          // first, then re-checks emptiness before writing.
+          _maybeSeedAfterInitialPull(personDocId);
+        }
+      });
+    }
+
     return asyncAreas;
   }
 
-  Future<void> _seedDefaults() async {
-    final personDocId = ref.read(personDocIdProvider);
-    if (personDocId == null) return;
+  Future<void> _maybeSeedAfterInitialPull(String personDocId) async {
+    // Don't double-fire if a previous build already kicked this off for the
+    // same user.
+    if (_seededForPersonDocIds.contains(personDocId)) return;
+    _seededForPersonDocIds.add(personDocId);
+
+    // Wait for the first server snapshot of `areas` so we know an empty list
+    // really means empty (not just "not synced yet"). Time out so offline
+    // sessions still get defaults eventually.
+    await ref
+        .read(syncServiceProvider)
+        .areasInitialPullComplete
+        .timeout(const Duration(seconds: 5), onTimeout: () {});
+
+    // Bail if anything changed while we were waiting.
+    if (ref.read(personDocIdProvider) != personDocId) {
+      // User switched accounts mid-wait. Don't seed for them; the rebuild
+      // for the new user will re-trigger this path if needed.
+      _seededForPersonDocIds.remove(personDocId);
+      return;
+    }
+    final current = ref.read(areasProvider).valueOrNull ?? const <Area>[];
+    if (current.isNotEmpty) return; // Server confirmed they have areas.
+
     final service = ref.read(areaServiceProvider);
     for (final name in defaultAreaNames) {
       await service.createArea(name: name, personDocId: personDocId);

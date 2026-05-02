@@ -94,6 +94,7 @@ class SyncService {
   bool _recurrencesInitialReceived = false;
   bool _sprintsInitialReceived = false;
   bool _familyTasksInitialReceived = false;
+  bool _areasInitialReceived = false;
 
   // Completes once all 3 collections have delivered their first snapshot.
   // The UI awaits this to show a loading screen on cold start.
@@ -106,6 +107,17 @@ class SyncService {
   /// offline.
   Future<void> get initialPullComplete =>
       _initialPullCompleter?.future ?? Future.value();
+
+  // TM-345: areas are NOT part of `initialPullCompleter` (the main UI doesn't
+  // block on them) but consumers that DO need to know "have I heard from the
+  // server about areas yet?" can await this. Used by AreaService.createArea
+  // (so sortOrder isn't computed from a stale empty cache and collide with
+  // remote rows) and AreasWithDefaults (so default-seed only fires when the
+  // user truly has zero areas server-side).
+  Completer<void>? _areasInitialPullCompleter;
+
+  Future<void> get areasInitialPullComplete =>
+      _areasInitialPullCompleter?.future ?? Future.value();
 
   void _markInitialSnapshotReceived() {
     _initialSnapshotsReceived++;
@@ -144,6 +156,7 @@ class SyncService {
     _currentEmail = email;
     _initialPullCompleter = Completer<void>();
     _initialSnapshotsReceived = 0;
+    _areasInitialPullCompleter = Completer<void>();
     _startTime = DateTime.now();
     _syncLog('[SyncService] start() — personDocId=$personDocId email=$email');
 
@@ -238,11 +251,17 @@ class SyncService {
     _tasksInitialReceived = false;
     _recurrencesInitialReceived = false;
     _sprintsInitialReceived = false;
+    _areasInitialReceived = false;
     if (_initialPullCompleter != null && !_initialPullCompleter!.isCompleted) {
       _initialPullCompleter!.complete();
     }
     _initialPullCompleter = null;
     _initialSnapshotsReceived = 0;
+    if (_areasInitialPullCompleter != null &&
+        !_areasInitialPullCompleter!.isCompleted) {
+      _areasInitialPullCompleter!.complete();
+    }
+    _areasInitialPullCompleter = null;
   }
 
   /// Cancel all family-scoped listeners. Called when [_currentFamilyDocId]
@@ -558,10 +577,15 @@ class SyncService {
   /// out client-side; matching retired entries in Drift are deleted.
   ///
   /// Not counted toward [_initialPullCompleter] — areas are not blocking for
-  /// the main UI. The picker / management screen will render whatever Drift
-  /// has cached and update reactively when the snapshot arrives.
+  /// the main UI. But we DO complete a separate [_areasInitialPullCompleter]
+  /// on the first snapshot so AreaService.createArea (sortOrder) and
+  /// AreasWithDefaults (lazy-seed defaults) can wait for server confirmation
+  /// of the user's true area set before computing values from local cache.
   Future<void> _onAreasSnapshot(
       QuerySnapshot<Map<String, dynamic>> snapshot) async {
+    final isInitial = !_areasInitialReceived;
+    _areasInitialReceived = true;
+
     for (final change in snapshot.docChanges) {
       if (change.type == DocumentChangeType.removed) {
         await db.areaDao.deleteAreaFromRemote(change.doc.id);
@@ -589,12 +613,20 @@ class SyncService {
 
     // Reconcile every snapshot: prune synced rows whose docId is no longer
     // present (covers emulator reset / bulk server-side delete). Pending rows
-    // are preserved by deleteSyncedAreasNotIn.
+    // are preserved. Scope by personDocId so a sign-out/sign-in cycle with a
+    // different account does not purge the previous user's cached areas.
     final remoteIds = snapshot.docs
         .where((d) => d.data()['retired'] == null)
         .map((d) => d.id)
         .toSet();
-    await db.areaDao.deleteSyncedAreasNotIn(remoteIds);
+    await db.areaDao
+        .deleteSyncedAreasNotInForPerson(_currentPersonDocId!, remoteIds);
+
+    if (isInitial &&
+        _areasInitialPullCompleter != null &&
+        !_areasInitialPullCompleter!.isCompleted) {
+      _areasInitialPullCompleter!.complete();
+    }
   }
 
   // ── Family snapshot handlers (TM-335) ──────────────────────────────────────

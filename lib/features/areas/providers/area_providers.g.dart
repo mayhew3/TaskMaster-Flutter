@@ -26,16 +26,26 @@ final areasProvider = StreamProvider<List<Area>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AreasRef = StreamProviderRef<List<Area>>;
-String _$areasWithDefaultsHash() => r'e6cfcdfaf299ccf14f857229a12c4b618b8bd33b';
+String _$areasWithDefaultsHash() => r'5a6d4d725783fe9ec5cb2e899d4b7c5a69a10ceb';
 
-/// Lazily seeds [defaultAreaNames] on first read if the user has zero areas.
+/// Lazily seeds [defaultAreaNames] on first read when the user has zero areas
+/// AND the first server snapshot has confirmed they really do have zero.
 /// Returns the same data as [areasProvider] but with the side effect of
-/// kicking off seeding in the background. Idempotent: only seeds once per
-/// session (the in-memory `_seedAttempted` flag is reset only by hot restart).
+/// kicking off seeding in the background.
+///
+/// Two race conditions to avoid:
+///   1. Existing user opens the picker before their server-side areas have
+///      synced down → local list is empty → without an initial-pull gate, we
+///      would seed defaults that then duplicate/conflict with their real
+///      areas a few hundred milliseconds later. Fix: await
+///      [SyncService.areasInitialPullComplete] before deciding to seed.
+///   2. Sign-out → sign-in as a different brand-new user during the same app
+///      session. Without per-user state, the "already attempted" flag stays
+///      true and the new user gets no defaults. Fix: track a Set of
+///      personDocIds we have seeded for, not a single bool.
 ///
 /// Use this from the picker / management screen entry points, not from
-/// background queries — those should use [areasProvider] directly to avoid
-/// triggering a seed on a transient empty state during initial pull.
+/// background queries.
 ///
 /// Copied from [AreasWithDefaults].
 @ProviderFor(AreasWithDefaults)

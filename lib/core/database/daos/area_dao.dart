@@ -103,11 +103,18 @@ class AreaDao extends DatabaseAccessor<AppDatabase> with _$AreaDaoMixin {
         .get();
   }
 
-  /// Delete `synced` areas whose docId is NOT in [remoteIds]. Called after a
-  /// fresh remote pull so phantom rows are pruned. Pending rows are preserved.
-  Future<void> deleteSyncedAreasNotIn(Set<String> remoteIds) {
+  /// Delete `synced` areas for [personDocId] whose docId is NOT in
+  /// [remoteIds]. Called after a fresh remote pull so phantom rows are pruned.
+  /// Pending rows are preserved.
+  ///
+  /// Scoping by personDocId is critical: without it, a sign-out/sign-in cycle
+  /// with a different account would delete every cached area row that belongs
+  /// to other users (their docIds aren't in the new account's snapshot).
+  Future<void> deleteSyncedAreasNotInForPerson(
+      String personDocId, Set<String> remoteIds) {
     return (delete(areas)
           ..where((a) =>
+              a.personDocId.equals(personDocId) &
               a.syncState.equals(SyncState.synced.name) &
               a.docId.isNotIn(remoteIds.toList())))
         .go();

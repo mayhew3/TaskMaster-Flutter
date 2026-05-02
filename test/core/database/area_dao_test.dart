@@ -114,19 +114,39 @@ void main() {
     });
   });
 
-  group('AreaDao.deleteSyncedAreasNotIn', () {
+  group('AreaDao.deleteSyncedAreasNotInForPerson', () {
     test('removes synced rows absent from the snapshot, keeps pending', () async {
       await db.areaDao.upsertAreaFromRemote(makeArea(docId: 'a-1'));
       await db.areaDao.upsertAreaFromRemote(makeArea(docId: 'a-2'));
       await db.areaDao.insertAreaPending(makeArea(docId: 'a-3'));
 
-      await db.areaDao.deleteSyncedAreasNotIn({'a-1'});
+      await db.areaDao.deleteSyncedAreasNotInForPerson(personDocId, {'a-1'});
 
       final all = await (db.select(db.areas)).get();
       final ids = all.map((a) => a.docId).toSet();
       // a-1 stays (in remote set), a-2 deleted (synced + absent), a-3 stays
       // (pendingCreate, never touched).
       expect(ids, {'a-1', 'a-3'});
+    });
+
+    test('does NOT delete other users\' synced rows', () async {
+      // Person A has a-1 (in snapshot) and a-2 (NOT in snapshot).
+      await db.areaDao
+          .upsertAreaFromRemote(makeArea(docId: 'a-1', person: 'alice'));
+      await db.areaDao
+          .upsertAreaFromRemote(makeArea(docId: 'a-2', person: 'alice'));
+      // Person B has b-1 cached (also synced, not in Alice's snapshot).
+      await db.areaDao
+          .upsertAreaFromRemote(makeArea(docId: 'b-1', person: 'bob'));
+
+      // Reconcile Alice's snapshot — only a-1 remains.
+      await db.areaDao.deleteSyncedAreasNotInForPerson('alice', {'a-1'});
+
+      final all = await (db.select(db.areas)).get();
+      final ids = all.map((a) => a.docId).toSet();
+      // a-1 stays (in Alice's snapshot), a-2 deleted (Alice synced + absent),
+      // b-1 stays (different user, untouched).
+      expect(ids, {'a-1', 'b-1'});
     });
   });
 }

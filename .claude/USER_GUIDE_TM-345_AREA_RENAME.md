@@ -76,7 +76,7 @@ If you migrated from the old Project field, your areas list is pre-populated wit
 - **Renaming an area doesn't update tasks.** If you rename "Home" to "House", tasks tagged "Home" keep the string "Home" until you re-pick the area on each task. The picker just lists the new "House" option going forward.
 - **Deleting an area doesn't delete tasks tagged with it.** They keep their string value, just disappear from the picker. If you want to clean them up, edit each task and re-pick.
 - **No duplicate names.** The picker rejects an area name that already exists in your list (case-insensitive).
-- **One areas list per person.** Areas are per-user, not per-family. Family-shared tasks display whoever's area string they were tagged with at creation time.
+- **Areas are per-user, not per-family.** Each person has their own list. Family-shared tasks display whoever's area string they were tagged with at creation time.
 - **Sync is offline-first.** Adding/deleting an area works while offline; the change syncs when you're back online. Two devices reordering at the same time = last-write-wins (you might see a brief flicker).
 
 ---

@@ -30,6 +30,18 @@ class AreaService {
     required String name,
     required String personDocId,
   }) async {
+    // Wait for the first server snapshot of `areas` before deriving the next
+    // sortOrder. Areas are NOT part of the blocking initialPullCompleter, so
+    // without this guard, a fresh install creating an area before the first
+    // areas snapshot arrives could compute sortOrder=0 (or another value) that
+    // collides with a remote row syncing in moments later. Falls back to
+    // proceeding with local data after a short timeout so offline sessions
+    // aren't blocked indefinitely.
+    await ref
+        .read(syncServiceProvider)
+        .areasInitialPullComplete
+        .timeout(const Duration(seconds: 5), onTimeout: () {});
+
     final now = DateTime.now().toUtc();
     final docId = firestore.collection('areas').doc().id;
 

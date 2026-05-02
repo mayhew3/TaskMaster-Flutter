@@ -305,6 +305,15 @@ class MockSyncService extends _i1.Mock implements _i15.SyncService {
           as _i9.Future<void>);
 
   @override
+  _i9.Future<void> get areasInitialPullComplete =>
+      (super.noSuchMethod(
+            Invocation.getter(#areasInitialPullComplete),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
+
+  @override
   _i9.Future<void> start(String? personDocId, {String? email}) =>
       (super.noSuchMethod(
             Invocation.method(#start, [personDocId], {#email: email}),
