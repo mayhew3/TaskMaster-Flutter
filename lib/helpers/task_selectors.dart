@@ -55,18 +55,28 @@ BuiltList<TaskItem> taskItemsForSprintSelector(BuiltList<TaskItem> taskItems, Sp
   return taskItems.where((t) => sprint.sprintAssignments.where((sa) => sa.taskDocId == t.docId).isNotEmpty).toBuiltList();
 }
 
-/// Get tasks eligible for placing on a new sprint (not scheduled after end date, not completed)
+/// Get tasks eligible for placing on a new sprint: personal (non-family-shared)
+/// tasks that are not scheduled after the sprint's end date and not completed.
+/// Family-shared tasks (TM-348) are excluded — sprints are personal queues
+/// and the family tab is the home for shared tasks.
 BuiltList<TaskItem> taskItemsForPlacingOnNewSprint(BuiltList<TaskItem> allTaskItems, DateTime endDate) {
   var taskItems = allTaskItems.toList();
-  var forScheduling = taskItems.where((taskItem) => !taskItem.isScheduledAfter(endDate) && !taskItem.isCompleted());
+  var forScheduling = taskItems.where((taskItem) =>
+      taskItem.familyDocId == null &&
+      !taskItem.isScheduledAfter(endDate) &&
+      !taskItem.isCompleted());
   return forScheduling.toBuiltList();
 }
 
-/// Get tasks eligible for placing on an existing sprint
+/// Get tasks eligible for placing on an existing sprint. Same family-shared
+/// exclusion as [taskItemsForPlacingOnNewSprint] (TM-348).
 BuiltList<TaskItem> taskItemsForPlacingOnExistingSprint(BuiltList<TaskItem> allTaskItems, Sprint sprint) {
   var taskItems = allTaskItems.toList();
   return taskItems.where((taskItem) {
-    return !taskItem.isScheduledAfter(sprint.endDate) && !taskItem.isCompleted() && !taskItemIsInSprint(taskItem, sprint);
+    return taskItem.familyDocId == null &&
+        !taskItem.isScheduledAfter(sprint.endDate) &&
+        !taskItem.isCompleted() &&
+        !taskItemIsInSprint(taskItem, sprint);
   }).toBuiltList();
 }
 
