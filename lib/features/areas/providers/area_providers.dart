@@ -101,7 +101,14 @@ class AreasWithDefaults extends _$AreasWithDefaults {
 
     final service = ref.read(areaServiceProvider);
     for (final name in defaultAreaNames) {
-      await service.createArea(name: name, personDocId: personDocId);
+      // Pass skipInitialPullWait: true — we've already awaited the gate
+      // above. Without this, an offline batch hits the 5s timeout 5 times
+      // in a row (~25s before all defaults appear).
+      await service.createArea(
+        name: name,
+        personDocId: personDocId,
+        skipInitialPullWait: true,
+      );
     }
   }
 }

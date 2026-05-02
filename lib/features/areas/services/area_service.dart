@@ -40,9 +40,16 @@ class AreaService {
 
   /// Create a new area. Computes the next sortOrder as `max(existing) + 1`
   /// so new areas land at the bottom of the user's list.
+  ///
+  /// [skipInitialPullWait] is for batch callers (like the default-seeding
+  /// loop) that have already awaited [SyncService.areasInitialPullComplete]
+  /// once at the call site. Without this, an offline batch of N creates
+  /// would hit the 5s timeout N times in a row (~25s for the 5 defaults).
+  /// Defaults to false; safe to omit for normal user-driven creates.
   Future<Area> createArea({
     required String name,
     required String personDocId,
+    bool skipInitialPullWait = false,
   }) async {
     // Wait for the first server snapshot of `areas` before deriving the next
     // sortOrder. Areas are NOT part of the blocking initialPullCompleter, so
@@ -51,10 +58,12 @@ class AreaService {
     // collides with a remote row syncing in moments later. Falls back to
     // proceeding with local data after a short timeout so offline sessions
     // aren't blocked indefinitely.
-    await ref
-        .read(syncServiceProvider)
-        .areasInitialPullComplete
-        .timeout(const Duration(seconds: 5), onTimeout: () {});
+    if (!skipInitialPullWait) {
+      await ref
+          .read(syncServiceProvider)
+          .areasInitialPullComplete
+          .timeout(const Duration(seconds: 5), onTimeout: () {});
+    }
 
     final now = DateTime.now().toUtc();
     final docId = firestore.collection('areas').doc().id;
