@@ -148,8 +148,11 @@ class _AreaPickerState extends ConsumerState<AreaPicker> {
           await service.createArea(name: newName, personDocId: personDocId);
       // Route through didChange so the FormField's internal state updates,
       // Form.onChanged fires on the parent, and the FAB's hasChanges() check
-      // sees the blueprint.area mutation. didChange triggers our own onChanged
-      // again with the new value, which handles setState + valueSetter.
+      // sees the blueprint.area mutation. DropdownButtonFormField's
+      // didChange override DOES re-fire this widget's onChanged with the
+      // new value (see _DropdownButtonFormFieldState.didChange in the
+      // Flutter framework), which in turn handles setState + valueSetter.
+      // Verified by the widget test in test/features/areas/area_picker_test.dart.
       _formFieldKey.currentState?.didChange(created.name);
     } on DuplicateAreaNameException catch (e) {
       // The dialog validator catches dups in the in-memory list; this catches
