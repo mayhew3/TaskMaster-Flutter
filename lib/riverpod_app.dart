@@ -106,24 +106,63 @@ class _RiverpodTaskMaestroAppState extends ConsumerState<RiverpodTaskMaestroApp>
   }
 }
 
-/// Splash screen shown during auth initialization
+/// Splash screen shown during auth initialization and initial sync.
+///
+/// Displays the full TaskMaestro splash image full-bleed (matching the OS-level
+/// splash on iOS / Android pre-12 / web). On Android 12+, the OS splash is
+/// limited to a centered icon by Google's Splash Screen API, so this widget
+/// provides the full wordmark splash once Flutter takes over.
 class _SplashScreen extends StatelessWidget {
   const _SplashScreen({required this.message});
 
   final String message;
 
+  // Sampled dominant color of the icon/splash; matches the native splash bg
+  // (windowSplashScreenBackground on Android, LaunchBackground on iOS) so
+  // there is no visible seam at handoff.
+  static const Color _splashBackground = Color(0xFF2B72C2);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 24),
-            Text(message, style: Theme.of(context).textTheme.titleMedium),
-          ],
-        ),
+      backgroundColor: _splashBackground,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Center(
+            child: Image.asset(
+              'assets/launcher/TaskMaestro_Splash.png',
+              fit: BoxFit.contain,
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 64,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation(Colors.white),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

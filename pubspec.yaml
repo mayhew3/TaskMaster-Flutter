@@ -111,7 +111,11 @@ flutter_launcher_icons:
 flutter_native_splash:
   background_image: "assets/launcher/TaskMaestro_Splash.png"
   android_12:
-    image: "assets/launcher/TaskMaestro_Logo.png"
+    # Padded version of the logo (960x960 canvas, icon at 600x600 centered)
+    # so the icon fits within the Android 12+ Splash Screen API safe-zone
+    # circle (~640px) without being clipped at the edges.
+    image: "assets/launcher/TaskMaestro_Logo_AndroidSplash.png"
+    color: "#2B72C2"
     icon_background_color: "#2B72C2"
 
 # For information on the generic Dart part of this file, see the
@@ -127,6 +131,7 @@ flutter:
 
   assets:
     - assets/config/
+    - assets/launcher/TaskMaestro_Splash.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
