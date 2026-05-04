@@ -1,6 +1,6 @@
 {
-    "name": "taskmaster",
-    "short_name": "taskmaster",
+    "name": "taskmaestro",
+    "short_name": "taskmaestro",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

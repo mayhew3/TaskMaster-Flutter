@@ -4,16 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:taskmaster/core/database/app_database.dart'
+import 'package:taskmaestro/core/database/app_database.dart'
     hide Sprint, SprintAssignment, Task, TaskRecurrence;
-import 'package:taskmaster/core/database/tables.dart';
-import 'package:taskmaster/core/providers/database_provider.dart';
-import 'package:taskmaster/core/providers/firebase_providers.dart';
-import 'package:taskmaster/core/services/analytics_service.dart';
-import 'package:taskmaster/core/services/sync_service.dart';
-import 'package:taskmaster/features/sprints/services/sprint_service.dart';
-import 'package:taskmaster/models/sprint_blueprint.dart';
-import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaestro/core/database/tables.dart';
+import 'package:taskmaestro/core/providers/database_provider.dart';
+import 'package:taskmaestro/core/providers/firebase_providers.dart';
+import 'package:taskmaestro/core/services/analytics_service.dart';
+import 'package:taskmaestro/core/services/sync_service.dart';
+import 'package:taskmaestro/features/sprints/services/sprint_service.dart';
+import 'package:taskmaestro/models/sprint_blueprint.dart';
+import 'package:taskmaestro/models/task_item.dart';
 
 import 'sprint_creation_bug_test.mocks.dart';
 
@@ -34,8 +34,8 @@ import 'sprint_creation_bug_test.mocks.dart';
 /// tasks, sprint, assignments) are created in a single batch.commit() call, triggering
 /// only ONE snapshot update instead of N updates.
 
-import 'package:taskmaster/models/task_item_recur_preview.dart';
-import 'package:taskmaster/models/task_recurrence_blueprint.dart';
+import 'package:taskmaestro/models/task_item_recur_preview.dart';
+import 'package:taskmaestro/models/task_recurrence_blueprint.dart';
 
 void main() {
   group('TM-325: Sprint Creation Bug Fixes', () {

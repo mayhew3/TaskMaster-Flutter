@@ -1,8 +1,8 @@
 
-import 'package:taskmaster/models/sprint.dart';
-import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/models/task_recurrence.dart';
-import 'package:taskmaster/models/serializers.dart';
+import 'package:taskmaestro/models/sprint.dart';
+import 'package:taskmaestro/models/task_item.dart';
+import 'package:taskmaestro/models/task_recurrence.dart';
+import 'package:taskmaestro/models/serializers.dart';
 
 import 'mock_data_builder.dart';
 import 'mock_recurrence_builder.dart';

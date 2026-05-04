@@ -1,7 +1,7 @@
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:taskmaster/timezone_helper.dart';
+import 'package:taskmaestro/timezone_helper.dart';
 
 final longDateFormat = DateFormat.yMMMMd().add_jm();
 

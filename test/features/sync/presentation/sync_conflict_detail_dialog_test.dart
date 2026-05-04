@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/features/sync/presentation/sync_conflict_detail_dialog.dart';
-import 'package:taskmaster/features/sync/providers/sync_conflict_providers.dart';
-import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaestro/features/sync/presentation/sync_conflict_detail_dialog.dart';
+import 'package:taskmaestro/features/sync/providers/sync_conflict_providers.dart';
+import 'package:taskmaestro/models/task_item.dart';
 
 TaskItem _task({required String name, String? description}) {
   return TaskItem((b) => b

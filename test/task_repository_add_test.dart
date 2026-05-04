@@ -1,10 +1,10 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/models/anchor_date.dart';
-import 'package:taskmaster/models/task_date_type.dart';
-import 'package:taskmaster/models/task_item_blueprint.dart';
-import 'package:taskmaster/models/task_recurrence_blueprint.dart';
-import 'package:taskmaster/task_repository.dart';
+import 'package:taskmaestro/models/anchor_date.dart';
+import 'package:taskmaestro/models/task_date_type.dart';
+import 'package:taskmaestro/models/task_item_blueprint.dart';
+import 'package:taskmaestro/models/task_recurrence_blueprint.dart';
+import 'package:taskmaestro/task_repository.dart';
 
 /// TM-328: Tests for addTask recurrence document sync
 ///

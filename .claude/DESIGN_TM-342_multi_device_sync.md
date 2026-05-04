@@ -105,7 +105,7 @@ The pattern mirrors TM-335's `PendingInvitationBanner`:
 
 ### Race window
 
-Between the pre-push `docRef.get()` (T1) and the `docRef.set()` (T2), another device could write. The window is on the order of milliseconds (one Firestore round-trip per pending row). For TaskMaster's usage profile (a few writes per minute, infrequent multi-device editing), this is acceptable. A Firestore transaction would close the window completely but adds complexity for marginal benefit. Deferred for follow-up if real-world conflicts surface.
+Between the pre-push `docRef.get()` (T1) and the `docRef.set()` (T2), another device could write. The window is on the order of milliseconds (one Firestore round-trip per pending row). For TaskMaestro's usage profile (a few writes per minute, infrequent multi-device editing), this is acceptable. A Firestore transaction would close the window completely but adds complexity for marginal benefit. Deferred for follow-up if real-world conflicts surface.
 
 ---
 

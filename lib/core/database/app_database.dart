@@ -87,6 +87,6 @@ class AppDatabase extends _$AppDatabase {
   );
 
   static QueryExecutor _openConnection() {
-    return driftDatabase(name: 'taskmaster');
+    return driftDatabase(name: 'taskmaestro');
   }
 }

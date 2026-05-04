@@ -1,7 +1,7 @@
-import 'package:taskmaster/models/anchor_date.dart';
-import 'package:taskmaster/models/task_date_type.dart';
-import 'package:taskmaster/models/task_recurrence.dart';
-import 'package:taskmaster/models/serializers.dart';
+import 'package:taskmaestro/models/anchor_date.dart';
+import 'package:taskmaestro/models/task_date_type.dart';
+import 'package:taskmaestro/models/task_recurrence.dart';
+import 'package:taskmaestro/models/serializers.dart';
 
 import 'mock_data_builder.dart';
 

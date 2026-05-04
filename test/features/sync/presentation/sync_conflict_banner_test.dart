@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/features/sync/presentation/sync_conflict_banner.dart';
-import 'package:taskmaster/features/sync/providers/sync_conflict_providers.dart';
+import 'package:taskmaestro/features/sync/presentation/sync_conflict_banner.dart';
+import 'package:taskmaestro/features/sync/providers/sync_conflict_providers.dart';
 
 void main() {
   Widget _harness(int count) {

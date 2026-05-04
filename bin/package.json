@@ -1,7 +1,7 @@
 {
-  "name": "taskmaster-cli-tools",
+  "name": "taskmaestro-cli-tools",
   "version": "1.0.0",
-  "description": "CLI tools for TaskMaster Firestore maintenance",
+  "description": "CLI tools for TaskMaestro Firestore maintenance",
   "scripts": {
     "repair": "node firestore-repair.js",
     "export": "node firestore-export.js",

@@ -1,4 +1,4 @@
-# TaskMaster Test Coverage Analysis
+# TaskMaestro Test Coverage Analysis
 
 **Generated:** 2025-10-13
 **Last Updated:** 2025-10-14 (Sprint Test Refactor Complete!)

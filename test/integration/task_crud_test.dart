@@ -1,7 +1,7 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/features/tasks/presentation/task_list_screen.dart';
+import 'package:taskmaestro/models/task_item.dart';
+import 'package:taskmaestro/features/tasks/presentation/task_list_screen.dart';
 
 import 'integration_test_helper.dart';
 

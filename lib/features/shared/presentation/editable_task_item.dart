@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:taskmaster/keys.dart';
-import 'package:taskmaster/models/task_colors.dart';
-import 'package:taskmaster/models/task_date_type.dart';
+import 'package:taskmaestro/keys.dart';
+import 'package:taskmaestro/models/task_colors.dart';
+import 'package:taskmaestro/models/task_date_type.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../../../models/sprint.dart';
@@ -252,7 +252,7 @@ class EditableTaskItemWidget extends StatelessWidget {
   Widget build(BuildContext context) {
 
     return Dismissible(
-      key: TaskMasterKeys.taskItem(getKey()),
+      key: TaskMaestroKeys.taskItem(getKey()),
       confirmDismiss: onDismissed,
       child: GestureDetector(
         onTap: onTap,
@@ -264,7 +264,7 @@ class EditableTaskItemWidget extends StatelessWidget {
           }
         },
         child: Card(
-          key: TaskMasterKeys.editableTaskItemCard(getKey()),
+          key: TaskMaestroKeys.editableTaskItemCard(getKey()),
           shadowColor: _getShadowColor(),
           color: getBackgroundColor(),
           shape: _getBorder(),
@@ -293,7 +293,7 @@ class EditableTaskItemWidget extends StatelessWidget {
                           style: _getHeaderStyle(),
                         ),
                         Visibility(
-                          key: TaskMasterKeys.editableTaskItemCardAreaField(getKey()),
+                          key: TaskMaestroKeys.editableTaskItemCardAreaField(getKey()),
                           visible: taskItem.area != null,
                           child: Text(
                             taskItem.area == null ? '' : taskItem.area!,
@@ -307,7 +307,7 @@ class EditableTaskItemWidget extends StatelessWidget {
                 ),
                 _getDateWarnings(),
                 Visibility(
-                  key: TaskMasterKeys.editableTaskItemCardSprintIcon(getKey()),
+                  key: TaskMaestroKeys.editableTaskItemCardSprintIcon(getKey()),
                   visible: highlightSprint,
                   child: Icon(Icons.assignment, color: TaskColors.sprintColor),
                 ),

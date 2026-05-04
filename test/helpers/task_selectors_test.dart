@@ -1,9 +1,9 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/helpers/task_selectors.dart';
-import 'package:taskmaster/models/sprint.dart';
-import 'package:taskmaster/models/sprint_assignment.dart';
-import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaestro/helpers/task_selectors.dart';
+import 'package:taskmaestro/models/sprint.dart';
+import 'package:taskmaestro/models/sprint_assignment.dart';
+import 'package:taskmaestro/models/task_item.dart';
 
 void main() {
   const personDocId = 'person-1';

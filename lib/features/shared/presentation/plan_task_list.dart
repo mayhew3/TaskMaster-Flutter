@@ -4,10 +4,10 @@ import 'package:built_collection/built_collection.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:taskmaster/helpers/recurrence_helper.dart';
-import 'package:taskmaster/models/sprint_blueprint.dart';
-import 'package:taskmaster/models/sprint_display_task.dart';
-import 'package:taskmaster/helpers/task_selectors.dart';
+import 'package:taskmaestro/helpers/recurrence_helper.dart';
+import 'package:taskmaestro/models/sprint_blueprint.dart';
+import 'package:taskmaestro/models/sprint_display_task.dart';
+import 'package:taskmaestro/helpers/task_selectors.dart';
 
 import '../../../date_util.dart';
 import '../../../models/sprint.dart';

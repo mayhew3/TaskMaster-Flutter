@@ -6,16 +6,16 @@ import 'package:built_collection/built_collection.dart';
 import 'package:built_value/serializer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:logging/logging.dart';
-import 'package:taskmaster/models/serializers.dart';
-import 'package:taskmaster/models/snooze_blueprint.dart';
-import 'package:taskmaster/models/sprint.dart';
-import 'package:taskmaster/models/sprint_assignment.dart';
-import 'package:taskmaster/models/sprint_blueprint.dart';
-import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/models/task_item_blueprint.dart';
-import 'package:taskmaster/models/task_item_recur_preview.dart';
-import 'package:taskmaster/models/task_recurrence.dart';
-import 'package:taskmaster/models/task_recurrence_blueprint.dart';
+import 'package:taskmaestro/models/serializers.dart';
+import 'package:taskmaestro/models/snooze_blueprint.dart';
+import 'package:taskmaestro/models/sprint.dart';
+import 'package:taskmaestro/models/sprint_assignment.dart';
+import 'package:taskmaestro/models/sprint_blueprint.dart';
+import 'package:taskmaestro/models/task_item.dart';
+import 'package:taskmaestro/models/task_item_blueprint.dart';
+import 'package:taskmaestro/models/task_item_recur_preview.dart';
+import 'package:taskmaestro/models/task_recurrence.dart';
+import 'package:taskmaestro/models/task_recurrence_blueprint.dart';
 
 class TaskRepository {
   final FirebaseFirestore firestore;

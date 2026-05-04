@@ -35,7 +35,7 @@ Step-by-step guide to complete Phase 0 (foundation setup) in ~30 minutes. Includ
 **Start here if:** You want to quickly set up Riverpod infrastructure (after testing complete).
 
 ### PATTERNS.md
-Common Riverpod patterns, best practices, and code examples specific to TaskMaster. Includes provider types, testing patterns, and Redux → Riverpod conversion examples.
+Common Riverpod patterns, best practices, and code examples specific to TaskMaestro. Includes provider types, testing patterns, and Redux → Riverpod conversion examples.
 
 **Start here if:** You're writing new Riverpod code or converting existing Redux code.
 

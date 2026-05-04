@@ -1,9 +1,9 @@
 import 'package:meta/meta.dart'; // Make sure this import is present
 import 'package:jiffy/jiffy.dart';
-import 'package:taskmaster/models/anchor_date.dart';
-import 'package:taskmaster/models/models.dart';
-import 'package:taskmaster/models/task_item_recur_preview.dart';
-import 'package:taskmaster/task_repository.dart';
+import 'package:taskmaestro/models/anchor_date.dart';
+import 'package:taskmaestro/models/models.dart';
+import 'package:taskmaestro/models/task_item_recur_preview.dart';
+import 'package:taskmaestro/task_repository.dart';
 
 import '../date_util.dart';
 import '../models/sprint_display_task.dart';

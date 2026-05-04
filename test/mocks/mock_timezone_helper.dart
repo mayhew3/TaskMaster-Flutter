@@ -1,5 +1,5 @@
 import 'package:mockito/mockito.dart';
-import 'package:taskmaster/timezone_helper.dart';
+import 'package:taskmaestro/timezone_helper.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:intl/intl.dart';

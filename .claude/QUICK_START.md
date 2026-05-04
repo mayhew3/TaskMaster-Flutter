@@ -133,10 +133,10 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // WRAP TaskMasterApp with ProviderScope
+  // WRAP TaskMaestroApp with ProviderScope
   runApp(
     ProviderScope(
-      child: TaskMasterApp(),
+      child: TaskMaestroApp(),
     ),
   );
 }

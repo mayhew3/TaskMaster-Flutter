@@ -1,8 +1,8 @@
-# TaskMaster Scribbles Synthesis
+# TaskMaestro Scribbles Synthesis
 
 **Source documents:**
-- `E:\OneDrive\Projects\TaskMaster\TaskMaster Scribbles.pdf` (original design notes)
-- `E:\OneDrive\Projects\TaskMaster\40 Hour Teacher Work Week\Highlights from the 40HTW.pdf`
+- `E:\OneDrive\Projects\TaskMaestro\TaskMaestro Scribbles.pdf` (original design notes)
+- `E:\OneDrive\Projects\TaskMaestro\40 Hour Teacher Work Week\Highlights from the 40HTW.pdf`
 
 **Date synthesized:** 2026-04-29
 
@@ -238,7 +238,7 @@ A pluggable widget-based home screen.
 - Open API for extensibility
 
 **Design notes:**
-- The multi-app vision may have narrowed to just TaskMaster, but the dashboard concept is still valuable
+- The multi-app vision may have narrowed to just TaskMaestro, but the dashboard concept is still valuable
 - Home screen with widgets: today's tasks, goal progress, sprint status, backlog health, streak/points
 - This becomes the natural landing page once there's enough data to surface (goals, planning sessions, completion stats)
 

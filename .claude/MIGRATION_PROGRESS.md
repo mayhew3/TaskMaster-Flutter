@@ -60,7 +60,7 @@ lib/
 - ✅ `auth_providers.dart` - authStateChanges, currentUser, personDocId
 
 **App Configuration:**
-- ✅ Wrapped `TaskMasterApp` with `ProviderScope`
+- ✅ Wrapped `TaskMaestroApp` with `ProviderScope`
 - ✅ Code generation working (`build_runner`)
 
 **Testing:**
@@ -1000,7 +1000,7 @@ A comprehensive audit of the codebase confirmed that **Redux is no longer execut
 
 **Default Mode (no feature flags):**
 1. `main.dart` checks feature flags → all default to `true` (Riverpod)
-2. Loads `RiverpodTaskMasterApp` (never `TaskMasterApp`)
+2. Loads `RiverpodTaskMaestroApp` (never `TaskMaestroApp`)
 3. Redux Store is **never created**
 4. All state comes from Riverpod providers
 
@@ -1126,7 +1126,7 @@ During post-migration review (TM-281), user identified that **Redux was still ha
 - ✅ Created `AuthService` class for core auth logic (sign-in, sign-out, Firebase integration)
 - ✅ Created `AuthState` class with proper state machine (6 states: initial, authenticated, unauthenticated, authenticating, personNotFound, connectionError)
 - ✅ Created `Auth` notifier with full sign-in flow handling
-- ✅ Created `RiverpodTaskMasterApp` widget with auth-aware screens
+- ✅ Created `RiverpodTaskMaestroApp` widget with auth-aware screens
 - ✅ Added `useRiverpodForAuth` feature flag (defaults to true)
 
 **Key Improvements:**
@@ -1139,7 +1139,7 @@ During post-migration review (TM-281), user identified that **Redux was still ha
 
 **New Files:**
 - `lib/core/services/auth_service.dart` (348 lines) - AuthService, AuthState, AuthStatus enum, Auth notifier
-- `lib/riverpod_app.dart` (276 lines) - RiverpodTaskMasterApp with auth screens
+- `lib/riverpod_app.dart` (276 lines) - RiverpodTaskMaestroApp with auth screens
 
 ### Files Modified
 
@@ -1195,7 +1195,7 @@ enum AuthStatus {
 
 1. `TM-285: Migrate auth flow from Redux to Riverpod`
    - Created AuthService and Auth notifier
-   - Created RiverpodTaskMasterApp with auth screens
+   - Created RiverpodTaskMaestroApp with auth screens
    - Made personDocIdProvider synchronous
    - Updated all downstream providers
    - Added feature flag for safe rollback

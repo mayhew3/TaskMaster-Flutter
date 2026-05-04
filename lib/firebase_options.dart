@@ -52,23 +52,23 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyCE2vhgb3xnwiicanE1LtA8QOFBJCUyT20',
-    appId: '1:689103212710:android:94b4812f1f81b128',
+    appId: '1:689103212710:android:e20a9255e4e6c1a376e467',
     messagingSenderId: '689103212710',
     projectId: 'm3-taskmaster-3000',
     databaseURL: 'https://m3-taskmaster-3000.firebaseio.com',
-    storageBucket: 'm3-taskmaster-3000.appspot.com',
+    storageBucket: 'm3-taskmaster-3000.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBQQGWOrNNC7Yxoua058JLGGI4TMRxc-5U',
-    appId: '1:689103212710:ios:7d0d83f33a916d2976e467',
+    appId: '1:689103212710:ios:6d8978af99e1595a76e467',
     messagingSenderId: '689103212710',
     projectId: 'm3-taskmaster-3000',
     databaseURL: 'https://m3-taskmaster-3000.firebaseio.com',
-    storageBucket: 'm3-taskmaster-3000.appspot.com',
+    storageBucket: 'm3-taskmaster-3000.firebasestorage.app',
     androidClientId: '689103212710-cqhurt503qhuot94s0cd7tdvkle5dd2k.apps.googleusercontent.com',
-    iosClientId: '689103212710-h2qjrs3i1nioiqt71sl9v0o9jm9cmfv6.apps.googleusercontent.com',
-    iosBundleId: 'com.mayhew3.taskmaster.flutter',
+    iosClientId: '689103212710-i0cb9i11celjlj1m2tvgdorca6qoq6q7.apps.googleusercontent.com',
+    iosBundleId: 'com.mayhew3.taskmaestro.flutter',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(

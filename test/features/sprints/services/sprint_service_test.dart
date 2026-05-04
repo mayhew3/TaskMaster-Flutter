@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/features/sprints/services/sprint_service.dart';
-import 'package:taskmaster/models/sprint_blueprint.dart';
+import 'package:taskmaestro/features/sprints/services/sprint_service.dart';
+import 'package:taskmaestro/models/sprint_blueprint.dart';
 
 void main() {
   group('SprintService UTC Conversion Tests', () {

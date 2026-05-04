@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:taskmaster/models/task_colors.dart';
-import 'package:taskmaster/models/task_date_type.dart';
-import 'package:taskmaster/models/sprint.dart';
-import 'package:taskmaster/models/sprint_display_task.dart';
-import 'package:taskmaster/models/check_state.dart';
+import 'package:taskmaestro/models/task_colors.dart';
+import 'package:taskmaestro/models/task_date_type.dart';
+import 'package:taskmaestro/models/sprint.dart';
+import 'package:taskmaestro/models/sprint_display_task.dart';
+import 'package:taskmaestro/models/check_state.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import 'delayed_checkbox.dart';

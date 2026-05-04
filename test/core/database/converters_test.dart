@@ -1,13 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/core/database/converters.dart';
-import 'package:taskmaster/models/anchor_date.dart';
-import 'package:taskmaster/models/sprint.dart';
-import 'package:taskmaster/models/sprint_assignment.dart';
-import 'package:taskmaster/models/task_date_type.dart';
-import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/models/task_item_blueprint.dart';
-import 'package:taskmaster/models/task_recurrence.dart';
-import 'package:taskmaster/models/task_recurrence_blueprint.dart';
+import 'package:taskmaestro/core/database/converters.dart';
+import 'package:taskmaestro/models/anchor_date.dart';
+import 'package:taskmaestro/models/sprint.dart';
+import 'package:taskmaestro/models/sprint_assignment.dart';
+import 'package:taskmaestro/models/task_date_type.dart';
+import 'package:taskmaestro/models/task_item.dart';
+import 'package:taskmaestro/models/task_item_blueprint.dart';
+import 'package:taskmaestro/models/task_recurrence.dart';
+import 'package:taskmaestro/models/task_recurrence_blueprint.dart';
 
 void main() {
   final now = DateTime(2025, 6, 15, 12, 0, 0, 0, 0);

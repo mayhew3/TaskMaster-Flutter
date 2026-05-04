@@ -14,7 +14,7 @@ class AppBottomNav extends ConsumerWidget {
     final activeIndex = ref.watch(activeTabIndexProvider);
 
     return NavigationBar(
-      key: TaskMasterKeys.tabs,
+      key: TaskMaestroKeys.tabs,
       selectedIndex: activeIndex,
       onDestinationSelected: (index) {
         ref.read(activeTabIndexProvider.notifier).setTab(index);

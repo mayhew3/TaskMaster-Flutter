@@ -1,12 +1,12 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/core/providers/auth_providers.dart';
-import 'package:taskmaster/core/providers/firebase_providers.dart';
-import 'package:taskmaster/features/sprints/providers/sprint_providers.dart';
-import 'package:taskmaster/features/tasks/providers/task_filter_providers.dart';
-import 'package:taskmaster/features/tasks/providers/task_providers.dart';
-import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaestro/core/providers/auth_providers.dart';
+import 'package:taskmaestro/core/providers/firebase_providers.dart';
+import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
+import 'package:taskmaestro/features/tasks/providers/task_filter_providers.dart';
+import 'package:taskmaestro/features/tasks/providers/task_providers.dart';
+import 'package:taskmaestro/models/task_item.dart';
 
 void main() {
   const testPersonDocId = 'test-person-123';

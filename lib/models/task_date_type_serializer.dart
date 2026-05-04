@@ -1,6 +1,6 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/serializer.dart';
-import 'package:taskmaster/models/task_date_type.dart';
+import 'package:taskmaestro/models/task_date_type.dart';
 
 class TaskDateTypeSerializer implements PrimitiveSerializer<TaskDateType> {
 

@@ -154,4 +154,4 @@ These were planned for this PR but deferred — the unit-test coverage above + m
 
 ## Future work
 
-The TaskMaster roadmap distinguishes **Areas** (ongoing categories of responsibility — "Home", "Finances") from **Projects** (finite, goal-oriented groupings — "Replace the deck", "Plan trip to Spain"). This PR establishes the Area concept; a future ticket will introduce a separate `Project` collection that lives *inside* an Area, with a finite/done state.
+The TaskMaestro roadmap distinguishes **Areas** (ongoing categories of responsibility — "Home", "Finances") from **Projects** (finite, goal-oriented groupings — "Replace the deck", "Plan trip to Spain"). This PR establishes the Area concept; a future ticket will introduce a separate `Project` collection that lives *inside* an Area, with a finite/done state.

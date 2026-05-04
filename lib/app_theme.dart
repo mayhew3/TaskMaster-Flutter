@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'models/task_colors.dart';
 
-ThemeData taskMasterTheme = ThemeData(
+ThemeData taskMaestroTheme = ThemeData(
   useMaterial3: true,
   colorScheme: ColorScheme.fromSeed(
     brightness: Brightness.dark,

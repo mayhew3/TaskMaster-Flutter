@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-class TaskMasterKeys {
+class TaskMaestroKeys {
   // Home Screens
   static final homeScreen = const Key('__homeScreen__');
   static const snackbar = Key('__snackbar__');

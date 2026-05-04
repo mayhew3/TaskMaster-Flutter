@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/features/shared/presentation/delayed_checkbox.dart';
-import 'package:taskmaster/models/check_state.dart';
-import 'package:taskmaster/models/task_colors.dart';
+import 'package:taskmaestro/features/shared/presentation/delayed_checkbox.dart';
+import 'package:taskmaestro/models/check_state.dart';
+import 'package:taskmaestro/models/task_colors.dart';
 
 void main() {
   group('DelayedCheckbox', () {

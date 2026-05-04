@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:taskmaster/features/sprints/presentation/new_sprint_screen.dart';
-import 'package:taskmaster/features/sprints/presentation/sprint_task_items_screen.dart';
-import 'package:taskmaster/features/sprints/providers/sprint_providers.dart';
+import 'package:taskmaestro/features/sprints/presentation/new_sprint_screen.dart';
+import 'package:taskmaestro/features/sprints/presentation/sprint_task_items_screen.dart';
+import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
 
 class PlanningHome extends ConsumerWidget {
   const PlanningHome({super.key});

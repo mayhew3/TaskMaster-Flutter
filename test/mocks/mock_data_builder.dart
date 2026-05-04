@@ -1,9 +1,9 @@
 
-import 'package:taskmaster/date_util.dart';
-import 'package:taskmaster/models/anchor_date.dart';
-import 'package:taskmaster/models/task_date_holder.dart';
-import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/models/task_item_blueprint.dart';
+import 'package:taskmaestro/date_util.dart';
+import 'package:taskmaestro/models/anchor_date.dart';
+import 'package:taskmaestro/models/task_date_holder.dart';
+import 'package:taskmaestro/models/task_item.dart';
+import 'package:taskmaestro/models/task_item_blueprint.dart';
 
 import 'mock_recurrence_builder.dart';
 

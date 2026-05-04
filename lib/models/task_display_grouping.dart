@@ -1,5 +1,5 @@
-import 'package:taskmaster/models/sprint_display_task.dart';
-import 'package:taskmaster/typedefs.dart';
+import 'package:taskmaestro/models/sprint_display_task.dart';
+import 'package:taskmaestro/typedefs.dart';
 
 class TaskDisplayGrouping {
   final String displayName;

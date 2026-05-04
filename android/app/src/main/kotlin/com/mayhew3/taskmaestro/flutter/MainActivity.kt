@@ -1,4 +1,4 @@
-package com.mayhew3.taskmaster
+package com.mayhew3.taskmaestro.flutter
 
 import android.os.Bundle
 

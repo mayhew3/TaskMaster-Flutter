@@ -1,7 +1,7 @@
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:taskmaster/models/serializers.dart';
-import 'package:taskmaster/models/task_date_type.dart';
+import 'package:taskmaestro/models/serializers.dart';
+import 'package:taskmaestro/models/task_date_type.dart';
 
 import 'json_datetime_converter.dart';
 

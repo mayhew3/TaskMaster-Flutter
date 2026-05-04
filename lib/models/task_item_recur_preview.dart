@@ -1,10 +1,10 @@
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:taskmaster/models/sprint_display_task.dart';
-import 'package:taskmaster/models/task_date_holder.dart';
-import 'package:taskmaster/models/task_date_type.dart';
-import 'package:taskmaster/models/task_item_blueprint.dart';
-import 'package:taskmaster/models/task_recurrence_blueprint.dart';
+import 'package:taskmaestro/models/sprint_display_task.dart';
+import 'package:taskmaestro/models/task_date_holder.dart';
+import 'package:taskmaestro/models/task_date_type.dart';
+import 'package:taskmaestro/models/task_item_blueprint.dart';
+import 'package:taskmaestro/models/task_recurrence_blueprint.dart';
 import 'package:random_string/random_string.dart';
 
 /// This allows the `TaskItemRecurPreview` class to access private members in

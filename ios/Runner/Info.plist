@@ -13,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>TaskMaster</string>
+	<string>TaskMaestro</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -27,7 +27,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.689103212710-h2qjrs3i1nioiqt71sl9v0o9jm9cmfv6</string>
+				<string>com.googleusercontent.apps.689103212710-i0cb9i11celjlj1m2tvgdorca6qoq6q7</string>
 			</array>
 		</dict>
 	</array>

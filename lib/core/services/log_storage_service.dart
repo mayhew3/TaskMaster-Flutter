@@ -11,7 +11,7 @@ part 'log_storage_service.g.dart';
 /// Used for retrieving logs from production iOS devices where console
 /// access is not available.
 class LogStorageService {
-  static const String _logFileName = 'taskmaster.log';
+  static const String _logFileName = 'taskmaestro.log';
   static const int _maxFileSizeBytes = 5 * 1024 * 1024; // 5 MB
 
   File? _logFile;

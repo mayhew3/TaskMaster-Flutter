@@ -1,10 +1,10 @@
 
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:taskmaster/models/anchor_date.dart';
-import 'package:taskmaster/models/serializers.dart';
-import 'package:taskmaster/models/sprint_display_task_recurrence.dart';
-import 'package:taskmaster/models/task_recurrence_blueprint.dart';
+import 'package:taskmaestro/models/anchor_date.dart';
+import 'package:taskmaestro/models/serializers.dart';
+import 'package:taskmaestro/models/sprint_display_task_recurrence.dart';
+import 'package:taskmaestro/models/task_recurrence_blueprint.dart';
 
 /// This allows the `TaskRecurrence` class to access private members in
 /// the generated file. The value for this is *.g.dart, where

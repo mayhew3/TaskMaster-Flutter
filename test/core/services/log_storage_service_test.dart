@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
-import 'package:taskmaster/core/services/log_storage_service.dart';
+import 'package:taskmaestro/core/services/log_storage_service.dart';
 
 class _FakePathProviderPlatform extends PathProviderPlatform with MockPlatformInterfaceMixin {
   _FakePathProviderPlatform(this.dir);

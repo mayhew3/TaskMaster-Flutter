@@ -8,8 +8,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:logging/logging.dart';
-import 'package:taskmaster/core/services/log_storage_service.dart';
-import 'package:taskmaster/riverpod_app.dart';
+import 'package:taskmaestro/core/services/log_storage_service.dart';
+import 'package:taskmaestro/riverpod_app.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -91,7 +91,7 @@ Future<void> main() async {
           overrides: [
             logStorageServiceProvider.overrideWithValue(logStorage),
           ],
-          child: RiverpodTaskMasterApp(emulatorHost: emulatorHost),
+          child: RiverpodTaskMaestroApp(emulatorHost: emulatorHost),
         ),
       );
     },

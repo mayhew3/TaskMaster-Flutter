@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
-import 'package:taskmaster/models/task_colors.dart';
-import 'package:taskmaster/models/check_state.dart';
+import 'package:taskmaestro/models/task_colors.dart';
+import 'package:taskmaestro/models/check_state.dart';
 
 class DelayedCheckbox extends StatefulWidget {
 

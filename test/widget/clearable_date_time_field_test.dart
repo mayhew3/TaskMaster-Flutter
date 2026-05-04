@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/app_theme.dart';
-import 'package:taskmaster/features/shared/presentation/widgets/clearable_date_time_field.dart';
+import 'package:taskmaestro/app_theme.dart';
+import 'package:taskmaestro/features/shared/presentation/widgets/clearable_date_time_field.dart';
 
 import '../mocks/mock_timezone_helper.dart';
 
@@ -345,10 +345,10 @@ void main() {
     testWidgets('TextField has labelText and inherits OutlineInputBorder from theme', (tester) async {
       // Setup: Widget pumped under the app theme so inputDecorationTheme applies.
       // Post-TM-254, the widget no longer sets `border` directly — the
-      // OutlineInputBorder (8px radius) comes from taskMasterTheme.
+      // OutlineInputBorder (8px radius) comes from taskMaestroTheme.
       await tester.pumpWidget(
         MaterialApp(
-          theme: taskMasterTheme,
+          theme: taskMaestroTheme,
           home: Scaffold(
             body: ClearableDateTimeField(
               labelText: 'Test Date',

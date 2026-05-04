@@ -1,6 +1,6 @@
 # Riverpod Migration Retrospective
 
-**Project:** TaskMaster Flutter App
+**Project:** TaskMaestro Flutter App
 **Migration:** Redux + built_value → Riverpod (kept built_value)
 **Duration:** October 28, 2025 - December 20, 2025 (~8 weeks)
 **Status:** ✅ Complete
@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-Successfully migrated TaskMaster from Redux to Riverpod state management, removing ~11,000 lines of code and significantly simplifying the architecture. The migration was completed in approximately 8 weeks (vs. 3-6 months planned) with zero production regressions.
+Successfully migrated TaskMaestro from Redux to Riverpod state management, removing ~11,000 lines of code and significantly simplifying the architecture. The migration was completed in approximately 8 weeks (vs. 3-6 months planned) with zero production regressions.
 
 ### Key Metrics
 

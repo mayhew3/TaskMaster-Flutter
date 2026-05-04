@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:taskmaster/core/services/notification_helper_impl.dart';
-import 'package:taskmaster/features/tasks/providers/task_providers.dart';
-import 'package:taskmaster/features/sprints/providers/sprint_providers.dart';
-import 'package:taskmaster/helpers/task_selectors.dart';
-import 'package:taskmaster/models/sprint.dart';
+import 'package:taskmaestro/core/services/notification_helper_impl.dart';
+import 'package:taskmaestro/features/tasks/providers/task_providers.dart';
+import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
+import 'package:taskmaestro/helpers/task_selectors.dart';
+import 'package:taskmaestro/models/sprint.dart';
 import 'package:built_collection/built_collection.dart';
 
 /// Provider for the notification helper singleton

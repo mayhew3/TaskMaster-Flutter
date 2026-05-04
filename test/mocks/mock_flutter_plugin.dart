@@ -1,6 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:mockito/mockito.dart';
-import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaestro/models/task_item.dart';
 
 import 'package:timezone/timezone.dart';
 import 'mock_pending_notification_request.dart';
