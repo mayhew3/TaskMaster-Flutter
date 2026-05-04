@@ -1,10 +1,10 @@
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:taskmaster/models/anchor_date.dart';
-import 'package:taskmaster/models/json_anchordate_converter.dart';
-import 'package:taskmaster/models/sprint_display_task_recurrence.dart';
-import 'package:taskmaster/models/task_date_holder.dart';
-import 'package:taskmaster/models/task_recurrence.dart';
+import 'package:taskmaestro/models/anchor_date.dart';
+import 'package:taskmaestro/models/json_anchordate_converter.dart';
+import 'package:taskmaestro/models/sprint_display_task_recurrence.dart';
+import 'package:taskmaestro/models/task_date_holder.dart';
+import 'package:taskmaestro/models/task_recurrence.dart';
 
 part 'task_recurrence_blueprint.g.dart';
 

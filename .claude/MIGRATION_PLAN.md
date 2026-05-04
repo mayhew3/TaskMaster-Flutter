@@ -1,4 +1,4 @@
-# TaskMaster Redux → Riverpod Migration Plan
+# TaskMaestro Redux → Riverpod Migration Plan
 
 **Goal:** Modernize architecture from Redux + built_value to Riverpod + Freezed while maintaining app functionality.
 
@@ -186,7 +186,7 @@ Future<void> main() async {
 
   runApp(
     ProviderScope(  // ADD THIS
-      child: TaskMasterApp(),
+      child: TaskMaestroApp(),
     ),
   );
 }
@@ -438,15 +438,15 @@ class GoRouterRefreshStream extends ChangeNotifier {
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/router/app_router.dart';
 
-class TaskMasterApp extends ConsumerWidget {
-  const TaskMasterApp({super.key});
+class TaskMaestroApp extends ConsumerWidget {
+  const TaskMaestroApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(goRouterProvider);
 
     return MaterialApp.router(
-      title: 'TaskMaster 3000',
+      title: 'TaskMaestro',
       theme: taskMasterTheme,
       routerConfig: router,
     );
@@ -940,7 +940,7 @@ Compare code:
 - ❌ NO shared widgets converted (TaskItemList, TaskMainMenu, TabSelector, etc.)
 
 **Root Cause of Current Crashes:**
-When `useRiverpodForAuth=true`, the app uses `RiverpodTaskMasterApp` which does NOT provide
+When `useRiverpodForAuth=true`, the app uses `RiverpodTaskMaestroApp` which does NOT provide
 a Redux `StoreProvider`. However, all "Riverpod" screens import and render Redux widgets
 that require `StoreProvider`, causing "No StoreProvider<AppState> found" errors.
 
@@ -1406,7 +1406,7 @@ void main() async {
       observers: [
         if (kDebugMode) RiverpodLogger(), // Log provider changes
       ],
-      child: TaskMasterApp(),
+      child: TaskMaestroApp(),
     ),
   );
 }
@@ -1547,7 +1547,7 @@ After migration, consider:
 
 ### IMMEDIATE (to fix current crashes)
 
-1. **Option A: Quick Fix** - Keep Redux `StoreProvider` in `RiverpodTaskMasterApp`
+1. **Option A: Quick Fix** - Keep Redux `StoreProvider` in `RiverpodTaskMaestroApp`
    - Pros: Fast, unblocks development
    - Cons: Defeats purpose of Riverpod-only mode, keeps Redux dependency
 
@@ -1615,10 +1615,10 @@ lib/features/sprints/presentation/new_sprint_screen.dart:
   - Uses: TaskMainMenu, TabSelector
 
 lib/features/tasks/presentation/task_list_screen.dart:
-  - import 'package:taskmaster/redux/presentation/editable_task_item.dart'
-  - import 'package:taskmaster/redux/presentation/snooze_dialog.dart'
-  - import 'package:taskmaster/redux/presentation/task_main_menu.dart'
-  - import 'package:taskmaster/redux/actions/task_item_actions.dart'
+  - import 'package:taskmaestro/redux/presentation/editable_task_item.dart'
+  - import 'package:taskmaestro/redux/presentation/snooze_dialog.dart'
+  - import 'package:taskmaestro/redux/presentation/task_main_menu.dart'
+  - import 'package:taskmaestro/redux/actions/task_item_actions.dart'
   - Uses: EditableTaskItem, SnoozeDialog, TaskMainMenu, StoreProvider.of for DeleteTaskItemAction
 
 lib/features/tasks/presentation/task_details_screen.dart:

@@ -13,9 +13,9 @@
 
 ## Overview
 
-TM-318 introduces the foundational infrastructure TaskMaster needs to run reliably on production devices: a local-first data layer so the app is usable without network, structured crash and analytics reporting so regressions are visible after release, and on-device log persistence so iOS production devices can be diagnosed without console access.
+TM-318 introduces the foundational infrastructure TaskMaestro needs to run reliably on production devices: a local-first data layer so the app is usable without network, structured crash and analytics reporting so regressions are visible after release, and on-device log persistence so iOS production devices can be diagnosed without console access.
 
-Before this epic, TaskMaster read and wrote directly against Firestore with its built-in offline persistence. Reads were blocked on network round-trips on cold start, writes silently disappeared into Firestore's internal queue with no UI feedback, and there was no visibility into crashes or user behavior once the app shipped. After this epic, the app paints instantly from a local Drift database, pending writes are queued explicitly with per-row state, an offline/syncing banner tells the user what is happening, crashes are captured via Crashlytics, user events are tracked via Analytics, and the full runtime log is retrievable as a file from the drawer.
+Before this epic, TaskMaestro read and wrote directly against Firestore with its built-in offline persistence. Reads were blocked on network round-trips on cold start, writes silently disappeared into Firestore's internal queue with no UI feedback, and there was no visibility into crashes or user behavior once the app shipped. After this epic, the app paints instantly from a local Drift database, pending writes are queued explicitly with per-row state, an offline/syncing banner tells the user what is happening, crashes are captured via Crashlytics, user events are tracked via Analytics, and the full runtime log is retrievable as a file from the drawer.
 
 ---
 
@@ -311,4 +311,4 @@ After scoping + bulk upsert: ~1 s to first paint (UI unblocked at +996 ms on a t
 
 - Epic: [TM-318](https://mayhew3.atlassian.net/browse/TM-318) — Infrastructure & Observability
 - Stories: [TM-319](https://mayhew3.atlassian.net/browse/TM-319), [TM-321](https://mayhew3.atlassian.net/browse/TM-321), [TM-322](https://mayhew3.atlassian.net/browse/TM-322), [TM-334](https://mayhew3.atlassian.net/browse/TM-334)
-- Merged PR: [#12](https://github.com/mayhew3/TaskMaster-Flutter/pull/12)
+- Merged PR: [#12](https://github.com/mayhew3/TaskMaestro-Flutter/pull/12)

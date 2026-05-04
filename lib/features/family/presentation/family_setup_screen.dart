@@ -39,7 +39,7 @@ class FamilySetupScreen extends ConsumerWidget {
                     const SizedBox(height: 8),
                     const Text(
                       'Invite a family member by email to start sharing tasks. '
-                      "If they've already signed in to TaskMaster, they'll "
+                      "If they've already signed in to TaskMaestro, they'll "
                       'see your invite next time they open the app.',
                       style: TextStyle(color: Colors.white70),
                       textAlign: TextAlign.center,

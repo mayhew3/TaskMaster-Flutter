@@ -1,9 +1,9 @@
 
 import 'package:flutter/material.dart';
-import 'package:taskmaster/models/sprint_display_task.dart';
-import 'package:taskmaster/models/task_colors.dart';
-import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/typedefs.dart';
+import 'package:taskmaestro/models/sprint_display_task.dart';
+import 'package:taskmaestro/models/task_colors.dart';
+import 'package:taskmaestro/models/task_item.dart';
+import 'package:taskmaestro/typedefs.dart';
 import 'package:collection/collection.dart';
 
 class TaskDateTypes {

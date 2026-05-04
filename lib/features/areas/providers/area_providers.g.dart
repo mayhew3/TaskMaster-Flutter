@@ -26,7 +26,7 @@ final areasProvider = StreamProvider<List<Area>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AreasRef = StreamProviderRef<List<Area>>;
-String _$areasWithDefaultsHash() => r'5a6d4d725783fe9ec5cb2e899d4b7c5a69a10ceb';
+String _$areasWithDefaultsHash() => r'66be877245e62ce799946bb8256c90866101c380';
 
 /// Lazily seeds [defaultAreaNames] on first read when the user has zero areas
 /// AND the first server snapshot has confirmed they really do have zero.

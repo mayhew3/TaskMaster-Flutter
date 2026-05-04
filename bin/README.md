@@ -1,6 +1,6 @@
-# TaskMaster CLI Tools
+# TaskMaestro CLI Tools
 
-This directory contains Node.js CLI tools for debugging and maintenance of TaskMaster Firestore data.
+This directory contains Node.js CLI tools for debugging and maintenance of TaskMaestro Firestore data.
 
 ## Setup
 

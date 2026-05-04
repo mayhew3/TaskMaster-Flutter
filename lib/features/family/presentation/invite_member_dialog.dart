@@ -103,7 +103,7 @@ class _InviteMemberDialogState extends ConsumerState<InviteMemberDialog> {
         setState(() {
           _busy = false;
           _errorText =
-              "$email hasn't signed in to TaskMaster yet. Ask them to sign in once before you invite them.";
+              "$email hasn't signed in to TaskMaestro yet. Ask them to sign in once before you invite them.";
         });
       }
     } on DuplicateInvitationException {

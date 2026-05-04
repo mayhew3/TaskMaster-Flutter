@@ -52,7 +52,7 @@ class AppDrawer extends ConsumerWidget {
                   ),
                 ] else
                   const Text(
-                    'TaskMaster',
+                    'TaskMaestro',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 24,
@@ -102,7 +102,7 @@ class AppDrawer extends ConsumerWidget {
                   .replaceAll(':', '-')
                   .split('.')
                   .first;
-              final exportName = 'taskmaster-$timestamp.log';
+              final exportName = 'taskmaestro-$timestamp.log';
               await SharePlus.instance.share(
                 ShareParams(
                   files: [XFile(path)],

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/core/providers/connectivity_provider.dart';
-import 'package:taskmaster/core/providers/sync_status_provider.dart';
-import 'package:taskmaster/features/shared/presentation/connection_status_indicator.dart';
+import 'package:taskmaestro/core/providers/connectivity_provider.dart';
+import 'package:taskmaestro/core/providers/sync_status_provider.dart';
+import 'package:taskmaestro/features/shared/presentation/connection_status_indicator.dart';
 
 /// Tests for TM-340: in-AppBar connection status indicator
 ///

@@ -1,5 +1,5 @@
-import 'package:taskmaster/models/anchor_date.dart';
-import 'package:taskmaster/models/task_date_type.dart';
+import 'package:taskmaestro/models/anchor_date.dart';
+import 'package:taskmaestro/models/task_date_type.dart';
 
 import '../date_util.dart';
 

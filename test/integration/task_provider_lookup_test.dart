@@ -1,12 +1,12 @@
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/core/database/app_database.dart'
+import 'package:taskmaestro/core/database/app_database.dart'
     hide Task, TaskRecurrence, Sprint, SprintAssignment;
-import 'package:taskmaster/core/providers/auth_providers.dart';
-import 'package:taskmaster/core/providers/database_provider.dart';
-import 'package:taskmaster/features/tasks/providers/task_providers.dart';
-import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaestro/core/providers/auth_providers.dart';
+import 'package:taskmaestro/core/providers/database_provider.dart';
+import 'package:taskmaestro/features/tasks/providers/task_providers.dart';
+import 'package:taskmaestro/models/task_item.dart';
 import 'package:drift/drift.dart' show Value;
 
 /// Regression tests for TM-341: task(taskId) lookup fallbacks.

@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>689103212710-h2qjrs3i1nioiqt71sl9v0o9jm9cmfv6.apps.googleusercontent.com</string>
+	<string>689103212710-i0cb9i11celjlj1m2tvgdorca6qoq6q7.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.689103212710-h2qjrs3i1nioiqt71sl9v0o9jm9cmfv6</string>
+	<string>com.googleusercontent.apps.689103212710-i0cb9i11celjlj1m2tvgdorca6qoq6q7</string>
 	<key>ANDROID_CLIENT_ID</key>
 	<string>689103212710-cqhurt503qhuot94s0cd7tdvkle5dd2k.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
@@ -15,23 +15,23 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.mayhew3.taskmaster.flutter</string>
+	<string>com.mayhew3.taskmaestro.flutter</string>
 	<key>PROJECT_ID</key>
 	<string>m3-taskmaster-3000</string>
 	<key>STORAGE_BUCKET</key>
-	<string>m3-taskmaster-3000.appspot.com</string>
+	<string>m3-taskmaster-3000.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
-	<false/>
+	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
-	<false/>
+	<false></false>
 	<key>IS_APPINVITE_ENABLED</key>
-	<true/>
+	<true></true>
 	<key>IS_GCM_ENABLED</key>
-	<true/>
+	<true></true>
 	<key>IS_SIGNIN_ENABLED</key>
-	<true/>
+	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:689103212710:ios:7d0d83f33a916d2976e467</string>
+	<string>1:689103212710:ios:6d8978af99e1595a76e467</string>
 	<key>DATABASE_URL</key>
 	<string>https://m3-taskmaster-3000.firebaseio.com</string>
 </dict>

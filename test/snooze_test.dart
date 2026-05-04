@@ -1,6 +1,6 @@
 
-import 'package:taskmaster/date_util.dart';
-import 'package:taskmaster/models/snooze.dart';
+import 'package:taskmaestro/date_util.dart';
+import 'package:taskmaestro/models/snooze.dart';
 import 'package:test/test.dart';
 
 void main() {

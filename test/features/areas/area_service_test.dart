@@ -3,12 +3,12 @@ import 'package:drift/native.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/core/database/app_database.dart' hide Area;
-import 'package:taskmaster/core/database/tables.dart';
-import 'package:taskmaster/core/providers/database_provider.dart';
-import 'package:taskmaster/core/providers/firebase_providers.dart';
-import 'package:taskmaster/core/services/sync_service.dart';
-import 'package:taskmaster/features/areas/services/area_service.dart';
+import 'package:taskmaestro/core/database/app_database.dart' hide Area;
+import 'package:taskmaestro/core/database/tables.dart';
+import 'package:taskmaestro/core/providers/database_provider.dart';
+import 'package:taskmaestro/core/providers/firebase_providers.dart';
+import 'package:taskmaestro/core/services/sync_service.dart';
+import 'package:taskmaestro/features/areas/services/area_service.dart';
 
 /// SyncService stub that no-ops `pushPendingWrites` so tests don't try to
 /// run the real push loop (which depends on connectivity, notification

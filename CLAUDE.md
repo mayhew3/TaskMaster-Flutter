@@ -13,7 +13,7 @@ Try not to use language expressing certainty unless you are actually certain.
 
 ## Project Overview
 
-TaskMaster is a Flutter task management application with recurring tasks, sprint planning, and Firebase/Firestore backend integration. The app currently uses Redux for state management and built_value for immutable data models.
+TaskMaestro is a Flutter task management application with recurring tasks, sprint planning, and Firebase/Firestore backend integration. The app currently uses Redux for state management and built_value for immutable data models.
 
 **🚧 ACTIVE MIGRATION:** This codebase is being migrated from Redux to Riverpod.
 
@@ -246,7 +246,7 @@ store.dispatch(UpdateTaskItemAction(taskItem));
 ## Jira Workflow (Atlassian MCP)
 
 **Overview**: We use Jira for high-level planning and progress tracking, combined with detailed markdown documentation in `.claude/` directories.
-**Project**: TaskMaster, "TM" prefix
+**Project**: TaskMaestro, "TM" prefix
 
 ### MCP Tools Available
 The Atlassian MCP server provides direct access to Jira and Confluence. Key tools:
@@ -365,7 +365,7 @@ mcp__atlassian__getJiraProjectIssueTypesMetadata(
 When the user asks to start work or find the next task, query the active sprint for available stories:
 
 ```
-# Find stories in the active sprint for a project (e.g., TaskMaster)
+# Find stories in the active sprint for a project (e.g., TaskMaestro)
 mcp__atlassian__searchJiraIssuesUsingJql(
   cloudId: "mayhew3.atlassian.net",
   jql: "project = TM AND sprint in openSprints() AND status != Done ORDER BY rank ASC",

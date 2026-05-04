@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:taskmaster/models/anchor_date.dart';
+import 'package:taskmaestro/models/anchor_date.dart';
 
 class JsonAnchorDateConverter implements JsonConverter<AnchorDate, Map<String, dynamic>> {
   const JsonAnchorDateConverter();

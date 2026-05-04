@@ -1,12 +1,12 @@
 
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:taskmaster/date_util.dart';
-import 'package:taskmaster/helpers/recurrence_helper.dart';
-import 'package:taskmaster/models/task_date_type.dart';
-import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/models/task_item_blueprint.dart';
-import 'package:taskmaster/task_repository.dart';
+import 'package:taskmaestro/date_util.dart';
+import 'package:taskmaestro/helpers/recurrence_helper.dart';
+import 'package:taskmaestro/models/task_date_type.dart';
+import 'package:taskmaestro/models/task_item.dart';
+import 'package:taskmaestro/models/task_item_blueprint.dart';
+import 'package:taskmaestro/task_repository.dart';
 import 'package:test/test.dart';
 
 import 'mocks/mock_data_builder.dart';

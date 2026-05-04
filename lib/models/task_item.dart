@@ -2,13 +2,13 @@
 
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:taskmaster/models/models.dart';
-import 'package:taskmaster/models/serializers.dart';
-import 'package:taskmaster/models/sprint_display_task.dart';
-import 'package:taskmaster/models/task_date_holder.dart';
-import 'package:taskmaster/models/task_date_type.dart';
-import 'package:taskmaster/models/task_item_blueprint.dart';
-import 'package:taskmaster/models/task_item_recur_preview.dart';
+import 'package:taskmaestro/models/models.dart';
+import 'package:taskmaestro/models/serializers.dart';
+import 'package:taskmaestro/models/sprint_display_task.dart';
+import 'package:taskmaestro/models/task_date_holder.dart';
+import 'package:taskmaestro/models/task_date_type.dart';
+import 'package:taskmaestro/models/task_item_blueprint.dart';
+import 'package:taskmaestro/models/task_item_recur_preview.dart';
 
 /// This allows the `TaskItem` class to access private members in
 /// the generated file. The value for this is *.g.dart, where

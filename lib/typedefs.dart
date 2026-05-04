@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart';
-import 'package:taskmaster/models/sprint_display_task.dart';
-import 'package:taskmaster/models/task_date_holder.dart';
-import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaestro/models/sprint_display_task.dart';
+import 'package:taskmaestro/models/task_date_holder.dart';
+import 'package:taskmaestro/models/task_item.dart';
 
 import 'models/task_item_blueprint.dart';
 

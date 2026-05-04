@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/features/shared/presentation/snooze_dialog.dart';
-import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/core/services/task_completion_service.dart';
-import 'package:taskmaster/timezone_helper.dart';
+import 'package:taskmaestro/features/shared/presentation/snooze_dialog.dart';
+import 'package:taskmaestro/models/task_item.dart';
+import 'package:taskmaestro/core/services/task_completion_service.dart';
+import 'package:taskmaestro/timezone_helper.dart';
 
 /// Widget Test: SnoozeDialog
 ///

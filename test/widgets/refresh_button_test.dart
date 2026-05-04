@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/features/shared/presentation/refresh_button.dart';
+import 'package:taskmaestro/features/shared/presentation/refresh_button.dart';
 
 /// Widget Test: RefreshButton
 ///

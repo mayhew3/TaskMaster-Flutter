@@ -3,14 +3,14 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/core/database/app_database.dart' hide Area;
-import 'package:taskmaster/core/providers/auth_providers.dart';
-import 'package:taskmaster/core/providers/database_provider.dart';
-import 'package:taskmaster/core/providers/firebase_providers.dart';
-import 'package:taskmaster/core/services/sync_service.dart';
-import 'package:taskmaster/features/areas/presentation/area_picker.dart';
-import 'package:taskmaster/features/areas/providers/area_providers.dart';
-import 'package:taskmaster/models/area.dart';
+import 'package:taskmaestro/core/database/app_database.dart' hide Area;
+import 'package:taskmaestro/core/providers/auth_providers.dart';
+import 'package:taskmaestro/core/providers/database_provider.dart';
+import 'package:taskmaestro/core/providers/firebase_providers.dart';
+import 'package:taskmaestro/core/services/sync_service.dart';
+import 'package:taskmaestro/features/areas/presentation/area_picker.dart';
+import 'package:taskmaestro/features/areas/providers/area_providers.dart';
+import 'package:taskmaestro/models/area.dart';
 
 class _FakeSyncService extends SyncService {
   _FakeSyncService({

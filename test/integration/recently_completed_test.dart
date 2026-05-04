@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:taskmaster/features/tasks/providers/task_providers.dart';
-import 'package:taskmaster/features/shared/providers/navigation_provider.dart';
-import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaestro/features/tasks/providers/task_providers.dart';
+import 'package:taskmaestro/features/shared/providers/navigation_provider.dart';
+import 'package:taskmaestro/models/task_item.dart';
 
 /// Tests for TM-312: Task not moving to Completed section in Sprint
 ///

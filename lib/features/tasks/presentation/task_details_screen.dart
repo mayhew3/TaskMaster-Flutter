@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jiffy/jiffy.dart';
-import 'package:taskmaster/keys.dart';
-import 'package:taskmaster/models/models.dart';
-import 'package:taskmaster/models/task_colors.dart';
-import 'package:taskmaster/models/task_date_type.dart';
-import 'package:taskmaster/models/check_state.dart';
+import 'package:taskmaestro/keys.dart';
+import 'package:taskmaestro/models/models.dart';
+import 'package:taskmaestro/models/task_colors.dart';
+import 'package:taskmaestro/models/task_date_type.dart';
+import 'package:taskmaestro/models/check_state.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../../core/providers/auth_providers.dart';
 import '../../../core/services/task_completion_service.dart';
@@ -26,7 +26,7 @@ class TaskDetailsScreen extends ConsumerWidget {
   const TaskDetailsScreen({
     Key? key,
     required this.taskItemId,
-  }) : super(key: key ?? TaskMasterKeys.taskItemDetailsScreen);
+  }) : super(key: key ?? TaskMaestroKeys.taskItemDetailsScreen);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -70,7 +70,7 @@ class _TaskDetailsBody extends ConsumerWidget {
         actions: [
           IconButton(
             tooltip: 'Delete Task Item',
-            key: TaskMasterKeys.deleteTaskItemButton,
+            key: TaskMaestroKeys.deleteTaskItemButton,
             icon: const Icon(Icons.delete),
             onPressed: () async {
               await ref.read(deleteTaskProvider.notifier).call(task);
@@ -212,7 +212,7 @@ class _TaskDetailsBody extends ConsumerWidget {
       floatingActionButton: task.personDocId == ref.watch(personDocIdProvider)
           ? FloatingActionButton(
               heroTag: null,
-              key: TaskMasterKeys.editTaskItemFab,
+              key: TaskMaestroKeys.editTaskItemFab,
               tooltip: 'Edit Task Item',
               child: const Icon(Icons.edit),
               onPressed: () {

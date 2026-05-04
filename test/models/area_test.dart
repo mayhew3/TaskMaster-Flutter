@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/models/area.dart';
-import 'package:taskmaster/models/area_blueprint.dart';
-import 'package:taskmaster/models/serializers.dart';
+import 'package:taskmaestro/models/area.dart';
+import 'package:taskmaestro/models/area_blueprint.dart';
+import 'package:taskmaestro/models/serializers.dart';
 
 void main() {
   group('Area built_value (de)serialization', () {

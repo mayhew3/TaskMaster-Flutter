@@ -1,6 +1,6 @@
 import 'package:built_collection/built_collection.dart';
-import 'package:taskmaster/models/models.dart';
-import 'package:taskmaster/models/sprint_display_task.dart';
+import 'package:taskmaestro/models/models.dart';
+import 'package:taskmaestro/models/sprint_display_task.dart';
 
 /// Pure selector functions for tasks and sprints.
 /// These are stateless functions that filter and search collections.

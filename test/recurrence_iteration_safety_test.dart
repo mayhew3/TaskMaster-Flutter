@@ -1,6 +1,6 @@
-import 'package:taskmaster/helpers/recurrence_helper.dart';
-import 'package:taskmaster/models/sprint_display_task.dart';
-import 'package:taskmaster/models/task_item_recur_preview.dart';
+import 'package:taskmaestro/helpers/recurrence_helper.dart';
+import 'package:taskmaestro/models/sprint_display_task.dart';
+import 'package:taskmaestro/models/task_item_recur_preview.dart';
 import 'package:test/test.dart';
 
 import 'mocks/mock_data_builder.dart';

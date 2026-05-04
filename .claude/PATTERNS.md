@@ -1,6 +1,6 @@
-# Riverpod Patterns for TaskMaster
+# Riverpod Patterns for TaskMaestro
 
-This document contains common patterns and best practices for using Riverpod in TaskMaster.
+This document contains common patterns and best practices for using Riverpod in TaskMaestro.
 
 ---
 

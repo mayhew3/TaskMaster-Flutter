@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jiffy/jiffy.dart';
-import 'package:taskmaster/date_util.dart';
+import 'package:taskmaestro/date_util.dart';
 
 void main() {
   group('DateUtil UTC Handling Tests', () {

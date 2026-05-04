@@ -2,39 +2,39 @@ import 'package:built_collection/built_collection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:taskmaster/app_theme.dart';
-import 'package:taskmaster/models/task_colors.dart';
-import 'package:taskmaster/core/providers/auth_providers.dart';
-import 'package:taskmaster/core/providers/notification_providers.dart';
-import 'package:taskmaster/core/services/auth_service.dart';
-import 'package:taskmaster/core/services/sync_service.dart';
-import 'package:taskmaster/features/sprints/providers/sprint_providers.dart';
-import 'package:taskmaster/features/tasks/presentation/task_list_screen.dart';
-import 'package:taskmaster/features/tasks/providers/task_providers.dart';
-import 'package:taskmaster/features/shared/providers/navigation_provider.dart';
-import 'package:taskmaster/helpers/task_selectors.dart';
-import 'package:taskmaster/models/sprint.dart';
-import 'package:taskmaster/models/top_nav_item.dart';
-import 'package:taskmaster/features/shared/presentation/planning_home.dart';
-import 'package:taskmaster/features/tasks/presentation/stats_screen.dart';
-import 'package:taskmaster/features/family/presentation/family_tab_screen.dart';
-import 'package:taskmaster/features/family/presentation/pending_invitation_banner.dart';
-import 'package:taskmaster/features/family/providers/family_providers.dart';
-import 'package:taskmaster/features/sync/presentation/sync_conflict_banner.dart';
-import 'package:taskmaster/features/sync/providers/sync_conflict_providers.dart';
+import 'package:taskmaestro/app_theme.dart';
+import 'package:taskmaestro/models/task_colors.dart';
+import 'package:taskmaestro/core/providers/auth_providers.dart';
+import 'package:taskmaestro/core/providers/notification_providers.dart';
+import 'package:taskmaestro/core/services/auth_service.dart';
+import 'package:taskmaestro/core/services/sync_service.dart';
+import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
+import 'package:taskmaestro/features/tasks/presentation/task_list_screen.dart';
+import 'package:taskmaestro/features/tasks/providers/task_providers.dart';
+import 'package:taskmaestro/features/shared/providers/navigation_provider.dart';
+import 'package:taskmaestro/helpers/task_selectors.dart';
+import 'package:taskmaestro/models/sprint.dart';
+import 'package:taskmaestro/models/top_nav_item.dart';
+import 'package:taskmaestro/features/shared/presentation/planning_home.dart';
+import 'package:taskmaestro/features/tasks/presentation/stats_screen.dart';
+import 'package:taskmaestro/features/family/presentation/family_tab_screen.dart';
+import 'package:taskmaestro/features/family/presentation/pending_invitation_banner.dart';
+import 'package:taskmaestro/features/family/providers/family_providers.dart';
+import 'package:taskmaestro/features/sync/presentation/sync_conflict_banner.dart';
+import 'package:taskmaestro/features/sync/providers/sync_conflict_providers.dart';
 
 /// Riverpod-based main app widget
-/// This replaces the Redux-based TaskMasterApp when useRiverpodForAuth is enabled
-class RiverpodTaskMasterApp extends ConsumerStatefulWidget {
+/// This replaces the Redux-based TaskMaestroApp when useRiverpodForAuth is enabled
+class RiverpodTaskMaestroApp extends ConsumerStatefulWidget {
   final String emulatorHost;
 
-  const RiverpodTaskMasterApp({super.key, required this.emulatorHost});
+  const RiverpodTaskMaestroApp({super.key, required this.emulatorHost});
 
   @override
-  ConsumerState<RiverpodTaskMasterApp> createState() => _RiverpodTaskMasterAppState();
+  ConsumerState<RiverpodTaskMaestroApp> createState() => _RiverpodTaskMaestroAppState();
 }
 
-class _RiverpodTaskMasterAppState extends ConsumerState<RiverpodTaskMasterApp> {
+class _RiverpodTaskMaestroAppState extends ConsumerState<RiverpodTaskMaestroApp> {
   static const serverEnv = String.fromEnvironment('SERVER', defaultValue: 'heroku');
 
   @override
@@ -66,9 +66,9 @@ class _RiverpodTaskMasterAppState extends ConsumerState<RiverpodTaskMasterApp> {
     final authState = ref.watch(authProvider);
 
     return MaterialApp(
-      title: 'TaskMaster 3000',
-      theme: taskMasterTheme,
-      darkTheme: taskMasterTheme,
+      title: 'TaskMaestro',
+      theme: taskMaestroTheme,
+      darkTheme: taskMaestroTheme,
       themeMode: ThemeMode.dark,
       home: _buildHome(authState),
     );
@@ -147,7 +147,7 @@ class _SignInScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('TaskMaster 3000'),
+        title: const Text('TaskMaestro'),
       ),
       body: Center(
         child: Column(

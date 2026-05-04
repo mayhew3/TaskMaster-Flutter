@@ -3,9 +3,69 @@
     "project_number": "689103212710",
     "firebase_url": "https://m3-taskmaster-3000.firebaseio.com",
     "project_id": "m3-taskmaster-3000",
-    "storage_bucket": "m3-taskmaster-3000.appspot.com"
+    "storage_bucket": "m3-taskmaster-3000.firebasestorage.app"
   },
   "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:689103212710:android:e20a9255e4e6c1a376e467",
+        "android_client_info": {
+          "package_name": "com.mayhew3.taskmaestro.flutter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "689103212710-1r58916idhl3a4v8c4jb8mmgu07t6b8i.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mayhew3.taskmaestro.flutter",
+            "certificate_hash": "5af464e87c95e5596080d3463b6fc86dc8376dc5"
+          }
+        },
+        {
+          "client_id": "689103212710-9gckjl2l0056srqjutklk64mpk4i4f11.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mayhew3.taskmaestro.flutter",
+            "certificate_hash": "5e3c1e20e0ba5ac23595c7d655fcb4a0023eedb1"
+          }
+        },
+        {
+          "client_id": "689103212710-bh7kn08al2lgj8kfpvn2mn9dfbkm85fl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mayhew3.taskmaestro.flutter",
+            "certificate_hash": "d7e20b4af657ee376adfa56d29fbbb2c2b9839f8"
+          }
+        },
+        {
+          "client_id": "689103212710-h9bdp3rdjsppffckoi1udpmjdlv5cbdi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCE2vhgb3xnwiicanE1LtA8QOFBJCUyT20"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "689103212710-h9bdp3rdjsppffckoi1udpmjdlv5cbdi.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "689103212710-dt9knuqtsdl75li6sbakvcjn2ha040s3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.mayhew3.taskmaster"
+              }
+            }
+          ]
+        }
+      }
+    },
     {
       "client_info": {
         "mobilesdk_app_id": "1:689103212710:android:94b4812f1f81b128",
@@ -28,6 +88,14 @@
           "android_info": {
             "package_name": "com.mayhew3.taskmaster",
             "certificate_hash": "5af464e87c95e5596080d3463b6fc86dc8376dc5"
+          }
+        },
+        {
+          "client_id": "689103212710-mtd7qg2aivp6j662bhe33p87u3lq3da9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mayhew3.taskmaster",
+            "certificate_hash": "5e3c1e20e0ba5ac23595c7d655fcb4a0023eedb1"
           }
         },
         {

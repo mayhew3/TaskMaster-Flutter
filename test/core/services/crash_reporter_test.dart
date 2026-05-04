@@ -2,7 +2,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:taskmaster/core/services/crash_reporter.dart';
+import 'package:taskmaestro/core/services/crash_reporter.dart';
 
 import 'crash_reporter_test.mocks.dart';
 

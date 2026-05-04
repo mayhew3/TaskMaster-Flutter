@@ -29,8 +29,8 @@ late bool _initialRepeatOn;
 ### ✅ Fix 2: Sprint Widget Names in Tests
 **File:** `test/integration/sprint_test.dart`
 **Changes:**
-1. Added import: `package:taskmaster/features/sprints/presentation/new_sprint_screen.dart`
-2. Added import: `package:taskmaster/features/sprints/presentation/sprint_task_items_screen.dart`
+1. Added import: `package:taskmaestro/features/sprints/presentation/new_sprint_screen.dart`
+2. Added import: `package:taskmaestro/features/sprints/presentation/sprint_task_items_screen.dart`
 3. Updated line 55: `NewSprint` → `NewSprintScreen`
 4. Updated line 58: `SprintTaskItems` → `SprintTaskItemsScreen`
 5. Updated line 127: `SprintTaskItems` → `SprintTaskItemsScreen`
@@ -44,7 +44,7 @@ late bool _initialRepeatOn;
 ### ✅ Fix 3: Task List Widget Name in Tests
 **File:** `test/integration/task_crud_test.dart`
 **Changes:**
-1. Added import: `package:taskmaster/features/tasks/presentation/task_list_screen.dart`
+1. Added import: `package:taskmaestro/features/tasks/presentation/task_list_screen.dart`
 2. Updated line 37: `TaskItemList` → `TaskListScreen`
 
 **Impact:** Fixed 1 test failure (task list widget detection)
@@ -115,7 +115,7 @@ Apply same pattern as Fixes #2 and #3:
 **task_creation_test.dart:**
 ```dart
 // Add import
-import 'package:taskmaster/features/tasks/presentation/task_add_edit_screen.dart';
+import 'package:taskmaestro/features/tasks/presentation/task_add_edit_screen.dart';
 
 // Update expectations
 expect(find.byType(AddEditScreen), findsOneWidget);
@@ -126,8 +126,8 @@ expect(find.byType(TaskAddEditScreen), findsOneWidget);
 **task_editing_test.dart:**
 ```dart
 // Add imports
-import 'package:taskmaster/features/tasks/presentation/task_details_screen.dart';
-import 'package:taskmaster/features/tasks/presentation/task_add_edit_screen.dart';
+import 'package:taskmaestro/features/tasks/presentation/task_details_screen.dart';
+import 'package:taskmaestro/features/tasks/presentation/task_add_edit_screen.dart';
 
 // Update expectations (multiple locations)
 DetailsScreen → TaskDetailsScreen

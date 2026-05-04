@@ -2,7 +2,7 @@ import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:taskmaster/models/sprint_display_task.dart';
+import 'package:taskmaestro/models/sprint_display_task.dart';
 
 import '../../../keys.dart';
 import '../../../models/models.dart';
@@ -371,7 +371,7 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
   Widget getLoadingBody() {
     return Center(
         child: CircularProgressIndicator(
-          key: TaskMasterKeys.tasksLoading,
+          key: TaskMaestroKeys.tasksLoading,
         )
     );
   }

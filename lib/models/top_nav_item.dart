@@ -1,7 +1,7 @@
 
 import 'package:built_value/built_value.dart';
 import 'package:flutter/material.dart' hide Builder;
-import 'package:taskmaster/typedefs.dart';
+import 'package:taskmaestro/typedefs.dart';
 
 part 'top_nav_item.g.dart';
 

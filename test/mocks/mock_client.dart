@@ -1,8 +1,8 @@
 import 'package:http/http.dart' as http;
 import 'package:mockito/mockito.dart';
-import 'package:taskmaster/models/serializers.dart';
-import 'package:taskmaster/models/sprint.dart';
-import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaestro/models/serializers.dart';
+import 'package:taskmaestro/models/sprint.dart';
+import 'package:taskmaestro/models/task_item.dart';
 
 import 'dart:convert';
 import 'dart:core';

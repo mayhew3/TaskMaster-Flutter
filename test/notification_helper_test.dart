@@ -1,8 +1,8 @@
-import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/models/task_item_blueprint.dart';
-import 'package:taskmaster/models/task_recurrence.dart';
-import 'package:taskmaster/core/services/notification_helper_impl.dart';
-import 'package:taskmaster/timezone_helper.dart';
+import 'package:taskmaestro/models/task_item.dart';
+import 'package:taskmaestro/models/task_item_blueprint.dart';
+import 'package:taskmaestro/models/task_recurrence.dart';
+import 'package:taskmaestro/core/services/notification_helper_impl.dart';
+import 'package:taskmaestro/timezone_helper.dart';
 import 'package:test/test.dart';
 
 import 'mocks/mock_data.dart';

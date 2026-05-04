@@ -1,11 +1,11 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/features/sprints/presentation/sprint_task_items_screen.dart';
-import 'package:taskmaster/features/tasks/providers/task_providers.dart';
-import 'package:taskmaster/models/sprint.dart';
-import 'package:taskmaster/models/sprint_assignment.dart';
-import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaestro/features/sprints/presentation/sprint_task_items_screen.dart';
+import 'package:taskmaestro/features/tasks/providers/task_providers.dart';
+import 'package:taskmaestro/models/sprint.dart';
+import 'package:taskmaestro/models/sprint_assignment.dart';
+import 'package:taskmaestro/models/task_item.dart';
 
 /// Tests for TM-339: Sprint screen - completed task behavior
 ///

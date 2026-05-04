@@ -38,7 +38,7 @@ void main() {
 
   test('Should be constructed', () {
     var appState = createAppState();
-    expect(appState.title, 'TaskMaster 3000');
+    expect(appState.title, 'TaskMaestro');
     expect(appState.taskItems.length, allTasks.length);
     expect(appState.sprints.length, allSprints.length);
   });

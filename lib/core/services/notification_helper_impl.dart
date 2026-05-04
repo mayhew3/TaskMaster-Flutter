@@ -188,9 +188,9 @@ class NotificationHelperImpl {
     }
 
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      'taskmaster',
-      'TaskMaster',
-      channelDescription: 'Notifications for the TaskMaster app',
+      'taskmaestro',
+      'TaskMaestro',
+      channelDescription: 'Notifications for the TaskMaestro app',
       importance: Importance.max,
       priority: Priority.high,
       ticker: 'ticker',

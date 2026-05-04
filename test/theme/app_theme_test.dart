@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taskmaster/app_theme.dart';
+import 'package:taskmaestro/app_theme.dart';
 
 void main() {
-  group('taskMasterTheme M3 contract', () {
+  group('taskMaestroTheme M3 contract', () {
     testWidgets('uses Material 3', (tester) async {
       late ThemeData theme;
       await tester.pumpWidget(
         MaterialApp(
-          theme: taskMasterTheme,
+          theme: taskMaestroTheme,
           home: Builder(
             builder: (context) {
               theme = Theme.of(context);
@@ -26,7 +26,7 @@ void main() {
       late ColorScheme scheme;
       await tester.pumpWidget(
         MaterialApp(
-          theme: taskMasterTheme,
+          theme: taskMaestroTheme,
           home: Builder(
             builder: (context) {
               scheme = Theme.of(context).colorScheme;
@@ -42,7 +42,7 @@ void main() {
       late CardThemeData cardTheme;
       await tester.pumpWidget(
         MaterialApp(
-          theme: taskMasterTheme,
+          theme: taskMaestroTheme,
           home: Builder(
             builder: (context) {
               cardTheme = Theme.of(context).cardTheme;
@@ -58,7 +58,7 @@ void main() {
       late DialogThemeData dialogTheme;
       await tester.pumpWidget(
         MaterialApp(
-          theme: taskMasterTheme,
+          theme: taskMaestroTheme,
           home: Builder(
             builder: (context) {
               dialogTheme = Theme.of(context).dialogTheme;

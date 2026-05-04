@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:taskmaster/models/bad_schema_task.dart';
-import 'package:taskmaster/models/task_item.dart';
+import 'package:taskmaestro/models/bad_schema_task.dart';
+import 'package:taskmaestro/models/task_item.dart';
 import '../../../core/services/task_completion_service.dart';
 import '../providers/task_filter_providers.dart';
 import '../providers/task_providers.dart';

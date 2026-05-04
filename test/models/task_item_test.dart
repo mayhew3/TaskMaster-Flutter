@@ -1,7 +1,7 @@
-import 'package:taskmaster/models/task_date_type.dart';
-import 'package:taskmaster/models/task_item.dart';
-import 'package:taskmaster/models/task_item_blueprint.dart';
-import 'package:taskmaster/models/task_recurrence_blueprint.dart';
+import 'package:taskmaestro/models/task_date_type.dart';
+import 'package:taskmaestro/models/task_item.dart';
+import 'package:taskmaestro/models/task_item_blueprint.dart';
+import 'package:taskmaestro/models/task_recurrence_blueprint.dart';
 import 'package:test/test.dart';
 
 import '../mocks/mock_data.dart';

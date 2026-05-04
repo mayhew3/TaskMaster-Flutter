@@ -17,7 +17,7 @@ You can now share tasks with family members. Invite someone by email, and once t
 
 1. Open the **drawer** (hamburger menu) and tap **Family**.
 2. Tap **Invite a family member** and enter their email address.
-   - They must have signed in to TaskMaster at least once. If the email isn't found, ask them to open the app and sign in first.
+   - They must have signed in to TaskMaestro at least once. If the email isn't found, ask them to open the app and sign in first.
 3. The invite is sent. Your **Family** tab appears immediately — you're now the family owner.
 
 ### Accept an invite

@@ -5,7 +5,7 @@
 
 ## Why
 
-TaskMaster shipped as a single-user app. Every record (task, recurrence, sprint) carries one `personDocId`, the SyncService listener filters by it server-side, and Drift filters by it again locally. Users asked for a way to share their task list with family members so a household can coordinate on chores, errands, and shared work without each person manually duplicating tasks.
+TaskMaestro shipped as a single-user app. Every record (task, recurrence, sprint) carries one `personDocId`, the SyncService listener filters by it server-side, and Drift filters by it again locally. Users asked for a way to share their task list with family members so a household can coordinate on chores, errands, and shared work without each person manually duplicating tasks.
 
 This MVP introduces a "Family" concept: invite-by-email, accept, view + add + complete each other's tasks, with live updates as members add/edit/complete. Sprints and recurrence rules stay per-person — full collaboration is Tier 2 (TM-336).
 
@@ -146,7 +146,7 @@ Existing on-device databases run `MigrationStrategy.onUpgrade` and pick up the n
 
 1. **Firestore security rules stay open.** Current rules: `allow read, write: if request.auth != null;`. Multi-user reads were already possible before this PR, so it doesn't make things worse — but a rules-tightening pass is required before any real-world rollout. Likely its own ticket.
 2. **No FCM / push notifications for invites.** The invitee sees the banner only when they next open the app. Tier 2 wires Cloud Messaging.
-3. **Invitees must already have a `persons` doc.** The current sign-in flow rejects unknown emails (`AuthStatus.personNotFound`). Until that's reworked, you can only invite people who've signed in to TaskMaster at least once. The invite dialog surfaces this with a targeted error message.
+3. **Invitees must already have a `persons` doc.** The current sign-in flow rejects unknown emails (`AuthStatus.personNotFound`). Until that's reworked, you can only invite people who've signed in to TaskMaestro at least once. The invite dialog surfaces this with a targeted error message.
 4. **Recurrence rules don't sync across family.** Completing a family member's recurring task can hit `RecurrenceNotFoundException` if their rule isn't cached locally. The user-facing impact is a SnackBar from TM-343; the task stays uncompleted. Tier 2 adds cross-family recurrence sync.
 5. **No editing of family members' tasks.** Recurrence-rule edits are blocked by design; non-recurrence field edits are blocked by hiding the Edit FAB. Tier 2 can open this up with finer-grained permissions.
 6. **One family per user.** Person.familyDocId is a single-value field. Tier 2 can model multiple groups by promoting it to a list.
