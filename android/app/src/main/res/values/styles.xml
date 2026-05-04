@@ -5,4 +5,11 @@
              Flutter draws its first frame -->
         <item name="android:windowBackground">@drawable/launch_background</item>
     </style>
+    <!-- Theme applied to the Android Window after the launch screen finishes,
+         while Flutter UI initializes and behind the running Flutter UI. Used
+         by Flutter V2 embedding via the io.flutter.embedding.android.NormalTheme
+         meta-data in AndroidManifest.xml. -->
+    <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">?android:colorBackground</item>
+    </style>
 </resources>

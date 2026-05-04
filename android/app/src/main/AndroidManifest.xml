@@ -21,6 +21,12 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Tell Flutter V2 embedding to swap from LaunchTheme to NormalTheme
+                 after the first frame draws — eliminates the white flash that
+                 would otherwise be visible while Flutter initializes. -->
+            <meta-data
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme" />
         </activity>
         <meta-data
             android:name="flutterEmbedding"
