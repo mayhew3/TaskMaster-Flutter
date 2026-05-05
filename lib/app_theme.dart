@@ -22,7 +22,8 @@ ThemeData taskMaestroTheme = ThemeData(
     height: 70,
   ),
   floatingActionButtonTheme: FloatingActionButtonThemeData(
-    backgroundColor: TaskColors.highlight,
+    backgroundColor: TaskColors.brandMagentaMuted,
+    foregroundColor: Colors.white,
   ),
   filledButtonTheme: FilledButtonThemeData(
     style: FilledButton.styleFrom(
@@ -52,7 +53,7 @@ ThemeData taskMaestroTheme = ThemeData(
     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
   ),
   dividerTheme: DividerThemeData(
-    color: Colors.white24,
+    color: TaskColors.hairline,
     space: 1,
     thickness: 1,
   ),
