@@ -202,7 +202,8 @@ class _MemberTile extends StatelessWidget {
         ],
       ),
       // Roster intentionally shows the member's display name only — keeps
-      // tiles compact and avoids long-email truncation.
+      // tiles compact and avoids long-email truncation. Email still appears
+      // on TaskDetailsScreen's "Added by" field where there's room for it.
       trailing: onRemove != null
           ? IconButton(
               icon: Icon(isMe ? Icons.exit_to_app : Icons.person_remove,

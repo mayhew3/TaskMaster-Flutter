@@ -93,6 +93,3 @@ settings.local.json
 !**/ios/**/default.pbxuser
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
-
-# TM-356 design handoff bundle (local reference only)
-.claude/design/

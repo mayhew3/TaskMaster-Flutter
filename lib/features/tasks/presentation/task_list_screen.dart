@@ -10,6 +10,7 @@ import '../../sprints/providers/sprint_providers.dart';
 import '../../../models/sprint.dart';
 import '../../../models/check_state.dart';
 import 'task_add_edit_screen.dart';
+import 'task_details_screen.dart';
 import '../../../models/task_colors.dart';
 import '../../shared/presentation/editable_task_item.dart';
 import '../../shared/presentation/widgets/header_list_item.dart';
@@ -442,11 +443,13 @@ class _TaskListItem extends ConsumerWidget {
     return EditableTaskItemWidget(
       taskItem: displayTask,
       highlightSprint: highlightSprint,
-      onEdit: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => TaskAddEditScreen(taskItemId: task.docId),
-        ),
-      ),
+      onTap: () async {
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => TaskDetailsScreen(taskItemId: task.docId),
+          ),
+        );
+      },
       onLongPress: () {
         HapticFeedback.mediumImpact();
         showDialog<void>(
@@ -469,7 +472,7 @@ class _TaskListItem extends ConsumerWidget {
                 showTaskActionError(context, e, st));
         return null;
       },
-      confirmDismiss: (direction) async {
+      onDismissed: (direction) async {
         if (direction == DismissDirection.endToStart) {
           try {
             await ref.read(deleteTaskProvider.notifier).call(task);

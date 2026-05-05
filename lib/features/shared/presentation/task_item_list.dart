@@ -16,7 +16,7 @@ import 'task_action_error_helper.dart';
 import '../../../helpers/task_selectors.dart';
 import '../../../core/services/task_completion_service.dart';
 import '../../tasks/providers/task_providers.dart';
-import '../../tasks/presentation/task_add_edit_screen.dart';
+import '../../tasks/presentation/task_details_screen.dart';
 import '../../sprints/providers/sprint_providers.dart';
 import 'editable_task_item.dart';
 
@@ -95,7 +95,7 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
   void _addTaskTile({
     required TaskItem taskItem,
     required BuildContext context,
-    required List<Widget> tiles,
+    required List<StatelessWidget> tiles,
     required BuiltList<TaskItem> recentlyCompleted,
     required Map<String, TaskItem> pendingTasks,
   }) {
@@ -111,12 +111,17 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
 
     var taskCard = EditableTaskItemWidget(
       taskItem: displayTask,
+      sprint: activeSprint,
       highlightSprint: (!widget.sprintMode && activeSprint != null && activeSprintItems != null && activeSprintItems!.contains(taskItem)),
-      onEdit: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => TaskAddEditScreen(taskItemId: taskItem.docId),
-        ),
-      ),
+      onTap: () async {
+        await Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) {
+            return TaskDetailsScreen(
+              taskItemId: taskItem.docId,
+            );
+          }),
+        );
+      },
       onLongPress: () => snoozeDialog(taskItem),
       onForcePress: (ForcePressDetails forcePressDetails) => snoozeDialog(taskItem),
       onTaskCompleteToggle: (checkState) {
@@ -134,7 +139,7 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
                 showTaskActionError(context, e, st));
         return null;
       },
-      confirmDismiss: (direction) async {
+      onDismissed: (direction) async {
         if (direction == DismissDirection.endToStart) {
           try {
             await ref.read(deleteTaskProvider.notifier).call(taskItem);
@@ -287,7 +292,7 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
       TaskDisplayGrouping(displayName: 'Tasks', displayOrder: 4, filter: (_) => true),
     ];
 
-    List<Widget> tiles = [];
+    List<StatelessWidget> tiles = [];
 
     if (!widget.sprintMode) {
       if (activeSprint != null) {
@@ -340,7 +345,7 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
     );
   }
 
-  Widget _createAddMoreButton(BuildContext context) {
+  StatelessWidget _createAddMoreButton(BuildContext context) {
     return Container(
         padding: EdgeInsets.all(25.0),
         child: Row(

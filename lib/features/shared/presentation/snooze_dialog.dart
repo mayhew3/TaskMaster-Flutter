@@ -223,7 +223,7 @@ class SnoozeDialogState extends ConsumerState<SnoozeDialog> {
           ),
           if (widget.taskItem.recurrenceDocId != null &&
               blueprint.recurrenceBlueprint?.recurWait == false)
-            FilledButton(
+            TextButton(
               onPressed: () async {
                 try {
                   await ref.read(skipTaskProvider.notifier).call(widget.taskItem);
@@ -235,7 +235,7 @@ class SnoozeDialogState extends ConsumerState<SnoozeDialog> {
               child: const Text('Skip This Instance'),
             ),
           Visibility(
-            child: FilledButton(
+            child: TextButton(
               onPressed: () async {
                 final form = formKey.currentState;
 

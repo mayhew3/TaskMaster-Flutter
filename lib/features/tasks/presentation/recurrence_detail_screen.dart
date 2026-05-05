@@ -94,7 +94,7 @@ class _RecurrenceIterationTile extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: TaskColors.hairline, width: 0.5),
+          bottom: BorderSide(color: Colors.grey.shade800, width: 0.5),
         ),
       ),
       child: Padding(
@@ -150,9 +150,9 @@ class _RecurrenceIterationTile extends StatelessWidget {
                   if (isCompleted && !isRetired)
                     Text(
                       'Completed: ${_formatDate(task.completionDate!)}',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 13,
-                        color: TaskColors.completedText,
+                        color: Color(0xFFD88BD0), // lighter pink
                       ),
                     ),
                   // Show retired indicator
@@ -183,19 +183,19 @@ class _RecurrenceIterationTile extends StatelessWidget {
   }
 
   _DateInfo? _getPrimaryDateInfo() {
-    // Priority: due -> urgent -> target -> start. Uses the date-pill text
-    // colors from TaskColors so this screen stays in sync with the card.
+    // Priority: due -> urgent -> target -> start
+    // Use lighter versions of TaskColors for better readability
     if (task.dueDate != null) {
-      return _DateInfo('Due', task.dueDate!, TaskColors.dueText);
+      return _DateInfo('Due', task.dueDate!, const Color(0xFFE091B0)); // lighter pink
     }
     if (task.urgentDate != null) {
-      return _DateInfo('Urgent', task.urgentDate!, TaskColors.urgentText);
+      return _DateInfo('Urgent', task.urgentDate!, const Color(0xFFD4A89A)); // lighter orange
     }
     if (task.targetDate != null) {
-      return _DateInfo('Target', task.targetDate!, TaskColors.targetText);
+      return _DateInfo('Target', task.targetDate!, const Color(0xFFB8C490)); // lighter green
     }
     if (task.startDate != null) {
-      return _DateInfo('Start', task.startDate!, TaskColors.startText);
+      return _DateInfo('Start', task.startDate!, Colors.white70);
     }
     return null;
   }
@@ -230,8 +230,9 @@ class _StatusIcon extends StatelessWidget {
       return const Icon(Icons.delete_outline, color: Colors.grey, size: 24);
     }
     if (task.completionDate != null) {
-      return Icon(Icons.check_circle, color: TaskColors.completedText, size: 24);
+      // Lighter pink for better visibility
+      return const Icon(Icons.check_circle, color: Color(0xFFD88BD0), size: 24);
     }
-    return Icon(Icons.radio_button_unchecked, color: TaskColors.textDim, size: 24);
+    return const Icon(Icons.radio_button_unchecked, color: Colors.white54, size: 24);
   }
 }

@@ -11,6 +11,7 @@ import '../../shared/presentation/snooze_dialog.dart';
 import '../../shared/presentation/task_action_error_helper.dart';
 import '../../shared/presentation/widgets/header_list_item.dart';
 import '../../tasks/presentation/task_add_edit_screen.dart';
+import '../../tasks/presentation/task_details_screen.dart';
 import '../providers/family_task_filter_providers.dart';
 import 'family_manage_screen.dart';
 
@@ -91,15 +92,13 @@ class _FamilyTaskTile extends ConsumerWidget {
     return EditableTaskItemWidget(
       taskItem: task,
       highlightSprint: false,
-      // Hide Edit on tasks the current user doesn't own — viewing a
-      // teammate's task should be read-only from this tab.
-      onEdit: isMine
-          ? () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => TaskAddEditScreen(taskItemId: task.docId),
-                ),
-              )
-          : null,
+      onTap: () async {
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => TaskDetailsScreen(taskItemId: task.docId),
+          ),
+        );
+      },
       onLongPress: () {
         HapticFeedback.mediumImpact();
         showDialog<void>(
@@ -126,7 +125,7 @@ class _FamilyTaskTile extends ConsumerWidget {
       // Family tab's MVP scope doesn't include deleting another member's
       // task. Surface a toast on attempt so the user understands why the
       // gesture bounced back instead of looking like an unresponsive UI.
-      confirmDismiss: isMine
+      onDismissed: isMine
           ? (direction) async {
               if (direction == DismissDirection.endToStart) {
                 try {
