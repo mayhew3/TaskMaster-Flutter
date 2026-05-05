@@ -469,7 +469,7 @@ class _TaskListItem extends ConsumerWidget {
                 showTaskActionError(context, e, st));
         return null;
       },
-      onDismissed: (direction) async {
+      confirmDismiss: (direction) async {
         if (direction == DismissDirection.endToStart) {
           try {
             await ref.read(deleteTaskProvider.notifier).call(task);

@@ -27,7 +27,7 @@ import 'delayed_checkbox.dart';
 class EditableTaskItemWidget extends ConsumerWidget {
   final TaskItem taskItem;
   final CheckCycleWaiter? onTaskCompleteToggle;
-  final ConfirmDismissCallback? onDismissed;
+  final ConfirmDismissCallback? confirmDismiss;
   final GestureLongPressCallback? onLongPress;
   final GestureForcePressStartCallback? onForcePress;
   final bool highlightSprint;
@@ -41,7 +41,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
     required this.taskItem,
     required this.highlightSprint,
     this.onTaskCompleteToggle,
-    this.onDismissed,
+    this.confirmDismiss,
     this.onLongPress,
     this.onForcePress,
     this.onEdit,
@@ -83,7 +83,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
 
     return Dismissible(
       key: TaskMaestroKeys.taskItem(_docId()),
-      confirmDismiss: onDismissed,
+      confirmDismiss: confirmDismiss,
       child: GestureDetector(
         onLongPress: onLongPress,
         onForcePressStart: onForcePress,

@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:taskmaestro/models/task_colors.dart';
 
 /// Picks a color for an area name from `TaskColors.areaPalette` using a
-/// deterministic hash of the (trimmed, lowercased) name. Same input → same
-/// color across the app within a Dart SDK version. An SDK upgrade can rotate
-/// colors; this is acceptable for visual decoration.
+/// hash of the (trimmed, lowercased) name. Two calls with the same input
+/// in the same program run will return the same color. `String.hashCode`
+/// is **not** specified to be stable across Dart releases or even across
+/// program executions, so the colour an unknown area gets may shift after
+/// an SDK upgrade. That's acceptable here because this is purely a
+/// visual fallback for area strings that aren't in `areaColorsProvider`'s
+/// sortOrder map; known areas are stable through that provider.
 class AreaColorHelper {
   AreaColorHelper._();
 

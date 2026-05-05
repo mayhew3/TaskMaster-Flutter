@@ -126,7 +126,7 @@ class _FamilyTaskTile extends ConsumerWidget {
       // Family tab's MVP scope doesn't include deleting another member's
       // task. Surface a toast on attempt so the user understands why the
       // gesture bounced back instead of looking like an unresponsive UI.
-      onDismissed: isMine
+      confirmDismiss: isMine
           ? (direction) async {
               if (direction == DismissDirection.endToStart) {
                 try {

@@ -134,7 +134,7 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
                 showTaskActionError(context, e, st));
         return null;
       },
-      onDismissed: (direction) async {
+      confirmDismiss: (direction) async {
         if (direction == DismissDirection.endToStart) {
           try {
             await ref.read(deleteTaskProvider.notifier).call(taskItem);
