@@ -28,13 +28,18 @@ ThemeData taskMaestroTheme = ThemeData(
   filledButtonTheme: FilledButtonThemeData(
     style: FilledButton.styleFrom(
       foregroundColor: Colors.white,
-      backgroundColor: TaskColors.menuColor,
+      // Brand magenta so primary CTAs stand out on the new card-coloured
+      // dialog/sheet surfaces (which share the AppBar's blue).
+      backgroundColor: TaskColors.highlight,
     ),
   ),
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(
+      // No fill — text buttons should read as text on whatever surface
+      // they sit on. The previous `backgroundColor: menuColor` override
+      // made them invisible on dialog surfaces (which share menuColor's
+      // hex after the TM-356 palette swap).
       foregroundColor: Colors.white,
-      backgroundColor: TaskColors.menuColor,
     ),
   ),
   cardTheme: CardThemeData(
