@@ -181,9 +181,10 @@ class EditableTaskItemWidget extends ConsumerWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Flexible(child: _areaLabel()),
-        const SizedBox(width: 10),
-        const Spacer(),
+        // Expanded soaks up all remaining width so the right cluster sits
+        // flush against the checkbox column. When area is null the inner
+        // SizedBox.shrink leaves the space empty without disrupting alignment.
+        Expanded(child: _areaLabel()),
         _TimeBlock(durationMinutes: taskItem.duration),
         const SizedBox(width: 8),
         _PriorityBar(priority: taskItem.priority),
@@ -217,6 +218,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
             style: TextStyle(fontSize: 11.5, color: TaskColors.textDim),
           ),
         ),
+        const SizedBox(width: 8),
       ],
     );
   }
