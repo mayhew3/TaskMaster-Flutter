@@ -153,10 +153,15 @@ class EditableTaskItemWidget extends ConsumerWidget {
     bool isExpanded,
     Color areaColor,
   ) {
+    // Avoid making a card tappable when expanding it would render nothing —
+    // tapping such a card would silently collapse another open card without
+    // any visible affordance, which feels broken.
+    final canExpand = _hasExpandableContent(taskItem, hasOnEdit: onEdit != null);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () =>
-          ref.read(expandedTaskProvider.notifier).toggle(_docId()),
+      onTap: canExpand
+          ? () => ref.read(expandedTaskProvider.notifier).toggle(_docId())
+          : null,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -442,6 +447,31 @@ _PillContent? _pillContentFor(TaskItem taskItem) {
     border: stateTone?.border ?? TaskColors.hairline,
     fg: displayTone.fg,
   );
+}
+
+/// True when expanding [task] would render something — used by the
+/// summary-row tap handler to gate the expand toggle so empty cards
+/// without an Edit button don't become invisible tap targets that
+/// collapse other open cards.
+bool _hasExpandableContent(TaskItem task, {required bool hasOnEdit}) {
+  if (hasOnEdit) return true;
+  if (task.startDate != null) return true;
+  if (task.targetDate != null) return true;
+  if (task.urgentDate != null) return true;
+  if (task.dueDate != null) return true;
+  if (RecurrenceFormatter.format(
+        recurNumber: task.recurNumber ?? task.recurrence?.recurNumber,
+        recurUnit: task.recurUnit ?? task.recurrence?.recurUnit,
+        recurWait: task.recurWait ?? task.recurrence?.recurWait,
+      ) !=
+      null) {
+    return true;
+  }
+  final notes = task.description;
+  if (notes != null && notes.isNotEmpty) return true;
+  final ctx = task.context;
+  if (ctx != null && ctx.isNotEmpty) return true;
+  return false;
 }
 
 /// Picks the date type to put in the pill label — the next upcoming

@@ -43,7 +43,7 @@ All surface colors are the **post-tweak** values from the design HTML — `apply
 | `hairline` | `rgba(255,255,255,0.08)` | Dividers |
 | `cardCompletedTint` | `rgba(72,73,163,0.92)` | Completed card surface — precomputed `mix(card 55%, #6E1F8E 45%)` |
 | `dueBorder`, `urgentBorder`, `targetBorder`, `startBorder`, `completedBorder` | from design `DATE_TONES.*.border` | Date pill borders |
-| `areaPalette` | 10-color list | Source for area-color hash |
+| `areaPalette` | 16-color list | Source for area-color assignment (provider-mapped + hash fallback) |
 
 ## Card layout decisions (V9, scoped down)
 
@@ -64,9 +64,16 @@ Layout:
 - **Checkbox** (existing `DelayedCheckbox`) on the right of the body, vertically aligned.
 - **Expanded panel** (in `AnimatedSize`, 200ms easeInOut): 2×2 date grid (only non-null dates), context row, recurrence row, notes row, magenta Edit button bottom-right.
 
-### Date pill anchor selection
+### Date pill selection
 
-The card shows **one** date pill. The choice reuses the existing `DateHolder.getAnchorDateType()` mixin method (`lib/models/task_date_holder.dart:83`), which returns the first non-null date in priority order: due > urgent > target > start. Completed/skipped tasks bypass this and show the COMPLETED / SKIPPED pill instead.
+The card shows **one** date pill. The label is picked by `_displayDateType()` in `editable_task_item.dart`, which mirrors the iteration order from the pre-redesign widget's `_getDateWarnings()`:
+
+1. Walk the dates in priority order (start, target, urgent, due) and return the first one that is in the future *and* within its display window — i.e. the next milestone the user has to act on.
+2. If none are upcoming, walk in reverse (due, urgent, target — `start` is excluded once it's behind us) and return the most-recently-crossed.
+
+This is intentionally **different** from `DateHolder.getAnchorDateType()`, which always returns the highest-priority non-null date (used for recurrence anchoring). For display purposes, an earlier-priority date that's the next thing the user must act on (e.g. urgent in 4h) is more relevant than a later-priority date that's farther out (due in 2d).
+
+Pill colors use a **split-tone**: text color from `_displayDateType` (the milestone the label names — DUE / URGENT / TARGET / START), background from `_toneForCurrentState` (the most recently crossed threshold — task's actual current state). Completed/skipped tasks bypass both and show the COMPLETED / SKIPPED pill instead.
 
 ### Priority bar
 
@@ -91,19 +98,23 @@ class ExpandedTask extends _$ExpandedTask {
 - **Cross-list behavior:** All lists share one provider, so tapping a card in the Family tab while another is expanded in the Tasks tab will collapse the first. (Both cards being mounted simultaneously is rare in practice; this is the spec'd accordion behavior.)
 - **Where it's read:** `EditableTaskItemWidget.build(...)` watches the provider; `_summaryRow` reads `notifier.toggle(docId)` on tap.
 
-## Area-color hash algorithm
+## Area-color assignment
 
-`AreaColorHelper.colorForArea(name)` at `lib/helpers/area_color_helper.dart`:
+There are two layers, in order of precedence:
 
-```
-key = name.trim().toLowerCase()
-index = key.hashCode.abs() % palette.length     // palette = TaskColors.areaPalette (10)
-color = palette[index]
-```
+1. **Sort-order based (`areaColorsProvider`)** — the primary path. Watches `areasProvider`, which streams the user's areas already sorted by `Area.sortOrder`. Each area gets `palette[index % palette.length]` where `palette = TaskColors.areaPalette` (currently 16 colors). This guarantees distinct colors for the user's first 16 areas without collisions.
 
-- Null/empty → `Color(0x4DFFFFFF)` (30% white) fallback.
-- **Determinism caveat:** `String.hashCode` is deterministic *within* a Dart SDK version. An SDK upgrade could rotate every area's color. This is acceptable for visual decoration; if Areas grow ownership semantics later, we'll add a `color` column to the Area entity (out of TM-356 scope).
-- 10 colors sourced from `cards.jsx > AREA_COLORS` (Family/Maintenance/Friends/Hobby/Shopping/Organization/Career/Health/Entertainment/Projects). Order is preserved in `TaskColors.areaPalette`.
+2. **Hash-based fallback (`AreaColorHelper.colorForArea`)** — used when an area name on a task isn't found in the provider's map (stale data, race during area load, etc.):
+   ```
+   key = name.trim().toLowerCase()
+   index = key.hashCode.abs() % TaskColors.areaPalette.length
+   color = palette[index]
+   ```
+   Null/empty → `Color(0x4DFFFFFF)` (30% white) fallback.
+
+**Determinism caveat:** `String.hashCode` is deterministic *within* a Dart SDK version. An SDK upgrade could rotate the hash-fallback colors. This is acceptable for visual decoration; if Areas grow ownership semantics later, we'll add a `color` column to the `Area` entity (out of TM-356 scope).
+
+The palette's first 10 colors come from `cards.jsx > AREA_COLORS` (Family / Maintenance / Friends / Hobby / Shopping / Organization / Career / Health / Entertainment / Projects); the next 6 are additional hues to cover users with more than 10 areas before slot reuse begins.
 
 ## Recurrence formatter contract
 

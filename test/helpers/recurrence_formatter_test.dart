@@ -21,6 +21,17 @@ void main() {
       );
     });
 
+    test('returns null for non-positive recurNumber', () {
+      expect(
+        RecurrenceFormatter.format(recurNumber: 0, recurUnit: 'Weeks'),
+        isNull,
+      );
+      expect(
+        RecurrenceFormatter.format(recurNumber: -1, recurUnit: 'Weeks'),
+        isNull,
+      );
+    });
+
     test('returns null for unrecognised units', () {
       expect(
         RecurrenceFormatter.format(recurNumber: 1, recurUnit: 'Decades'),

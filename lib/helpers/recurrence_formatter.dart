@@ -3,13 +3,19 @@
 class RecurrenceFormatter {
   RecurrenceFormatter._();
 
-  /// Returns null when the rule is incomplete; the card should hide the row.
+  /// Returns null when the rule is incomplete or invalid; the card should
+  /// hide the row in those cases. Non-positive intervals are treated as
+  /// invalid — "Every 0 weeks" is meaningless and the rest of the codebase
+  /// assumes a positive interval.
   static String? format({
     int? recurNumber,
     String? recurUnit,
     bool? recurWait,
   }) {
-    if (recurNumber == null || recurUnit == null || recurUnit.isEmpty) {
+    if (recurNumber == null ||
+        recurNumber <= 0 ||
+        recurUnit == null ||
+        recurUnit.isEmpty) {
       return null;
     }
 

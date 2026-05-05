@@ -32,7 +32,8 @@ void main() {
     test('many distinct names produce a spread of colors', () {
       final names = List<String>.generate(50, (i) => 'area_$i');
       final distinct = names.map(AreaColorHelper.colorForArea).toSet();
-      // 10-color palette + 50 names → expect most colors used; require ≥5.
+      // With a 50-name × 16-slot palette we expect most slots to fill;
+      // require ≥5 to keep the test stable against future palette tweaks.
       expect(distinct.length, greaterThanOrEqualTo(5));
     });
   });

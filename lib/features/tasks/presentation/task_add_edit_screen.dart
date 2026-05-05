@@ -628,8 +628,12 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                                             _repeatOn = value;
                                           });
                                         },
+                                        // Magenta highlight on the track,
+                                        // white thumb on top so the
+                                        // checked state reads as a switch
+                                        // rather than a solid magenta blob.
                                         activeTrackColor: TaskColors.highlight,
-                                        activeColor: TaskColors.highlight,
+                                        activeColor: Colors.white,
                                       ),
                                     ],
                                   ),

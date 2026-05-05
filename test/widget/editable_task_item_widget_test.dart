@@ -11,7 +11,10 @@ import 'package:taskmaestro/models/task_item.dart';
 ///
 /// Covers:
 /// 1. Title and area name render
-/// 2. Date pill picks the highest-priority non-null date (anchor)
+/// 2. Date pill labels the next upcoming milestone within its display
+///    window (or the most recently crossed one if none are upcoming) —
+///    not the recurrence-anchor date. See `_displayDateType` in
+///    editable_task_item.dart.
 /// 3. Sprint icon appears only when highlightSprint == true
 /// 4. Completed/skipped tasks show the completed pill
 /// 5. The card is wrapped in `Dismissible`
