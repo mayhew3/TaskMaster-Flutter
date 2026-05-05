@@ -1,6 +1,7 @@
 
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
+import 'package:taskmaestro/models/task_colors.dart';
 
 class NullableDropdown extends StatefulWidget {
   final String? initialValue;
@@ -43,7 +44,7 @@ class NullableDropdownState extends State<NullableDropdown> {
 
   TextStyle? getMenuItemStyle(String menuItem) {
     if (menuItem != value) {
-      return TextStyle(color: Colors.lightBlueAccent);
+      return TextStyle(color: TaskColors.primaryLight);
     } else {
       return null;
     }
