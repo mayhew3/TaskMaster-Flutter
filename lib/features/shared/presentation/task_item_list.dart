@@ -16,7 +16,7 @@ import 'task_action_error_helper.dart';
 import '../../../helpers/task_selectors.dart';
 import '../../../core/services/task_completion_service.dart';
 import '../../tasks/providers/task_providers.dart';
-import '../../tasks/presentation/task_details_screen.dart';
+import '../../tasks/presentation/task_add_edit_screen.dart';
 import '../../sprints/providers/sprint_providers.dart';
 import 'editable_task_item.dart';
 
@@ -95,7 +95,7 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
   void _addTaskTile({
     required TaskItem taskItem,
     required BuildContext context,
-    required List<StatelessWidget> tiles,
+    required List<Widget> tiles,
     required BuiltList<TaskItem> recentlyCompleted,
     required Map<String, TaskItem> pendingTasks,
   }) {
@@ -113,15 +113,11 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
       taskItem: displayTask,
       sprint: activeSprint,
       highlightSprint: (!widget.sprintMode && activeSprint != null && activeSprintItems != null && activeSprintItems!.contains(taskItem)),
-      onTap: () async {
-        await Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) {
-            return TaskDetailsScreen(
-              taskItemId: taskItem.docId,
-            );
-          }),
-        );
-      },
+      onEdit: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => TaskAddEditScreen(taskItemId: taskItem.docId),
+        ),
+      ),
       onLongPress: () => snoozeDialog(taskItem),
       onForcePress: (ForcePressDetails forcePressDetails) => snoozeDialog(taskItem),
       onTaskCompleteToggle: (checkState) {
@@ -292,7 +288,7 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
       TaskDisplayGrouping(displayName: 'Tasks', displayOrder: 4, filter: (_) => true),
     ];
 
-    List<StatelessWidget> tiles = [];
+    List<Widget> tiles = [];
 
     if (!widget.sprintMode) {
       if (activeSprint != null) {
@@ -345,7 +341,7 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
     );
   }
 
-  StatelessWidget _createAddMoreButton(BuildContext context) {
+  Widget _createAddMoreButton(BuildContext context) {
     return Container(
         padding: EdgeInsets.all(25.0),
         child: Row(

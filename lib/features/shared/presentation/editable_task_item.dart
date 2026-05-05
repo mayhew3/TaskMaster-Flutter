@@ -1,4 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:taskmaestro/features/tasks/providers/expanded_task_provider.dart';
+import 'package:taskmaestro/helpers/area_color_helper.dart';
+import 'package:taskmaestro/helpers/recurrence_formatter.dart';
 import 'package:taskmaestro/keys.dart';
 import 'package:taskmaestro/models/task_colors.dart';
 import 'package:taskmaestro/models/task_date_type.dart';
@@ -9,14 +16,14 @@ import '../../../models/task_item.dart';
 import '../../../models/check_state.dart';
 import 'delayed_checkbox.dart';
 
-/// Riverpod version of EditableTaskItem
+/// Pure presentational task card with an inline expand-for-detail panel.
 ///
-/// This is a pure presentational widget that renders a task item card
-/// with a checkbox, name, project, dates, and swipe-to-delete.
-/// All state management and actions are handled by the parent via callbacks.
-class EditableTaskItemWidget extends StatelessWidget {
+/// Tapping the card body toggles the global `expandedTaskProvider` so only
+/// one card is expanded at a time. The expanded panel surfaces the four
+/// dates, recurrence, notes, and a single context — and a magenta Edit
+/// button which the parent wires via [onEdit].
+class EditableTaskItemWidget extends ConsumerWidget {
   final TaskItem taskItem;
-  final GestureTapCallback? onTap;
   final CheckCycleWaiter? onTaskCompleteToggle;
   final ConfirmDismissCallback? onDismissed;
   final GestureLongPressCallback? onLongPress;
@@ -25,108 +32,203 @@ class EditableTaskItemWidget extends StatelessWidget {
   final Sprint? sprint;
   final bool highlightSprint;
 
+  /// Pushed by the expanded panel's Edit button. When null, the Edit button
+  /// is hidden.
+  final VoidCallback? onEdit;
+
   const EditableTaskItemWidget({
     super.key,
     required this.taskItem,
     this.sprint,
     required this.highlightSprint,
     this.onTaskCompleteToggle,
-    this.onTap,
     this.initialCheckState,
     this.onDismissed,
     this.onLongPress,
     this.onForcePress,
+    this.onEdit,
   });
 
-  bool hasPassed(DateTime? dateTime) {
-    return dateTime == null ? false : dateTime.isBefore(DateTime.timestamp());
-  }
+  String _docId() => taskItem.docId;
 
-  Color getBackgroundColor() {
-    var pending = taskItem.pendingCompletion;
-    var due = hasPassed(taskItem.dueDate);
-    var urgent = hasPassed(taskItem.urgentDate);
-    var target = hasPassed(taskItem.targetDate);
-    var scheduled = taskItem.isScheduled();
+  bool get _isDone => taskItem.completionDate != null || taskItem.skipped;
 
-    var completed = taskItem.completionDate != null;
-    var skipped = taskItem.skipped;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final expandedDocId = ref.watch(expandedTaskProvider);
+    final isExpanded = expandedDocId == _docId();
 
-    if (pending) {
-      return TaskColors.pendingBackground;
-    } else if (completed || skipped) {
-      return TaskColors.completedColor;
-    } else if (due) {
-      return TaskColors.dueColor;
-    } else if (urgent) {
-      return TaskColors.urgentColor;
-    } else if (target) {
-      return TaskColors.targetColor;
-    } else if (scheduled) {
-      return TaskColors.scheduledColor;
-    } else {
-      return TaskColors.cardColor;
-    }
-  }
-
-  String getStringForDateType(TaskDateType taskDateType) {
-    DateTime? dateValue = taskDateType.dateFieldGetter(taskItem);
-    bool isPast = dateValue == null ? false : dateValue.isBefore(DateTime.now());
-    String formatted = formatDateTime(dateValue);
-    String label = taskDateType.label;
-
-    if (dateValue == null) {
-      return '';
-    } else if ('now' == formatted) {
-      return '$label just now';
-    } else if (isPast) {
-      return '$label $formatted ago';
-    } else {
-      return '$label in $formatted';
-    }
-  }
-
-  String getDueDateString() {
-    var dueDate = taskItem.dueDate;
-    if (dueDate == null) {
-      return '';
-    } else if (taskItem.isPastDue()) {
-      return 'Due ${formatDateTime(dueDate)} ago';
-    } else {
-      return 'Due in ${formatDateTime(dueDate)}';
-    }
-  }
-
-  String formatDateTime(DateTime? dateTime) {
-    var preliminaryString = dateTime == null ? '' : timeago.format(
-        dateTime,
-        locale: 'en_short',
-        allowFromNow: true
+    return Dismissible(
+      key: TaskMaestroKeys.taskItem(_docId()),
+      confirmDismiss: onDismissed,
+      child: GestureDetector(
+        onLongPress: onLongPress,
+        onForcePressStart: onForcePress,
+        child: Card(
+          key: TaskMaestroKeys.editableTaskItemCard(_docId()),
+          color: _isDone ? TaskColors.cardCompletedTint : TaskColors.cardColor,
+          shape: _cardShape(),
+          margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
+          child: Stack(
+            children: [
+              _AreaStripe(area: taskItem.area, completed: _isDone),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14.0, 10.0, 10.0, 10.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _summaryRow(context, ref, isExpanded),
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeInOut,
+                      alignment: Alignment.topCenter,
+                      child: isExpanded
+                          ? _ExpandedPanel(
+                              taskItem: taskItem,
+                              onEdit: onEdit,
+                              onCollapse: () => ref
+                                  .read(expandedTaskProvider.notifier)
+                                  .toggle(_docId()),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
-    return preliminaryString.replaceAll(' ', '').replaceAll('~', '');
   }
 
-  bool dueInThreshold(int thresholdDays) {
-    DateTime inXDays = DateTime.timestamp().add(Duration(days: thresholdDays));
-    var dueDate = taskItem.dueDate;
-    return dueDate != null && dueDate.isBefore(inXDays);
+  ShapeBorder _cardShape() {
+    final radius = BorderRadius.circular(6.0);
+    if (highlightSprint) {
+      return RoundedRectangleBorder(
+        borderRadius: radius,
+        side: BorderSide(color: TaskColors.sprintColor, width: 1.0),
+      );
+    }
+    return RoundedRectangleBorder(borderRadius: radius);
   }
 
-  bool dateInFutureThreshold(TaskDateType taskDateType, int thresholdDays) {
-    DateTime inXDays = DateTime.timestamp().add(Duration(days: thresholdDays));
-    var dateField = taskDateType.dateFieldGetter(taskItem);
-    var dateValue = dateField;
-    return dateValue != null &&
-        dateValue.isAfter(DateTime.now()) &&
-        dateValue.isBefore(inXDays);
+  Widget _summaryRow(BuildContext context, WidgetRef ref, bool isExpanded) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () =>
+          ref.read(expandedTaskProvider.notifier).toggle(_docId()),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _titleRow(),
+                const SizedBox(height: 6),
+                _metaRow(),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          if (highlightSprint)
+            Padding(
+              padding: const EdgeInsets.only(top: 2.0, right: 4.0),
+              child: Icon(
+                Icons.assignment,
+                color: TaskColors.sprintColor,
+                size: 18,
+                key: TaskMaestroKeys.editableTaskItemCardSprintIcon(_docId()),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: _checkbox(),
+          ),
+        ],
+      ),
+    );
   }
 
-  DelayedCheckbox _getCheckbox() {
-    var completed = taskItem.completionDate != null;
-    var pending = taskItem.pendingCompletion;
-    var skipped = taskItem.skipped;
+  Widget _titleRow() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Text(
+            taskItem.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 16.0,
+              fontWeight: FontWeight.w500,
+              color: _isDone
+                  ? TaskColors.textFaint
+                  : TaskColors.textPrimary,
+              decoration: _isDone ? TextDecoration.lineThrough : null,
+              decorationColor: TaskColors.textFaint,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        _DatePill(taskItem: taskItem, docId: _docId()),
+      ],
+    );
+  }
+
+  Widget _metaRow() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Flexible(child: _areaLabel()),
+        const SizedBox(width: 10),
+        const Spacer(),
+        _TimeBlock(durationMinutes: taskItem.duration),
+        const SizedBox(width: 8),
+        _PriorityBar(priority: taskItem.priority),
+        const SizedBox(width: 8),
+        _PointsCircle(points: taskItem.gamePoints),
+      ],
+    );
+  }
+
+  Widget _areaLabel() {
+    final area = taskItem.area;
+    if (area == null || area.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final color = AreaColorHelper.colorForArea(area);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      key: TaskMaestroKeys.editableTaskItemCardAreaField(_docId()),
+      children: [
+        Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 5),
+        Flexible(
+          child: Text(
+            area,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 11.5, color: TaskColors.textDim),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _checkbox() {
+    if (onTaskCompleteToggle == null) {
+      return const SizedBox.shrink();
+    }
+    final completed = taskItem.completionDate != null;
+    final pending = taskItem.pendingCompletion;
+    final skipped = taskItem.skipped;
     final isRecurring = taskItem.recurrenceDocId != null;
-
     return DelayedCheckbox(
       taskName: taskItem.name,
       initialState: skipped
@@ -138,197 +240,527 @@ class EditableTaskItemWidget extends StatelessWidget {
                   : CheckState.inactive,
       checkCycleWaiter: onTaskCompleteToggle!,
       inactiveIcon: isRecurring ? Icons.autorenew : null,
-      inactiveIconColor: isRecurring ? Colors.white38 : null,
+      inactiveIconColor: isRecurring ? TaskColors.textFaint : null,
     );
   }
+}
 
-  Widget _getDateWarnings() {
-    List<Widget> dateWarnings = [];
-
-    if (taskItem.skipped && !taskItem.pendingCompletion) {
-      dateWarnings.add(_getSkippedLabel());
-    } else if (taskItem.isCompleted() && !taskItem.pendingCompletion) {
-      dateWarnings.add(_getDateFromNow(TaskDateTypes.completed));
-    }
-
-    for (TaskDateType taskDateType in TaskDateTypes.allTypes) {
-      if (!taskItem.isCompleted() && !taskItem.skipped &&
-          taskDateType.inListBeforeDisplayThreshold(taskItem) &&
-          dateWarnings.isEmpty) {
-        dateWarnings.add(_getDateFromNow(taskDateType));
-      }
-    }
-
-    for (TaskDateType taskDateType in TaskDateTypes.allTypes.reversed) {
-      if (!taskItem.isCompleted() && !taskItem.skipped &&
-          taskDateType.inListAfterDisplayThreshold(taskItem) &&
-          TaskDateTypes.start != taskDateType &&
-          dateWarnings.isEmpty) {
-        dateWarnings.add(_getDateFromNow(taskDateType));
-      }
-    }
-
-    return Column(
-        children: dateWarnings
-    );
-  }
-
-  Widget _getDateFromNow(TaskDateType taskDateType) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: 5.0,
-        bottom: 5.0,
-        right: 5.0,
-        left: 5.0,
-      ),
-      child: Text(
-        getStringForDateType(taskDateType),
-        style: TextStyle(fontSize: 14.0, color: taskDateType.textColor),
-      ),
-    );
-  }
-
-  Widget _getSkippedLabel() {
-    final completionDate = taskItem.completionDate;
-    final formatted = completionDate == null ? '' : formatDateTime(completionDate);
-    final text = formatted.isEmpty || formatted == 'now'
-        ? 'Skipped just now'
-        : 'Skipped $formatted ago';
-    return Container(
-      padding: const EdgeInsets.only(top: 5.0, bottom: 5.0, right: 5.0, left: 5.0),
-      child: Text(text, style: const TextStyle(fontSize: 14.0, color: Colors.white70)),
-    );
-  }
-
-  ShapeBorder _getBorder() {
-    if  (highlightSprint) {
-      return RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(3.0),
-        side: BorderSide(
-          color: TaskColors.sprintColor,
-          width: 1.0,
-        ),
-      );
-    } else if (taskItem.isScheduled()) {
-      return RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(3.0),
-        side: BorderSide(
-          color: TaskColors.scheduledOutline,
-          width: 1.0,
-        ),
-      );
-    } else {
-      return RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(3.0),
-      );
-    }
-  }
-
-  TextStyle _getHeaderStyle() {
-    if (taskItem.isScheduled()) {
-      return TextStyle(
-        fontSize: 17.0,
-        color: TaskColors.scheduledText,
-      );
-    } else {
-      return const TextStyle(fontSize: 17.0);
-    }
-  }
-
-  Color _getShadowColor() {
-    if (taskItem.isScheduled()) {
-      // no shadow for scheduled task, by using 0 alpha
-      return TaskColors.invisible;
-    } else {
-      return Colors.black;
-    }
-  }
-
-  String getKey() {
-    return taskItem.docId;
-  }
+class _AreaStripe extends StatelessWidget {
+  final String? area;
+  final bool completed;
+  const _AreaStripe({required this.area, required this.completed});
 
   @override
   Widget build(BuildContext context) {
+    final color = completed
+        ? TaskColors.highlight
+        : AreaColorHelper.colorForArea(area);
+    return Positioned(
+      left: 0,
+      top: 0,
+      bottom: 0,
+      width: 3,
+      child: Container(color: color),
+    );
+  }
+}
 
-    return Dismissible(
-      key: TaskMaestroKeys.taskItem(getKey()),
-      confirmDismiss: onDismissed,
-      child: GestureDetector(
-        onTap: onTap,
-        onLongPress: onLongPress,
-        onForcePressStart: (ForcePressDetails forcePressDetails) {
-          print('Force Press detected!');
-          if (onForcePress != null) {
-            onForcePress!(forcePressDetails);
-          }
-        },
-        child: Card(
-          key: TaskMaestroKeys.editableTaskItemCard(getKey()),
-          shadowColor: _getShadowColor(),
-          color: getBackgroundColor(),
-          shape: _getBorder(),
-          margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
-          child: ClipPath(
-            clipper: ShapeBorderClipper(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(3.0),
-                )
+/// Tone triple for date pills; mirrors `DATE_TONES` in cards.jsx.
+class _ToneTriple {
+  final Color fg;
+  final Color bg;
+  final Color border;
+  const _ToneTriple({required this.fg, required this.bg, required this.border});
+}
+
+_ToneTriple _toneFor(TaskDateType type) {
+  if (type == TaskDateTypes.due) {
+    return _ToneTriple(
+        fg: TaskColors.dueText,
+        bg: TaskColors.dueColor,
+        border: TaskColors.dueBorder);
+  }
+  if (type == TaskDateTypes.urgent) {
+    return _ToneTriple(
+        fg: TaskColors.urgentText,
+        bg: TaskColors.urgentColor,
+        border: TaskColors.urgentBorder);
+  }
+  if (type == TaskDateTypes.target) {
+    return _ToneTriple(
+        fg: TaskColors.targetText,
+        bg: TaskColors.targetColor,
+        border: TaskColors.targetBorder);
+  }
+  return _ToneTriple(
+      fg: TaskColors.startText,
+      bg: TaskColors.scheduledColor,
+      border: TaskColors.startBorder);
+}
+
+class _DatePill extends StatelessWidget {
+  final TaskItem taskItem;
+  final String docId;
+  const _DatePill({required this.taskItem, required this.docId});
+
+  @override
+  Widget build(BuildContext context) {
+    final completed = taskItem.completionDate != null;
+    final skipped = taskItem.skipped;
+    if (completed || skipped) {
+      return _completedPill(skipped: skipped);
+    }
+    final anchor = taskItem.getAnchorDateType();
+    if (anchor == null) return const SizedBox.shrink();
+    final tone = _toneFor(anchor);
+    final relative = _relativeForAnchor(taskItem, anchor);
+    if (relative == null) return const SizedBox.shrink();
+    return _pill(
+      label: anchor.label.toUpperCase(),
+      value: relative,
+      bg: tone.bg,
+      border: tone.border,
+      fg: tone.fg,
+    );
+  }
+
+  Widget _completedPill({required bool skipped}) {
+    final completionDate = taskItem.completionDate;
+    final relative =
+        completionDate == null ? 'just now' : _relativeFromNow(completionDate);
+    return _pill(
+      label: skipped ? 'SKIPPED' : 'COMPLETED',
+      value: relative,
+      bg: TaskColors.completedColor,
+      border: TaskColors.completedBorder,
+      fg: TaskColors.completedText,
+    );
+  }
+
+  Widget _pill({
+    required String label,
+    required String value,
+    required Color bg,
+    required Color border,
+    required Color fg,
+  }) {
+    return Container(
+      key: TaskMaestroKeys.editableTaskItemDatePill(docId),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+      decoration: BoxDecoration(
+        color: bg,
+        border: Border.all(color: border, width: 1),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.4,
+              color: fg.withValues(alpha: (fg.a * 0.85).clamp(0.0, 1.0)),
             ),
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: Container(
-                    padding: EdgeInsets.only(
-                      top: 0,
-                      bottom: 0,
-                      right: 0,
-                      left: 15.0,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          taskItem.name,
-                          style: _getHeaderStyle(),
-                        ),
-                        Visibility(
-                          key: TaskMaestroKeys.editableTaskItemCardAreaField(getKey()),
-                          visible: taskItem.area != null,
-                          child: Text(
-                            taskItem.area == null ? '' : taskItem.area!,
-                            style: const TextStyle(fontSize: 12.0,
-                                color: Colors.white70),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: fg,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String? _relativeForAnchor(TaskItem task, TaskDateType type) {
+  final value = type.dateFieldGetter(task);
+  if (value == null) return null;
+  final isPast = value.isBefore(DateTime.now());
+  final formatted = _shortRelative(value);
+  if (formatted == 'now') return 'just now';
+  return isPast ? '$formatted ago' : 'in $formatted';
+}
+
+String _relativeFromNow(DateTime dateTime) {
+  final formatted = _shortRelative(dateTime);
+  if (formatted == 'now') return 'just now';
+  return dateTime.isBefore(DateTime.now())
+      ? '$formatted ago'
+      : 'in $formatted';
+}
+
+String _shortRelative(DateTime dateTime) {
+  final raw = timeago.format(
+    dateTime,
+    locale: 'en_short',
+    allowFromNow: true,
+  );
+  return raw.replaceAll(' ', '').replaceAll('~', '');
+}
+
+class _TimeBlock extends StatelessWidget {
+  final int? durationMinutes;
+  const _TimeBlock({required this.durationMinutes});
+
+  @override
+  Widget build(BuildContext context) {
+    if (durationMinutes == null || durationMinutes! <= 0) {
+      return const SizedBox.shrink();
+    }
+    final formatted = _formatTime(durationMinutes!);
+    final fraction = _logTimeFraction(durationMinutes!);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: 40,
+          height: 2,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(2),
+            child: Stack(
+              children: [
+                Container(color: Colors.white.withValues(alpha: 0.10)),
+                FractionallySizedBox(
+                  widthFactor: fraction,
+                  child: Container(color: TaskColors.startText),
                 ),
-                _getDateWarnings(),
-                Visibility(
-                  key: TaskMaestroKeys.editableTaskItemCardSprintIcon(getKey()),
-                  visible: highlightSprint,
-                  child: Icon(Icons.assignment, color: TaskColors.sprintColor),
-                ),
-                Container(
-                  padding: EdgeInsets.only(
-                    top: 4.0,
-                    bottom: 4.0,
-                    right: 6.0,
-                    left: 4.0,
-                  ),
-                  child: _getCheckbox(),
-                )
               ],
             ),
           ),
         ),
-      ),
-
+        const SizedBox(width: 6),
+        Text(
+          formatted,
+          style: TextStyle(
+            fontSize: 11.5,
+            fontFeatures: const [FontFeature.tabularFigures()],
+            color: TaskColors.textDim,
+          ),
+        ),
+      ],
     );
-
   }
 
+  String _formatTime(int minutes) {
+    if (minutes < 60) return '${minutes}m';
+    if (minutes < 60 * 24) {
+      final h = minutes / 60;
+      return h == h.roundToDouble()
+          ? '${h.round()}h'
+          : '${h.toStringAsFixed(1)}h';
+    }
+    final d = minutes / (60 * 24);
+    return d == d.roundToDouble()
+        ? '${d.round()}d'
+        : '${d.toStringAsFixed(1)}d';
+  }
 
+  /// Log scale: 5m≈0.05, 30m≈0.3, 1h≈0.4, 4h≈0.65, 1d≈0.85, 1w=1.0.
+  double _logTimeFraction(int minutes) {
+    final n = math.log(1 + minutes) / math.log(1 + 10080);
+    if (n.isNaN || n.isInfinite) return 0.04;
+    return n.clamp(0.04, 1.0);
+  }
+}
+
+class _PriorityBar extends StatelessWidget {
+  final int? priority;
+  const _PriorityBar({required this.priority});
+
+  @override
+  Widget build(BuildContext context) {
+    if (priority == null) return const SizedBox.shrink();
+    final filled = (priority! / 2).clamp(0, 5).round();
+    Color barColor;
+    if (filled >= 4) {
+      barColor = const Color(0xFFFFA08C); // warm coral
+    } else if (filled >= 3) {
+      barColor = const Color(0xFFFFCE80); // warm yellow
+    } else {
+      barColor = TaskColors.startText; // neutral lavender
+    }
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (i) {
+        return Padding(
+          padding: EdgeInsets.only(left: i == 0 ? 0 : 2),
+          child: Container(
+            width: 5,
+            height: 8,
+            decoration: BoxDecoration(
+              color: i < filled
+                  ? barColor
+                  : Colors.white.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(1),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+}
+
+class _PointsCircle extends StatelessWidget {
+  final int? points;
+  const _PointsCircle({required this.points});
+
+  @override
+  Widget build(BuildContext context) {
+    if (points == null) return const SizedBox.shrink();
+    return Container(
+      constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.18),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.32),
+          width: 1,
+        ),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        '$points',
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          fontFeatures: const [FontFeature.tabularFigures()],
+          color: TaskColors.textPrimary,
+        ),
+      ),
+    );
+  }
+}
+
+class _ExpandedPanel extends StatelessWidget {
+  final TaskItem taskItem;
+  final VoidCallback? onEdit;
+  final VoidCallback onCollapse;
+  const _ExpandedPanel({
+    required this.taskItem,
+    required this.onCollapse,
+    this.onEdit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dateRows = _dateRows();
+    final repeat = RecurrenceFormatter.format(
+      recurNumber: taskItem.recurNumber,
+      recurUnit: taskItem.recurUnit,
+      recurWait: taskItem.recurWait,
+    );
+    final notes = taskItem.description;
+    final ctx = taskItem.context;
+
+    final hasContent = dateRows.isNotEmpty ||
+        (repeat != null) ||
+        (notes != null && notes.isNotEmpty) ||
+        (ctx != null && ctx.isNotEmpty);
+
+    if (!hasContent) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      key: TaskMaestroKeys.editableTaskItemExpandedPanel(taskItem.docId),
+      margin: const EdgeInsets.only(top: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (dateRows.isNotEmpty) _dateGrid(dateRows),
+          if (ctx != null && ctx.isNotEmpty)
+            _ExpandedRow(label: 'CONTEXT', value: ctx),
+          if (repeat != null) _ExpandedRow(label: 'REPEAT', value: repeat),
+          if (notes != null && notes.isNotEmpty)
+            _ExpandedRow(label: 'NOTES', value: notes),
+          if (onEdit != null) ...[
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [_editButton()],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  List<_DateCell> _dateRows() {
+    final rows = <_DateCell>[];
+    void add(TaskDateType type) {
+      final v = type.dateFieldGetter(taskItem);
+      if (v == null) return;
+      rows.add(_DateCell(
+        label: type.label.toUpperCase(),
+        absolute: DateFormat.MMMMd().format(v.toLocal()),
+        relative: _relativeFromNow(v),
+        color: _toneFor(type).fg,
+      ));
+    }
+
+    add(TaskDateTypes.start);
+    add(TaskDateTypes.target);
+    add(TaskDateTypes.urgent);
+    add(TaskDateTypes.due);
+    return rows;
+  }
+
+  Widget _dateGrid(List<_DateCell> cells) {
+    final rows = <Widget>[];
+    for (var i = 0; i < cells.length; i += 2) {
+      final left = cells[i];
+      final right = i + 1 < cells.length ? cells[i + 1] : null;
+      rows.add(Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: _dateCellWidget(left)),
+          const SizedBox(width: 16),
+          Expanded(
+            child: right != null
+                ? _dateCellWidget(right)
+                : const SizedBox.shrink(),
+          ),
+        ],
+      ));
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: rows,
+    );
+  }
+
+  Widget _dateCellWidget(_DateCell cell) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 7),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: TaskColors.hairline)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 60,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 1),
+              child: Text(
+                cell.label,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.4,
+                  color: TaskColors.textFaint,
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  cell.absolute,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: cell.color,
+                    height: 1.35,
+                  ),
+                ),
+                Text(
+                  cell.relative,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: TaskColors.textFaint,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _editButton() {
+    return ElevatedButton.icon(
+      key: TaskMaestroKeys.editableTaskItemEditButton(taskItem.docId),
+      onPressed: onEdit,
+      icon: const Icon(Icons.edit, size: 14, color: Colors.white),
+      label: const Text('Edit'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: TaskColors.highlight,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+        elevation: 2,
+      ),
+    );
+  }
+}
+
+class _ExpandedRow extends StatelessWidget {
+  final String label;
+  final String value;
+  const _ExpandedRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 7),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: TaskColors.hairline)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 60,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 1),
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.4,
+                  color: TaskColors.textFaint,
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 12.5,
+                color: TaskColors.textPrimary,
+                height: 1.35,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DateCell {
+  final String label;
+  final String absolute;
+  final String relative;
+  final Color color;
+  const _DateCell({
+    required this.label,
+    required this.absolute,
+    required this.relative,
+    required this.color,
+  });
 }

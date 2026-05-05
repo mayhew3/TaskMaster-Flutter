@@ -11,7 +11,6 @@ import '../../shared/presentation/snooze_dialog.dart';
 import '../../shared/presentation/task_action_error_helper.dart';
 import '../../shared/presentation/widgets/header_list_item.dart';
 import '../../tasks/presentation/task_add_edit_screen.dart';
-import '../../tasks/presentation/task_details_screen.dart';
 import '../providers/family_task_filter_providers.dart';
 import 'family_manage_screen.dart';
 
@@ -92,13 +91,11 @@ class _FamilyTaskTile extends ConsumerWidget {
     return EditableTaskItemWidget(
       taskItem: task,
       highlightSprint: false,
-      onTap: () async {
-        await Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => TaskDetailsScreen(taskItemId: task.docId),
-          ),
-        );
-      },
+      onEdit: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => TaskAddEditScreen(taskItemId: task.docId),
+        ),
+      ),
       onLongPress: () {
         HapticFeedback.mediumImpact();
         showDialog<void>(
