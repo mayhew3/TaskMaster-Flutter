@@ -22,7 +22,7 @@ All surface colors are the **post-tweak** values from the design HTML — `apply
 | `menuColor` | `#666ABA` | `#286BB5` | AppBar / nav bar |
 | `cardColor` | `#4C4D69` | `#286BB5` | Card surface (same as menuColor) |
 | `backgroundColor` | `#373851` | `#1A4676` | Screen background |
-| `highlight` | `#D9478E` | `#D83AFF` | Brand magenta — completed checkbox, edit button |
+| `highlight` | `#D9478E` | `#D83AFF` | Brand magenta — completed checkbox, edit button, FAB |
 | `dueText` / `dueColor` | `#EBA7A7` / `#5F2D3F` | `#F4B0B0` / `rgba(180,60,80,0.28)` | Due-date pill |
 | `urgentText` / `urgentColor` | `#EBC8A7` / `#5F4742` | `#F4C8A8` / `rgba(180,110,50,0.28)` | Urgent pill |
 | `targetText` / `targetColor` | `#EBEBA7` / `#555C3E` | `#EFE0A0` / `rgba(140,130,50,0.28)` | Target pill |
@@ -35,7 +35,7 @@ All surface colors are the **post-tweak** values from the design HTML — `apply
 | Token | Hex / value | Role |
 |---|---|---|
 | `brandBlue` | `#2C74C5` | Raw brand blue — logo / splash only |
-| `brandMagentaMuted` | `#C45EE0` | FAB |
+| `brandMagentaMuted` | `#C45EE0` | Reserved (design's muted FAB variant; not currently used after user opted to use the brighter `highlight` for the FAB too) |
 | `bgDeep` | `#133255` | Even-darker shell behind background |
 | `textPrimary` | `#F2F4FA` | Primary text |
 | `textDim` | `rgba(255,255,255,0.72)` | Secondary text |

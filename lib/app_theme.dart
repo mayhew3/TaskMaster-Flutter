@@ -22,7 +22,7 @@ ThemeData taskMaestroTheme = ThemeData(
     height: 70,
   ),
   floatingActionButtonTheme: FloatingActionButtonThemeData(
-    backgroundColor: TaskColors.brandMagentaMuted,
+    backgroundColor: TaskColors.highlight,
     foregroundColor: Colors.white,
   ),
   filledButtonTheme: FilledButtonThemeData(
