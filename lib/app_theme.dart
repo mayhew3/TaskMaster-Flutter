@@ -23,17 +23,28 @@ ThemeData taskMaestroTheme = ThemeData(
   ),
   floatingActionButtonTheme: FloatingActionButtonThemeData(
     backgroundColor: TaskColors.highlight,
+    foregroundColor: Colors.white,
   ),
   filledButtonTheme: FilledButtonThemeData(
     style: FilledButton.styleFrom(
       foregroundColor: Colors.white,
-      backgroundColor: TaskColors.menuColor,
+      // Brand magenta so primary CTAs stand out on the new card-coloured
+      // dialog/sheet surfaces (which share the AppBar's blue).
+      backgroundColor: TaskColors.highlight,
     ),
   ),
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(
+      // White text with a thin white outline so the button reads as a
+      // button on the dialog's blue card surface. (M3's default
+      // foreground-only treatment relied on a different bg from the
+      // surface — both share #286BB5 here, so we add the outline
+      // ourselves rather than tinting the label.)
       foregroundColor: Colors.white,
-      backgroundColor: TaskColors.menuColor,
+      side: BorderSide(
+        color: Colors.white.withValues(alpha: 0.5),
+        width: 1,
+      ),
     ),
   ),
   cardTheme: CardThemeData(
@@ -52,7 +63,7 @@ ThemeData taskMaestroTheme = ThemeData(
     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
   ),
   dividerTheme: DividerThemeData(
-    color: Colors.white24,
+    color: TaskColors.hairline,
     space: 1,
     thickness: 1,
   ),

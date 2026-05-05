@@ -39,4 +39,7 @@ class TaskMaestroKeys {
   static final editableTaskItemCard = (String id) => Key('__editableTaskItem_mainCard__${id}__');
   static final editableTaskItemCardAreaField = (String id) => Key('__editableTaskItem_areaField__${id}__');
   static final editableTaskItemCardSprintIcon = (String id) => Key('__editableTaskItem_sprintIcon__${id}__');
+  static final editableTaskItemDatePill = (String id) => Key('__editableTaskItem_datePill__${id}__');
+  static final editableTaskItemExpandedPanel = (String id) => Key('__editableTaskItem_expandedPanel__${id}__');
+  static final editableTaskItemEditButton = (String id) => Key('__editableTaskItem_editButton__${id}__');
 }

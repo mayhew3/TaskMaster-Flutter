@@ -2,8 +2,8 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaestro/features/tasks/presentation/task_add_edit_screen.dart';
-import 'package:taskmaestro/features/tasks/presentation/task_details_screen.dart';
 import 'package:taskmaestro/features/tasks/presentation/task_list_screen.dart';
+import 'package:taskmaestro/keys.dart';
 import 'package:taskmaestro/models/task_item.dart';
 import '../../../integration/integration_test_helper.dart';
 
@@ -119,19 +119,18 @@ void main() {
         await tester.pumpAndSettle();
       }
 
-      // Tap the task to open details screen
+      // Tap the task to expand the card inline (TM-356 redesign)
       final taskTile = find.text('Original Task Name');
       expect(taskTile, findsOneWidget);
       await tester.tap(taskTile);
       await tester.pumpAndSettle();
 
-      // Verify we're on the details screen
-      expect(find.byType(TaskDetailsScreen), findsOneWidget);
-
-      // Tap the edit FAB to open edit screen
-      final editFab = find.byIcon(Icons.edit);
-      expect(editFab, findsOneWidget);
-      await tester.tap(editFab);
+      // Tap the edit button in the expanded panel
+      final editButton =
+          find.byKey(TaskMaestroKeys.editableTaskItemEditButton('task-1'));
+      expect(editButton, findsOneWidget,
+          reason: 'Expanded panel should surface an edit button');
+      await tester.tap(editButton);
       await tester.pumpAndSettle();
 
       // Verify we're now on the edit screen
@@ -151,11 +150,12 @@ void main() {
       // Wait for the task to be updated and auto-close to trigger
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      // Verify: Should have navigated back to task details screen
+      // Verify: Should have navigated back to task list (the read-only details
+      // screen was removed in TM-356 — edit flow returns to the list).
       expect(find.byType(TaskAddEditScreen), findsNothing,
           reason: 'TaskAddEditScreen should have closed after updating task');
-      expect(find.byType(TaskDetailsScreen), findsOneWidget,
-          reason: 'Should have navigated back to TaskDetailsScreen');
+      expect(find.byType(TaskListScreen), findsOneWidget,
+          reason: 'Should have navigated back to TaskListScreen');
 
       // Verify task name was updated
       expect(find.text('Updated Task Name'), findsOneWidget);
@@ -247,7 +247,8 @@ void main() {
 
         await tester.tap(find.text('Original Task Name'));
         await tester.pumpAndSettle();
-        await tester.tap(find.byIcon(Icons.edit));
+        await tester.tap(
+            find.byKey(TaskMaestroKeys.editableTaskItemEditButton('task-1')));
         await tester.pumpAndSettle();
 
         final nameField = find.byKey(const Key('task_name_field'));

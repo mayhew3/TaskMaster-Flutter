@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskmaestro/date_util.dart';
 import 'package:taskmaestro/models/models.dart';
+import 'package:taskmaestro/models/task_colors.dart';
 import 'package:taskmaestro/models/task_date_type.dart';
 import 'package:taskmaestro/models/task_item_blueprint.dart';
 import 'package:taskmaestro/models/task_recurrence_blueprint.dart';
@@ -575,7 +576,7 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                               children: [
                                 Icon(
                                   Icons.autorenew,
-                                  color: Colors.white38,
+                                  color: TaskColors.textFaint,
                                   size: 20,
                                 ),
                                 const SizedBox(width: 12),
@@ -583,7 +584,7 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                                   child: Text(
                                     "Repeating tasks aren't supported in family view yet.",
                                     style: TextStyle(
-                                      color: Colors.white54,
+                                      color: TaskColors.textDim,
                                       fontSize: 13,
                                     ),
                                   ),
@@ -627,8 +628,12 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
                                             _repeatOn = value;
                                           });
                                         },
-                                        activeTrackColor: Colors.pinkAccent,
-                                        activeColor: Colors.pink,
+                                        // Magenta highlight on the track,
+                                        // white thumb on top so the
+                                        // checked state reads as a switch
+                                        // rather than a solid magenta blob.
+                                        activeTrackColor: TaskColors.highlight,
+                                        activeColor: Colors.white,
                                       ),
                                     ],
                                   ),
