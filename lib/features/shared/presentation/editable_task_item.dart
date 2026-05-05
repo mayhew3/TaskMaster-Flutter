@@ -143,7 +143,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _titleRow(context),
+                _titleRow(context, isExpanded),
                 const SizedBox(height: 6),
                 _metaRow(areaColor),
               ],
@@ -177,34 +177,33 @@ class EditableTaskItemWidget extends ConsumerWidget {
         decorationColor: TaskColors.textFaint,
       );
 
-  Widget _titleRow(BuildContext context) {
+  Widget _titleRow(BuildContext context, bool isExpanded) {
     final pillContent = _pillContentFor(taskItem);
     final pill = pillContent == null
         ? const SizedBox.shrink()
         : _PillView(content: pillContent, docId: _docId());
-
     final titleStyle = _titleStyle();
-    final scaler = MediaQuery.textScalerOf(context);
 
+    // Collapsed mode: keep the original compact single-row layout — title
+    // ellipsis + pill on the right.
+    if (!isExpanded) {
+      return _singleRowTitle(titleStyle, pill);
+    }
+
+    // Expanded mode: only break to a second row when the title actually
+    // would have ellipsised. Pill stays right-aligned in either case.
+    final scaler = MediaQuery.textScalerOf(context);
     return LayoutBuilder(
       builder: (context, constraints) {
         const spacing = 8.0;
-        // Treat unbounded constraints as "no decision needed" — render the
-        // single-row layout. This happens in some test/golden contexts.
         final maxWidth = constraints.hasBoundedWidth
             ? constraints.maxWidth
             : double.infinity;
-
-        // If there's no pill, the title can take the full row.
         if (pillContent == null || maxWidth.isInfinite) {
           return _singleRowTitle(titleStyle, pill);
         }
 
         final pillWidth = _measurePillWidth(pillContent, scaler);
-        final remaining = maxWidth - pillWidth - spacing;
-
-        // Measure the title at its natural width (no maxWidth cap) — if it
-        // fits in `remaining`, the single row works.
         final titlePainter = TextPainter(
           text: TextSpan(text: taskItem.name, style: titleStyle),
           textDirection: TextDirection.ltr,
@@ -212,24 +211,22 @@ class EditableTaskItemWidget extends ConsumerWidget {
           maxLines: 1,
         )..layout();
 
-        final fitsOneRow = titlePainter.width <= remaining;
+        final fitsOneRow = titlePainter.width <= maxWidth - pillWidth - spacing;
         if (fitsOneRow) {
           return _singleRowTitle(titleStyle, pill);
         }
 
-        // Title would have been ellipsised → break to two rows so it can
-        // wrap to two lines and the pill drops below.
         return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
               taskItem.name,
-              maxLines: 2,
+              maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: titleStyle,
             ),
             const SizedBox(height: 5),
-            Align(alignment: Alignment.centerLeft, child: pill),
+            Align(alignment: Alignment.centerRight, child: pill),
           ],
         );
       },

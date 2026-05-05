@@ -225,6 +225,64 @@ void main() {
     });
   });
 
+  group('Title row when expanded', () {
+    testWidgets(
+        'Short title keeps the pill on the same row when expanded',
+        (tester) async {
+      final task = _task(
+        docId: 'short-x',
+        name: 'Short Task',
+        description: 'has notes so panel renders',
+        dueDate: DateTime.now().add(const Duration(days: 4)),
+      );
+      await tester.pumpWidget(_wrap(EditableTaskItemWidget(
+        taskItem: task,
+        highlightSprint: false,
+        onTaskCompleteToggle: (_) => null,
+      )));
+
+      await tester.tap(find.text('Short Task'));
+      await tester.pumpAndSettle();
+
+      final titleRect = tester.getRect(find.text('Short Task'));
+      final pillRect = tester
+          .getRect(find.byKey(TaskMaestroKeys.editableTaskItemDatePill('short-x')));
+      expect((pillRect.top - titleRect.top).abs(), lessThan(20),
+          reason: 'Short titles should stay single-row even when expanded');
+    });
+
+    testWidgets(
+        'Long title drops pill below and right-aligns it when expanded',
+        (tester) async {
+      final longName =
+          'An exceptionally long task name that will not fit on a single line and forces the pill to wrap to a second row';
+      final task = _task(
+        docId: 'long-x',
+        name: longName,
+        description: 'has notes so panel renders',
+        dueDate: DateTime.now().add(const Duration(days: 4)),
+      );
+      await tester.pumpWidget(_wrap(EditableTaskItemWidget(
+        taskItem: task,
+        highlightSprint: false,
+        onTaskCompleteToggle: (_) => null,
+      )));
+
+      await tester.tap(find.text(longName));
+      await tester.pumpAndSettle();
+
+      final titleRect = tester.getRect(find.text(longName));
+      final pillRect = tester
+          .getRect(find.byKey(TaskMaestroKeys.editableTaskItemDatePill('long-x')));
+      // Pill drops below the title.
+      expect(pillRect.top, greaterThan(titleRect.bottom - 1),
+          reason: 'Long title should push the pill onto a row below it');
+      // And the pill is right-aligned — its right edge is close to the title's right edge.
+      expect((pillRect.right - titleRect.right).abs(), lessThan(4),
+          reason: 'Pill should be right-aligned in the wrapped layout');
+    });
+  });
+
   group('Edit button', () {
     testWidgets('Tapping the edit button invokes onEdit', (tester) async {
       var pressed = 0;

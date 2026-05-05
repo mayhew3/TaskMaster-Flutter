@@ -243,31 +243,13 @@ void main() {
     });
   });
 
-  group('EditableTaskItemWidget — adaptive title layout', () {
-    testWidgets('Short title + pill stay on a single row', (tester) async {
-      final task = _makeTask(
-        docId: 'short',
-        name: 'Short',
-        dueDate: DateTime.now().add(const Duration(days: 4)),
-      );
-      await tester.pumpWidget(_wrap(EditableTaskItemWidget(
-        taskItem: task,
-        highlightSprint: false,
-        onTaskCompleteToggle: (_) => null,
-      )));
-      final titleRect = tester.getRect(find.text('Short'));
-      final pillRect =
-          tester.getRect(find.byKey(TaskMaestroKeys.editableTaskItemDatePill('short')));
-      // Single row: pill is roughly horizontally aligned with the title.
-      expect((pillRect.top - titleRect.top).abs(), lessThan(20),
-          reason: 'Short title should keep the pill on the same row as the title');
-    });
-
-    testWidgets('Long title pushes pill to a row below', (tester) async {
+  group('EditableTaskItemWidget — collapsed title row', () {
+    testWidgets('Long title keeps single-row layout while collapsed',
+        (tester) async {
       final longName =
-          'An exceptionally long task name that will not fit on a single line and forces the pill to wrap to a second row';
+          'An exceptionally long task name that would not fit on a single line';
       final task = _makeTask(
-        docId: 'long',
+        docId: 'long-collapsed',
         name: longName,
         dueDate: DateTime.now().add(const Duration(days: 4)),
       );
@@ -277,10 +259,11 @@ void main() {
         onTaskCompleteToggle: (_) => null,
       )));
       final titleRect = tester.getRect(find.text(longName));
-      final pillRect =
-          tester.getRect(find.byKey(TaskMaestroKeys.editableTaskItemDatePill('long')));
-      expect(pillRect.top, greaterThan(titleRect.bottom - 1),
-          reason: 'Long title should drop the pill onto a row below it');
+      final pillRect = tester.getRect(
+          find.byKey(TaskMaestroKeys.editableTaskItemDatePill('long-collapsed')));
+      // Single row: pill is roughly horizontally aligned with the title.
+      expect((pillRect.top - titleRect.top).abs(), lessThan(20),
+          reason: 'Collapsed cards always keep the pill on the title row');
     });
   });
 
