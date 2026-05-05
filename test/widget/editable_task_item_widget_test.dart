@@ -243,6 +243,47 @@ void main() {
     });
   });
 
+  group('EditableTaskItemWidget — adaptive title layout', () {
+    testWidgets('Short title + pill stay on a single row', (tester) async {
+      final task = _makeTask(
+        docId: 'short',
+        name: 'Short',
+        dueDate: DateTime.now().add(const Duration(days: 4)),
+      );
+      await tester.pumpWidget(_wrap(EditableTaskItemWidget(
+        taskItem: task,
+        highlightSprint: false,
+        onTaskCompleteToggle: (_) => null,
+      )));
+      final titleRect = tester.getRect(find.text('Short'));
+      final pillRect =
+          tester.getRect(find.byKey(TaskMaestroKeys.editableTaskItemDatePill('short')));
+      // Single row: pill is roughly horizontally aligned with the title.
+      expect((pillRect.top - titleRect.top).abs(), lessThan(20),
+          reason: 'Short title should keep the pill on the same row as the title');
+    });
+
+    testWidgets('Long title pushes pill to a row below', (tester) async {
+      final longName =
+          'An exceptionally long task name that will not fit on a single line and forces the pill to wrap to a second row';
+      final task = _makeTask(
+        docId: 'long',
+        name: longName,
+        dueDate: DateTime.now().add(const Duration(days: 4)),
+      );
+      await tester.pumpWidget(_wrap(EditableTaskItemWidget(
+        taskItem: task,
+        highlightSprint: false,
+        onTaskCompleteToggle: (_) => null,
+      )));
+      final titleRect = tester.getRect(find.text(longName));
+      final pillRect =
+          tester.getRect(find.byKey(TaskMaestroKeys.editableTaskItemDatePill('long')));
+      expect(pillRect.top, greaterThan(titleRect.bottom - 1),
+          reason: 'Long title should drop the pill onto a row below it');
+    });
+  });
+
   group('EditableTaskItemWidget — multiple cards', () {
     testWidgets('Two cards render independently', (tester) async {
       final task1 = _makeTask(docId: 'task-1', name: 'First Task');

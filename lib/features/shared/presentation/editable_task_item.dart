@@ -2,7 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+// Hide intl's `TextDirection` so the dart:ui enum (with .ltr/.rtl) wins
+// for TextPainter measurements below.
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:taskmaestro/features/areas/providers/area_color_providers.dart';
 import 'package:taskmaestro/features/tasks/providers/expanded_task_provider.dart';
 import 'package:taskmaestro/helpers/area_color_helper.dart';
@@ -141,7 +143,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _titleRow(),
+                _titleRow(context),
                 const SizedBox(height: 6),
                 _metaRow(areaColor),
               ],
@@ -167,7 +169,74 @@ class EditableTaskItemWidget extends ConsumerWidget {
     );
   }
 
-  Widget _titleRow() {
+  TextStyle _titleStyle() => TextStyle(
+        fontSize: 16.0,
+        fontWeight: FontWeight.w500,
+        color: _isDone ? TaskColors.textFaint : TaskColors.textPrimary,
+        decoration: _isDone ? TextDecoration.lineThrough : null,
+        decorationColor: TaskColors.textFaint,
+      );
+
+  Widget _titleRow(BuildContext context) {
+    final pillContent = _pillContentFor(taskItem);
+    final pill = pillContent == null
+        ? const SizedBox.shrink()
+        : _PillView(content: pillContent, docId: _docId());
+
+    final titleStyle = _titleStyle();
+    final scaler = MediaQuery.textScalerOf(context);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const spacing = 8.0;
+        // Treat unbounded constraints as "no decision needed" — render the
+        // single-row layout. This happens in some test/golden contexts.
+        final maxWidth = constraints.hasBoundedWidth
+            ? constraints.maxWidth
+            : double.infinity;
+
+        // If there's no pill, the title can take the full row.
+        if (pillContent == null || maxWidth.isInfinite) {
+          return _singleRowTitle(titleStyle, pill);
+        }
+
+        final pillWidth = _measurePillWidth(pillContent, scaler);
+        final remaining = maxWidth - pillWidth - spacing;
+
+        // Measure the title at its natural width (no maxWidth cap) — if it
+        // fits in `remaining`, the single row works.
+        final titlePainter = TextPainter(
+          text: TextSpan(text: taskItem.name, style: titleStyle),
+          textDirection: TextDirection.ltr,
+          textScaler: scaler,
+          maxLines: 1,
+        )..layout();
+
+        final fitsOneRow = titlePainter.width <= remaining;
+        if (fitsOneRow) {
+          return _singleRowTitle(titleStyle, pill);
+        }
+
+        // Title would have been ellipsised → break to two rows so it can
+        // wrap to two lines and the pill drops below.
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              taskItem.name,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: titleStyle,
+            ),
+            const SizedBox(height: 5),
+            Align(alignment: Alignment.centerLeft, child: pill),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _singleRowTitle(TextStyle titleStyle, Widget pill) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -176,19 +245,11 @@ class EditableTaskItemWidget extends ConsumerWidget {
             taskItem.name,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 16.0,
-              fontWeight: FontWeight.w500,
-              color: _isDone
-                  ? TaskColors.textFaint
-                  : TaskColors.textPrimary,
-              decoration: _isDone ? TextDecoration.lineThrough : null,
-              decorationColor: TaskColors.textFaint,
-            ),
+            style: titleStyle,
           ),
         ),
         const SizedBox(width: 8),
-        _DatePill(taskItem: taskItem, docId: _docId()),
+        pill,
       ],
     );
   }
@@ -314,37 +375,31 @@ _ToneTriple _toneFor(TaskDateType type) {
       border: TaskColors.startBorder);
 }
 
-class _DatePill extends StatelessWidget {
-  final TaskItem taskItem;
-  final String docId;
-  const _DatePill({required this.taskItem, required this.docId});
+/// Pre-computed content for a date pill — built once so the title row can
+/// both render it and measure its width without doing the work twice.
+class _PillContent {
+  final String label;
+  final String value;
+  final Color bg;
+  final Color border;
+  final Color fg;
+  const _PillContent({
+    required this.label,
+    required this.value,
+    required this.bg,
+    required this.border,
+    required this.fg,
+  });
+}
 
-  @override
-  Widget build(BuildContext context) {
-    final completed = taskItem.completionDate != null;
-    final skipped = taskItem.skipped;
-    if (completed || skipped) {
-      return _completedPill(skipped: skipped);
-    }
-    final anchor = taskItem.getAnchorDateType();
-    if (anchor == null) return const SizedBox.shrink();
-    final tone = _toneFor(anchor);
-    final relative = _relativeForAnchor(taskItem, anchor);
-    if (relative == null) return const SizedBox.shrink();
-    return _pill(
-      label: anchor.label.toUpperCase(),
-      value: relative,
-      bg: tone.bg,
-      border: tone.border,
-      fg: tone.fg,
-    );
-  }
-
-  Widget _completedPill({required bool skipped}) {
+_PillContent? _pillContentFor(TaskItem taskItem) {
+  final completed = taskItem.completionDate != null;
+  final skipped = taskItem.skipped;
+  if (completed || skipped) {
     final completionDate = taskItem.completionDate;
     final relative =
         completionDate == null ? 'just now' : _relativeFromNow(completionDate);
-    return _pill(
+    return _PillContent(
       label: skipped ? 'SKIPPED' : 'COMPLETED',
       value: relative,
       bg: TaskColors.completedColor,
@@ -352,42 +407,74 @@ class _DatePill extends StatelessWidget {
       fg: TaskColors.completedText,
     );
   }
+  final anchor = taskItem.getAnchorDateType();
+  if (anchor == null) return null;
+  final relative = _relativeForAnchor(taskItem, anchor);
+  if (relative == null) return null;
+  final tone = _toneFor(anchor);
+  return _PillContent(
+    label: anchor.label.toUpperCase(),
+    value: relative,
+    bg: tone.bg,
+    border: tone.border,
+    fg: tone.fg,
+  );
+}
 
-  Widget _pill({
-    required String label,
-    required String value,
-    required Color bg,
-    required Color border,
-    required Color fg,
-  }) {
+const TextStyle _pillLabelStyle = TextStyle(
+  fontSize: 10,
+  fontWeight: FontWeight.w600,
+  letterSpacing: 0.4,
+);
+const TextStyle _pillValueStyle = TextStyle(
+  fontSize: 11,
+  fontWeight: FontWeight.w600,
+);
+
+double _measurePillWidth(_PillContent content, TextScaler scaler) {
+  final labelPainter = TextPainter(
+    text: TextSpan(text: content.label, style: _pillLabelStyle),
+    textDirection: TextDirection.ltr,
+    textScaler: scaler,
+  )..layout();
+  final valuePainter = TextPainter(
+    text: TextSpan(text: content.value, style: _pillValueStyle),
+    textDirection: TextDirection.ltr,
+    textScaler: scaler,
+  )..layout();
+  // 9px h padding × 2 + 5px gap + 1px border × 2.
+  return labelPainter.width + valuePainter.width + 18 + 5 + 2;
+}
+
+class _PillView extends StatelessWidget {
+  final _PillContent content;
+  final String docId;
+  const _PillView({required this.content, required this.docId});
+
+  @override
+  Widget build(BuildContext context) {
+    final fadedLabelColor = content.fg.withValues(
+      alpha: (content.fg.a * 0.85).clamp(0.0, 1.0),
+    );
     return Container(
       key: TaskMaestroKeys.editableTaskItemDatePill(docId),
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
       decoration: BoxDecoration(
-        color: bg,
-        border: Border.all(color: border, width: 1),
+        color: content.bg,
+        border: Border.all(color: content.border, width: 1),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.4,
-              color: fg.withValues(alpha: (fg.a * 0.85).clamp(0.0, 1.0)),
-            ),
+            content.label,
+            style: _pillLabelStyle.copyWith(color: fadedLabelColor),
           ),
           const SizedBox(width: 5),
           Text(
-            value,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: fg,
-            ),
+            content.value,
+            style: _pillValueStyle.copyWith(color: content.fg),
           ),
         ],
       ),
@@ -435,6 +522,15 @@ class _TimeBlock extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        Text(
+          formatted,
+          style: TextStyle(
+            fontSize: 11.5,
+            fontFeatures: const [FontFeature.tabularFigures()],
+            color: TaskColors.textDim,
+          ),
+        ),
+        const SizedBox(width: 6),
         SizedBox(
           width: 40,
           height: 2,
@@ -449,15 +545,6 @@ class _TimeBlock extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-        ),
-        const SizedBox(width: 6),
-        Text(
-          formatted,
-          style: TextStyle(
-            fontSize: 11.5,
-            fontFeatures: const [FontFeature.tabularFigures()],
-            color: TaskColors.textDim,
           ),
         ),
       ],
