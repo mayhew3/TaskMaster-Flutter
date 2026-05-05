@@ -594,6 +594,15 @@ String _shortRelative(DateTime dateTime) {
   return raw.replaceAll(' ', '').replaceAll('~', '');
 }
 
+/// Long-form relative time for the expanded detail panel (e.g. "In 23 hours",
+/// "a month ago"). The pill in the summary row uses `_shortRelative` instead;
+/// we have more horizontal room when expanded so the readable form fits.
+String _relativeLong(DateTime dateTime) {
+  final raw = timeago.format(dateTime, allowFromNow: true);
+  if (raw.isEmpty) return raw;
+  return raw[0].toUpperCase() + raw.substring(1);
+}
+
 class _TimeBlock extends StatelessWidget {
   final int? durationMinutes;
   const _TimeBlock({required this.durationMinutes});
@@ -811,7 +820,9 @@ class _ExpandedPanel extends StatelessWidget {
       rows.add(_DateCell(
         label: type.label.toUpperCase(),
         absolute: DateFormat.MMMMd().format(v.toLocal()),
-        relative: _relativeFromNow(v),
+        // Long form (e.g. "In 23 hours", "a month ago") for the
+        // expanded panel — the summary pill uses _shortRelative.
+        relative: _relativeLong(v),
         color: _toneFor(type).fg,
       ));
     }
