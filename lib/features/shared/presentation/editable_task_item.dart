@@ -718,10 +718,14 @@ class _ExpandedPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateRows = _dateRows();
+    // Recurrence rule fields can live on the TaskItem itself or on the
+    // linked TaskRecurrence — fall back the same way the rest of the
+    // codebase does (see task_completion_service.dart) so recurring tasks
+    // whose rule lives on the recurrence doc still surface a REPEAT row.
     final repeat = RecurrenceFormatter.format(
-      recurNumber: taskItem.recurNumber,
-      recurUnit: taskItem.recurUnit,
-      recurWait: taskItem.recurWait,
+      recurNumber: taskItem.recurNumber ?? taskItem.recurrence?.recurNumber,
+      recurUnit: taskItem.recurUnit ?? taskItem.recurrence?.recurUnit,
+      recurWait: taskItem.recurWait ?? taskItem.recurrence?.recurWait,
     );
     final notes = taskItem.description;
     final ctx = taskItem.context;
@@ -738,26 +742,33 @@ class _ExpandedPanel extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return Container(
-      key: TaskMaestroKeys.editableTaskItemExpandedPanel(taskItem.docId),
-      margin: const EdgeInsets.only(top: 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (dateRows.isNotEmpty) _dateGrid(dateRows),
-          if (ctx != null && ctx.isNotEmpty)
-            _ExpandedRow(label: 'CONTEXT', value: ctx),
-          if (repeat != null) _ExpandedRow(label: 'REPEAT', value: repeat),
-          if (notes != null && notes.isNotEmpty)
-            _ExpandedRow(label: 'NOTES', value: notes),
-          if (onEdit != null) ...[
-            SizedBox(height: hasDetailContent ? 8 : 0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [_editButton()],
-            ),
+    // Tap anywhere on the expanded panel (other than the Edit button,
+    // which has its own onPressed and swallows the tap) to collapse —
+    // matches the design's onClick-to-dismiss affordance.
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onCollapse,
+      child: Container(
+        key: TaskMaestroKeys.editableTaskItemExpandedPanel(taskItem.docId),
+        margin: const EdgeInsets.only(top: 6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (dateRows.isNotEmpty) _dateGrid(dateRows),
+            if (ctx != null && ctx.isNotEmpty)
+              _ExpandedRow(label: 'CONTEXT', value: ctx),
+            if (repeat != null) _ExpandedRow(label: 'REPEAT', value: repeat),
+            if (notes != null && notes.isNotEmpty)
+              _ExpandedRow(label: 'NOTES', value: notes),
+            if (onEdit != null) ...[
+              SizedBox(height: hasDetailContent ? 8 : 0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [_editButton()],
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
