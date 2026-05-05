@@ -96,13 +96,27 @@ dev_dependencies:
 
   # Testing dependencies
   fake_cloud_firestore: ^3.0.3  # For realistic Firestore mocking in integration tests
-flutter_icons:
+  flutter_native_splash: ^2.4.7
+
+flutter_launcher_icons:
   ios: true
   android: true
-  image_path_ios: "assets/launcher/TaskMasterLogo.png"
-  image_path_android: "assets/launcher/TaskMasterLogo.png"
-  adaptive_icon_background: "assets/launcher/TaskMasterLogo_bg.png"
-  adaptive_icon_foreground: "assets/launcher/TaskMasterLogo_fg.png"
+  image_path_ios: "assets/launcher/TaskMaestro_Logo.png"
+  image_path_android: "assets/launcher/TaskMaestro_Logo.png"
+  adaptive_icon_background: "#2B72C2"
+  adaptive_icon_foreground: "assets/launcher/TaskMaestro_Logo.png"
+  remove_alpha_ios: true
+  background_color_ios: "#2B72C2"
+
+flutter_native_splash:
+  background_image: "assets/launcher/TaskMaestro_Splash.png"
+  android_12:
+    # Padded version of the logo (960x960 canvas, icon at 600x600 centered)
+    # so the icon fits within the Android 12+ Splash Screen API safe-zone
+    # circle (~640px) without being clipped at the edges.
+    image: "assets/launcher/TaskMaestro_Logo_AndroidSplash.png"
+    color: "#2B72C2"
+    icon_background_color: "#2B72C2"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -117,6 +131,7 @@ flutter:
 
   assets:
     - assets/config/
+    - assets/launcher/TaskMaestro_Splash.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
