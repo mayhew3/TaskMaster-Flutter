@@ -35,11 +35,11 @@ ThemeData taskMaestroTheme = ThemeData(
   ),
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(
-      // No fill — text buttons should read as text on whatever surface
-      // they sit on. The previous `backgroundColor: menuColor` override
-      // made them invisible on dialog surfaces (which share menuColor's
-      // hex after the TM-356 palette swap).
-      foregroundColor: Colors.white,
+      // No fill (M3 convention) — text buttons read as coloured labels
+      // on whatever surface they sit on. The brand magenta makes dialog
+      // actions (Cancel / Submit / etc.) visibly read as buttons rather
+      // than disappear into the dialog's blue card surface.
+      foregroundColor: TaskColors.highlight,
     ),
   ),
   cardTheme: CardThemeData(
