@@ -91,11 +91,15 @@ class _FamilyTaskTile extends ConsumerWidget {
     return EditableTaskItemWidget(
       taskItem: task,
       highlightSprint: false,
-      onEdit: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => TaskAddEditScreen(taskItemId: task.docId),
-        ),
-      ),
+      // Hide Edit on tasks the current user doesn't own — viewing a
+      // teammate's task should be read-only from this tab.
+      onEdit: isMine
+          ? () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => TaskAddEditScreen(taskItemId: task.docId),
+                ),
+              )
+          : null,
       onLongPress: () {
         HapticFeedback.mediumImpact();
         showDialog<void>(
