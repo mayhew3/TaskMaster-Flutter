@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:taskmaestro/features/areas/providers/area_color_providers.dart';
 import 'package:taskmaestro/features/shared/presentation/editable_task_item.dart';
 import 'package:taskmaestro/keys.dart';
 import 'package:taskmaestro/models/task_item.dart';
@@ -19,6 +20,12 @@ import 'package:taskmaestro/models/task_item.dart';
 
 Widget _wrap(Widget child) {
   return ProviderScope(
+    // areaColorsProvider chains through personDocId + database providers,
+    // which spin up timers in test env. Stubbing it here lets the widget
+    // fall through to AreaColorHelper.colorForArea (hash-based).
+    overrides: [
+      areaColorsProvider.overrideWith((ref) => const <String, Color>{}),
+    ],
     child: MaterialApp(
       theme: ThemeData(
         checkboxTheme: CheckboxThemeData(

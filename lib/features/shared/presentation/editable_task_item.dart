@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:taskmaestro/features/areas/providers/area_color_providers.dart';
 import 'package:taskmaestro/features/tasks/providers/expanded_task_provider.dart';
 import 'package:taskmaestro/helpers/area_color_helper.dart';
 import 'package:taskmaestro/helpers/recurrence_formatter.dart';
@@ -53,10 +54,20 @@ class EditableTaskItemWidget extends ConsumerWidget {
 
   bool get _isDone => taskItem.completionDate != null || taskItem.skipped;
 
+  Color _resolveAreaColor(WidgetRef ref) {
+    final area = taskItem.area;
+    if (area == null || area.isEmpty) {
+      return AreaColorHelper.colorForArea(area);
+    }
+    final mapped = ref.watch(areaColorsProvider)[area.trim().toLowerCase()];
+    return mapped ?? AreaColorHelper.colorForArea(area);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final expandedDocId = ref.watch(expandedTaskProvider);
     final isExpanded = expandedDocId == _docId();
+    final areaColor = _resolveAreaColor(ref);
 
     return Dismissible(
       key: TaskMaestroKeys.taskItem(_docId()),
@@ -71,13 +82,13 @@ class EditableTaskItemWidget extends ConsumerWidget {
           margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
           child: Stack(
             children: [
-              _AreaStripe(area: taskItem.area, completed: _isDone),
+              _AreaStripe(areaColor: areaColor, completed: _isDone),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14.0, 10.0, 10.0, 10.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _summaryRow(context, ref, isExpanded),
+                    _summaryRow(context, ref, isExpanded, areaColor),
                     AnimatedSize(
                       duration: const Duration(milliseconds: 200),
                       curve: Curves.easeInOut,
@@ -113,7 +124,12 @@ class EditableTaskItemWidget extends ConsumerWidget {
     return RoundedRectangleBorder(borderRadius: radius);
   }
 
-  Widget _summaryRow(BuildContext context, WidgetRef ref, bool isExpanded) {
+  Widget _summaryRow(
+    BuildContext context,
+    WidgetRef ref,
+    bool isExpanded,
+    Color areaColor,
+  ) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () =>
@@ -127,7 +143,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
               children: [
                 _titleRow(),
                 const SizedBox(height: 6),
-                _metaRow(),
+                _metaRow(areaColor),
               ],
             ),
           ),
@@ -177,14 +193,14 @@ class EditableTaskItemWidget extends ConsumerWidget {
     );
   }
 
-  Widget _metaRow() {
+  Widget _metaRow(Color areaColor) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // Expanded soaks up all remaining width so the right cluster sits
         // flush against the checkbox column. When area is null the inner
         // SizedBox.shrink leaves the space empty without disrupting alignment.
-        Expanded(child: _areaLabel()),
+        Expanded(child: _areaLabel(areaColor)),
         _TimeBlock(durationMinutes: taskItem.duration),
         const SizedBox(width: 8),
         _PriorityBar(priority: taskItem.priority),
@@ -194,12 +210,11 @@ class EditableTaskItemWidget extends ConsumerWidget {
     );
   }
 
-  Widget _areaLabel() {
+  Widget _areaLabel(Color areaColor) {
     final area = taskItem.area;
     if (area == null || area.isEmpty) {
       return const SizedBox.shrink();
     }
-    final color = AreaColorHelper.colorForArea(area);
     return Row(
       mainAxisSize: MainAxisSize.min,
       key: TaskMaestroKeys.editableTaskItemCardAreaField(_docId()),
@@ -207,7 +222,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
         Container(
           width: 6,
           height: 6,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          decoration: BoxDecoration(color: areaColor, shape: BoxShape.circle),
         ),
         const SizedBox(width: 5),
         Flexible(
@@ -248,21 +263,20 @@ class EditableTaskItemWidget extends ConsumerWidget {
 }
 
 class _AreaStripe extends StatelessWidget {
-  final String? area;
+  final Color areaColor;
   final bool completed;
-  const _AreaStripe({required this.area, required this.completed});
+  const _AreaStripe({required this.areaColor, required this.completed});
 
   @override
   Widget build(BuildContext context) {
-    final color = completed
-        ? TaskColors.highlight
-        : AreaColorHelper.colorForArea(area);
     return Positioned(
       left: 0,
       top: 0,
       bottom: 0,
       width: 3,
-      child: Container(color: color),
+      child: Container(
+        color: completed ? TaskColors.highlight : areaColor,
+      ),
     );
   }
 }
@@ -478,8 +492,7 @@ class _PriorityBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (priority == null) return const SizedBox.shrink();
-    final filled = (priority! / 2).clamp(0, 5).round();
+    final filled = priority == null ? 0 : (priority! / 2).clamp(0, 5).round();
     Color barColor;
     if (filled >= 4) {
       barColor = const Color(0xFFFFA08C); // warm coral
@@ -488,18 +501,25 @@ class _PriorityBar extends StatelessWidget {
     } else {
       barColor = TaskColors.startText; // neutral lavender
     }
+    final isNull = priority == null;
+    final outline = Colors.white.withValues(alpha: 0.32);
+    final emptyFill = Colors.white.withValues(alpha: 0.14);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: List.generate(5, (i) {
+        final on = i < filled;
         return Padding(
           padding: EdgeInsets.only(left: i == 0 ? 0 : 2),
           child: Container(
             width: 5,
             height: 8,
             decoration: BoxDecoration(
-              color: i < filled
+              color: on
                   ? barColor
-                  : Colors.white.withValues(alpha: 0.14),
+                  : (isNull ? Colors.transparent : emptyFill),
+              border: (!on && isNull)
+                  ? Border.all(color: outline, width: 0.8)
+                  : null,
               borderRadius: BorderRadius.circular(1),
             ),
           ),
@@ -515,26 +535,27 @@ class _PointsCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (points == null) return const SizedBox.shrink();
-    return Container(
-      constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.18),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.32),
-          width: 1,
+    return SizedBox(
+      width: 26,
+      height: 22,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.18),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.32),
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(999),
         ),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        '$points',
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          fontFeatures: const [FontFeature.tabularFigures()],
-          color: TaskColors.textPrimary,
+        alignment: Alignment.center,
+        child: Text(
+          points?.toString() ?? '—',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            fontFeatures: const [FontFeature.tabularFigures()],
+            color: points == null ? TaskColors.textFaint : TaskColors.textPrimary,
+          ),
         ),
       ),
     );

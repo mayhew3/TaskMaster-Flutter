@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:taskmaestro/features/areas/providers/area_color_providers.dart';
 import 'package:taskmaestro/features/shared/presentation/editable_task_item.dart';
 import 'package:taskmaestro/keys.dart';
 import 'package:taskmaestro/models/task_item.dart';
@@ -15,6 +16,9 @@ import 'package:taskmaestro/models/task_item.dart';
 
 Widget _wrap(Widget child) {
   return ProviderScope(
+    overrides: [
+      areaColorsProvider.overrideWith((ref) => const <String, Color>{}),
+    ],
     child: MaterialApp(
       theme: ThemeData(
         checkboxTheme: CheckboxThemeData(

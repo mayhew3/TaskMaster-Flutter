@@ -63,17 +63,27 @@ class TaskColors {
   static const Color connectionWarning = Color(0xFFE65100);
   static const Color connectionError = Color(0xFFC62828);
 
-  /// Curated 10-color palette for area decoration. Index by deterministic hash.
+  /// Curated 16-color palette for area decoration. The first 10 are the
+  /// design's `AREA_COLORS`; the next 6 fill out the wheel so a user with
+  /// up to 16 areas can have unique colors when assigned by sortOrder.
+  /// Hash-based fallback (for stale/unknown area strings) still lives in
+  /// `AreaColorHelper`.
   static const List<Color> areaPalette = [
-    Color(0xFFE2A6F0), // Family    — pink-violet
-    Color(0xFFF0B97A), // Maintenance — orange
-    Color(0xFF9DC8F0), // Friends    — sky blue
-    Color(0xFFA0E0B5), // Hobby      — green
-    Color(0xFFF0D77A), // Shopping   — gold
-    Color(0xFFB5C9F0), // Organization — periwinkle
-    Color(0xFFF09A9A), // Career     — coral
-    Color(0xFF7AE0C6), // Health     — teal
-    Color(0xFFD8A0F0), // Entertainment — violet
-    Color(0xFFF09AC0), // Projects   — pink
+    Color(0xFFE2A6F0), // pink-violet
+    Color(0xFFF0B97A), // orange
+    Color(0xFF9DC8F0), // sky blue
+    Color(0xFFA0E0B5), // mint green
+    Color(0xFFF0D77A), // gold
+    Color(0xFFB5C9F0), // periwinkle
+    Color(0xFFF09A9A), // coral
+    Color(0xFF7AE0C6), // teal
+    Color(0xFFD8A0F0), // violet
+    Color(0xFFF09AC0), // pink
+    Color(0xFFF0E091), // pale yellow
+    Color(0xFFA8E091), // lime
+    Color(0xFFE0A891), // tan
+    Color(0xFFC891E0), // purple
+    Color(0xFFE0E091), // chartreuse
+    Color(0xFF91D0E0), // dusty cyan
   ];
 }
