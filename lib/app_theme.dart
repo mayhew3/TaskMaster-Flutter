@@ -35,11 +35,16 @@ ThemeData taskMaestroTheme = ThemeData(
   ),
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(
-      // No fill (M3 convention) — text buttons read as coloured labels
-      // on whatever surface they sit on. The brand magenta makes dialog
-      // actions (Cancel / Submit / etc.) visibly read as buttons rather
-      // than disappear into the dialog's blue card surface.
-      foregroundColor: TaskColors.highlight,
+      // White text with a thin white outline so the button reads as a
+      // button on the dialog's blue card surface. (M3's default
+      // foreground-only treatment relied on a different bg from the
+      // surface — both share #286BB5 here, so we add the outline
+      // ourselves rather than tinting the label.)
+      foregroundColor: Colors.white,
+      side: BorderSide(
+        color: Colors.white.withValues(alpha: 0.5),
+        width: 1,
+      ),
     ),
   ),
   cardTheme: CardThemeData(
