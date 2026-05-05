@@ -149,12 +149,14 @@ void main() {
       await tester.tap(find.text('Multi-date Task'));
       await tester.pumpAndSettle();
 
-      // Each date label appears once in the expanded grid.
+      // Each date label appears at least once in the grid; the date
+      // labelled by the pill (the next upcoming milestone — URGENT here,
+      // since target has passed and urgent is the next future date)
+      // appears twice (pill + grid).
       expect(find.text('START'), findsOneWidget);
       expect(find.text('TARGET'), findsOneWidget);
-      expect(find.text('URGENT'), findsOneWidget);
-      // 'DUE' may appear twice — once in the header pill, once in the grid.
-      expect(find.text('DUE'), findsAtLeast(1));
+      expect(find.text('URGENT'), findsAtLeast(1));
+      expect(find.text('DUE'), findsOneWidget);
     });
 
     testWidgets('Renders only the dates that are set', (tester) async {

@@ -404,23 +404,44 @@ _PillContent? _pillContentFor(TaskItem taskItem) {
       fg: TaskColors.completedText,
     );
   }
-  final anchor = taskItem.getAnchorDateType();
-  if (anchor == null) return null;
-  final relative = _relativeForAnchor(taskItem, anchor);
+  final displayType = _displayDateType(taskItem);
+  if (displayType == null) return null;
+  final relative = _relativeForAnchor(taskItem, displayType);
   if (relative == null) return null;
-  // Text colour reflects the date type the pill names (the anchor — what
-  // the user is reading); background colour reflects the task's current
+  // Text colour reflects the date type the pill names (the milestone the
+  // user is reading); background colour reflects the task's current
   // state — i.e. the most recently crossed threshold. Matches the old
   // card-background semantics from the pre-redesign widget.
-  final anchorTone = _toneFor(anchor);
+  final displayTone = _toneFor(displayType);
   final stateTone = _toneForCurrentState(taskItem);
   return _PillContent(
-    label: anchor.label.toUpperCase(),
+    label: displayType.label.toUpperCase(),
     value: relative,
     bg: stateTone?.bg ?? Colors.transparent,
     border: stateTone?.border ?? TaskColors.hairline,
-    fg: anchorTone.fg,
+    fg: displayTone.fg,
   );
+}
+
+/// Picks the date type to put in the pill label — the next upcoming
+/// threshold within its display window, or, if none upcoming, the most
+/// recently crossed threshold (excluding `start`, which doesn't carry
+/// urgency once it's passed).
+///
+/// This is *not* the same as `DateHolder.getAnchorDateType()`: that returns
+/// the highest-priority non-null date for recurrence anchoring, which is
+/// the wrong choice for display when an earlier-priority date is the next
+/// thing the user actually needs to act on. Mirrors the iteration order
+/// from the pre-redesign widget's `_getDateWarnings()`.
+TaskDateType? _displayDateType(TaskItem task) {
+  for (final type in TaskDateTypes.allTypes) {
+    if (type.inListBeforeDisplayThreshold(task)) return type;
+  }
+  for (final type in TaskDateTypes.allTypes.reversed) {
+    if (type == TaskDateTypes.start) continue;
+    if (type.inListAfterDisplayThreshold(task)) return type;
+  }
+  return null;
 }
 
 /// Returns the tone for the task's current state — i.e. the highest crossed

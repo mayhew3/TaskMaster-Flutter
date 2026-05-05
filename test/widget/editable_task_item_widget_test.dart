@@ -183,6 +183,32 @@ void main() {
       expect(find.textContaining('ago'), findsOneWidget);
     });
 
+    testWidgets(
+        'Future urgent wins over future due even when target has passed',
+        (tester) async {
+      // Mothers-Day-style task: target is in the past, urgent and due are
+      // both upcoming. The pill should call out the next milestone the
+      // user has to act on (urgent), not the highest-priority date type
+      // that is set (due).
+      final now = DateTime.now();
+      final task = _makeTask(
+        docId: 'mothers-day',
+        name: "Mother's Day",
+        targetDate: now.subtract(const Duration(days: 1)),
+        urgentDate: now.add(const Duration(hours: 4)),
+        dueDate: now.add(const Duration(days: 2)),
+      );
+      await tester.pumpWidget(_wrap(EditableTaskItemWidget(
+        taskItem: task,
+        highlightSprint: false,
+        onTaskCompleteToggle: (_) => null,
+      )));
+      expect(find.text('URGENT'), findsOneWidget,
+          reason: 'Urgent is the next upcoming milestone — show it');
+      expect(find.text('DUE'), findsNothing);
+      expect(find.text('TARGET'), findsNothing);
+    });
+
     testWidgets('Due wins over urgent and target', (tester) async {
       final now = DateTime.now();
       final task = _makeTask(
