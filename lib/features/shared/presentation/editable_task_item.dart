@@ -726,12 +726,15 @@ class _ExpandedPanel extends StatelessWidget {
     final notes = taskItem.description;
     final ctx = taskItem.context;
 
-    final hasContent = dateRows.isNotEmpty ||
+    final bool hasDetailContent = dateRows.isNotEmpty ||
         (repeat != null) ||
         (notes != null && notes.isNotEmpty) ||
         (ctx != null && ctx.isNotEmpty);
 
-    if (!hasContent) {
+    // Render the panel when there's either detail content OR an edit
+    // affordance. A sparse task (no dates / notes / context / recurrence)
+    // owned by the user still expands so they can reach the Edit button.
+    if (!hasDetailContent && onEdit == null) {
       return const SizedBox.shrink();
     }
 
@@ -748,7 +751,7 @@ class _ExpandedPanel extends StatelessWidget {
           if (notes != null && notes.isNotEmpty)
             _ExpandedRow(label: 'NOTES', value: notes),
           if (onEdit != null) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: hasDetailContent ? 8 : 0),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [_editButton()],
