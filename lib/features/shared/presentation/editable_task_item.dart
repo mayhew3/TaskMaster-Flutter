@@ -408,14 +408,31 @@ _PillContent? _pillContentFor(TaskItem taskItem) {
   if (anchor == null) return null;
   final relative = _relativeForAnchor(taskItem, anchor);
   if (relative == null) return null;
-  final tone = _toneFor(anchor);
+  // Text colour reflects the date type the pill names (the anchor — what
+  // the user is reading); background colour reflects the task's current
+  // state — i.e. the most recently crossed threshold. Matches the old
+  // card-background semantics from the pre-redesign widget.
+  final anchorTone = _toneFor(anchor);
+  final stateTone = _toneForCurrentState(taskItem);
   return _PillContent(
     label: anchor.label.toUpperCase(),
     value: relative,
-    bg: tone.bg,
-    border: tone.border,
-    fg: tone.fg,
+    bg: stateTone?.bg ?? Colors.transparent,
+    border: stateTone?.border ?? TaskColors.hairline,
+    fg: anchorTone.fg,
   );
+}
+
+/// Returns the tone for the task's current state — i.e. the highest crossed
+/// threshold. Mirrors the pre-redesign `getBackgroundColor()` semantics by
+/// reusing `DateHolder`'s existing predicates so this stays a single
+/// source of truth as the date model evolves.
+_ToneTriple? _toneForCurrentState(TaskItem task) {
+  if (task.isPastDue()) return _toneFor(TaskDateTypes.due);
+  if (task.isUrgent()) return _toneFor(TaskDateTypes.urgent);
+  if (task.isTarget()) return _toneFor(TaskDateTypes.target);
+  if (task.isScheduled()) return _toneFor(TaskDateTypes.start);
+  return null;
 }
 
 const TextStyle _pillLabelStyle = TextStyle(

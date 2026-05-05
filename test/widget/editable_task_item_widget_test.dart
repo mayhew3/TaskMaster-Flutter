@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaestro/features/areas/providers/area_color_providers.dart';
 import 'package:taskmaestro/features/shared/presentation/editable_task_item.dart';
 import 'package:taskmaestro/keys.dart';
+import 'package:taskmaestro/models/task_colors.dart';
 import 'package:taskmaestro/models/task_item.dart';
 
 /// Widget tests for the V9-redesigned `EditableTaskItemWidget`.
@@ -198,6 +199,42 @@ void main() {
       expect(find.text('DUE'), findsOneWidget);
       expect(find.text('URGENT'), findsNothing);
       expect(find.text('TARGET'), findsNothing);
+    });
+
+    testWidgets(
+        'Pill bg = current state, fg = anchor type (due in future, urgent passed)',
+        (tester) async {
+      final now = DateTime.now();
+      final task = _makeTask(
+        docId: 'split-tone',
+        name: 'Split-tone task',
+        urgentDate: now.subtract(const Duration(days: 1)),
+        dueDate: now.add(const Duration(days: 2)),
+      );
+      await tester.pumpWidget(_wrap(EditableTaskItemWidget(
+        taskItem: task,
+        highlightSprint: false,
+        onTaskCompleteToggle: (_) => null,
+      )));
+
+      // Anchor = due (because dueDate is set and is the highest priority);
+      // current state = urgent (because urgentDate has passed).
+      // Therefore label says DUE, text uses dueText, bg uses urgentColor.
+      final pill = tester.widget<Container>(
+          find.byKey(TaskMaestroKeys.editableTaskItemDatePill('split-tone')));
+      final decoration = pill.decoration! as BoxDecoration;
+      expect(decoration.color, TaskColors.urgentColor,
+          reason: 'Pill bg should reflect current state (urgent passed)');
+
+      final labelTexts = tester.widgetList<Text>(find.descendant(
+        of: find.byKey(TaskMaestroKeys.editableTaskItemDatePill('split-tone')),
+        matching: find.byType(Text),
+      ));
+      // The value is the full dueText; the label is dueText with a small
+      // alpha tweak. Either way, both reflect the anchor (DUE), not the
+      // current-state (urgent).
+      expect(labelTexts.last.style?.color, TaskColors.dueText,
+          reason: 'Pill value text should use dueText (anchor) — not the bg state colour');
     });
 
     testWidgets('No dates → no date pill', (tester) async {
