@@ -144,7 +144,7 @@ The card hides the REPEAT row when `format(...)` returns `null`.
 | Phase | File | Change |
 |---|---|---|
 | 1 | `lib/models/task_colors.dart` | Palette swap + new tokens |
-| 2 | `lib/app_theme.dart` | FAB → magenta-muted; divider → hairline |
+| 2 | `lib/app_theme.dart` | FAB → `TaskColors.highlight` (brand magenta) + foreground white; divider → hairline; FilledButton → magenta CTA; TextButton → outlined white pill; recurrence Switch keeps a white thumb on the magenta active track |
 | 3 | `lib/helpers/recurrence_formatter.dart` | New |
 | 3 | `lib/helpers/area_color_helper.dart` | New |
 | 3 | `test/helpers/recurrence_formatter_test.dart` | New (8 tests) |

@@ -111,7 +111,6 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
 
     var taskCard = EditableTaskItemWidget(
       taskItem: displayTask,
-      sprint: activeSprint,
       highlightSprint: (!widget.sprintMode && activeSprint != null && activeSprintItems != null && activeSprintItems!.contains(taskItem)),
       onEdit: () => Navigator.of(context).push(
         MaterialPageRoute(

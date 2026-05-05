@@ -14,7 +14,6 @@ import 'package:taskmaestro/models/task_colors.dart';
 import 'package:taskmaestro/models/task_date_type.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
-import '../../../models/sprint.dart';
 import '../../../models/task_item.dart';
 import '../../../models/check_state.dart';
 import 'delayed_checkbox.dart';
@@ -31,8 +30,6 @@ class EditableTaskItemWidget extends ConsumerWidget {
   final ConfirmDismissCallback? onDismissed;
   final GestureLongPressCallback? onLongPress;
   final GestureForcePressStartCallback? onForcePress;
-  final CheckState? initialCheckState;
-  final Sprint? sprint;
   final bool highlightSprint;
 
   /// Pushed by the expanded panel's Edit button. When null, the Edit button
@@ -42,10 +39,8 @@ class EditableTaskItemWidget extends ConsumerWidget {
   const EditableTaskItemWidget({
     super.key,
     required this.taskItem,
-    this.sprint,
     required this.highlightSprint,
     this.onTaskCompleteToggle,
-    this.initialCheckState,
     this.onDismissed,
     this.onLongPress,
     this.onForcePress,
