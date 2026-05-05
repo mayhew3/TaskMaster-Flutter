@@ -56,6 +56,21 @@ class EditableTaskItemWidget extends ConsumerWidget {
 
   bool get _isDone => taskItem.completionDate != null || taskItem.skipped;
 
+  /// Scheduled = startDate is in the future and the task hasn't been
+  /// finished yet. Mirrors the "hollow card" treatment from the
+  /// pre-redesign widget so future-scheduled tasks read as not-yet-active.
+  bool get _isScheduled => !_isDone && taskItem.isScheduled();
+
+  Color _cardSurfaceColor() {
+    if (_isDone) return TaskColors.cardCompletedTint;
+    if (_isScheduled) {
+      // Hollow effect: a touch of card tint over the screen background so
+      // the card still has shape but reads as inactive.
+      return TaskColors.cardColor.withValues(alpha: 0.15);
+    }
+    return TaskColors.cardColor;
+  }
+
   Color _resolveAreaColor(WidgetRef ref) {
     final area = taskItem.area;
     if (area == null || area.isEmpty) {
@@ -79,7 +94,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
         onForcePressStart: onForcePress,
         child: Card(
           key: TaskMaestroKeys.editableTaskItemCard(_docId()),
-          color: _isDone ? TaskColors.cardCompletedTint : TaskColors.cardColor,
+          color: _cardSurfaceColor(),
           shape: _cardShape(),
           margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
           child: Stack(
@@ -121,6 +136,12 @@ class EditableTaskItemWidget extends ConsumerWidget {
       return RoundedRectangleBorder(
         borderRadius: radius,
         side: BorderSide(color: TaskColors.sprintColor, width: 1.0),
+      );
+    }
+    if (_isScheduled) {
+      return RoundedRectangleBorder(
+        borderRadius: radius,
+        side: BorderSide(color: TaskColors.scheduledOutline, width: 1.0),
       );
     }
     return RoundedRectangleBorder(borderRadius: radius);

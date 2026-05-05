@@ -278,6 +278,34 @@ void main() {
     });
   });
 
+  group('EditableTaskItemWidget — scheduled state', () {
+    testWidgets(
+        'Scheduled tasks render with low-opacity fill + start-tone outline',
+        (tester) async {
+      final task = _makeTask(
+        docId: 'scheduled',
+        name: 'Scheduled Task',
+        startDate: DateTime.now().add(const Duration(days: 3)),
+      );
+      await tester.pumpWidget(_wrap(EditableTaskItemWidget(
+        taskItem: task,
+        highlightSprint: false,
+        onTaskCompleteToggle: (_) => null,
+      )));
+      final card = tester.widget<Card>(
+          find.byKey(TaskMaestroKeys.editableTaskItemCard('scheduled')));
+      // Surface is a translucent variant of the regular card colour.
+      final surface = card.color!;
+      expect(surface.a, lessThan(0.5),
+          reason:
+              'Scheduled cards should be hollow (low-alpha fill) to read as inactive');
+      // Outline uses the start-tone scheduledOutline.
+      final shape = card.shape! as RoundedRectangleBorder;
+      expect(shape.side.color, TaskColors.scheduledOutline);
+      expect(shape.side.width, greaterThan(0.5));
+    });
+  });
+
   group('EditableTaskItemWidget — completed/skipped state', () {
     testWidgets('Completed task shows the COMPLETED pill', (tester) async {
       final now = DateTime.now().toUtc();
