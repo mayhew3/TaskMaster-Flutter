@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/auth_providers.dart';
+import '../../../helpers/area_color_helper.dart';
 import '../../../models/area.dart';
+import '../../../models/task_colors.dart';
 import '../providers/area_providers.dart';
 import '../services/area_service.dart';
 
-/// Dropdown for picking the user's `area` for a task (TM-345).
+/// Picker for the user's `area` for a task (TM-345).
 ///
-/// Sources its options from [areasWithDefaultsProvider] (lazy-seeds defaults
-/// for new users). Adds two sentinels to the dropdown values:
-///   - `(none)` at the top → maps to `null`
-///   - `+ Add new area…` at the bottom → opens an inline dialog that creates
-///     a new area on submit and selects it for the current task.
+/// Renders as a chevron-style button that opens a modal bottom sheet listing
+/// the user's areas. The sheet sources options from [areasWithDefaultsProvider]
+/// (lazy-seeds defaults for new users) and includes:
+///   - a "None" entry that maps to `null`
+///   - a `+ Add new area…` action at the bottom that opens an inline dialog;
+///     submitting creates a new area and selects it
 class AreaPicker extends ConsumerStatefulWidget {
   const AreaPicker({
     super.key,
@@ -29,153 +32,310 @@ class AreaPicker extends ConsumerStatefulWidget {
   ConsumerState<AreaPicker> createState() => _AreaPickerState();
 }
 
-// Use the shared sentinel constants from area_service.dart so the service's
-// reserved-name rejection stays in sync with the picker's UI strings.
-const String _noneSentinel = kNoneSentinelName;
+// Use the shared "+ Add new area…" sentinel so the service's reserved-name
+// rejection (kReservedAreaNames) stays in sync with the picker's UI string.
 const String _addSentinel = kAddNewSentinelName;
 
 class _AreaPickerState extends ConsumerState<AreaPicker> {
-  late String _selected;
-  // GlobalKey on the DropdownButtonFormField so we can reach into its
-  // FormFieldState and call didChange(...) to update the displayed value.
-  // Required because DropdownButtonFormField is uncontrolled by `value:`
-  // after init — the field tracks its own internal state, and we need to
-  // mutate that state from outside (after the inline-add dialog) so the
-  // parent's enclosing Form.onChanged fires and hasChanges() re-evaluates.
-  final _formFieldKey = GlobalKey<FormFieldState<String>>();
+  String? _selected;
 
   @override
   void initState() {
     super.initState();
-    _selected = widget.initialValue ?? _noneSentinel;
+    _selected = widget.initialValue;
   }
 
   @override
   Widget build(BuildContext context) {
-    final asyncAreas = ref.watch(areasWithDefaultsProvider);
-    final areaNames = asyncAreas.maybeWhen(
-      data: (areas) => areas.map((a) => a.name).toList(),
-      orElse: () => const <String>[],
-    );
-
-    // If the current selection is a stale area name (deleted from the list),
-    // the dropdown still needs the value present in its items or it crashes
-    // — so include it explicitly even if it's not in the live list.
-    final values = <String>[
-      _noneSentinel,
-      ...areaNames,
-      if (_selected != _noneSentinel && !areaNames.contains(_selected))
-        _selected,
-      _addSentinel,
-    ];
-
-    final secondary = Theme.of(context).colorScheme.secondary;
-
-    return Container(
-      margin: const EdgeInsets.all(7.0),
-      child: DropdownButtonFormField<String>(
-        key: _formFieldKey,
-        isDense: true,
-        decoration: InputDecoration(
-          labelText: widget.labelText,
-          contentPadding: const EdgeInsets.fromLTRB(12, 21, 12, 14),
-        ),
-        value: _selected,
-        // Closed-state display: render every value as plain text. Avoids the
-        // sentinel briefly rendering with its divider+colored styling between
-        // the user's pick and the dialog opening.
-        selectedItemBuilder: (context) =>
-            values.map((v) => Text(v)).toList(),
-        items: values.map((v) {
-          if (v == _addSentinel) {
-            return DropdownMenuItem<String>(
-              value: v,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Divider(height: 1),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10),
-                    child: Text(
-                      v,
-                      style: TextStyle(color: secondary),
-                    ),
+    final selected = _selected;
+    return Material(
+      color: TaskColors.fieldSurface,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        // Stable key so widget tests can target the chevron button without
+        // depending on Material/InkWell counts elsewhere on the screen.
+        key: const Key('area_picker_button'),
+        borderRadius: BorderRadius.circular(10),
+        onTap: () => _open(context),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: TaskColors.fieldBorder, width: 1),
+          ),
+          child: Row(
+            children: [
+              if (selected != null) ...[
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: AreaColorHelper.colorForArea(selected),
+                    shape: BoxShape.circle,
                   ),
-                ],
+                ),
+                const SizedBox(width: 10),
+              ],
+              Expanded(
+                child: Text(
+                  selected ?? 'None',
+                  style: TextStyle(
+                    color: selected == null
+                        ? Colors.white.withValues(alpha: 0.45)
+                        : Colors.white,
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w500,
+                    fontStyle:
+                        selected == null ? FontStyle.italic : FontStyle.normal,
+                  ),
+                ),
               ),
-            );
-          }
-          return DropdownMenuItem<String>(value: v, child: Text(v));
-        }).toList(),
-        onChanged: (String? newValue) async {
-          if (newValue == null) return;
-          if (newValue == _addSentinel) {
-            await _handleAddNew(asyncAreas.valueOrNull ?? const []);
-            return;
-          }
-          setState(() => _selected = newValue);
-          widget.valueSetter(newValue == _noneSentinel ? null : newValue);
-        },
+              Icon(
+                Icons.keyboard_arrow_down,
+                size: 20,
+                color: Colors.white.withValues(alpha: 0.40),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Future<void> _handleAddNew(List<Area> existing) async {
-    // Snapshot the previous selection before opening the dialog so we can
-    // revert if the user cancels. Do NOT use _selected after the dialog —
-    // it's the local state, which is fine here since the sentinel pick
-    // didn't update _selected (the if-branch returns early in onChanged).
-    final previous = _selected;
+  void _open(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetCtx) {
+        // Watch within the sheet builder so additions reflect immediately.
+        return Consumer(builder: (ctx, ref, _) {
+          final asyncAreas = ref.watch(areasWithDefaultsProvider);
+          final areas = asyncAreas.maybeWhen(
+            data: (a) => a,
+            orElse: () => const <Area>[],
+          );
+          final names = areas.map((a) => a.name).toList(growable: false);
 
+          return Container(
+            decoration: const BoxDecoration(
+              color: TaskColors.popupBg,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(18, 18, 18, 12),
+                    child: Text(
+                      'Select area',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(18, 0, 18, 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _AreaOption(
+                            label: 'None',
+                            italic: true,
+                            selected: _selected == null,
+                            onTap: () {
+                              setState(() => _selected = null);
+                              widget.valueSetter(null);
+                              Navigator.of(sheetCtx).pop();
+                            },
+                          ),
+                          ...names.map(
+                            (name) => _AreaOption(
+                              label: name,
+                              dotColor: AreaColorHelper.colorForArea(name),
+                              selected: _selected == name,
+                              onTap: () {
+                                setState(() => _selected = name);
+                                widget.valueSetter(name);
+                                Navigator.of(sheetCtx).pop();
+                              },
+                            ),
+                          ),
+                          // Stale selection: keep it visible so users can
+                          // re-select / clear when an area was deleted.
+                          if (_selected != null && !names.contains(_selected))
+                            _AreaOption(
+                              label: _selected!,
+                              dotColor:
+                                  AreaColorHelper.colorForArea(_selected),
+                              selected: true,
+                              onTap: () => Navigator.of(sheetCtx).pop(),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const Divider(height: 1, color: Color(0x1FFFFFFF)),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
+                    child: _AddAreaAction(
+                      onTap: () async {
+                        Navigator.of(sheetCtx).pop();
+                        await _handleAddNew(areas);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
+      },
+    );
+  }
+
+  Future<void> _handleAddNew(List<Area> existing) async {
     final newName = await showDialog<String>(
       context: context,
       builder: (_) => _AddAreaDialog(
-          existingNames: existing.map((a) => a.name).toList()),
+        existingNames: existing.map((a) => a.name).toList(),
+      ),
     );
-    if (newName == null) {
-      // Cancelled — push the previous value back into the FormField so the
-      // dropdown stops showing the sentinel.
-      _formFieldKey.currentState?.didChange(previous);
-      return;
-    }
+    if (newName == null) return; // cancelled
     final personDocId = ref.read(personDocIdProvider);
-    if (personDocId == null) {
-      _formFieldKey.currentState?.didChange(previous);
-      return;
-    }
+    if (personDocId == null) return;
     final service = ref.read(areaServiceProvider);
     try {
       final created =
           await service.createArea(name: newName, personDocId: personDocId);
-      // Route through didChange so the FormField's internal state updates,
-      // Form.onChanged fires on the parent, and the FAB's hasChanges() check
-      // sees the blueprint.area mutation. DropdownButtonFormField's
-      // didChange override DOES re-fire this widget's onChanged with the
-      // new value (see _DropdownButtonFormFieldState.didChange in the
-      // Flutter framework), which in turn handles setState + valueSetter.
-      // Verified by the widget test in test/features/areas/area_picker_test.dart.
-      _formFieldKey.currentState?.didChange(created.name);
+      if (!mounted) return;
+      setState(() => _selected = created.name);
+      widget.valueSetter(created.name);
     } on DuplicateAreaNameException catch (e) {
       // The dialog validator catches dups in the in-memory list; this catches
       // races where a second area with the same name synced down between the
       // dialog opening and submit.
-      _formFieldKey.currentState?.didChange(previous);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString())),
         );
       }
     } on ReservedAreaNameException catch (e) {
-      // Should be unreachable: the dialog validator rejects reserved names
-      // before submit. Belt-and-suspenders for programmatic callers.
-      _formFieldKey.currentState?.didChange(previous);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString())),
         );
       }
     }
+  }
+}
+
+class _AreaOption extends StatelessWidget {
+  const _AreaOption({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.dotColor,
+    this.italic = false,
+  });
+
+  final String label;
+  final Color? dotColor;
+  final bool selected;
+  final bool italic;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected
+          ? Colors.white.withValues(alpha: 0.10)
+          : Colors.transparent,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
+          child: Row(
+            children: [
+              if (dotColor != null) ...[
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration:
+                      BoxDecoration(color: dotColor, shape: BoxShape.circle),
+                ),
+                const SizedBox(width: 12),
+              ],
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: italic
+                        ? Colors.white.withValues(alpha: 0.65)
+                        : Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    fontStyle: italic ? FontStyle.italic : FontStyle.normal,
+                  ),
+                ),
+              ),
+              if (selected)
+                const Icon(
+                  Icons.check,
+                  size: 18,
+                  color: Color.fromRGBO(143, 184, 255, 0.95),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AddAreaAction extends StatelessWidget {
+  const _AddAreaAction({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          child: Row(
+            children: [
+              Icon(
+                Icons.add,
+                size: 18,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                _addSentinel,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.secondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -229,7 +389,9 @@ class _AddAreaDialogState extends State<_AddAreaDialog> {
   String? _validate(String? raw) {
     final value = (raw ?? '').trim();
     if (value.isEmpty) return 'Name required';
-    if (kReservedAreaNames.contains(value)) return 'Reserved name; choose another';
+    if (kReservedAreaNames.contains(value)) {
+      return 'Reserved name; choose another';
+    }
     final exists = widget.existingNames
         .any((n) => n.toLowerCase() == value.toLowerCase());
     if (exists) return 'Already in your list';

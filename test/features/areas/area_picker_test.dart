@@ -114,11 +114,11 @@ void main() {
         ));
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byType(DropdownButton<String>));
+        await tester.tap(find.byKey(const Key('area_picker_button')));
         await tester.pumpAndSettle();
 
-        // The sentinel appears in the menu items (closed state shows
-        // selected only). Use the menu occurrence.
+        // The sentinel only appears once now (no closed-state duplicate),
+        // but `.last` keeps the matcher resilient to either rendering.
         await tester.tap(find.text('+ Add new area…').last);
         await tester.pumpAndSettle();
 
@@ -151,7 +151,7 @@ void main() {
         ));
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byType(DropdownButton<String>));
+        await tester.tap(find.byKey(const Key('area_picker_button')));
         await tester.pumpAndSettle();
 
         await tester.tap(find.text('+ Add new area…').last);
@@ -181,7 +181,7 @@ void main() {
         ));
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byType(DropdownButton<String>));
+        await tester.tap(find.byKey(const Key('area_picker_button')));
         await tester.pumpAndSettle();
         await tester.tap(find.text('+ Add new area…').last);
         await tester.pumpAndSettle();

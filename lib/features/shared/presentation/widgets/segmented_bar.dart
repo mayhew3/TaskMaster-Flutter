@@ -39,6 +39,12 @@ class SegmentedBar extends StatelessWidget {
   /// Gap between segments in pixels. Default 4.
   final double gap;
 
+  /// When `true`, every segment with index ≤ the selected one is filled
+  /// (progress-bar style). When `false` (default), only the selected segment
+  /// is filled. Use `true` for ordinal scales like Priority and Points;
+  /// leave `false` for category pickers (recurrence unit/anchor, time bucket).
+  final bool fillUpTo;
+
   const SegmentedBar({
     required this.value,
     required this.segments,
@@ -48,6 +54,7 @@ class SegmentedBar extends StatelessWidget {
     this.allowZero = true,
     this.height = 32,
     this.gap = 4,
+    this.fillUpTo = false,
     super.key,
   })  : assert(segments > 0),
         assert(labels == null || labels.length == segments,
@@ -59,7 +66,8 @@ class SegmentedBar extends StatelessWidget {
     for (var i = 0; i < segments; i++) {
       if (i > 0) children.add(SizedBox(width: gap));
       final segmentValue = i + 1;
-      final filled = value == segmentValue;
+      final filled = value != null &&
+          (fillUpTo ? segmentValue <= value! : segmentValue == value);
       final label = labels?[i] ?? '$segmentValue';
       children.add(Expanded(
         child: Segment(

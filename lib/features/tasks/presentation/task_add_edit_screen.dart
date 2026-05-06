@@ -103,6 +103,19 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
 
     _initialRepeatOn = task?.recurrenceDocId != null;
     _repeatOn = _initialRepeatOn;
+
+    // One-time normalization for legacy 1–10 priority values: tasks created
+    // before TM-358 stored priority on a 1–10 scale that the card display
+    // halved (`(priority / 2).clamp(0, 5).round()`). The redesigned 1–5
+    // segmented bar can't render values >5, so the first time such a task
+    // is opened we apply the same formula in-memory. The change shows up
+    // as a pending edit (Save button enables) so it persists on the next
+    // save; closing without saving leaves the data untouched and the next
+    // open re-applies the same fix.
+    final p = taskItemBlueprint.priority;
+    if (p != null && p > 5) {
+      taskItemBlueprint.priority = (p / 2).round().clamp(1, 5);
+    }
   }
 
   bool get isEditing => widget.taskItemId != null;
@@ -405,6 +418,7 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
           value: taskItemBlueprint.priority,
           segments: 5,
           accent: SegmentedBarAccent.priority,
+          fillUpTo: true,
           onChanged: (v) {
             setState(() {
               taskItemBlueprint.priority = v;
@@ -757,13 +771,15 @@ class _ContextPickerButton extends StatelessWidget {
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
+      // Without isScrollControlled, the sheet caps at ~50% of screen and the
+      // 9-row option list overflows on smaller viewports.
+      isScrollControlled: true,
       builder: (ctx) {
         return Container(
           decoration: const BoxDecoration(
             color: TaskColors.popupBg,
             borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
           ),
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
           child: SafeArea(
             top: false,
             child: Column(
@@ -771,7 +787,7 @@ class _ContextPickerButton extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Padding(
-                  padding: EdgeInsets.only(bottom: 12),
+                  padding: EdgeInsets.fromLTRB(18, 18, 18, 12),
                   child: Text(
                     'Select context',
                     style: TextStyle(
@@ -781,23 +797,33 @@ class _ContextPickerButton extends StatelessWidget {
                     ),
                   ),
                 ),
-                _ContextOption(
-                  label: 'None',
-                  selected: value == null,
-                  italic: true,
-                  onTap: () {
-                    onChanged(null);
-                    Navigator.of(ctx).pop();
-                  },
-                ),
-                ...options.map(
-                  (o) => _ContextOption(
-                    label: o,
-                    selected: value == o,
-                    onTap: () {
-                      onChanged(o);
-                      Navigator.of(ctx).pop();
-                    },
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _ContextOption(
+                          label: 'None',
+                          selected: value == null,
+                          italic: true,
+                          onTap: () {
+                            onChanged(null);
+                            Navigator.of(ctx).pop();
+                          },
+                        ),
+                        ...options.map(
+                          (o) => _ContextOption(
+                            label: o,
+                            selected: value == o,
+                            onTap: () {
+                              onChanged(o);
+                              Navigator.of(ctx).pop();
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],

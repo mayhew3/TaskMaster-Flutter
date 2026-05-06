@@ -45,7 +45,9 @@ class PointsPicker extends StatelessWidget {
       if (i > 0) children.add(const SizedBox(width: 4));
       final isFib = i < fibBuckets.length;
       final label = isFib ? '${fibBuckets[i]}' : otherLabel;
-      final filled = activeIdx == i;
+      // Progress-fill style: every segment up to and including the active
+      // one is filled. Matches the Claude Design prototype's points bar.
+      final filled = activeIdx != null && i <= activeIdx;
       children.add(Expanded(
         child: Segment(
           label: label,
