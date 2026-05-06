@@ -1,7 +1,7 @@
 # Tech Spec — TM-358 Edit Task Screen Redesign
 
 **JIRA:** TM-358 — *Edit Task Screen Update*
-**Related:** TM-355 (icon + splash refresh, same brand pass), TM-199 (rename), TM-345 (Areas), TM-348 (auto-close race), TM-335 (family-shared recurrence rules), TM-362 (multi-select Contexts follow-up)
+**Related:** TM-355 (icon + splash refresh, same brand pass), TM-199 (rename), TM-345 (Areas), TM-348 (auto-close race), TM-335 (family-shared recurrence rules), TM-181 (Epic — tracks multi-select Contexts follow-up)
 **Design source:** Claude Design handoff bundle, file `taskmaestro-redesign/project/edit.jsx` (`EditorFullScreen`, lines 732–954)
 
 ## Why
@@ -118,7 +118,7 @@ Total: 39 existing widget tests still pass + **29 new widget tests** + **7 updat
 
 ## Out of scope (deferred to follow-ups)
 
-- **Multi-select Contexts** — tracked as **TM-362**. Field is still `String? context` in `TaskItem`. Migration sketch:
+- **Multi-select Contexts** — tracked under **Epic TM-181**. Field is still `String? context` in `TaskItem`. Migration sketch:
   1. Add `BuiltList<String> get contexts` field with empty-list default.
   2. On read from Firestore, if `contexts` is missing/empty and `context` is non-null, hydrate `contexts = [context]`. Don't write back yet.
   3. Update all selectors / filters that read `taskItem.context` (search `lib/` for `\.context\b`).

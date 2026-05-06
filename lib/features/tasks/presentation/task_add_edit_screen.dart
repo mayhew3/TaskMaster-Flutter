@@ -699,7 +699,8 @@ class _NotesField extends StatelessWidget {
 
 /// Single-select Context picker button — opens a modal bottom sheet listing
 /// the options. Single-select for now; will become multi-select pills when
-/// the `String? context → List<String> contexts` migration lands (TM-362).
+/// the `String? context → List<String> contexts` migration lands (Epic
+/// TM-181).
 class _ContextPickerButton extends StatelessWidget {
   final String? value;
   final BuiltList<String> options;
