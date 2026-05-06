@@ -58,6 +58,18 @@ class TaskColors {
   /// at 92% opacity. Precomputed because Flutter has no runtime color-mix.
   static final Color cardCompletedTint = Color.fromRGBO(72, 73, 163, 0.92);
 
+  // Editor / popup tokens (TM-358 redesign). The card surface (#286BB5) is
+  // already exposed as `cardColor` and is reused as the editor body
+  // background. These add the bits the redesign needs on top of that.
+  static const Color editorBgTop = Color(0xFF2E7CD1);          // top of editor gradient
+  static const Color popupBg = Color(0xFF243250);              // bottom-sheet / dialog bg
+  static final Color fieldSurface = Colors.white.withValues(alpha: 0.06);
+  static final Color fieldBorder = Colors.white.withValues(alpha: 0.10);
+  static final Color editorLabelHint = Colors.white.withValues(alpha: 0.45);
+  static final Color segmentInactiveSurface = Colors.white.withValues(alpha: 0.05);
+  static final Color segmentInactiveBorder = Colors.white.withValues(alpha: 0.16);
+  static final Color segmentActiveTextOnLight = const Color.fromRGBO(20, 30, 60, 0.92);
+
   static final Color invisible = Color.fromRGBO(0, 0, 0, 0.0);
 
   static const Color connectionWarning = Color(0xFFE65100);
