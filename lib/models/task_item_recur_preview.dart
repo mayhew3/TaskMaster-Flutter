@@ -43,6 +43,10 @@ class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
 
   int? urgency;
   int? priority;
+  /// See `TaskItem.priorityScaleVersion`. Carried forward from the source
+  /// task so a recurring iteration created from a migrated task stays on
+  /// the new scale.
+  int? priorityScaleVersion;
   int? duration;
 
   int? gamePoints;

@@ -184,10 +184,17 @@ class _AreaPickerState extends ConsumerState<AreaPicker> {
                   const Divider(height: 1, color: Color(0x1FFFFFFF)),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
-                    child: _AddAreaAction(
-                      onTap: () async {
-                        Navigator.of(sheetCtx).pop();
-                        await _handleAddNew(areas);
+                    child: _InlineAddAreaField(
+                      existingNames: areas.map((a) => a.name).toList(),
+                      onSubmit: (name) async {
+                        final created = await _createAreaInline(name);
+                        if (created != null) {
+                          // Close the sheet so the parent reflects the
+                          // selection without keeping the sheet stale.
+                          if (sheetCtx.mounted) {
+                            Navigator.of(sheetCtx).pop();
+                          }
+                        }
                       },
                     ),
                   ),
@@ -200,38 +207,37 @@ class _AreaPickerState extends ConsumerState<AreaPicker> {
     );
   }
 
-  Future<void> _handleAddNew(List<Area> existing) async {
-    final newName = await showDialog<String>(
-      context: context,
-      builder: (_) => _AddAreaDialog(
-        existingNames: existing.map((a) => a.name).toList(),
-      ),
-    );
-    if (newName == null) return; // cancelled
+  /// Returns the created [Area] on success, or `null` if creation was
+  /// rejected (e.g. duplicate after a sync race). Surfaces a SnackBar for
+  /// user-visible failures.
+  Future<Area?> _createAreaInline(String newName) async {
     final personDocId = ref.read(personDocIdProvider);
-    if (personDocId == null) return;
+    if (personDocId == null) return null;
     final service = ref.read(areaServiceProvider);
     try {
       final created =
           await service.createArea(name: newName, personDocId: personDocId);
-      if (!mounted) return;
+      if (!mounted) return created;
       setState(() => _selected = created.name);
       widget.valueSetter(created.name);
+      return created;
     } on DuplicateAreaNameException catch (e) {
-      // The dialog validator catches dups in the in-memory list; this catches
-      // races where a second area with the same name synced down between the
-      // dialog opening and submit.
+      // Inline-field validator catches dups in the in-memory list; this
+      // catches races where another client synced an area with the same
+      // name in between the field's last validation and submit.
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString())),
         );
       }
+      return null;
     } on ReservedAreaNameException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString())),
         );
       }
+      return null;
     }
   }
 }
@@ -301,55 +307,28 @@ class _AreaOption extends StatelessWidget {
   }
 }
 
-class _AddAreaAction extends StatelessWidget {
-  const _AddAreaAction({required this.onTap});
-  final VoidCallback onTap;
+/// Inline "add new area" affordance shown at the bottom of the picker
+/// sheet. Mirrors the design's `AddNewInline` component: a translucent row
+/// with a `+` icon, a TextField, and an Add button that only renders once
+/// non-whitespace text is entered. Submits via the Add button or Enter key.
+/// Validation messages render inline (no separate dialog).
+class _InlineAddAreaField extends StatefulWidget {
+  const _InlineAddAreaField({
+    required this.existingNames,
+    required this.onSubmit,
+  });
 
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(10),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(10),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          child: Row(
-            children: [
-              Icon(
-                Icons.add,
-                size: 18,
-                color: Theme.of(context).colorScheme.secondary,
-              ),
-              const SizedBox(width: 10),
-              Text(
-                _addSentinel,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AddAreaDialog extends StatefulWidget {
-  const _AddAreaDialog({required this.existingNames});
   final List<String> existingNames;
+  final Future<void> Function(String name) onSubmit;
 
   @override
-  State<_AddAreaDialog> createState() => _AddAreaDialogState();
+  State<_InlineAddAreaField> createState() => _InlineAddAreaFieldState();
 }
 
-class _AddAreaDialogState extends State<_AddAreaDialog> {
+class _InlineAddAreaFieldState extends State<_InlineAddAreaField> {
   final _controller = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+  String? _error;
+  bool _submitting = false;
 
   @override
   void dispose() {
@@ -357,37 +336,8 @@ class _AddAreaDialogState extends State<_AddAreaDialog> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('New area'),
-      content: Form(
-        key: _formKey,
-        child: TextFormField(
-          controller: _controller,
-          autofocus: true,
-          maxLength: 40,
-          textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(labelText: 'Area name'),
-          validator: _validate,
-          onFieldSubmitted: (_) => _submit(),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(null),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: _submit,
-          child: const Text('Add'),
-        ),
-      ],
-    );
-  }
-
-  String? _validate(String? raw) {
-    final value = (raw ?? '').trim();
+  String? _validate(String raw) {
+    final value = raw.trim();
     if (value.isEmpty) return 'Name required';
     if (kReservedAreaNames.contains(value)) {
       return 'Reserved name; choose another';
@@ -398,8 +348,112 @@ class _AddAreaDialogState extends State<_AddAreaDialog> {
     return null;
   }
 
-  void _submit() {
-    if (_formKey.currentState?.validate() != true) return;
-    Navigator.of(context).pop(_controller.text.trim());
+  Future<void> _submit() async {
+    if (_submitting) return;
+    final raw = _controller.text;
+    final error = _validate(raw);
+    if (error != null) {
+      setState(() => _error = error);
+      return;
+    }
+    setState(() {
+      _submitting = true;
+      _error = null;
+    });
+    try {
+      await widget.onSubmit(raw.trim());
+      if (!mounted) return;
+      _controller.clear();
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasText = _controller.text.trim().isNotEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.fromLTRB(10, 4, 6, 4),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.18),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.add,
+                size: 14,
+                color: Colors.white.withValues(alpha: 0.50),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  textCapitalization: TextCapitalization.words,
+                  textInputAction: TextInputAction.done,
+                  maxLength: 40,
+                  enabled: !_submitting,
+                  onChanged: (_) {
+                    if (_error != null) setState(() => _error = null);
+                    setState(() {}); // refresh Add button visibility
+                  },
+                  onSubmitted: (_) => _submit(),
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                    counterText: '',
+                    hintText: _addSentinel,
+                    hintStyle: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.40),
+                      fontSize: 14,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                ),
+              ),
+              if (hasText)
+                Padding(
+                  padding: const EdgeInsets.only(left: 6),
+                  child: FilledButton(
+                    onPressed: _submitting ? null : _submit,
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      minimumSize: const Size(0, 32),
+                      backgroundColor: TaskColors.brandMagenta,
+                    ),
+                    child: const Text(
+                      'Add',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        if (_error != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 12, top: 6),
+            child: Text(
+              _error!,
+              style: const TextStyle(
+                color: Color(0xFFFFB4B4),
+                fontSize: 12,
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }

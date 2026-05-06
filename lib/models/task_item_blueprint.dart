@@ -37,6 +37,10 @@ class TaskItemBlueprint with DateHolder {
 
   int? urgency;
   int? priority;
+  /// Scale version for [priority]. See `TaskItem.priorityScaleVersion`.
+  /// Nullable on the blueprint (new tasks set it to 2 on save; legacy
+  /// tasks copy the existing version through `createBlueprint`).
+  int? priorityScaleVersion;
   int? duration;
 
   int? gamePoints;
@@ -117,6 +121,7 @@ class TaskItemBlueprint with DateHolder {
         other.context != context ||
         other.urgency != urgency ||
         other.priority != priority ||
+        other.priorityScaleVersion != priorityScaleVersion ||
         other.duration != duration ||
         other.gamePoints != gamePoints ||
         other.startDate != startDate ||

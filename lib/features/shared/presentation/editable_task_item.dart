@@ -282,7 +282,10 @@ class EditableTaskItemWidget extends ConsumerWidget {
         Expanded(child: _areaLabel(areaColor)),
         _TimeBlock(durationMinutes: taskItem.duration),
         const SizedBox(width: 8),
-        _PriorityBar(priority: taskItem.priority),
+        // Use the scale-aware getter so legacy 1-10 rows still render the
+        // same number of fills they did before TM-358, while migrated 1-5
+        // rows render their value directly. See TaskItem.displayPriority.
+        _PriorityBar(filled: taskItem.displayPriority ?? 0),
         const SizedBox(width: 8),
         _PointsCircle(points: taskItem.gamePoints),
       ],
@@ -664,12 +667,14 @@ class _TimeBlock extends StatelessWidget {
 }
 
 class _PriorityBar extends StatelessWidget {
-  final int? priority;
-  const _PriorityBar({required this.priority});
+  /// Number of bars to fill (0–5). Caller is responsible for normalizing
+  /// raw priority values via `TaskItem.displayPriority` so this widget
+  /// stays scale-agnostic.
+  final int filled;
+  const _PriorityBar({required this.filled});
 
   @override
   Widget build(BuildContext context) {
-    final filled = priority == null ? 0 : (priority! / 2).clamp(0, 5).round();
     Color barColor;
     if (filled >= 4) {
       barColor = const Color(0xFFFFA08C); // warm coral
@@ -678,7 +683,7 @@ class _PriorityBar extends StatelessWidget {
     } else {
       barColor = TaskColors.startText; // neutral lavender
     }
-    final isNull = priority == null;
+    final isNull = filled == 0;
     final outline = Colors.white.withValues(alpha: 0.32);
     final emptyFill = Colors.white.withValues(alpha: 0.14);
     return Row(

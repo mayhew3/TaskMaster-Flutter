@@ -104,17 +104,18 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
     _initialRepeatOn = task?.recurrenceDocId != null;
     _repeatOn = _initialRepeatOn;
 
-    // One-time normalization for legacy 1–10 priority values: tasks created
-    // before TM-358 stored priority on a 1–10 scale that the card display
-    // halved (`(priority / 2).clamp(0, 5).round()`). The redesigned 1–5
-    // segmented bar can't render values >5, so the first time such a task
-    // is opened we apply the same formula in-memory. The change shows up
-    // as a pending edit (Save button enables) so it persists on the next
-    // save; closing without saving leaves the data untouched and the next
-    // open re-applies the same fix.
-    final p = taskItemBlueprint.priority;
-    if (p != null && p > 5) {
-      taskItemBlueprint.priority = (p / 2).round().clamp(1, 5);
+    // Per-task priority scale migration (TM-358). Legacy rows (scale
+    // version 1) stored priority on a 1–10 scale; the redesigned bar
+    // works on a 1–5 scale (version 2). For legacy rows we mirror the
+    // scale-aware getter into the blueprint so the bar renders the same
+    // fills the card uses, then bump the blueprint's scale version to 2
+    // so the next save persists the migration. New tasks always start
+    // at version 2.
+    if (task == null) {
+      taskItemBlueprint.priorityScaleVersion = 2;
+    } else if (task.priorityScaleVersion < 2) {
+      taskItemBlueprint.priority = task.displayPriority;
+      taskItemBlueprint.priorityScaleVersion = 2;
     }
   }
 

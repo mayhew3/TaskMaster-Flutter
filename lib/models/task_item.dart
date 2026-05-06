@@ -35,6 +35,13 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
 
   int? get urgency;
   int? get priority;
+  /// Scale version for [priority]:
+  ///   - 1 = legacy 1–10 scale (cards halve to fit a 0–5 display).
+  ///   - 2 = TM-358 onward, priority is already on a 1–5 scale.
+  /// Default is 1 (legacy) for backwards compatibility with rows hydrated
+  /// before this field existed; new tasks created from the redesigned edit
+  /// screen save with version 2.
+  int get priorityScaleVersion;
   int? get duration;
 
   int? get gamePoints;
@@ -84,7 +91,22 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   static void _setDefaults(TaskItemBuilder b) =>
       b
         ..pendingCompletion = false
-        ..skipped = false;
+        ..skipped = false
+        ..priorityScaleVersion = 1;
+
+  /// Priority value normalized to the 1–5 display scale. Returns `null`
+  /// if [priority] is null. For [priorityScaleVersion] == 1 (legacy 1–10
+  /// data), applies `(priority/2).round().clamp(1,5)`; for version ≥ 2,
+  /// returns [priority] unchanged. Both cards and the redesigned edit
+  /// screen read from this getter so they agree on what to render
+  /// regardless of the underlying scale.
+  int? get displayPriority {
+    if (priority == null) return null;
+    if (priorityScaleVersion >= 2) return priority;
+    final p = priority!;
+    if (p <= 0) return null;
+    return (p / 2).round().clamp(1, 5);
+  }
 
   DateTime? getFinishedCompletionDate() {
     return pendingCompletion ? null : completionDate;
@@ -104,6 +126,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
     blueprint.context = context;
     blueprint.urgency = urgency;
     blueprint.priority = priority;
+    blueprint.priorityScaleVersion = priorityScaleVersion;
     blueprint.duration = duration;
     blueprint.startDate = startDate;
     blueprint.targetDate = targetDate;
@@ -143,6 +166,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
       ..context = context
       ..urgency = urgency
       ..priority = priority
+      ..priorityScaleVersion = priorityScaleVersion
       ..duration = duration
       ..startDate = dates[TaskDateTypes.start]
       ..targetDate = dates[TaskDateTypes.target]
@@ -166,6 +190,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
           other.context != context ||
           other.urgency != urgency ||
           other.priority != priority ||
+          other.priorityScaleVersion != priorityScaleVersion ||
           other.duration != duration ||
           other.gamePoints != gamePoints ||
           other.startDate != startDate ||
@@ -190,6 +215,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
           other.context != context ||
           other.urgency != urgency ||
           other.priority != priority ||
+          other.priorityScaleVersion != priorityScaleVersion ||
           other.duration != duration ||
           other.gamePoints != gamePoints ||
           other.startDate != startDate ||

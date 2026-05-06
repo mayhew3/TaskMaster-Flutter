@@ -15,6 +15,7 @@ The Edit Task screen carried over from the pre-rebrand visual style: dropdowns, 
 | **Contexts:** stay single-select for this PR | Multi-select is a real data-model migration (`String? context` → `List<String> contexts`) plus a Firestore back-fill. Captured as a follow-up ticket. |
 | **Length:** buckets only (5m/15m/30m/1h/2h/4h/8h/1d) | User accepted the precision loss; existing minute values snap to the closest bucket on render. |
 | **Points:** Fibonacci `1, 2, 3, 5, 8, Other` (not the design's 1–8) | User-requested. The "Other" segment opens a numeric input dialog and shows the actual stored value when non-Fibonacci. |
+| **Priority migration:** per-task `priorityScaleVersion` field, lazy-migrate on first edit | A stored `4` is genuinely ambiguous between legacy "4 of 10" (low) and modern "4 of 5" (high) without a marker. New `int priorityScaleVersion` field on `TaskItem` (default 1 = legacy) disambiguates: card + edit screen read `displayPriority` which halves on version 1 and passes through on version ≥ 2. The edit screen bumps to version 2 on first open of a legacy task; saving persists the migration. |
 | **Delete affordance:** trash icon in top nav with a confirm dialog | Matches the design; calls the existing `deleteTaskProvider`. |
 | **Save bar:** sticky bottom Cancel + Save (replaces the FAB on this screen only) | FAB stays on other screens. |
 | **Date popup:** in scope, with full timeline + inline calendar + time bucket | Uses Flutter's `CalendarDatePicker` for the date grid so we don't reinvent month nav / accessibility. |
