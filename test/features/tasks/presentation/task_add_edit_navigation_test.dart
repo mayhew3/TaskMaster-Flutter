@@ -66,8 +66,8 @@ void main() {
       await tester.enterText(nameField, 'Test Task');
       await tester.pumpAndSettle();
 
-      // Find and tap the save button (add icon for new tasks)
-      final saveButton = find.byIcon(Icons.add);
+      // Find and tap the save button (Add task button for new tasks)
+      final saveButton = find.text('Add task');
       expect(saveButton, findsOneWidget);
       await tester.tap(saveButton);
 
@@ -142,8 +142,8 @@ void main() {
       await tester.enterText(nameField, 'Updated Task Name');
       await tester.pumpAndSettle();
 
-      // Find and tap the save button (checkmark icon)
-      final saveButton = find.byIcon(Icons.check);
+      // Find and tap the save button (Save changes button when editing)
+      final saveButton = find.text('Save changes');
       expect(saveButton, findsOneWidget);
       await tester.tap(saveButton);
 
@@ -194,7 +194,7 @@ void main() {
             find.byKey(const Key('task_name_field')), 'Brand New Task');
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byIcon(Icons.add));
+        await tester.tap(find.text('Add task'));
         await tester.pumpAndSettle(const Duration(seconds: 2));
 
         expect(tester.takeException(), isNull,
@@ -255,7 +255,7 @@ void main() {
         await tester.enterText(nameField, 'Updated Task Name');
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byIcon(Icons.check));
+        await tester.tap(find.text('Save changes'));
         await tester.pumpAndSettle(const Duration(seconds: 2));
 
         expect(tester.takeException(), isNull,
@@ -306,7 +306,7 @@ void main() {
       expect(find.byType(TaskAddEditScreen), findsOneWidget);
 
       // Try to save without entering a name
-      final saveButton = find.byIcon(Icons.add);
+      final saveButton = find.text('Add task');
       await tester.tap(saveButton);
       await tester.pumpAndSettle();
 
@@ -396,7 +396,7 @@ void main() {
       final countBefore = tasksBefore.docs.length;
 
       // Try to save without entering a name
-      final saveButton = find.byIcon(Icons.add);
+      final saveButton = find.text('Add task');
       await tester.tap(saveButton);
       await tester.pumpAndSettle(const Duration(seconds: 1));
 

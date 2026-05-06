@@ -57,6 +57,15 @@ ThemeData taskMaestroTheme = ThemeData(
     backgroundColor: TaskColors.cardColor,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
   ),
+  // Default background for any modal bottom sheet (e.g. the dates / context
+  // popups added in TM-358). Sheets that need a different surface still
+  // override `backgroundColor` per-call.
+  bottomSheetTheme: BottomSheetThemeData(
+    backgroundColor: TaskColors.popupBg,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+    ),
+  ),
   inputDecorationTheme: InputDecorationTheme(
     filled: true,
     fillColor: TaskColors.cardColor,
