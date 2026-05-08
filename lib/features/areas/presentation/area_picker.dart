@@ -49,6 +49,18 @@ class _AreaPickerState extends ConsumerState<AreaPicker> {
   }
 
   @override
+  void didUpdateWidget(covariant AreaPicker old) {
+    super.didUpdateWidget(old);
+    // Keep the local `_selected` in sync when the parent rebuilds with a
+    // different `initialValue` (e.g. a programmatic blueprint reset, or
+    // a stream-driven re-init). Without this the chevron-button would
+    // keep showing a stale name until the user re-opened the sheet.
+    if (old.initialValue != widget.initialValue) {
+      _selected = widget.initialValue;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final selected = _selected;
     return Material(

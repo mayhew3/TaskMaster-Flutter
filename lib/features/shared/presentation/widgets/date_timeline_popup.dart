@@ -161,17 +161,18 @@ class DateTimelinePopup extends StatefulWidget {
   }) {
     return showModalBottomSheet<void>(
       context: context,
+      // Lets the sheet take more than the default 50% of the screen for
+      // tall stacks of markers + the inline calendar. The sheet sizes
+      // itself to content via the popup's outer `mainAxisSize: min` and
+      // its inner `Flexible(SingleChildScrollView)` for the body, so we
+      // don't need a `DraggableScrollableSheet` wrapper (and the previous
+      // wrapper's `scrollController` was never wired to the inner scroll
+      // view, which Copilot correctly flagged).
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => DraggableScrollableSheet(
-        initialChildSize: 0.85,
-        minChildSize: 0.4,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (_, scrollController) => DateTimelinePopup(
-          dates: dates,
-          onChanged: onChanged,
-        ),
+      builder: (ctx) => DateTimelinePopup(
+        dates: dates,
+        onChanged: onChanged,
       ),
     );
   }
