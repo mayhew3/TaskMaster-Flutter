@@ -6,7 +6,9 @@ import '../../../core/providers/auth_providers.dart';
 import '../../../core/services/task_completion_service.dart';
 import '../../../models/check_state.dart';
 import '../../../models/task_item.dart';
+import '../../shared/presentation/connection_status_indicator.dart';
 import '../../shared/presentation/editable_task_item.dart';
+import '../../shared/presentation/refresh_button.dart';
 import '../../shared/presentation/snooze_dialog.dart';
 import '../../shared/presentation/task_action_error_helper.dart';
 import '../../shared/presentation/widgets/header_list_item.dart';
@@ -18,12 +20,43 @@ import 'family_manage_screen.dart';
 /// family (the bottom-nav rebuilds when familyDocId flips). Renders the
 /// union of all family members' incomplete tasks, plus a small action row
 /// for management (Members / Invite / Leave).
-class FamilyTabScreen extends ConsumerWidget {
+class FamilyTabScreen extends ConsumerStatefulWidget {
   const FamilyTabScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FamilyTabScreen> createState() => _FamilyTabScreenState();
+}
+
+class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
+  final _searchController = TextEditingController();
+  bool _searchBarVisible = false;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _searchBarVisible = !_searchBarVisible;
+      if (!_searchBarVisible) {
+        _searchController.clear();
+        ref.read(familySearchQueryProvider.notifier).clear();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final groups = ref.watch(familyGroupedTasksProvider);
+    // Sync search bar visibility with provider (e.g., cleared by tab navigation)
+    final searchQuery = ref.watch(familySearchQueryProvider);
+    if (searchQuery.isEmpty &&
+        _searchBarVisible &&
+        _searchController.text.isNotEmpty) {
+      _searchController.clear();
+    }
 
     final tiles = <Widget>[];
     for (final group in groups) {
@@ -35,8 +68,26 @@ class FamilyTabScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Family'),
+        title: _searchBarVisible
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  hintText: 'Search family tasks...',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(color: Colors.white70),
+                ),
+                style: const TextStyle(color: Colors.white),
+                onChanged: (value) =>
+                    ref.read(familySearchQueryProvider.notifier).set(value),
+              )
+            : const Text('Family'),
         actions: [
+          const ConnectionStatusIndicator(),
+          IconButton(
+            icon: Icon(_searchBarVisible ? Icons.close : Icons.search),
+            onPressed: _toggleSearch,
+          ),
           const _FamilyFilterPopupMenu(),
           IconButton(
             tooltip: 'Manage family',
@@ -45,6 +96,7 @@ class FamilyTabScreen extends ConsumerWidget {
               MaterialPageRoute(builder: (_) => const FamilyManageScreen()),
             ),
           ),
+          const RefreshButton(),
         ],
       ),
       body: tiles.isEmpty
