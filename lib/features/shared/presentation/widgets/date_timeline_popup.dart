@@ -499,8 +499,12 @@ class _Timeline extends StatelessWidget {
         setTypes.map((t) => _atDay(dates[t]!)).toList(growable: false);
     final minDay = dayValues.reduce((a, b) => a.isBefore(b) ? a : b);
     final maxDay = dayValues.reduce((a, b) => a.isAfter(b) ? a : b);
-    final spanDays =
-        (maxDay.difference(minDay).inDays).clamp(1, 365).toDouble();
+    // Lower bound of 1 keeps `spanDays` away from zero (single-day spans
+    // would otherwise divide-by-zero in `pct`). No upper bound: dates more
+    // than a year apart should still render with their relative offsets
+    // intact rather than saturating to the far edge of the timeline.
+    final rawSpan = maxDay.difference(minDay).inDays;
+    final spanDays = (rawSpan < 1 ? 1 : rawSpan).toDouble();
 
     double pct(DateTime d) {
       if (spanDays == 0) return 0.5;

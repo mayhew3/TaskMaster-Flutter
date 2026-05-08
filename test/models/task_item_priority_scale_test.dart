@@ -25,10 +25,19 @@ void main() {
       expect(_task(priority: null, scaleVersion: 2).displayPriority, isNull);
     });
 
-    test('scale version 2 returns priority unchanged', () {
+    test('scale version 2 returns priority unchanged in 1..5 range', () {
       for (final p in [1, 2, 3, 4, 5]) {
         expect(_task(priority: p, scaleVersion: 2).displayPriority, p);
       }
+    });
+
+    test('scale version 2 clamps out-of-range positive values to 1..5', () {
+      // Defensive: a corrupted / out-of-range stored v2 value (e.g. 6, 99)
+      // is clamped to 5 by the display getter so the UI never renders
+      // more fills than the bar has segments. The raw `priority` field is
+      // unchanged on disk; only the display value is normalized.
+      expect(_task(priority: 6, scaleVersion: 2).displayPriority, 5);
+      expect(_task(priority: 99, scaleVersion: 2).displayPriority, 5);
     });
 
     test('scale version 1 halves priority and clamps to 1..5', () {

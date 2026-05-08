@@ -102,14 +102,16 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   /// if [priority] is null *or* non-positive (legacy data sometimes carried
   /// 0 / negative as a sentinel for "unset"). For [priorityScaleVersion] ==
   /// 1 (legacy 1–10 data), applies `(priority/2).round().clamp(1,5)`; for
-  /// version ≥ 2, returns [priority] unchanged. Both cards and the
-  /// redesigned edit screen read from this getter so they agree on what to
-  /// render regardless of the underlying scale.
+  /// version ≥ 2, returns [priority] clamped to the same 1..5 envelope so
+  /// out-of-range stored values (e.g. a corrupted 6+) can never produce an
+  /// out-of-range fill count in the UI. Both cards and the redesigned edit
+  /// screen read from this getter so they agree on what to render
+  /// regardless of the underlying scale.
   int? get displayPriority {
     if (priority == null) return null;
     final p = priority!;
     if (p <= 0) return null;
-    if (priorityScaleVersion >= 2) return p;
+    if (priorityScaleVersion >= 2) return p.clamp(1, 5);
     return (p / 2).round().clamp(1, 5);
   }
 
