@@ -16,8 +16,9 @@ void main() {
     });
 
     test('between buckets snaps to nearest', () {
-      // 10 is closer to 15 (delta 5) than to 5 (delta 5) — ties pick the
-      // first encountered, which is 5 (index 0). Document the behavior.
+      // 10 is exactly between 5 and 15 — both deltas are 5. `closestBucketIndex`
+      // breaks ties by picking the first encountered (lower) bucket, so 10
+      // snaps to 5 (index 0). Documented intentional behavior.
       expect(LengthBucketPicker.closestBucketIndex(10), 0);
       // 90 is between 60 (delta 30) and 120 (delta 30) — ties pick first.
       expect(LengthBucketPicker.closestBucketIndex(90), 3); // 60

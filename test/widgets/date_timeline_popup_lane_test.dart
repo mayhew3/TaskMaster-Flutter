@@ -90,7 +90,7 @@ void main() {
     });
 
     test(
-        'partial overlap: only the colliding subset stacks, lower priority wins',
+        'partial overlap: only the colliding subset stacks, higher priority wins',
         () {
       // Start at x=0, Target at x=50 (collide), Urgent at x=400 (alone).
       // Cluster {Start, Target}: Target (priority 1) takes lane 0,
