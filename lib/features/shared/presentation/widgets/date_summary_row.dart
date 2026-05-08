@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:taskmaestro/models/task_colors.dart';
 import 'package:taskmaestro/models/task_date_type.dart';
 
@@ -138,10 +139,9 @@ class _DatePill extends StatelessWidget {
     );
   }
 
-  static const List<String> _months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-
-  String _shortDate(DateTime d) => '${_months[d.month - 1]} ${d.day}';
+  /// Formats `d` as locale-aware "MMM d" (e.g. "Apr 18"). Always converts
+  /// to local time first because TaskItem date fields are stored UTC; the
+  /// raw fields would render the wrong calendar day for users east of GMT
+  /// when the underlying instant straddles midnight UTC.
+  String _shortDate(DateTime d) => DateFormat.MMMd().format(d.toLocal());
 }

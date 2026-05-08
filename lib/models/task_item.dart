@@ -35,9 +35,13 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
 
   int? get urgency;
   int? get priority;
-  /// Scale version for [priority]:
-  ///   - 1 = legacy 1–10 scale (cards halve to fit a 0–5 display).
-  ///   - 2 = TM-358 onward, priority is already on a 1–5 scale.
+  /// Scale version for [priority]. Both versions normalize to a 1–5
+  /// display via [displayPriority]; null / non-positive values mean
+  /// "unset" on either scale.
+  ///   - 1 = legacy 1–10 stored values, mapped to 1–5 via
+  ///     `(priority/2).round().clamp(1,5)`.
+  ///   - 2 = TM-358 onward, [priority] is stored directly on the 1–5
+  ///     scale and rendered unchanged.
   /// Default is 1 (legacy) for backwards compatibility with rows hydrated
   /// before this field existed; new tasks created from the redesigned edit
   /// screen save with version 2.

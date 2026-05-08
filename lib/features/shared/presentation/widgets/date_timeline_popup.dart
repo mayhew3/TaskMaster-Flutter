@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:taskmaestro/features/shared/presentation/widgets/segmented_bar.dart';
 import 'package:taskmaestro/models/task_colors.dart';
 import 'package:taskmaestro/models/task_date_type.dart';
@@ -669,12 +670,11 @@ class _Timeline extends StatelessWidget {
     );
   }
 
-  static const List<String> _months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-
-  String _shortDate(DateTime d) => '${_months[d.month - 1]} ${d.day}';
+  /// Formats `d` as locale-aware "MMM d" (e.g. "Apr 18"). Always converts
+  /// to local time first because TaskItem date fields are stored UTC; the
+  /// raw fields would render the wrong calendar day for users east of GMT
+  /// when the underlying instant straddles midnight UTC.
+  String _shortDate(DateTime d) => DateFormat.MMMd().format(d.toLocal());
 }
 
 /// Row of dashed "+ Add Start" pills for date types that aren't currently
@@ -941,12 +941,10 @@ class _SelectedDateDetail extends StatelessWidget {
   static bool _isSameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
-  static const _months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
-  ];
-
-  String _longDate(DateTime d) => '${_months[d.month - 1]} ${d.day}, ${d.year}';
+  /// Formats `d` as locale-aware "MMMM d, yyyy" (e.g. "April 18, 2026").
+  /// Same `toLocal()` rationale as `_Timeline._shortDate`: TaskItem dates
+  /// are UTC at rest.
+  String _longDate(DateTime d) => DateFormat.yMMMMd().format(d.toLocal());
 }
 
 /// Compact month-grid calendar used by the dates popup. Custom (instead of

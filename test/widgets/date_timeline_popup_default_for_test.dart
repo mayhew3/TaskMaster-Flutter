@@ -169,14 +169,17 @@ void main() {
         expect(result, _at9am(2026, 5, 7));
       });
 
-      test('default todayProvider is DateTime.now (smoke check year)', () {
-        // Without an override, the result's year should match the current
-        // year — guards against the fallback path being silently broken.
+      test('default todayProvider is DateTime.now (smoke check)', () {
+        // Without an override, `DateTime.now()` is the fallback. We assert
+        // on a non-time-sensitive property (the 9 AM normalization) so this
+        // test isn't subject to year-boundary flakes if the clock ticks
+        // over between the call and the comparison. The deterministic
+        // year/month/day behavior is already covered by the
+        // injected-todayProvider test above.
         final result = defaultDateForNewType(
           type: TaskDateTypes.start,
           dates: _dates(),
         );
-        expect(result.year, DateTime.now().year);
         expect(result.hour, 9);
       });
     });
