@@ -115,9 +115,9 @@ class EditableTaskItemWidget extends ConsumerWidget {
           margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
           child: Stack(
             children: [
-              _AreaStripe(
+              AreaStripe(
                 areaColor: areaColor,
-                stateColor: _toneForCurrentState(taskItem)?.fg,
+                stateColor: toneForCurrentState(taskItem)?.fg,
                 completed: _isDone,
               ),
               Padding(
@@ -214,10 +214,10 @@ class EditableTaskItemWidget extends ConsumerWidget {
       );
 
   Widget _titleRow(BuildContext context, bool isExpanded) {
-    final pillContent = _pillContentFor(taskItem);
+    final pillContent = pillContentFor(taskItem);
     final pill = pillContent == null
         ? const SizedBox.shrink()
-        : _PillView(content: pillContent, docId: _docId());
+        : PillView(content: pillContent, docId: _docId());
     final titleStyle = _titleStyle();
 
     // Collapsed mode: keep the original compact single-row layout — title
@@ -397,11 +397,11 @@ class EditableTaskItemWidget extends ConsumerWidget {
   }
 }
 
-class _AreaStripe extends StatelessWidget {
+class AreaStripe extends StatelessWidget {
   final Color areaColor;
   final Color? stateColor;
   final bool completed;
-  const _AreaStripe({
+  const AreaStripe({
     required this.areaColor,
     required this.stateColor,
     required this.completed,
@@ -472,33 +472,33 @@ class _MetaCell extends StatelessWidget {
 }
 
 /// Tone triple for date pills; mirrors `DATE_TONES` in cards.jsx.
-class _ToneTriple {
+class ToneTriple {
   final Color fg;
   final Color bg;
   final Color border;
-  const _ToneTriple({required this.fg, required this.bg, required this.border});
+  const ToneTriple({required this.fg, required this.bg, required this.border});
 }
 
-_ToneTriple _toneFor(TaskDateType type) {
+ToneTriple toneFor(TaskDateType type) {
   if (type == TaskDateTypes.due) {
-    return _ToneTriple(
+    return ToneTriple(
         fg: TaskColors.dueText,
         bg: TaskColors.dueColor,
         border: TaskColors.dueBorder);
   }
   if (type == TaskDateTypes.urgent) {
-    return _ToneTriple(
+    return ToneTriple(
         fg: TaskColors.urgentText,
         bg: TaskColors.urgentColor,
         border: TaskColors.urgentBorder);
   }
   if (type == TaskDateTypes.target) {
-    return _ToneTriple(
+    return ToneTriple(
         fg: TaskColors.targetText,
         bg: TaskColors.targetColor,
         border: TaskColors.targetBorder);
   }
-  return _ToneTriple(
+  return ToneTriple(
       fg: TaskColors.startText,
       bg: TaskColors.scheduledColor,
       border: TaskColors.startBorder);
@@ -506,14 +506,14 @@ _ToneTriple _toneFor(TaskDateType type) {
 
 /// Pre-computed content for a date pill — built once so the title row can
 /// both render it and measure its width without doing the work twice.
-class _PillContent {
+class PillContent {
   final String label;
   final String value;
   final Color bg;
   final Color border;
   final Color fg;
   final double borderWidth;
-  const _PillContent({
+  const PillContent({
     required this.label,
     required this.value,
     required this.bg,
@@ -523,14 +523,14 @@ class _PillContent {
   });
 }
 
-_PillContent? _pillContentFor(TaskItem taskItem) {
+PillContent? pillContentFor(TaskItem taskItem) {
   final completed = taskItem.completionDate != null;
   final skipped = taskItem.skipped;
   if (completed || skipped) {
     final completionDate = taskItem.completionDate;
     final relative =
         completionDate == null ? 'just now' : _relativeFromNow(completionDate);
-    return _PillContent(
+    return PillContent(
       label: skipped ? 'SKIPPED' : 'COMPLETED',
       value: relative,
       bg: TaskColors.completedColor,
@@ -538,7 +538,7 @@ _PillContent? _pillContentFor(TaskItem taskItem) {
       fg: TaskColors.completedText,
     );
   }
-  final displayType = _displayDateType(taskItem);
+  final displayType = displayDateType(taskItem);
   if (displayType == null) return null;
   final relative = _relativeForAnchor(taskItem, displayType);
   if (relative == null) return null;
@@ -546,9 +546,9 @@ _PillContent? _pillContentFor(TaskItem taskItem) {
   // user is reading); background colour reflects the task's current
   // state — i.e. the most recently crossed threshold. Matches the old
   // card-background semantics from the pre-redesign widget.
-  final displayTone = _toneFor(displayType);
-  final stateTone = _toneForCurrentState(taskItem);
-  return _PillContent(
+  final displayTone = toneFor(displayType);
+  final stateTone = toneForCurrentState(taskItem);
+  return PillContent(
     label: displayType.label.toUpperCase(),
     value: relative,
     bg: stateTone?.bg ?? Colors.transparent,
@@ -596,7 +596,7 @@ bool _hasExpandableContent(TaskItem task, {required bool hasOnEdit}) {
 /// the wrong choice for display when an earlier-priority date is the next
 /// thing the user actually needs to act on. Mirrors the iteration order
 /// from the pre-redesign widget's `_getDateWarnings()`.
-TaskDateType? _displayDateType(TaskItem task) {
+TaskDateType? displayDateType(TaskItem task) {
   for (final type in TaskDateTypes.allTypes) {
     if (type.inListBeforeDisplayThreshold(task)) return type;
   }
@@ -611,32 +611,32 @@ TaskDateType? _displayDateType(TaskItem task) {
 /// threshold. Mirrors the pre-redesign `getBackgroundColor()` semantics by
 /// reusing `DateHolder`'s existing predicates so this stays a single
 /// source of truth as the date model evolves.
-_ToneTriple? _toneForCurrentState(TaskItem task) {
-  if (task.isPastDue()) return _toneFor(TaskDateTypes.due);
-  if (task.isUrgent()) return _toneFor(TaskDateTypes.urgent);
-  if (task.isTarget()) return _toneFor(TaskDateTypes.target);
-  if (task.isScheduled()) return _toneFor(TaskDateTypes.start);
+ToneTriple? toneForCurrentState(TaskItem task) {
+  if (task.isPastDue()) return toneFor(TaskDateTypes.due);
+  if (task.isUrgent()) return toneFor(TaskDateTypes.urgent);
+  if (task.isTarget()) return toneFor(TaskDateTypes.target);
+  if (task.isScheduled()) return toneFor(TaskDateTypes.start);
   return null;
 }
 
-const TextStyle _pillLabelStyle = TextStyle(
+const TextStyle pillLabelStyle = TextStyle(
   fontSize: 10,
   fontWeight: FontWeight.w600,
   letterSpacing: 0.4,
 );
-const TextStyle _pillValueStyle = TextStyle(
+const TextStyle pillValueStyle = TextStyle(
   fontSize: 11,
   fontWeight: FontWeight.w600,
 );
 
-double _measurePillWidth(_PillContent content, TextScaler scaler) {
+double _measurePillWidth(PillContent content, TextScaler scaler) {
   final labelPainter = TextPainter(
-    text: TextSpan(text: content.label, style: _pillLabelStyle),
+    text: TextSpan(text: content.label, style: pillLabelStyle),
     textDirection: TextDirection.ltr,
     textScaler: scaler,
   )..layout();
   final valuePainter = TextPainter(
-    text: TextSpan(text: content.value, style: _pillValueStyle),
+    text: TextSpan(text: content.value, style: pillValueStyle),
     textDirection: TextDirection.ltr,
     textScaler: scaler,
   )..layout();
@@ -648,10 +648,10 @@ double _measurePillWidth(_PillContent content, TextScaler scaler) {
       content.borderWidth * 2;
 }
 
-class _PillView extends StatelessWidget {
-  final _PillContent content;
+class PillView extends StatelessWidget {
+  final PillContent content;
   final String docId;
-  const _PillView({required this.content, required this.docId});
+  const PillView({required this.content, required this.docId});
 
   @override
   Widget build(BuildContext context) {
@@ -671,12 +671,12 @@ class _PillView extends StatelessWidget {
         children: [
           Text(
             content.label,
-            style: _pillLabelStyle.copyWith(color: fadedLabelColor),
+            style: pillLabelStyle.copyWith(color: fadedLabelColor),
           ),
           const SizedBox(width: 5),
           Text(
             content.value,
-            style: _pillValueStyle.copyWith(color: content.fg),
+            style: pillValueStyle.copyWith(color: content.fg),
           ),
         ],
       ),
@@ -958,7 +958,7 @@ class _ExpandedPanel extends StatelessWidget {
         // Long form (e.g. "In 23 hours", "a month ago") for the
         // expanded panel — the summary pill uses _shortRelative.
         relative: _relativeLong(v),
-        color: _toneFor(type).fg,
+        color: toneFor(type).fg,
       ));
     }
 
