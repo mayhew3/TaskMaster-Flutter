@@ -24,10 +24,17 @@ void main() {
       expect(PointsPicker.activeSegmentIndex(100), 5);
     });
 
-    test('null and zero map to no selection', () {
+    test('null and negative values map to no selection', () {
       expect(PointsPicker.activeSegmentIndex(null), isNull);
-      expect(PointsPicker.activeSegmentIndex(0), isNull);
       expect(PointsPicker.activeSegmentIndex(-3), isNull);
+    });
+
+    test('zero routes to the "Other" segment (real value, not unset)', () {
+      // The dialog accepts a typed 0 as a real submission (distinct from
+      // the empty-input cancel path); the segment indexing must match so
+      // a stored 0 actually highlights instead of rendering identically
+      // to null.
+      expect(PointsPicker.activeSegmentIndex(0), 5);
     });
   });
 

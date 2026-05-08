@@ -27,8 +27,13 @@ class PointsPicker extends StatelessWidget {
 
   /// Index (0-based) of the segment that should highlight for [v]:
   /// 0..4 = matching Fibonacci bucket, 5 = "Other", null = no selection.
+  ///
+  /// `null` and negative values map to no selection. `0` is a valid
+  /// non-Fibonacci value: it routes to the "Other" segment and renders
+  /// as "0" rather than the "Other" word — symmetric with the dialog's
+  /// non-negative validation, which accepts 0 as a legitimate submission.
   static int? activeSegmentIndex(int? v) {
-    if (v == null || v <= 0) return null;
+    if (v == null || v < 0) return null;
     final fibIdx = fibBuckets.indexOf(v);
     if (fibIdx >= 0) return fibIdx;
     return 5;

@@ -461,8 +461,11 @@ class _InlineAddAreaFieldState extends State<_InlineAddAreaField> {
                     maxLength: 40,
                     enabled: !_submitting,
                     onChanged: (_) {
-                      if (_error != null) setState(() => _error = null);
-                      setState(() {}); // refresh Add button visibility
+                      // Single setState refreshes both the Add-button
+                      // visibility (derived from `_controller.text` via
+                      // `hasText` below) and clears any prior inline
+                      // error message.
+                      setState(() => _error = null);
                     },
                     onSubmitted: (_) => _submit(),
                     style: const TextStyle(color: Colors.white, fontSize: 14),
