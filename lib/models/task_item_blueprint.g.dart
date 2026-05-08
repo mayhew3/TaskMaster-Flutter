@@ -14,6 +14,8 @@ Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) =>
       'context': instance.context,
       'urgency': instance.urgency,
       'priority': instance.priority,
+      if (instance.priorityScaleVersion case final value?)
+        'priorityScaleVersion': value,
       'duration': instance.duration,
       'gamePoints': instance.gamePoints,
       'startDate': _$JsonConverterToJson<DateTime, DateTime>(

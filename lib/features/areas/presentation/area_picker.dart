@@ -2,17 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/auth_providers.dart';
+import '../../../helpers/area_color_helper.dart';
 import '../../../models/area.dart';
+import '../../../models/task_colors.dart';
 import '../providers/area_providers.dart';
 import '../services/area_service.dart';
 
-/// Dropdown for picking the user's `area` for a task (TM-345).
+/// Picker for the user's `area` for a task (TM-345).
 ///
-/// Sources its options from [areasWithDefaultsProvider] (lazy-seeds defaults
-/// for new users). Adds two sentinels to the dropdown values:
-///   - `(none)` at the top → maps to `null`
-///   - `+ Add new area…` at the bottom → opens an inline dialog that creates
-///     a new area on submit and selects it for the current task.
+/// Renders as a chevron-style button that opens a modal bottom sheet listing
+/// the user's areas. The sheet sources options from [areasWithDefaultsProvider]
+/// (lazy-seeds defaults for new users) and includes:
+///   - a "None" entry that maps to `null`
+///   - a pinned **inline TextField** at the bottom (`+ icon` + "Add new
+///     area…" hint) that creates a new area on submit and selects it.
+///     Validation messages render inline; there is no separate dialog.
 class AreaPicker extends ConsumerStatefulWidget {
   const AreaPicker({
     super.key,
@@ -29,167 +33,358 @@ class AreaPicker extends ConsumerStatefulWidget {
   ConsumerState<AreaPicker> createState() => _AreaPickerState();
 }
 
-// Use the shared sentinel constants from area_service.dart so the service's
-// reserved-name rejection stays in sync with the picker's UI strings.
-const String _noneSentinel = kNoneSentinelName;
-const String _addSentinel = kAddNewSentinelName;
+// The picker no longer renders the sentinel string in its UI (the inline
+// field uses "Add new area…" without the leading "+", since the + icon
+// already provides that affordance). The service's reserved-name set
+// (kReservedAreaNames) still contains the sentinel so typing it
+// literally is rejected by the inline validator.
 
 class _AreaPickerState extends ConsumerState<AreaPicker> {
-  late String _selected;
-  // GlobalKey on the DropdownButtonFormField so we can reach into its
-  // FormFieldState and call didChange(...) to update the displayed value.
-  // Required because DropdownButtonFormField is uncontrolled by `value:`
-  // after init — the field tracks its own internal state, and we need to
-  // mutate that state from outside (after the inline-add dialog) so the
-  // parent's enclosing Form.onChanged fires and hasChanges() re-evaluates.
-  final _formFieldKey = GlobalKey<FormFieldState<String>>();
+  String? _selected;
 
   @override
   void initState() {
     super.initState();
-    _selected = widget.initialValue ?? _noneSentinel;
+    _selected = widget.initialValue;
+  }
+
+  @override
+  void didUpdateWidget(covariant AreaPicker old) {
+    super.didUpdateWidget(old);
+    // Keep the local `_selected` in sync when the parent rebuilds with a
+    // different `initialValue` (e.g. a programmatic blueprint reset, or
+    // a stream-driven re-init). Without this the chevron-button would
+    // keep showing a stale name until the user re-opened the sheet.
+    if (old.initialValue != widget.initialValue) {
+      _selected = widget.initialValue;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final asyncAreas = ref.watch(areasWithDefaultsProvider);
-    final areaNames = asyncAreas.maybeWhen(
-      data: (areas) => areas.map((a) => a.name).toList(),
-      orElse: () => const <String>[],
-    );
-
-    // If the current selection is a stale area name (deleted from the list),
-    // the dropdown still needs the value present in its items or it crashes
-    // — so include it explicitly even if it's not in the live list.
-    final values = <String>[
-      _noneSentinel,
-      ...areaNames,
-      if (_selected != _noneSentinel && !areaNames.contains(_selected))
-        _selected,
-      _addSentinel,
-    ];
-
-    final secondary = Theme.of(context).colorScheme.secondary;
-
-    return Container(
-      margin: const EdgeInsets.all(7.0),
-      child: DropdownButtonFormField<String>(
-        key: _formFieldKey,
-        isDense: true,
-        decoration: InputDecoration(
-          labelText: widget.labelText,
-          contentPadding: const EdgeInsets.fromLTRB(12, 21, 12, 14),
-        ),
-        value: _selected,
-        // Closed-state display: render every value as plain text. Avoids the
-        // sentinel briefly rendering with its divider+colored styling between
-        // the user's pick and the dialog opening.
-        selectedItemBuilder: (context) =>
-            values.map((v) => Text(v)).toList(),
-        items: values.map((v) {
-          if (v == _addSentinel) {
-            return DropdownMenuItem<String>(
-              value: v,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Divider(height: 1),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10),
-                    child: Text(
-                      v,
-                      style: TextStyle(color: secondary),
-                    ),
+    final selected = _selected;
+    return Material(
+      color: TaskColors.fieldSurface,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        // Stable key so widget tests can target the chevron button without
+        // depending on Material/InkWell counts elsewhere on the screen.
+        key: const Key('area_picker_button'),
+        borderRadius: BorderRadius.circular(10),
+        onTap: () => _open(context),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: TaskColors.fieldBorder, width: 1),
+          ),
+          child: Row(
+            children: [
+              if (selected != null) ...[
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: AreaColorHelper.colorForArea(selected),
+                    shape: BoxShape.circle,
                   ),
-                ],
+                ),
+                const SizedBox(width: 10),
+              ],
+              Expanded(
+                child: Text(
+                  selected ?? 'None',
+                  style: TextStyle(
+                    color: selected == null
+                        ? Colors.white.withValues(alpha: 0.45)
+                        : Colors.white,
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w500,
+                    fontStyle:
+                        selected == null ? FontStyle.italic : FontStyle.normal,
+                  ),
+                ),
               ),
-            );
-          }
-          return DropdownMenuItem<String>(value: v, child: Text(v));
-        }).toList(),
-        onChanged: (String? newValue) async {
-          if (newValue == null) return;
-          if (newValue == _addSentinel) {
-            await _handleAddNew(asyncAreas.valueOrNull ?? const []);
-            return;
-          }
-          setState(() => _selected = newValue);
-          widget.valueSetter(newValue == _noneSentinel ? null : newValue);
-        },
+              Icon(
+                Icons.keyboard_arrow_down,
+                size: 20,
+                color: Colors.white.withValues(alpha: 0.40),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Future<void> _handleAddNew(List<Area> existing) async {
-    // Snapshot the previous selection before opening the dialog so we can
-    // revert if the user cancels. Do NOT use _selected after the dialog —
-    // it's the local state, which is fine here since the sentinel pick
-    // didn't update _selected (the if-branch returns early in onChanged).
-    final previous = _selected;
-
-    final newName = await showDialog<String>(
+  void _open(BuildContext context) {
+    showModalBottomSheet<void>(
       context: context,
-      builder: (_) => _AddAreaDialog(
-          existingNames: existing.map((a) => a.name).toList()),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetCtx) {
+        // Watch within the sheet builder so additions reflect immediately.
+        return Consumer(builder: (ctx, ref, _) {
+          final asyncAreas = ref.watch(areasWithDefaultsProvider);
+          final areas = asyncAreas.maybeWhen(
+            data: (a) => a,
+            orElse: () => const <Area>[],
+          );
+          final names = areas.map((a) => a.name).toList(growable: false);
+
+          return Container(
+            decoration: const BoxDecoration(
+              color: TaskColors.popupBg,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 14, 12, 12),
+                    child: Row(
+                      children: [
+                        const Text(
+                          'Select area',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const Spacer(),
+                        // Done dismisses the sheet without changing the
+                        // selection. Picking an area row already auto-pops
+                        // the sheet — Done is the escape hatch when the
+                        // user wants to exit without picking.
+                        TextButton(
+                          onPressed: () => Navigator.of(sheetCtx).pop(),
+                          style: TextButton.styleFrom(
+                            // Don't pick up the global text-button outline
+                            // that's set on the dialog/card surface — the
+                            // popup BG (TaskColors.popupBg) is darker and a
+                            // borderless button reads cleaner here.
+                            side: BorderSide.none,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                          ),
+                          child: Text(
+                            'Done',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.70),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Thin separator beneath the header, matching the prototype.
+                  Container(
+                    height: 1,
+                    color: Colors.white.withValues(alpha: 0.06),
+                  ),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(18, 12, 18, 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _AreaOption(
+                            label: 'None',
+                            italic: true,
+                            selected: _selected == null,
+                            onTap: () {
+                              setState(() => _selected = null);
+                              widget.valueSetter(null);
+                              Navigator.of(sheetCtx).pop();
+                            },
+                          ),
+                          ...names.map(
+                            (name) => _AreaOption(
+                              label: name,
+                              dotColor: AreaColorHelper.colorForArea(name),
+                              selected: _selected == name,
+                              onTap: () {
+                                setState(() => _selected = name);
+                                widget.valueSetter(name);
+                                Navigator.of(sheetCtx).pop();
+                              },
+                            ),
+                          ),
+                          // Stale selection: keep it visible so users can
+                          // re-select / clear when an area was deleted.
+                          if (_selected != null && !names.contains(_selected))
+                            _AreaOption(
+                              label: _selected!,
+                              dotColor:
+                                  AreaColorHelper.colorForArea(_selected),
+                              selected: true,
+                              onTap: () => Navigator.of(sheetCtx).pop(),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const Divider(height: 1, color: Color(0x1FFFFFFF)),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
+                    child: _InlineAddAreaField(
+                      existingNames: areas.map((a) => a.name).toList(),
+                      onSubmit: (name) async {
+                        final errorMessage = await _createAreaInline(name);
+                        if (errorMessage != null) {
+                          // Service-side rejection (e.g. a race against
+                          // another client's add). Bubble back so the
+                          // inline field shows the message and KEEPS the
+                          // user's input — the controller is only cleared
+                          // on success.
+                          return errorMessage;
+                        }
+                        // Close the sheet so the parent reflects the
+                        // selection without keeping the sheet stale.
+                        if (sheetCtx.mounted) {
+                          Navigator.of(sheetCtx).pop();
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
+      },
     );
-    if (newName == null) {
-      // Cancelled — push the previous value back into the FormField so the
-      // dropdown stops showing the sentinel.
-      _formFieldKey.currentState?.didChange(previous);
-      return;
-    }
+  }
+
+  /// Creates a new area and selects it. Returns `null` on success, or a
+  /// user-visible error message that the inline field should display.
+  /// The previous SnackBar fallback was removed in favor of inline
+  /// errors so the user's typed input is preserved when the service
+  /// rejects (DuplicateAreaNameException race / ReservedAreaNameException).
+  Future<String?> _createAreaInline(String newName) async {
     final personDocId = ref.read(personDocIdProvider);
     if (personDocId == null) {
-      _formFieldKey.currentState?.didChange(previous);
-      return;
+      return 'Cannot add: not signed in';
     }
     final service = ref.read(areaServiceProvider);
     try {
       final created =
           await service.createArea(name: newName, personDocId: personDocId);
-      // Route through didChange so the FormField's internal state updates,
-      // Form.onChanged fires on the parent, and the FAB's hasChanges() check
-      // sees the blueprint.area mutation. DropdownButtonFormField's
-      // didChange override DOES re-fire this widget's onChanged with the
-      // new value (see _DropdownButtonFormFieldState.didChange in the
-      // Flutter framework), which in turn handles setState + valueSetter.
-      // Verified by the widget test in test/features/areas/area_picker_test.dart.
-      _formFieldKey.currentState?.didChange(created.name);
+      if (!mounted) return null;
+      setState(() => _selected = created.name);
+      widget.valueSetter(created.name);
+      return null;
     } on DuplicateAreaNameException catch (e) {
-      // The dialog validator catches dups in the in-memory list; this catches
-      // races where a second area with the same name synced down between the
-      // dialog opening and submit.
-      _formFieldKey.currentState?.didChange(previous);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
-      }
+      // Inline-field validator catches dups in the in-memory list; this
+      // catches races where another client synced an area with the same
+      // name in between the field's last validation and submit.
+      return e.toString();
     } on ReservedAreaNameException catch (e) {
-      // Should be unreachable: the dialog validator rejects reserved names
-      // before submit. Belt-and-suspenders for programmatic callers.
-      _formFieldKey.currentState?.didChange(previous);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
-      }
+      return e.toString();
     }
   }
 }
 
-class _AddAreaDialog extends StatefulWidget {
-  const _AddAreaDialog({required this.existingNames});
-  final List<String> existingNames;
+class _AreaOption extends StatelessWidget {
+  const _AreaOption({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.dotColor,
+    this.italic = false,
+  });
+
+  final String label;
+  final Color? dotColor;
+  final bool selected;
+  final bool italic;
+  final VoidCallback onTap;
 
   @override
-  State<_AddAreaDialog> createState() => _AddAreaDialogState();
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected
+          ? Colors.white.withValues(alpha: 0.10)
+          : Colors.transparent,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
+          child: Row(
+            children: [
+              if (dotColor != null) ...[
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration:
+                      BoxDecoration(color: dotColor, shape: BoxShape.circle),
+                ),
+                const SizedBox(width: 12),
+              ],
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: italic
+                        ? Colors.white.withValues(alpha: 0.65)
+                        : Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    fontStyle: italic ? FontStyle.italic : FontStyle.normal,
+                  ),
+                ),
+              ),
+              if (selected)
+                const Icon(
+                  Icons.check,
+                  size: 18,
+                  color: Color.fromRGBO(143, 184, 255, 0.95),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _AddAreaDialogState extends State<_AddAreaDialog> {
+/// Inline "add new area" affordance shown at the bottom of the picker
+/// sheet. Mirrors the design's `AddNewInline` component: a translucent row
+/// with a `+` icon, a TextField, and an Add button that only renders once
+/// non-whitespace text is entered. Submits via the Add button or Enter key.
+/// Validation messages render inline (no separate dialog).
+class _InlineAddAreaField extends StatefulWidget {
+  const _InlineAddAreaField({
+    required this.existingNames,
+    required this.onSubmit,
+  });
+
+  final List<String> existingNames;
+
+  /// Called when the user taps Add (or hits Enter). Returns `null` on
+  /// success, or a user-visible error message. The field clears its
+  /// input and dismisses the inline-error state on success; on error it
+  /// keeps the typed name and surfaces the message inline below the row
+  /// so the user can edit-and-retry without retyping.
+  final Future<String?> Function(String name) onSubmit;
+
+  @override
+  State<_InlineAddAreaField> createState() => _InlineAddAreaFieldState();
+}
+
+class _InlineAddAreaFieldState extends State<_InlineAddAreaField> {
   final _controller = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+  String? _error;
+  bool _submitting = false;
 
   @override
   void dispose() {
@@ -197,47 +392,225 @@ class _AddAreaDialogState extends State<_AddAreaDialog> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('New area'),
-      content: Form(
-        key: _formKey,
-        child: TextFormField(
-          controller: _controller,
-          autofocus: true,
-          maxLength: 40,
-          textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(labelText: 'Area name'),
-          validator: _validate,
-          onFieldSubmitted: (_) => _submit(),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(null),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: _submit,
-          child: const Text('Add'),
-        ),
-      ],
-    );
-  }
-
-  String? _validate(String? raw) {
-    final value = (raw ?? '').trim();
+  String? _validate(String raw) {
+    final value = raw.trim();
     if (value.isEmpty) return 'Name required';
-    if (kReservedAreaNames.contains(value)) return 'Reserved name; choose another';
+    if (kReservedAreaNames.contains(value)) {
+      return 'Reserved name; choose another';
+    }
     final exists = widget.existingNames
         .any((n) => n.toLowerCase() == value.toLowerCase());
     if (exists) return 'Already in your list';
     return null;
   }
 
-  void _submit() {
-    if (_formKey.currentState?.validate() != true) return;
-    Navigator.of(context).pop(_controller.text.trim());
+  Future<void> _submit() async {
+    if (_submitting) return;
+    final raw = _controller.text;
+    final error = _validate(raw);
+    if (error != null) {
+      setState(() => _error = error);
+      return;
+    }
+    setState(() {
+      _submitting = true;
+      _error = null;
+    });
+    try {
+      final serviceError = await widget.onSubmit(raw.trim());
+      if (!mounted) return;
+      if (serviceError != null) {
+        // Service rejected (e.g. duplicate-name race) — keep the typed
+        // text so the user can fix-and-retry, surface the message inline.
+        setState(() => _error = serviceError);
+      } else {
+        _controller.clear();
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasText = _controller.text.trim().isNotEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _DashedBorderBox(
+          color: Colors.white.withValues(alpha: 0.25),
+          radius: 10,
+          dash: 5,
+          gap: 3,
+          child: Container(
+            color: Colors.white.withValues(alpha: 0.04),
+            padding: const EdgeInsets.fromLTRB(10, 4, 6, 4),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.add,
+                  size: 13,
+                  color: Colors.white.withValues(alpha: 0.50),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    textCapitalization: TextCapitalization.words,
+                    textInputAction: TextInputAction.done,
+                    maxLength: 40,
+                    enabled: !_submitting,
+                    onChanged: (_) {
+                      // Single setState refreshes both the Add-button
+                      // visibility (derived from `_controller.text` via
+                      // `hasText` below) and clears any prior inline
+                      // error message.
+                      setState(() => _error = null);
+                    },
+                    onSubmitted: (_) => _submit(),
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                    // Explicitly opt out of the global inputDecorationTheme's
+                    // filled fillColor so the field is transparent and the
+                    // dashed-border row reads as a single unit.
+                    decoration: InputDecoration(
+                      filled: false,
+                      fillColor: Colors.transparent,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      isDense: true,
+                      counterText: '',
+                      // Hint omits the leading "+ " from the sentinel
+                      // string — the explicit + icon to the left of the
+                      // field provides that affordance, so showing both
+                      // would render "+ + Add new area…".
+                      hintText: 'Add new area…',
+                      hintStyle: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.40),
+                        fontSize: 14,
+                      ),
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 8),
+                    ),
+                  ),
+                ),
+                if (hasText)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 6),
+                    child: FilledButton(
+                      onPressed: _submitting ? null : _submit,
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        minimumSize: const Size(0, 32),
+                        backgroundColor: TaskColors.brandMagenta,
+                      ),
+                      child: const Text(
+                        'Add',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        if (_error != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 12, top: 6),
+            child: Text(
+              _error!,
+              style: const TextStyle(
+                color: Color(0xFFFFB4B4),
+                fontSize: 12,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Wraps [child] with a dashed rounded-rectangle border. Flutter's
+/// BoxDecoration doesn't support dashes natively, so this draws via
+/// CustomPaint. Stroke width is fixed at 1 px to match the design.
+class _DashedBorderBox extends StatelessWidget {
+  const _DashedBorderBox({
+    required this.color,
+    required this.radius,
+    required this.dash,
+    required this.gap,
+    required this.child,
+  });
+
+  final Color color;
+  final double radius;
+  final double dash;
+  final double gap;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _DashedBorderPainter(
+        color: color,
+        radius: radius,
+        dash: dash,
+        gap: gap,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: child,
+      ),
+    );
+  }
+}
+
+class _DashedBorderPainter extends CustomPainter {
+  _DashedBorderPainter({
+    required this.color,
+    required this.radius,
+    required this.dash,
+    required this.gap,
+  });
+
+  final Color color;
+  final double radius;
+  final double dash;
+  final double gap;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1
+      ..style = PaintingStyle.stroke;
+
+    final rrect = RRect.fromRectAndRadius(
+      Offset.zero & size,
+      Radius.circular(radius),
+    );
+
+    final path = Path()..addRRect(rrect);
+    final metrics = path.computeMetrics();
+    for (final metric in metrics) {
+      var distance = 0.0;
+      while (distance < metric.length) {
+        final next = (distance + dash).clamp(0.0, metric.length);
+        canvas.drawPath(metric.extractPath(distance, next), paint);
+        distance = next + gap;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedBorderPainter old) {
+    return old.color != color ||
+        old.radius != radius ||
+        old.dash != dash ||
+        old.gap != gap;
   }
 }

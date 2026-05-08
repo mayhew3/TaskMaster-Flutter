@@ -112,6 +112,17 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _priorityScaleVersionMeta =
+      const VerificationMeta('priorityScaleVersion');
+  @override
+  late final GeneratedColumn<int> priorityScaleVersion = GeneratedColumn<int>(
+    'priority_scale_version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   static const VerificationMeta _durationMeta = const VerificationMeta(
     'duration',
   );
@@ -346,6 +357,7 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     taskContext,
     urgency,
     priority,
+    priorityScaleVersion,
     duration,
     gamePoints,
     startDate,
@@ -454,6 +466,15 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
       context.handle(
         _priorityMeta,
         priority.isAcceptableOrUnknown(data['priority']!, _priorityMeta),
+      );
+    }
+    if (data.containsKey('priority_scale_version')) {
+      context.handle(
+        _priorityScaleVersionMeta,
+        priorityScaleVersion.isAcceptableOrUnknown(
+          data['priority_scale_version']!,
+          _priorityScaleVersionMeta,
+        ),
       );
     }
     if (data.containsKey('duration')) {
@@ -640,6 +661,10 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         DriftSqlType.int,
         data['${effectivePrefix}priority'],
       ),
+      priorityScaleVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}priority_scale_version'],
+      )!,
       duration: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}duration'],
@@ -736,6 +761,7 @@ class Task extends DataClass implements Insertable<Task> {
   final String? taskContext;
   final int? urgency;
   final int? priority;
+  final int priorityScaleVersion;
   final int? duration;
   final int? gamePoints;
   final DateTime? startDate;
@@ -766,6 +792,7 @@ class Task extends DataClass implements Insertable<Task> {
     this.taskContext,
     this.urgency,
     this.priority,
+    required this.priorityScaleVersion,
     this.duration,
     this.gamePoints,
     this.startDate,
@@ -813,6 +840,7 @@ class Task extends DataClass implements Insertable<Task> {
     if (!nullToAbsent || priority != null) {
       map['priority'] = Variable<int>(priority);
     }
+    map['priority_scale_version'] = Variable<int>(priorityScaleVersion);
     if (!nullToAbsent || duration != null) {
       map['duration'] = Variable<int>(duration);
     }
@@ -891,6 +919,7 @@ class Task extends DataClass implements Insertable<Task> {
       priority: priority == null && nullToAbsent
           ? const Value.absent()
           : Value(priority),
+      priorityScaleVersion: Value(priorityScaleVersion),
       duration: duration == null && nullToAbsent
           ? const Value.absent()
           : Value(duration),
@@ -961,6 +990,9 @@ class Task extends DataClass implements Insertable<Task> {
       taskContext: serializer.fromJson<String?>(json['taskContext']),
       urgency: serializer.fromJson<int?>(json['urgency']),
       priority: serializer.fromJson<int?>(json['priority']),
+      priorityScaleVersion: serializer.fromJson<int>(
+        json['priorityScaleVersion'],
+      ),
       duration: serializer.fromJson<int?>(json['duration']),
       gamePoints: serializer.fromJson<int?>(json['gamePoints']),
       startDate: serializer.fromJson<DateTime?>(json['startDate']),
@@ -998,6 +1030,7 @@ class Task extends DataClass implements Insertable<Task> {
       'taskContext': serializer.toJson<String?>(taskContext),
       'urgency': serializer.toJson<int?>(urgency),
       'priority': serializer.toJson<int?>(priority),
+      'priorityScaleVersion': serializer.toJson<int>(priorityScaleVersion),
       'duration': serializer.toJson<int?>(duration),
       'gamePoints': serializer.toJson<int?>(gamePoints),
       'startDate': serializer.toJson<DateTime?>(startDate),
@@ -1031,6 +1064,7 @@ class Task extends DataClass implements Insertable<Task> {
     Value<String?> taskContext = const Value.absent(),
     Value<int?> urgency = const Value.absent(),
     Value<int?> priority = const Value.absent(),
+    int? priorityScaleVersion,
     Value<int?> duration = const Value.absent(),
     Value<int?> gamePoints = const Value.absent(),
     Value<DateTime?> startDate = const Value.absent(),
@@ -1061,6 +1095,7 @@ class Task extends DataClass implements Insertable<Task> {
     taskContext: taskContext.present ? taskContext.value : this.taskContext,
     urgency: urgency.present ? urgency.value : this.urgency,
     priority: priority.present ? priority.value : this.priority,
+    priorityScaleVersion: priorityScaleVersion ?? this.priorityScaleVersion,
     duration: duration.present ? duration.value : this.duration,
     gamePoints: gamePoints.present ? gamePoints.value : this.gamePoints,
     startDate: startDate.present ? startDate.value : this.startDate,
@@ -1109,6 +1144,9 @@ class Task extends DataClass implements Insertable<Task> {
           : this.taskContext,
       urgency: data.urgency.present ? data.urgency.value : this.urgency,
       priority: data.priority.present ? data.priority.value : this.priority,
+      priorityScaleVersion: data.priorityScaleVersion.present
+          ? data.priorityScaleVersion.value
+          : this.priorityScaleVersion,
       duration: data.duration.present ? data.duration.value : this.duration,
       gamePoints: data.gamePoints.present
           ? data.gamePoints.value
@@ -1164,6 +1202,7 @@ class Task extends DataClass implements Insertable<Task> {
           ..write('taskContext: $taskContext, ')
           ..write('urgency: $urgency, ')
           ..write('priority: $priority, ')
+          ..write('priorityScaleVersion: $priorityScaleVersion, ')
           ..write('duration: $duration, ')
           ..write('gamePoints: $gamePoints, ')
           ..write('startDate: $startDate, ')
@@ -1199,6 +1238,7 @@ class Task extends DataClass implements Insertable<Task> {
     taskContext,
     urgency,
     priority,
+    priorityScaleVersion,
     duration,
     gamePoints,
     startDate,
@@ -1233,6 +1273,7 @@ class Task extends DataClass implements Insertable<Task> {
           other.taskContext == this.taskContext &&
           other.urgency == this.urgency &&
           other.priority == this.priority &&
+          other.priorityScaleVersion == this.priorityScaleVersion &&
           other.duration == this.duration &&
           other.gamePoints == this.gamePoints &&
           other.startDate == this.startDate &&
@@ -1265,6 +1306,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
   final Value<String?> taskContext;
   final Value<int?> urgency;
   final Value<int?> priority;
+  final Value<int> priorityScaleVersion;
   final Value<int?> duration;
   final Value<int?> gamePoints;
   final Value<DateTime?> startDate;
@@ -1296,6 +1338,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.taskContext = const Value.absent(),
     this.urgency = const Value.absent(),
     this.priority = const Value.absent(),
+    this.priorityScaleVersion = const Value.absent(),
     this.duration = const Value.absent(),
     this.gamePoints = const Value.absent(),
     this.startDate = const Value.absent(),
@@ -1328,6 +1371,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.taskContext = const Value.absent(),
     this.urgency = const Value.absent(),
     this.priority = const Value.absent(),
+    this.priorityScaleVersion = const Value.absent(),
     this.duration = const Value.absent(),
     this.gamePoints = const Value.absent(),
     this.startDate = const Value.absent(),
@@ -1362,6 +1406,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Expression<String>? taskContext,
     Expression<int>? urgency,
     Expression<int>? priority,
+    Expression<int>? priorityScaleVersion,
     Expression<int>? duration,
     Expression<int>? gamePoints,
     Expression<DateTime>? startDate,
@@ -1394,6 +1439,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
       if (taskContext != null) 'task_context': taskContext,
       if (urgency != null) 'urgency': urgency,
       if (priority != null) 'priority': priority,
+      if (priorityScaleVersion != null)
+        'priority_scale_version': priorityScaleVersion,
       if (duration != null) 'duration': duration,
       if (gamePoints != null) 'game_points': gamePoints,
       if (startDate != null) 'start_date': startDate,
@@ -1429,6 +1476,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Value<String?>? taskContext,
     Value<int?>? urgency,
     Value<int?>? priority,
+    Value<int>? priorityScaleVersion,
     Value<int?>? duration,
     Value<int?>? gamePoints,
     Value<DateTime?>? startDate,
@@ -1461,6 +1509,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
       taskContext: taskContext ?? this.taskContext,
       urgency: urgency ?? this.urgency,
       priority: priority ?? this.priority,
+      priorityScaleVersion: priorityScaleVersion ?? this.priorityScaleVersion,
       duration: duration ?? this.duration,
       gamePoints: gamePoints ?? this.gamePoints,
       startDate: startDate ?? this.startDate,
@@ -1516,6 +1565,9 @@ class TasksCompanion extends UpdateCompanion<Task> {
     }
     if (priority.present) {
       map['priority'] = Variable<int>(priority.value);
+    }
+    if (priorityScaleVersion.present) {
+      map['priority_scale_version'] = Variable<int>(priorityScaleVersion.value);
     }
     if (duration.present) {
       map['duration'] = Variable<int>(duration.value);
@@ -1593,6 +1645,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
           ..write('taskContext: $taskContext, ')
           ..write('urgency: $urgency, ')
           ..write('priority: $priority, ')
+          ..write('priorityScaleVersion: $priorityScaleVersion, ')
           ..write('duration: $duration, ')
           ..write('gamePoints: $gamePoints, ')
           ..write('startDate: $startDate, ')
@@ -5749,6 +5802,7 @@ typedef $$TasksTableCreateCompanionBuilder =
       Value<String?> taskContext,
       Value<int?> urgency,
       Value<int?> priority,
+      Value<int> priorityScaleVersion,
       Value<int?> duration,
       Value<int?> gamePoints,
       Value<DateTime?> startDate,
@@ -5782,6 +5836,7 @@ typedef $$TasksTableUpdateCompanionBuilder =
       Value<String?> taskContext,
       Value<int?> urgency,
       Value<int?> priority,
+      Value<int> priorityScaleVersion,
       Value<int?> duration,
       Value<int?> gamePoints,
       Value<DateTime?> startDate,
@@ -5859,6 +5914,11 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
 
   ColumnFilters<int> get priority => $composableBuilder(
     column: $table.priority,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get priorityScaleVersion => $composableBuilder(
+    column: $table.priorityScaleVersion,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6017,6 +6077,11 @@ class $$TasksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get priorityScaleVersion => $composableBuilder(
+    column: $table.priorityScaleVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get duration => $composableBuilder(
     column: $table.duration,
     builder: (column) => ColumnOrderings(column),
@@ -6160,6 +6225,11 @@ class $$TasksTableAnnotationComposer
   GeneratedColumn<int> get priority =>
       $composableBuilder(column: $table.priority, builder: (column) => column);
 
+  GeneratedColumn<int> get priorityScaleVersion => $composableBuilder(
+    column: $table.priorityScaleVersion,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<int> get duration =>
       $composableBuilder(column: $table.duration, builder: (column) => column);
 
@@ -6276,6 +6346,7 @@ class $$TasksTableTableManager
                 Value<String?> taskContext = const Value.absent(),
                 Value<int?> urgency = const Value.absent(),
                 Value<int?> priority = const Value.absent(),
+                Value<int> priorityScaleVersion = const Value.absent(),
                 Value<int?> duration = const Value.absent(),
                 Value<int?> gamePoints = const Value.absent(),
                 Value<DateTime?> startDate = const Value.absent(),
@@ -6307,6 +6378,7 @@ class $$TasksTableTableManager
                 taskContext: taskContext,
                 urgency: urgency,
                 priority: priority,
+                priorityScaleVersion: priorityScaleVersion,
                 duration: duration,
                 gamePoints: gamePoints,
                 startDate: startDate,
@@ -6340,6 +6412,7 @@ class $$TasksTableTableManager
                 Value<String?> taskContext = const Value.absent(),
                 Value<int?> urgency = const Value.absent(),
                 Value<int?> priority = const Value.absent(),
+                Value<int> priorityScaleVersion = const Value.absent(),
                 Value<int?> duration = const Value.absent(),
                 Value<int?> gamePoints = const Value.absent(),
                 Value<DateTime?> startDate = const Value.absent(),
@@ -6371,6 +6444,7 @@ class $$TasksTableTableManager
                 taskContext: taskContext,
                 urgency: urgency,
                 priority: priority,
+                priorityScaleVersion: priorityScaleVersion,
                 duration: duration,
                 gamePoints: gamePoints,
                 startDate: startDate,

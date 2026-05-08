@@ -98,13 +98,11 @@ void main() {
 
   group('AreaPicker inline + Add new area…', () {
     testWidgets(
-      'submitting the dialog calls valueSetter with the new name',
+      'submitting the inline field calls valueSetter with the new name',
       (tester) async {
-        // Regression test for round-5 review concern: the picker must invoke
-        // valueSetter with the new area name so the parent task blueprint is
-        // updated. This protects against a future Flutter version dropping
-        // the `_DropdownButtonFormFieldState.didChange` → `widget.onChanged`
-        // round-trip, which our success-path implementation depends on.
+        // The picker must invoke valueSetter with the new area name so the
+        // parent task blueprint is updated. The inline field replaces the
+        // old AlertDialog flow (TM-358).
         String? captured;
         await tester.pumpWidget(_buildHarness(
           db: db,
@@ -114,15 +112,15 @@ void main() {
         ));
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byType(DropdownButton<String>));
+        // Open the bottom sheet via the chevron button.
+        await tester.tap(find.byKey(const Key('area_picker_button')));
         await tester.pumpAndSettle();
 
-        // The sentinel appears in the menu items (closed state shows
-        // selected only). Use the menu occurrence.
-        await tester.tap(find.text('+ Add new area…').last);
+        // The inline TextField at the bottom of the sheet uses the sentinel
+        // string ("+ Add new area…") as its hint. Type a real name and
+        // tap Add.
+        await tester.enterText(find.byType(TextField), 'Workshop');
         await tester.pumpAndSettle();
-
-        await tester.enterText(find.byType(TextFormField), 'Workshop');
         await tester.tap(find.text('Add'));
         await tester.pumpAndSettle();
 
@@ -133,14 +131,11 @@ void main() {
     );
 
     testWidgets(
-      'cancelling the dialog never sends the sentinel value',
+      'sentinel string typed into the inline field is rejected and never persisted',
       (tester) async {
-        // didChange(previous) on cancel reroutes through onChanged with the
-        // previous value, which is fine — that's a no-op write to the same
-        // value the blueprint already has. The contract this test enforces
-        // is the negative one: the sentinel string itself must NEVER reach
-        // valueSetter (which would corrupt the task with "+ Add new area…"
-        // as its area).
+        // Negative contract: the literal sentinel ("+ Add new area…") must
+        // never round-trip through valueSetter. The inline validator
+        // rejects it via the kReservedAreaNames check.
         final captured = <String?>[];
         await tester.pumpWidget(_buildHarness(
           db: db,
@@ -151,27 +146,27 @@ void main() {
         ));
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byType(DropdownButton<String>));
+        await tester.tap(find.byKey(const Key('area_picker_button')));
         await tester.pumpAndSettle();
 
-        await tester.tap(find.text('+ Add new area…').last);
+        // Type the sentinel literally and try to submit.
+        await tester.enterText(find.byType(TextField), '+ Add new area…');
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Add'));
         await tester.pumpAndSettle();
 
-        await tester.tap(find.text('Cancel'));
-        await tester.pumpAndSettle();
-
+        expect(find.text('Reserved name; choose another'), findsOneWidget);
         expect(captured, isNot(contains('+ Add new area…')),
             reason: 'Sentinel string must NEVER be persisted as the area.');
       },
     );
 
     testWidgets(
-      'duplicate name rejection from the dialog validator',
+      'duplicate name rejected inline; valueSetter is not called',
       (tester) async {
-        // Typing a duplicate name and submitting must not call valueSetter
-        // — the dialog stays open with a validation error. Belts the
-        // service-side DuplicateAreaNameException check with an upfront UX
-        // signal.
+        // Typing a duplicate name and tapping Add must surface an inline
+        // error without touching valueSetter. Belts the service-side
+        // DuplicateAreaNameException check with an upfront UX signal.
         String? captured;
         await tester.pumpWidget(_buildHarness(
           db: db,
@@ -181,20 +176,19 @@ void main() {
         ));
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byType(DropdownButton<String>));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('+ Add new area…').last);
+        await tester.tap(find.byKey(const Key('area_picker_button')));
         await tester.pumpAndSettle();
 
         // Try to add "home" — case-insensitive collision with seeded "Home".
-        await tester.enterText(find.byType(TextFormField), 'home');
+        await tester.enterText(find.byType(TextField), 'home');
+        await tester.pumpAndSettle();
         await tester.tap(find.text('Add'));
         await tester.pumpAndSettle();
 
         expect(find.text('Already in your list'), findsOneWidget);
         expect(captured, isNull,
             reason:
-                'valueSetter must NOT fire when the dialog rejects the name.');
+                'valueSetter must NOT fire when the inline validator rejects the name.');
       },
     );
   });

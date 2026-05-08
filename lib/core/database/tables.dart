@@ -36,6 +36,14 @@ class Tasks extends Table {
   TextColumn get taskContext => text().nullable()();
   IntColumn get urgency => integer().nullable()();
   IntColumn get priority => integer().nullable()();
+  // Scale version for `priority`. 1 = legacy 1-10; cards and the edit
+  // screen normalize via `TaskItem.displayPriority`, which applies
+  // `(priority/2).round().clamp(1,5)` and returns null for priority <= 0.
+  // 2 = TM-358 onwards, priority is already on a 1-5 scale and rendered
+  // as-is. Migration is per-task and happens lazily the next time a task
+  // is opened in the edit screen.
+  IntColumn get priorityScaleVersion =>
+      integer().withDefault(const Constant(1))();
   IntColumn get duration => integer().nullable()();
   IntColumn get gamePoints => integer().nullable()();
   DateTimeColumn get startDate => dateTime().nullable()();

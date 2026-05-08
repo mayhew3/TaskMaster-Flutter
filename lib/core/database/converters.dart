@@ -43,6 +43,7 @@ m.TaskItem taskItemFromRow(Task row) {
     ..context = row.taskContext
     ..urgency = row.urgency
     ..priority = row.priority
+    ..priorityScaleVersion = row.priorityScaleVersion
     ..duration = row.duration
     ..gamePoints = row.gamePoints
     ..startDate = _utcOrNull(row.startDate)
@@ -74,6 +75,7 @@ TasksCompanion taskItemToCompanion(m.TaskItem task) {
     taskContext: Value(task.context),
     urgency: Value(task.urgency),
     priority: Value(task.priority),
+    priorityScaleVersion: Value(task.priorityScaleVersion),
     duration: Value(task.duration),
     gamePoints: Value(task.gamePoints),
     startDate: Value(task.startDate),
@@ -220,6 +222,9 @@ TasksCompanion taskBlueprintToCompanion({
     taskContext: Value(blueprint.context),
     urgency: Value(blueprint.urgency),
     priority: Value(blueprint.priority),
+    // New tasks default to the post-TM-358 scale; only legacy rows already
+    // in the DB stay at version 1 until they're saved.
+    priorityScaleVersion: Value(blueprint.priorityScaleVersion ?? 2),
     duration: Value(blueprint.duration),
     gamePoints: Value(blueprint.gamePoints),
     startDate: Value(blueprint.startDate),
@@ -256,6 +261,12 @@ TasksCompanion taskBlueprintToDiff(TaskItemBlueprint blueprint) {
     taskContext: Value(blueprint.context),
     urgency: Value(blueprint.urgency),
     priority: Value(blueprint.priority),
+    // Only write the scale version on update if the blueprint set it
+    // (i.e. the screen explicitly migrated this task). Otherwise leave the
+    // existing column value alone.
+    priorityScaleVersion: blueprint.priorityScaleVersion != null
+        ? Value(blueprint.priorityScaleVersion!)
+        : const Value.absent(),
     duration: Value(blueprint.duration),
     gamePoints: Value(blueprint.gamePoints),
     startDate: Value(blueprint.startDate),

@@ -35,6 +35,17 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
 
   int? get urgency;
   int? get priority;
+  /// Scale version for [priority]. Both versions normalize to a 1–5
+  /// display via [displayPriority]; null / non-positive values mean
+  /// "unset" on either scale.
+  ///   - 1 = legacy 1–10 stored values, mapped to 1–5 via
+  ///     `(priority/2).round().clamp(1,5)`.
+  ///   - 2 = TM-358 onward, [priority] is stored directly on the 1–5
+  ///     scale and rendered unchanged.
+  /// Default is 1 (legacy) for backwards compatibility with rows hydrated
+  /// before this field existed; new tasks created from the redesigned edit
+  /// screen save with version 2.
+  int get priorityScaleVersion;
   int? get duration;
 
   int? get gamePoints;
@@ -84,7 +95,25 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   static void _setDefaults(TaskItemBuilder b) =>
       b
         ..pendingCompletion = false
-        ..skipped = false;
+        ..skipped = false
+        ..priorityScaleVersion = 1;
+
+  /// Priority value normalized to the 1–5 display scale. Returns `null`
+  /// if [priority] is null *or* non-positive (legacy data sometimes carried
+  /// 0 / negative as a sentinel for "unset"). For [priorityScaleVersion] ==
+  /// 1 (legacy 1–10 data), applies `(priority/2).round().clamp(1,5)`; for
+  /// version ≥ 2, returns [priority] clamped to the same 1..5 envelope so
+  /// out-of-range stored values (e.g. a corrupted 6+) can never produce an
+  /// out-of-range fill count in the UI. Both cards and the redesigned edit
+  /// screen read from this getter so they agree on what to render
+  /// regardless of the underlying scale.
+  int? get displayPriority {
+    if (priority == null) return null;
+    final p = priority!;
+    if (p <= 0) return null;
+    if (priorityScaleVersion >= 2) return p.clamp(1, 5);
+    return (p / 2).round().clamp(1, 5);
+  }
 
   DateTime? getFinishedCompletionDate() {
     return pendingCompletion ? null : completionDate;
@@ -104,6 +133,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
     blueprint.context = context;
     blueprint.urgency = urgency;
     blueprint.priority = priority;
+    blueprint.priorityScaleVersion = priorityScaleVersion;
     blueprint.duration = duration;
     blueprint.startDate = startDate;
     blueprint.targetDate = targetDate;
@@ -143,6 +173,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
       ..context = context
       ..urgency = urgency
       ..priority = priority
+      ..priorityScaleVersion = priorityScaleVersion
       ..duration = duration
       ..startDate = dates[TaskDateTypes.start]
       ..targetDate = dates[TaskDateTypes.target]
@@ -159,6 +190,12 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   }
 
   bool hasChanges(TaskItem other) {
+    // `priorityScaleVersion` is intentionally excluded: it's a non-user-
+    // editable internal marker, and the lazy-migration path in the edit
+    // screen rewrites the user-visible `priority` value at the same time
+    // it bumps the version. Including version here would make a mid-flight
+    // migration look like a pending edit and falsely enable the Save
+    // button. See `TaskAddEditScreen._initializeTask`.
     return
       other.name != name ||
           other.description != description ||
@@ -183,6 +220,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   }
 
   bool hasChangesBlueprint(TaskItemBlueprint other) {
+    // See `hasChanges` — `priorityScaleVersion` is intentionally excluded.
     return
       other.name != name ||
           other.description != description ||

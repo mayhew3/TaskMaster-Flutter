@@ -33,6 +33,11 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
       ),
       'name',
       serializers.serialize(object.name, specifiedType: const FullType(String)),
+      'priorityScaleVersion',
+      serializers.serialize(
+        object.priorityScaleVersion,
+        specifiedType: const FullType(int),
+      ),
       'offCycle',
       serializers.serialize(
         object.offCycle,
@@ -277,6 +282,14 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
               serializers.deserialize(value, specifiedType: const FullType(int))
                   as int?;
           break;
+        case 'priorityScaleVersion':
+          result.priorityScaleVersion =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
+          break;
         case 'duration':
           result.duration =
               serializers.deserialize(value, specifiedType: const FullType(int))
@@ -430,6 +443,8 @@ class _$TaskItem extends TaskItem {
   @override
   final int? priority;
   @override
+  final int priorityScaleVersion;
+  @override
   final int? duration;
   @override
   final int? gamePoints;
@@ -482,6 +497,7 @@ class _$TaskItem extends TaskItem {
     this.context,
     this.urgency,
     this.priority,
+    required this.priorityScaleVersion,
     this.duration,
     this.gamePoints,
     this.startDate,
@@ -523,6 +539,7 @@ class _$TaskItem extends TaskItem {
         context == other.context &&
         urgency == other.urgency &&
         priority == other.priority &&
+        priorityScaleVersion == other.priorityScaleVersion &&
         duration == other.duration &&
         gamePoints == other.gamePoints &&
         startDate == other.startDate &&
@@ -557,6 +574,7 @@ class _$TaskItem extends TaskItem {
     _$hash = $jc(_$hash, context.hashCode);
     _$hash = $jc(_$hash, urgency.hashCode);
     _$hash = $jc(_$hash, priority.hashCode);
+    _$hash = $jc(_$hash, priorityScaleVersion.hashCode);
     _$hash = $jc(_$hash, duration.hashCode);
     _$hash = $jc(_$hash, gamePoints.hashCode);
     _$hash = $jc(_$hash, startDate.hashCode);
@@ -593,6 +611,7 @@ class _$TaskItem extends TaskItem {
           ..add('context', context)
           ..add('urgency', urgency)
           ..add('priority', priority)
+          ..add('priorityScaleVersion', priorityScaleVersion)
           ..add('duration', duration)
           ..add('gamePoints', gamePoints)
           ..add('startDate', startDate)
@@ -658,6 +677,11 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   int? _priority;
   int? get priority => _$this._priority;
   set priority(int? priority) => _$this._priority = priority;
+
+  int? _priorityScaleVersion;
+  int? get priorityScaleVersion => _$this._priorityScaleVersion;
+  set priorityScaleVersion(int? priorityScaleVersion) =>
+      _$this._priorityScaleVersion = priorityScaleVersion;
 
   int? _duration;
   int? get duration => _$this._duration;
@@ -759,6 +783,7 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
       _context = $v.context;
       _urgency = $v.urgency;
       _priority = $v.priority;
+      _priorityScaleVersion = $v.priorityScaleVersion;
       _duration = $v.duration;
       _gamePoints = $v.gamePoints;
       _startDate = $v.startDate;
@@ -824,6 +849,11 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
             context: context,
             urgency: urgency,
             priority: priority,
+            priorityScaleVersion: BuiltValueNullFieldError.checkNotNull(
+              priorityScaleVersion,
+              r'TaskItem',
+              'priorityScaleVersion',
+            ),
             duration: duration,
             gamePoints: gamePoints,
             startDate: startDate,

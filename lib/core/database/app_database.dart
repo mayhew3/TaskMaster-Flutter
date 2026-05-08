@@ -40,7 +40,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -82,6 +82,14 @@ class AppDatabase extends _$AppDatabase {
         // SQLite supports RENAME COLUMN since 3.25; the project's drift
         // dependency is well above that minimum.
         await customStatement('ALTER TABLE tasks RENAME COLUMN project TO area');
+      }
+      if (from < 7) {
+        // TM-358: per-task `priorityScaleVersion` so cards and the redesigned
+        // edit screen can disambiguate legacy 1-10 priorities from the new
+        // 1-5 scale. Existing rows default to scale version 1 (legacy);
+        // a row's scale version flips to 2 the next time the user saves
+        // that task from the edit screen.
+        await m.addColumn(tasks, tasks.priorityScaleVersion);
       }
     },
   );

@@ -37,6 +37,16 @@ class TaskItemBlueprint with DateHolder {
 
   int? urgency;
   int? priority;
+  /// Scale version for [priority]. See `TaskItem.priorityScaleVersion`.
+  /// Nullable on the blueprint (new tasks set it to 2 on save; legacy
+  /// tasks copy the existing version through `createBlueprint`).
+  ///
+  /// `includeIfNull: false` so partial-update writes don't overwrite an
+  /// existing Firestore value with null when the screen hasn't touched
+  /// the field, and so deserialization into `TaskItem` (whose getter is
+  /// non-nullable) doesn't trip on a `null` payload.
+  @JsonKey(includeIfNull: false)
+  int? priorityScaleVersion;
   int? duration;
 
   int? gamePoints;
@@ -111,6 +121,12 @@ class TaskItemBlueprint with DateHolder {
   }
 
   bool hasChanges(TaskItem other) {
+    // `priorityScaleVersion` is intentionally excluded: it's a non-user-
+    // editable internal marker, and the lazy-migration path in the edit
+    // screen rewrites the user-visible `priority` value at the same time
+    // it bumps the version. Including version here would make a mid-flight
+    // migration look like a pending edit and falsely enable the Save
+    // button. Source of truth: `TaskItem.hasChanges`.
     var allMismatch = other.name != name ||
         other.description != description ||
         other.area != area ||
