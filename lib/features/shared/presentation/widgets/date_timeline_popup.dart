@@ -132,8 +132,13 @@ List<int> assignTimelineLanes(
 ///   3. When a marker is selected, an inline calendar + time-bucket picker +
 ///      Remove button so the user can edit or clear that single date.
 ///
-/// Changes propagate immediately via [onChanged]; the Done button just
-/// dismisses the sheet.
+/// **Deferred-commit model.** Edits update a local working copy only; the
+/// parent's [onChanged] is NOT called until the user taps **Save** in the
+/// header, at which point the popup diffs against the snapshot taken at
+/// open and emits one `onChanged(type, value)` per changed type. Tapping
+/// **Cancel**, the system back gesture, or swiping the sheet down all
+/// discard pending edits without invoking [onChanged]. Save is auto-
+/// disabled when the working copy matches the snapshot.
 class DateTimelinePopup extends StatefulWidget {
   final Map<TaskDateType, DateTime?> dates;
   final void Function(TaskDateType type, DateTime? value) onChanged;
@@ -145,8 +150,10 @@ class DateTimelinePopup extends StatefulWidget {
   });
 
   /// Convenience: show the popup as a Material modal bottom sheet rooted at
-  /// [context]. The popup is dismissed when the user taps Done or swipes
-  /// down. Changes are pushed via [onChanged] as they happen.
+  /// [context]. The sheet is dismissed when the user taps **Cancel** or
+  /// **Save** in the header (or via system back / swipe-down). [onChanged]
+  /// is only invoked from the Save path; see the class doc for the deferred-
+  /// commit model.
   static Future<void> show({
     required BuildContext context,
     required Map<TaskDateType, DateTime?> dates,
@@ -951,13 +958,14 @@ class _MiniCalendarState extends State<_MiniCalendar> {
   @override
   void didUpdateWidget(covariant _MiniCalendar old) {
     super.didUpdateWidget(old);
-    // If the parent updates the selectedDate to a different month
+    // If the parent updates the selectedDate to a different month/year
     // (e.g. user picked a day in a different month from the timeline
-    // marker), follow it.
+    // marker, OR the same month in a different year), follow it. The
+    // earlier extra `month` guard against `old.selectedDate.month`
+    // missed year-only changes (Jan 2026 → Jan 2027).
     final selMonth =
         DateTime(widget.selectedDate.year, widget.selectedDate.month);
-    if (selMonth != _displayedMonth &&
-        old.selectedDate.month != widget.selectedDate.month) {
+    if (selMonth != _displayedMonth) {
       _displayedMonth = selMonth;
     }
   }

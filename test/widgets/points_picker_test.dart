@@ -135,22 +135,36 @@ void main() {
       expect(find.text('Custom points'), findsNothing);
     });
 
-    testWidgets('Other dialog rejects non-numeric input', (tester) async {
-      int? captured = -1;
-      await _pump(
-        tester,
-        PointsPicker(value: null, onChanged: (v) => captured = v),
-      );
-      await tester.tap(find.text('Other'));
-      await tester.pumpAndSettle();
-      // FilteringTextInputFormatter strips letters, so we pump '-5' which
-      // also gets reduced to '5' (digitsOnly). To exercise the validation
-      // path, we instead programmatically set a negative via a manual entry.
-      // Simpler: just confirm digitsOnly worked — entering letters yields
-      // empty, which clears the value (handled by separate test above).
-      expect(captured, -1); // no callback fired yet (dialog still open)
-      await tester.tap(find.text('Cancel'));
-      await tester.pumpAndSettle();
-    });
+    testWidgets(
+      'Other dialog filters non-digit characters via digitsOnly formatter',
+      (tester) async {
+        // The dialog uses FilteringTextInputFormatter.digitsOnly so only
+        // the digits from a mixed string make it through to the field's
+        // text. Submitting then parses that digit-only string.
+        int? captured = -1;
+        await _pump(
+          tester,
+          PointsPicker(value: null, onChanged: (v) => captured = v),
+        );
+        await tester.tap(find.text('Other'));
+        await tester.pumpAndSettle();
+        // Pump a mixed string; the formatter strips letters and the field
+        // ends up holding just '12'.
+        await tester.enterText(find.byType(TextField), 'abc12xyz');
+        expect(
+          (tester.widget(find.byType(TextField)) as TextField)
+              .controller!
+              .text,
+          '12',
+          reason:
+              'digitsOnly formatter must strip non-digit chars before they reach the controller.',
+        );
+        await tester.tap(find.text('Set'));
+        await tester.pumpAndSettle();
+        expect(captured, 12,
+            reason:
+                'Submitting after the formatter ran emits the parsed digits-only value.');
+      },
+    );
   });
 }

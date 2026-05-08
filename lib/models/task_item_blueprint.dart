@@ -40,6 +40,12 @@ class TaskItemBlueprint with DateHolder {
   /// Scale version for [priority]. See `TaskItem.priorityScaleVersion`.
   /// Nullable on the blueprint (new tasks set it to 2 on save; legacy
   /// tasks copy the existing version through `createBlueprint`).
+  ///
+  /// `includeIfNull: false` so partial-update writes don't overwrite an
+  /// existing Firestore value with null when the screen hasn't touched
+  /// the field, and so deserialization into `TaskItem` (whose getter is
+  /// non-nullable) doesn't trip on a `null` payload.
+  @JsonKey(includeIfNull: false)
   int? priorityScaleVersion;
   int? duration;
 

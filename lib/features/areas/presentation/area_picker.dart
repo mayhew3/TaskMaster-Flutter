@@ -14,8 +14,9 @@ import '../services/area_service.dart';
 /// the user's areas. The sheet sources options from [areasWithDefaultsProvider]
 /// (lazy-seeds defaults for new users) and includes:
 ///   - a "None" entry that maps to `null`
-///   - a `+ Add new area…` action at the bottom that opens an inline dialog;
-///     submitting creates a new area and selects it
+///   - a pinned **inline TextField** at the bottom (`+ icon` + "Add new
+///     area…" hint) that creates a new area on submit and selects it.
+///     Validation messages render inline; there is no separate dialog.
 class AreaPicker extends ConsumerStatefulWidget {
   const AreaPicker({
     super.key,

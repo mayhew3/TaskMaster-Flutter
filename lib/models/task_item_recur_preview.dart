@@ -95,6 +95,7 @@ class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
       ..context = context
       ..urgency = urgency
       ..priority = priority
+      ..priorityScaleVersion = priorityScaleVersion
       ..duration = duration
       ..startDate = dates[TaskDateTypes.start]
       ..targetDate = dates[TaskDateTypes.target]
@@ -133,6 +134,7 @@ class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
     blueprint.context = context;
     blueprint.urgency = urgency;
     blueprint.priority = priority;
+    blueprint.priorityScaleVersion = priorityScaleVersion;
     blueprint.duration = duration;
     blueprint.startDate = startDate;
     blueprint.targetDate = targetDate;
