@@ -102,21 +102,37 @@ void main() {
       expect(callCount, 0);
     });
 
-    testWidgets('Other dialog with empty input clears the value',
+    testWidgets('tapping an active Fibonacci segment clears the value',
+        (tester) async {
+      int? captured = -1; // sentinel: not yet called
+      await _pump(
+        tester,
+        PointsPicker(value: 5, onChanged: (v) => captured = v),
+      );
+      // 5 is on a Fib bucket → segment 4 is active. Tap it again to clear.
+      await tester.tap(find.text('5'));
+      await tester.pumpAndSettle();
+      expect(captured, isNull,
+          reason:
+              'Tap-active-to-clear matches the priority bar so users can null out points the same way.');
+    });
+
+    testWidgets('tapping an active Other segment clears the value',
         (tester) async {
       int? captured = -1; // sentinel: not yet called
       await _pump(
         tester,
         PointsPicker(value: 13, onChanged: (v) => captured = v),
       );
-      // Tap the Other segment (which currently renders as "13").
+      // 13 isn't a Fib value → Other segment shows "13" and is active.
+      // Tapping it clears (no dialog), to keep behavior consistent with the
+      // tap-active-clears pattern. Re-tapping the (now inactive) Other
+      // would open the dialog to enter a new custom value.
       await tester.tap(find.text('13'));
       await tester.pumpAndSettle();
-      // The dialog pre-fills with 13. Clear it and submit.
-      await tester.enterText(find.byType(TextField), '');
-      await tester.tap(find.text('Set'));
-      await tester.pumpAndSettle();
       expect(captured, isNull);
+      // No dialog should have been opened.
+      expect(find.text('Custom points'), findsNothing);
     });
 
     testWidgets('Other dialog rejects non-numeric input', (tester) async {

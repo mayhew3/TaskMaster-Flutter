@@ -69,6 +69,12 @@ class SegmentedBar extends StatelessWidget {
       final filled = value != null &&
           (fillUpTo ? segmentValue <= value! : segmentValue == value);
       final label = labels?[i] ?? '$segmentValue';
+      // Tap-to-clear is gated on exact value match, not the visual `filled`
+      // state. With `fillUpTo: true`, segments below the active one
+      // (e.g. priority 3 when value=4) are visually filled but tapping
+      // them sets the value to that segment, not null. Only tapping the
+      // exact active segment (segmentValue == value) clears.
+      final isActive = value == segmentValue;
       children.add(Expanded(
         child: Segment(
           label: label,
@@ -76,7 +82,7 @@ class SegmentedBar extends StatelessWidget {
           fillColor: accentColorForIndex(accent, i),
           height: height,
           onTap: () {
-            if (filled) {
+            if (isActive) {
               if (allowZero) onChanged(null);
             } else {
               onChanged(segmentValue);

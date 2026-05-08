@@ -63,14 +63,24 @@ class PointsPicker extends StatelessWidget {
 
   Future<void> _onSegmentTapped(BuildContext context, int segmentIndex) async {
     if (segmentIndex < fibBuckets.length) {
-      // Tapping the currently-active Fib is a no-op; user clears via Other.
-      if (value == fibBuckets[segmentIndex]) return;
-      onChanged(fibBuckets[segmentIndex]);
+      // Tapping the currently-active Fib clears the value (matches the
+      // priority and length bars' tap-active-to-clear behaviour).
+      if (value == fibBuckets[segmentIndex]) {
+        onChanged(null);
+      } else {
+        onChanged(fibBuckets[segmentIndex]);
+      }
       return;
     }
-    // "Other" tapped (whether active or not) — open numeric input.
-    final initial = (activeSegmentIndex(value) == 5) ? value : null;
-    final result = await _promptForCustomPoints(context, initial);
+    // "Other" segment.
+    if (activeSegmentIndex(value) == 5) {
+      // Active and tapped → clear, matching tap-active-clears for fibs.
+      // Re-tap to set a new custom value via the dialog.
+      onChanged(null);
+      return;
+    }
+    // Inactive Other → open numeric input.
+    final result = await _promptForCustomPoints(context, null);
     if (result == null) return; // user cancelled
     if (result == 0) {
       onChanged(null);

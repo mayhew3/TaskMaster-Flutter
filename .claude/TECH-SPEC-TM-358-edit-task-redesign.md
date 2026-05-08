@@ -77,15 +77,44 @@ Sticky bottom bar with optional Cancel + primary Save. Uses a vertical gradient 
 Compact row that summarizes a task's set dates as colored pills + chevron. Empty state shows "No dates set". Built directly from the `TaskDateTypes.allTypes` order; consumes a `Map<TaskDateType, DateTime?>`.
 
 ### `date_timeline_popup.dart` — `DateTimelinePopup`
-Modal bottom sheet with three regions:
-1. **Horizontal timeline** with one marker per set date. Markers are positioned proportionally by `(date.day - minDay) / span`; the inset (`30px`) keeps the leftmost / rightmost markers from clipping.
-2. **"Add a date" pills** for any unset date types — tapping adds a default date (start = today, target = +5d, urgent = +13d, due = +20d, all relative to the latest existing date or today).
-3. **Selected date detail** — Flutter's `CalendarDatePicker` (themed with the date type's accent color), a 5-segment time bucket picker (`9 AM / 12 PM / 2 PM / 5 PM / All day`), and a Remove pill.
+Modal bottom sheet with four regions:
+1. **Header** — `Cancel` / "Dates" / `Save` row. Save is a filled-magenta `FilledButton`; disabled (faded) when the working copy matches the snapshot taken at popup-open.
+2. **Horizontal timeline** with one marker per set date. Markers stack into vertical lanes when they would collide horizontally; lane assignment is via the public `assignTimelineLanes(...)` function with TaskDateTypes ordering as the priority so the visible stack reads top-down Start → Target → Urgent → Due. Each marker's label flag is wrapped with the same green ring as the parent screen when the marker's date differs from the snapshot.
+3. **"Add a date" pills** for any unset date types. Tapping adds a default date computed by `defaultDateForNewType(...)`, which respects bounds:
+   - both bounds → midpoint in days
+   - lower only → `lower + 5d`
+   - upper only → `upper − 5d` (the user-reported regression: adding Start when later types existed must land BEFORE the earliest of them)
+   - neither → today
+4. **Selected date detail** — custom `_MiniCalendar` (replaces Flutter's `CalendarDatePicker` so we can render multi-date highlights), a 5-segment time bucket picker (`9 AM / 12 PM / 2 PM / 5 PM / Other...`), and a Remove pill.
+   - Selected day = filled circle in the type's accent + dark text. Other set dates = bold colored text (no fill). Plain in-range days = lighter weight.
+   - Days outside `firstDate..lastDate` (computed from the OTHER set dates) are 20% opacity and reject taps.
+   - "Other..." opens Flutter's `showTimePicker` so users can dial in any time, including minutes — handy when bounds disable every standard bucket.
+   - When a marker is selected, the calendar's `ValueKey('mini-cal-${type.label}')` forces a fresh widget so the displayed month jumps to the new selection while preserving arrow-nav state within one type.
 
-Changes propagate immediately via `onChanged(type, value)`; the Done button just dismisses. The popup uses `DraggableScrollableSheet` so users can grow / shrink it without losing context.
+**Deferred-commit model:** edits update a local `_dates` working copy only. `_initialDates` snapshots the input. `Save` diffs the two and emits `onChanged(type, value)` per changed type; `Cancel` (and back/swipe-to-dismiss) discard.
 
 ### `repeat_editor_card.dart` — `RepeatEditorCard`
 The combined recurrence rule editor: toggle + (when on) "Every N" numeric input + unit `SegmentedBar` + anchor `SegmentedBar`. Anchor labels are normalized to `"Completed Date" | "Schedule Dates"` to match the existing `TaskItemBlueprint` mapping (`recurWait: bool?` ↔ anchor label). When `disabledReason` is supplied, the card replaces itself with a static info row (used for the family-shared-task case from TM-335).
+
+**Inline validation** via `showValidationErrors: bool`. When true (parent flips it on Save with missing fields), each missing required field renders with a red border + "Required" caption underneath. The `_NumberInput` uses Material's standard `errorText` plumbing; the segmented bars use a small `_ErrorBorderWrap` (transparent in non-error state for layout stability). Indicators clear independently as each field is filled.
+
+### Per-task `priorityScaleVersion` — data model migration
+Legacy rows stored `priority` on a 1–10 scale (cards halved via `(p/2).round().clamp(0,5)` to fit a 0–5 display). The redesigned bar works on a 1–5 scale, so a stored `4` is genuinely ambiguous between "low on 1–10" and "high on 1–5" without a marker.
+
+- Added `int priorityScaleVersion` to `TaskItem` (built_value, default 1 via `_setDefaults`) and `int? priorityScaleVersion` to `TaskItemBlueprint`.
+- Drift `Tasks` table gains the same column with default `Constant(1)`; schema bumps to **v7** with an `addColumn` migration step in `app_database.dart`.
+- New `TaskItem.displayPriority` getter normalizes per scale: legacy halves; v2+ passes through. Both `_PriorityBar` (cards) and the redesigned screen read this, so they always agree on what to render.
+- `_initializeTask` migrates legacy rows on first open: mirrors `displayPriority` into the blueprint and bumps `priorityScaleVersion = 2`. The persistence is **silent** (a fire-and-forget `updateTaskProvider` write) so the migration doesn't enable the Save Changes button. `taskItem` is rebuilt to the post-migration state so `hasChanges()` compares correctly.
+- New tasks save with `priorityScaleVersion = 2` directly.
+- Test coverage: `test/models/task_item_priority_scale_test.dart` (7 cases for displayPriority, blueprint round-trip, hasChanges-on-version-only diff, default value).
+
+### Timezone handling
+Blueprint dates hydrated from Firestore are UTC. The screen's `_datesMap(timezoneHelper)` wraps each value through `timezoneHelper.getLocalTime(...)` before passing to `DateSummaryRow` and `DateTimelinePopup`. Mirrors the legacy `ClearableDateTimeField` round-trip; the storage layer converts back to UTC on save.
+
+### Changed-field highlight
+A 2-px light-green ring (`#8FE5A1`) frames each field whose blueprint value differs from the original `taskItem` (per-field detectors `_areaChanged`, `_priorityChanged`, etc.). New tasks return false everywhere — there's nothing to diff against, so no ring renders. The wrapper widget `_ChangedFieldHighlight` keeps the same 2-px padding in the unchanged state (transparent border) so toggling doesn't shift layout. The Name field (underline-only) recolors its underline to the same green at 2-px width when changed.
+
+The Dates popup mirrors this on the marker labels: changed markers render their flag inside the same green ring.
 
 ## Screen refactor — `task_add_edit_screen.dart`
 
@@ -96,9 +125,11 @@ The 802-line legacy file was rewritten end-to-end:
 - **Editor gradient**: `editorBgTop` → `cardColor` over the first ~280 px, applied via a `Container.decoration.gradient` wrapping the body.
 - **Field order:** Name (large borderless input) → Area → Context → Priority → Points → Length → Dates → Repeat → Notes. The two date-related fields are rendered together; tapping Dates opens the timeline popup.
 - **Validator parity:** name field still emits "Name is required" on empty submit so existing tests (TM-297) and user-facing message stay identical.
+- **Recurrence required-fields validation:** when `_repeatOn` is true, every-N / unit / anchor must all be set. Failure flips `_repeatValidationFailed = true` so `RepeatEditorCard` renders inline error highlights (no SnackBar). The flag clears on Repeat-toggle-off.
 - **Auto-close behavior** (TM-348): unchanged. The `_checkForAutoClose` listener and `_scheduleAutoClose` post-frame callback are preserved verbatim.
 - **Family-shared rule** (TM-335): unchanged. When a family-shared task without existing recurrence is edited, `RepeatEditorCard` is rendered with `disabledReason: "Repeating tasks aren't supported in family view yet."`.
 - **Single-select Context** is rendered by a small inline `_ContextPickerButton` (chevron-style) that opens a bottom sheet listing the hardcoded options. This will be swapped for the multi-select pills + popup once the migration ticket lands.
+- **AreaPicker setState bridge:** the screen wraps `AreaPicker.valueSetter` in `setState` so the green changed-border + bottom Save bar update immediately (the redesigned `AreaPicker` is no longer a `FormField`, so `Form.onChanged` doesn't fire).
 
 ## Test coverage matrix
 
@@ -106,16 +137,19 @@ The 802-line legacy file was rewritten end-to-end:
 |---|---|---|
 | `FieldLabel` | `test/widgets/field_label_test.dart` | label rendering, hint, action slot |
 | `SegmentedBar` | `test/widgets/segmented_bar_test.dart` | default 1..N labels, custom labels, tap-inactive emits, allowZero clear, allowZero no-op, asserts on label/segment mismatch |
-| `LengthBucketPicker` | `test/widgets/length_bucket_picker_test.dart` | snap helper for exact/between/null/negative, tap emits canonical, active-tap is no-op |
-| `PointsPicker` | `test/widgets/points_picker_test.dart` | Fibonacci index map, Other index for non-Fib, null/zero, label rendering, dialog flow (set / cancel / clear-on-empty / digits-only) |
+| `LengthBucketPicker` | `test/widgets/length_bucket_picker_test.dart` | snap helper for exact/between/null/negative, tap emits canonical, active-tap clears (matches priority bar) |
+| `PointsPicker` | `test/widgets/points_picker_test.dart` | Fibonacci index map, Other index for non-Fib, null/zero, dialog flow (set / cancel / clear-on-empty / digits-only), tap-active-Fib clears, tap-active-Other clears |
 | `Pill` / `AddPill` | `test/widgets/pill_test.dart` | label, onTap, onRemove visible/fires, AddPill icon |
 | `TmBottomActionBar` | `test/widgets/tm_bottom_action_bar_test.dart` | save label, cancel hide/show, callbacks, disabled save |
 | `DateSummaryRow` | `test/widgets/date_summary_row_test.dart` | empty-state, set-date pills with x/4 counter, date format, onTap |
-| `DateTimelinePopup` | `test/widgets/date_timeline_popup_test.dart` | empty hint, Add pills for unset, marker labels for set, Add tap fires onChanged with new date, Remove fires onChanged(null) |
-| `RepeatEditorCard` | `test/widgets/repeat_editor_card_test.dart` | disabled hides controls, enabled shows fields, toggle/unit/anchor callbacks, disabledReason replaces the card |
-| **Screen integration** | `test/features/tasks/presentation/task_add_edit_navigation_test.dart` (existing, updated) | TM-282 navigate-back-on-save, TM-297 name-required validation, TM-348 lifecycle assertion regression. Selectors updated FAB icon → text button labels (`"Add task"` / `"Save changes"`) |
+| `DateTimelinePopup` | `test/widgets/date_timeline_popup_test.dart` | empty hint, Add pills for unset, marker labels for set, Save commits diffs, Cancel discards, Save without changes is a no-op, Remove + Save commits null |
+| `assignTimelineLanes` | `test/widgets/date_timeline_popup_lane_test.dart` | single / spaced / colliding / 3-same-x / 4-overlap / lane reuse / threshold edge cases / empty / priority ordering (parallel input/output, full reverse stack, partial overlap) |
+| `defaultDateForNewType` | `test/widgets/date_timeline_popup_default_for_test.dart` | lower-only, upper-only (incl. TM-358 user bug — Start before earliest later), both-bounds midpoint, same-day bounds, multi-bound (latest lower / earliest upper), no-bounds today, output normalized to 9 AM |
+| `RepeatEditorCard` | `test/widgets/repeat_editor_card_test.dart` | disabled hides controls, enabled shows fields, toggle/unit/anchor callbacks, disabledReason replaces the card, validation-error rendering (all-missing, partial-fix, flag-off) |
+| `TaskItem` priority-scale | `test/models/task_item_priority_scale_test.dart` | `displayPriority` for legacy/modern values, blueprint round-trip, hasChanges on scale-only diff, default scale version |
+| **Screen integration** | `test/features/tasks/presentation/task_add_edit_navigation_test.dart` (existing, updated) + `task_add_edit_redesign_test.dart` (new) | TM-282 navigate-back-on-save, TM-297 name-required validation, TM-348 lifecycle assertion regression. Selectors updated FAB icon → text button labels (`"Add task"` / `"Save changes"`). Redesign chrome (top nav, sticky save bar, no FAB) + delete confirm flow |
 
-Total: 39 existing widget tests still pass + **29 new widget tests** + **7 updated screen integration tests** = **597 tests**, full green.
+Total: **642 tests**, full green. `flutter analyze` clean.
 
 ## Out of scope (deferred to follow-ups)
 
@@ -131,8 +165,9 @@ Total: 39 existing widget tests still pass + **29 new widget tests** + **7 updat
 ## Verification
 
 - `flutter analyze` clean.
-- `flutter test` passes (597 tests).
+- `flutter test` passes (642 tests).
 - `flutter build web` succeeds.
-- Manual on Android emulator: name, area picker (open / select / cancel), context picker (open / select / clear), priority + points + length segmented bars (tap, retap to clear, Other dialog), dates row → timeline popup (add, edit, remove, time bucket), repeat editor (toggle on / off, unit, anchor), notes, sticky save bar (Cancel pops, Save changes auto-closes).
+- Manual on Android emulator: name, area picker (chevron + sheet + inline-add field with dashed border), context picker (open / select / clear / scrollable), priority + points + length segmented bars (tap to set, tap-exact-active to clear, fillUpTo visual on priority/points only), dates row → timeline popup (Cancel discards / Save commits / disabled when no changes / mini-calendar with multi-date highlighting / range fading / time buckets including Other...), repeat editor (toggle on/off, unit, anchor, inline error highlights when fields missing), notes, sticky save bar (Cancel pops, Save changes auto-closes).
 - Manual delete flow: tap trash → confirm → screen pops, task gone.
+- Manual priority migration: open a legacy task with priority > 5 → bar renders normalized value; Save Changes stays disabled because the migration persists silently on open.
 - iOS device check is the user's responsibility (not possible from Windows).

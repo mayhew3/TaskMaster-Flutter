@@ -32,6 +32,13 @@ class RepeatEditorCard extends StatelessWidget {
   /// disallowed for some reason (e.g. family-shared tasks; TM-335).
   final String? disabledReason;
 
+  /// When true, missing required fields (every-N / unit / anchor) render
+  /// with a red border and a "Required" caption underneath. The parent
+  /// flips this true when the user taps Save with [enabled] but any
+  /// required field is missing, mirroring the pre-redesign FormField
+  /// validator behavior.
+  final bool showValidationErrors;
+
   const RepeatEditorCard({
     required this.enabled,
     required this.onEnabledChanged,
@@ -42,11 +49,16 @@ class RepeatEditorCard extends StatelessWidget {
     required this.anchor,
     required this.onAnchorChanged,
     this.disabledReason,
+    this.showValidationErrors = false,
     super.key,
   });
 
   static const List<String> unitOptions = ['Days', 'Weeks', 'Months', 'Years'];
   static const List<String> anchorOptions = ['Completed Date', 'Schedule Dates'];
+
+  /// Material's standard error red, slightly tuned to read against the
+  /// brand-blue surface.
+  static const Color _errorColor = Color(0xFFE57373);
 
   @override
   Widget build(BuildContext context) {
@@ -100,10 +112,10 @@ class RepeatEditorCard extends StatelessWidget {
           if (enabled) ...[
             const SizedBox(height: 12),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  width: 64,
+                  width: 72,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -111,6 +123,8 @@ class RepeatEditorCard extends StatelessWidget {
                       _NumberInput(
                         value: number,
                         onChanged: onNumberChanged,
+                        showError: showValidationErrors &&
+                            (number == null || number! <= 0),
                       ),
                     ],
                   ),
@@ -121,14 +135,21 @@ class RepeatEditorCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const FieldLabel('Unit'),
-                      SegmentedBar(
-                        value: _indexFor(unit, unitOptions),
-                        segments: unitOptions.length,
-                        labels: unitOptions,
-                        allowZero: false,
-                        onChanged: (v) =>
-                            onUnitChanged(v == null ? null : unitOptions[v - 1]),
+                      _ErrorBorderWrap(
+                        showError:
+                            showValidationErrors && unit == null,
+                        errorColor: _errorColor,
+                        child: SegmentedBar(
+                          value: _indexFor(unit, unitOptions),
+                          segments: unitOptions.length,
+                          labels: unitOptions,
+                          allowZero: false,
+                          onChanged: (v) => onUnitChanged(
+                              v == null ? null : unitOptions[v - 1]),
+                        ),
                       ),
+                      if (showValidationErrors && unit == null)
+                        const _ErrorCaption(message: 'Required'),
                     ],
                   ),
                 ),
@@ -136,14 +157,20 @@ class RepeatEditorCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             const FieldLabel('Anchor'),
-            SegmentedBar(
-              value: _indexFor(anchor, anchorOptions),
-              segments: anchorOptions.length,
-              labels: anchorOptions,
-              allowZero: false,
-              onChanged: (v) =>
-                  onAnchorChanged(v == null ? null : anchorOptions[v - 1]),
+            _ErrorBorderWrap(
+              showError: showValidationErrors && anchor == null,
+              errorColor: _errorColor,
+              child: SegmentedBar(
+                value: _indexFor(anchor, anchorOptions),
+                segments: anchorOptions.length,
+                labels: anchorOptions,
+                allowZero: false,
+                onChanged: (v) =>
+                    onAnchorChanged(v == null ? null : anchorOptions[v - 1]),
+              ),
             ),
+            if (showValidationErrors && anchor == null)
+              const _ErrorCaption(message: 'Required'),
           ],
         ],
       ),
@@ -160,8 +187,13 @@ class RepeatEditorCard extends StatelessWidget {
 class _NumberInput extends StatefulWidget {
   final int? value;
   final ValueChanged<int?> onChanged;
+  final bool showError;
 
-  const _NumberInput({required this.value, required this.onChanged});
+  const _NumberInput({
+    required this.value,
+    required this.onChanged,
+    this.showError = false,
+  });
 
   @override
   State<_NumberInput> createState() => _NumberInputState();
@@ -213,20 +245,81 @@ class _NumberInputState extends State<_NumberInput> {
         fillColor: TaskColors.fieldSurface,
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: TaskColors.fieldBorder, width: 1),
+          borderSide: BorderSide(
+            color: widget.showError
+                ? RepeatEditorCard._errorColor
+                : TaskColors.fieldBorder,
+            width: widget.showError ? 1.5 : 1,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(
-            color: TaskColors.brandMagenta.withValues(alpha: 0.6),
-            width: 1,
+            color: widget.showError
+                ? RepeatEditorCard._errorColor
+                : TaskColors.brandMagenta.withValues(alpha: 0.6),
+            width: 1.5,
           ),
+        ),
+        errorText: widget.showError ? 'Required' : null,
+        errorStyle: const TextStyle(
+          color: RepeatEditorCard._errorColor,
+          fontSize: 11,
+          height: 1.0,
         ),
       ),
       onChanged: (s) {
         final v = s.trim().isEmpty ? null : int.tryParse(s.trim());
         widget.onChanged(v);
       },
+    );
+  }
+}
+
+/// Adds a thin red border around the [child] when [showError] is true.
+/// Padding is preserved when not in error so layout doesn't shift.
+class _ErrorBorderWrap extends StatelessWidget {
+  final bool showError;
+  final Color errorColor;
+  final Widget child;
+
+  const _ErrorBorderWrap({
+    required this.showError,
+    required this.errorColor,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: showError ? errorColor : Colors.transparent,
+          width: 1.5,
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _ErrorCaption extends StatelessWidget {
+  final String message;
+  const _ErrorCaption({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, left: 4),
+      child: Text(
+        message,
+        style: const TextStyle(
+          color: RepeatEditorCard._errorColor,
+          fontSize: 11,
+        ),
+      ),
     );
   }
 }

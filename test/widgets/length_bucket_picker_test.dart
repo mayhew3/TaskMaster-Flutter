@@ -49,16 +49,17 @@ void main() {
       expect(captured, 60);
     });
 
-    testWidgets('tapping the active bucket does not clear', (tester) async {
-      var callCount = 0;
+    testWidgets('tapping the active bucket clears the value', (tester) async {
+      int? captured = -1; // sentinel: not yet called
       await _pump(
         tester,
-        LengthBucketPicker(minutes: 60, onChanged: (_) => callCount++),
+        LengthBucketPicker(minutes: 60, onChanged: (m) => captured = m),
       );
       await tester.tap(find.text('1h'));
       await tester.pumpAndSettle();
-      // allowZero is false in LengthBucketPicker → no callback for active tap.
-      expect(callCount, 0);
+      expect(captured, isNull,
+          reason:
+              'Tap-active-to-clear matches the priority bar so users can null out length the same way.');
     });
   });
 }

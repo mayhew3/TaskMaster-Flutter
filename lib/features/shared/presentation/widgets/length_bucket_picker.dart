@@ -13,8 +13,9 @@ class LengthBucketPicker extends StatelessWidget {
   final int? minutes;
 
   /// Called with the canonical bucket value (in minutes) when a bucket is
-  /// tapped. The widget never emits a non-bucket value.
-  final ValueChanged<int> onChanged;
+  /// tapped, or `null` when the user taps the currently-active bucket to
+  /// clear the selection.
+  final ValueChanged<int?> onChanged;
 
   static const List<int> bucketsMinutes = [5, 15, 30, 60, 120, 240, 480, 1440];
   static const List<String> bucketsLabels = [
@@ -50,11 +51,16 @@ class LengthBucketPicker extends StatelessWidget {
       segments: bucketsMinutes.length,
       labels: bucketsLabels,
       accent: SegmentedBarAccent.brand,
-      allowZero: false,
+      // Tapping the currently-active bucket clears the value (matches the
+      // priority bar's behavior).
+      allowZero: true,
       gap: 3,
       onChanged: (v) {
-        if (v == null) return;
-        onChanged(bucketsMinutes[v - 1]);
+        if (v == null) {
+          onChanged(null);
+        } else {
+          onChanged(bucketsMinutes[v - 1]);
+        }
       },
     );
   }

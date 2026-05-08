@@ -32,9 +32,11 @@ class AreaPicker extends ConsumerStatefulWidget {
   ConsumerState<AreaPicker> createState() => _AreaPickerState();
 }
 
-// Use the shared "+ Add new area…" sentinel so the service's reserved-name
-// rejection (kReservedAreaNames) stays in sync with the picker's UI string.
-const String _addSentinel = kAddNewSentinelName;
+// The picker no longer renders the sentinel string in its UI (the inline
+// field uses "Add new area…" without the leading "+", since the + icon
+// already provides that affordance). The service's reserved-name set
+// (kReservedAreaNames) still contains the sentinel so typing it
+// literally is rejected by the inline validator.
 
 class _AreaPickerState extends ConsumerState<AreaPicker> {
   String? _selected;
@@ -128,20 +130,54 @@ class _AreaPickerState extends ConsumerState<AreaPicker> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(18, 18, 18, 12),
-                    child: Text(
-                      'Select area',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 14, 12, 12),
+                    child: Row(
+                      children: [
+                        const Text(
+                          'Select area',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const Spacer(),
+                        // Done dismisses the sheet without changing the
+                        // selection. Picking an area row already auto-pops
+                        // the sheet — Done is the escape hatch when the
+                        // user wants to exit without picking.
+                        TextButton(
+                          onPressed: () => Navigator.of(sheetCtx).pop(),
+                          style: TextButton.styleFrom(
+                            // Don't pick up the global text-button outline
+                            // that's set on the dialog/card surface — the
+                            // popup BG (TaskColors.popupBg) is darker and a
+                            // borderless button reads cleaner here.
+                            side: BorderSide.none,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                          ),
+                          child: Text(
+                            'Done',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.70),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
+                  // Thin separator beneath the header, matching the prototype.
+                  Container(
+                    height: 1,
+                    color: Colors.white.withValues(alpha: 0.06),
                   ),
                   Flexible(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(18, 0, 18, 8),
+                      padding: const EdgeInsets.fromLTRB(18, 12, 18, 8),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -375,71 +411,82 @@ class _InlineAddAreaFieldState extends State<_InlineAddAreaField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Container(
-          padding: const EdgeInsets.fromLTRB(10, 4, 6, 4),
-          decoration: BoxDecoration(
+        _DashedBorderBox(
+          color: Colors.white.withValues(alpha: 0.25),
+          radius: 10,
+          dash: 5,
+          gap: 3,
+          child: Container(
             color: Colors.white.withValues(alpha: 0.04),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.18),
-              width: 1,
-            ),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.add,
-                size: 14,
-                color: Colors.white.withValues(alpha: 0.50),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: _controller,
-                  textCapitalization: TextCapitalization.words,
-                  textInputAction: TextInputAction.done,
-                  maxLength: 40,
-                  enabled: !_submitting,
-                  onChanged: (_) {
-                    if (_error != null) setState(() => _error = null);
-                    setState(() {}); // refresh Add button visibility
-                  },
-                  onSubmitted: (_) => _submit(),
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    counterText: '',
-                    hintText: _addSentinel,
-                    hintStyle: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.40),
-                      fontSize: 14,
+            padding: const EdgeInsets.fromLTRB(10, 4, 6, 4),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.add,
+                  size: 13,
+                  color: Colors.white.withValues(alpha: 0.50),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    textCapitalization: TextCapitalization.words,
+                    textInputAction: TextInputAction.done,
+                    maxLength: 40,
+                    enabled: !_submitting,
+                    onChanged: (_) {
+                      if (_error != null) setState(() => _error = null);
+                      setState(() {}); // refresh Add button visibility
+                    },
+                    onSubmitted: (_) => _submit(),
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                    // Explicitly opt out of the global inputDecorationTheme's
+                    // filled fillColor so the field is transparent and the
+                    // dashed-border row reads as a single unit.
+                    decoration: InputDecoration(
+                      filled: false,
+                      fillColor: Colors.transparent,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      isDense: true,
+                      counterText: '',
+                      // Hint omits the leading "+ " from the sentinel
+                      // string — the explicit + icon to the left of the
+                      // field provides that affordance, so showing both
+                      // would render "+ + Add new area…".
+                      hintText: 'Add new area…',
+                      hintStyle: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.40),
+                        fontSize: 14,
+                      ),
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 8),
                     ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
                   ),
                 ),
-              ),
-              if (hasText)
-                Padding(
-                  padding: const EdgeInsets.only(left: 6),
-                  child: FilledButton(
-                    onPressed: _submitting ? null : _submit,
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      minimumSize: const Size(0, 32),
-                      backgroundColor: TaskColors.brandMagenta,
-                    ),
-                    child: const Text(
-                      'Add',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
+                if (hasText)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 6),
+                    child: FilledButton(
+                      onPressed: _submitting ? null : _submit,
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        minimumSize: const Size(0, 32),
+                        backgroundColor: TaskColors.brandMagenta,
+                      ),
+                      child: const Text(
+                        'Add',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
         if (_error != null)
@@ -455,5 +502,86 @@ class _InlineAddAreaFieldState extends State<_InlineAddAreaField> {
           ),
       ],
     );
+  }
+}
+
+/// Wraps [child] with a dashed rounded-rectangle border. Flutter's
+/// BoxDecoration doesn't support dashes natively, so this draws via
+/// CustomPaint. Stroke width is fixed at 1 px to match the design.
+class _DashedBorderBox extends StatelessWidget {
+  const _DashedBorderBox({
+    required this.color,
+    required this.radius,
+    required this.dash,
+    required this.gap,
+    required this.child,
+  });
+
+  final Color color;
+  final double radius;
+  final double dash;
+  final double gap;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _DashedBorderPainter(
+        color: color,
+        radius: radius,
+        dash: dash,
+        gap: gap,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: child,
+      ),
+    );
+  }
+}
+
+class _DashedBorderPainter extends CustomPainter {
+  _DashedBorderPainter({
+    required this.color,
+    required this.radius,
+    required this.dash,
+    required this.gap,
+  });
+
+  final Color color;
+  final double radius;
+  final double dash;
+  final double gap;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1
+      ..style = PaintingStyle.stroke;
+
+    final rrect = RRect.fromRectAndRadius(
+      Offset.zero & size,
+      Radius.circular(radius),
+    );
+
+    final path = Path()..addRRect(rrect);
+    final metrics = path.computeMetrics();
+    for (final metric in metrics) {
+      var distance = 0.0;
+      while (distance < metric.length) {
+        final next = (distance + dash).clamp(0.0, metric.length);
+        canvas.drawPath(metric.extractPath(distance, next), paint);
+        distance = next + gap;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedBorderPainter old) {
+    return old.color != color ||
+        old.radius != radius ||
+        old.dash != dash ||
+        old.gap != gap;
   }
 }

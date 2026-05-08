@@ -63,38 +63,93 @@ void main() {
       expect(find.text('Urgent'), findsOneWidget);
     });
 
-    testWidgets('tapping an Add pill calls onChanged with a new date',
-        (tester) async {
-      final dates = {for (final t in TaskDateTypes.allTypes) t: null};
-      TaskDateType? capturedType;
-      DateTime? capturedDate;
-      await _pump(tester, dates, (t, d) {
-        capturedType = t;
-        capturedDate = d;
-      });
-      await tester.tap(find.text('Start'));
-      await tester.pumpAndSettle();
-      expect(capturedType, TaskDateTypes.start);
-      expect(capturedDate, isNotNull);
-    });
+    testWidgets(
+      'adding a date is committed via onChanged when Save is tapped',
+      (tester) async {
+        final dates = {for (final t in TaskDateTypes.allTypes) t: null};
+        TaskDateType? capturedType;
+        DateTime? capturedDate;
+        await _pump(tester, dates, (t, d) {
+          capturedType = t;
+          capturedDate = d;
+        });
 
-    testWidgets('Remove button calls onChanged with null', (tester) async {
-      final dates = <TaskDateType, DateTime?>{
-        TaskDateTypes.start: DateTime(2026, 5, 1),
-        TaskDateTypes.target: null,
-        TaskDateTypes.urgent: null,
-        TaskDateTypes.due: null,
-      };
-      DateTime? captured = DateTime(2099); // sentinel
-      await _pump(tester, dates, (t, d) {
-        captured = d;
-      });
-      // Selected detail should already be visible for the only set date.
-      expect(find.text('Start date'), findsOneWidget);
-      // Tap Remove.
-      await tester.tap(find.text('Remove'));
-      await tester.pumpAndSettle();
-      expect(captured, isNull);
-    });
+        // Add Start; the popup updates internally but doesn't fire
+        // onChanged yet — that only happens on Save.
+        await tester.tap(find.text('Start'));
+        await tester.pumpAndSettle();
+        expect(capturedType, isNull,
+            reason: 'Add should be deferred until the user taps Save.');
+
+        // Tap Save in the header.
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+        expect(capturedType, TaskDateTypes.start);
+        expect(capturedDate, isNotNull);
+      },
+    );
+
+    testWidgets(
+      'Cancel discards an add — onChanged is never called',
+      (tester) async {
+        final dates = {for (final t in TaskDateTypes.allTypes) t: null};
+        var calls = 0;
+        await _pump(tester, dates, (_, __) => calls++);
+
+        await tester.tap(find.text('Start'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+        expect(calls, 0,
+            reason: 'Cancel must drop pending edits, not commit them.');
+      },
+    );
+
+    testWidgets(
+      'Remove + Save commits a null for the removed type',
+      (tester) async {
+        final dates = <TaskDateType, DateTime?>{
+          TaskDateTypes.start: DateTime(2026, 5, 1),
+          TaskDateTypes.target: null,
+          TaskDateTypes.urgent: null,
+          TaskDateTypes.due: null,
+        };
+        DateTime? captured = DateTime(2099); // sentinel
+        TaskDateType? capturedType;
+        await _pump(tester, dates, (t, d) {
+          capturedType = t;
+          captured = d;
+        });
+        // Selected detail should already be visible for the only set date.
+        expect(find.text('Start date'), findsOneWidget);
+        await tester.tap(find.text('Remove'));
+        await tester.pumpAndSettle();
+
+        // Save commits the removal.
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+        expect(capturedType, TaskDateTypes.start);
+        expect(captured, isNull);
+      },
+    );
+
+    testWidgets(
+      'Save without changes does not call onChanged',
+      (tester) async {
+        final dates = <TaskDateType, DateTime?>{
+          TaskDateTypes.start: DateTime(2026, 5, 1),
+          TaskDateTypes.target: null,
+          TaskDateTypes.urgent: null,
+          TaskDateTypes.due: null,
+        };
+        var calls = 0;
+        await _pump(tester, dates, (_, __) => calls++);
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+        expect(calls, 0,
+            reason: 'Save should diff against the initial dates and only '
+                'emit for changed types.');
+      },
+    );
   });
 }

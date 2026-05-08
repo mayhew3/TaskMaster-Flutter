@@ -3,6 +3,126 @@ import 'package:taskmaestro/features/shared/presentation/widgets/segmented_bar.d
 import 'package:taskmaestro/models/task_colors.dart';
 import 'package:taskmaestro/models/task_date_type.dart';
 
+/// Default date for a newly-added date type in the timeline popup, computed
+/// so it lands inside the chronologically-allowed range:
+///   - **both bounds set** → midpoint (in whole days, truncated toward
+///     `lower`) between the latest earlier date and the earliest later
+///     date
+///   - **only lower bound** (earlier types set) → `lower + 5 days`
+///   - **only upper bound** (later types set) → `upper − 5 days`
+///   - **neither** → [todayProvider] called for "today" (defaults to
+///     `DateTime.now`, overridable for tests)
+///
+/// The result is always normalized to 9:00 AM. This replaces an earlier
+/// heuristic that added a fixed offset per type position; that broke when
+/// types were added out of order (e.g. adding Start last when Target,
+/// Urgent, and Due already existed placed Start AFTER all of them).
+DateTime defaultDateForNewType({
+  required TaskDateType type,
+  required Map<TaskDateType, DateTime?> dates,
+  DateTime Function()? todayProvider,
+}) {
+  final allTypes = TaskDateTypes.allTypes;
+  final selfIdx = allTypes.indexOf(type);
+
+  DateTime? lower; // latest of earlier types
+  for (var i = 0; i < selfIdx; i++) {
+    final d = dates[allTypes[i]];
+    if (d != null && (lower == null || d.isAfter(lower))) lower = d;
+  }
+  DateTime? upper; // earliest of later types
+  for (var i = selfIdx + 1; i < allTypes.length; i++) {
+    final d = dates[allTypes[i]];
+    if (d != null && (upper == null || d.isBefore(upper))) upper = d;
+  }
+
+  DateTime base;
+  if (lower != null && upper != null) {
+    final lowerDay = DateTime(lower.year, lower.month, lower.day);
+    final upperDay = DateTime(upper.year, upper.month, upper.day);
+    final daysDiff = upperDay.difference(lowerDay).inDays;
+    base = lowerDay.add(Duration(days: daysDiff ~/ 2));
+  } else if (lower != null) {
+    base = DateTime(lower.year, lower.month, lower.day)
+        .add(const Duration(days: 5));
+  } else if (upper != null) {
+    base = DateTime(upper.year, upper.month, upper.day)
+        .subtract(const Duration(days: 5));
+  } else {
+    final now = (todayProvider ?? DateTime.now)();
+    base = DateTime(now.year, now.month, now.day);
+  }
+  return DateTime(base.year, base.month, base.day, 9);
+}
+
+/// Greedy lane assignment for timeline markers, with optional priority.
+///
+/// Returns one lane index per input marker (parallel list). Lane 0 is
+/// rendered closest to the track in [_Timeline]; higher lane numbers stack
+/// upward with longer connector lines.
+///
+/// When [priorities] is supplied, markers are placed in priority-DESCENDING
+/// order so higher-priority markers land in lower lanes. This is what makes
+/// the timeline display top-down by date type (Start = priority 0 → top,
+/// Due = priority 3 → bottom near the track) when markers collide. When
+/// [priorities] is null, markers are placed in input order (which the
+/// caller is expected to have sorted by x).
+///
+/// Two markers collide when `(x_a - x_b).abs() < markerWidth + minGap`.
+List<int> assignTimelineLanes(
+  List<double> xs, {
+  List<int>? priorities,
+  required double markerWidth,
+  required double minGap,
+}) {
+  final n = xs.length;
+  if (n == 0) return const [];
+  assert(priorities == null || priorities.length == n,
+      'priorities length must match xs');
+  final result = List<int>.filled(n, 0);
+
+  // Iteration order: by priority descending, with input order as the
+  // tie-breaker. With null priorities (or all-equal), input order wins.
+  final order = List.generate(n, (i) => i);
+  if (priorities != null) {
+    order.sort((a, b) {
+      final cmp = priorities[b].compareTo(priorities[a]);
+      if (cmp != 0) return cmp;
+      return a.compareTo(b);
+    });
+  }
+
+  // Per-lane list of indices already placed there. O(n²) check per insert,
+  // fine for n ≤ a handful of markers.
+  final lanes = <List<int>>[];
+  final threshold = markerWidth + minGap;
+  for (final idx in order) {
+    final x = xs[idx];
+    var laneIdx = -1;
+    for (var i = 0; i < lanes.length; i++) {
+      var fits = true;
+      for (final existingIdx in lanes[i]) {
+        if ((x - xs[existingIdx]).abs() < threshold) {
+          fits = false;
+          break;
+        }
+      }
+      if (fits) {
+        laneIdx = i;
+        break;
+      }
+    }
+    if (laneIdx == -1) {
+      laneIdx = lanes.length;
+      lanes.add([idx]);
+    } else {
+      lanes[laneIdx].add(idx);
+    }
+    result[idx] = laneIdx;
+  }
+  return result;
+}
+
 /// Modal bottom-sheet popup for editing the start/target/urgent/due dates of
 /// a task. Renders:
 ///   1. A horizontal timeline with a marker per set date (snaps with the
@@ -54,9 +174,13 @@ class DateTimelinePopup extends StatefulWidget {
 }
 
 class _DateTimelinePopupState extends State<DateTimelinePopup> {
-  /// Local mirror of the dates map so the timeline updates as the user
-  /// edits. Each change is also bubbled up through `widget.onChanged`.
+  /// Working copy of the dates map. Edits update this; the parent's
+  /// blueprint is only mutated when the user taps Save (see [_save]).
   late Map<TaskDateType, DateTime?> _dates;
+
+  /// Snapshot of the dates as they were when the popup opened, so [_save]
+  /// can diff and emit `onChanged` only for the types that changed.
+  late Map<TaskDateType, DateTime?> _initialDates;
 
   /// Currently-selected date type for inline editing. Null = nothing
   /// selected (just the timeline shown).
@@ -66,6 +190,7 @@ class _DateTimelinePopupState extends State<DateTimelinePopup> {
   void initState() {
     super.initState();
     _dates = Map.of(widget.dates);
+    _initialDates = Map.of(widget.dates);
     _selected = TaskDateTypes.allTypes
         .firstWhere((t) => _dates[t] != null, orElse: () => TaskDateTypes.start);
     if (_dates[_selected] == null) _selected = null;
@@ -80,26 +205,38 @@ class _DateTimelinePopupState extends State<DateTimelinePopup> {
         if (_dates[_selected] == null) _selected = null;
       }
     });
-    widget.onChanged(type, value);
+    // No widget.onChanged here — the parent only learns about edits when
+    // the user taps Save. Cancel/back/swipe-to-dismiss discards the diff.
   }
 
-  /// Best-effort default date for a newly-added date type, derived from
-  /// other set dates: start = today, target = +5d, urgent = +13d, due = +20d.
-  /// Falls back to "today + N days" relative to the latest set date.
-  DateTime _defaultFor(TaskDateType type) {
-    const offsets = {0: 0, 1: 5, 2: 13, 3: 20};
-    final idx = TaskDateTypes.allTypes.indexOf(type);
-    final base = TaskDateTypes.allTypes
-            .map((t) => _dates[t])
-            .where((d) => d != null)
-            .cast<DateTime>()
-            .fold<DateTime?>(null,
-                (acc, d) => (acc == null || d.isAfter(acc)) ? d : acc) ??
-        DateTime.now();
-    final offset = offsets[idx] ?? 0;
-    return DateTime(base.year, base.month, base.day, 9)
-        .add(Duration(days: offset));
+  /// Commits any changed dates to the parent and dismisses the sheet.
+  void _save() {
+    for (final t in TaskDateTypes.allTypes) {
+      if (_dates[t] != _initialDates[t]) {
+        widget.onChanged(t, _dates[t]);
+      }
+    }
+    Navigator.of(context).pop();
   }
+
+  /// Dismisses the sheet without committing any edits.
+  void _cancel() {
+    Navigator.of(context).pop();
+  }
+
+  /// Whether the working copy diverges from the snapshot taken at popup-
+  /// open. Drives the Save button's enabled state.
+  bool get _hasPendingChanges {
+    for (final t in TaskDateTypes.allTypes) {
+      if (_dates[t] != _initialDates[t]) return true;
+    }
+    return false;
+  }
+
+  /// Thin wrapper for the file-scope [defaultDateForNewType], which holds
+  /// the actual algorithm so it's unit-testable without a widget pump.
+  DateTime _defaultFor(TaskDateType type) =>
+      defaultDateForNewType(type: type, dates: _dates);
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +249,10 @@ class _DateTimelinePopupState extends State<DateTimelinePopup> {
         mainAxisSize: MainAxisSize.min,
         children: [
           _DragHandle(),
-          _Header(onClose: () => Navigator.of(context).pop()),
+          _Header(
+            onCancel: _cancel,
+            onSave: _hasPendingChanges ? _save : null,
+          ),
           Flexible(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(18, 14, 18, 24),
@@ -121,6 +261,7 @@ class _DateTimelinePopupState extends State<DateTimelinePopup> {
                 children: [
                   _Timeline(
                     dates: _dates,
+                    initialDates: _initialDates,
                     selected: _selected,
                     onSelect: (t) => setState(() => _selected = t),
                   ),
@@ -142,6 +283,7 @@ class _DateTimelinePopupState extends State<DateTimelinePopup> {
                     _SelectedDateDetail(
                       type: _selected!,
                       date: _dates[_selected]!,
+                      dates: _dates,
                       onChange: (v) => _setDate(_selected!, v),
                       onRemove: () => _setDate(_selected!, null),
                     ),
@@ -176,13 +318,16 @@ class _DragHandle extends StatelessWidget {
 }
 
 class _Header extends StatelessWidget {
-  final VoidCallback onClose;
-  const _Header({required this.onClose});
+  final VoidCallback onCancel;
+
+  /// `null` disables the Save button (no pending edits to commit).
+  final VoidCallback? onSave;
+  const _Header({required this.onCancel, required this.onSave});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(18, 4, 12, 12),
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 12),
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
@@ -190,23 +335,56 @@ class _Header extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Text(
-            'Dates',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const Spacer(),
+          // Left: Cancel — discards uncommitted edits.
           TextButton(
-            onPressed: onClose,
+            onPressed: onCancel,
+            style: TextButton.styleFrom(
+              side: BorderSide.none,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            ),
             child: Text(
-              'Done',
+              'Cancel',
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.70),
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          // Center: title.
+          const Expanded(
+            child: Center(
+              child: Text(
+                'Dates',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+          // Right: Save — primary action, filled magenta to read as a CTA.
+          // Disabled (null onPressed) when there are no pending edits;
+          // FilledButton renders a faded variant in that case.
+          FilledButton(
+            onPressed: onSave,
+            style: FilledButton.styleFrom(
+              backgroundColor: TaskColors.brandMagenta,
+              foregroundColor: Colors.white,
+              disabledBackgroundColor:
+                  TaskColors.brandMagenta.withValues(alpha: 0.35),
+              disabledForegroundColor: Colors.white.withValues(alpha: 0.55),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              minimumSize: const Size(0, 32),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: const Text(
+              'Save',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -216,18 +394,71 @@ class _Header extends StatelessWidget {
   }
 }
 
-/// Horizontal timeline with markers at each set date. Layout uses LayoutBuilder
-/// so marker positions can be percentage-based across the available width.
+/// Horizontal timeline with markers at each set date. Markers that would
+/// overlap horizontally are stacked into vertical lanes (greedy first-fit
+/// by x position). Lane 0 sits closest to the track; higher lanes have
+/// proportionally longer connector lines so their labels clear the labels
+/// in lower lanes. Tap targets stay distinct because each lane occupies
+/// its own vertical region.
 class _Timeline extends StatelessWidget {
   final Map<TaskDateType, DateTime?> dates;
+
+  /// Snapshot of `dates` as of when the popup opened. Markers whose
+  /// current value differs from the snapshot get a green ring around the
+  /// label flag, mirroring the changed-field indicator on the parent
+  /// edit-task screen.
+  final Map<TaskDateType, DateTime?> initialDates;
   final TaskDateType? selected;
   final ValueChanged<TaskDateType> onSelect;
 
+  /// Light green that matches `_ChangedFieldHighlight._accent` on the
+  /// parent screen.
+  static const Color _changedAccent = Color(0xFF8FE5A1);
+
   const _Timeline({
     required this.dates,
+    required this.initialDates,
     required this.selected,
     required this.onSelect,
   });
+
+  // Layout constants — tuned for the popup sheet width on a typical phone.
+  static const double _markerWidth = 96;
+  static const double _minGap = 6;
+  static const double _laneSpacing = 28;
+  static const double _baseConnectorHeight = 28;
+  static const double _dotSize = 12;
+  static const double _selectedDotSize = 16;
+  // Outer flag wrapper height = inner pill (~22) + 4 px (2-px ring on
+  // each side, transparent when not changed). Stays a constant so the
+  // ring's presence doesn't shift layout.
+  static const double _labelHeight = 26;
+  static const double _dateHeight = 14;
+  static const double _spacer = 3;
+  static const double _insetPx = 30;
+
+  /// Total marker column height (label + spacers + connector + dot) for the
+  /// given lane index. Lane 0 is the shortest (closest to the track); each
+  /// subsequent lane adds [_laneSpacing] to the connector.
+  static double _markerHeight(int lane) {
+    return _labelHeight +
+        _spacer +
+        _dateHeight +
+        _spacer +
+        (_baseConnectorHeight + lane * _laneSpacing) +
+        _dotSize;
+  }
+
+  static List<int> _assignLanes(
+    List<double> xs,
+    List<int> priorities,
+  ) =>
+      assignTimelineLanes(
+        xs,
+        priorities: priorities,
+        markerWidth: _markerWidth,
+        minGap: _minGap,
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -260,108 +491,166 @@ class _Timeline extends StatelessWidget {
       return (delta / spanDays).clamp(0.0, 1.0);
     }
 
-    return SizedBox(
-      height: 110,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth;
-          // Track is fixed at y=80 of the 110px height.
-          return Stack(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final usable = (width - _insetPx * 2).clamp(0.0, double.infinity);
+
+        // Compute each marker's x in pixel space and its priority in
+        // TaskDateTypes ordering (Start = 0, Target = 1, Urgent = 2,
+        // Due = 3). The lane algorithm uses priority to enforce the
+        // top-down stack order (Start at the top, Due closest to the track)
+        // when markers collide horizontally.
+        final xs = setTypes
+            .map((t) => _insetPx + usable * pct(dates[t]!))
+            .toList(growable: false);
+        final priorities = setTypes
+            .map((t) => TaskDateTypes.allTypes.indexOf(t))
+            .toList(growable: false);
+        final laneByOriginalIndex = _assignLanes(xs, priorities);
+        final maxLane = laneByOriginalIndex.isEmpty
+            ? 0
+            : laneByOriginalIndex.reduce((a, b) => a > b ? a : b);
+
+        // Stack height accommodates the tallest column plus a small bottom
+        // buffer so the dot's outer ring isn't clipped.
+        final stackHeight = _markerHeight(maxLane) + 4;
+
+        return SizedBox(
+          height: stackHeight,
+          child: Stack(
             clipBehavior: Clip.none,
             children: [
+              // Track sits one pixel above the dot center so the dot ring
+              // overlaps the line cleanly.
               Positioned(
                 left: 0,
                 right: 0,
-                top: 80,
+                bottom: _dotSize / 2 + 3,
                 child: Container(
                   height: 2,
                   color: Colors.white.withValues(alpha: 0.12),
                 ),
               ),
-              ..._buildMarkers(setTypes, pct, width),
+              for (var i = 0; i < setTypes.length; i++)
+                _buildMarker(
+                  setTypes[i],
+                  dates[setTypes[i]]!,
+                  _insetPx + usable * pct(dates[setTypes[i]]!),
+                  laneByOriginalIndex[i],
+                ),
             ],
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
-  List<Widget> _buildMarkers(
-    List<TaskDateType> setTypes,
-    double Function(DateTime) pct,
-    double width,
+  Widget _buildMarker(
+    TaskDateType t,
+    DateTime d,
+    double x,
+    int lane,
   ) {
-    return setTypes.map((t) {
-      final d = dates[t]!;
-      final isSelected = selected == t;
-      // Inset markers slightly so they don't clip at 0% or 100%.
-      const insetPx = 30.0;
-      final usable = (width - insetPx * 2).clamp(0.0, double.infinity);
-      final x = insetPx + usable * pct(d);
-      return Positioned(
-        left: x - 50,
-        top: 0,
-        width: 100,
-        height: 100,
-        child: GestureDetector(
-          onTap: () => onSelect(t),
-          behavior: HitTestBehavior.opaque,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? t.textColor
-                      : t.textColor.withValues(alpha: 0.14),
-                  border: Border.all(
-                    color: t.textColor.withValues(alpha: 0.40),
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  t.label.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.4,
-                    color: isSelected
-                        ? const Color.fromRGBO(20, 30, 60, 0.95)
-                        : t.textColor,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                _shortDate(d),
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.80),
-                  fontSize: 11,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
-              const SizedBox(height: 3),
-              Container(
-                width: 1.5,
-                height: 28,
-                color: t.textColor,
-              ),
-              Container(
-                width: isSelected ? 16 : 12,
-                height: isSelected ? 16 : 12,
-                decoration: BoxDecoration(
-                  color: t.textColor,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: TaskColors.popupBg, width: 2),
-                ),
-              ),
-            ],
-          ),
+    final isSelected = selected == t;
+    final isChanged = dates[t] != initialDates[t];
+    final connectorHeight = _baseConnectorHeight + lane * _laneSpacing;
+    final dotSize = isSelected ? _selectedDotSize : _dotSize;
+    final flag = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: isSelected
+            ? t.textColor
+            : t.textColor.withValues(alpha: 0.14),
+        border: Border.all(
+          color: t.textColor.withValues(alpha: 0.40),
+          width: 1,
         ),
-      );
-    }).toList();
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        t.label.toUpperCase(),
+        style: TextStyle(
+          fontSize: 10.5,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.4,
+          color: isSelected
+              ? const Color.fromRGBO(20, 30, 60, 0.95)
+              : t.textColor,
+        ),
+      ),
+    );
+    // Same green ring as `_ChangedFieldHighlight` on the parent screen,
+    // around the label flag of any marker whose date differs from the
+    // snapshot at popup-open. Layout-stable: transparent border when not
+    // changed.
+    final labelFlag = Container(
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(11),
+        border: Border.all(
+          color: isChanged ? _changedAccent : Colors.transparent,
+          width: 2,
+        ),
+      ),
+      child: flag,
+    );
+    final dateText = Text(
+      _shortDate(d),
+      style: TextStyle(
+        color: Colors.white.withValues(alpha: 0.80),
+        fontSize: 11,
+        fontFeatures: const [FontFeature.tabularFigures()],
+      ),
+    );
+    return Positioned(
+      left: x - _markerWidth / 2,
+      bottom: 0,
+      width: _markerWidth,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Only the label+date region is interactive. Wrapping the whole
+          // column (which spans label → connector → dot) caused higher-lane
+          // markers to occlude lower-lane markers since their tap targets
+          // covered the same x-range and grew taller per lane.
+          GestureDetector(
+            onTap: () => onSelect(t),
+            behavior: HitTestBehavior.opaque,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                labelFlag,
+                const SizedBox(height: _spacer),
+                dateText,
+              ],
+            ),
+          ),
+          const SizedBox(height: _spacer),
+          // Decorative connector — no GestureDetector, hits pass through
+          // to neighboring markers if there are any at this y region.
+          Container(
+            width: 1.5,
+            height: connectorHeight,
+            color: t.textColor,
+          ),
+          // Dot — independently tappable so users can hit it directly.
+          GestureDetector(
+            onTap: () => onSelect(t),
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              width: dotSize,
+              height: dotSize,
+              decoration: BoxDecoration(
+                color: t.textColor,
+                shape: BoxShape.circle,
+                border: Border.all(color: TaskColors.popupBg, width: 2),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   static const List<String> _months = [
@@ -467,24 +756,73 @@ class _AddDatePill extends StatelessWidget {
 }
 
 /// Inline calendar + time bucket picker + Remove button for the currently-
-/// selected date type. Uses Flutter's `CalendarDatePicker` so we don't have
-/// to reinvent month nav, weekday rows, or accessibility.
+/// selected date type. The calendar is custom so it can:
+///   - render the selected day as bold colored text in the type's accent
+///   - render OTHER set dates (e.g. Target while editing Urgent) as faded
+///     coloured numbers in their own accent
+///   - fade and disable days outside the chronologically-allowed range
+///     (e.g. Target between Start and Due)
 class _SelectedDateDetail extends StatelessWidget {
   final TaskDateType type;
   final DateTime date;
+  final Map<TaskDateType, DateTime?> dates;
   final ValueChanged<DateTime> onChange;
   final VoidCallback onRemove;
 
   const _SelectedDateDetail({
     required this.type,
     required this.date,
+    required this.dates,
     required this.onChange,
     required this.onRemove,
   });
 
+  /// Lower bound for the selected date (inclusive). Computed as the latest
+  /// of any chronologically-earlier set dates. `null` when no earlier date
+  /// is set.
+  DateTime? get _firstDate {
+    final selfIdx = TaskDateTypes.allTypes.indexOf(type);
+    DateTime? best;
+    for (var i = 0; i < selfIdx; i++) {
+      final d = dates[TaskDateTypes.allTypes[i]];
+      if (d == null) continue;
+      if (best == null || d.isAfter(best)) best = d;
+    }
+    return best;
+  }
+
+  /// Upper bound for the selected date (inclusive). Computed as the earliest
+  /// of any chronologically-later set dates. `null` when no later date
+  /// is set.
+  DateTime? get _lastDate {
+    final selfIdx = TaskDateTypes.allTypes.indexOf(type);
+    DateTime? best;
+    for (var i = selfIdx + 1; i < TaskDateTypes.allTypes.length; i++) {
+      final d = dates[TaskDateTypes.allTypes[i]];
+      if (d == null) continue;
+      if (best == null || d.isBefore(best)) best = d;
+    }
+    return best;
+  }
+
+  /// Other set dates with their accent colors, for the calendar to render
+  /// as non-bold coloured numbers in addition to the selected day.
+  Map<DateTime, Color> get _markedDates {
+    final m = <DateTime, Color>{};
+    for (final t in TaskDateTypes.allTypes) {
+      if (t == type) continue;
+      final d = dates[t];
+      if (d == null) continue;
+      m[DateTime(d.year, d.month, d.day)] = t.textColor;
+    }
+    return m;
+  }
+
   @override
   Widget build(BuildContext context) {
     final accent = type.textColor;
+    final firstDate = _firstDate;
+    final lastDate = _lastDate;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -505,54 +843,53 @@ class _SelectedDateDetail extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Text(
-              _longDate(date),
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.60),
-                fontSize: 12.5,
+            Flexible(
+              child: Text(
+                _longDate(date),
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.60),
+                  fontSize: 12.5,
+                ),
               ),
             ),
-            const Spacer(),
+            const SizedBox(width: 8),
             _RemoveButton(onPressed: onRemove),
           ],
         ),
         const SizedBox(height: 12),
-        Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-                  primary: accent,
-                  onPrimary: const Color.fromRGBO(20, 30, 60, 0.95),
-                  surface: TaskColors.popupBg,
-                  onSurface: Colors.white,
-                ),
-            textTheme: Theme.of(context).textTheme.apply(
-                  bodyColor: Colors.white,
-                  displayColor: Colors.white,
-                ),
-          ),
-          child: SizedBox(
-            height: 320,
-            child: CalendarDatePicker(
-              initialDate: date,
-              firstDate: DateTime(date.year - 5),
-              lastDate: DateTime(date.year + 5),
-              onDateChanged: (newDate) {
-                onChange(DateTime(
-                  newDate.year, newDate.month, newDate.day,
-                  date.hour, date.minute,
-                ));
-              },
-            ),
-          ),
+        // Key on the type so that switching markers (e.g. Target → Urgent)
+        // forces a fresh _MiniCalendar with the new month displayed.
+        // Within one type, navigation arrow state is preserved.
+        _MiniCalendar(
+          key: ValueKey('mini-cal-${type.label}'),
+          selectedDate: date,
+          accent: accent,
+          markedDates: _markedDates,
+          firstDate: firstDate,
+          lastDate: lastDate,
+          onDateChanged: (newDate) {
+            onChange(DateTime(
+              newDate.year, newDate.month, newDate.day,
+              date.hour, date.minute,
+            ));
+          },
         ),
         const SizedBox(height: 12),
         _TimeBucketPicker(
           date: date,
-          onChange: (h) {
-            // h == null → all-day (00:00).
-            final hour = h ?? 0;
+          // Time restriction only applies on the boundary day itself.
+          // Past the boundary day, the date constraint already covers
+          // the chronological order.
+          minHour: (firstDate != null && _isSameDay(firstDate, date))
+              ? firstDate.hour
+              : null,
+          maxHour: (lastDate != null && _isSameDay(lastDate, date))
+              ? lastDate.hour
+              : null,
+          onChange: (t) {
             onChange(DateTime(
-              date.year, date.month, date.day, hour,
+              date.year, date.month, date.day, t.hour, t.minute,
             ));
           },
         ),
@@ -560,12 +897,262 @@ class _SelectedDateDetail extends StatelessWidget {
     );
   }
 
+  static bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
   static const _months = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December',
   ];
 
   String _longDate(DateTime d) => '${_months[d.month - 1]} ${d.day}, ${d.year}';
+}
+
+/// Compact month-grid calendar used by the dates popup. Custom (instead of
+/// Flutter's `CalendarDatePicker`) because we need:
+///   - selected day rendered as bold colored text in the accent (no filled
+///     background circle that fights with the popup surface)
+///   - OTHER set dates (the [markedDates] map) rendered as non-bold coloured
+///     text in their own accent color, even when the user has navigated to
+///     a different month
+///   - days outside [firstDate]..[lastDate] faded and non-tappable
+class _MiniCalendar extends StatefulWidget {
+  final DateTime selectedDate;
+  final Color accent;
+  final Map<DateTime, Color> markedDates;
+  final DateTime? firstDate;
+  final DateTime? lastDate;
+  final ValueChanged<DateTime> onDateChanged;
+
+  const _MiniCalendar({
+    super.key,
+    required this.selectedDate,
+    required this.accent,
+    required this.markedDates,
+    required this.firstDate,
+    required this.lastDate,
+    required this.onDateChanged,
+  });
+
+  @override
+  State<_MiniCalendar> createState() => _MiniCalendarState();
+}
+
+class _MiniCalendarState extends State<_MiniCalendar> {
+  late DateTime _displayedMonth;
+
+  @override
+  void initState() {
+    super.initState();
+    _displayedMonth =
+        DateTime(widget.selectedDate.year, widget.selectedDate.month);
+  }
+
+  @override
+  void didUpdateWidget(covariant _MiniCalendar old) {
+    super.didUpdateWidget(old);
+    // If the parent updates the selectedDate to a different month
+    // (e.g. user picked a day in a different month from the timeline
+    // marker), follow it.
+    final selMonth =
+        DateTime(widget.selectedDate.year, widget.selectedDate.month);
+    if (selMonth != _displayedMonth &&
+        old.selectedDate.month != widget.selectedDate.month) {
+      _displayedMonth = selMonth;
+    }
+  }
+
+  void _prevMonth() {
+    setState(() {
+      _displayedMonth =
+          DateTime(_displayedMonth.year, _displayedMonth.month - 1);
+    });
+  }
+
+  void _nextMonth() {
+    setState(() {
+      _displayedMonth =
+          DateTime(_displayedMonth.year, _displayedMonth.month + 1);
+    });
+  }
+
+  bool _isInRange(DateTime d) {
+    final first = widget.firstDate;
+    final last = widget.lastDate;
+    final dayStart = DateTime(d.year, d.month, d.day);
+    if (first != null) {
+      final firstDay = DateTime(first.year, first.month, first.day);
+      if (dayStart.isBefore(firstDay)) return false;
+    }
+    if (last != null) {
+      final lastDay = DateTime(last.year, last.month, last.day);
+      if (dayStart.isAfter(lastDay)) return false;
+    }
+    return true;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final month = _displayedMonth;
+    final firstOfMonth = DateTime(month.year, month.month, 1);
+    final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
+    // Sun = 7 in DateTime.weekday; we treat Sunday as the first column to
+    // match the prototype.
+    final leadingBlanks = firstOfMonth.weekday % 7;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Text(
+              '${_monthName(month.month)} ${month.year}',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.85),
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const Spacer(),
+            _ChevronButton(direction: _ChevronDir.left, onPressed: _prevMonth),
+            _ChevronButton(direction: _ChevronDir.right, onPressed: _nextMonth),
+          ],
+        ),
+        const SizedBox(height: 8),
+        // Weekday header
+        Row(
+          children: [
+            for (final wd in const ['S', 'M', 'T', 'W', 'T', 'F', 'S'])
+              Expanded(
+                child: Center(
+                  child: Text(
+                    wd,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.40),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        // Day grid
+        for (var rowStart = -leadingBlanks;
+            rowStart < daysInMonth;
+            rowStart += 7)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Row(
+              children: [
+                for (var col = 0; col < 7; col++)
+                  Expanded(
+                    child: _buildDayCell(rowStart + col + 1, month),
+                  ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildDayCell(int day, DateTime month) {
+    if (day < 1 || day > DateTime(month.year, month.month + 1, 0).day) {
+      return const SizedBox(height: 32);
+    }
+    final cellDate = DateTime(month.year, month.month, day);
+    final isSelected = cellDate.year == widget.selectedDate.year &&
+        cellDate.month == widget.selectedDate.month &&
+        cellDate.day == widget.selectedDate.day;
+    final markColor = widget.markedDates[cellDate];
+    final inRange = _isInRange(cellDate);
+
+    Color textColor;
+    Color? backgroundColor;
+    FontWeight weight;
+    if (!inRange) {
+      textColor = Colors.white.withValues(alpha: 0.20);
+      weight = FontWeight.w400;
+      backgroundColor = null;
+    } else if (isSelected) {
+      // Filled circle in the accent color; dark text on top so the digit
+      // remains legible against the bright fill.
+      backgroundColor = widget.accent;
+      textColor = const Color.fromRGBO(20, 30, 60, 0.95);
+      weight = FontWeight.w700;
+    } else if (markColor != null) {
+      // Other set dates render as bold coloured text so the user can see
+      // them while editing a different type, but no fill — only the
+      // selected day gets a circle.
+      textColor = markColor;
+      weight = FontWeight.w700;
+      backgroundColor = null;
+    } else {
+      // Plain in-range days are light (FontWeight.w400) so the bold marked
+      // dates stand out against them.
+      textColor = Colors.white.withValues(alpha: 0.85);
+      weight = FontWeight.w400;
+      backgroundColor = null;
+    }
+
+    return SizedBox(
+      height: 32,
+      child: Padding(
+        padding: const EdgeInsets.all(2),
+        child: Material(
+          color: backgroundColor ?? Colors.transparent,
+          shape: const CircleBorder(),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: inRange ? () => widget.onDateChanged(cellDate) : null,
+            child: Center(
+              child: Text(
+                '$day',
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 12,
+                  fontWeight: weight,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static const _monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
+  static String _monthName(int m) => _monthNames[m - 1];
+}
+
+enum _ChevronDir { left, right }
+
+class _ChevronButton extends StatelessWidget {
+  final _ChevronDir direction;
+  final VoidCallback onPressed;
+
+  const _ChevronButton({required this.direction, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: onPressed,
+      iconSize: 16,
+      padding: const EdgeInsets.all(4),
+      constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+      icon: Icon(
+        direction == _ChevronDir.left
+            ? Icons.chevron_left
+            : Icons.chevron_right,
+        color: Colors.white.withValues(alpha: 0.55),
+      ),
+    );
+  }
 }
 
 class _RemoveButton extends StatelessWidget {
@@ -614,33 +1201,90 @@ class _RemoveButton extends StatelessWidget {
   }
 }
 
-/// 5-bucket time picker: 9 AM / 12 PM / 2 PM / 5 PM / All day. Snaps the
-/// current hour to the closest bucket on render.
+/// 5-segment time picker: 9 AM / 12 PM / 2 PM / 5 PM / Other...
+///
+/// "Other..." opens Flutter's `showTimePicker` so the user can pick any
+/// time of day. When the current time matches one of the four standard
+/// hours (and minute is 0), that segment is highlighted; otherwise the
+/// "Other..." segment is highlighted and displays the actual time
+/// (e.g. "8:30 PM") instead of the literal label.
+///
+/// Replaces the earlier "All day" affordance, which the user reported was
+/// semantically unclear (when does the reminder fire?). "Other..." also
+/// gives users an escape hatch when [minHour]/[maxHour] would block all
+/// four standard buckets — they can dial in any time directly.
 class _TimeBucketPicker extends StatelessWidget {
   final DateTime date;
-  final ValueChanged<int?> onChange; // hour or null for all-day
+  final ValueChanged<TimeOfDay> onChange;
 
-  const _TimeBucketPicker({required this.date, required this.onChange});
+  /// Inclusive lower bound on the standard buckets' hour. Buckets earlier
+  /// than this become disabled. `null` = no lower bound. Should only be
+  /// supplied when [date] falls on the same calendar day as the constraint
+  /// date (otherwise the date itself already covers the chronological
+  /// order). The "Other..." segment is always enabled regardless of bounds.
+  final int? minHour;
 
-  static const buckets = [9, 12, 14, 17];
-  static const labels = ['9 AM', '12 PM', '2 PM', '5 PM', 'All day'];
+  /// Inclusive upper bound on the standard buckets' hour.
+  final int? maxHour;
 
+  const _TimeBucketPicker({
+    required this.date,
+    required this.onChange,
+    this.minHour,
+    this.maxHour,
+  });
+
+  static const _buckets = [9, 12, 14, 17];
+  static const _bucketLabels = ['9 AM', '12 PM', '2 PM', '5 PM'];
+
+  /// Active 0-based segment index. Returns 0..3 when the time matches one
+  /// of the standard buckets exactly (minute == 0), or 4 for "Other..."
+  /// otherwise.
   int _activeIndex() {
-    if (date.hour == 0 && date.minute == 0) return 5; // All day
-    var bestIdx = 0;
-    var bestDelta = (buckets[0] - date.hour).abs();
-    for (var i = 1; i < buckets.length; i++) {
-      final d = (buckets[i] - date.hour).abs();
-      if (d < bestDelta) {
-        bestDelta = d;
-        bestIdx = i;
-      }
-    }
-    return bestIdx + 1;
+    if (date.minute != 0) return 4;
+    final idx = _buckets.indexOf(date.hour);
+    return idx >= 0 ? idx : 4;
+  }
+
+  /// Standard buckets are disabled when their hour falls outside the
+  /// supplied range; "Other..." (index 4) is always enabled so users have
+  /// a way to set a specific time even when every standard bucket is out
+  /// of range.
+  bool _disabled(int segIdx) {
+    if (segIdx == 4) return false;
+    final hour = _buckets[segIdx];
+    if (minHour != null && hour < minHour!) return true;
+    if (maxHour != null && hour > maxHour!) return true;
+    return false;
+  }
+
+  Future<void> _openOtherPicker(BuildContext context) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: date.hour, minute: date.minute),
+    );
+    if (picked != null) onChange(picked);
+  }
+
+  /// 12-hour formatted time string used in the "Other..." segment when
+  /// it's the active segment. Examples: `8 PM`, `8:30 PM`, `12:15 AM`.
+  static String _formatTime(TimeOfDay t) {
+    final hour12 = t.hour == 0
+        ? 12
+        : (t.hour > 12 ? t.hour - 12 : t.hour);
+    final period = t.hour < 12 ? 'AM' : 'PM';
+    if (t.minute == 0) return '$hour12 $period';
+    final mm = t.minute.toString().padLeft(2, '0');
+    return '$hour12:$mm $period';
   }
 
   @override
   Widget build(BuildContext context) {
+    final activeIdx = _activeIndex();
+    final accent = accentColorForIndex(SegmentedBarAccent.brand, 0);
+    final otherLabel = activeIdx == 4
+        ? _formatTime(TimeOfDay(hour: date.hour, minute: date.minute))
+        : 'Other...';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -656,19 +1300,33 @@ class _TimeBucketPicker extends StatelessWidget {
             ),
           ),
         ),
-        SegmentedBar(
-          value: _activeIndex(),
-          segments: 5,
-          labels: labels,
-          allowZero: false,
-          onChanged: (v) {
-            if (v == null) return;
-            if (v == 5) {
-              onChange(null); // All day
-            } else {
-              onChange(buckets[v - 1]);
-            }
-          },
+        Row(
+          children: [
+            for (var i = 0; i < 5; i++) ...[
+              if (i > 0) const SizedBox(width: 4),
+              Expanded(
+                child: Opacity(
+                  opacity: _disabled(i) ? 0.35 : 1.0,
+                  child: IgnorePointer(
+                    ignoring: _disabled(i),
+                    child: Segment(
+                      label: i == 4 ? otherLabel : _bucketLabels[i],
+                      filled: i == activeIdx,
+                      fillColor: accent,
+                      height: 32,
+                      onTap: () {
+                        if (i == 4) {
+                          _openOtherPicker(context);
+                        } else {
+                          onChange(TimeOfDay(hour: _buckets[i], minute: 0));
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
       ],
     );

@@ -51,6 +51,13 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
   bool _repeatOn = false;
   late bool _initialRepeatOn;
 
+  /// Set to true the first time the user taps Save while Repeat is on but
+  /// some required field (every-N / unit / anchor) is missing. Drives the
+  /// inline error highlight on the RepeatEditorCard. Cleared when Repeat
+  /// is toggled off (no recurrence to validate) or when a successful save
+  /// reaches the providers.
+  bool _repeatValidationFailed = false;
+
   late TaskItemBlueprint taskItemBlueprint;
   TaskItem? taskItem;
 
@@ -106,16 +113,41 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
 
     // Per-task priority scale migration (TM-358). Legacy rows (scale
     // version 1) stored priority on a 1–10 scale; the redesigned bar
-    // works on a 1–5 scale (version 2). For legacy rows we mirror the
-    // scale-aware getter into the blueprint so the bar renders the same
-    // fills the card uses, then bump the blueprint's scale version to 2
-    // so the next save persists the migration. New tasks always start
-    // at version 2.
+    // works on a 1–5 scale (version 2). On opening a legacy task we
+    // (a) mirror the scale-aware value into the blueprint so the bar
+    // renders the right fills, (b) persist the migration silently via
+    // updateTask, and (c) update the local change-detection baseline
+    // (`taskItem`) so the silent migration doesn't show up as a
+    // pending edit (Save Changes stays disabled until the user makes
+    // a real edit). New tasks always start at version 2.
     if (task == null) {
       taskItemBlueprint.priorityScaleVersion = 2;
     } else if (task.priorityScaleVersion < 2) {
-      taskItemBlueprint.priority = task.displayPriority;
+      // Always bump the blueprint's scale version in memory so the bar
+      // renders on the new scale and hasChanges() compares correctly.
       taskItemBlueprint.priorityScaleVersion = 2;
+
+      if (task.priority != null) {
+        // Real priority value to migrate — mirror it into the blueprint
+        // and persist silently (auto-close is gated on `_submitting`,
+        // which is false here, so the resulting stream re-emit won't
+        // pop the screen).
+        final migratedPriority = task.displayPriority;
+        taskItemBlueprint.priority = migratedPriority;
+        ref.read(updateTaskProvider.notifier).call(
+              task: task,
+              blueprint: taskItemBlueprint,
+            );
+        taskItem = task.rebuild((b) => b
+          ..priority = migratedPriority
+          ..priorityScaleVersion = 2);
+      } else {
+        // No priority value → no migration to persist. Still update the
+        // local change-detection baseline so the in-memory scale bump
+        // doesn't show up as a pending edit (Save Changes stays
+        // disabled until the user makes a real edit).
+        taskItem = task.rebuild((b) => b..priorityScaleVersion = 2);
+      }
     }
   }
 
@@ -137,6 +169,41 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
   void _clearRepeatOn() {
     _repeatOn = false;
   }
+
+  // ---- Per-field change detection (TM-358 "what's changed" indicator) ----
+  // For new tasks (`taskItem == null`) every field is "fresh" — there is
+  // nothing to compare against — so all of these getters return false and
+  // no green-border highlight renders.
+
+  bool _diff(bool Function(TaskItem original) isDifferent) =>
+      taskItem != null && isDifferent(taskItem!);
+
+  bool get _nameChanged =>
+      _diff((t) => t.name != (taskItemBlueprint.name ?? ''));
+  bool get _areaChanged => _diff((t) => t.area != taskItemBlueprint.area);
+  bool get _contextChanged =>
+      _diff((t) => t.context != taskItemBlueprint.context);
+  bool get _priorityChanged =>
+      _diff((t) => t.priority != taskItemBlueprint.priority);
+  bool get _pointsChanged =>
+      _diff((t) => t.gamePoints != taskItemBlueprint.gamePoints);
+  bool get _lengthChanged =>
+      _diff((t) => t.duration != taskItemBlueprint.duration);
+  bool get _datesChanged => _diff((t) =>
+      t.startDate != taskItemBlueprint.startDate ||
+      t.targetDate != taskItemBlueprint.targetDate ||
+      t.urgentDate != taskItemBlueprint.urgentDate ||
+      t.dueDate != taskItemBlueprint.dueDate);
+  bool get _repeatChanged {
+    if (taskItem == null) return false;
+    if (_repeatOn != _initialRepeatOn) return true;
+    return taskItem!.recurNumber != taskItemBlueprint.recurNumber ||
+        taskItem!.recurUnit != taskItemBlueprint.recurUnit ||
+        taskItem!.recurWait != taskItemBlueprint.recurWait;
+  }
+
+  bool get _notesChanged =>
+      _diff((t) => t.description != taskItemBlueprint.description);
 
   void _clearRecurrenceFieldsFromTask() {
     taskItemBlueprint.recurUnit = null;
@@ -222,6 +289,23 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
     }
 
     if (form != null && form.validate()) {
+      // Recurrence requires `every`, `unit`, and `anchor` when toggled
+      // on. The legacy screen enforced this via per-field FormField
+      // validators; the redesigned RepeatEditorCard uses raw segmented
+      // bars + a TextField (no FormField wrappers), so we validate at
+      // the screen level and surface inline error highlights on the
+      // missing fields by flipping a flag the card watches.
+      if (_repeatOn) {
+        final missingNumber = taskItemBlueprint.recurNumber == null ||
+            taskItemBlueprint.recurNumber! <= 0;
+        final missingUnit = taskItemBlueprint.recurUnit == null;
+        final missingAnchor = taskItemBlueprint.recurWait == null;
+        if (missingNumber || missingUnit || missingAnchor) {
+          setState(() => _repeatValidationFailed = true);
+          return;
+        }
+      }
+
       form.save();
 
       if (_repeatOn) {
@@ -376,11 +460,15 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
   }
 
   Widget _buildBody(TimezoneHelper timezoneHelper) {
+    // BorderRadius reused across most field wrappers — slightly larger
+    // than the inner field's own corner so the green ring frames it.
+    const fieldRadius = BorderRadius.all(Radius.circular(12));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _NameField(
           initialText: taskItemBlueprint.name,
+          changed: _nameChanged,
           onChanged: (value) {
             setState(() {
               taskItemBlueprint.name = value;
@@ -391,21 +479,38 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
         const SizedBox(height: 22),
 
         const FieldLabel('Area'),
-        AreaPicker(
-          initialValue: taskItemBlueprint.area,
-          valueSetter: (value) => taskItemBlueprint.area = value,
+        _ChangedFieldHighlight(
+          changed: _areaChanged,
+          borderRadius: fieldRadius,
+          child: AreaPicker(
+            initialValue: taskItemBlueprint.area,
+            // Wrap the setter in setState so the green changed-border and
+            // the bottom Save bar update immediately. AreaPicker is no
+            // longer a FormField (it's a custom chevron-button + sheet
+            // since TM-358), so the parent Form's onChanged hook doesn't
+            // fire on selection — we have to push the rebuild ourselves.
+            valueSetter: (value) {
+              setState(() {
+                taskItemBlueprint.area = value;
+              });
+            },
+          ),
         ),
         const SizedBox(height: 16),
 
         const FieldLabel('Context'),
-        _ContextPickerButton(
-          value: taskItemBlueprint.context,
-          options: possibleContexts,
-          onChanged: (value) {
-            setState(() {
-              taskItemBlueprint.context = value;
-            });
-          },
+        _ChangedFieldHighlight(
+          changed: _contextChanged,
+          borderRadius: fieldRadius,
+          child: _ContextPickerButton(
+            value: taskItemBlueprint.context,
+            options: possibleContexts,
+            onChanged: (value) {
+              setState(() {
+                taskItemBlueprint.context = value;
+              });
+            },
+          ),
         ),
         const SizedBox(height: 16),
 
@@ -415,16 +520,20 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
               ? null
               : '${taskItemBlueprint.priority}/5',
         ),
-        SegmentedBar(
-          value: taskItemBlueprint.priority,
-          segments: 5,
-          accent: SegmentedBarAccent.priority,
-          fillUpTo: true,
-          onChanged: (v) {
-            setState(() {
-              taskItemBlueprint.priority = v;
-            });
-          },
+        _ChangedFieldHighlight(
+          changed: _priorityChanged,
+          borderRadius: fieldRadius,
+          child: SegmentedBar(
+            value: taskItemBlueprint.priority,
+            segments: 5,
+            accent: SegmentedBarAccent.priority,
+            fillUpTo: true,
+            onChanged: (v) {
+              setState(() {
+                taskItemBlueprint.priority = v;
+              });
+            },
+          ),
         ),
         const SizedBox(height: 16),
 
@@ -434,13 +543,17 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
               ? null
               : '${taskItemBlueprint.gamePoints} pts',
         ),
-        PointsPicker(
-          value: taskItemBlueprint.gamePoints,
-          onChanged: (v) {
-            setState(() {
-              taskItemBlueprint.gamePoints = v;
-            });
-          },
+        _ChangedFieldHighlight(
+          changed: _pointsChanged,
+          borderRadius: fieldRadius,
+          child: PointsPicker(
+            value: taskItemBlueprint.gamePoints,
+            onChanged: (v) {
+              setState(() {
+                taskItemBlueprint.gamePoints = v;
+              });
+            },
+          ),
         ),
         const SizedBox(height: 16),
 
@@ -450,55 +563,80 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
               ? null
               : '${taskItemBlueprint.duration} min',
         ),
-        LengthBucketPicker(
-          minutes: taskItemBlueprint.duration,
-          onChanged: (m) {
-            setState(() {
-              taskItemBlueprint.duration = m;
-            });
-          },
+        _ChangedFieldHighlight(
+          changed: _lengthChanged,
+          borderRadius: fieldRadius,
+          child: LengthBucketPicker(
+            minutes: taskItemBlueprint.duration,
+            onChanged: (m) {
+              setState(() {
+                taskItemBlueprint.duration = m;
+              });
+            },
+          ),
         ),
         const SizedBox(height: 16),
 
         const FieldLabel('Dates', hint: 'Tap to edit · all optional'),
-        DateSummaryRow(
-          dates: _datesMap(),
-          onTap: () => _openDatesPopup(timezoneHelper),
+        _ChangedFieldHighlight(
+          changed: _datesChanged,
+          borderRadius: fieldRadius,
+          child: DateSummaryRow(
+            dates: _datesMap(timezoneHelper),
+            onTap: () => _openDatesPopup(timezoneHelper),
+          ),
         ),
         const SizedBox(height: 16),
 
         const FieldLabel('Repeat'),
-        _buildRepeatSection(),
+        _ChangedFieldHighlight(
+          changed: _repeatChanged,
+          borderRadius: fieldRadius,
+          child: _buildRepeatSection(),
+        ),
         const SizedBox(height: 16),
 
         const FieldLabel('Notes'),
-        _NotesField(
-          initialText: taskItemBlueprint.description,
-          onChanged: (value) {
-            setState(() {
-              taskItemBlueprint.description =
-                  (value == null || value.isEmpty) ? null : value;
-            });
-          },
-          onSaved: (value) => taskItemBlueprint.description =
-              (value == null || value.isEmpty) ? null : value,
+        _ChangedFieldHighlight(
+          changed: _notesChanged,
+          borderRadius: fieldRadius,
+          child: _NotesField(
+            initialText: taskItemBlueprint.description,
+            onChanged: (value) {
+              setState(() {
+                taskItemBlueprint.description =
+                    (value == null || value.isEmpty) ? null : value;
+              });
+            },
+            onSaved: (value) => taskItemBlueprint.description =
+                (value == null || value.isEmpty) ? null : value,
+          ),
         ),
       ],
     );
   }
 
-  Map<TaskDateType, DateTime?> _datesMap() {
+  /// Returns each date field as a *local* DateTime, since blueprint values
+  /// hydrated from Firestore are UTC. Mirrors the legacy
+  /// `ClearableDateTimeField` pattern: convert UTC → local for display, and
+  /// the storage layer round-trips back to UTC on save.
+  Map<TaskDateType, DateTime?> _datesMap(TimezoneHelper tz) {
     return {
       for (final t in TaskDateTypes.allTypes)
-        t: t.dateFieldGetter(taskItemBlueprint),
+        t: () {
+          final raw = t.dateFieldGetter(taskItemBlueprint);
+          return raw == null ? null : tz.getLocalTime(raw);
+        }(),
     };
   }
 
   void _openDatesPopup(TimezoneHelper timezoneHelper) {
     DateTimelinePopup.show(
       context: context,
-      dates: _datesMap(),
+      dates: _datesMap(timezoneHelper),
       onChanged: (type, value) {
+        // The popup hands us a local-time value (or null). Pass it through
+        // to the setter as-is — the storage layer converts to UTC on save.
         setState(() {
           type.dateFieldSetter(taskItemBlueprint, value);
           if (!hasDate()) _clearRepeatOn();
@@ -524,9 +662,14 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
       unit: taskItemBlueprint.recurUnit,
       anchor: _recurWaitToAnchorLabel(taskItemBlueprint.recurWait),
       disabledReason: disabledReason,
+      showValidationErrors: _repeatValidationFailed,
       onEnabledChanged: (v) {
         setState(() {
           _repeatOn = v;
+          // Toggling off clears the validation state — there's no
+          // recurrence to validate anymore. Toggling on doesn't preempt
+          // validation; errors only render after the user attempts Save.
+          if (!v) _repeatValidationFailed = false;
         });
       },
       onNumberChanged: (v) {
@@ -544,6 +687,44 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
           taskItemBlueprint.recurWait = _anchorLabelToRecurWait(v);
         });
       },
+    );
+  }
+}
+
+/// Wraps a field with a soft 2-px green ring when [changed] is true. The
+/// padding is preserved when not changed (transparent border occupies the
+/// same space) so toggling doesn't shift layout.
+class _ChangedFieldHighlight extends StatelessWidget {
+  final bool changed;
+  final BorderRadius borderRadius;
+  final Widget child;
+
+  /// Light green that reads against the brand-blue card surface.
+  static const Color _accent = Color(0xFF8FE5A1);
+  static const Duration _animDuration = Duration(milliseconds: 180);
+  static const double _borderWidth = 2;
+  static const double _innerGap = 2;
+
+  const _ChangedFieldHighlight({
+    required this.changed,
+    required this.borderRadius,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: _animDuration,
+      curve: Curves.easeOut,
+      padding: const EdgeInsets.all(_innerGap),
+      decoration: BoxDecoration(
+        borderRadius: borderRadius,
+        border: Border.all(
+          color: changed ? _accent : Colors.transparent,
+          width: _borderWidth,
+        ),
+      ),
+      child: child,
     );
   }
 }
@@ -609,17 +790,29 @@ class _TopNav extends StatelessWidget {
 
 class _NameField extends StatelessWidget {
   final String? initialText;
+  final bool changed;
   final ValueChanged<String?> onChanged;
   final ValueChanged<String?> onSaved;
 
   const _NameField({
     required this.initialText,
+    required this.changed,
     required this.onChanged,
     required this.onSaved,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Underline-only field, so the "changed" indicator recolors the
+    // underline (using the same accent green as wrapped fields) instead
+    // of adding a ring around the input.
+    final underlineColor = changed
+        ? _ChangedFieldHighlight._accent
+        : Colors.white.withValues(alpha: 0.18);
+    final focusedColor = changed
+        ? _ChangedFieldHighlight._accent
+        : Colors.white.withValues(alpha: 0.50);
+    final width = changed ? 2.0 : 1.0;
     return TextFormField(
       key: const Key('task_name_field'),
       initialValue: initialText,
@@ -645,19 +838,13 @@ class _NameField extends StatelessWidget {
         ),
         contentPadding: const EdgeInsets.only(bottom: 12),
         border: UnderlineInputBorder(
-          borderSide: BorderSide(
-            color: Colors.white.withValues(alpha: 0.18),
-          ),
+          borderSide: BorderSide(color: underlineColor, width: width),
         ),
         enabledBorder: UnderlineInputBorder(
-          borderSide: BorderSide(
-            color: Colors.white.withValues(alpha: 0.18),
-          ),
+          borderSide: BorderSide(color: underlineColor, width: width),
         ),
         focusedBorder: UnderlineInputBorder(
-          borderSide: BorderSide(
-            color: Colors.white.withValues(alpha: 0.50),
-          ),
+          borderSide: BorderSide(color: focusedColor, width: width),
         ),
       ),
     );
@@ -684,6 +871,12 @@ class _NotesField extends StatelessWidget {
       keyboardType: TextInputType.multiline,
       maxLines: null,
       minLines: 3,
+      // The default 20-px scrollPadding leaves the focused field flush with
+      // the bottom of the scroll viewport — but the sticky action bar
+      // overlays that region, so the field ends up hidden by the bar (and
+      // by the keyboard above the bar). 120 px clears the action bar with
+      // a comfortable visual buffer.
+      scrollPadding: const EdgeInsets.only(bottom: 120),
       style: const TextStyle(color: Colors.white, fontSize: 14),
       decoration: InputDecoration(
         hintText: 'Add notes...',

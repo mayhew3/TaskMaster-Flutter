@@ -16,6 +16,7 @@ RepeatEditorCard _card({
   void Function(String?)? onUnitChanged,
   void Function(String?)? onAnchorChanged,
   String? disabledReason,
+  bool showValidationErrors = false,
 }) {
   return RepeatEditorCard(
     enabled: enabled,
@@ -27,6 +28,7 @@ RepeatEditorCard _card({
     onUnitChanged: onUnitChanged ?? (_) {},
     onAnchorChanged: onAnchorChanged ?? (_) {},
     disabledReason: disabledReason,
+    showValidationErrors: showValidationErrors,
   );
 }
 
@@ -100,6 +102,58 @@ void main() {
       await tester.pumpAndSettle();
       expect(captured, 'Schedule Dates');
     });
+
+    testWidgets(
+      'showValidationErrors=true with all fields missing renders Required '
+      'captions and an inline TextField error',
+      (tester) async {
+        await _pump(
+          tester,
+          _card(
+            enabled: true,
+            number: null,
+            unit: null,
+            anchor: null,
+            showValidationErrors: true,
+          ),
+        );
+        // Two segmented bars (unit + anchor) get an inline "Required"
+        // caption underneath; the every-N TextField shows its error via
+        // InputDecoration.errorText (also "Required").
+        expect(find.text('Required'), findsNWidgets(3));
+      },
+    );
+
+    testWidgets(
+      'showValidationErrors=true clears the unit caption once a unit is set',
+      (tester) async {
+        await _pump(
+          tester,
+          _card(
+            enabled: true,
+            number: 3,
+            unit: 'Weeks',
+            anchor: null,
+            showValidationErrors: true,
+          ),
+        );
+        // Only anchor still missing → exactly one Required caption.
+        expect(find.text('Required'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'showValidationErrors=false hides all Required indicators',
+      (tester) async {
+        await _pump(
+          tester,
+          _card(enabled: true, number: null, unit: null, anchor: null),
+        );
+        // No validation triggered → no caption / errorText, even though
+        // every required field is missing.
+        expect(find.text('Required'), findsNothing);
+      },
+    );
 
     testWidgets('disabledReason renders message and hides toggle',
         (tester) async {
