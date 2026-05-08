@@ -58,6 +58,15 @@ void main() {
       expect(_task(priority: 0, scaleVersion: 1).displayPriority, isNull);
       expect(_task(priority: -1, scaleVersion: 1).displayPriority, isNull);
     });
+
+    test('priority of 0 or negative returns null on v2 scale too', () {
+      // Symmetric handling: a stored 0 / negative is treated as "unset"
+      // regardless of which scale version owns the row. Prior to TM-358
+      // the v2 path returned 0 unchanged, which diverged from the legacy
+      // path's "null = unset" semantics.
+      expect(_task(priority: 0, scaleVersion: 2).displayPriority, isNull);
+      expect(_task(priority: -3, scaleVersion: 2).displayPriority, isNull);
+    });
   });
 
   group('TaskItem.createBlueprint', () {
@@ -70,12 +79,17 @@ void main() {
   });
 
   group('TaskItem.hasChanges', () {
-    test('detects a scale-version-only difference', () {
+    test('ignores scale-version-only differences', () {
+      // `priorityScaleVersion` is a non-user-editable internal marker. The
+      // edit screen's lazy migration bumps the version and rewrites the
+      // user-visible `priority` value in the same step, so a "real" change
+      // always surfaces through one of the user-editable fields. Surfacing
+      // version-only diffs here would make a mid-flight migration look
+      // like a pending edit and enable Save spuriously. See
+      // `TaskAddEditScreen._initializeTask`.
       final legacy = _task(priority: 4, scaleVersion: 1);
       final migrated = _task(priority: 4, scaleVersion: 2);
-      expect(legacy.hasChanges(migrated), isTrue,
-          reason:
-              'Same priority value on different scale versions is semantically different (low-on-10 vs high-on-5) and must surface as a pending change.');
+      expect(legacy.hasChanges(migrated), isFalse);
     });
   });
 

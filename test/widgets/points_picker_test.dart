@@ -136,6 +136,43 @@ void main() {
     });
 
     testWidgets(
+      'submitting an empty Other dialog leaves the value unchanged',
+      (tester) async {
+        var callCount = 0;
+        await _pump(
+          tester,
+          PointsPicker(value: null, onChanged: (_) => callCount++),
+        );
+        await tester.tap(find.text('Other'));
+        await tester.pumpAndSettle();
+        // Submit with nothing typed: should be treated as cancel, not as
+        // "clear" (the picker keeps whatever value was previously set).
+        await tester.tap(find.text('Set'));
+        await tester.pumpAndSettle();
+        expect(callCount, 0);
+      },
+    );
+
+    testWidgets(
+      'submitting 0 in the Other dialog emits 0 (a real value, not cancel)',
+      (tester) async {
+        int? captured = -1;
+        await _pump(
+          tester,
+          PointsPicker(value: null, onChanged: (v) => captured = v),
+        );
+        await tester.tap(find.text('Other'));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField), '0');
+        await tester.tap(find.text('Set'));
+        await tester.pumpAndSettle();
+        expect(captured, 0,
+            reason:
+                'A typed "0" is a real submitted value distinct from the empty-input cancel path.');
+      },
+    );
+
+    testWidgets(
       'Other dialog filters non-digit characters via digitsOnly formatter',
       (tester) async {
         // The dialog uses FilteringTextInputFormatter.digitsOnly so only

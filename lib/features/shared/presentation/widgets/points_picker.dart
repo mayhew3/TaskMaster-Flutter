@@ -79,47 +79,54 @@ class PointsPicker extends StatelessWidget {
       onChanged(null);
       return;
     }
-    // Inactive Other → open numeric input.
-    final result = await _promptForCustomPoints(context, null);
-    if (result == null) return; // user cancelled
-    if (result == 0) {
-      onChanged(null);
-    } else {
-      onChanged(result);
+    // Inactive Other → open numeric input. The active-Other branch above
+    // clears (rather than opening pre-filled), so by the time we reach
+    // here `value` is always null or a Fibonacci bucket; there's nothing
+    // useful to pre-fill into the dialog.
+    final result = await _promptForCustomPoints(context);
+    // Cancel / barrier-dismiss → leave state alone.
+    // `_PointsDialogValue(n)` → apply (n may legitimately be 0).
+    if (result is _PointsDialogValue) {
+      onChanged(result.value);
     }
   }
 
-  /// Returns the entered integer, or `null` if the user cancelled.
-  /// `0` is a valid sentinel that callers may interpret as "clear".
-  static Future<int?> _promptForCustomPoints(
-      BuildContext context, int? initial) {
-    return showDialog<int>(
+  /// Returns the dialog outcome: a value (possibly 0) or a cancel marker.
+  static Future<_PointsDialogResult?> _promptForCustomPoints(
+      BuildContext context) {
+    return showDialog<_PointsDialogResult>(
       context: context,
-      builder: (ctx) => _CustomPointsDialog(initial: initial),
+      builder: (ctx) => const _CustomPointsDialog(),
     );
   }
 }
 
-class _CustomPointsDialog extends StatefulWidget {
-  final int? initial;
+/// Result wrapper for `_CustomPointsDialog`. Distinguishes "user
+/// cancelled / dismissed" from "user submitted N" — including N = 0,
+/// which is otherwise ambiguous if the dialog returned a bare `int?`.
+sealed class _PointsDialogResult {
+  const _PointsDialogResult();
+}
 
-  const _CustomPointsDialog({required this.initial});
+class _PointsDialogValue extends _PointsDialogResult {
+  final int value;
+  const _PointsDialogValue(this.value);
+}
+
+class _PointsDialogCancel extends _PointsDialogResult {
+  const _PointsDialogCancel();
+}
+
+class _CustomPointsDialog extends StatefulWidget {
+  const _CustomPointsDialog();
 
   @override
   State<_CustomPointsDialog> createState() => _CustomPointsDialogState();
 }
 
 class _CustomPointsDialogState extends State<_CustomPointsDialog> {
-  late final TextEditingController _controller;
+  final TextEditingController _controller = TextEditingController();
   String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(
-      text: widget.initial == null ? '' : '${widget.initial}',
-    );
-  }
 
   @override
   void dispose() {
@@ -130,7 +137,9 @@ class _CustomPointsDialogState extends State<_CustomPointsDialog> {
   void _submit() {
     final raw = _controller.text.trim();
     if (raw.isEmpty) {
-      Navigator.of(context).pop(0);
+      // Empty submit is treated as cancel — the picker keeps whatever
+      // value was previously set rather than clearing it implicitly.
+      Navigator.of(context).pop(const _PointsDialogCancel());
       return;
     }
     final parsed = int.tryParse(raw);
@@ -138,7 +147,7 @@ class _CustomPointsDialogState extends State<_CustomPointsDialog> {
       setState(() => _error = 'Enter a non-negative whole number');
       return;
     }
-    Navigator.of(context).pop(parsed);
+    Navigator.of(context).pop(_PointsDialogValue(parsed));
   }
 
   @override
@@ -161,7 +170,8 @@ class _CustomPointsDialogState extends State<_CustomPointsDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () =>
+              Navigator.of(context).pop(const _PointsDialogCancel()),
           child: const Text('Cancel'),
         ),
         FilledButton(

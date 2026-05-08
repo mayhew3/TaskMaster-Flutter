@@ -121,13 +121,18 @@ class TaskItemBlueprint with DateHolder {
   }
 
   bool hasChanges(TaskItem other) {
+    // `priorityScaleVersion` is intentionally excluded: it's a non-user-
+    // editable internal marker, and the lazy-migration path in the edit
+    // screen rewrites the user-visible `priority` value at the same time
+    // it bumps the version. Including version here would make a mid-flight
+    // migration look like a pending edit and falsely enable the Save
+    // button. Source of truth: `TaskItem.hasChanges`.
     var allMismatch = other.name != name ||
         other.description != description ||
         other.area != area ||
         other.context != context ||
         other.urgency != urgency ||
         other.priority != priority ||
-        other.priorityScaleVersion != priorityScaleVersion ||
         other.duration != duration ||
         other.gamePoints != gamePoints ||
         other.startDate != startDate ||
