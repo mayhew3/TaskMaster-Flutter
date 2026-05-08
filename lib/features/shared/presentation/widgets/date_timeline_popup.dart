@@ -42,7 +42,17 @@ DateTime defaultDateForNewType({
     final lowerDay = DateTime(lower.year, lower.month, lower.day);
     final upperDay = DateTime(upper.year, upper.month, upper.day);
     final daysDiff = upperDay.difference(lowerDay).inDays;
-    base = lowerDay.add(Duration(days: daysDiff ~/ 2));
+    if (daysDiff < 0) {
+      // Inconsistent legacy data: an "earlier" type is set after a "later"
+      // type (e.g. Start after Due). Midpoint math would produce a date
+      // below `lower` and outside any sensible interval. Fall through to
+      // the today-based default so the popup is still usable for the user
+      // to repair the inconsistency by editing one of the offending dates.
+      final now = (todayProvider ?? DateTime.now)();
+      base = DateTime(now.year, now.month, now.day);
+    } else {
+      base = lowerDay.add(Duration(days: daysDiff ~/ 2));
+    }
   } else if (lower != null) {
     base = DateTime(lower.year, lower.month, lower.day)
         .add(const Duration(days: 5));
@@ -841,8 +851,19 @@ class _SelectedDateDetail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = type.textColor;
-    final firstDate = _firstDate;
-    final lastDate = _lastDate;
+    var firstDate = _firstDate;
+    var lastDate = _lastDate;
+    // Inverted-bounds guard: if the existing dates are inconsistent (e.g.
+    // Start set later than Due on a legacy row), `firstDate.isAfter(lastDate)`
+    // and the calendar would reject every day as out-of-range, locking the
+    // user out of editing this field. Drop both constraints so the popup
+    // can still be used to repair the bad data.
+    if (firstDate != null &&
+        lastDate != null &&
+        firstDate.isAfter(lastDate)) {
+      firstDate = null;
+      lastDate = null;
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [

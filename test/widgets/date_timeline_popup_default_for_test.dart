@@ -184,6 +184,44 @@ void main() {
       });
     });
 
+    group('inverted-bounds fallback (legacy out-of-order data)', () {
+      test('Target between Start (May 20) and Due (May 1) falls back to today',
+          () {
+        // Inconsistent legacy data: Start is *after* Due. Midpoint math
+        // would yield May 10 (= May 20 + (May 1 - May 20) / 2 = May 20 -
+        // 9 days = May 11)... actually `(daysDiff ~/ 2)` where daysDiff =
+        // -19 truncates to -10, producing May 20 + (-10 days) = May 10,
+        // which is below `lower`. Guarded path falls through to the
+        // injected today instead, leaving the popup usable for the user
+        // to repair the bad data.
+        final fakeToday = DateTime(2026, 6, 15, 14, 0);
+        final result = defaultDateForNewType(
+          type: TaskDateTypes.target,
+          dates: _dates(
+            start: _at9am(2026, 5, 20),
+            due: _at9am(2026, 5, 1),
+          ),
+          todayProvider: () => fakeToday,
+        );
+        expect(result, _at9am(2026, 6, 15));
+      });
+
+      test('Urgent between two same-day-inverted bounds falls back', () {
+        // Both bounds on the same day but one stamp earlier (so day-precision
+        // diff is 0, not negative). This case stays on the midpoint path
+        // (daysDiff = 0 → base = lower), which is still safe — included
+        // here as the boundary regression check.
+        final result = defaultDateForNewType(
+          type: TaskDateTypes.urgent,
+          dates: _dates(
+            target: _at9am(2026, 5, 5),
+            due: DateTime(2026, 5, 5, 23, 59),
+          ),
+        );
+        expect(result, _at9am(2026, 5, 5));
+      });
+    });
+
     test('output is always at exactly 9:00:00.000', () {
       final result = defaultDateForNewType(
         type: TaskDateTypes.target,
