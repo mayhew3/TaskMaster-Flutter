@@ -46,6 +46,13 @@ class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
   /// See `TaskItem.priorityScaleVersion`. Carried forward from the source
   /// task so a recurring iteration created from a migrated task stays on
   /// the new scale.
+  ///
+  /// `includeIfNull: false` so previews that haven't explicitly set the
+  /// scale version (e.g. constructed before the field was propagated)
+  /// don't write `priorityScaleVersion: null` to Firestore via
+  /// `addRecurTask` and trip the non-nullable getter on the immediately-
+  /// following `TaskItem` deserialization.
+  @JsonKey(includeIfNull: false)
   int? priorityScaleVersion;
   int? duration;
 

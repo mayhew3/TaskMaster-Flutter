@@ -487,15 +487,23 @@ class _Timeline extends StatelessWidget {
       );
     }
 
-    final days = setTypes.map((t) => dates[t]!).toList();
-    final minDate = days.reduce((a, b) => a.isBefore(b) ? a : b);
-    final maxDate = days.reduce((a, b) => a.isAfter(b) ? a : b);
+    // Normalize all timeline math to day precision. The marker x is
+    // proportional to the calendar-day offset; using full DateTimes with
+    // `inDays` would floor sub-24h gaps to 0 (e.g. May 1 17:00 → May 2
+    // 09:00 = 16h = 0 inDays) and collapse adjacent-day markers to the
+    // same x. Keeping the full DateTime around for display is fine; only
+    // the position math runs at day precision.
+    DateTime _atDay(DateTime d) => DateTime(d.year, d.month, d.day);
+    final dayValues =
+        setTypes.map((t) => _atDay(dates[t]!)).toList(growable: false);
+    final minDay = dayValues.reduce((a, b) => a.isBefore(b) ? a : b);
+    final maxDay = dayValues.reduce((a, b) => a.isAfter(b) ? a : b);
     final spanDays =
-        (maxDate.difference(minDate).inDays).clamp(1, 365).toDouble();
+        (maxDay.difference(minDay).inDays).clamp(1, 365).toDouble();
 
     double pct(DateTime d) {
       if (spanDays == 0) return 0.5;
-      final delta = d.difference(minDate).inDays.toDouble();
+      final delta = _atDay(d).difference(minDay).inDays.toDouble();
       return (delta / spanDays).clamp(0.0, 1.0);
     }
 
@@ -877,9 +885,32 @@ class _SelectedDateDetail extends StatelessWidget {
           firstDate: firstDate,
           lastDate: lastDate,
           onDateChanged: (newDate) {
+            // Preserve the previous time-of-day, but if the new date
+            // lands on a boundary day where the existing time would
+            // violate the chronological order (e.g. switching Target
+            // onto Start's day while keeping a time before Start), clamp
+            // into the valid range so the resulting DateTime stays
+            // ordered.
+            var hour = date.hour;
+            var minute = date.minute;
+            final mins = hour * 60 + minute;
+            if (firstDate != null && _isSameDay(firstDate, newDate)) {
+              final minMins = firstDate.hour * 60 + firstDate.minute;
+              if (mins < minMins) {
+                hour = firstDate.hour;
+                minute = firstDate.minute;
+              }
+            }
+            if (lastDate != null && _isSameDay(lastDate, newDate)) {
+              final maxMins = lastDate.hour * 60 + lastDate.minute;
+              final curMins = hour * 60 + minute;
+              if (curMins > maxMins) {
+                hour = lastDate.hour;
+                minute = lastDate.minute;
+              }
+            }
             onChange(DateTime(
-              newDate.year, newDate.month, newDate.day,
-              date.hour, date.minute,
+              newDate.year, newDate.month, newDate.day, hour, minute,
             ));
           },
         ),

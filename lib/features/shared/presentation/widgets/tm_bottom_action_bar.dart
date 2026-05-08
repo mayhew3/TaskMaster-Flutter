@@ -28,7 +28,12 @@ class TmBottomActionBar extends StatelessWidget {
     this.onSave,
     this.saveEnabled = true,
     super.key,
-  });
+  })  : assert(
+          (cancelLabel == null) == (onCancel == null),
+          'cancelLabel and onCancel must be supplied together: a Cancel '
+          'button without a callback would render as interactive but do '
+          'nothing on tap.',
+        );
 
   @override
   Widget build(BuildContext context) {
