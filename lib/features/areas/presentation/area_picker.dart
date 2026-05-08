@@ -224,14 +224,21 @@ class _AreaPickerState extends ConsumerState<AreaPicker> {
                     child: _InlineAddAreaField(
                       existingNames: areas.map((a) => a.name).toList(),
                       onSubmit: (name) async {
-                        final created = await _createAreaInline(name);
-                        if (created != null) {
-                          // Close the sheet so the parent reflects the
-                          // selection without keeping the sheet stale.
-                          if (sheetCtx.mounted) {
-                            Navigator.of(sheetCtx).pop();
-                          }
+                        final errorMessage = await _createAreaInline(name);
+                        if (errorMessage != null) {
+                          // Service-side rejection (e.g. a race against
+                          // another client's add). Bubble back so the
+                          // inline field shows the message and KEEPS the
+                          // user's input — the controller is only cleared
+                          // on success.
+                          return errorMessage;
                         }
+                        // Close the sheet so the parent reflects the
+                        // selection without keeping the sheet stale.
+                        if (sheetCtx.mounted) {
+                          Navigator.of(sheetCtx).pop();
+                        }
+                        return null;
                       },
                     ),
                   ),
@@ -244,37 +251,31 @@ class _AreaPickerState extends ConsumerState<AreaPicker> {
     );
   }
 
-  /// Returns the created [Area] on success, or `null` if creation was
-  /// rejected (e.g. duplicate after a sync race). Surfaces a SnackBar for
-  /// user-visible failures.
-  Future<Area?> _createAreaInline(String newName) async {
+  /// Creates a new area and selects it. Returns `null` on success, or a
+  /// user-visible error message that the inline field should display.
+  /// The previous SnackBar fallback was removed in favor of inline
+  /// errors so the user's typed input is preserved when the service
+  /// rejects (DuplicateAreaNameException race / ReservedAreaNameException).
+  Future<String?> _createAreaInline(String newName) async {
     final personDocId = ref.read(personDocIdProvider);
-    if (personDocId == null) return null;
+    if (personDocId == null) {
+      return 'Cannot add: not signed in';
+    }
     final service = ref.read(areaServiceProvider);
     try {
       final created =
           await service.createArea(name: newName, personDocId: personDocId);
-      if (!mounted) return created;
+      if (!mounted) return null;
       setState(() => _selected = created.name);
       widget.valueSetter(created.name);
-      return created;
+      return null;
     } on DuplicateAreaNameException catch (e) {
       // Inline-field validator catches dups in the in-memory list; this
       // catches races where another client synced an area with the same
       // name in between the field's last validation and submit.
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
-      }
-      return null;
+      return e.toString();
     } on ReservedAreaNameException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
-      }
-      return null;
+      return e.toString();
     }
   }
 }
@@ -356,7 +357,13 @@ class _InlineAddAreaField extends StatefulWidget {
   });
 
   final List<String> existingNames;
-  final Future<void> Function(String name) onSubmit;
+
+  /// Called when the user taps Add (or hits Enter). Returns `null` on
+  /// success, or a user-visible error message. The field clears its
+  /// input and dismisses the inline-error state on success; on error it
+  /// keeps the typed name and surfaces the message inline below the row
+  /// so the user can edit-and-retry without retyping.
+  final Future<String?> Function(String name) onSubmit;
 
   @override
   State<_InlineAddAreaField> createState() => _InlineAddAreaFieldState();
@@ -398,9 +405,15 @@ class _InlineAddAreaFieldState extends State<_InlineAddAreaField> {
       _error = null;
     });
     try {
-      await widget.onSubmit(raw.trim());
+      final serviceError = await widget.onSubmit(raw.trim());
       if (!mounted) return;
-      _controller.clear();
+      if (serviceError != null) {
+        // Service rejected (e.g. duplicate-name race) — keep the typed
+        // text so the user can fix-and-retry, surface the message inline.
+        setState(() => _error = serviceError);
+      } else {
+        _controller.clear();
+      }
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

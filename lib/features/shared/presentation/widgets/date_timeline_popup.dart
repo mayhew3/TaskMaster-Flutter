@@ -887,12 +887,14 @@ class _SelectedDateDetail extends StatelessWidget {
           date: date,
           // Time restriction only applies on the boundary day itself.
           // Past the boundary day, the date constraint already covers
-          // the chronological order.
-          minHour: (firstDate != null && _isSameDay(firstDate, date))
-              ? firstDate.hour
+          // the chronological order. Full hour+minute precision so a
+          // boundary date with non-zero minutes (e.g. via Other...) is
+          // honored.
+          minTime: (firstDate != null && _isSameDay(firstDate, date))
+              ? TimeOfDay(hour: firstDate.hour, minute: firstDate.minute)
               : null,
-          maxHour: (lastDate != null && _isSameDay(lastDate, date))
-              ? lastDate.hour
+          maxTime: (lastDate != null && _isSameDay(lastDate, date))
+              ? TimeOfDay(hour: lastDate.hour, minute: lastDate.minute)
               : null,
           onChange: (t) {
             onChange(DateTime(
@@ -1225,25 +1227,30 @@ class _TimeBucketPicker extends StatelessWidget {
   final DateTime date;
   final ValueChanged<TimeOfDay> onChange;
 
-  /// Inclusive lower bound on the standard buckets' hour. Buckets earlier
-  /// than this become disabled. `null` = no lower bound. Should only be
-  /// supplied when [date] falls on the same calendar day as the constraint
-  /// date (otherwise the date itself already covers the chronological
-  /// order). The "Other..." segment is always enabled regardless of bounds.
-  final int? minHour;
+  /// Inclusive lower bound. Standard buckets earlier than this become
+  /// disabled; the "Other..." picker rejects times earlier than this.
+  /// `null` = no lower bound. Should only be supplied when [date] falls
+  /// on the same calendar day as the constraint date (otherwise the date
+  /// itself already covers the chronological order). Compared at full
+  /// hour+minute precision so an `Other...` pick of e.g. 9:30 correctly
+  /// disables the 9 AM bucket on the next render.
+  final TimeOfDay? minTime;
 
-  /// Inclusive upper bound on the standard buckets' hour.
-  final int? maxHour;
+  /// Inclusive upper bound. Same rules as [minTime] but for the high end.
+  final TimeOfDay? maxTime;
 
   const _TimeBucketPicker({
     required this.date,
     required this.onChange,
-    this.minHour,
-    this.maxHour,
+    this.minTime,
+    this.maxTime,
   });
 
   static const _buckets = [9, 12, 14, 17];
   static const _bucketLabels = ['9 AM', '12 PM', '2 PM', '5 PM'];
+
+  /// Minutes since midnight, for ordering comparisons.
+  static int _toMinutes(TimeOfDay t) => t.hour * 60 + t.minute;
 
   /// Active 0-based segment index. Returns 0..3 when the time matches one
   /// of the standard buckets exactly (minute == 0), or 4 for "Other..."
@@ -1254,15 +1261,16 @@ class _TimeBucketPicker extends StatelessWidget {
     return idx >= 0 ? idx : 4;
   }
 
-  /// Standard buckets are disabled when their hour falls outside the
-  /// supplied range; "Other..." (index 4) is always enabled so users have
-  /// a way to set a specific time even when every standard bucket is out
-  /// of range.
+  /// Standard buckets are disabled when their effective time
+  /// (`bucket_hour:00`) falls outside the supplied range. Compared in
+  /// minutes-since-midnight so a min of e.g. `9:30` correctly disables
+  /// the `9 AM` bucket. "Other..." (index 4) is always enabled — its
+  /// validation happens in [_openOtherPicker] after the picker returns.
   bool _disabled(int segIdx) {
     if (segIdx == 4) return false;
-    final hour = _buckets[segIdx];
-    if (minHour != null && hour < minHour!) return true;
-    if (maxHour != null && hour > maxHour!) return true;
+    final bucketMins = _buckets[segIdx] * 60; // bucket times are on the hour
+    if (minTime != null && bucketMins < _toMinutes(minTime!)) return true;
+    if (maxTime != null && bucketMins > _toMinutes(maxTime!)) return true;
     return false;
   }
 
@@ -1271,7 +1279,32 @@ class _TimeBucketPicker extends StatelessWidget {
       context: context,
       initialTime: TimeOfDay(hour: date.hour, minute: date.minute),
     );
-    if (picked != null) onChange(picked);
+    if (picked == null) return;
+
+    // Validate against the same bounds the standard buckets honor —
+    // otherwise "Other..." would be a constraint-bypass for boundary days.
+    final pickedMins = _toMinutes(picked);
+    if (minTime != null && pickedMins < _toMinutes(minTime!)) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Time must be ${_formatTime(minTime!)} or later on this day.'),
+        ),
+      );
+      return;
+    }
+    if (maxTime != null && pickedMins > _toMinutes(maxTime!)) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Time must be ${_formatTime(maxTime!)} or earlier on this day.'),
+        ),
+      );
+      return;
+    }
+    onChange(picked);
   }
 
   /// 12-hour formatted time string used in the "Other..." segment when
