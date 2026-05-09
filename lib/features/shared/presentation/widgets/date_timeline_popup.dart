@@ -1194,10 +1194,12 @@ class _MiniCalendarState extends State<_MiniCalendar> {
         const SizedBox(height: 4),
         // Day grid — always render exactly 6 rows so the calendar height
         // stays constant regardless of which month is shown. Months that
-        // only need 4 or 5 weeks fill the trailing rows with empty cells
-        // (`_buildDayCell` returns a zero-height-equivalent SizedBox for
-        // out-of-range day numbers). Without this, the chevron arrows
-        // would shift vertically as the user navigated month-to-month.
+        // only need 4 or 5 weeks fill the trailing rows with fixed-height
+        // (32px) placeholders — `_buildDayCell` returns a
+        // `SizedBox(height: 32)` for out-of-range day numbers, matching
+        // the height of a real day cell so the grid keeps the same
+        // total footprint. Without this, the chevron arrows would shift
+        // vertically as the user navigated month-to-month.
         for (var row = 0; row < 6; row++)
           Padding(
             padding: const EdgeInsets.only(bottom: 4),

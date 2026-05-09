@@ -153,9 +153,14 @@ class EditableTaskItemWidget extends ConsumerWidget {
           children: [
             AreaStripe(
               areaColor: areaColor,
-              stateColor:
-                  stripeColorOverride?.call(taskItem) ??
-                      stripeColorForTask(taskItem),
+              // When the caller supplies an override its return value
+              // is authoritative — including `null`, which should
+              // fall through to `areaColor` rather than re-deriving
+              // a stripe via `stripeColorForTask`. Only when no
+              // override is registered do we run the default path.
+              stateColor: stripeColorOverride != null
+                  ? stripeColorOverride!(taskItem)
+                  : stripeColorForTask(taskItem),
               completed: _isDone,
             ),
             Padding(
@@ -275,8 +280,13 @@ class EditableTaskItemWidget extends ConsumerWidget {
       );
 
   Widget _titleRow(BuildContext context, bool isExpanded) {
-    final pillContent =
-        pillContentOverride?.call(taskItem) ?? pillContentFor(taskItem);
+    // Same override semantics as the stripe: when the caller registers
+    // an override its return value is authoritative, including `null`
+    // (caller wants the pill hidden). The default `pillContentFor`
+    // path only runs when no override is registered at all.
+    final pillContent = pillContentOverride != null
+        ? pillContentOverride!(taskItem)
+        : pillContentFor(taskItem);
     final pill = pillContent == null
         ? const SizedBox.shrink()
         : PillView(content: pillContent, docId: _docId());
