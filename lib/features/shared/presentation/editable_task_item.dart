@@ -362,8 +362,14 @@ class EditableTaskItemWidget extends ConsumerWidget {
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          pill,
+          // Only consume the spacing + pill slot when there's actually
+          // a pill to render; an inline `SizedBox.shrink()` still costs
+          // its 8px gap, narrowing the title's available width and
+          // making ellipsis more likely on pill-less cards.
+          if (hasPill) ...[
+            const SizedBox(width: 8),
+            pill,
+          ],
         ],
       ),
     );
@@ -490,8 +496,11 @@ class AreaStripe extends StatelessWidget {
     // Stripe priority: completed → highlight; otherwise the most-recently-
     // crossed-threshold colour (Target / Urgent / Due) when one applies,
     // falling through to the area colour for tasks with no relevant date
-    // state. The state-derived colour matches the date pill foreground so
-    // the stripe and pill read as a single visual cue.
+    // state. Stripe colour comes from the saturated `TaskColors.*Stripe`
+    // tones (via `stripeColorForTask`), distinct from — but coordinated
+    // with — the pill's pale `*Text` foreground; together they read as a
+    // single visual cue without the pill's pale-on-dark text being
+    // washed out at the 3px stripe width.
     final Color color;
     if (completed) {
       color = TaskColors.highlight;

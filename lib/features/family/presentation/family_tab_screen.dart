@@ -52,16 +52,22 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
   Widget build(BuildContext context) {
     final groups = ref.watch(familyGroupedTasksProvider);
     // Sync the search controller's text when the provider is cleared
-    // externally (e.g. tab navigation). Intentionally does NOT close
-    // the search bar itself — losing the open input on an external
-    // clear would be surprising and removes the user's affordance to
-    // type again. The bar stays visible until the user dismisses it.
-    final searchQuery = ref.watch(familySearchQueryProvider);
-    if (searchQuery.isEmpty &&
-        _searchBarVisible &&
-        _searchController.text.isNotEmpty) {
-      _searchController.clear();
-    }
+    // externally (e.g. tab navigation). Done via `ref.listen` rather
+    // than during build so the `_searchController.clear()` mutation
+    // happens outside the build phase — mutating a TextEditingController
+    // mid-build can trigger an `EditableText` listener rebuild that
+    // racing with the in-progress build risks a "markNeedsBuild during
+    // build" exception. Intentionally does NOT close the search bar
+    // itself — losing the open input on an external clear would be
+    // surprising and removes the user's affordance to type again.
+    // The bar stays visible until the user dismisses it.
+    ref.listen<String>(familySearchQueryProvider, (prev, next) {
+      if (next.isEmpty &&
+          _searchBarVisible &&
+          _searchController.text.isNotEmpty) {
+        _searchController.clear();
+      }
+    });
 
     final tiles = <Widget>[];
     for (final group in groups) {
