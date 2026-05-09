@@ -122,6 +122,12 @@ class EditableTaskItemWidget extends ConsumerWidget {
       if (next == _docId() && prev != _docId()) {
         Future.delayed(const Duration(milliseconds: 180), () {
           if (!context.mounted) return;
+          // Re-validate inside the delayed callback: within the 180ms
+          // window the user might have collapsed this card or expanded
+          // a different one, in which case the scroll-into-view here
+          // would be a surprise. Bail unless this card is still the
+          // active one when the timer fires.
+          if (ref.read(expandedTaskProvider) != _docId()) return;
           final ro = context.findRenderObject();
           if (ro == null) return;
           Scrollable.maybeOf(context)?.position.ensureVisible(

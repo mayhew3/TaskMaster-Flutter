@@ -51,7 +51,11 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
   @override
   Widget build(BuildContext context) {
     final groups = ref.watch(familyGroupedTasksProvider);
-    // Sync search bar visibility with provider (e.g., cleared by tab navigation)
+    // Sync the search controller's text when the provider is cleared
+    // externally (e.g. tab navigation). Intentionally does NOT close
+    // the search bar itself — losing the open input on an external
+    // clear would be surprising and removes the user's affordance to
+    // type again. The bar stays visible until the user dismisses it.
     final searchQuery = ref.watch(familySearchQueryProvider);
     if (searchQuery.isEmpty &&
         _searchBarVisible &&

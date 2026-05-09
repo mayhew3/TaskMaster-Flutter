@@ -204,6 +204,11 @@ class PlanTaskItemWidget extends ConsumerWidget {
     final base = pillContentFor(displayTask);
     if (base == null) return null;
     if (stateTone == null) return base;
+    // COMPLETED / SKIPPED pills carry their own intentional styling
+    // (magenta family); re-tinting them with a date-state tone would
+    // make a finished task look like an active one. Skip the override
+    // for done-state pills and pass the base through unchanged.
+    if (displayTask.completionDate != null || displayTask.skipped) return base;
     return PillContent(
       label: base.label,
       value: base.value,

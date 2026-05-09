@@ -1389,12 +1389,27 @@ class _MonthYearPickerSheetState extends State<_MonthYearPickerSheet> {
     super.initState();
     _month = widget.initial.month;
     _year = widget.initial.year;
+    final yearCount = widget.lastYear - widget.firstYear + 1;
     final selectedIdx = _year - widget.firstYear;
-    // Each year row is ~44px tall; centre the initially-selected year by
-    // offsetting half the visible column height (~120px).
+    // Each year row is ~44px tall; centre the initially-selected year
+    // by offsetting half the visible column height (~120px). Clamp
+    // upper bound to the actual list length so the year column scrolls
+    // correctly regardless of how wide `firstYear`..`lastYear` is.
+    const itemExtent = 44.0;
+    final maxOffset =
+        (yearCount * itemExtent - 120).clamp(0.0, double.infinity);
     _yearController = ScrollController(
-      initialScrollOffset: (selectedIdx * 44.0 - 120).clamp(0.0, 44.0 * 200),
+      initialScrollOffset:
+          (selectedIdx * itemExtent - 120).clamp(0.0, maxOffset),
     );
+  }
+
+  /// True when the user's *current* picked (`_year`, `_month`) is
+  /// inside the optional [widget.firstDate]..[widget.lastDate] window.
+  /// Used to gate the Done button so an out-of-range initial selection
+  /// can't be committed without the user changing it first.
+  bool _isCurrentSelectionInRange() {
+    return _yearInRange(_year) && _monthInRange(_year, _month);
   }
 
   @override
@@ -1458,10 +1473,20 @@ class _MonthYearPickerSheetState extends State<_MonthYearPickerSheet> {
                     ),
                   ),
                   const SizedBox(width: 4),
+                  // Disable Done when the picked month/year sits
+                  // entirely outside [firstDate]..[lastDate]. The
+                  // sheet can open with an out-of-range initial value
+                  // (e.g. when the calendar's `_displayedMonth` was
+                  // already past the bound from a previous nav), so
+                  // gating Done here is what enforces the
+                  // "non-tappable" contract for invalid selections —
+                  // the row-level fade is just the visual cue.
                   FilledButton(
-                    onPressed: () => Navigator.of(context).pop(
-                      DateTime(_year, _month),
-                    ),
+                    onPressed: _isCurrentSelectionInRange()
+                        ? () => Navigator.of(context).pop(
+                              DateTime(_year, _month),
+                            )
+                        : null,
                     style: FilledButton.styleFrom(
                       backgroundColor: widget.accent,
                       foregroundColor: const Color.fromRGBO(20, 30, 60, 0.95),
