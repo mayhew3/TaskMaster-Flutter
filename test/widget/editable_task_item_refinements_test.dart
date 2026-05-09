@@ -5,6 +5,7 @@ import 'package:taskmaestro/features/areas/providers/area_color_providers.dart';
 import 'package:taskmaestro/features/shared/presentation/editable_task_item.dart';
 import 'package:taskmaestro/features/tasks/providers/expanded_task_provider.dart';
 import 'package:taskmaestro/keys.dart';
+import 'package:taskmaestro/models/task_colors.dart';
 import 'package:taskmaestro/models/task_item.dart';
 
 /// Tests for the TM-357 task-card refinements:
@@ -203,5 +204,107 @@ void main() {
       // affordance to view recurrence history.
       expect(find.byIcon(Icons.format_list_bulleted), findsOneWidget);
     });
+  });
+
+  group('Override callback null semantics', () {
+    // Locks down the contract that distinguishes "no override registered"
+    // (use the default path) from "override registered, returned null on
+    // purpose" (honour the null — don't fall through to the default).
+    // The earlier `pillContentOverride?.call(taskItem) ?? pillContentFor(taskItem)`
+    // shape collapsed both into one and silently overrode the caller's
+    // intent; the current `if (override != null)` form keeps them distinct.
+
+    testWidgets(
+      'pillContentOverride returning null hides the pill (no fallback to pillContentFor)',
+      (tester) async {
+        // Task has a future due-date that the default `pillContentFor`
+        // WOULD pick up and render as a DUE pill — proving any rendered
+        // pill came from the default path, not the override.
+        final task = _makeTask(
+          name: 'No-pill override',
+          dueDate: DateTime.now().add(const Duration(days: 2)),
+        );
+        await tester.pumpWidget(_wrap(EditableTaskItemWidget(
+          taskItem: task,
+          highlightSprint: false,
+          onTaskCompleteToggle: (_) => null,
+          pillContentOverride: (_) => null,
+        )));
+        // No pill rendered at all — neither the default DUE pill nor any
+        // override-supplied one.
+        expect(
+          find.byKey(TaskMaestroKeys.editableTaskItemDatePill('test-task')),
+          findsNothing,
+        );
+        expect(find.text('DUE'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'pillContentOverride NOT registered uses the default pillContentFor',
+      (tester) async {
+        // Same task as above, but no override — the default DUE pill
+        // should appear. Confirms the conditional only suppresses when
+        // an override is explicitly registered.
+        final task = _makeTask(
+          name: 'Default pill',
+          dueDate: DateTime.now().add(const Duration(days: 2)),
+        );
+        await tester.pumpWidget(_wrap(EditableTaskItemWidget(
+          taskItem: task,
+          highlightSprint: false,
+          onTaskCompleteToggle: (_) => null,
+          // pillContentOverride deliberately omitted.
+        )));
+        expect(find.text('DUE'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'stripeColorOverride returning null falls through to areaColor (not stripeColorForTask)',
+      (tester) async {
+        // Past-due task: `stripeColorForTask` would return
+        // TaskColors.dueStripe by default. With the override registered
+        // and returning null, the AreaStripe should receive
+        // `stateColor: null` and render with areaColor instead.
+        final task = _makeTask(
+          name: 'Override null stripe',
+          dueDate: DateTime.now().subtract(const Duration(days: 2)),
+        );
+        await tester.pumpWidget(_wrap(EditableTaskItemWidget(
+          taskItem: task,
+          highlightSprint: false,
+          onTaskCompleteToggle: (_) => null,
+          stripeColorOverride: (_) => null,
+        )));
+        final stripe =
+            tester.widget<AreaStripe>(find.byType(AreaStripe));
+        // Override returned null → stripe gets null stateColor → falls
+        // through to areaColor in AreaStripe.build (NOT to the default
+        // stripeColorForTask which would have returned dueStripe).
+        expect(stripe.stateColor, isNull);
+      },
+    );
+
+    testWidgets(
+      'stripeColorOverride NOT registered uses stripeColorForTask',
+      (tester) async {
+        // Same past-due task, no override — the default
+        // `stripeColorForTask` path should produce dueStripe.
+        final task = _makeTask(
+          name: 'Default stripe',
+          dueDate: DateTime.now().subtract(const Duration(days: 2)),
+        );
+        await tester.pumpWidget(_wrap(EditableTaskItemWidget(
+          taskItem: task,
+          highlightSprint: false,
+          onTaskCompleteToggle: (_) => null,
+          // stripeColorOverride deliberately omitted.
+        )));
+        final stripe =
+            tester.widget<AreaStripe>(find.byType(AreaStripe));
+        expect(stripe.stateColor, equals(TaskColors.dueStripe));
+      },
+    );
   });
 }

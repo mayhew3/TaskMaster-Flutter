@@ -91,7 +91,6 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
     return PlanTaskItemWidget(
       sprintDisplayTask: taskItem,
       endDate: endDate,
-      sprint: null,
       highlightSprint: highlightSprint(taskItem, lastSprint),
       initialCheckState: sprintDisplayTaskQueue.contains(taskItem) ? CheckState.checked : CheckState.inactive,
       onTaskAssignmentToggle: (checkState) {

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskmaestro/features/shared/presentation/editable_task_item.dart';
 import 'package:taskmaestro/models/check_state.dart';
-import 'package:taskmaestro/models/sprint.dart';
 import 'package:taskmaestro/models/sprint_display_task.dart';
 import 'package:taskmaestro/models/task_colors.dart';
 import 'package:taskmaestro/models/task_date_type.dart';
@@ -45,14 +44,12 @@ class PlanTaskItemWidget extends ConsumerWidget {
   final CheckCycleWaiter? onTaskAssignmentToggle;
   final DateTime? endDate;
   final CheckState? initialCheckState;
-  final Sprint? sprint;
   final bool highlightSprint;
 
   const PlanTaskItemWidget({
     super.key,
     required this.sprintDisplayTask,
     this.endDate,
-    this.sprint,
     required this.highlightSprint,
     this.onTaskAssignmentToggle,
     this.initialCheckState,
@@ -107,39 +104,48 @@ class PlanTaskItemWidget extends ConsumerWidget {
   /// sprint being assembled (`endDate` if set, else now).
   DateTime _projectionRef() => endDate ?? DateTime.now();
 
-  /// Tone triple for the projected state at [_projectionRef]. Mirrors
-  /// `toneForCurrentState` in editable_task_item.dart but anchors the
-  /// "now" reference to the sprint horizon.
-  ToneTriple? _projectedStateTone() {
-    final task = sprintDisplayTask;
+  /// Date type [task] would be in at [_projectionRef] (sprint horizon
+  /// or wall-clock now). Returns the highest-priority crossed
+  /// threshold — Due > Urgent > Target — or `start` for tasks scheduled
+  /// to begin in the future. Returns `null` for tasks with no relevant
+  /// date state.
+  ///
+  /// Reads dates from the [TaskItem] argument (the chrome-resolved
+  /// display task) so the contract matches the override-callback
+  /// signature; for plan-mode forecast previews the synthesised
+  /// TaskItem already carries the same date fields as the underlying
+  /// `SprintDisplayTask`.
+  TaskDateType? _projectedStateType(TaskItem task) {
     final ref = _projectionRef();
     if (task.dueDate != null && task.dueDate!.isBefore(ref)) {
-      return toneFor(TaskDateTypes.due);
+      return TaskDateTypes.due;
     }
     if (task.urgentDate != null && task.urgentDate!.isBefore(ref)) {
-      return toneFor(TaskDateTypes.urgent);
+      return TaskDateTypes.urgent;
     }
     if (task.targetDate != null && task.targetDate!.isBefore(ref)) {
-      return toneFor(TaskDateTypes.target);
+      return TaskDateTypes.target;
     }
-    if (task.isScheduled()) return toneFor(TaskDateTypes.start);
+    if (task.isScheduled()) return TaskDateTypes.start;
     return null;
   }
 
-  Color? _stripeOverride(TaskItem _) {
-    final task = sprintDisplayTask;
-    final ref = _projectionRef();
-    if (task.dueDate != null && task.dueDate!.isBefore(ref)) {
-      return TaskColors.dueStripe;
-    }
-    if (task.urgentDate != null && task.urgentDate!.isBefore(ref)) {
-      return TaskColors.urgentStripe;
-    }
-    if (task.targetDate != null && task.targetDate!.isBefore(ref)) {
-      return TaskColors.targetStripe;
-    }
-    if (task.isScheduled()) return TaskColors.startStripe;
-    return null;
+  /// Tone triple for the projected state. Anchors the "now" reference
+  /// to the sprint horizon ([_projectionRef]) rather than wall-clock
+  /// now, otherwise mirrors `toneForCurrentState` in
+  /// editable_task_item.dart.
+  ToneTriple? _projectedStateTone(TaskItem task) {
+    final type = _projectedStateType(task);
+    return type == null ? null : toneFor(type);
+  }
+
+  Color? _stripeOverride(TaskItem task) {
+    final type = _projectedStateType(task);
+    if (type == null) return null;
+    if (type == TaskDateTypes.due) return TaskColors.dueStripe;
+    if (type == TaskDateTypes.urgent) return TaskColors.urgentStripe;
+    if (type == TaskDateTypes.target) return TaskColors.targetStripe;
+    return TaskColors.startStripe;
   }
 
   /// Highest-priority date type whose date sits between wall-clock now
@@ -148,7 +154,11 @@ class PlanTaskItemWidget extends ConsumerWidget {
   /// threshold during this sprint (already-overdue or no future dates),
   /// in which case the pill falls back to the standard `pillContentFor`
   /// semantics on the shared widget.
-  TaskDateType? _planDisplayType() {
+  ///
+  /// Reads from the [TaskItem] parameter (display task) for the same
+  /// reasons as [_projectedStateType] — matches the override-callback
+  /// contract.
+  TaskDateType? _planDisplayType(TaskItem task) {
     final ref = _projectionRef();
     final now = DateTime.now();
     final priorityOrder = [
@@ -158,7 +168,7 @@ class PlanTaskItemWidget extends ConsumerWidget {
       TaskDateTypes.start,
     ];
     for (final type in priorityOrder) {
-      final d = type.dateFieldGetter(sprintDisplayTask);
+      final d = type.dateFieldGetter(task);
       if (d == null) continue;
       if (d.isBefore(ref) && d.isAfter(now)) return type;
     }
@@ -179,10 +189,10 @@ class PlanTaskItemWidget extends ConsumerWidget {
   }
 
   PillContent? _pillOverride(TaskItem displayTask) {
-    final planType = _planDisplayType();
-    final stateTone = _projectedStateTone();
+    final planType = _planDisplayType(displayTask);
+    final stateTone = _projectedStateTone(displayTask);
     if (planType != null) {
-      final dateValue = planType.dateFieldGetter(sprintDisplayTask);
+      final dateValue = planType.dateFieldGetter(displayTask);
       if (dateValue != null) {
         final displayTone = toneFor(planType);
         return PillContent(

@@ -110,7 +110,6 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
     return PlanTaskItemWidget(
       sprintDisplayTask: taskItem,
       endDate: endDate,
-      sprint: null,
       highlightSprint: _taskItemIsInSprint(taskItem, lastSprint),
       initialCheckState: sprintDisplayTaskQueue.contains(taskItem)
           ? CheckState.checked
