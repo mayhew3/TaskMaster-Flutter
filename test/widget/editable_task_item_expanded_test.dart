@@ -228,8 +228,16 @@ void main() {
   });
 
   group('Title row when expanded', () {
+    // Pill drops below the title in expanded mode regardless of title
+    // length. Earlier versions tried to keep the pill inline with
+    // short titles via TextPainter-based measurement, but the
+    // measurement diverged from actual rendered widths across
+    // platforms (Roboto vs SF), leaving titles of borderline length
+    // ellipsised on iOS while wrapping on Android. The unconditional
+    // drop sidesteps that platform-dependent bias.
+
     testWidgets(
-        'Short title keeps the pill on the same row when expanded',
+        'Short title also drops the pill below in expanded mode (no measurement bias)',
         (tester) async {
       final task = _task(
         docId: 'short-x',
@@ -249,8 +257,9 @@ void main() {
       final titleRect = tester.getRect(find.text('Short Task'));
       final pillRect = tester
           .getRect(find.byKey(TaskMaestroKeys.editableTaskItemDatePill('short-x')));
-      expect((pillRect.top - titleRect.top).abs(), lessThan(20),
-          reason: 'Short titles should stay single-row even when expanded');
+      expect(pillRect.top, greaterThan(titleRect.bottom - 1),
+          reason:
+              'Pill should sit on its own row below the title in expanded mode regardless of title length');
     });
 
     testWidgets(

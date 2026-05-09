@@ -298,62 +298,35 @@ class EditableTaskItemWidget extends ConsumerWidget {
       return _singleRowTitle(titleStyle, pill, pillContent != null);
     }
 
-    // Expanded mode: only break to a second row when the title actually
-    // would have ellipsised. Pill stays right-aligned in either case.
-    final scaler = MediaQuery.textScalerOf(context);
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const spacing = 8.0;
-        final maxWidth = constraints.hasBoundedWidth
-            ? constraints.maxWidth
-            : double.infinity;
-        if (pillContent == null || maxWidth.isInfinite) {
-          return _singleRowTitle(titleStyle, pill, pillContent != null);
-        }
-
-        final pillWidth = _measurePillWidth(pillContent, scaler);
-        final titlePainter = TextPainter(
-          text: TextSpan(text: taskItem.name, style: titleStyle),
-          textDirection: TextDirection.ltr,
-          textScaler: scaler,
-          maxLines: 1,
-        )..layout();
-
-        // Subtract an epsilon so titles whose measured width lands close
-        // to the available space still wrap. TextPainter's `width` and
-        // the rendered Text widget's available space disagree by
-        // sub-pixel rounding, AND the magnitude of the disagreement
-        // varies by platform / system font: 2px was enough on Android
-        // (Roboto) but San Francisco on iOS measures even more
-        // optimistically, leaving titles that are only a couple
-        // characters too long ellipsised on a single row when wrapping
-        // would have shown the whole title. 6px is conservative for
-        // both: the cost is some borderline-fitting titles wrap
-        // unnecessarily, but the alternative (information loss via
-        // ellipsis) is worse.
-        const epsilon = 6.0;
-        final fitsOneRow =
-            titlePainter.width <= maxWidth - pillWidth - spacing - epsilon;
-        if (fitsOneRow) {
-          // Inside this branch pillContent is guaranteed non-null
-          // (the `pillContent == null` case returned early above).
-          return _singleRowTitle(titleStyle, pill, true);
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              taskItem.name,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: titleStyle,
-            ),
-            const SizedBox(height: 5),
-            Align(alignment: Alignment.centerRight, child: pill),
-          ],
-        );
-      },
+    // Expanded mode: title takes the full row, pill drops to its own
+    // right-aligned row below.
+    //
+    // An earlier version tried to *measure* whether the title fit
+    // alongside the pill (TextPainter + epsilon) and only dropped the
+    // pill below when it didn't, but the TextPainter measurement
+    // diverged from the actual rendered width by varying amounts
+    // across platforms (Roboto on Android vs SF on iOS), leaving
+    // titles that were only a couple characters over the line
+    // ellipsised on iOS while Android wrapped them correctly. Putting
+    // the pill below unconditionally in expanded mode sidesteps the
+    // platform-dependent measurement bias entirely — the title's
+    // `Text` widget gets the full row width and computes its own wrap
+    // against the actual layout-time constraints.
+    if (pillContent == null) {
+      return _singleRowTitle(titleStyle, pill, false);
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          taskItem.name,
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
+          style: titleStyle,
+        ),
+        const SizedBox(height: 5),
+        Align(alignment: Alignment.centerRight, child: pill),
+      ],
     );
   }
 
@@ -767,25 +740,6 @@ const TextStyle pillValueStyle = TextStyle(
   fontSize: 11,
   fontWeight: FontWeight.w600,
 );
-
-double _measurePillWidth(PillContent content, TextScaler scaler) {
-  final labelPainter = TextPainter(
-    text: TextSpan(text: content.label, style: pillLabelStyle),
-    textDirection: TextDirection.ltr,
-    textScaler: scaler,
-  )..layout();
-  final valuePainter = TextPainter(
-    text: TextSpan(text: content.value, style: pillValueStyle),
-    textDirection: TextDirection.ltr,
-    textScaler: scaler,
-  )..layout();
-  // 9px h padding × 2 + 5px gap + borderWidth × 2.
-  return labelPainter.width +
-      valuePainter.width +
-      18 +
-      5 +
-      content.borderWidth * 2;
-}
 
 class PillView extends StatelessWidget {
   final PillContent content;
