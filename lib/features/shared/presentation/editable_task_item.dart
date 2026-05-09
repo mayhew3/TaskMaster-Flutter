@@ -2,9 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// Hide intl's `TextDirection` so the dart:ui enum (with .ltr/.rtl) wins
-// for TextPainter measurements below.
-import 'package:intl/intl.dart' hide TextDirection;
+import 'package:taskmaestro/date_util.dart';
 import 'package:taskmaestro/features/areas/providers/area_color_providers.dart';
 import 'package:taskmaestro/features/tasks/providers/expanded_task_provider.dart';
 import 'package:taskmaestro/helpers/area_color_helper.dart';
@@ -37,6 +35,32 @@ class EditableTaskItemWidget extends ConsumerWidget {
   /// is hidden.
   final VoidCallback? onEdit;
 
+  /// When non-null, called instead of the standard `pillContentFor` to
+  /// resolve the date pill's content. Lets callers override the pill's
+  /// label / value / colours — e.g. `PlanTaskItemWidget` projects the
+  /// pill against its sprint's `endDate` so it reads "DUE in 5d" rather
+  /// than "TARGET in 4d" when both dates fall inside the sprint horizon.
+  /// Returning `null` from the override hides the pill (same as the
+  /// default path returning `null`).
+  final PillContent? Function(TaskItem)? pillContentOverride;
+
+  /// When non-null, called instead of the standard `stripeColorForTask`
+  /// to resolve the left stripe colour. Lets callers project the stripe
+  /// against an alternative time horizon (e.g. sprint planning's
+  /// `endDate`). Returning `null` falls through to the area colour.
+  final Color? Function(TaskItem)? stripeColorOverride;
+
+  /// When non-null, replaces the default trailing widget (the
+  /// completion-toggle checkbox bound to [onTaskCompleteToggle]).
+  /// `PlanTaskItemWidget` uses this to render an *assignment*-toggle
+  /// checkbox instead.
+  final Widget Function()? trailingBuilder;
+
+  /// `false` removes the outer `Dismissible` wrapper. Plan-mode rows
+  /// shouldn't be swipe-deletable since the gesture there is "add to
+  /// sprint", not "delete task".
+  final bool enableDismissible;
+
   const EditableTaskItemWidget({
     super.key,
     required this.taskItem,
@@ -46,6 +70,10 @@ class EditableTaskItemWidget extends ConsumerWidget {
     this.onLongPress,
     this.onForcePress,
     this.onEdit,
+    this.pillContentOverride,
+    this.stripeColorOverride,
+    this.trailingBuilder,
+    this.enableDismissible = true,
   });
 
   String _docId() => taskItem.docId;
@@ -82,71 +110,92 @@ class EditableTaskItemWidget extends ConsumerWidget {
     final isExpanded = expandedDocId == _docId();
     final areaColor = _resolveAreaColor(ref);
 
-    // Scroll the card fully into view when it expands. AnimatedSize takes
-    // 200ms to play out, so we schedule the ensureVisible call shortly
-    // after that completes — earlier and the scroll target uses the
-    // pre-expand height; later and there's a noticeable delay before the
-    // view catches up. Only fires on the prev->this transition (other
-    // cards collapsing don't scroll us).
+    // Scroll the card fully into view when it expands, but ONLY if the
+    // expanded bottom would otherwise be off-screen. AnimatedSize plays
+    // for 100ms (see below); we wait ~80ms past that so the render
+    // object reliably reflects the post-expand bounds when ensureVisible
+    // measures (a tighter window made the scroll fire mid-animation
+    // ~75% of the time, against pre-expand bounds, and silently no-op).
+    // `keepVisibleAtEnd` means we only scroll down enough to bring the
+    // bottom into view; cards already fully visible aren't disturbed.
     ref.listen<String?>(expandedTaskProvider, (prev, next) {
       if (next == _docId() && prev != _docId()) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(milliseconds: 180), () {
           if (!context.mounted) return;
+          final ro = context.findRenderObject();
+          if (ro == null) return;
           Scrollable.maybeOf(context)?.position.ensureVisible(
-                context.findRenderObject()!,
-                alignment: 1.0,
-                duration: const Duration(milliseconds: 240),
+                ro,
+                alignmentPolicy:
+                    ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+                duration: const Duration(milliseconds: 110),
                 curve: Curves.easeInOut,
               );
         });
       }
     });
 
+    final card = GestureDetector(
+      onLongPress: onLongPress,
+      onForcePressStart: onForcePress,
+      child: Card(
+        key: TaskMaestroKeys.editableTaskItemCard(_docId()),
+        color: _cardSurfaceColor(),
+        shape: _cardShape(),
+        margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
+        child: Stack(
+          children: [
+            AreaStripe(
+              areaColor: areaColor,
+              stateColor:
+                  stripeColorOverride?.call(taskItem) ??
+                      stripeColorForTask(taskItem),
+              completed: _isDone,
+            ),
+            Padding(
+              // Card-internal padding tuned for visual balance between
+              // the title row and the meta row:
+              //   - top 8: the title row's `ConstrainedBox(minHeight:22)`
+              //     plus this padding gives the title text ~11-12px of
+              //     space above its glyphs (8 padding + 3-4 row-internal
+              //     space above the bottom-aligned text).
+              //   - bottom 6: tightened from 10 so the meta row doesn't
+              //     leave a noticeable empty band at the card's bottom.
+              padding: const EdgeInsets.fromLTRB(14.0, 8.0, 10.0, 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _summaryRow(context, ref, isExpanded, areaColor),
+                  AnimatedSize(
+                    // Tighter expand/collapse cadence — the original
+                    // 200ms felt sluggish once we started chaining a
+                    // post-animation scroll-into-view on top of it.
+                    duration: const Duration(milliseconds: 100),
+                    curve: Curves.easeInOut,
+                    alignment: Alignment.topCenter,
+                    child: isExpanded
+                        ? ExpandedPanel(
+                            taskItem: taskItem,
+                            onEdit: onEdit,
+                            onCollapse: () => ref
+                                .read(expandedTaskProvider.notifier)
+                                .toggle(_docId()),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (!enableDismissible) return card;
     return Dismissible(
       key: TaskMaestroKeys.taskItem(_docId()),
       confirmDismiss: confirmDismiss,
-      child: GestureDetector(
-        onLongPress: onLongPress,
-        onForcePressStart: onForcePress,
-        child: Card(
-          key: TaskMaestroKeys.editableTaskItemCard(_docId()),
-          color: _cardSurfaceColor(),
-          shape: _cardShape(),
-          margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
-          child: Stack(
-            children: [
-              AreaStripe(
-                areaColor: areaColor,
-                stateColor: toneForCurrentState(taskItem)?.fg,
-                completed: _isDone,
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14.0, 10.0, 10.0, 10.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _summaryRow(context, ref, isExpanded, areaColor),
-                    AnimatedSize(
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.easeInOut,
-                      alignment: Alignment.topCenter,
-                      child: isExpanded
-                          ? _ExpandedPanel(
-                              taskItem: taskItem,
-                              onEdit: onEdit,
-                              onCollapse: () => ref
-                                  .read(expandedTaskProvider.notifier)
-                                  .toggle(_docId()),
-                            )
-                          : const SizedBox.shrink(),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      child: card,
     );
   }
 
@@ -176,7 +225,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
     // Avoid making a card tappable when expanding it would render nothing —
     // tapping such a card would silently collapse another open card without
     // any visible affordance, which feels broken.
-    final canExpand = _hasExpandableContent(taskItem, hasOnEdit: onEdit != null);
+    final canExpand = hasExpandableContent(taskItem, hasOnEdit: onEdit != null);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: canExpand
@@ -190,7 +239,9 @@ class EditableTaskItemWidget extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _titleRow(context, isExpanded),
-                const SizedBox(height: 6),
+                // Tight gap (was 6) so the title + meta read as a
+                // single content block rather than two separated rows.
+                const SizedBox(height: 4),
                 _metaRow(areaColor, isExpanded),
               ],
             ),
@@ -198,7 +249,11 @@ class EditableTaskItemWidget extends ConsumerWidget {
           const SizedBox(width: 12),
           Padding(
             padding: const EdgeInsets.only(top: 1.0),
-            child: _checkbox(),
+            // `trailingBuilder` lets plan-mode rows substitute an
+            // assignment-toggle checkbox for the default
+            // completion-toggle. Falls through to the standard
+            // `_checkbox()` when no override is supplied.
+            child: trailingBuilder?.call() ?? _checkbox(),
           ),
         ],
       ),
@@ -214,7 +269,8 @@ class EditableTaskItemWidget extends ConsumerWidget {
       );
 
   Widget _titleRow(BuildContext context, bool isExpanded) {
-    final pillContent = pillContentFor(taskItem);
+    final pillContent =
+        pillContentOverride?.call(taskItem) ?? pillContentFor(taskItem);
     final pill = pillContent == null
         ? const SizedBox.shrink()
         : PillView(content: pillContent, docId: _docId());
@@ -223,7 +279,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
     // Collapsed mode: keep the original compact single-row layout — title
     // ellipsis + pill on the right.
     if (!isExpanded) {
-      return _singleRowTitle(titleStyle, pill);
+      return _singleRowTitle(titleStyle, pill, pillContent != null);
     }
 
     // Expanded mode: only break to a second row when the title actually
@@ -236,7 +292,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
             ? constraints.maxWidth
             : double.infinity;
         if (pillContent == null || maxWidth.isInfinite) {
-          return _singleRowTitle(titleStyle, pill);
+          return _singleRowTitle(titleStyle, pill, pillContent != null);
         }
 
         final pillWidth = _measurePillWidth(pillContent, scaler);
@@ -257,7 +313,9 @@ class EditableTaskItemWidget extends ConsumerWidget {
         final fitsOneRow =
             titlePainter.width <= maxWidth - pillWidth - spacing - epsilon;
         if (fitsOneRow) {
-          return _singleRowTitle(titleStyle, pill);
+          // Inside this branch pillContent is guaranteed non-null
+          // (the `pillContent == null` case returned early above).
+          return _singleRowTitle(titleStyle, pill, true);
         }
 
         return Column(
@@ -277,51 +335,76 @@ class EditableTaskItemWidget extends ConsumerWidget {
     );
   }
 
-  Widget _singleRowTitle(TextStyle titleStyle, Widget pill) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Text(
-            taskItem.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: titleStyle,
+  Widget _singleRowTitle(
+      TextStyle titleStyle, Widget pill, bool hasPill) {
+    // Minimum row height = pill's natural height (22px) when a pill is
+    // rendered; +2px (24px) when there isn't one, to give pill-less
+    // cards an extra sliver of breathing room above the title since
+    // the pill normally provides that visual lead-in itself.
+    final minHeight = hasPill ? 22.0 : 24.0;
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: minHeight),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        // The title's glyph baseline + descender space sit *above* the
+        // text widget's layout-box bottom by ~3-4px; without the
+        // `TextHeightBehavior` override below, `CrossAxisAlignment.end`
+        // would line up the layout boxes but the visible text would
+        // still float higher than the visible pill bottom. Disabling the
+        // last-descent height makes the layout box hug the glyphs, so
+        // "bottom of text box" == "bottom of visible text" == "bottom
+        // of pill" once they're all `end`-aligned.
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          Expanded(
+            child: Text(
+              taskItem.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: titleStyle,
+              textHeightBehavior: const TextHeightBehavior(
+                applyHeightToLastDescent: false,
+              ),
+            ),
           ),
-        ),
-        const SizedBox(width: 8),
-        pill,
-      ],
+          const SizedBox(width: 8),
+          pill,
+        ],
+      ),
     );
   }
 
   Widget _metaRow(Color areaColor, bool isExpanded) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      // `center` keeps each meta-cell vertically centered against the
+      // others — the indicators (priority bar, points circle, time block)
+      // have slightly different intrinsic heights, so anchoring at top
+      // would visually push the priority bar above the time text.
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // Expanded soaks up all remaining width so the right cluster sits
         // flush against the checkbox column. When area is null the inner
         // SizedBox.shrink leaves the space empty without disrupting alignment.
         Expanded(child: _areaLabel(areaColor)),
-        _MetaCell(
+        MetaCell(
           isExpanded: isExpanded,
           subtitle: 'Length',
-          child: _TimeBlock(durationMinutes: taskItem.duration),
+          child: TimeBlock(durationMinutes: taskItem.duration),
         ),
         const SizedBox(width: 8),
         // Use the scale-aware getter so legacy 1-10 rows still render the
         // same number of fills they did before TM-358, while migrated 1-5
         // rows render their value directly. See TaskItem.displayPriority.
-        _MetaCell(
+        MetaCell(
           isExpanded: isExpanded,
           subtitle: 'Priority',
-          child: _PriorityBar(filled: taskItem.displayPriority ?? 0),
+          child: PriorityBar(filled: taskItem.displayPriority ?? 0),
         ),
         const SizedBox(width: 8),
-        _MetaCell(
+        MetaCell(
           isExpanded: isExpanded,
           subtitle: 'Pts',
-          child: _PointsCircle(points: taskItem.gamePoints),
+          child: PointsCircle(points: taskItem.gamePoints),
         ),
       ],
     );
@@ -432,21 +515,33 @@ class AreaStripe extends StatelessWidget {
   }
 }
 
-/// Wraps a meta-row cell ([_TimeBlock] / [_PriorityBar] / [_PointsCircle])
+/// Wraps a meta-row cell ([TimeBlock] / [PriorityBar] / [PointsCircle])
 /// with an optional small text subtitle ("Length" / "Priority" / "Pts")
-/// rendered beneath it when the card is expanded. Keeps the cell's
-/// horizontal footprint stable across expand/collapse by anchoring the
-/// child to the row's top — collapsed cards see only the indicator and
-/// expanded ones see indicator + subtitle without the row jumping.
-class _MetaCell extends StatelessWidget {
+/// rendered beneath it when the card is expanded.
+///
+/// In *expanded* mode the indicator portion is held to the height of the
+/// tallest indicator (the points circle, 22px) — every cell gets the
+/// same height, so all three sit on a common baseline and the subtitles
+/// underneath align consistently. The indicator itself is never resized;
+/// shorter indicators just float vertically inside a taller box.
+///
+/// In *collapsed* mode the cell is just the indicator at its intrinsic
+/// height; the row's centre alignment then balances the three different
+/// natural heights around a shared centreline (the original behaviour
+/// from before the subtitle feature was added).
+class MetaCell extends StatelessWidget {
   final Widget child;
   final String subtitle;
   final bool isExpanded;
-  const _MetaCell({
+  const MetaCell({
     required this.child,
     required this.subtitle,
     required this.isExpanded,
   });
+
+  /// Matches the tallest indicator in the meta row (the 22px-tall
+  /// [PointsCircle]) so no indicator gets visually clipped or shrunk.
+  static const double _expandedIndicatorHeight = 22;
 
   @override
   Widget build(BuildContext context) {
@@ -455,12 +550,19 @@ class _MetaCell extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        child,
-        const SizedBox(height: 2),
+        SizedBox(
+          height: _expandedIndicatorHeight,
+          child: Center(child: child),
+        ),
         Text(
           subtitle,
+          // `height: 1.0` collapses the default 1.2× line-box so the
+          // subtitle text doesn't carry a few pixels of empty space
+          // above/below its glyphs — without it, the row reads as if
+          // a second invisible line were hiding beneath each subtitle.
           style: TextStyle(
             fontSize: 9,
+            height: 1.0,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.4,
             color: TaskColors.textFaint,
@@ -565,7 +667,7 @@ PillContent? pillContentFor(TaskItem taskItem) {
 /// summary-row tap handler to gate the expand toggle so empty cards
 /// without an Edit button don't become invisible tap targets that
 /// collapse other open cards.
-bool _hasExpandableContent(TaskItem task, {required bool hasOnEdit}) {
+bool hasExpandableContent(TaskItem task, {required bool hasOnEdit}) {
   if (hasOnEdit) return true;
   if (task.startDate != null) return true;
   if (task.targetDate != null) return true;
@@ -619,6 +721,21 @@ ToneTriple? toneForCurrentState(TaskItem task) {
   return null;
 }
 
+/// Saturated stripe colour for [task] based on its highest crossed
+/// threshold. Distinct from the pill's pale `*Text` foreground colours,
+/// which were tuned to read as a soft accent inside a coloured pill on
+/// the dark card; the 3px stripe needs more saturation to stay visually
+/// distinct between adjacent date types (Target vs Urgent vs Due).
+/// Returns `null` when no relevant threshold is crossed, so the caller
+/// can fall through to the area colour.
+Color? stripeColorForTask(TaskItem task) {
+  if (task.isPastDue()) return TaskColors.dueStripe;
+  if (task.isUrgent()) return TaskColors.urgentStripe;
+  if (task.isTarget()) return TaskColors.targetStripe;
+  if (task.isScheduled()) return TaskColors.startStripe;
+  return null;
+}
+
 const TextStyle pillLabelStyle = TextStyle(
   fontSize: 10,
   fontWeight: FontWeight.w600,
@@ -660,7 +777,12 @@ class PillView extends StatelessWidget {
     );
     return Container(
       key: TaskMaestroKeys.editableTaskItemDatePill(docId),
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+      // Vertical padding intentionally tighter than horizontal: the
+      // thicker (2px) border on date pills already adds ~2px to the
+      // overall height, so nudging the inner padding down keeps the pill
+      // visually aligned with the title text on the same row instead of
+      // pushing the meta row a couple pixels lower.
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2),
       decoration: BoxDecoration(
         color: content.bg,
         border: Border.all(color: content.border, width: content.borderWidth),
@@ -719,9 +841,9 @@ String _relativeLong(DateTime dateTime) {
   return raw[0].toUpperCase() + raw.substring(1);
 }
 
-class _TimeBlock extends StatelessWidget {
+class TimeBlock extends StatelessWidget {
   final int? durationMinutes;
-  const _TimeBlock({required this.durationMinutes});
+  const TimeBlock({required this.durationMinutes});
 
   @override
   Widget build(BuildContext context) {
@@ -784,12 +906,12 @@ class _TimeBlock extends StatelessWidget {
   }
 }
 
-class _PriorityBar extends StatelessWidget {
+class PriorityBar extends StatelessWidget {
   /// Number of bars to fill (0–5). Caller is responsible for normalizing
   /// raw priority values via `TaskItem.displayPriority` so this widget
   /// stays scale-agnostic.
   final int filled;
-  const _PriorityBar({required this.filled});
+  const PriorityBar({required this.filled});
 
   @override
   Widget build(BuildContext context) {
@@ -829,9 +951,9 @@ class _PriorityBar extends StatelessWidget {
   }
 }
 
-class _PointsCircle extends StatelessWidget {
+class PointsCircle extends StatelessWidget {
   final int? points;
-  const _PointsCircle({required this.points});
+  const PointsCircle({required this.points});
 
   @override
   Widget build(BuildContext context) {
@@ -862,11 +984,11 @@ class _PointsCircle extends StatelessWidget {
   }
 }
 
-class _ExpandedPanel extends StatelessWidget {
+class ExpandedPanel extends StatelessWidget {
   final TaskItem taskItem;
   final VoidCallback? onEdit;
   final VoidCallback onCollapse;
-  const _ExpandedPanel({
+  const ExpandedPanel({
     required this.taskItem,
     required this.onCollapse,
     this.onEdit,
@@ -954,7 +1076,10 @@ class _ExpandedPanel extends StatelessWidget {
       if (v == null) return;
       rows.add(_DateCell(
         label: type.label.toUpperCase(),
-        absolute: DateFormat.MMMMd().format(v.toLocal()),
+        // Use the year-eliding helper so dates in other years surface
+        // their year ("April 18, 2025") while same-year dates stay
+        // compact ("April 18").
+        absolute: DateUtil.formatMonthDayMaybeYearLong(v),
         // Long form (e.g. "In 23 hours", "a month ago") for the
         // expanded panel — the summary pill uses _shortRelative.
         relative: _relativeLong(v),
@@ -1066,9 +1191,11 @@ class _ExpandedRow extends StatelessWidget {
   final String label;
   final String value;
 
-  /// When set, the value is rendered as a tappable link (chevron suffix
-  /// + accent colour) that fires this callback. Used by the REPEAT row
-  /// to navigate to the recurrence-history screen.
+  /// When set, an icon button (history list) appears at the right end of
+  /// the row that fires this callback. Used by the REPEAT row to navigate
+  /// to the recurrence-history screen. The value text itself stays
+  /// readable in the standard primary colour — the icon is the affordance,
+  /// not the text.
   final VoidCallback? onTap;
 
   const _ExpandedRow({
@@ -1079,33 +1206,6 @@ class _ExpandedRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLink = onTap != null;
-    final valueWidget = Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Flexible(
-          child: Text(
-            value,
-            style: TextStyle(
-              fontSize: 12.5,
-              color: isLink ? TaskColors.highlight : TaskColors.textPrimary,
-              height: 1.35,
-              fontWeight: isLink ? FontWeight.w600 : FontWeight.w400,
-            ),
-          ),
-        ),
-        if (isLink)
-          Padding(
-            padding: const EdgeInsets.only(left: 2, top: 1),
-            child: Icon(
-              Icons.chevron_right,
-              size: 14,
-              color: TaskColors.highlight,
-            ),
-          ),
-      ],
-    );
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 7),
       decoration: BoxDecoration(
@@ -1130,16 +1230,40 @@ class _ExpandedRow extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: isLink
-                ? InkWell(
-                    onTap: onTap,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2),
-                      child: valueWidget,
-                    ),
-                  )
-                : valueWidget,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 12.5,
+                color: TaskColors.textPrimary,
+                height: 1.35,
+              ),
+            ),
           ),
+          if (onTap != null)
+            // Tooltip-wrapped InkWell instead of IconButton: IconButton's
+            // built-in 28px min-height pushed the icon visibly below the
+            // row's top hairline. A tight 2px padding keeps the icon
+            // close to the label baseline so it reads as part of the
+            // REPEAT row rather than floating beneath it.
+            Tooltip(
+              message: 'Recurrence history',
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onTap,
+                  borderRadius: BorderRadius.circular(4),
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    child: Icon(
+                      Icons.format_list_bulleted,
+                      size: 18,
+                      color: Colors.white.withValues(alpha: 0.75),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

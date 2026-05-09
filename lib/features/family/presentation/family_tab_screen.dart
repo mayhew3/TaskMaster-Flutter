@@ -6,6 +6,7 @@ import '../../../core/providers/auth_providers.dart';
 import '../../../core/services/task_completion_service.dart';
 import '../../../models/check_state.dart';
 import '../../../models/task_item.dart';
+import '../../shared/presentation/app_drawer.dart';
 import '../../shared/presentation/connection_status_indicator.dart';
 import '../../shared/presentation/editable_task_item.dart';
 import '../../shared/presentation/refresh_button.dart';
@@ -118,6 +119,7 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
               itemCount: tiles.length,
               itemBuilder: (_, i) => tiles[i],
             ),
+      drawer: const AppDrawer(),
       floatingActionButton: FloatingActionButton(
         heroTag: null,
         tooltip: 'Add task',

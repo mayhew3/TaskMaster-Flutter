@@ -154,7 +154,8 @@ void main() {
   });
 
   group('REPEAT row link (TM-357 #4)', () {
-    testWidgets('REPEAT renders without chevron when recurrenceDocId is null',
+    testWidgets(
+        'REPEAT renders no history-icon when recurrenceDocId is null',
         (tester) async {
       final task = _makeTask(
         name: 'Inline rule task',
@@ -172,18 +173,14 @@ void main() {
         expandedDocId: task.docId,
       ));
       await tester.pumpAndSettle();
-      // REPEAT label is present…
       expect(find.text('REPEAT'), findsOneWidget);
-      // …but the chevron-suffix link affordance is not (no recurrenceDocId
-      // means there's no history page to navigate to).
-      // Find chevron_right icons inside the expanded panel.
-      final chevrons = find.byIcon(Icons.chevron_right);
-      // Calendar / other icons may exist, but in this test scaffold there
-      // shouldn't be any chevron_right for the REPEAT row.
-      expect(chevrons, findsNothing);
+      // No history icon — without a recurrenceDocId there's no history
+      // page to navigate to.
+      expect(find.byIcon(Icons.format_list_bulleted), findsNothing);
     });
 
-    testWidgets('REPEAT renders chevron + link when recurrenceDocId is set',
+    testWidgets(
+        'REPEAT renders history-icon button when recurrenceDocId is set',
         (tester) async {
       final task = _makeTask(
         name: 'Linked rule task',
@@ -202,8 +199,9 @@ void main() {
       ));
       await tester.pumpAndSettle();
       expect(find.text('REPEAT'), findsOneWidget);
-      // Chevron suffix appears, indicating the row is a link.
-      expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+      // The history-icon button appears trailing the row, providing the
+      // affordance to view recurrence history.
+      expect(find.byIcon(Icons.format_list_bulleted), findsOneWidget);
     });
   });
 }

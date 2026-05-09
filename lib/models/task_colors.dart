@@ -49,6 +49,15 @@ class TaskColors {
   static final Color dueColor = Color.fromRGBO(180, 60, 80, 0.28);
   static final Color dueBorder = Color.fromRGBO(244, 176, 176, 0.4);
 
+  // Stripe-specific tones (TM-357 #1). The pill `*Text` colours are
+  // intentionally pale so they read as soft accents on the dark card,
+  // but a thin 3px stripe needs to be more saturated to remain visually
+  // distinct between Target (gold), Urgent (orange), and Due (red).
+  static const Color startStripe = Color(0xFF7080D5);
+  static const Color targetStripe = Color(0xFFD4B83C);
+  static const Color urgentStripe = Color(0xFFE89045);
+  static const Color dueStripe = Color(0xFFE85D5D);
+
   // Completed / skipped pill — magenta family.
   static const Color completedText = Color(0xFFF4C8F9);
   static final Color completedColor = Color.fromRGBO(216, 58, 255, 0.18);

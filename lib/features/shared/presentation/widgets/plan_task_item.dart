@@ -1,35 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskmaestro/features/shared/presentation/editable_task_item.dart';
-import 'package:taskmaestro/keys.dart';
 import 'package:taskmaestro/models/check_state.dart';
 import 'package:taskmaestro/models/sprint.dart';
 import 'package:taskmaestro/models/sprint_display_task.dart';
 import 'package:taskmaestro/models/task_colors.dart';
 import 'package:taskmaestro/models/task_date_type.dart';
 import 'package:taskmaestro/models/task_item.dart';
+import 'package:taskmaestro/models/task_item_recur_preview.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import 'delayed_checkbox.dart';
 
-/// Sprint-planning task row. Visually mirrors the redesigned task list
-/// card from `EditableTaskItemWidget` (left stripe in date-state colour,
-/// summary row with name + date pill, area badge in the meta row), but
-/// the trailing widget is an *assignment* checkbox — toggling adds /
-/// removes the task from the user's pending sprint queue rather than
-/// completing it.
+/// Sprint-planning task row — a thin adapter on top of
+/// [EditableTaskItemWidget].
 ///
-/// Two source types feed in via the `SprintDisplayTask` interface:
-///   - `TaskItem` — a real task (already in storage). The full visual
-///     elements apply.
-///   - `TaskItemRecurPreview` — a forecast iteration (not yet persisted).
-///     Same visual chrome, but fields like `displayPriority` aren't
-///     available; we render the subset that the interface exposes.
+/// Plan-mode and the main task list render the same card visual; the
+/// only meaningful differences are:
+///   - the trailing widget is an *assignment*-toggle checkbox rather
+///     than a completion-toggle,
+///   - the date pill / left stripe colour reflect the task's projected
+///     state at the **end of the sprint being assembled** (`endDate`)
+///     instead of the wall-clock now, and
+///   - swipe-to-dismiss is disabled (the gesture would conflict with
+///     the assignment-add affordance).
 ///
-/// The chrome helpers (`AreaStripe`, `PillView`, `pillContentFor*`,
-/// `toneForCurrentState`, `displayDateType`, `pillLabelStyle`,
-/// `pillValueStyle`) are imported from `editable_task_item.dart` so both
-/// widgets stay visually synchronized as the design evolves.
-class PlanTaskItemWidget extends StatelessWidget {
+/// All of those are exposed as parameters on `EditableTaskItemWidget`,
+/// so this widget's job is reduced to:
+///   1. Synthesise a `TaskItem` from the source `SprintDisplayTask` —
+///      `TaskItemRecurPreview`s become an in-memory TaskItem so the
+///      shared chrome can speak a single type. Real `TaskItem` sources
+///      pass through unchanged.
+///   2. Compute the projection-aware pill / stripe overrides.
+///   3. Build the assignment-toggle `DelayedCheckbox`.
+///   4. Hand it all to `EditableTaskItemWidget`.
+///
+/// The card chrome (Card, Stack, AreaStripe, Padding, summary row,
+/// MetaCell wrappers, AnimatedSize, ExpandedPanel, expand-into-view
+/// scroll, title-truncation detection, etc.) lives in
+/// `editable_task_item.dart` and is shared verbatim between this widget
+/// and the main task list.
+class PlanTaskItemWidget extends ConsumerWidget {
   final SprintDisplayTask sprintDisplayTask;
   final CheckCycleWaiter? onTaskCompleteToggle;
   final CheckCycleWaiter? onTaskAssignmentToggle;
@@ -49,238 +60,188 @@ class PlanTaskItemWidget extends StatelessWidget {
     this.initialCheckState,
   });
 
-  String _docId() => sprintDisplayTask.getSprintDisplayTaskKey();
-
-  bool _isScheduled() => sprintDisplayTask.isScheduled();
-  bool _isCompleted() => sprintDisplayTask.isCompleted();
-
-  Color _cardSurfaceColor() {
-    if (_isCompleted()) return TaskColors.cardCompletedTint;
-    if (_isScheduled()) {
-      return TaskColors.cardColor.withValues(alpha: 0.15);
-    }
-    return TaskColors.cardColor;
-  }
-
-  ShapeBorder _cardShape() {
-    final radius = BorderRadius.circular(6.0);
-    if (highlightSprint) {
-      return RoundedRectangleBorder(
-        borderRadius: radius,
-        side: BorderSide(color: TaskColors.sprintColor, width: 1.0),
-      );
-    }
-    if (_isScheduled()) {
-      return RoundedRectangleBorder(
-        borderRadius: radius,
-        side: BorderSide(color: TaskColors.scheduledOutline, width: 1.0),
-      );
-    }
-    return RoundedRectangleBorder(borderRadius: radius);
-  }
-
-  Color _stripeAreaColor() {
-    // Plan rows don't go through the area-color provider (they may render
-    // forecast previews that haven't been persisted yet); fall back to
-    // a neutral hairline so the stripe still draws.
-    return TaskColors.hairline;
-  }
-
-  /// Builds a `PillContent` for the date pill on the right of the title
-  /// row. Reuses the same display-type / state-tone semantics as the main
-  /// task card so a sprint-planning row reads identically to a list-row
-  /// for the same task.
-  PillContent? _pillContent() {
-    final completed = sprintDisplayTask.isCompleted();
-    if (completed) {
-      final completionDate = sprintDisplayTask.completionDate;
-      final relative = completionDate == null
-          ? 'just now'
-          : _shortRelativeFromNow(completionDate);
-      return PillContent(
-        label: 'COMPLETED',
-        value: relative,
-        bg: TaskColors.completedColor,
-        border: TaskColors.completedBorder,
-        fg: TaskColors.completedText,
-      );
-    }
-    // For non-TaskItem display types (TaskItemRecurPreview), the
-    // `displayDateType` helper takes a TaskItem; cast and fall through to
-    // a simpler date-anchor lookup for previews.
+  /// Returns the source as a `TaskItem` directly when possible, or a
+  /// synthesised TaskItem mirroring the preview's user-visible fields.
+  /// The synthesised TaskItem isn't persisted — it lives only for the
+  /// duration of this build pass, feeding the shared chrome which
+  /// already speaks TaskItem.
+  TaskItem _displayTask() {
     final task = sprintDisplayTask;
-    TaskDateType? displayType;
-    if (task is TaskItem) {
-      displayType = displayDateType(task);
-    } else {
-      // Pick the highest-priority active date for the forecast.
-      for (final t in TaskDateTypes.allTypes.reversed) {
-        if (t.dateFieldGetter(task) != null) {
-          displayType = t;
-          break;
-        }
-      }
+    if (task is TaskItem) return task;
+    if (task is TaskItemRecurPreview) {
+      return TaskItem((b) => b
+        ..docId = task.key
+        ..dateAdded = DateTime.now().toUtc()
+        ..personDocId = task.personDocId
+        ..familyDocId = task.familyDocId
+        ..name = task.name
+        ..description = null
+        ..area = task.area
+        ..context = null
+        ..urgency = task.urgency
+        ..priority = task.priority
+        ..priorityScaleVersion = task.priorityScaleVersion ?? 2
+        ..duration = task.duration
+        ..gamePoints = task.gamePoints
+        ..startDate = task.startDate
+        ..targetDate = task.targetDate
+        ..urgentDate = task.urgentDate
+        ..dueDate = task.dueDate
+        ..completionDate = null
+        ..recurNumber = task.recurNumber
+        ..recurUnit = task.recurUnit
+        ..recurWait = task.recurWait
+        // No recurrenceDocId on previews — keeps the REPEAT row from
+        // rendering as a (broken) link to a non-existent history page.
+        ..recurrenceDocId = null
+        ..recurIteration = task.recurIteration
+        ..retired = null
+        ..offCycle = task.offCycle
+        ..skipped = false
+        ..pendingCompletion = false);
     }
-    if (displayType == null) return null;
-    final dateValue = displayType.dateFieldGetter(task);
-    if (dateValue == null) return null;
-    final relative = _formatRelative(dateValue);
-    final displayTone = toneFor(displayType);
-    final stateTone = task is TaskItem ? toneForCurrentState(task) : null;
-    return PillContent(
-      label: displayType.label.toUpperCase(),
-      value: relative,
-      bg: stateTone?.bg ?? Colors.transparent,
-      border: stateTone?.border ?? TaskColors.hairline,
-      fg: displayTone.fg,
-      borderWidth: 2,
-    );
+    throw StateError(
+        'PlanTaskItemWidget: unsupported SprintDisplayTask runtime type ${task.runtimeType}');
+  }
+
+  /// Reference timestamp for "would-be state" projection. The plan
+  /// screen previews how a task's state will read at the END of the
+  /// sprint being assembled (`endDate` if set, else now).
+  DateTime _projectionRef() => endDate ?? DateTime.now();
+
+  /// Tone triple for the projected state at [_projectionRef]. Mirrors
+  /// `toneForCurrentState` in editable_task_item.dart but anchors the
+  /// "now" reference to the sprint horizon.
+  ToneTriple? _projectedStateTone() {
+    final task = sprintDisplayTask;
+    final ref = _projectionRef();
+    if (task.dueDate != null && task.dueDate!.isBefore(ref)) {
+      return toneFor(TaskDateTypes.due);
+    }
+    if (task.urgentDate != null && task.urgentDate!.isBefore(ref)) {
+      return toneFor(TaskDateTypes.urgent);
+    }
+    if (task.targetDate != null && task.targetDate!.isBefore(ref)) {
+      return toneFor(TaskDateTypes.target);
+    }
+    if (task.isScheduled()) return toneFor(TaskDateTypes.start);
+    return null;
+  }
+
+  Color? _stripeOverride(TaskItem _) {
+    final task = sprintDisplayTask;
+    final ref = _projectionRef();
+    if (task.dueDate != null && task.dueDate!.isBefore(ref)) {
+      return TaskColors.dueStripe;
+    }
+    if (task.urgentDate != null && task.urgentDate!.isBefore(ref)) {
+      return TaskColors.urgentStripe;
+    }
+    if (task.targetDate != null && task.targetDate!.isBefore(ref)) {
+      return TaskColors.targetStripe;
+    }
+    if (task.isScheduled()) return TaskColors.startStripe;
+    return null;
+  }
+
+  /// Highest-priority date type whose date sits between wall-clock now
+  /// and the sprint horizon — i.e. the latest milestone the task will
+  /// cross during the sprint. Returns `null` for tasks not crossing any
+  /// threshold during this sprint (already-overdue or no future dates),
+  /// in which case the pill falls back to the standard `pillContentFor`
+  /// semantics on the shared widget.
+  TaskDateType? _planDisplayType() {
+    final ref = _projectionRef();
+    final now = DateTime.now();
+    final priorityOrder = [
+      TaskDateTypes.due,
+      TaskDateTypes.urgent,
+      TaskDateTypes.target,
+      TaskDateTypes.start,
+    ];
+    for (final type in priorityOrder) {
+      final d = type.dateFieldGetter(sprintDisplayTask);
+      if (d == null) continue;
+      if (d.isBefore(ref) && d.isAfter(now)) return type;
+    }
+    return null;
   }
 
   String _formatRelative(DateTime dateTime) {
-    final isPast = dateTime.isBefore(DateTime.now());
-    final formatted = _shortRelativeFromNow(dateTime);
-    if (formatted == 'just now') return formatted;
-    return isPast ? '$formatted ago' : 'in $formatted';
-  }
-
-  String _shortRelativeFromNow(DateTime dateTime) {
-    final raw =
-        timeago.format(dateTime, locale: 'en_short', allowFromNow: true);
+    final raw = timeago.format(
+      dateTime,
+      locale: 'en_short',
+      allowFromNow: true,
+    );
     final cleaned = raw.replaceAll(' ', '').replaceAll('~', '');
-    return cleaned == 'now' ? 'just now' : cleaned;
+    if (cleaned == 'now') return 'just now';
+    return dateTime.isBefore(DateTime.now())
+        ? '$cleaned ago'
+        : 'in $cleaned';
   }
 
-  Widget _checkbox() {
+  PillContent? _pillOverride(TaskItem displayTask) {
+    final planType = _planDisplayType();
+    final stateTone = _projectedStateTone();
+    if (planType != null) {
+      final dateValue = planType.dateFieldGetter(sprintDisplayTask);
+      if (dateValue != null) {
+        final displayTone = toneFor(planType);
+        return PillContent(
+          label: planType.label.toUpperCase(),
+          value: _formatRelative(dateValue),
+          bg: stateTone?.bg ?? Colors.transparent,
+          border: stateTone?.border ?? TaskColors.hairline,
+          fg: displayTone.fg,
+          borderWidth: 2,
+        );
+      }
+    }
+    // Fallback: task isn't crossing any threshold during this sprint —
+    // let the standard `pillContentFor` pick the label, but keep the
+    // bg / border tinted by the projected state tone for visual
+    // continuity with the rest of the planning row.
+    final base = pillContentFor(displayTask);
+    if (base == null) return null;
+    if (stateTone == null) return base;
+    return PillContent(
+      label: base.label,
+      value: base.value,
+      bg: stateTone.bg,
+      border: stateTone.border,
+      fg: base.fg,
+      borderWidth: base.borderWidth,
+    );
+  }
+
+  Widget _trailingCheckbox() {
     if (onTaskAssignmentToggle == null || initialCheckState == null) {
       return const SizedBox.shrink();
     }
-    final isRecurring = sprintDisplayTask.recurrence != null;
     return DelayedCheckbox(
       taskName: sprintDisplayTask.name,
       initialState: initialCheckState!,
       checkCycleWaiter: onTaskAssignmentToggle!,
       checkedColor: Colors.green,
+      // The "+" affordance signals "add to sprint." Always rendered in
+      // the default colour (full white) — recurring vs one-off doesn't
+      // change the sprint-assignment cue.
       inactiveIcon: Icons.add,
-      inactiveIconColor: isRecurring ? TaskColors.textFaint : null,
-    );
-  }
-
-  Color? _stripeStateColor() {
-    final task = sprintDisplayTask;
-    if (task is TaskItem) {
-      return toneForCurrentState(task)?.fg;
-    }
-    // Forecast previews don't have the full predicate set; fall back to
-    // the highest-priority active date's fg colour.
-    for (final t in TaskDateTypes.allTypes.reversed) {
-      if (t == TaskDateTypes.start) continue;
-      if (t.dateFieldGetter(task) != null) return t.textColor;
-    }
-    return null;
-  }
-
-  Widget _summaryRow(BuildContext context) {
-    final pillContent = _pillContent();
-    final pill = pillContent == null
-        ? const SizedBox.shrink()
-        : PillView(content: pillContent, docId: _docId());
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Text(
-                      sprintDisplayTask.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.w500,
-                        color: _isCompleted()
-                            ? TaskColors.textFaint
-                            : TaskColors.textPrimary,
-                        decoration: _isCompleted()
-                            ? TextDecoration.lineThrough
-                            : null,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  pill,
-                ],
-              ),
-              const SizedBox(height: 6),
-              _metaRow(),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        Padding(
-          padding: const EdgeInsets.only(top: 1.0),
-          child: _checkbox(),
-        ),
-      ],
-    );
-  }
-
-  Widget _metaRow() {
-    final area = sprintDisplayTask.area;
-    if ((area == null || area.isEmpty) && !highlightSprint) {
-      return const SizedBox.shrink();
-    }
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (area != null && area.isNotEmpty) ...[
-          Flexible(
-            child: Text(
-              area,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 11.5, color: TaskColors.textDim),
-            ),
-          ),
-          const SizedBox(width: 6),
-        ],
-        if (highlightSprint)
-          Icon(
-            Icons.assignment,
-            color: TaskColors.sprintColor,
-            size: 14,
-            key: TaskMaestroKeys.editableTaskItemCardSprintIcon(_docId()),
-          ),
-      ],
     );
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Card(
-      key: TaskMaestroKeys.editableTaskItemCard(_docId()),
-      color: _cardSurfaceColor(),
-      shape: _cardShape(),
-      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
-      child: Stack(
-        children: [
-          AreaStripe(
-            areaColor: _stripeAreaColor(),
-            stateColor: _stripeStateColor(),
-            completed: _isCompleted(),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14.0, 10.0, 10.0, 10.0),
-            child: _summaryRow(context),
-          ),
-        ],
-      ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final displayTask = _displayTask();
+    return EditableTaskItemWidget(
+      taskItem: displayTask,
+      highlightSprint: highlightSprint,
+      pillContentOverride: _pillOverride,
+      stripeColorOverride: _stripeOverride,
+      trailingBuilder: _trailingCheckbox,
+      // Plan-mode rows shouldn't be swipe-deletable — the screen's
+      // primary gesture is "tap to add to sprint", not "delete task".
+      enableDismissible: false,
     );
   }
 }

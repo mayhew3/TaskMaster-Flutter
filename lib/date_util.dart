@@ -41,6 +41,31 @@ class DateUtil {
     return dateFormat.format(localTime);
   }
 
+  /// Short month-day form for date pills / chips, eliding the year for
+  /// dates in the current calendar year. Always converts to local time
+  /// because TaskItem date fields are stored UTC.
+  ///   - this year: `Apr 18`
+  ///   - other:     `Apr 18 2025`
+  static String formatMonthDayMaybeYearShort(DateTime dateTime) {
+    final local = dateTime.toLocal();
+    final fmt = local.year == DateTime.now().year
+        ? DateFormat.MMMd()
+        : DateFormat.yMMMd();
+    return fmt.format(local);
+  }
+
+  /// Long month-day form for the expanded card / dates popup detail row.
+  /// Same year-eliding contract as [formatMonthDayMaybeYearShort]:
+  ///   - this year: `April 18`
+  ///   - other:     `April 18, 2025`
+  static String formatMonthDayMaybeYearLong(DateTime dateTime) {
+    final local = dateTime.toLocal();
+    final fmt = local.year == DateTime.now().year
+        ? DateFormat.MMMMd()
+        : DateFormat.yMMMMd();
+    return fmt.format(local);
+  }
+
   static DateTime adjustToDate(DateTime dateTime, int recurNumber, String recurUnit) {
     switch (recurUnit) {
       case 'Days': return Jiffy.parseFromDateTime(dateTime).add(days: recurNumber).dateTime;

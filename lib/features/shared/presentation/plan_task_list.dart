@@ -218,7 +218,7 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
   }
 
   void _addTaskTile({
-    required List<StatelessWidget> tiles,
+    required List<Widget> tiles,
     required SprintDisplayTask task,
     required BuiltList<Sprint> allSprints,
     required Sprint? lastSprint,
@@ -253,7 +253,7 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
       TaskDisplayGrouping(displayName: 'Tasks', displayOrder: 6, filter: (_) => true),
     ];
 
-    List<StatelessWidget> tiles = [];
+    List<Widget> tiles = [];
 
     for (var g in groupings) {
       g.stealItemsThatMatch(otherTasks);
