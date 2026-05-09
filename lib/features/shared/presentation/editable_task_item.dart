@@ -319,13 +319,19 @@ class EditableTaskItemWidget extends ConsumerWidget {
           maxLines: 1,
         )..layout();
 
-        // Subtract a small epsilon so titles whose measured width lands
-        // within ~1px of the available space still wrap. TextPainter's
-        // `width` and the rendered Text widget's available space disagree
-        // by sub-pixel rounding in practice, which previously left near-
-        // edge titles ellipsised on a single row when wrapping would have
-        // shown the whole title (TM-357 truncation-detection bug).
-        const epsilon = 2.0;
+        // Subtract an epsilon so titles whose measured width lands close
+        // to the available space still wrap. TextPainter's `width` and
+        // the rendered Text widget's available space disagree by
+        // sub-pixel rounding, AND the magnitude of the disagreement
+        // varies by platform / system font: 2px was enough on Android
+        // (Roboto) but San Francisco on iOS measures even more
+        // optimistically, leaving titles that are only a couple
+        // characters too long ellipsised on a single row when wrapping
+        // would have shown the whole title. 6px is conservative for
+        // both: the cost is some borderline-fitting titles wrap
+        // unnecessarily, but the alternative (information loss via
+        // ellipsis) is worse.
+        const epsilon = 6.0;
         final fitsOneRow =
             titlePainter.width <= maxWidth - pillWidth - spacing - epsilon;
         if (fitsOneRow) {
