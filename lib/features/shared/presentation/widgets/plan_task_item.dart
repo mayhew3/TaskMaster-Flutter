@@ -42,7 +42,6 @@ import 'delayed_checkbox.dart';
 /// and the main task list.
 class PlanTaskItemWidget extends ConsumerWidget {
   final SprintDisplayTask sprintDisplayTask;
-  final CheckCycleWaiter? onTaskCompleteToggle;
   final CheckCycleWaiter? onTaskAssignmentToggle;
   final DateTime? endDate;
   final CheckState? initialCheckState;
@@ -55,7 +54,6 @@ class PlanTaskItemWidget extends ConsumerWidget {
     this.endDate,
     this.sprint,
     required this.highlightSprint,
-    this.onTaskCompleteToggle,
     this.onTaskAssignmentToggle,
     this.initialCheckState,
   });
