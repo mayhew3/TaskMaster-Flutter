@@ -1390,7 +1390,21 @@ class _MonthYearPickerSheetState extends State<_MonthYearPickerSheet> {
   void initState() {
     super.initState();
     _month = widget.initial.month;
-    _year = widget.initial.year;
+    // Clamp the initial year into the list's [firstYear, lastYear]
+    // window. The mini-calendar's chevron navigation isn't bounded,
+    // so `widget.initial` (the displayed month at the moment the
+    // user tapped the label) can drift outside the picker's ±100-year
+    // range. Without the clamp, the sheet would render with no
+    // visible selection (no list item matches `_year`) but the Done
+    // button could still pop a year not present in the list.
+    final raw = widget.initial.year;
+    if (raw < widget.firstYear) {
+      _year = widget.firstYear;
+    } else if (raw > widget.lastYear) {
+      _year = widget.lastYear;
+    } else {
+      _year = raw;
+    }
     final yearCount = widget.lastYear - widget.firstYear + 1;
     final selectedIdx = _year - widget.firstYear;
     // Each year row is ~44px tall; centre the initially-selected year
@@ -1407,10 +1421,14 @@ class _MonthYearPickerSheetState extends State<_MonthYearPickerSheet> {
   }
 
   /// True when the user's *current* picked (`_year`, `_month`) is
-  /// inside the optional [widget.firstDate]..[widget.lastDate] window.
-  /// Used to gate the Done button so an out-of-range initial selection
-  /// can't be committed without the user changing it first.
+  /// committable: both inside the picker's own
+  /// [widget.firstYear]..[widget.lastYear] list AND inside the optional
+  /// [widget.firstDate]..[widget.lastDate] window. Used to gate the
+  /// Done button so an out-of-range initial selection (or any state
+  /// the picker can't actually present in its list) can't be committed
+  /// without the user changing it first.
   bool _isCurrentSelectionInRange() {
+    if (_year < widget.firstYear || _year > widget.lastYear) return false;
     return _yearInRange(_year) && _monthInRange(_year, _month);
   }
 
