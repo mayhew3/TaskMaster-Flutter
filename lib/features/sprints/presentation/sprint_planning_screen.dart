@@ -110,7 +110,6 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
     return PlanTaskItemWidget(
       sprintDisplayTask: taskItem,
       endDate: endDate,
-      sprint: null,
       highlightSprint: _taskItemIsInSprint(taskItem, lastSprint),
       initialCheckState: sprintDisplayTaskQueue.contains(taskItem)
           ? CheckState.checked
@@ -250,7 +249,7 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
   }
 
   void _addTaskTile({
-    required List<StatelessWidget> tiles,
+    required List<Widget> tiles,
     required SprintDisplayTask task,
   }) {
     tiles.add(_createWidget(taskItem: task));
@@ -326,7 +325,7 @@ class _SprintPlanningScreenState extends ConsumerState<SprintPlanningScreen> {
       ),
     ];
 
-    List<StatelessWidget> tiles = [];
+    List<Widget> tiles = [];
 
     for (var g in groupings) {
       g.stealItemsThatMatch(otherTasks);

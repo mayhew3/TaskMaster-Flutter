@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:taskmaestro/date_util.dart';
 import 'package:taskmaestro/features/shared/presentation/widgets/segmented_bar.dart';
 import 'package:taskmaestro/models/task_colors.dart';
 import 'package:taskmaestro/models/task_date_type.dart';
@@ -684,11 +684,10 @@ class _Timeline extends StatelessWidget {
     );
   }
 
-  /// Formats `d` as locale-aware "MMM d" (e.g. "Apr 18"). Always converts
-  /// to local time first because TaskItem date fields are stored UTC; the
-  /// raw fields would render the wrong calendar day for users east of GMT
-  /// when the underlying instant straddles midnight UTC.
-  String _shortDate(DateTime d) => DateFormat.MMMd().format(d.toLocal());
+  /// Year-eliding short date (e.g. "Apr 18", or "Apr 18 2025" when the
+  /// year differs from the current calendar year). Local-time-converted.
+  String _shortDate(DateTime d) =>
+      DateUtil.formatMonthDayMaybeYearShort(d);
 }
 
 /// Row of dashed "+ Add Start" pills for date types that aren't currently
@@ -966,10 +965,11 @@ class _SelectedDateDetail extends StatelessWidget {
   static bool _isSameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
-  /// Formats `d` as locale-aware "MMMM d, yyyy" (e.g. "April 18, 2026").
-  /// Same `toLocal()` rationale as `_Timeline._shortDate`: TaskItem dates
-  /// are UTC at rest.
-  String _longDate(DateTime d) => DateFormat.yMMMMd().format(d.toLocal());
+  /// Year-eliding long date (e.g. "April 18", or "April 18, 2025" when
+  /// the year differs from the current calendar year). Local-time-
+  /// converted; same year-eliding contract as the timeline pill labels.
+  String _longDate(DateTime d) =>
+      DateUtil.formatMonthDayMaybeYearLong(d);
 }
 
 /// Compact month-grid calendar used by the dates popup. Custom (instead of
@@ -1041,6 +1041,47 @@ class _MiniCalendarState extends State<_MiniCalendar> {
     });
   }
 
+  /// Snap the displayed month to "today" so the user can see/tap today's
+  /// cell. Does NOT change the selected date — the user still has to tap
+  /// the day cell themselves to commit it. This keeps the affordance
+  /// purely navigational, matching the convention in iOS/Android stock
+  /// calendar apps.
+  void _jumpToToday() {
+    final now = DateTime.now();
+    setState(() {
+      _displayedMonth = DateTime(now.year, now.month);
+    });
+  }
+
+  /// Open a modal bottom sheet for picking a month AND year to navigate
+  /// to. The visible year list is always `currentYear ± 100` regardless
+  /// of the firstDate/lastDate bounds — the picker is purely
+  /// navigational, like Today. Years/months that fall entirely outside
+  /// the bounds are rendered faded and non-tappable in the sheet so the
+  /// user can see at a glance which jumps would land on a valid day.
+  /// Returns a `(year, month)` pair as a `DateTime`; the selected date
+  /// itself is unchanged.
+  Future<void> _openMonthYearPicker() async {
+    final now = DateTime.now();
+    final picked = await showModalBottomSheet<DateTime>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => _MonthYearPickerSheet(
+        firstYear: now.year - 100,
+        lastYear: now.year + 100,
+        initial: _displayedMonth,
+        accent: widget.accent,
+        firstDate: widget.firstDate,
+        lastDate: widget.lastDate,
+      ),
+    );
+    if (picked == null) return;
+    setState(() {
+      _displayedMonth = DateTime(picked.year, picked.month);
+    });
+  }
+
   bool _isInRange(DateTime d) {
     final first = widget.firstDate;
     final last = widget.lastDate;
@@ -1060,7 +1101,6 @@ class _MiniCalendarState extends State<_MiniCalendar> {
   Widget build(BuildContext context) {
     final month = _displayedMonth;
     final firstOfMonth = DateTime(month.year, month.month, 1);
-    final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
     // Sun = 7 in DateTime.weekday; we treat Sunday as the first column to
     // match the prototype.
     final leadingBlanks = firstOfMonth.weekday % 7;
@@ -1070,12 +1110,61 @@ class _MiniCalendarState extends State<_MiniCalendar> {
       children: [
         Row(
           children: [
-            Text(
-              '${_monthName(month.month)} ${month.year}',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.85),
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+            // Tappable month/year label opens the year-picker sheet so the
+            // user can jump multiple years at a time without spamming the
+            // chevrons. The InkWell + Material wrap gives us a hover/press
+            // affordance without changing the visual rest state.
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: _openMonthYearPicker,
+                borderRadius: BorderRadius.circular(4),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${_monthName(month.month)} ${month.year}',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.85),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_drop_down,
+                        size: 16,
+                        color: Colors.white.withValues(alpha: 0.55),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            // "Today" affordance — small text button that navigates the
+            // calendar's displayed month to today's month. Always visible:
+            // it doesn't change the selection, so even when today itself
+            // is out of the firstDate/lastDate range the user can still
+            // use it to scroll the calendar somewhere recognisable.
+            TextButton(
+              onPressed: _jumpToToday,
+              style: TextButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                minimumSize: const Size(0, 24),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                foregroundColor: widget.accent,
+              ),
+              child: Text(
+                'Today',
+                style: TextStyle(
+                  color: widget.accent,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
             const Spacer(),
@@ -1103,17 +1192,23 @@ class _MiniCalendarState extends State<_MiniCalendar> {
           ],
         ),
         const SizedBox(height: 4),
-        // Day grid
-        for (var rowStart = -leadingBlanks;
-            rowStart < daysInMonth;
-            rowStart += 7)
+        // Day grid — always render exactly 6 rows so the calendar height
+        // stays constant regardless of which month is shown. Months that
+        // only need 4 or 5 weeks fill the trailing rows with fixed-height
+        // (32px) placeholders — `_buildDayCell` returns a
+        // `SizedBox(height: 32)` for out-of-range day numbers, matching
+        // the height of a real day cell so the grid keeps the same
+        // total footprint. Without this, the chevron arrows would shift
+        // vertically as the user navigated month-to-month.
+        for (var row = 0; row < 6; row++)
           Padding(
             padding: const EdgeInsets.only(bottom: 4),
             child: Row(
               children: [
                 for (var col = 0; col < 7; col++)
                   Expanded(
-                    child: _buildDayCell(rowStart + col + 1, month),
+                    child: _buildDayCell(
+                        row * 7 + col + 1 - leadingBlanks, month),
                   ),
               ],
             ),
@@ -1130,16 +1225,29 @@ class _MiniCalendarState extends State<_MiniCalendar> {
     final isSelected = cellDate.year == widget.selectedDate.year &&
         cellDate.month == widget.selectedDate.month &&
         cellDate.day == widget.selectedDate.day;
+    final today = DateTime.now();
+    final isToday = cellDate.year == today.year &&
+        cellDate.month == today.month &&
+        cellDate.day == today.day;
     final markColor = widget.markedDates[cellDate];
     final inRange = _isInRange(cellDate);
 
     Color textColor;
     Color? backgroundColor;
+    Color? borderColor;
     FontWeight weight;
     if (!inRange) {
       textColor = Colors.white.withValues(alpha: 0.20);
       weight = FontWeight.w400;
       backgroundColor = null;
+      if (isToday) {
+        // Out-of-range today still gets a ring — outline only — so the
+        // user can locate today at a glance without being misled into
+        // thinking the cell is tappable. Same white family as the
+        // in-range today fill, just stronger alpha because an outline
+        // alone needs more contrast than a filled disc to read.
+        borderColor = Colors.white.withValues(alpha: 0.45);
+      }
     } else if (isSelected) {
       // Filled circle in the accent color; dark text on top so the digit
       // remains legible against the bright fill.
@@ -1153,6 +1261,16 @@ class _MiniCalendarState extends State<_MiniCalendar> {
       textColor = markColor;
       weight = FontWeight.w700;
       backgroundColor = null;
+    } else if (isToday) {
+      // Today marker: faded white-circle so the user can find today at
+      // a glance without confusing it for the selected day (which is a
+      // solid accent fill) or the date-type-coloured marked dates. Using
+      // the day digit's own colour family (white) instead of the date-
+      // type accent keeps the cue type-agnostic — it reads as "today"
+      // rather than "today, but only in this date type's view".
+      backgroundColor = Colors.white.withValues(alpha: 0.15);
+      textColor = Colors.white.withValues(alpha: 0.85);
+      weight = FontWeight.w400;
     } else {
       // Plain in-range days are light (FontWeight.w400) so the bold marked
       // dates stand out against them.
@@ -1161,15 +1279,20 @@ class _MiniCalendarState extends State<_MiniCalendar> {
       backgroundColor = null;
     }
 
+    final shape = CircleBorder(
+      side: borderColor != null
+          ? BorderSide(color: borderColor, width: 1)
+          : BorderSide.none,
+    );
     return SizedBox(
       height: 32,
       child: Padding(
         padding: const EdgeInsets.all(2),
         child: Material(
           color: backgroundColor ?? Colors.transparent,
-          shape: const CircleBorder(),
+          shape: shape,
           child: InkWell(
-            customBorder: const CircleBorder(),
+            customBorder: shape,
             onTap: inRange ? () => widget.onDateChanged(cellDate) : null,
             child: Center(
               child: Text(
@@ -1216,6 +1339,282 @@ class _ChevronButton extends StatelessWidget {
             : Icons.chevron_right,
         color: Colors.white.withValues(alpha: 0.55),
       ),
+    );
+  }
+}
+
+/// Month/year picker bottom sheet for the mini calendar's "tap month label
+/// → jump anywhere" affordance. Renders two scrollable columns side by
+/// side (months on the left, years on the right) inside the dark popup
+/// surface. Tapping a row updates that column's selection in place; the
+/// user confirms with the Done button at the bottom which pops the sheet
+/// with the chosen `(year, month)` packaged as a `DateTime`. Returns
+/// `null` on dismiss / cancel.
+///
+/// The full year list is always shown so the user can navigate freely.
+/// Years and months whose every day falls outside [firstDate]/[lastDate]
+/// render faded and non-tappable, signalling that landing there would
+/// produce no selectable day.
+class _MonthYearPickerSheet extends StatefulWidget {
+  final int firstYear;
+  final int lastYear;
+  final DateTime initial;
+  final Color accent;
+  final DateTime? firstDate;
+  final DateTime? lastDate;
+
+  const _MonthYearPickerSheet({
+    required this.firstYear,
+    required this.lastYear,
+    required this.initial,
+    required this.accent,
+    this.firstDate,
+    this.lastDate,
+  });
+
+  @override
+  State<_MonthYearPickerSheet> createState() => _MonthYearPickerSheetState();
+}
+
+class _MonthYearPickerSheetState extends State<_MonthYearPickerSheet> {
+  late int _month;
+  late int _year;
+  late ScrollController _yearController;
+
+  static const _monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _month = widget.initial.month;
+    // Clamp the initial year into the list's [firstYear, lastYear]
+    // window. The mini-calendar's chevron navigation isn't bounded,
+    // so `widget.initial` (the displayed month at the moment the
+    // user tapped the label) can drift outside the picker's ±100-year
+    // range. Without the clamp, the sheet would render with no
+    // visible selection (no list item matches `_year`) but the Done
+    // button could still pop a year not present in the list.
+    final raw = widget.initial.year;
+    if (raw < widget.firstYear) {
+      _year = widget.firstYear;
+    } else if (raw > widget.lastYear) {
+      _year = widget.lastYear;
+    } else {
+      _year = raw;
+    }
+    final yearCount = widget.lastYear - widget.firstYear + 1;
+    final selectedIdx = _year - widget.firstYear;
+    // Each year row is ~44px tall; centre the initially-selected year
+    // by offsetting half the visible column height (~120px). Clamp
+    // upper bound to the actual list length so the year column scrolls
+    // correctly regardless of how wide `firstYear`..`lastYear` is.
+    const itemExtent = 44.0;
+    final maxOffset =
+        (yearCount * itemExtent - 120).clamp(0.0, double.infinity);
+    _yearController = ScrollController(
+      initialScrollOffset:
+          (selectedIdx * itemExtent - 120).clamp(0.0, maxOffset),
+    );
+  }
+
+  /// True when the user's *current* picked (`_year`, `_month`) is
+  /// committable: both inside the picker's own
+  /// [widget.firstYear]..[widget.lastYear] list AND inside the optional
+  /// [widget.firstDate]..[widget.lastDate] window. Used to gate the
+  /// Done button so an out-of-range initial selection (or any state
+  /// the picker can't actually present in its list) can't be committed
+  /// without the user changing it first.
+  bool _isCurrentSelectionInRange() {
+    if (_year < widget.firstYear || _year > widget.lastYear) return false;
+    return _yearInRange(_year) && _monthInRange(_year, _month);
+  }
+
+  @override
+  void dispose() {
+    _yearController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: TaskColors.popupBg,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.6,
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(18, 14, 12, 12),
+              child: Text(
+                'Jump to month',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Flexible(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(child: _buildMonthColumn()),
+                  Container(
+                    width: 1,
+                    color: Colors.white.withValues(alpha: 0.08),
+                  ),
+                  Expanded(child: _buildYearColumn()),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.70),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  // Disable Done when the picked month/year sits
+                  // entirely outside [firstDate]..[lastDate]. The
+                  // sheet can open with an out-of-range initial value
+                  // (e.g. when the calendar's `_displayedMonth` was
+                  // already past the bound from a previous nav), so
+                  // gating Done here is what enforces the
+                  // "non-tappable" contract for invalid selections —
+                  // the row-level fade is just the visual cue.
+                  FilledButton(
+                    onPressed: _isCurrentSelectionInRange()
+                        ? () => Navigator.of(context).pop(
+                              DateTime(_year, _month),
+                            )
+                        : null,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: widget.accent,
+                      foregroundColor: const Color.fromRGBO(20, 30, 60, 0.95),
+                    ),
+                    child: const Text('Done'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// True when ANY day in [year]/[month] falls within
+  /// [firstDate]..[lastDate]. Out-of-range months render faded/disabled.
+  bool _monthInRange(int year, int month) {
+    final first = widget.firstDate;
+    final last = widget.lastDate;
+    final monthStart = DateTime(year, month, 1);
+    final monthEnd = DateTime(year, month + 1, 0); // last day of month
+    if (first != null) {
+      final firstDay = DateTime(first.year, first.month, first.day);
+      if (monthEnd.isBefore(firstDay)) return false;
+    }
+    if (last != null) {
+      final lastDay = DateTime(last.year, last.month, last.day);
+      if (monthStart.isAfter(lastDay)) return false;
+    }
+    return true;
+  }
+
+  /// True when at least one month in [year] falls within
+  /// [firstDate]..[lastDate]. Out-of-range years render faded/disabled.
+  bool _yearInRange(int year) {
+    final first = widget.firstDate;
+    final last = widget.lastDate;
+    if (first != null && year < first.year) return false;
+    if (last != null && year > last.year) return false;
+    return true;
+  }
+
+  Widget _buildMonthColumn() {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      itemCount: _monthNames.length,
+      itemBuilder: (ctx, i) {
+        final monthNum = i + 1;
+        final isSelected = monthNum == _month;
+        // Whether this month has any valid day for the *currently picked*
+        // year — months in entirely-out-of-range cells fade and disable.
+        final inRange = _monthInRange(_year, monthNum);
+        final color = !inRange
+            ? Colors.white.withValues(alpha: 0.20)
+            : (isSelected
+                ? widget.accent
+                : Colors.white.withValues(alpha: 0.85));
+        return InkWell(
+          onTap: inRange ? () => setState(() => _month = monthNum) : null,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+            child: Text(
+              _monthNames[i],
+              style: TextStyle(
+                color: color,
+                fontSize: 15,
+                fontWeight:
+                    isSelected ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildYearColumn() {
+    final count = widget.lastYear - widget.firstYear + 1;
+    return ListView.builder(
+      controller: _yearController,
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      itemCount: count,
+      itemBuilder: (ctx, i) {
+        final year = widget.firstYear + i;
+        final isSelected = year == _year;
+        final inRange = _yearInRange(year);
+        final color = !inRange
+            ? Colors.white.withValues(alpha: 0.20)
+            : (isSelected
+                ? widget.accent
+                : Colors.white.withValues(alpha: 0.85));
+        return InkWell(
+          onTap: inRange ? () => setState(() => _year = year) : null,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+            child: Text(
+              '$year',
+              style: TextStyle(
+                color: color,
+                fontSize: 15,
+                fontWeight:
+                    isSelected ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

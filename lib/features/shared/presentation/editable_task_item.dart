@@ -2,9 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// Hide intl's `TextDirection` so the dart:ui enum (with .ltr/.rtl) wins
-// for TextPainter measurements below.
-import 'package:intl/intl.dart' hide TextDirection;
+import 'package:taskmaestro/date_util.dart';
 import 'package:taskmaestro/features/areas/providers/area_color_providers.dart';
 import 'package:taskmaestro/features/tasks/providers/expanded_task_provider.dart';
 import 'package:taskmaestro/helpers/area_color_helper.dart';
@@ -16,6 +14,7 @@ import 'package:timeago/timeago.dart' as timeago;
 
 import '../../../models/task_item.dart';
 import '../../../models/check_state.dart';
+import '../../tasks/presentation/recurrence_detail_screen.dart';
 import 'delayed_checkbox.dart';
 
 /// Pure presentational task card with an inline expand-for-detail panel.
@@ -36,6 +35,32 @@ class EditableTaskItemWidget extends ConsumerWidget {
   /// is hidden.
   final VoidCallback? onEdit;
 
+  /// When non-null, called instead of the standard `pillContentFor` to
+  /// resolve the date pill's content. Lets callers override the pill's
+  /// label / value / colours — e.g. `PlanTaskItemWidget` projects the
+  /// pill against its sprint's `endDate` so it reads "DUE in 5d" rather
+  /// than "TARGET in 4d" when both dates fall inside the sprint horizon.
+  /// Returning `null` from the override hides the pill (same as the
+  /// default path returning `null`).
+  final PillContent? Function(TaskItem)? pillContentOverride;
+
+  /// When non-null, called instead of the standard `stripeColorForTask`
+  /// to resolve the left stripe colour. Lets callers project the stripe
+  /// against an alternative time horizon (e.g. sprint planning's
+  /// `endDate`). Returning `null` falls through to the area colour.
+  final Color? Function(TaskItem)? stripeColorOverride;
+
+  /// When non-null, replaces the default trailing widget (the
+  /// completion-toggle checkbox bound to [onTaskCompleteToggle]).
+  /// `PlanTaskItemWidget` uses this to render an *assignment*-toggle
+  /// checkbox instead.
+  final Widget Function()? trailingBuilder;
+
+  /// `false` removes the outer `Dismissible` wrapper. Plan-mode rows
+  /// shouldn't be swipe-deletable since the gesture there is "add to
+  /// sprint", not "delete task".
+  final bool enableDismissible;
+
   const EditableTaskItemWidget({
     super.key,
     required this.taskItem,
@@ -45,6 +70,10 @@ class EditableTaskItemWidget extends ConsumerWidget {
     this.onLongPress,
     this.onForcePress,
     this.onEdit,
+    this.pillContentOverride,
+    this.stripeColorOverride,
+    this.trailingBuilder,
+    this.enableDismissible = true,
   });
 
   String _docId() => taskItem.docId;
@@ -81,47 +110,116 @@ class EditableTaskItemWidget extends ConsumerWidget {
     final isExpanded = expandedDocId == _docId();
     final areaColor = _resolveAreaColor(ref);
 
+    // Scroll the card fully into view when it expands, but ONLY if the
+    // expanded bottom would otherwise be off-screen. AnimatedSize plays
+    // for 100ms (see below); we wait ~80ms past that so the render
+    // object reliably reflects the post-expand bounds when ensureVisible
+    // measures (a tighter window made the scroll fire mid-animation
+    // ~75% of the time, against pre-expand bounds, and silently no-op).
+    // `keepVisibleAtEnd` means we only scroll down enough to bring the
+    // bottom into view; cards already fully visible aren't disturbed.
+    // Listen on a *derived boolean* — `is this card the expanded one?`
+    // — rather than the raw `expandedTaskProvider` value. Without
+    // `select`, every expand/collapse triggers all N cards' listeners
+    // (O(N) per toggle in long lists). With `select`, Riverpod only
+    // re-fires this card's callback when ITS computed boolean changes
+    // — which means just two cards on each transition (the
+    // newly-expanded one and, if any, the newly-collapsed one). Same
+    // semantics as before, much cheaper at scale.
+    ref.listen<bool>(
+      expandedTaskProvider.select((id) => id == _docId()),
+      (prevExpanded, nowExpanded) {
+        if (!nowExpanded || (prevExpanded ?? false)) return;
+        Future.delayed(const Duration(milliseconds: 180), () {
+          if (!context.mounted) return;
+          // Re-validate inside the delayed callback: within the 180ms
+          // window the user might have collapsed this card or expanded
+          // a different one, in which case the scroll-into-view here
+          // would be a surprise. Bail unless this card is still the
+          // active one when the timer fires.
+          if (ref.read(expandedTaskProvider) != _docId()) return;
+          final ro = context.findRenderObject();
+          if (ro == null) return;
+          Scrollable.maybeOf(context)?.position.ensureVisible(
+                ro,
+                alignmentPolicy:
+                    ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+                duration: const Duration(milliseconds: 110),
+                curve: Curves.easeInOut,
+              );
+        });
+      },
+    );
+
+    final card = GestureDetector(
+      onLongPress: onLongPress,
+      onForcePressStart: onForcePress,
+      child: Card(
+        key: TaskMaestroKeys.editableTaskItemCard(_docId()),
+        color: _cardSurfaceColor(),
+        shape: _cardShape(),
+        margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
+        child: Stack(
+          children: [
+            AreaStripe(
+              areaColor: areaColor,
+              // When the caller supplies an override its return value
+              // is authoritative — including `null`, which should
+              // fall through to `areaColor` rather than re-deriving
+              // a stripe via `stripeColorForTask`. Only when no
+              // override is registered do we run the default path.
+              stateColor: stripeColorOverride != null
+                  ? stripeColorOverride!(taskItem)
+                  : stripeColorForTask(taskItem),
+              completed: _isDone,
+            ),
+            Padding(
+              // Card-internal padding tuned for visual balance between
+              // the title row and the meta row. Symmetric 8 / 8 keeps
+              // the title's top edge and the meta row's bottom edge
+              // about the same distance from the card's outer edges:
+              //   - top 8: the title row's `ConstrainedBox(minHeight:22)`
+              //     plus this padding gives the title text ~11-12px of
+              //     space above its glyphs (8 padding + 3-4 row-internal
+              //     space above the bottom-aligned text).
+              //   - bottom 8: was originally 10 → 6, settled at 8 after
+              //     spot-checking — 6 felt a touch too tight, 10 left
+              //     too much empty band below the meta row.
+              padding: const EdgeInsets.fromLTRB(14.0, 8.0, 10.0, 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _summaryRow(context, ref, isExpanded, areaColor),
+                  AnimatedSize(
+                    // Tighter expand/collapse cadence — the original
+                    // 200ms felt sluggish once we started chaining a
+                    // post-animation scroll-into-view on top of it.
+                    duration: const Duration(milliseconds: 100),
+                    curve: Curves.easeInOut,
+                    alignment: Alignment.topCenter,
+                    child: isExpanded
+                        ? ExpandedPanel(
+                            taskItem: taskItem,
+                            onEdit: onEdit,
+                            onCollapse: () => ref
+                                .read(expandedTaskProvider.notifier)
+                                .toggle(_docId()),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (!enableDismissible) return card;
     return Dismissible(
       key: TaskMaestroKeys.taskItem(_docId()),
       confirmDismiss: confirmDismiss,
-      child: GestureDetector(
-        onLongPress: onLongPress,
-        onForcePressStart: onForcePress,
-        child: Card(
-          key: TaskMaestroKeys.editableTaskItemCard(_docId()),
-          color: _cardSurfaceColor(),
-          shape: _cardShape(),
-          margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
-          child: Stack(
-            children: [
-              _AreaStripe(areaColor: areaColor, completed: _isDone),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14.0, 10.0, 10.0, 10.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _summaryRow(context, ref, isExpanded, areaColor),
-                    AnimatedSize(
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.easeInOut,
-                      alignment: Alignment.topCenter,
-                      child: isExpanded
-                          ? _ExpandedPanel(
-                              taskItem: taskItem,
-                              onEdit: onEdit,
-                              onCollapse: () => ref
-                                  .read(expandedTaskProvider.notifier)
-                                  .toggle(_docId()),
-                            )
-                          : const SizedBox.shrink(),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      child: card,
     );
   }
 
@@ -151,7 +249,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
     // Avoid making a card tappable when expanding it would render nothing —
     // tapping such a card would silently collapse another open card without
     // any visible affordance, which feels broken.
-    final canExpand = _hasExpandableContent(taskItem, hasOnEdit: onEdit != null);
+    final canExpand = hasExpandableContent(taskItem, hasOnEdit: onEdit != null);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: canExpand
@@ -165,25 +263,21 @@ class EditableTaskItemWidget extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _titleRow(context, isExpanded),
-                const SizedBox(height: 6),
-                _metaRow(areaColor),
+                // Tight gap (was 6) so the title + meta read as a
+                // single content block rather than two separated rows.
+                const SizedBox(height: 4),
+                _metaRow(areaColor, isExpanded),
               ],
             ),
           ),
           const SizedBox(width: 12),
-          if (highlightSprint)
-            Padding(
-              padding: const EdgeInsets.only(top: 2.0, right: 4.0),
-              child: Icon(
-                Icons.assignment,
-                color: TaskColors.sprintColor,
-                size: 18,
-                key: TaskMaestroKeys.editableTaskItemCardSprintIcon(_docId()),
-              ),
-            ),
           Padding(
             padding: const EdgeInsets.only(top: 1.0),
-            child: _checkbox(),
+            // `trailingBuilder` lets plan-mode rows substitute an
+            // assignment-toggle checkbox for the default
+            // completion-toggle. Falls through to the standard
+            // `_checkbox()` when no override is supplied.
+            child: trailingBuilder?.call() ?? _checkbox(),
           ),
         ],
       ),
@@ -199,122 +293,178 @@ class EditableTaskItemWidget extends ConsumerWidget {
       );
 
   Widget _titleRow(BuildContext context, bool isExpanded) {
-    final pillContent = _pillContentFor(taskItem);
+    // Same override semantics as the stripe: when the caller registers
+    // an override its return value is authoritative, including `null`
+    // (caller wants the pill hidden). The default `pillContentFor`
+    // path only runs when no override is registered at all.
+    final pillContent = pillContentOverride != null
+        ? pillContentOverride!(taskItem)
+        : pillContentFor(taskItem);
     final pill = pillContent == null
         ? const SizedBox.shrink()
-        : _PillView(content: pillContent, docId: _docId());
+        : PillView(content: pillContent, docId: _docId());
     final titleStyle = _titleStyle();
 
     // Collapsed mode: keep the original compact single-row layout — title
     // ellipsis + pill on the right.
     if (!isExpanded) {
-      return _singleRowTitle(titleStyle, pill);
+      return _singleRowTitle(titleStyle, pill, pillContent != null);
     }
 
-    // Expanded mode: only break to a second row when the title actually
-    // would have ellipsised. Pill stays right-aligned in either case.
-    final scaler = MediaQuery.textScalerOf(context);
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const spacing = 8.0;
-        final maxWidth = constraints.hasBoundedWidth
-            ? constraints.maxWidth
-            : double.infinity;
-        if (pillContent == null || maxWidth.isInfinite) {
-          return _singleRowTitle(titleStyle, pill);
-        }
-
-        final pillWidth = _measurePillWidth(pillContent, scaler);
-        final titlePainter = TextPainter(
-          text: TextSpan(text: taskItem.name, style: titleStyle),
-          textDirection: TextDirection.ltr,
-          textScaler: scaler,
-          maxLines: 1,
-        )..layout();
-
-        final fitsOneRow = titlePainter.width <= maxWidth - pillWidth - spacing;
-        if (fitsOneRow) {
-          return _singleRowTitle(titleStyle, pill);
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              taskItem.name,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: titleStyle,
-            ),
-            const SizedBox(height: 5),
-            Align(alignment: Alignment.centerRight, child: pill),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _singleRowTitle(TextStyle titleStyle, Widget pill) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+    // Expanded mode: title takes the full row, pill drops to its own
+    // right-aligned row below.
+    //
+    // An earlier version tried to *measure* whether the title fit
+    // alongside the pill (TextPainter + epsilon) and only dropped the
+    // pill below when it didn't, but the TextPainter measurement
+    // diverged from the actual rendered width by varying amounts
+    // across platforms (Roboto on Android vs SF on iOS), leaving
+    // titles that were only a couple characters over the line
+    // ellipsised on iOS while Android wrapped them correctly. Putting
+    // the pill below unconditionally in expanded mode sidesteps the
+    // platform-dependent measurement bias entirely — the title's
+    // `Text` widget gets the full row width and computes its own wrap
+    // against the actual layout-time constraints.
+    if (pillContent == null) {
+      return _singleRowTitle(titleStyle, pill, false);
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Expanded(
-          child: Text(
-            taskItem.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: titleStyle,
-          ),
+        Text(
+          taskItem.name,
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
+          style: titleStyle,
         ),
-        const SizedBox(width: 8),
-        pill,
+        const SizedBox(height: 5),
+        Align(alignment: Alignment.centerRight, child: pill),
       ],
     );
   }
 
-  Widget _metaRow(Color areaColor) {
+  Widget _singleRowTitle(
+      TextStyle titleStyle, Widget pill, bool hasPill) {
+    // Minimum row height = pill's natural height (22px) when a pill is
+    // rendered; +2px (24px) when there isn't one, to give pill-less
+    // cards an extra sliver of breathing room above the title since
+    // the pill normally provides that visual lead-in itself.
+    final minHeight = hasPill ? 22.0 : 24.0;
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: minHeight),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        // The title's glyph baseline + descender space sit *above* the
+        // text widget's layout-box bottom by ~3-4px; without the
+        // `TextHeightBehavior` override below, `CrossAxisAlignment.end`
+        // would line up the layout boxes but the visible text would
+        // still float higher than the visible pill bottom. Disabling the
+        // last-descent height makes the layout box hug the glyphs, so
+        // "bottom of text box" == "bottom of visible text" == "bottom
+        // of pill" once they're all `end`-aligned.
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          Expanded(
+            child: Text(
+              taskItem.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: titleStyle,
+              textHeightBehavior: const TextHeightBehavior(
+                applyHeightToLastDescent: false,
+              ),
+            ),
+          ),
+          // Only consume the spacing + pill slot when there's actually
+          // a pill to render; an inline `SizedBox.shrink()` still costs
+          // its 8px gap, narrowing the title's available width and
+          // making ellipsis more likely on pill-less cards.
+          if (hasPill) ...[
+            const SizedBox(width: 8),
+            pill,
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _metaRow(Color areaColor, bool isExpanded) {
     return Row(
+      // `center` keeps each meta-cell vertically centered against the
+      // others — the indicators (priority bar, points circle, time block)
+      // have slightly different intrinsic heights, so anchoring at top
+      // would visually push the priority bar above the time text.
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // Expanded soaks up all remaining width so the right cluster sits
         // flush against the checkbox column. When area is null the inner
         // SizedBox.shrink leaves the space empty without disrupting alignment.
         Expanded(child: _areaLabel(areaColor)),
-        _TimeBlock(durationMinutes: taskItem.duration),
+        MetaCell(
+          isExpanded: isExpanded,
+          subtitle: 'Length',
+          child: TimeBlock(durationMinutes: taskItem.duration),
+        ),
         const SizedBox(width: 8),
         // Use the scale-aware getter so legacy 1-10 rows still render the
         // same number of fills they did before TM-358, while migrated 1-5
         // rows render their value directly. See TaskItem.displayPriority.
-        _PriorityBar(filled: taskItem.displayPriority ?? 0),
+        MetaCell(
+          isExpanded: isExpanded,
+          subtitle: 'Priority',
+          child: PriorityBar(filled: taskItem.displayPriority ?? 0),
+        ),
         const SizedBox(width: 8),
-        _PointsCircle(points: taskItem.gamePoints),
+        MetaCell(
+          isExpanded: isExpanded,
+          subtitle: 'Pts',
+          child: PointsCircle(points: taskItem.gamePoints),
+        ),
       ],
     );
   }
 
   Widget _areaLabel(Color areaColor) {
     final area = taskItem.area;
-    if (area == null || area.isEmpty) {
+    final showSprintIcon = highlightSprint;
+    if ((area == null || area.isEmpty) && !showSprintIcon) {
       return const SizedBox.shrink();
     }
     return Row(
       mainAxisSize: MainAxisSize.min,
       key: TaskMaestroKeys.editableTaskItemCardAreaField(_docId()),
       children: [
-        Container(
-          width: 6,
-          height: 6,
-          decoration: BoxDecoration(color: areaColor, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 5),
-        Flexible(
-          child: Text(
-            area,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 11.5, color: TaskColors.textDim),
+        if (area != null && area.isNotEmpty) ...[
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: areaColor, shape: BoxShape.circle),
           ),
-        ),
+          const SizedBox(width: 5),
+          Flexible(
+            child: Text(
+              area,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 11.5, color: TaskColors.textDim),
+            ),
+          ),
+          const SizedBox(width: 6),
+        ],
+        // Sprint badge moved here from `_summaryRow` (TM-357 #4): the row's
+        // dedicated icon column was removed so the indicator now lives
+        // alongside the area label, where it reads as part of the task's
+        // categorical metadata rather than a separate column.
+        if (showSprintIcon)
+          Padding(
+            padding: const EdgeInsets.only(right: 4.0),
+            child: Icon(
+              Icons.assignment,
+              color: TaskColors.sprintColor,
+              size: 14,
+              key: TaskMaestroKeys.editableTaskItemCardSprintIcon(_docId()),
+            ),
+          ),
         const SizedBox(width: 8),
       ],
     );
@@ -344,53 +494,130 @@ class EditableTaskItemWidget extends ConsumerWidget {
   }
 }
 
-class _AreaStripe extends StatelessWidget {
+class AreaStripe extends StatelessWidget {
   final Color areaColor;
+  final Color? stateColor;
   final bool completed;
-  const _AreaStripe({required this.areaColor, required this.completed});
+  const AreaStripe({
+    required this.areaColor,
+    required this.stateColor,
+    required this.completed,
+  });
 
   @override
   Widget build(BuildContext context) {
+    // Stripe priority: completed → highlight; otherwise the most-recently-
+    // crossed-threshold colour (Target / Urgent / Due) when one applies,
+    // falling through to the area colour for tasks with no relevant date
+    // state. Stripe colour comes from the saturated `TaskColors.*Stripe`
+    // tones (via `stripeColorForTask`), distinct from — but coordinated
+    // with — the pill's pale `*Text` foreground; together they read as a
+    // single visual cue without the pill's pale-on-dark text being
+    // washed out at the 3px stripe width.
+    final Color color;
+    if (completed) {
+      color = TaskColors.highlight;
+    } else if (stateColor != null) {
+      color = stateColor!;
+    } else {
+      color = areaColor;
+    }
     return Positioned(
       left: 0,
       top: 0,
       bottom: 0,
       width: 3,
-      child: Container(
-        color: completed ? TaskColors.highlight : areaColor,
-      ),
+      child: Container(color: color),
+    );
+  }
+}
+
+/// Wraps a meta-row cell ([TimeBlock] / [PriorityBar] / [PointsCircle])
+/// with an optional small text subtitle ("Length" / "Priority" / "Pts")
+/// rendered beneath it when the card is expanded.
+///
+/// In *expanded* mode the indicator portion is held to the height of the
+/// tallest indicator (the points circle, 22px) — every cell gets the
+/// same height, so all three sit on a common baseline and the subtitles
+/// underneath align consistently. The indicator itself is never resized;
+/// shorter indicators just float vertically inside a taller box.
+///
+/// In *collapsed* mode the cell is just the indicator at its intrinsic
+/// height; the row's centre alignment then balances the three different
+/// natural heights around a shared centreline (the original behaviour
+/// from before the subtitle feature was added).
+class MetaCell extends StatelessWidget {
+  final Widget child;
+  final String subtitle;
+  final bool isExpanded;
+  const MetaCell({
+    required this.child,
+    required this.subtitle,
+    required this.isExpanded,
+  });
+
+  /// Matches the tallest indicator in the meta row (the 22px-tall
+  /// [PointsCircle]) so no indicator gets visually clipped or shrunk.
+  static const double _expandedIndicatorHeight = 22;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!isExpanded) return child;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SizedBox(
+          height: _expandedIndicatorHeight,
+          child: Center(child: child),
+        ),
+        Text(
+          subtitle,
+          // `height: 1.0` collapses the default 1.2× line-box so the
+          // subtitle text doesn't carry a few pixels of empty space
+          // above/below its glyphs — without it, the row reads as if
+          // a second invisible line were hiding beneath each subtitle.
+          style: TextStyle(
+            fontSize: 9,
+            height: 1.0,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.4,
+            color: TaskColors.textFaint,
+          ),
+        ),
+      ],
     );
   }
 }
 
 /// Tone triple for date pills; mirrors `DATE_TONES` in cards.jsx.
-class _ToneTriple {
+class ToneTriple {
   final Color fg;
   final Color bg;
   final Color border;
-  const _ToneTriple({required this.fg, required this.bg, required this.border});
+  const ToneTriple({required this.fg, required this.bg, required this.border});
 }
 
-_ToneTriple _toneFor(TaskDateType type) {
+ToneTriple toneFor(TaskDateType type) {
   if (type == TaskDateTypes.due) {
-    return _ToneTriple(
+    return ToneTriple(
         fg: TaskColors.dueText,
         bg: TaskColors.dueColor,
         border: TaskColors.dueBorder);
   }
   if (type == TaskDateTypes.urgent) {
-    return _ToneTriple(
+    return ToneTriple(
         fg: TaskColors.urgentText,
         bg: TaskColors.urgentColor,
         border: TaskColors.urgentBorder);
   }
   if (type == TaskDateTypes.target) {
-    return _ToneTriple(
+    return ToneTriple(
         fg: TaskColors.targetText,
         bg: TaskColors.targetColor,
         border: TaskColors.targetBorder);
   }
-  return _ToneTriple(
+  return ToneTriple(
       fg: TaskColors.startText,
       bg: TaskColors.scheduledColor,
       border: TaskColors.startBorder);
@@ -398,29 +625,31 @@ _ToneTriple _toneFor(TaskDateType type) {
 
 /// Pre-computed content for a date pill — built once so the title row can
 /// both render it and measure its width without doing the work twice.
-class _PillContent {
+class PillContent {
   final String label;
   final String value;
   final Color bg;
   final Color border;
   final Color fg;
-  const _PillContent({
+  final double borderWidth;
+  const PillContent({
     required this.label,
     required this.value,
     required this.bg,
     required this.border,
     required this.fg,
+    this.borderWidth = 1,
   });
 }
 
-_PillContent? _pillContentFor(TaskItem taskItem) {
+PillContent? pillContentFor(TaskItem taskItem) {
   final completed = taskItem.completionDate != null;
   final skipped = taskItem.skipped;
   if (completed || skipped) {
     final completionDate = taskItem.completionDate;
     final relative =
         completionDate == null ? 'just now' : _relativeFromNow(completionDate);
-    return _PillContent(
+    return PillContent(
       label: skipped ? 'SKIPPED' : 'COMPLETED',
       value: relative,
       bg: TaskColors.completedColor,
@@ -428,7 +657,7 @@ _PillContent? _pillContentFor(TaskItem taskItem) {
       fg: TaskColors.completedText,
     );
   }
-  final displayType = _displayDateType(taskItem);
+  final displayType = displayDateType(taskItem);
   if (displayType == null) return null;
   final relative = _relativeForAnchor(taskItem, displayType);
   if (relative == null) return null;
@@ -436,14 +665,18 @@ _PillContent? _pillContentFor(TaskItem taskItem) {
   // user is reading); background colour reflects the task's current
   // state — i.e. the most recently crossed threshold. Matches the old
   // card-background semantics from the pre-redesign widget.
-  final displayTone = _toneFor(displayType);
-  final stateTone = _toneForCurrentState(taskItem);
-  return _PillContent(
+  final displayTone = toneFor(displayType);
+  final stateTone = toneForCurrentState(taskItem);
+  return PillContent(
     label: displayType.label.toUpperCase(),
     value: relative,
     bg: stateTone?.bg ?? Colors.transparent,
     border: stateTone?.border ?? TaskColors.hairline,
     fg: displayTone.fg,
+    // Date pills (TARGET / URGENT / DUE / START) carry a thicker border
+    // than the COMPLETED / SKIPPED variants so the active deadline reads
+    // as a louder visual cue at a glance.
+    borderWidth: 2,
   );
 }
 
@@ -451,7 +684,7 @@ _PillContent? _pillContentFor(TaskItem taskItem) {
 /// summary-row tap handler to gate the expand toggle so empty cards
 /// without an Edit button don't become invisible tap targets that
 /// collapse other open cards.
-bool _hasExpandableContent(TaskItem task, {required bool hasOnEdit}) {
+bool hasExpandableContent(TaskItem task, {required bool hasOnEdit}) {
   if (hasOnEdit) return true;
   if (task.startDate != null) return true;
   if (task.targetDate != null) return true;
@@ -482,7 +715,7 @@ bool _hasExpandableContent(TaskItem task, {required bool hasOnEdit}) {
 /// the wrong choice for display when an earlier-priority date is the next
 /// thing the user actually needs to act on. Mirrors the iteration order
 /// from the pre-redesign widget's `_getDateWarnings()`.
-TaskDateType? _displayDateType(TaskItem task) {
+TaskDateType? displayDateType(TaskItem task) {
   for (final type in TaskDateTypes.allTypes) {
     if (type.inListBeforeDisplayThreshold(task)) return type;
   }
@@ -497,43 +730,43 @@ TaskDateType? _displayDateType(TaskItem task) {
 /// threshold. Mirrors the pre-redesign `getBackgroundColor()` semantics by
 /// reusing `DateHolder`'s existing predicates so this stays a single
 /// source of truth as the date model evolves.
-_ToneTriple? _toneForCurrentState(TaskItem task) {
-  if (task.isPastDue()) return _toneFor(TaskDateTypes.due);
-  if (task.isUrgent()) return _toneFor(TaskDateTypes.urgent);
-  if (task.isTarget()) return _toneFor(TaskDateTypes.target);
-  if (task.isScheduled()) return _toneFor(TaskDateTypes.start);
+ToneTriple? toneForCurrentState(TaskItem task) {
+  if (task.isPastDue()) return toneFor(TaskDateTypes.due);
+  if (task.isUrgent()) return toneFor(TaskDateTypes.urgent);
+  if (task.isTarget()) return toneFor(TaskDateTypes.target);
+  if (task.isScheduled()) return toneFor(TaskDateTypes.start);
   return null;
 }
 
-const TextStyle _pillLabelStyle = TextStyle(
+/// Saturated stripe colour for [task] based on its highest crossed
+/// threshold. Distinct from the pill's pale `*Text` foreground colours,
+/// which were tuned to read as a soft accent inside a coloured pill on
+/// the dark card; the 3px stripe needs more saturation to stay visually
+/// distinct between adjacent date types (Target vs Urgent vs Due).
+/// Returns `null` when no relevant threshold is crossed, so the caller
+/// can fall through to the area colour.
+Color? stripeColorForTask(TaskItem task) {
+  if (task.isPastDue()) return TaskColors.dueStripe;
+  if (task.isUrgent()) return TaskColors.urgentStripe;
+  if (task.isTarget()) return TaskColors.targetStripe;
+  if (task.isScheduled()) return TaskColors.startStripe;
+  return null;
+}
+
+const TextStyle pillLabelStyle = TextStyle(
   fontSize: 10,
   fontWeight: FontWeight.w600,
   letterSpacing: 0.4,
 );
-const TextStyle _pillValueStyle = TextStyle(
+const TextStyle pillValueStyle = TextStyle(
   fontSize: 11,
   fontWeight: FontWeight.w600,
 );
 
-double _measurePillWidth(_PillContent content, TextScaler scaler) {
-  final labelPainter = TextPainter(
-    text: TextSpan(text: content.label, style: _pillLabelStyle),
-    textDirection: TextDirection.ltr,
-    textScaler: scaler,
-  )..layout();
-  final valuePainter = TextPainter(
-    text: TextSpan(text: content.value, style: _pillValueStyle),
-    textDirection: TextDirection.ltr,
-    textScaler: scaler,
-  )..layout();
-  // 9px h padding × 2 + 5px gap + 1px border × 2.
-  return labelPainter.width + valuePainter.width + 18 + 5 + 2;
-}
-
-class _PillView extends StatelessWidget {
-  final _PillContent content;
+class PillView extends StatelessWidget {
+  final PillContent content;
   final String docId;
-  const _PillView({required this.content, required this.docId});
+  const PillView({required this.content, required this.docId});
 
   @override
   Widget build(BuildContext context) {
@@ -542,10 +775,15 @@ class _PillView extends StatelessWidget {
     );
     return Container(
       key: TaskMaestroKeys.editableTaskItemDatePill(docId),
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+      // Vertical padding intentionally tighter than horizontal: the
+      // thicker (2px) border on date pills already adds ~2px to the
+      // overall height, so nudging the inner padding down keeps the pill
+      // visually aligned with the title text on the same row instead of
+      // pushing the meta row a couple pixels lower.
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2),
       decoration: BoxDecoration(
         color: content.bg,
-        border: Border.all(color: content.border, width: 1),
+        border: Border.all(color: content.border, width: content.borderWidth),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -553,12 +791,12 @@ class _PillView extends StatelessWidget {
         children: [
           Text(
             content.label,
-            style: _pillLabelStyle.copyWith(color: fadedLabelColor),
+            style: pillLabelStyle.copyWith(color: fadedLabelColor),
           ),
           const SizedBox(width: 5),
           Text(
             content.value,
-            style: _pillValueStyle.copyWith(color: content.fg),
+            style: pillValueStyle.copyWith(color: content.fg),
           ),
         ],
       ),
@@ -601,9 +839,9 @@ String _relativeLong(DateTime dateTime) {
   return raw[0].toUpperCase() + raw.substring(1);
 }
 
-class _TimeBlock extends StatelessWidget {
+class TimeBlock extends StatelessWidget {
   final int? durationMinutes;
-  const _TimeBlock({required this.durationMinutes});
+  const TimeBlock({required this.durationMinutes});
 
   @override
   Widget build(BuildContext context) {
@@ -666,12 +904,12 @@ class _TimeBlock extends StatelessWidget {
   }
 }
 
-class _PriorityBar extends StatelessWidget {
+class PriorityBar extends StatelessWidget {
   /// Number of bars to fill (0–5). Caller is responsible for normalizing
   /// raw priority values via `TaskItem.displayPriority` so this widget
   /// stays scale-agnostic.
   final int filled;
-  const _PriorityBar({required this.filled});
+  const PriorityBar({required this.filled});
 
   @override
   Widget build(BuildContext context) {
@@ -711,9 +949,9 @@ class _PriorityBar extends StatelessWidget {
   }
 }
 
-class _PointsCircle extends StatelessWidget {
+class PointsCircle extends StatelessWidget {
   final int? points;
-  const _PointsCircle({required this.points});
+  const PointsCircle({required this.points});
 
   @override
   Widget build(BuildContext context) {
@@ -744,11 +982,11 @@ class _PointsCircle extends StatelessWidget {
   }
 }
 
-class _ExpandedPanel extends StatelessWidget {
+class ExpandedPanel extends StatelessWidget {
   final TaskItem taskItem;
   final VoidCallback? onEdit;
   final VoidCallback onCollapse;
-  const _ExpandedPanel({
+  const ExpandedPanel({
     required this.taskItem,
     required this.onCollapse,
     this.onEdit,
@@ -796,7 +1034,24 @@ class _ExpandedPanel extends StatelessWidget {
             if (dateRows.isNotEmpty) _dateGrid(dateRows),
             if (ctx != null && ctx.isNotEmpty)
               _ExpandedRow(label: 'CONTEXT', value: ctx),
-            if (repeat != null) _ExpandedRow(label: 'REPEAT', value: repeat),
+            if (repeat != null)
+              _ExpandedRow(
+                label: 'REPEAT',
+                value: repeat,
+                // Only wire the link when we have a recurrenceDocId to push
+                // — non-recurring rules with inline recurNumber/recurUnit
+                // don't have a history page to land on.
+                onTap: taskItem.recurrenceDocId != null
+                    ? () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => RecurrenceDetailScreen(
+                              recurrenceDocId: taskItem.recurrenceDocId!,
+                              recurrenceName: taskItem.name,
+                            ),
+                          ),
+                        )
+                    : null,
+              ),
             if (notes != null && notes.isNotEmpty)
               _ExpandedRow(label: 'NOTES', value: notes),
             if (onEdit != null) ...[
@@ -819,11 +1074,14 @@ class _ExpandedPanel extends StatelessWidget {
       if (v == null) return;
       rows.add(_DateCell(
         label: type.label.toUpperCase(),
-        absolute: DateFormat.MMMMd().format(v.toLocal()),
+        // Use the year-eliding helper so dates in other years surface
+        // their year ("April 18, 2025") while same-year dates stay
+        // compact ("April 18").
+        absolute: DateUtil.formatMonthDayMaybeYearLong(v),
         // Long form (e.g. "In 23 hours", "a month ago") for the
         // expanded panel — the summary pill uses _shortRelative.
         relative: _relativeLong(v),
-        color: _toneFor(type).fg,
+        color: toneFor(type).fg,
       ));
     }
 
@@ -930,7 +1188,19 @@ class _ExpandedPanel extends StatelessWidget {
 class _ExpandedRow extends StatelessWidget {
   final String label;
   final String value;
-  const _ExpandedRow({required this.label, required this.value});
+
+  /// When set, an icon button (history list) appears at the right end of
+  /// the row that fires this callback. Used by the REPEAT row to navigate
+  /// to the recurrence-history screen. The value text itself stays
+  /// readable in the standard primary colour — the icon is the affordance,
+  /// not the text.
+  final VoidCallback? onTap;
+
+  const _ExpandedRow({
+    required this.label,
+    required this.value,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -967,6 +1237,31 @@ class _ExpandedRow extends StatelessWidget {
               ),
             ),
           ),
+          if (onTap != null)
+            // Tooltip-wrapped InkWell instead of IconButton: IconButton's
+            // built-in 28px min-height pushed the icon visibly below the
+            // row's top hairline. A tight 2px padding keeps the icon
+            // close to the label baseline so it reads as part of the
+            // REPEAT row rather than floating beneath it.
+            Tooltip(
+              message: 'Recurrence history',
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onTap,
+                  borderRadius: BorderRadius.circular(4),
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    child: Icon(
+                      Icons.format_list_bulleted,
+                      size: 18,
+                      color: Colors.white.withValues(alpha: 0.75),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
