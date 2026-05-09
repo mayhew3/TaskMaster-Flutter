@@ -165,13 +165,16 @@ class EditableTaskItemWidget extends ConsumerWidget {
             ),
             Padding(
               // Card-internal padding tuned for visual balance between
-              // the title row and the meta row:
+              // the title row and the meta row. Symmetric 8 / 8 keeps
+              // the title's top edge and the meta row's bottom edge
+              // about the same distance from the card's outer edges:
               //   - top 8: the title row's `ConstrainedBox(minHeight:22)`
               //     plus this padding gives the title text ~11-12px of
               //     space above its glyphs (8 padding + 3-4 row-internal
               //     space above the bottom-aligned text).
-              //   - bottom 6: tightened from 10 so the meta row doesn't
-              //     leave a noticeable empty band at the card's bottom.
+              //   - bottom 8: was originally 10 → 6, settled at 8 after
+              //     spot-checking — 6 felt a touch too tight, 10 left
+              //     too much empty band below the meta row.
               padding: const EdgeInsets.fromLTRB(14.0, 8.0, 10.0, 8.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

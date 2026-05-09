@@ -122,10 +122,15 @@ void main() {
 
     testWidgets('Tapping the row expands and reveals dates panel',
         (tester) async {
+      // Use a `now()`-relative target so the test stays time-independent;
+      // a hard-coded calendar date would silently start failing after
+      // it slipped into the past (TaskDateType's display predicates
+      // suppress the pill once the threshold is no longer in the
+      // forward-looking window).
       final task = _makeTask(
         name: 'Expandable Plan Task',
         area: 'Work',
-        targetDate: DateTime(2026, 5, 15),
+        targetDate: DateTime.now().add(const Duration(days: 7)),
       );
       await tester.pumpWidget(_wrap(PlanTaskItemWidget(
         sprintDisplayTask: task,
