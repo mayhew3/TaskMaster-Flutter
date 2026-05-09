@@ -118,8 +118,18 @@ class EditableTaskItemWidget extends ConsumerWidget {
     // ~75% of the time, against pre-expand bounds, and silently no-op).
     // `keepVisibleAtEnd` means we only scroll down enough to bring the
     // bottom into view; cards already fully visible aren't disturbed.
-    ref.listen<String?>(expandedTaskProvider, (prev, next) {
-      if (next == _docId() && prev != _docId()) {
+    // Listen on a *derived boolean* — `is this card the expanded one?`
+    // — rather than the raw `expandedTaskProvider` value. Without
+    // `select`, every expand/collapse triggers all N cards' listeners
+    // (O(N) per toggle in long lists). With `select`, Riverpod only
+    // re-fires this card's callback when ITS computed boolean changes
+    // — which means just two cards on each transition (the
+    // newly-expanded one and, if any, the newly-collapsed one). Same
+    // semantics as before, much cheaper at scale.
+    ref.listen<bool>(
+      expandedTaskProvider.select((id) => id == _docId()),
+      (prevExpanded, nowExpanded) {
+        if (!nowExpanded || (prevExpanded ?? false)) return;
         Future.delayed(const Duration(milliseconds: 180), () {
           if (!context.mounted) return;
           // Re-validate inside the delayed callback: within the 180ms
@@ -138,8 +148,8 @@ class EditableTaskItemWidget extends ConsumerWidget {
                 curve: Curves.easeInOut,
               );
         });
-      }
-    });
+      },
+    );
 
     final card = GestureDetector(
       onLongPress: onLongPress,

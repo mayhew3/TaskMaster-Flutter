@@ -231,9 +231,13 @@ void main() {
           pillContentOverride: (_) => null,
         )));
         // No pill rendered at all — neither the default DUE pill nor any
-        // override-supplied one.
+        // override-supplied one. Use the *actual* task docId for the
+        // key lookup (`_makeTask`'s default), not a hard-coded literal,
+        // otherwise the lookup is always `findsNothing` regardless of
+        // whether a pill rendered and the assertion is meaningless.
         expect(
-          find.byKey(TaskMaestroKeys.editableTaskItemDatePill('test-task')),
+          find.byKey(
+              TaskMaestroKeys.editableTaskItemDatePill(task.docId)),
           findsNothing,
         );
         expect(find.text('DUE'), findsNothing);
