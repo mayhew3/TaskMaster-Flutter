@@ -14,8 +14,11 @@ import '../../../../models/task_colors.dart';
 /// field clears), or a user-visible error message on failure (the field
 /// keeps the typed text and surfaces the message inline below the row so
 /// the user can edit-and-retry without retyping). Validation that the
-/// caller wants to enforce locally (empty / reserved / duplicate) goes in
-/// [validator] — runs client-side before [onSubmit] is called.
+/// caller wants to enforce locally (reserved sentinel names / duplicate
+/// names) goes in [validator] — runs client-side before [onSubmit] is
+/// called. **The field handles empty input itself** ("Name required");
+/// [validator] is invoked only with a non-empty trimmed string, so callers
+/// don't need to re-check for empty values.
 class InlineAddField extends StatefulWidget {
   const InlineAddField({
     super.key,

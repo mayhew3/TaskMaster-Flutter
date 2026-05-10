@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/auth_providers.dart';
 import '../../../models/area.dart';
+import '../../shared/presentation/widgets/count_badge.dart';
 import '../providers/area_providers.dart';
 import '../services/area_service.dart';
 
@@ -114,7 +115,7 @@ class _AreaTile extends ConsumerWidget {
       title: Row(
         children: [
           Expanded(child: Text(area.name)),
-          if (count > 0) _CountBadge(count: count),
+          if (count > 0) CountBadge(count: count),
         ],
       ),
       trailing: Row(
@@ -303,35 +304,6 @@ enum _DeleteAreaChoice { cancel, keepOnTasks, removeFromTasks }
 
 /// Branching outcomes from the in-use rename dialog.
 enum _RenameAreaChoice { cancel, renameOnly, renameAndUpdate }
-
-/// Compact pill-shaped task-count badge shown next to each area / context
-/// row in the Manage screens (TM-181). Singular vs plural is left implicit
-/// via the bare number — the row's name is right next to it so context is
-/// obvious.
-class _CountBadge extends StatelessWidget {
-  const _CountBadge({required this.count});
-
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        '$count',
-        style: TextStyle(
-          fontSize: 11.5,
-          fontWeight: FontWeight.w600,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-      ),
-    );
-  }
-}
 
 class _AreaNameDialog extends StatefulWidget {
   const _AreaNameDialog({

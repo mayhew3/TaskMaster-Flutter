@@ -53,6 +53,14 @@ DateTime? _utcOrNull(DateTime? dt) => dt == null ? null : _utc(dt);
 ///   single-element list with that name.
 /// - Plain `List` of maps or strings (Firestore round-trip when the field
 ///   was already migrated server-side) → typed list.
+///
+/// **Recovery path:** if the column holds a string that *looks* like JSON
+/// (starts with `[` or `"`) but fails to parse — e.g. a corrupted row, or
+/// truncation — the helper falls through to the bare-string branch and
+/// wraps the entire raw text as a single context name. This is preferable
+/// to throwing (the task list would crash on a single bad row) but is
+/// surprising if not flagged: the user will see the broken JSON as the
+/// context's name in the picker and can edit it out from there.
 List<m.TaskContext> parseTaskContexts(dynamic raw) {
   if (raw == null) return const [];
   dynamic value = raw;

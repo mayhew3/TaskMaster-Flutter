@@ -6,6 +6,30 @@ part of 'context_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+String _$contextIconLookupHash() => r'133ddec96404ffe736741badb7a42c05df383c62';
+
+/// Lowercased name → catalog `iconName` lookup map for the current user's
+/// contexts. Built once per `contextsProvider` emission, then read by every
+/// task card's meta row so each card avoids rebuilding its own copy of the
+/// map on every render. Returns null entries for catalog rows whose icon
+/// hasn't been assigned (Tier 1 user-created contexts default to no icon).
+///
+/// Copied from [contextIconLookup].
+@ProviderFor(contextIconLookup)
+final contextIconLookupProvider =
+    AutoDisposeProvider<Map<String, String?>>.internal(
+      contextIconLookup,
+      name: r'contextIconLookupProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$contextIconLookupHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef ContextIconLookupRef = AutoDisposeProviderRef<Map<String, String?>>;
 String _$contextTaskCountsHash() => r'213a71b8879316cc1a7c337252aadb73ab2b86c0';
 
 /// Per-context task counts for the current user. Keyed by lowercased

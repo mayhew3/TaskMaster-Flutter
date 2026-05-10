@@ -250,24 +250,29 @@ class ContextService {
   }) async {
     final lower = oldName.toLowerCase();
     final rows = await db.taskDao.allForUser(personDocId);
+    // Transaction-wrapped per `AreaService.renameAreaOnAllTasks` — keeps
+    // the local view consistent if a mid-iteration crash leaves some
+    // tasks rewritten and others not.
     var updated = 0;
-    for (final row in rows) {
-      if (row.retired != null) continue;
-      final contexts = parseTaskContexts(row.taskContexts);
-      if (!contexts.any((c) => c.name.toLowerCase() == lower)) continue;
-      final rewritten = contexts
-          .map((c) => c.name.toLowerCase() == lower
-              ? c.rebuild((b) => b..name = newName)
-              : c)
-          .toList();
-      await db.taskDao.markUpdatePending(
-        row.docId,
-        db_models.TasksCompanion(
-          taskContexts: Value(serializeTaskContexts(rewritten)),
-        ),
-      );
-      updated++;
-    }
+    await db.transaction(() async {
+      for (final row in rows) {
+        if (row.retired != null) continue;
+        final contexts = parseTaskContexts(row.taskContexts);
+        if (!contexts.any((c) => c.name.toLowerCase() == lower)) continue;
+        final rewritten = contexts
+            .map((c) => c.name.toLowerCase() == lower
+                ? c.rebuild((b) => b..name = newName)
+                : c)
+            .toList();
+        await db.taskDao.markUpdatePending(
+          row.docId,
+          db_models.TasksCompanion(
+            taskContexts: Value(serializeTaskContexts(rewritten)),
+          ),
+        );
+        updated++;
+      }
+    });
     if (updated > 0) {
       ref
           .read(syncServiceProvider)
@@ -290,21 +295,24 @@ class ContextService {
   }) async {
     final lower = contextName.toLowerCase();
     final rows = await db.taskDao.allForUser(personDocId);
+    // Transaction-wrapped — see [renameContextOnAllTasks].
     var updated = 0;
-    for (final row in rows) {
-      if (row.retired != null) continue;
-      final contexts = parseTaskContexts(row.taskContexts);
-      if (!contexts.any((c) => c.name.toLowerCase() == lower)) continue;
-      final filtered =
-          contexts.where((c) => c.name.toLowerCase() != lower).toList();
-      await db.taskDao.markUpdatePending(
-        row.docId,
-        db_models.TasksCompanion(
-          taskContexts: Value(serializeTaskContexts(filtered)),
-        ),
-      );
-      updated++;
-    }
+    await db.transaction(() async {
+      for (final row in rows) {
+        if (row.retired != null) continue;
+        final contexts = parseTaskContexts(row.taskContexts);
+        if (!contexts.any((c) => c.name.toLowerCase() == lower)) continue;
+        final filtered =
+            contexts.where((c) => c.name.toLowerCase() != lower).toList();
+        await db.taskDao.markUpdatePending(
+          row.docId,
+          db_models.TasksCompanion(
+            taskContexts: Value(serializeTaskContexts(filtered)),
+          ),
+        );
+        updated++;
+      }
+    });
     if (updated > 0) {
       ref
           .read(syncServiceProvider)

@@ -330,8 +330,7 @@ class SyncService {
       try {
         final json = Map<String, dynamic>.from(change.doc.data()!);
         json['docId'] = change.doc.id;
-        m.TaskItem.applyLegacyContextFallback(json);
-        final task = serializers.deserializeWith(m.TaskItem.serializer, json);
+        final task = m.TaskItem.fromFirestoreJson(json);
         if (task != null) {
           toUpsert.add(taskItemToCompanion(task));
           // Schedule notification refresh post-snapshot. Skip on initial
@@ -396,9 +395,7 @@ class SyncService {
       if (data != null) {
         final json = Map<String, dynamic>.from(data);
         json['docId'] = change.doc.id;
-        m.TaskItem.applyLegacyContextFallback(json);
-        cachedTask =
-            serializers.deserializeWith(m.TaskItem.serializer, json);
+        cachedTask = m.TaskItem.fromFirestoreJson(json);
       }
     } catch (e, s) {
       _logSyncError(e, s);
@@ -886,8 +883,7 @@ class SyncService {
           if (data != null && !isInitial) {
             final json = Map<String, dynamic>.from(data);
             json['docId'] = change.doc.id;
-            m.TaskItem.applyLegacyContextFallback(json);
-            final task = serializers.deserializeWith(m.TaskItem.serializer, json);
+            final task = m.TaskItem.fromFirestoreJson(json);
             if (task != null) toRefreshNotifications.add(task);
           }
         } catch (e, s) {
@@ -899,8 +895,7 @@ class SyncService {
       try {
         final json = Map<String, dynamic>.from(change.doc.data()!);
         json['docId'] = change.doc.id;
-        m.TaskItem.applyLegacyContextFallback(json);
-        final task = serializers.deserializeWith(m.TaskItem.serializer, json);
+        final task = m.TaskItem.fromFirestoreJson(json);
         if (task != null) {
           toUpsert.add(taskItemToCompanion(task));
           // Skip on initial — notificationSyncProvider does the bulk sync at

@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -230,6 +231,41 @@ void main() {
       expect(find.text('Rename'), findsOneWidget);
       // The TextFormField should have 'Home' as its initial text.
       expect(find.widgetWithText(TextFormField, 'Home'), findsOneWidget);
+    });
+
+    testWidgets(
+        'delete dialog (in-use) shows three-button keep/remove choice with N tasks',
+        (tester) async {
+      // Insert 3 tasks tagged with the area so countTasksUsingArea returns 3.
+      // The dialog's branched copy keys off that count, so this exercises
+      // the actual in-use code path (vs the zero-tasks branch covered above).
+      for (var i = 0; i < 3; i++) {
+        await db.into(db.tasks).insert(TasksCompanion(
+              docId: Value('task-$i'),
+              dateAdded: Value(DateTime.now().toUtc()),
+              personDocId: const Value('me'),
+              name: Value('Task $i'),
+              area: const Value('Home'),
+              syncState: const Value('synced'),
+            ));
+      }
+
+      await tester.pumpWidget(_buildHarness(
+        db: db,
+        firestore: firestore,
+        areas: [_area(docId: 'a-1', name: 'Home')],
+        taskCounts: const {'home': 3},
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Delete "Home"?'), findsOneWidget);
+      expect(find.textContaining('used by 3 tasks'), findsOneWidget);
+      expect(find.text('Cancel'), findsOneWidget);
+      expect(find.text('Keep on tasks'), findsOneWidget);
+      expect(find.text('Remove from tasks'), findsOneWidget);
     });
   });
 }

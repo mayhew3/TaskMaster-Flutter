@@ -263,6 +263,20 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
     return serializers.deserializeWith(TaskItem.serializer, json)!;
   }
 
+  /// Centralized Firestore-JSON deserialization (TM-181). Applies the
+  /// legacy bare-string fallback then deserializes via the canonical
+  /// serializer; returns `null` when the serializer can't decode the doc.
+  ///
+  /// Every Firestore deserialize callsite should funnel through this
+  /// helper instead of calling `serializers.deserializeWith` directly so
+  /// a future code path can't silently bypass the fallback and lose
+  /// pre-181 context values. Use `fromJson` for the bang-on-non-null
+  /// variant when failure should throw (test mocks, in-memory paths).
+  static TaskItem? fromFirestoreJson(Map<String, dynamic> json) {
+    applyLegacyContextFallback(json);
+    return serializers.deserializeWith(TaskItem.serializer, json);
+  }
+
   /// Normalize a Firestore JSON payload to the post-TM-181 contexts shape.
   ///
   /// Pre-181 docs carry `context: "Phone"` (singular). New-shape docs carry

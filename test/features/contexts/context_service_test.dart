@@ -1,13 +1,16 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaestro/core/database/app_database.dart';
+import 'package:taskmaestro/core/database/converters.dart';
 import 'package:taskmaestro/core/database/tables.dart';
 import 'package:taskmaestro/core/providers/database_provider.dart';
 import 'package:taskmaestro/core/providers/firebase_providers.dart';
 import 'package:taskmaestro/core/services/sync_service.dart';
 import 'package:taskmaestro/features/contexts/services/context_service.dart';
+import 'package:taskmaestro/models/task_context.dart' as m;
 
 /// Tests for `ContextService` (TM-181). Mirrors the AreaService test layout —
 /// see `test/features/areas/area_service_test.dart` for the source pattern.
@@ -214,6 +217,131 @@ void main() {
       await svc.setColor(phone, '#3B82F6');
       final stored = await db.contextDao.getContextsForUser('me');
       expect(stored.first.color, '#3B82F6');
+    });
+  });
+
+  group('cascade — countTasksUsingContext / removeContextFromAllTasks', () {
+    Future<void> insertTask({
+      required String docId,
+      required List<m.TaskContext> contexts,
+      String personDocId = 'me',
+    }) async {
+      await db.into(db.tasks).insert(TasksCompanion(
+            docId: Value(docId),
+            dateAdded: Value(DateTime.now().toUtc()),
+            personDocId: Value(personDocId),
+            name: Value('Task $docId'),
+            taskContexts: Value(serializeTaskContexts(contexts)),
+            syncState: const Value('synced'),
+          ));
+    }
+
+    test('countTasksUsingContext only counts the user\'s own non-retired rows',
+        () async {
+      await insertTask(
+          docId: 't1', contexts: [m.TaskContext.named('Phone')]);
+      await insertTask(
+          docId: 't2', contexts: [m.TaskContext.named('phone')]);
+      await insertTask(
+          docId: 't3', contexts: [m.TaskContext.named('Computer')]);
+      // Different user — should not count.
+      await insertTask(
+          docId: 't4',
+          personDocId: 'someone-else',
+          contexts: [m.TaskContext.named('Phone')]);
+
+      final n = await getService().countTasksUsingContext(
+        contextName: 'Phone',
+        personDocId: 'me',
+      );
+      // Case-insensitive match → t1 + t2; t3 has a different name; t4 is
+      // a different user.
+      expect(n, 2);
+    });
+
+    test(
+        'removeContextFromAllTasks strips matching entries and marks pendingUpdate',
+        () async {
+      await insertTask(docId: 't1', contexts: [
+        m.TaskContext.named('Phone'),
+        m.TaskContext.named('Computer'),
+      ]);
+      await insertTask(docId: 't2', contexts: [m.TaskContext.named('Phone')]);
+      await insertTask(docId: 't3', contexts: [m.TaskContext.named('Home')]);
+
+      final updated = await getService().removeContextFromAllTasks(
+        contextName: 'Phone',
+        personDocId: 'me',
+      );
+      expect(updated, 2);
+
+      final t1 = await db.taskDao.getByDocId('t1');
+      expect(parseTaskContexts(t1!.taskContexts).map((c) => c.name).toList(),
+          ['Computer']);
+      expect(t1.syncState, SyncState.pendingUpdate.name);
+
+      final t2 = await db.taskDao.getByDocId('t2');
+      expect(parseTaskContexts(t2!.taskContexts), isEmpty);
+      expect(t2.syncState, SyncState.pendingUpdate.name);
+
+      // Untagged task should not have been touched.
+      final t3 = await db.taskDao.getByDocId('t3');
+      expect(t3!.syncState, SyncState.synced.name);
+    });
+  });
+
+  group('cascade — renameContextOnAllTasks', () {
+    Future<void> insertTask({
+      required String docId,
+      required List<m.TaskContext> contexts,
+    }) async {
+      await db.into(db.tasks).insert(TasksCompanion(
+            docId: Value(docId),
+            dateAdded: Value(DateTime.now().toUtc()),
+            personDocId: const Value('me'),
+            name: Value('Task $docId'),
+            taskContexts: Value(serializeTaskContexts(contexts)),
+            syncState: const Value('synced'),
+          ));
+    }
+
+    test('rewrites matching context names while preserving value', () async {
+      await insertTask(docId: 't1', contexts: [
+        m.TaskContext((b) => b
+          ..name = 'Phone'
+          ..value = 5),
+        m.TaskContext.named('Computer'),
+      ]);
+
+      final updated = await getService().renameContextOnAllTasks(
+        oldName: 'Phone',
+        newName: 'Telephone',
+        personDocId: 'me',
+      );
+      expect(updated, 1);
+
+      final t1 = await db.taskDao.getByDocId('t1');
+      final ctxs = parseTaskContexts(t1!.taskContexts);
+      expect(ctxs.map((c) => c.name).toList(), ['Telephone', 'Computer']);
+      // value field is preserved on the renamed entry.
+      final renamed = ctxs.firstWhere((c) => c.name == 'Telephone');
+      expect(renamed.value, 5);
+      expect(t1.syncState, SyncState.pendingUpdate.name);
+    });
+
+    test('case-insensitive match', () async {
+      await insertTask(
+          docId: 't1', contexts: [m.TaskContext.named('PHONE')]);
+
+      final updated = await getService().renameContextOnAllTasks(
+        oldName: 'phone',
+        newName: 'Telephone',
+        personDocId: 'me',
+      );
+      expect(updated, 1);
+
+      final t1 = await db.taskDao.getByDocId('t1');
+      expect(parseTaskContexts(t1!.taskContexts).single.name, 'Telephone');
     });
   });
 }

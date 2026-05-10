@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/auth_providers.dart';
 import '../../../models/context.dart';
 import '../../shared/presentation/widgets/context_icon.dart';
+import '../../shared/presentation/widgets/count_badge.dart';
 import '../providers/context_providers.dart';
 import '../services/context_service.dart';
 
@@ -125,7 +126,7 @@ class _ContextTile extends ConsumerWidget {
             const SizedBox(width: 10),
           ],
           Expanded(child: Text(this.context.name)),
-          if (count > 0) _CountBadge(count: count),
+          if (count > 0) CountBadge(count: count),
         ],
       ),
       trailing: Row(
@@ -318,34 +319,6 @@ enum _DeleteChoice { cancel, keepOnTasks, removeFromTasks }
 
 /// Branching outcomes from the in-use rename dialog.
 enum _RenameChoice { cancel, renameOnly, renameAndUpdate }
-
-/// Compact pill-shaped task-count badge. Mirror of `_CountBadge` in
-/// `area_manage_screen.dart` — kept separate to avoid an extra
-/// import-only-for-this dependency between the two manage screens.
-class _CountBadge extends StatelessWidget {
-  const _CountBadge({required this.count});
-
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        '$count',
-        style: TextStyle(
-          fontSize: 11.5,
-          fontWeight: FontWeight.w600,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-      ),
-    );
-  }
-}
 
 class _ContextNameDialog extends StatefulWidget {
   const _ContextNameDialog({

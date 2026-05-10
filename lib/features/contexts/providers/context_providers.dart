@@ -26,6 +26,20 @@ const List<({String name, String iconName})> defaultContextSeeds = [
   (name: 'Planning', iconName: 'planning'),
 ];
 
+/// Lowercased name → catalog `iconName` lookup map for the current user's
+/// contexts. Built once per `contextsProvider` emission, then read by every
+/// task card's meta row so each card avoids rebuilding its own copy of the
+/// map on every render. Returns null entries for catalog rows whose icon
+/// hasn't been assigned (Tier 1 user-created contexts default to no icon).
+@riverpod
+Map<String, String?> contextIconLookup(Ref ref) {
+  final catalog = ref.watch(contextsProvider).valueOrNull ??
+      const <Context>[];
+  return <String, String?>{
+    for (final c in catalog) c.name.toLowerCase(): c.iconName,
+  };
+}
+
 /// Per-context task counts for the current user. Keyed by lowercased
 /// context name; the value is the number of non-retired tasks (active +
 /// completed) tagged with that context. Used by the Manage Contexts screen

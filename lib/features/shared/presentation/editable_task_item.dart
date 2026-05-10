@@ -26,8 +26,16 @@ import 'widgets/pill.dart';
 ///
 /// Tapping the card body toggles the global `expandedTaskProvider` so only
 /// one card is expanded at a time. The expanded panel surfaces the four
-/// dates, recurrence, notes, and a single context — and a magenta Edit
+/// dates, recurrence, notes, and the task's contexts — and a magenta Edit
 /// button which the parent wires via [onEdit].
+///
+/// **Test note (TM-181):** widget tests that mount this card must override
+/// `contextsProvider` (e.g. with `Stream.value(const <Context>[])`) — the
+/// real provider chains into a Drift stream whose cleanup timers fire
+/// after `finalizeTree` and trip flutter_test's `!timersPending` invariant.
+/// See MEMORY.md "Drift streams fail flutter_test invariants" and the
+/// `_wrap()` helpers in editable_task_item_*_test.dart for the canonical
+/// stub pattern.
 class EditableTaskItemWidget extends ConsumerWidget {
   final TaskItem taskItem;
   final CheckCycleWaiter? onTaskCompleteToggle;
@@ -111,11 +119,11 @@ class EditableTaskItemWidget extends ConsumerWidget {
 
   List<String> _resolveContextIcons(WidgetRef ref) {
     if (taskItem.contexts.isEmpty) return const [];
-    final catalog = ref.watch(contextsProvider).valueOrNull;
-    if (catalog == null || catalog.isEmpty) return const [];
-    final byName = <String, String?>{
-      for (final c in catalog) c.name.toLowerCase(): c.iconName,
-    };
+    // Read the memoized name → iconName lookup so we don't rebuild the
+    // map per card on every render. The provider rebuilds only when the
+    // catalog itself changes.
+    final byName = ref.watch(contextIconLookupProvider);
+    if (byName.isEmpty) return const [];
     final out = <String>[];
     for (final tc in taskItem.contexts) {
       final iconName = byName[tc.name.toLowerCase()];

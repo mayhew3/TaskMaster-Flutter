@@ -218,16 +218,23 @@ class AreaService {
   }) async {
     final lower = oldName.toLowerCase();
     final rows = await db.taskDao.allForUser(personDocId);
+    // Run all per-task writes inside a single Drift transaction so a
+    // mid-iteration crash leaves no half-state (e.g. some tasks renamed,
+    // others still on the old value). SyncService is fine either way —
+    // it pushes whatever the next push call sees — but the local view
+    // stays consistent.
     var updated = 0;
-    for (final row in rows) {
-      if (row.retired != null) continue;
-      if (row.area?.toLowerCase() != lower) continue;
-      await db.taskDao.markUpdatePending(
-        row.docId,
-        TasksCompanion(area: Value(newName)),
-      );
-      updated++;
-    }
+    await db.transaction(() async {
+      for (final row in rows) {
+        if (row.retired != null) continue;
+        if (row.area?.toLowerCase() != lower) continue;
+        await db.taskDao.markUpdatePending(
+          row.docId,
+          TasksCompanion(area: Value(newName)),
+        );
+        updated++;
+      }
+    });
     if (updated > 0) {
       ref
           .read(syncServiceProvider)
@@ -250,16 +257,19 @@ class AreaService {
   }) async {
     final lower = areaName.toLowerCase();
     final rows = await db.taskDao.allForUser(personDocId);
+    // Transaction-wrapped — see [renameAreaOnAllTasks] for rationale.
     var updated = 0;
-    for (final row in rows) {
-      if (row.retired != null) continue;
-      if (row.area?.toLowerCase() != lower) continue;
-      await db.taskDao.markUpdatePending(
-        row.docId,
-        const TasksCompanion(area: Value(null)),
-      );
-      updated++;
-    }
+    await db.transaction(() async {
+      for (final row in rows) {
+        if (row.retired != null) continue;
+        if (row.area?.toLowerCase() != lower) continue;
+        await db.taskDao.markUpdatePending(
+          row.docId,
+          const TasksCompanion(area: Value(null)),
+        );
+        updated++;
+      }
+    });
     if (updated > 0) {
       ref
           .read(syncServiceProvider)

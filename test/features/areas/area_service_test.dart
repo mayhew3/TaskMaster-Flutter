@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' show OrderingTerm;
+import 'package:drift/drift.dart' show OrderingTerm, Value;
 import 'package:drift/native.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -213,6 +213,91 @@ void main() {
 
       final rows = await (db.select(db.areas)).get();
       expect(rows.every((r) => r.syncState == SyncState.synced.name), isTrue);
+    });
+  });
+
+  group('cascade — countTasksUsingArea / removeAreaFromAllTasks', () {
+    Future<void> insertTask({
+      required String docId,
+      required String? area,
+      String personDocId = 'me',
+    }) async {
+      await db.into(db.tasks).insert(TasksCompanion(
+            docId: Value(docId),
+            dateAdded: Value(DateTime.now().toUtc()),
+            personDocId: Value(personDocId),
+            name: Value('Task $docId'),
+            area: Value(area),
+            syncState: const Value('synced'),
+          ));
+    }
+
+    test('countTasksUsingArea only counts the user\'s own non-retired rows',
+        () async {
+      await insertTask(docId: 't1', area: 'Home');
+      await insertTask(docId: 't2', area: 'home');
+      await insertTask(docId: 't3', area: 'Work');
+      // Different user — should not count.
+      await insertTask(
+          docId: 't4', personDocId: 'someone-else', area: 'Home');
+
+      final n = await getService().countTasksUsingArea(
+        areaName: 'Home',
+        personDocId: 'me',
+      );
+      expect(n, 2);
+    });
+
+    test(
+        'removeAreaFromAllTasks clears the column and marks pendingUpdate',
+        () async {
+      await insertTask(docId: 't1', area: 'Home');
+      await insertTask(docId: 't2', area: 'HOME');
+      await insertTask(docId: 't3', area: 'Work');
+
+      final updated = await getService().removeAreaFromAllTasks(
+        areaName: 'home',
+        personDocId: 'me',
+      );
+      expect(updated, 2);
+
+      final t1 = await db.taskDao.getByDocId('t1');
+      expect(t1!.area, isNull);
+      expect(t1.syncState, SyncState.pendingUpdate.name);
+
+      final t2 = await db.taskDao.getByDocId('t2');
+      expect(t2!.area, isNull);
+
+      // Untagged-by-this-name task is untouched.
+      final t3 = await db.taskDao.getByDocId('t3');
+      expect(t3!.area, 'Work');
+      expect(t3.syncState, SyncState.synced.name);
+    });
+
+    test(
+        'renameAreaOnAllTasks rewrites matching tasks and marks pendingUpdate',
+        () async {
+      await insertTask(docId: 't1', area: 'Home');
+      await insertTask(docId: 't2', area: 'home');
+      await insertTask(docId: 't3', area: 'Work');
+
+      final updated = await getService().renameAreaOnAllTasks(
+        oldName: 'Home',
+        newName: 'House',
+        personDocId: 'me',
+      );
+      expect(updated, 2);
+
+      final t1 = await db.taskDao.getByDocId('t1');
+      expect(t1!.area, 'House');
+      expect(t1.syncState, SyncState.pendingUpdate.name);
+
+      final t2 = await db.taskDao.getByDocId('t2');
+      expect(t2!.area, 'House');
+
+      final t3 = await db.taskDao.getByDocId('t3');
+      expect(t3!.area, 'Work');
+      expect(t3.syncState, SyncState.synced.name);
     });
   });
 }
