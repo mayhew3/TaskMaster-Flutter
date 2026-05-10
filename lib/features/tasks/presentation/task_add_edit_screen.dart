@@ -175,12 +175,17 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
       _diff((t) => t.name != (taskItemBlueprint.name ?? ''));
   bool get _areaChanged => _diff((t) => t.area != taskItemBlueprint.area);
   bool get _contextChanged => _diff((t) {
-        final taskNames = t.contexts.map((c) => c.name).toList();
-        final blueprintNames =
-            taskItemBlueprint.contexts.map((c) => c.name).toList();
-        if (taskNames.length != blueprintNames.length) return true;
-        for (var i = 0; i < taskNames.length; i++) {
-          if (taskNames[i] != blueprintNames[i]) return true;
+        // Compare BOTH name and value per element, in order. Tier 1 only
+        // surfaces the name in the picker, but `value` is part of the
+        // persisted schema (Tier 2 numeric contexts) and the model's
+        // hasChangesBlueprint treats it as significant — keeping the
+        // change-highlight in sync with that contract.
+        final taskList = t.contexts.toList();
+        final blueprintList = taskItemBlueprint.contexts;
+        if (taskList.length != blueprintList.length) return true;
+        for (var i = 0; i < taskList.length; i++) {
+          if (taskList[i].name != blueprintList[i].name) return true;
+          if (taskList[i].value != blueprintList[i].value) return true;
         }
         return false;
       });

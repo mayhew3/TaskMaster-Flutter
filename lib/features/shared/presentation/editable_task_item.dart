@@ -132,10 +132,13 @@ class EditableTaskItemWidget extends ConsumerWidget {
     final isExpanded = expandedDocId == _docId();
     final areaColor = _resolveAreaColor(ref);
 
-    // TM-181: resolve each TaskContext's iconName off the catalog so the
-    // meta-row icons survive a context rename without losing their glyph.
-    // Falls back to no-icon when the catalog is loading or the name has no
-    // catalog entry — bare-text contexts still appear in the expanded panel.
+    // TM-181: resolve each TaskContext's iconName off the catalog at
+    // render time. Falls back to no-icon when the catalog is loading or
+    // the task's bare name has no catalog entry (e.g. an orphan reference
+    // left behind by a "Rename only" choice on the manage screen, or a
+    // context that was deleted with "Keep on tasks"). The expanded panel
+    // still renders the bare name as text so the value isn't lost — only
+    // the meta-row glyph drops.
     final contextIcons = _resolveContextIcons(ref);
 
     // Scroll the card fully into view when it expands, but ONLY if the

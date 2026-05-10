@@ -29,7 +29,7 @@ class SyncConflictDetailDialog extends ConsumerWidget {
       _FieldComparison('Area', conflict.local.area ?? '—',
           conflict.remote.area ?? '—'),
       _FieldComparison(
-          'Context',
+          'Contexts',
           conflict.local.contexts.isEmpty
               ? '—'
               : conflict.local.contexts.map((c) => c.name).join(' · '),
