@@ -141,8 +141,10 @@ class ContextPicker extends ConsumerWidget {
   }
 }
 
-/// Stateful sheet widget so the inline-add TextField can survive selection
-/// taps without rebuilding from props each time.
+/// Bottom-sheet body for the picker. Stateless — the inline-add field's
+/// own `InlineAddField` widget owns its TextEditingController, and grid
+/// taps now dismiss the sheet (one-pick-per-open), so the sheet itself
+/// has no state to retain across rebuilds.
 class _ContextPickerSheet extends StatelessWidget {
   final List<ctx_model.Context> remaining;
   final int alreadySelectedCount;
@@ -272,8 +274,11 @@ class _ContextPickerSheet extends StatelessWidget {
   }
 }
 
-/// Two-column grid of context cells. Tapping a cell calls [onSelect] and
-/// keeps the sheet open so the user can chain selections.
+/// Two-column grid of context cells. Tapping a cell calls [onSelect],
+/// which appends the context AND dismisses the sheet (one-pick-per-open).
+/// Earlier versions kept the sheet open for chaining, but that captured a
+/// stale `selected` snapshot in the parent closure and made consecutive
+/// taps appear to overwrite each other.
 class _Grid extends StatelessWidget {
   final List<ctx_model.Context> remaining;
   final ValueChanged<ctx_model.Context> onSelect;

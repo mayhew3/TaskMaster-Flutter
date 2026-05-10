@@ -35,13 +35,12 @@ DateTime? _utcOrNull(DateTime? dt) => dt == null ? null : _utc(dt);
 // ── TaskContexts (TM-181) ────────────────────────────────────────────────────
 //
 // Tasks store contexts as a JSON-encoded `List<TaskContext>` in the
-// `tasks.task_contexts` TEXT column (and as a JSON list under the same
-// `taskContexts` field in Firestore). [parseTaskContexts] is the single source
-// of truth for deserialization; both the Drift `taskItemFromRow` path and the
-// Firestore `_legacyContextFallback` hook in TaskRepository feed through it
-// so the legacy bare-string fallback (a v7 row's lone `"Phone"` value, or a
-// pre-181 Firestore doc's `context: "Phone"` field) lands as a single-element
-// list `[{name: "Phone", value: null}]` consistently.
+// `tasks.task_contexts` Drift TEXT column. The matching Firestore field is
+// `contexts` (the wire name aligns with `TaskItem.contexts`; the older
+// singular `context: "Phone"` shape from pre-181 docs is rewritten by
+// `TaskItem.applyLegacyContextFallback` before deserialization).
+// [parseTaskContexts] handles the Drift / blueprint side; the JSON-list
+// shape is consistent across both stores.
 
 /// Parse a value loaded from a `taskContexts` slot into a domain list.
 ///
@@ -95,8 +94,9 @@ List<m.TaskContext> parseTaskContexts(dynamic raw) {
 }
 
 /// Encode a domain list to a JSON string for storage in the `taskContexts`
-/// Drift TEXT column. Empty list → empty string (NOT null) so an explicit
-/// "no contexts" save round-trips deterministically.
+/// Drift TEXT column. Returns `null` for both a `null` input and an empty
+/// list — both represent "no contexts" on disk; [parseTaskContexts] reads
+/// either back as an empty list, so the round-trip is deterministic.
 String? serializeTaskContexts(Iterable<m.TaskContext>? list) {
   if (list == null) return null;
   final encoded = list

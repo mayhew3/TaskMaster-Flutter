@@ -211,8 +211,12 @@ bool _taskContextsEqual(
 /// `fromJson`/`toJson` constructor pair compatible with json_serializable,
 /// so we hand-roll the conversion. Mirrors [parseTaskContexts] in
 /// `core/database/converters.dart` (single source of truth for the legacy
-/// bare-string fallback). Empty list serialises as an empty list — null is
-/// only used when the field was never set.
+/// bare-string fallback). Behavior:
+/// - `fromJson(null)` → empty list (the blueprint's `contexts` field is
+///   non-nullable, so null on the wire deserializes as `[]`).
+/// - `fromJson(String)` → single-element list (legacy pre-181 Firestore
+///   docs whose `context: "Phone"` field slipped past the runtime fallback).
+/// - `toJson(list)` → always returns a `List` (possibly empty); never null.
 class _TaskContextListConverter
     implements JsonConverter<List<TaskContext>, Object?> {
   const _TaskContextListConverter();
