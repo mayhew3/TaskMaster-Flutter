@@ -6,6 +6,34 @@ part of 'area_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+String _$areaTaskCountsHash() => r'3df1a580dd8c6d6b24546a8034793a7a08bd8617';
+
+/// Per-area task counts for the current user. Keyed by lowercased area
+/// name; the value is the number of non-retired tasks (active + completed)
+/// tagged with that area. Used by the Manage Areas screen to render small
+/// count badges next to each row (TM-181 / TM-345).
+///
+/// Counts include completed tasks because "tasks that reference this area"
+/// is what informs the user's "Remove from tasks?" decision when deleting
+/// the catalog entry — the decision shouldn't change just because some of
+/// those tasks have been ticked off.
+///
+/// Copied from [areaTaskCounts].
+@ProviderFor(areaTaskCounts)
+final areaTaskCountsProvider =
+    AutoDisposeStreamProvider<Map<String, int>>.internal(
+      areaTaskCounts,
+      name: r'areaTaskCountsProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$areaTaskCountsHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef AreaTaskCountsRef = AutoDisposeStreamProviderRef<Map<String, int>>;
 String _$areasHash() => r'ffc967175ee6fabf65e31c956b938eee97b69ac6';
 
 /// Stream of the current user's areas, sorted by sortOrder.

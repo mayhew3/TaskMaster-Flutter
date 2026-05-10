@@ -15,7 +15,9 @@ Map<String, dynamic> _$TaskItemRecurPreviewToJson(
   'name': instance.name,
   'description': instance.description,
   'area': instance.area,
-  'context': instance.context,
+  'contexts': const _TaskContextListConverterPreview().toJson(
+    instance.contexts,
+  ),
   'urgency': instance.urgency,
   'priority': instance.priority,
   if (instance.priorityScaleVersion case final value?)

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaestro/features/areas/providers/area_color_providers.dart';
+import 'package:taskmaestro/features/contexts/providers/context_providers.dart';
 import 'package:taskmaestro/features/shared/presentation/editable_task_item.dart';
 import 'package:taskmaestro/keys.dart';
+import 'package:taskmaestro/models/context.dart';
 import 'package:taskmaestro/models/task_colors.dart';
 import 'package:taskmaestro/models/task_item.dart';
 
@@ -29,6 +31,11 @@ Widget _wrap(Widget child) {
     // fall through to AreaColorHelper.colorForArea (hash-based).
     overrides: [
       areaColorsProvider.overrideWith((ref) => const <String, Color>{}),
+      // TM-181: contextsProvider chains into the database provider via
+      // contextDao.watchContextsForUser, which would leak Drift cleanup
+      // timers past finalizeTree (MEMORY.md). Stub it as an empty list —
+      // these tests don't assert anything about the context icon cluster.
+      contextsProvider.overrideWith((ref) => Stream.value(const <Context>[])),
     ],
     child: MaterialApp(
       theme: ThemeData(

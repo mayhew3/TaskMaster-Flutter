@@ -185,6 +185,100 @@ class AreaService {
         .ignore();
   }
 
+  /// Count how many of [personDocId]'s tasks are tagged with [areaName].
+  ///
+  /// Comparison is case-insensitive on the area name to match the picker's
+  /// duplicate-rejection rule. Family-shared tasks owned by other users are
+  /// out of scope — area names live in the per-user catalog, so the
+  /// "Remove from tasks?" prompt only cleans up the caller's own rows.
+  Future<int> countTasksUsingArea({
+    required String areaName,
+    required String personDocId,
+  }) async {
+    final lower = areaName.toLowerCase();
+    final rows = await db.taskDao.allForUser(personDocId);
+    var count = 0;
+    for (final row in rows) {
+      if (row.retired != null) continue;
+      if (row.area?.toLowerCase() == lower) count++;
+    }
+    return count;
+  }
+
+  /// Replace every occurrence of [oldName] with [newName] in the `area`
+  /// column of tasks owned by [personDocId]. Each affected task is marked
+  /// pendingUpdate so SyncService pushes the change to Firestore on the
+  /// next push.
+  ///
+  /// Returns the number of tasks updated.
+  Future<int> renameAreaOnAllTasks({
+    required String oldName,
+    required String newName,
+    required String personDocId,
+  }) async {
+    final lower = oldName.toLowerCase();
+    final rows = await db.taskDao.allForUser(personDocId);
+    // Run all per-task writes inside a single Drift transaction so a
+    // mid-iteration crash leaves no half-state (e.g. some tasks renamed,
+    // others still on the old value). SyncService is fine either way —
+    // it pushes whatever the next push call sees — but the local view
+    // stays consistent.
+    var updated = 0;
+    await db.transaction(() async {
+      for (final row in rows) {
+        if (row.retired != null) continue;
+        if (row.area?.toLowerCase() != lower) continue;
+        await db.taskDao.markUpdatePending(
+          row.docId,
+          TasksCompanion(area: Value(newName)),
+        );
+        updated++;
+      }
+    });
+    if (updated > 0) {
+      ref
+          .read(syncServiceProvider)
+          .pushPendingWrites(caller: 'AreaService.renameAreaOnAllTasks')
+          .ignore();
+    }
+    return updated;
+  }
+
+  /// Clear [areaName] (set the column to null) on every task owned by
+  /// [personDocId] that currently carries it. Each affected task is marked
+  /// pendingUpdate so SyncService pushes the change to Firestore on the
+  /// next push.
+  ///
+  /// Returns the number of tasks updated. Idempotent — tasks not tagged
+  /// with [areaName] are skipped.
+  Future<int> removeAreaFromAllTasks({
+    required String areaName,
+    required String personDocId,
+  }) async {
+    final lower = areaName.toLowerCase();
+    final rows = await db.taskDao.allForUser(personDocId);
+    // Transaction-wrapped — see [renameAreaOnAllTasks] for rationale.
+    var updated = 0;
+    await db.transaction(() async {
+      for (final row in rows) {
+        if (row.retired != null) continue;
+        if (row.area?.toLowerCase() != lower) continue;
+        await db.taskDao.markUpdatePending(
+          row.docId,
+          const TasksCompanion(area: Value(null)),
+        );
+        updated++;
+      }
+    });
+    if (updated > 0) {
+      ref
+          .read(syncServiceProvider)
+          .pushPendingWrites(caller: 'AreaService.removeAreaFromAllTasks')
+          .ignore();
+    }
+    return updated;
+  }
+
   /// Persist a new ordering. sortOrder is rewritten as 0..N-1 in a single
   /// transaction so a partial failure can't leave the list half-ordered.
   ///

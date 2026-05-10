@@ -28,8 +28,14 @@ class SyncConflictDetailDialog extends ConsumerWidget {
           conflict.remote.description ?? '—'),
       _FieldComparison('Area', conflict.local.area ?? '—',
           conflict.remote.area ?? '—'),
-      _FieldComparison('Context', conflict.local.context ?? '—',
-          conflict.remote.context ?? '—'),
+      _FieldComparison(
+          'Contexts',
+          conflict.local.contexts.isEmpty
+              ? '—'
+              : conflict.local.contexts.map((c) => c.name).join(' · '),
+          conflict.remote.contexts.isEmpty
+              ? '—'
+              : conflict.remote.contexts.map((c) => c.name).join(' · ')),
       _FieldComparison(
           'Start',
           _fmtDate(conflict.local.startDate),

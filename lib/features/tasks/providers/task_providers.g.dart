@@ -445,7 +445,7 @@ final tasksWithPendingStateProvider =
 // ignore: unused_element
 typedef TasksWithPendingStateRef = AutoDisposeFutureProviderRef<List<TaskItem>>;
 String _$tasksForRecurrenceHash() =>
-    r'4753667465c437f9fbc6a34e9b829ffe98cf01be';
+    r'ae5adbcecc3ab0b55a9049df4fc086b853690eba';
 
 /// Stream of all tasks for a specific recurrence, including retired ones.
 /// This shows the full history of a recurring task for debugging/inspection.
@@ -679,7 +679,7 @@ final pendingTasksProvider =
 
 typedef _$PendingTasks = Notifier<Map<String, TaskItem>>;
 String _$olderCompletedTasksBatchesHash() =>
-    r'ee78d57f7fb4917c44f2aa87da07fb29a4a0b9ae';
+    r'37015ced9f9d93417981df0692c6479872ebc3bb';
 
 /// Progressively loads completed tasks using cursor-based pagination.
 /// Triggered when the user enables "Show Completed".

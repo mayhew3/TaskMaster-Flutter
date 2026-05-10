@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskmaestro/date_util.dart';
 import 'package:taskmaestro/features/areas/providers/area_color_providers.dart';
+import 'package:taskmaestro/features/contexts/providers/context_providers.dart';
 import 'package:taskmaestro/features/tasks/providers/expanded_task_provider.dart';
 import 'package:taskmaestro/helpers/area_color_helper.dart';
 import 'package:taskmaestro/helpers/recurrence_formatter.dart';
@@ -12,17 +13,29 @@ import 'package:taskmaestro/models/task_colors.dart';
 import 'package:taskmaestro/models/task_date_type.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
+import '../../../models/context.dart' as ctx_model;
+import '../../../models/task_context.dart';
 import '../../../models/task_item.dart';
 import '../../../models/check_state.dart';
 import '../../tasks/presentation/recurrence_detail_screen.dart';
 import 'delayed_checkbox.dart';
+import 'widgets/context_icon.dart';
+import 'widgets/pill.dart';
 
 /// Pure presentational task card with an inline expand-for-detail panel.
 ///
 /// Tapping the card body toggles the global `expandedTaskProvider` so only
 /// one card is expanded at a time. The expanded panel surfaces the four
-/// dates, recurrence, notes, and a single context — and a magenta Edit
+/// dates, recurrence, notes, and the task's contexts — and a magenta Edit
 /// button which the parent wires via [onEdit].
+///
+/// **Test note (TM-181):** widget tests that mount this card must override
+/// `contextsProvider` (e.g. with `Stream.value(const <Context>[])`) — the
+/// real provider chains into a Drift stream whose cleanup timers fire
+/// after `finalizeTree` and trip flutter_test's `!timersPending` invariant.
+/// See MEMORY.md "Drift streams fail flutter_test invariants" and the
+/// `_wrap()` helpers in editable_task_item_*_test.dart for the canonical
+/// stub pattern.
 class EditableTaskItemWidget extends ConsumerWidget {
   final TaskItem taskItem;
   final CheckCycleWaiter? onTaskCompleteToggle;
@@ -104,11 +117,37 @@ class EditableTaskItemWidget extends ConsumerWidget {
     return mapped ?? AreaColorHelper.colorForArea(area);
   }
 
+  List<String> _resolveContextIcons(WidgetRef ref) {
+    if (taskItem.contexts.isEmpty) return const [];
+    // Read the memoized name → iconName lookup so we don't rebuild the
+    // map per card on every render. The provider rebuilds only when the
+    // catalog itself changes.
+    final byName = ref.watch(contextIconLookupProvider);
+    if (byName.isEmpty) return const [];
+    final out = <String>[];
+    for (final tc in taskItem.contexts) {
+      final iconName = byName[tc.name.toLowerCase()];
+      if (iconName != null && ContextIcon.hasIcon(iconName)) {
+        out.add(iconName);
+      }
+    }
+    return out;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final expandedDocId = ref.watch(expandedTaskProvider);
     final isExpanded = expandedDocId == _docId();
     final areaColor = _resolveAreaColor(ref);
+
+    // TM-181: resolve each TaskContext's iconName off the catalog at
+    // render time. Falls back to no-icon when the catalog is loading or
+    // the task's bare name has no catalog entry (e.g. an orphan reference
+    // left behind by a "Rename only" choice on the manage screen, or a
+    // context that was deleted with "Keep on tasks"). The expanded panel
+    // still renders the bare name as text so the value isn't lost — only
+    // the meta-row glyph drops.
+    final contextIcons = _resolveContextIcons(ref);
 
     // Scroll the card fully into view when it expands, but ONLY if the
     // expanded bottom would otherwise be off-screen. AnimatedSize plays
@@ -189,7 +228,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _summaryRow(context, ref, isExpanded, areaColor),
+                  _summaryRow(context, ref, isExpanded, areaColor, contextIcons),
                   AnimatedSize(
                     // Tighter expand/collapse cadence — the original
                     // 200ms felt sluggish once we started chaining a
@@ -245,6 +284,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
     WidgetRef ref,
     bool isExpanded,
     Color areaColor,
+    List<String> contextIcons,
   ) {
     // Avoid making a card tappable when expanding it would render nothing —
     // tapping such a card would silently collapse another open card without
@@ -266,7 +306,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
                 // Tight gap (was 6) so the title + meta read as a
                 // single content block rather than two separated rows.
                 const SizedBox(height: 4),
-                _metaRow(areaColor, isExpanded),
+                _metaRow(areaColor, isExpanded, contextIcons),
               ],
             ),
           ),
@@ -388,7 +428,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
     );
   }
 
-  Widget _metaRow(Color areaColor, bool isExpanded) {
+  Widget _metaRow(Color areaColor, bool isExpanded, List<String> contextIcons) {
     return Row(
       // `center` keeps each meta-cell vertically centered against the
       // others — the indicators (priority bar, points circle, time block)
@@ -399,7 +439,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
         // Expanded soaks up all remaining width so the right cluster sits
         // flush against the checkbox column. When area is null the inner
         // SizedBox.shrink leaves the space empty without disrupting alignment.
-        Expanded(child: _areaLabel(areaColor)),
+        Expanded(child: _areaLabel(areaColor, contextIcons)),
         MetaCell(
           isExpanded: isExpanded,
           subtitle: 'Length',
@@ -424,10 +464,11 @@ class EditableTaskItemWidget extends ConsumerWidget {
     );
   }
 
-  Widget _areaLabel(Color areaColor) {
+  Widget _areaLabel(Color areaColor, List<String> contextIcons) {
     final area = taskItem.area;
     final showSprintIcon = highlightSprint;
-    if ((area == null || area.isEmpty) && !showSprintIcon) {
+    final hasContexts = contextIcons.isNotEmpty;
+    if ((area == null || area.isEmpty) && !showSprintIcon && !hasContexts) {
       return const SizedBox.shrink();
     }
     return Row(
@@ -451,6 +492,17 @@ class EditableTaskItemWidget extends ConsumerWidget {
           ),
           const SizedBox(width: 6),
         ],
+        if (hasContexts) ...[
+          for (final iconName in contextIcons) ...[
+            ContextIcon(
+              name: iconName,
+              size: 12,
+              color: TaskColors.textDim,
+            ),
+            const SizedBox(width: 4),
+          ],
+          const SizedBox(width: 2),
+        ],
         // Sprint badge moved here from `_summaryRow` (TM-357 #4): the row's
         // dedicated icon column was removed so the indicator now lives
         // alongside the area label, where it reads as part of the task's
@@ -469,6 +521,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
       ],
     );
   }
+
 
   Widget _checkbox() {
     if (onTaskCompleteToggle == null) {
@@ -700,8 +753,7 @@ bool hasExpandableContent(TaskItem task, {required bool hasOnEdit}) {
   }
   final notes = task.description;
   if (notes != null && notes.isNotEmpty) return true;
-  final ctx = task.context;
-  if (ctx != null && ctx.isNotEmpty) return true;
+  if (task.contexts.isNotEmpty) return true;
   return false;
 }
 
@@ -982,7 +1034,7 @@ class PointsCircle extends StatelessWidget {
   }
 }
 
-class ExpandedPanel extends StatelessWidget {
+class ExpandedPanel extends ConsumerWidget {
   final TaskItem taskItem;
   final VoidCallback? onEdit;
   final VoidCallback onCollapse;
@@ -993,7 +1045,7 @@ class ExpandedPanel extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final dateRows = _dateRows();
     // Recurrence rule fields can live on the TaskItem itself or on the
     // linked TaskRecurrence — fall back the same way the rest of the
@@ -1005,12 +1057,12 @@ class ExpandedPanel extends StatelessWidget {
       recurWait: taskItem.recurWait ?? taskItem.recurrence?.recurWait,
     );
     final notes = taskItem.description;
-    final ctx = taskItem.context;
+    final hasContexts = taskItem.contexts.isNotEmpty;
 
     final bool hasDetailContent = dateRows.isNotEmpty ||
         (repeat != null) ||
         (notes != null && notes.isNotEmpty) ||
-        (ctx != null && ctx.isNotEmpty);
+        hasContexts;
 
     // Render the panel when there's either detail content OR an edit
     // affordance. A sparse task (no dates / notes / context / recurrence)
@@ -1032,8 +1084,12 @@ class ExpandedPanel extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (dateRows.isNotEmpty) _dateGrid(dateRows),
-            if (ctx != null && ctx.isNotEmpty)
-              _ExpandedRow(label: 'CONTEXT', value: ctx),
+            if (hasContexts)
+              _ContextsRow(
+                contexts: taskItem.contexts.toList(),
+                catalog: ref.watch(contextsProvider).valueOrNull ??
+                    const [],
+              ),
             if (repeat != null)
               _ExpandedRow(
                 label: 'REPEAT',
@@ -1180,6 +1236,69 @@ class ExpandedPanel extends StatelessWidget {
         textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
         elevation: 2,
+      ),
+    );
+  }
+}
+
+/// Pill-based contexts row shown in the expanded panel (TM-181).
+///
+/// Mirrors the design prototype's layout: an upper-cased "Contexts" label on
+/// the left (same width as the other expanded rows for column alignment) and
+/// a wrapped row of [Pill]s on the right, each carrying a leading
+/// [ContextIcon] when the matching catalog row has an `iconName` set.
+class _ContextsRow extends StatelessWidget {
+  final List<TaskContext> contexts;
+  final List<ctx_model.Context> catalog;
+
+  const _ContextsRow({required this.contexts, required this.catalog});
+
+  @override
+  Widget build(BuildContext context) {
+    final byName = <String, ctx_model.Context>{
+      for (final c in catalog) c.name.toLowerCase(): c,
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 7),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: TaskColors.hairline)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 60,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                'CONTEXTS',
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.4,
+                  color: TaskColors.textFaint,
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Wrap(
+              spacing: 5,
+              runSpacing: 5,
+              children: [
+                for (final tc in contexts)
+                  Pill(
+                    label: Text(tc.name),
+                    leading: () {
+                      final iconName = byName[tc.name.toLowerCase()]?.iconName;
+                      if (!ContextIcon.hasIcon(iconName)) return null;
+                      return ContextIcon(name: iconName, size: 12);
+                    }(),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

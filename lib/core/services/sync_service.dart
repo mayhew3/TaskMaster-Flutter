@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../models/area.dart' as m;
+import '../../models/context.dart' as m;
 import '../../models/family.dart' as m;
 import '../../models/family_invitation.dart' as m;
 import '../../models/person.dart' as m;
@@ -56,6 +57,7 @@ class SyncService {
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _recurrencesSub;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _sprintsSub;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _areasSub;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _contextsSub;
   final Map<String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>
       _assignmentSubs = {};
   // Family-feature subscriptions (TM-335).
@@ -95,6 +97,7 @@ class SyncService {
   bool _sprintsInitialReceived = false;
   bool _familyTasksInitialReceived = false;
   bool _areasInitialReceived = false;
+  bool _contextsInitialReceived = false;
 
   // Completes once all 3 collections have delivered their first snapshot.
   // The UI awaits this to show a loading screen on cold start.
@@ -118,6 +121,16 @@ class SyncService {
 
   Future<void> get areasInitialPullComplete =>
       _areasInitialPullCompleter?.future ?? Future.value();
+
+  // TM-181: contexts mirror the Areas pattern — they're not part of the
+  // blocking `initialPullCompleter` (the main UI doesn't gate on them) but
+  // ContextService.createContext (sortOrder) and ContextsWithDefaults
+  // (lazy-seed defaults) need to know "have I heard from the server about
+  // contexts yet?" before proceeding.
+  Completer<void>? _contextsInitialPullCompleter;
+
+  Future<void> get contextsInitialPullComplete =>
+      _contextsInitialPullCompleter?.future ?? Future.value();
 
   void _markInitialSnapshotReceived() {
     _initialSnapshotsReceived++;
@@ -157,6 +170,7 @@ class SyncService {
     _initialPullCompleter = Completer<void>();
     _initialSnapshotsReceived = 0;
     _areasInitialPullCompleter = Completer<void>();
+    _contextsInitialPullCompleter = Completer<void>();
     _startTime = DateTime.now();
     _syncLog('[SyncService] start() — personDocId=$personDocId email=$email');
 
@@ -195,6 +209,13 @@ class SyncService {
         .snapshots()
         .listen(_onAreasSnapshot, onError: _logSyncError);
 
+    // TM-181: contexts — same client-side `retired` filter rationale as Areas.
+    _contextsSub = firestore
+        .collection('contexts')
+        .where('personDocId', isEqualTo: personDocId)
+        .snapshots()
+        .listen(_onContextsSnapshot, onError: _logSyncError);
+
     // Family feature (TM-335): listen to my own Person doc to detect family
     // membership changes; listen to invitations addressed to my email.
     _personSelfSub = firestore
@@ -230,6 +251,7 @@ class SyncService {
     await _recurrencesSub?.cancel();
     await _sprintsSub?.cancel();
     await _areasSub?.cancel();
+    await _contextsSub?.cancel();
     for (final sub in _assignmentSubs.values) {
       await sub.cancel();
     }
@@ -242,6 +264,7 @@ class SyncService {
     _recurrencesSub = null;
     _sprintsSub = null;
     _areasSub = null;
+    _contextsSub = null;
     _personSelfSub = null;
     _invitationsSub = null;
     _connectivitySub = null;
@@ -252,6 +275,7 @@ class SyncService {
     _recurrencesInitialReceived = false;
     _sprintsInitialReceived = false;
     _areasInitialReceived = false;
+    _contextsInitialReceived = false;
     if (_initialPullCompleter != null && !_initialPullCompleter!.isCompleted) {
       _initialPullCompleter!.complete();
     }
@@ -262,6 +286,11 @@ class SyncService {
       _areasInitialPullCompleter!.complete();
     }
     _areasInitialPullCompleter = null;
+    if (_contextsInitialPullCompleter != null &&
+        !_contextsInitialPullCompleter!.isCompleted) {
+      _contextsInitialPullCompleter!.complete();
+    }
+    _contextsInitialPullCompleter = null;
   }
 
   /// Cancel all family-scoped listeners. Called when [_currentFamilyDocId]
@@ -301,7 +330,7 @@ class SyncService {
       try {
         final json = Map<String, dynamic>.from(change.doc.data()!);
         json['docId'] = change.doc.id;
-        final task = serializers.deserializeWith(m.TaskItem.serializer, json);
+        final task = m.TaskItem.fromFirestoreJson(json);
         if (task != null) {
           toUpsert.add(taskItemToCompanion(task));
           // Schedule notification refresh post-snapshot. Skip on initial
@@ -366,8 +395,7 @@ class SyncService {
       if (data != null) {
         final json = Map<String, dynamic>.from(data);
         json['docId'] = change.doc.id;
-        cachedTask =
-            serializers.deserializeWith(m.TaskItem.serializer, json);
+        cachedTask = m.TaskItem.fromFirestoreJson(json);
       }
     } catch (e, s) {
       _logSyncError(e, s);
@@ -416,7 +444,7 @@ class SyncService {
       if (data == null) return; // defensive
       final json = Map<String, dynamic>.from(data);
       json['docId'] = snap.id;
-      final task = serializers.deserializeWith(m.TaskItem.serializer, json);
+      final task = m.TaskItem.fromFirestoreJson(json);
       if (task != null) {
         await db.taskDao.upsertFromRemote(taskItemToCompanion(task));
         // Use the server-fetched task — its state is authoritative — rather
@@ -629,6 +657,54 @@ class SyncService {
     }
   }
 
+  /// TM-181: contexts snapshot. Mirrors the Areas listener exactly — no
+  /// conflict detection, no subcollections, retired filtered client-side,
+  /// completes a separate `_contextsInitialPullCompleter` rather than
+  /// blocking `initialPullCompleter`.
+  Future<void> _onContextsSnapshot(
+      QuerySnapshot<Map<String, dynamic>> snapshot) async {
+    final isInitial = !_contextsInitialReceived;
+    _contextsInitialReceived = true;
+
+    for (final change in snapshot.docChanges) {
+      if (change.type == DocumentChangeType.removed) {
+        await db.contextDao.deleteContextFromRemote(change.doc.id);
+        continue;
+      }
+      final data = change.doc.data();
+      if (data == null) continue;
+      if (data['retired'] != null) {
+        await db.contextDao.deleteContextFromRemote(change.doc.id);
+        continue;
+      }
+      try {
+        final json = Map<String, dynamic>.from(data);
+        json['docId'] = change.doc.id;
+        final context =
+            serializers.deserializeWith(m.Context.serializer, json);
+        if (context != null) {
+          await db.contextDao
+              .upsertContextFromRemote(contextToCompanion(context));
+        }
+      } catch (e, s) {
+        _logSyncError(e, s);
+      }
+    }
+
+    final remoteIds = snapshot.docs
+        .where((d) => d.data()['retired'] == null)
+        .map((d) => d.id)
+        .toSet();
+    await db.contextDao
+        .deleteSyncedContextsNotInForPerson(_currentPersonDocId!, remoteIds);
+
+    if (isInitial &&
+        _contextsInitialPullCompleter != null &&
+        !_contextsInitialPullCompleter!.isCompleted) {
+      _contextsInitialPullCompleter!.complete();
+    }
+  }
+
   // ── Family snapshot handlers (TM-335) ──────────────────────────────────────
 
   Future<void> _onPersonSelfSnapshot(
@@ -806,7 +882,7 @@ class SyncService {
           if (data != null && !isInitial) {
             final json = Map<String, dynamic>.from(data);
             json['docId'] = change.doc.id;
-            final task = serializers.deserializeWith(m.TaskItem.serializer, json);
+            final task = m.TaskItem.fromFirestoreJson(json);
             if (task != null) toRefreshNotifications.add(task);
           }
         } catch (e, s) {
@@ -818,7 +894,7 @@ class SyncService {
       try {
         final json = Map<String, dynamic>.from(change.doc.data()!);
         json['docId'] = change.doc.id;
-        final task = serializers.deserializeWith(m.TaskItem.serializer, json);
+        final task = m.TaskItem.fromFirestoreJson(json);
         if (task != null) {
           toUpsert.add(taskItemToCompanion(task));
           // Skip on initial — notificationSyncProvider does the bulk sync at
@@ -942,6 +1018,7 @@ class SyncService {
       hadFailure |= await _pushPendingSprints();
       hadFailure |= await _pushPendingAssignments();
       hadFailure |= await _pushPendingAreas();
+      hadFailure |= await _pushPendingContexts();
       statusController
           .set(hadFailure ? SyncStatus.error : SyncStatus.idle);
     } catch (e, s) {
@@ -1053,6 +1130,9 @@ class SyncService {
 
     final json = Map<String, dynamic>.from(remoteData);
     json['docId'] = localDocId;
+    // TM-181: Firestore-side legacy `context: "Phone"` → `contexts: [{name}]`.
+    // No-op for non-TaskItem serializers (their JSON has no `context` key).
+    m.TaskItem.applyLegacyContextFallback(json);
     final TModel? remoteModel;
     try {
       remoteModel = serializers.deserializeWith(serializer, json);
@@ -1277,6 +1357,37 @@ class SyncService {
           json.remove('docId');
           await docRef.set(json);
           await db.areaDao.markAreaSynced(row.docId);
+        }
+      } catch (e, s) {
+        hadFailure = true;
+        _logSyncError(e, s);
+      }
+    }
+    return hadFailure;
+  }
+
+  /// TM-181: push pending contexts to Firestore. Mirrors `_pushPendingAreas`
+  /// — same last-write-wins handling, no conflict detection (contexts are
+  /// list-management items without rich edit history).
+  Future<bool> _pushPendingContexts() async {
+    final pending = await db.contextDao.pendingContextWrites();
+    var hadFailure = false;
+    for (final row in pending) {
+      try {
+        final docRef = firestore.collection('contexts').doc(row.docId);
+        if (row.syncState == SyncState.pendingDelete.name) {
+          await docRef.delete();
+          await (db.delete(db.contexts)
+                ..where((c) => c.docId.equals(row.docId)))
+              .go();
+        } else {
+          final context = contextFromRow(row);
+          final json =
+              serializers.serializeWith(m.Context.serializer, context)
+                  as Map<String, dynamic>;
+          json.remove('docId');
+          await docRef.set(json);
+          await db.contextDao.markContextSynced(row.docId);
         }
       } catch (e, s) {
         hadFailure = true;

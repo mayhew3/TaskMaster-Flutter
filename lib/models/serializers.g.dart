@@ -10,12 +10,14 @@ Serializers _$serializers =
     (Serializers().toBuilder()
           ..add(AnchorDate.serializer)
           ..add(Area.serializer)
+          ..add(Context.serializer)
           ..add(Family.serializer)
           ..add(FamilyInvitation.serializer)
           ..add(Person.serializer)
           ..add(Snooze.serializer)
           ..add(Sprint.serializer)
           ..add(SprintAssignment.serializer)
+          ..add(TaskContext.serializer)
           ..add(TaskItem.serializer)
           ..add(TaskRecurrence.serializer)
           ..addBuilderFactory(
@@ -25,6 +27,10 @@ Serializers _$serializers =
           ..addBuilderFactory(
             const FullType(BuiltList, const [const FullType(String)]),
             () => ListBuilder<String>(),
+          )
+          ..addBuilderFactory(
+            const FullType(BuiltList, const [const FullType(TaskContext)]),
+            () => ListBuilder<TaskContext>(),
           ))
         .build();
 

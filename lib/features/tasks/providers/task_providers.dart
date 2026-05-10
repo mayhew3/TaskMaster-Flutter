@@ -372,7 +372,7 @@ Stream<List<TaskItem>> tasksForRecurrence(Ref ref, String recurrenceDocId) {
           .map((doc) {
             final json = doc.data();
             json['docId'] = doc.id;
-            return serializers.deserializeWith(TaskItem.serializer, json);
+            return TaskItem.fromFirestoreJson(json);
           })
           .whereType<TaskItem>()
           .toList());
@@ -462,7 +462,7 @@ class OlderCompletedTasksBatches extends _$OlderCompletedTasksBatches {
           .map((doc) {
             final json = doc.data();
             json['docId'] = doc.id;
-            return serializers.deserializeWith(TaskItem.serializer, json);
+            return TaskItem.fromFirestoreJson(json);
           })
           .whereType<TaskItem>()
           .toList();

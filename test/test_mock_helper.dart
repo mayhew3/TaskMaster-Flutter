@@ -1,8 +1,10 @@
+import 'package:built_collection/built_collection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:taskmaestro/models/sprint.dart';
+import 'package:taskmaestro/models/task_context.dart';
 import 'package:taskmaestro/models/task_item.dart';
 import 'package:taskmaestro/models/task_item_blueprint.dart';
 import 'package:taskmaestro/models/task_recurrence.dart';
@@ -59,7 +61,7 @@ class TestMockHelper {
       ..personDocId = MockTaskItemBuilder.me
       ..description = blueprint.description
       ..area = blueprint.area
-      ..context = blueprint.context
+      ..contexts = ListBuilder<TaskContext>(blueprint.contexts)
       ..urgency = blueprint.urgency
       ..priority = blueprint.priority
       ..duration = blueprint.duration
@@ -107,7 +109,7 @@ class TestMockHelper {
       ..personDocId = original.personDocId
       ..description = blueprint.description
       ..area = blueprint.area
-      ..context = blueprint.context
+      ..contexts = ListBuilder<TaskContext>(blueprint.contexts)
       ..urgency = blueprint.urgency
       ..priority = blueprint.priority
       ..duration = blueprint.duration

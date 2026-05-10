@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 
 import 'daos/area_dao.dart';
+import 'daos/context_dao.dart';
 import 'daos/family_dao.dart';
 import 'daos/family_invitation_dao.dart';
 import 'daos/person_dao.dart';
@@ -19,6 +20,7 @@ part 'app_database.g.dart';
     Sprints,
     SprintAssignments,
     Areas,
+    Contexts,
     Families,
     FamilyInvitations,
     Persons,
@@ -28,6 +30,7 @@ part 'app_database.g.dart';
     TaskRecurrenceDao,
     SprintDao,
     AreaDao,
+    ContextDao,
     FamilyDao,
     FamilyInvitationDao,
     PersonDao,
@@ -40,7 +43,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -90,6 +93,17 @@ class AppDatabase extends _$AppDatabase {
         // a row's scale version flips to 2 the next time the user saves
         // that task from the edit screen.
         await m.addColumn(tasks, tasks.priorityScaleVersion);
+      }
+      if (from < 8) {
+        // TM-181: per-user contexts collection (replaces hard-coded picker
+        // list); rename `tasks.taskContext` (single string) → `taskContexts`
+        // (JSON `List<TaskContext>`). Existing single-string values survive
+        // the rename intact; the converter's bare-string fallback wraps each
+        // legacy value as `[{name: <value>, value: null}]` on first read.
+        await m.createTable(contexts);
+        await customStatement(
+          'ALTER TABLE tasks RENAME COLUMN task_context TO task_contexts',
+        );
       }
     },
   );

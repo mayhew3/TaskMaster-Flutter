@@ -33,6 +33,13 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
       ),
       'name',
       serializers.serialize(object.name, specifiedType: const FullType(String)),
+      'contexts',
+      serializers.serialize(
+        object.contexts,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(TaskContext),
+        ]),
+      ),
       'priorityScaleVersion',
       serializers.serialize(
         object.priorityScaleVersion,
@@ -75,13 +82,6 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
 
     result
       ..add('area')
-      ..add(
-        serializers.serialize(value, specifiedType: const FullType(String)),
-      );
-    value = object.context;
-
-    result
-      ..add('context')
       ..add(
         serializers.serialize(value, specifiedType: const FullType(String)),
       );
@@ -264,13 +264,16 @@ class _$TaskItemSerializer implements StructuredSerializer<TaskItem> {
                   )
                   as String?;
           break;
-        case 'context':
-          result.context =
-              serializers.deserialize(
-                    value,
-                    specifiedType: const FullType(String),
-                  )
-                  as String?;
+        case 'contexts':
+          result.contexts.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(TaskContext),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
         case 'urgency':
           result.urgency =
@@ -437,7 +440,7 @@ class _$TaskItem extends TaskItem {
   @override
   final String? area;
   @override
-  final String? context;
+  final BuiltList<TaskContext> contexts;
   @override
   final int? urgency;
   @override
@@ -494,7 +497,7 @@ class _$TaskItem extends TaskItem {
     required this.name,
     this.description,
     this.area,
-    this.context,
+    required this.contexts,
     this.urgency,
     this.priority,
     required this.priorityScaleVersion,
@@ -536,7 +539,7 @@ class _$TaskItem extends TaskItem {
         name == other.name &&
         description == other.description &&
         area == other.area &&
-        context == other.context &&
+        contexts == other.contexts &&
         urgency == other.urgency &&
         priority == other.priority &&
         priorityScaleVersion == other.priorityScaleVersion &&
@@ -571,7 +574,7 @@ class _$TaskItem extends TaskItem {
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
     _$hash = $jc(_$hash, area.hashCode);
-    _$hash = $jc(_$hash, context.hashCode);
+    _$hash = $jc(_$hash, contexts.hashCode);
     _$hash = $jc(_$hash, urgency.hashCode);
     _$hash = $jc(_$hash, priority.hashCode);
     _$hash = $jc(_$hash, priorityScaleVersion.hashCode);
@@ -608,7 +611,7 @@ class _$TaskItem extends TaskItem {
           ..add('name', name)
           ..add('description', description)
           ..add('area', area)
-          ..add('context', context)
+          ..add('contexts', contexts)
           ..add('urgency', urgency)
           ..add('priority', priority)
           ..add('priorityScaleVersion', priorityScaleVersion)
@@ -666,9 +669,11 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
   String? get area => _$this._area;
   set area(String? area) => _$this._area = area;
 
-  String? _context;
-  String? get context => _$this._context;
-  set context(String? context) => _$this._context = context;
+  ListBuilder<TaskContext>? _contexts;
+  ListBuilder<TaskContext> get contexts =>
+      _$this._contexts ??= ListBuilder<TaskContext>();
+  set contexts(ListBuilder<TaskContext>? contexts) =>
+      _$this._contexts = contexts;
 
   int? _urgency;
   int? get urgency => _$this._urgency;
@@ -780,7 +785,7 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
       _name = $v.name;
       _description = $v.description;
       _area = $v.area;
-      _context = $v.context;
+      _contexts = $v.contexts.toBuilder();
       _urgency = $v.urgency;
       _priority = $v.priority;
       _priorityScaleVersion = $v.priorityScaleVersion;
@@ -846,7 +851,7 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
             ),
             description: description,
             area: area,
-            context: context,
+            contexts: contexts.build(),
             urgency: urgency,
             priority: priority,
             priorityScaleVersion: BuiltValueNullFieldError.checkNotNull(
@@ -889,6 +894,9 @@ class TaskItemBuilder implements Builder<TaskItem, TaskItemBuilder> {
     } catch (_) {
       late String _$failedField;
       try {
+        _$failedField = 'contexts';
+        contexts.build();
+
         _$failedField = 'recurrence';
         _recurrence?.build();
       } catch (e) {

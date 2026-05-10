@@ -1,6 +1,8 @@
 
+import 'package:built_collection/built_collection.dart';
 import 'package:taskmaestro/date_util.dart';
 import 'package:taskmaestro/models/anchor_date.dart';
+import 'package:taskmaestro/models/task_context.dart';
 import 'package:taskmaestro/models/task_date_holder.dart';
 import 'package:taskmaestro/models/task_item.dart';
 import 'package:taskmaestro/models/task_item_blueprint.dart';
@@ -54,7 +56,7 @@ class MockTaskItemBuilder with DateHolder {
     taskItem.name = name;
     taskItem.description = description;
     taskItem.area = area;
-    taskItem.context = context;
+    taskItem.contexts = <TaskContext>[TaskContext.named(context)];
     taskItem.urgency = urgency;
     taskItem.priority = priority;
     taskItem.duration = duration;
@@ -86,7 +88,7 @@ class MockTaskItemBuilder with DateHolder {
       ..name = name
       ..description = description
       ..area = area
-      ..context = context
+      ..contexts = ListBuilder<TaskContext>([TaskContext.named(context)])
       ..urgency = urgency
       ..priority = priority
       ..duration = duration

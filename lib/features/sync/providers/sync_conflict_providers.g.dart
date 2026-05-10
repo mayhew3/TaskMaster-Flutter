@@ -50,7 +50,7 @@ final recurrenceConflictRowsProvider =
 // ignore: unused_element
 typedef RecurrenceConflictRowsRef =
     AutoDisposeStreamProviderRef<List<drift.TaskRecurrence>>;
-String _$taskConflictsHash() => r'2c7c5faf683b71475e1d935a35bc3859bf79b1e0';
+String _$taskConflictsHash() => r'979df083c41459646647d0cab8100e310c271f27';
 
 /// Stream of task conflicts for the current user — only entries whose
 /// `conflictRemoteJson` envelope decodes cleanly. Use [taskConflictRowsProvider]

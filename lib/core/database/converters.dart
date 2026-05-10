@@ -6,11 +6,14 @@ import 'package:drift/drift.dart';
 import '../../models/anchor_date.dart' as m;
 import '../../models/area.dart' as m;
 import '../../models/area_blueprint.dart';
+import '../../models/context.dart' as m;
+import '../../models/context_blueprint.dart';
 import '../../models/family.dart' as m;
 import '../../models/family_invitation.dart' as m;
 import '../../models/person.dart' as m;
 import '../../models/sprint.dart' as m;
 import '../../models/sprint_assignment.dart' as m;
+import '../../models/task_context.dart' as m;
 import '../../models/task_date_type.dart';
 import '../../models/task_item.dart' as m;
 import '../../models/task_item_blueprint.dart';
@@ -29,6 +32,91 @@ import 'app_database.dart';
 DateTime _utc(DateTime dt) => dt.isUtc ? dt : dt.toUtc();
 DateTime? _utcOrNull(DateTime? dt) => dt == null ? null : _utc(dt);
 
+// ── TaskContexts (TM-181) ────────────────────────────────────────────────────
+//
+// Tasks store contexts as a JSON-encoded `List<TaskContext>` in the
+// `tasks.task_contexts` Drift TEXT column. The matching Firestore field is
+// `contexts` (the wire name aligns with `TaskItem.contexts`; the older
+// singular `context: "Phone"` shape from pre-181 docs is rewritten by
+// `TaskItem.applyLegacyContextFallback` before deserialization).
+// [parseTaskContexts] handles the Drift / blueprint side; the JSON-list
+// shape is consistent across both stores.
+
+/// Parse a value loaded from a `taskContexts` slot into a domain list.
+///
+/// Accepts:
+/// - `null` / empty → empty list.
+/// - JSON string encoding `List<{name, value?}>` → typed list.
+/// - JSON string encoding a bare `String` (legacy single-value Drift row) →
+///   single-element list with that name.
+/// - Plain `String` (legacy migrated v7 row whose value isn't JSON) →
+///   single-element list with that name.
+/// - Plain `List` of maps or strings (Firestore round-trip when the field
+///   was already migrated server-side) → typed list.
+///
+/// **Recovery path:** if the column holds a string that *looks* like JSON
+/// (starts with `[` or `"`) but fails to parse — e.g. a corrupted row, or
+/// truncation — the helper falls through to the bare-string branch and
+/// wraps the entire raw text as a single context name. This is preferable
+/// to throwing (the task list would crash on a single bad row) but is
+/// surprising if not flagged: the user will see the broken JSON as the
+/// context's name in the picker and can edit it out from there.
+List<m.TaskContext> parseTaskContexts(dynamic raw) {
+  if (raw == null) return const [];
+  dynamic value = raw;
+  if (value is String) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return const [];
+    if (trimmed.startsWith('[') || trimmed.startsWith('"')) {
+      try {
+        value = jsonDecode(trimmed);
+      } catch (_) {
+        // Not valid JSON — treat the whole string as a single context name.
+        return [m.TaskContext.named(trimmed)];
+      }
+    } else {
+      return [m.TaskContext.named(trimmed)];
+    }
+  }
+  if (value is String) {
+    // jsonDecode returned a bare string (legacy `'"Phone"'` JSON quoting).
+    return [m.TaskContext.named(value)];
+  }
+  if (value is List) {
+    final out = <m.TaskContext>[];
+    for (final entry in value) {
+      if (entry is Map) {
+        final name = entry['name'];
+        if (name is! String || name.isEmpty) continue;
+        final v = entry['value'];
+        out.add(m.TaskContext((b) => b
+          ..name = name
+          ..value = v is int ? v : (v is num ? v.toInt() : null)));
+      } else if (entry is String && entry.isNotEmpty) {
+        out.add(m.TaskContext.named(entry));
+      }
+    }
+    return out;
+  }
+  return const [];
+}
+
+/// Encode a domain list to a JSON string for storage in the `taskContexts`
+/// Drift TEXT column. Returns `null` for both a `null` input and an empty
+/// list — both represent "no contexts" on disk; [parseTaskContexts] reads
+/// either back as an empty list, so the round-trip is deterministic.
+String? serializeTaskContexts(Iterable<m.TaskContext>? list) {
+  if (list == null) return null;
+  final encoded = list
+      .map((c) => {
+            'name': c.name,
+            if (c.value != null) 'value': c.value,
+          })
+      .toList(growable: false);
+  if (encoded.isEmpty) return null;
+  return jsonEncode(encoded);
+}
+
 // ── Task ─────────────────────────────────────────────────────────────────────
 
 m.TaskItem taskItemFromRow(Task row) {
@@ -40,7 +128,7 @@ m.TaskItem taskItemFromRow(Task row) {
     ..name = row.name
     ..description = row.description
     ..area = row.area
-    ..context = row.taskContext
+    ..contexts = ListBuilder<m.TaskContext>(parseTaskContexts(row.taskContexts))
     ..urgency = row.urgency
     ..priority = row.priority
     ..priorityScaleVersion = row.priorityScaleVersion
@@ -72,7 +160,7 @@ TasksCompanion taskItemToCompanion(m.TaskItem task) {
     name: Value(task.name),
     description: Value(task.description),
     area: Value(task.area),
-    taskContext: Value(task.context),
+    taskContexts: Value(serializeTaskContexts(task.contexts)),
     urgency: Value(task.urgency),
     priority: Value(task.priority),
     priorityScaleVersion: Value(task.priorityScaleVersion),
@@ -219,7 +307,7 @@ TasksCompanion taskBlueprintToCompanion({
     name: Value(blueprint.name ?? ''),
     description: Value(blueprint.description),
     area: Value(blueprint.area),
-    taskContext: Value(blueprint.context),
+    taskContexts: Value(serializeTaskContexts(blueprint.contexts)),
     urgency: Value(blueprint.urgency),
     priority: Value(blueprint.priority),
     // New tasks default to the post-TM-358 scale; only legacy rows already
@@ -258,7 +346,7 @@ TasksCompanion taskBlueprintToDiff(TaskItemBlueprint blueprint) {
         : const Value.absent(),
     description: Value(blueprint.description),
     area: Value(blueprint.area),
-    taskContext: Value(blueprint.context),
+    taskContexts: Value(serializeTaskContexts(blueprint.contexts)),
     urgency: Value(blueprint.urgency),
     priority: Value(blueprint.priority),
     // Only write the scale version on update if the blueprint set it
@@ -440,6 +528,57 @@ AreasCompanion areaBlueprintToCompanion({
     dateAdded: Value(dateAdded),
     name: Value(blueprint.name),
     sortOrder: Value(blueprint.sortOrder),
+    personDocId: Value(blueprint.personDocId),
+    retired: blueprint.retired != null
+        ? Value(blueprint.retired)
+        : const Value.absent(),
+    retiredDate: blueprint.retiredDate != null
+        ? Value(blueprint.retiredDate)
+        : const Value.absent(),
+  );
+}
+
+// ── Context (TM-181) ─────────────────────────────────────────────────────────
+
+m.Context contextFromRow(Context row) {
+  return m.Context((b) => b
+    ..docId = row.docId
+    ..dateAdded = _utc(row.dateAdded)
+    ..name = row.name
+    ..sortOrder = row.sortOrder
+    ..iconName = row.iconName
+    ..color = row.color
+    ..personDocId = row.personDocId
+    ..retired = row.retired
+    ..retiredDate = _utcOrNull(row.retiredDate));
+}
+
+ContextsCompanion contextToCompanion(m.Context context) {
+  return ContextsCompanion(
+    docId: Value(context.docId),
+    dateAdded: Value(context.dateAdded),
+    name: Value(context.name),
+    sortOrder: Value(context.sortOrder),
+    iconName: Value(context.iconName),
+    color: Value(context.color),
+    personDocId: Value(context.personDocId),
+    retired: Value(context.retired),
+    retiredDate: Value(context.retiredDate),
+  );
+}
+
+ContextsCompanion contextBlueprintToCompanion({
+  required String docId,
+  required DateTime dateAdded,
+  required ContextBlueprint blueprint,
+}) {
+  return ContextsCompanion(
+    docId: Value(docId),
+    dateAdded: Value(dateAdded),
+    name: Value(blueprint.name),
+    sortOrder: Value(blueprint.sortOrder),
+    iconName: Value(blueprint.iconName),
+    color: Value(blueprint.color),
     personDocId: Value(blueprint.personDocId),
     retired: blueprint.retired != null
         ? Value(blueprint.retired)

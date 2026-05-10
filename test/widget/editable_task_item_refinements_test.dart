@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaestro/features/areas/providers/area_color_providers.dart';
+import 'package:taskmaestro/features/contexts/providers/context_providers.dart';
 import 'package:taskmaestro/features/shared/presentation/editable_task_item.dart';
 import 'package:taskmaestro/features/tasks/providers/expanded_task_provider.dart';
 import 'package:taskmaestro/keys.dart';
+import 'package:taskmaestro/models/context.dart' as ctx_model;
 import 'package:taskmaestro/models/task_colors.dart';
 import 'package:taskmaestro/models/task_item.dart';
 
@@ -22,6 +24,8 @@ Widget _wrap(Widget child, {String? expandedDocId}) {
   return ProviderScope(
     overrides: [
       areaColorsProvider.overrideWith((ref) => const <String, Color>{}),
+      contextsProvider
+          .overrideWith((ref) => Stream.value(const <ctx_model.Context>[])),
       if (expandedDocId != null)
         expandedTaskProvider.overrideWith(() => _PrimedExpanded(expandedDocId)),
     ],
