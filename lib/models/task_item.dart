@@ -1,5 +1,6 @@
 
 
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 import 'package:taskmaestro/models/models.dart';
@@ -31,7 +32,13 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   String? get description;
   @override
   String? get area;
-  String? get context;
+
+  /// Multi-context assignments (TM-181). Empty list when the user has no
+  /// contexts on this task. Each entry is `{name, value?}` — `value` is
+  /// reserved for the Tier-2 numeric-context UI but is in the schema from
+  /// day one so a list-of-string → list-of-object migration isn't needed
+  /// later.
+  BuiltList<TaskContext> get contexts;
 
   int? get urgency;
   int? get priority;
@@ -96,7 +103,8 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
       b
         ..pendingCompletion = false
         ..skipped = false
-        ..priorityScaleVersion = 1;
+        ..priorityScaleVersion = 1
+        ..contexts = ListBuilder<TaskContext>();
 
   /// Priority value normalized to the 1–5 display scale. Returns `null`
   /// if [priority] is null *or* non-positive (legacy data sometimes carried
@@ -130,7 +138,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
     blueprint.name = name;
     blueprint.description = description;
     blueprint.area = area;
-    blueprint.context = context;
+    blueprint.contexts = contexts.toList();
     blueprint.urgency = urgency;
     blueprint.priority = priority;
     blueprint.priorityScaleVersion = priorityScaleVersion;
@@ -170,7 +178,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
       ..name = name
       ..description = description
       ..area = area
-      ..context = context
+      ..contexts = contexts.toList()
       ..urgency = urgency
       ..priority = priority
       ..priorityScaleVersion = priorityScaleVersion
@@ -200,7 +208,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
       other.name != name ||
           other.description != description ||
           other.area != area ||
-          other.context != context ||
+          !_taskContextsEqual(other.contexts, contexts) ||
           other.urgency != urgency ||
           other.priority != priority ||
           other.duration != duration ||
@@ -225,7 +233,7 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
       other.name != name ||
           other.description != description ||
           other.area != area ||
-          other.context != context ||
+          !_taskContextsEqual(other.contexts, contexts) ||
           other.urgency != urgency ||
           other.priority != priority ||
           other.duration != duration ||
@@ -249,6 +257,49 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   }
 
   static TaskItem fromJson(dynamic json) {
+    if (json is Map<String, dynamic>) {
+      applyLegacyContextFallback(json);
+    }
     return serializers.deserializeWith(TaskItem.serializer, json)!;
   }
+
+  /// Normalize a Firestore JSON payload to the post-TM-181 contexts shape.
+  ///
+  /// Pre-181 docs carry `context: "Phone"` (singular). New-shape docs carry
+  /// `contexts: [{name: "Phone"}]`. This helper:
+  /// 1. Always removes the legacy `context` key (so the value can't linger
+  ///    after a user starts editing on the new schema).
+  /// 2. If the doc has no `contexts` field and the legacy `context` was a
+  ///    non-empty string, writes a single-element contexts list with that
+  ///    name.
+  ///
+  /// Mutates the provided map in place. Idempotent — safe to call multiple
+  /// times. Used by every Firestore deserialize path; the Drift-row path in
+  /// `core/database/converters.dart` does the same translation via
+  /// `parseTaskContexts`.
+  static void applyLegacyContextFallback(Map<String, dynamic> json) {
+    if (!json.containsKey('context')) return;
+    final legacy = json.remove('context');
+    if (json.containsKey('contexts')) return;
+    if (legacy is String && legacy.isNotEmpty) {
+      json['contexts'] = [
+        {'name': legacy},
+      ];
+    }
+  }
+}
+
+/// Order-sensitive equality for two [TaskContext] lists. Used by both
+/// [TaskItem.hasChanges] and [TaskItem.hasChangesBlueprint] so the Save
+/// button correctly reflects context-list edits (add / remove / reorder).
+bool _taskContextsEqual(
+    Iterable<TaskContext>? a, Iterable<TaskContext>? b) {
+  final aList = a?.toList() ?? const <TaskContext>[];
+  final bList = b?.toList() ?? const <TaskContext>[];
+  if (aList.length != bList.length) return false;
+  for (var i = 0; i < aList.length; i++) {
+    if (aList[i].name != bList[i].name) return false;
+    if (aList[i].value != bList[i].value) return false;
+  }
+  return true;
 }

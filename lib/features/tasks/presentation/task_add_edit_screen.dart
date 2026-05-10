@@ -8,6 +8,7 @@ import 'package:taskmaestro/models/task_date_type.dart';
 import 'package:taskmaestro/models/task_item_blueprint.dart';
 import 'package:taskmaestro/models/task_recurrence_blueprint.dart';
 import 'package:taskmaestro/features/areas/presentation/area_picker.dart';
+import 'package:taskmaestro/features/contexts/presentation/context_picker.dart';
 import 'package:taskmaestro/features/shared/presentation/widgets/date_summary_row.dart';
 import 'package:taskmaestro/features/shared/presentation/widgets/date_timeline_popup.dart';
 import 'package:taskmaestro/features/shared/presentation/widgets/field_label.dart';
@@ -46,8 +47,6 @@ class TaskAddEditScreen extends ConsumerStatefulWidget {
 class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
   static final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  late BuiltList<String> possibleContexts;
-
   bool _repeatOn = false;
   late bool _initialRepeatOn;
 
@@ -72,16 +71,10 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
   @override
   void initState() {
     super.initState();
-    possibleContexts = ListBuilder<String>([
-      'Computer',
-      'Home',
-      'Office',
-      'E-Mail',
-      'Phone',
-      'Outside',
-      'Reading',
-      'Planning',
-    ]).build();
+    // TM-181: contexts now come from the per-user catalog. The legacy
+    // hardcoded list was removed; the catalog is read inside ContextPicker
+    // via contextsWithDefaultsProvider, which lazily seeds the same eight
+    // names on first read for a brand-new user.
   }
 
   @override
@@ -181,8 +174,16 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
   bool get _nameChanged =>
       _diff((t) => t.name != (taskItemBlueprint.name ?? ''));
   bool get _areaChanged => _diff((t) => t.area != taskItemBlueprint.area);
-  bool get _contextChanged =>
-      _diff((t) => t.context != taskItemBlueprint.context);
+  bool get _contextChanged => _diff((t) {
+        final taskNames = t.contexts.map((c) => c.name).toList();
+        final blueprintNames =
+            taskItemBlueprint.contexts.map((c) => c.name).toList();
+        if (taskNames.length != blueprintNames.length) return true;
+        for (var i = 0; i < taskNames.length; i++) {
+          if (taskNames[i] != blueprintNames[i]) return true;
+        }
+        return false;
+      });
   bool get _priorityChanged =>
       _diff((t) => t.priority != taskItemBlueprint.priority);
   bool get _pointsChanged =>
@@ -502,14 +503,16 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
         _ChangedFieldHighlight(
           changed: _contextChanged,
           borderRadius: fieldRadius,
-          child: _ContextPickerButton(
-            value: taskItemBlueprint.context,
-            options: possibleContexts,
-            onChanged: (value) {
-              setState(() {
-                taskItemBlueprint.context = value;
-              });
-            },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+            child: ContextPicker(
+              selected: taskItemBlueprint.contexts,
+              onChanged: (next) {
+                setState(() {
+                  taskItemBlueprint.contexts = next;
+                });
+              },
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -898,184 +901,6 @@ class _NotesField extends StatelessWidget {
           borderSide: BorderSide(
             color: Colors.white.withValues(alpha: 0.30),
             width: 1,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Single-select Context picker button — opens a modal bottom sheet listing
-/// the options. Single-select for now; will become multi-select pills when
-/// the `String? context → List<String> contexts` migration lands (Epic
-/// TM-181).
-class _ContextPickerButton extends StatelessWidget {
-  final String? value;
-  final BuiltList<String> options;
-  final ValueChanged<String?> onChanged;
-
-  const _ContextPickerButton({
-    required this.value,
-    required this.options,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: TaskColors.fieldSurface,
-      borderRadius: BorderRadius.circular(10),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(10),
-        onTap: () => _open(context),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: TaskColors.fieldBorder, width: 1),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  value ?? 'None',
-                  style: TextStyle(
-                    color: value == null
-                        ? Colors.white.withValues(alpha: 0.45)
-                        : Colors.white,
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w500,
-                    fontStyle: value == null ? FontStyle.italic : FontStyle.normal,
-                  ),
-                ),
-              ),
-              Icon(
-                Icons.keyboard_arrow_down,
-                size: 20,
-                color: Colors.white.withValues(alpha: 0.40),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _open(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      // Without isScrollControlled, the sheet caps at ~50% of screen and the
-      // 9-row option list overflows on smaller viewports.
-      isScrollControlled: true,
-      builder: (ctx) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: TaskColors.popupBg,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-          ),
-          child: SafeArea(
-            top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(18, 18, 18, 12),
-                  child: Text(
-                    'Select context',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Flexible(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _ContextOption(
-                          label: 'None',
-                          selected: value == null,
-                          italic: true,
-                          onTap: () {
-                            onChanged(null);
-                            Navigator.of(ctx).pop();
-                          },
-                        ),
-                        ...options.map(
-                          (o) => _ContextOption(
-                            label: o,
-                            selected: value == o,
-                            onTap: () {
-                              onChanged(o);
-                              Navigator.of(ctx).pop();
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _ContextOption extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final bool italic;
-  final VoidCallback onTap;
-
-  const _ContextOption({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-    this.italic = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: selected
-          ? Colors.white.withValues(alpha: 0.10)
-          : Colors.transparent,
-      borderRadius: BorderRadius.circular(10),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(10),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    color: italic
-                        ? Colors.white.withValues(alpha: 0.65)
-                        : Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    fontStyle: italic ? FontStyle.italic : FontStyle.normal,
-                  ),
-                ),
-              ),
-              if (selected)
-                const Icon(
-                  Icons.check,
-                  size: 18,
-                  color: Color.fromRGBO(143, 184, 255, 0.95),
-                ),
-            ],
           ),
         ),
       ),

@@ -103,12 +103,20 @@ class _AreaTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final counts = ref.watch(areaTaskCountsProvider).valueOrNull ??
+        const <String, int>{};
+    final count = counts[area.name.toLowerCase()] ?? 0;
     return ListTile(
       leading: ReorderableDragStartListener(
         index: index,
         child: const Icon(Icons.drag_handle),
       ),
-      title: Text(area.name),
+      title: Row(
+        children: [
+          Expanded(child: Text(area.name)),
+          if (count > 0) _CountBadge(count: count),
+        ],
+      ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -144,8 +152,61 @@ class _AreaTile extends ConsumerWidget {
     );
     if (newName == null) return;
     if (newName == area.name) return;
+
+    final personDocId = ref.read(personDocIdProvider);
+    if (personDocId == null) return;
+    final svc = ref.read(areaServiceProvider);
+    // See ContextManageScreen._rename — same rationale: a catalog-only
+    // rename leaves orphan references with the old name on tagged tasks.
+    final inUseCount = await svc.countTasksUsingArea(
+      areaName: area.name,
+      personDocId: personDocId,
+    );
+    if (!context.mounted) return;
+
+    var renameOnTasks = false;
+    if (inUseCount > 0) {
+      final tasksWord = inUseCount == 1 ? 'task' : 'tasks';
+      final choice = await showDialog<_RenameAreaChoice>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('Rename "${area.name}" → "$newName"?'),
+          content: Text(
+            '"${area.name}" is used by $inUseCount $tasksWord. '
+            'Update those $tasksWord to use "$newName" as well?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () =>
+                  Navigator.of(ctx).pop(_RenameAreaChoice.cancel),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () =>
+                  Navigator.of(ctx).pop(_RenameAreaChoice.renameOnly),
+              child: const Text('Rename only'),
+            ),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.of(ctx).pop(_RenameAreaChoice.renameAndUpdate),
+              child: const Text('Update tasks'),
+            ),
+          ],
+        ),
+      );
+      if (choice == null || choice == _RenameAreaChoice.cancel) return;
+      renameOnTasks = choice == _RenameAreaChoice.renameAndUpdate;
+    }
+
     try {
-      await ref.read(areaServiceProvider).renameArea(area, newName);
+      await svc.renameArea(area, newName);
+      if (renameOnTasks) {
+        await svc.renameAreaOnAllTasks(
+          oldName: area.name,
+          newName: newName,
+          personDocId: personDocId,
+        );
+      }
     } on DuplicateAreaNameException catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -162,27 +223,113 @@ class _AreaTile extends ConsumerWidget {
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
-    final confirmed = await showDialog<bool>(
+    final personDocId = ref.read(personDocIdProvider);
+    if (personDocId == null) return;
+    final svc = ref.read(areaServiceProvider);
+    final inUseCount = await svc.countTasksUsingArea(
+      areaName: area.name,
+      personDocId: personDocId,
+    );
+    if (!context.mounted) return;
+
+    if (inUseCount == 0) {
+      // No tasks reference this area — simple confirm.
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('Delete "${area.name}"?'),
+          content: const Text('No tasks are tagged with this area.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('Delete'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+      await svc.deleteArea(area);
+      return;
+    }
+
+    // In-use path: offer the user a choice between clearing the area on
+    // those tasks or leaving them tagged with the now-orphaned name (the
+    // value persists; it just won't appear in the picker).
+    final tasksWord = inUseCount == 1 ? 'task' : 'tasks';
+    final choice = await showDialog<_DeleteAreaChoice>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Delete "${area.name}"?'),
-        content: const Text(
-          "Tasks tagged with this area will keep the value but it won't appear in the picker.",
+        content: Text(
+          '"${area.name}" is used by $inUseCount $tasksWord. '
+          'Remove it from those $tasksWord as well?',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
+            onPressed: () => Navigator.of(ctx).pop(_DeleteAreaChoice.cancel),
             child: const Text('Cancel'),
           ),
+          TextButton(
+            onPressed: () =>
+                Navigator.of(ctx).pop(_DeleteAreaChoice.keepOnTasks),
+            child: const Text('Keep on tasks'),
+          ),
           FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Delete'),
+            onPressed: () =>
+                Navigator.of(ctx).pop(_DeleteAreaChoice.removeFromTasks),
+            child: const Text('Remove from tasks'),
           ),
         ],
       ),
     );
-    if (confirmed != true) return;
-    await ref.read(areaServiceProvider).deleteArea(area);
+    if (choice == null || choice == _DeleteAreaChoice.cancel) return;
+
+    if (choice == _DeleteAreaChoice.removeFromTasks) {
+      await svc.removeAreaFromAllTasks(
+        areaName: area.name,
+        personDocId: personDocId,
+      );
+    }
+    await svc.deleteArea(area);
+  }
+}
+
+/// Branching outcomes from the in-use delete dialog.
+enum _DeleteAreaChoice { cancel, keepOnTasks, removeFromTasks }
+
+/// Branching outcomes from the in-use rename dialog.
+enum _RenameAreaChoice { cancel, renameOnly, renameAndUpdate }
+
+/// Compact pill-shaped task-count badge shown next to each area / context
+/// row in the Manage screens (TM-181). Singular vs plural is left implicit
+/// via the bare number — the row's name is right next to it so context is
+/// obvious.
+class _CountBadge extends StatelessWidget {
+  const _CountBadge({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        '$count',
+        style: TextStyle(
+          fontSize: 11.5,
+          fontWeight: FontWeight.w600,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
   }
 }
 

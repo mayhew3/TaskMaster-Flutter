@@ -4,6 +4,7 @@ import 'package:built_collection/built_collection.dart';
 import 'package:built_value/serializer.dart';
 import 'package:built_value/standard_json_plugin.dart';
 import 'package:taskmaestro/models/area.dart';
+import 'package:taskmaestro/models/context.dart';
 import 'package:taskmaestro/models/date_pass_through_serializer.dart';
 import 'package:taskmaestro/models/family.dart';
 import 'package:taskmaestro/models/family_invitation.dart';
@@ -21,12 +22,14 @@ part 'serializers.g.dart';
 @SerializersFor([
   AnchorDate,
   Area,
+  Context,
   Family,
   FamilyInvitation,
   Person,
   Snooze,
   Sprint,
   SprintAssignment,
+  TaskContext,
   TaskItem,
   TaskItemRecurPreview,
   TaskRecurrence,

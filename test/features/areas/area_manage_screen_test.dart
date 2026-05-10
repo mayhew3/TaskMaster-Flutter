@@ -52,6 +52,7 @@ Widget _buildHarness({
   required AppDatabase db,
   required FakeFirebaseFirestore firestore,
   required List<Area> areas,
+  Map<String, int> taskCounts = const <String, int>{},
 }) {
   return ProviderScope(
     overrides: [
@@ -71,6 +72,11 @@ Widget _buildHarness({
       // leak stream timers (MEMORY.md "Drift streams fail flutter_test
       // invariants").
       areasProvider.overrideWith((ref) => Stream.value(areas)),
+      // TM-181 task-count badges: stub the new provider so the manage
+      // screen tile doesn't subscribe to a real Drift stream and trip
+      // `!timersPending` after the test tree is disposed.
+      areaTaskCountsProvider
+          .overrideWith((ref) => Stream.value(taskCounts)),
     ],
     child: const MaterialApp(home: AreaManageScreen()),
   );
@@ -186,7 +192,8 @@ void main() {
       expect(find.textContaining('Reserved'), findsOneWidget);
     });
 
-    testWidgets('delete confirmation dialog renders with the area name',
+    testWidgets(
+        'delete dialog (zero tasks) renders the no-tasks copy and Delete button',
         (tester) async {
       await tester.pumpWidget(_buildHarness(
         db: db,
@@ -199,10 +206,13 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Delete "Home"?'), findsOneWidget);
-      expect(find.textContaining('keep the value'), findsOneWidget);
+      // Copy changed in TM-181: when no tasks reference the area, the
+      // dialog says so directly; when N>0 it offers the keep/remove choice.
+      expect(find.textContaining('No tasks are tagged'), findsOneWidget);
       expect(find.text('Delete'), findsOneWidget);
       expect(find.text('Cancel'), findsOneWidget);
     });
+
 
     testWidgets('rename dialog opens pre-populated with the current name',
         (tester) async {

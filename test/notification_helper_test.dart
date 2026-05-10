@@ -1,3 +1,5 @@
+import 'package:built_collection/built_collection.dart';
+import 'package:taskmaestro/models/task_context.dart';
 import 'package:taskmaestro/models/task_item.dart';
 import 'package:taskmaestro/models/task_item_blueprint.dart';
 import 'package:taskmaestro/models/task_recurrence.dart';
@@ -136,7 +138,7 @@ void main() {
       ..personDocId = MockTaskItemBuilder.me
       ..description = blueprint.description
       ..area = blueprint.area
-      ..context = blueprint.context
+      ..contexts = ListBuilder<TaskContext>(blueprint.contexts)
       ..urgency = blueprint.urgency
       ..priority = blueprint.priority
       ..duration = blueprint.duration

@@ -32,8 +32,11 @@ class Tasks extends Table {
   TextColumn get name => text()();
   TextColumn get description => text().nullable()();
   TextColumn get area => text().nullable()();
-  // `context` would collide with `BuildContext` imports; use taskContext
-  TextColumn get taskContext => text().nullable()();
+  // TM-181: was a single string `taskContext`, now a JSON-encoded
+  // `List<TaskContext>` (`{name, value?}`). The Drift converter handles
+  // serialization and a legacy bare-string fallback wraps a v7 string value
+  // as `[{name: <value>, value: null}]` on first read.
+  TextColumn get taskContexts => text().nullable()();
   IntColumn get urgency => integer().nullable()();
   IntColumn get priority => integer().nullable()();
   // Scale version for `priority`. 1 = legacy 1-10; cards and the edit
@@ -159,6 +162,32 @@ class Areas extends Table {
   /// User-defined drag-to-reorder rewrites the entire list's sortOrder.
   IntColumn get sortOrder => integer()();
 
+  TextColumn get personDocId => text()();
+
+  TextColumn get retired => text().nullable()();
+  DateTimeColumn get retiredDate => dateTime().nullable()();
+
+  TextColumn get syncState =>
+      text().withDefault(const Constant('synced'))();
+
+  @override
+  Set<Column> get primaryKey => {docId};
+}
+
+/// Local mirror of Firestore `contexts` collection (TM-181).
+///
+/// Per-user customizable list of contexts (e.g. "Phone", "Computer") that
+/// replaces the previously hard-coded picker list. Tasks reference contexts
+/// by name (not docId) just like Areas, so a deleted context doesn't orphan
+/// any tagged task. [iconName] keys into the closed `ContextIcon` set;
+/// [color] is reserved for the Tier-2 color picker.
+class Contexts extends Table {
+  TextColumn get docId => text()();
+  DateTimeColumn get dateAdded => dateTime()();
+  TextColumn get name => text()();
+  IntColumn get sortOrder => integer()();
+  TextColumn get iconName => text().nullable()();
+  TextColumn get color => text().nullable()();
   TextColumn get personDocId => text()();
 
   TextColumn get retired => text().nullable()();

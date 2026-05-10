@@ -1,9 +1,11 @@
+import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskmaestro/features/shared/presentation/editable_task_item.dart';
 import 'package:taskmaestro/models/check_state.dart';
 import 'package:taskmaestro/models/sprint_display_task.dart';
 import 'package:taskmaestro/models/task_colors.dart';
+import 'package:taskmaestro/models/task_context.dart';
 import 'package:taskmaestro/models/task_date_type.dart';
 import 'package:taskmaestro/models/task_item.dart';
 import 'package:taskmaestro/models/task_item_recur_preview.dart';
@@ -72,7 +74,7 @@ class PlanTaskItemWidget extends ConsumerWidget {
         ..name = task.name
         ..description = null
         ..area = task.area
-        ..context = null
+        ..contexts = ListBuilder<TaskContext>(task.contexts)
         ..urgency = task.urgency
         ..priority = task.priority
         ..priorityScaleVersion = task.priorityScaleVersion ?? 2

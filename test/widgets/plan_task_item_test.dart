@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaestro/features/areas/providers/area_color_providers.dart';
+import 'package:taskmaestro/features/contexts/providers/context_providers.dart';
+import 'package:taskmaestro/models/context.dart' as ctx_model;
 import 'package:taskmaestro/features/shared/presentation/editable_task_item.dart'
     show AreaStripe, PillView;
 import 'package:taskmaestro/features/shared/presentation/widgets/plan_task_item.dart';
@@ -23,6 +25,8 @@ Widget _wrap(Widget child) {
       // spin up timers in a test env. Stub it so the widget falls
       // through to the hash-based AreaColorHelper.colorForArea.
       areaColorsProvider.overrideWith((ref) => const <String, Color>{}),
+      contextsProvider
+          .overrideWith((ref) => Stream.value(const <ctx_model.Context>[])),
     ],
     child: MaterialApp(
       home: Scaffold(body: SingleChildScrollView(child: child)),

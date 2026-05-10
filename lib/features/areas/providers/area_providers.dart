@@ -20,6 +20,32 @@ const List<String> defaultAreaNames = [
   'Health',
 ];
 
+/// Per-area task counts for the current user. Keyed by lowercased area
+/// name; the value is the number of non-retired tasks (active + completed)
+/// tagged with that area. Used by the Manage Areas screen to render small
+/// count badges next to each row (TM-181 / TM-345).
+///
+/// Counts include completed tasks because "tasks that reference this area"
+/// is what informs the user's "Remove from tasks?" decision when deleting
+/// the catalog entry — the decision shouldn't change just because some of
+/// those tasks have been ticked off.
+@riverpod
+Stream<Map<String, int>> areaTaskCounts(Ref ref) {
+  final personDocId = ref.watch(personDocIdProvider);
+  final db = ref.watch(databaseProvider);
+  if (personDocId == null) return Stream.value(const {});
+  return db.taskDao.watchAllNonRetiredForUser(personDocId).map((rows) {
+    final counts = <String, int>{};
+    for (final row in rows) {
+      final area = row.area;
+      if (area == null || area.isEmpty) continue;
+      final key = area.toLowerCase();
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return counts;
+  });
+}
+
 /// Stream of the current user's areas, sorted by sortOrder.
 /// Streams from local Drift; SyncService keeps it in sync with Firestore.
 @Riverpod(keepAlive: true)

@@ -1,9 +1,13 @@
+import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaestro/features/areas/providers/area_color_providers.dart';
+import 'package:taskmaestro/features/contexts/providers/context_providers.dart';
 import 'package:taskmaestro/features/shared/presentation/editable_task_item.dart';
 import 'package:taskmaestro/keys.dart';
+import 'package:taskmaestro/models/context.dart' as ctx_model;
+import 'package:taskmaestro/models/task_context.dart';
 import 'package:taskmaestro/models/task_item.dart';
 
 /// Tests for the inline expand-for-detail behavior introduced in TM-356.
@@ -18,6 +22,9 @@ Widget _wrap(Widget child) {
   return ProviderScope(
     overrides: [
       areaColorsProvider.overrideWith((ref) => const <String, Color>{}),
+      // TM-181: see editable_task_item_widget_test for rationale.
+      contextsProvider
+          .overrideWith((ref) => Stream.value(const <ctx_model.Context>[])),
     ],
     child: MaterialApp(
       theme: ThemeData(
@@ -48,7 +55,8 @@ TaskItem _task({
     ..dateAdded = DateTime.now().toUtc()
     ..name = name
     ..description = description
-    ..context = context
+    ..contexts = ListBuilder<TaskContext>(
+        context == null ? <TaskContext>[] : [TaskContext.named(context)])
     ..personDocId = 'person-1'
     ..startDate = startDate
     ..targetDate = targetDate
@@ -200,7 +208,7 @@ void main() {
       await tester.tap(find.text('Metadata Task'));
       await tester.pumpAndSettle();
 
-      expect(find.text('CONTEXT'), findsOneWidget);
+      expect(find.text('CONTEXTS'), findsOneWidget);
       expect(find.text('Phone'), findsOneWidget);
       expect(find.text('REPEAT'), findsOneWidget);
       expect(find.text('Every 2 weeks (after completion)'), findsOneWidget);

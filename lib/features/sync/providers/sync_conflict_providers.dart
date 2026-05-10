@@ -92,15 +92,23 @@ class RecurrenceConflict implements SyncConflict {
   }
 }
 
-/// TM-345 backwards compat: pre-rename builds wrote envelopes with a
-/// `project` key. Re-key to `area` so the new TaskItem serializer reads it
-/// (otherwise "Use latest" silently drops the task's area tag). The Drift
-/// schema migration renames the column on disk, but stored
-/// `conflictRemoteJson` blobs are opaque text and need this in-flight remap.
-Map<String, dynamic> _renameProjectToArea(Map<String, dynamic> json) {
+/// TM-345 + TM-181 backwards compat for stored TaskItem conflict envelopes.
+///
+/// Conflict envelopes are written to Drift as opaque JSON text and survive
+/// schema migrations on disk, so we have to translate field shapes in-flight
+/// when the TaskItem schema changes:
+/// - TM-345: pre-rename builds carried a `project` key — rename to `area`.
+/// - TM-181: pre-rename builds carried a singular `context: "Phone"` —
+///   rewrite as `contexts: [{name: "Phone"}]` via [TaskItem]'s helper.
+///
+/// Without these, "Use latest" would silently drop migrated fields when the
+/// user resolves a stale conflict on a freshly-upgraded build.
+Map<String, dynamic> _renameTaskFieldsForLegacyEnvelope(
+    Map<String, dynamic> json) {
   if (json.containsKey('project') && !json.containsKey('area')) {
     json['area'] = json.remove('project');
   }
+  TaskItem.applyLegacyContextFallback(json);
   return json;
 }
 
@@ -142,7 +150,7 @@ Stream<List<TaskConflict>> taskConflicts(Ref ref) {
         envelopeJson: envelope,
         docId: row.docId,
         serializer: TaskItem.serializer,
-        normalize: _renameProjectToArea,
+        normalize: _renameTaskFieldsForLegacyEnvelope,
       );
       if (decoded == null) continue;
       try {

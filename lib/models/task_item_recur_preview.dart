@@ -1,6 +1,7 @@
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:taskmaestro/models/sprint_display_task.dart';
+import 'package:taskmaestro/models/task_context.dart';
 import 'package:taskmaestro/models/task_date_holder.dart';
 import 'package:taskmaestro/models/task_date_type.dart';
 import 'package:taskmaestro/models/task_item_blueprint.dart';
@@ -39,7 +40,15 @@ class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
   String? description;
   @override
   String? area;
-  String? context;
+
+  /// TM-181: multi-context list. Defaults to empty so previews carry the
+  /// new-shape field even when the source task had no contexts. Marshalled
+  /// by the same `_TaskContextListConverter` used on `TaskItemBlueprint`,
+  /// inlined here to avoid a private cross-file import (see
+  /// `task_item_blueprint.dart` for the canonical implementation; both
+  /// converters delegate to the same shape).
+  @_TaskContextListConverterPreview()
+  List<TaskContext> contexts = <TaskContext>[];
 
   int? urgency;
   int? priority;
@@ -87,7 +96,9 @@ class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
   @JsonKey(includeFromJson: false, includeToJson: false)
   TaskRecurrenceBlueprint? recurrence;
 
-  TaskItemRecurPreview(this.name): key = 'TEMP_' + randomString(10), offCycle = false;
+  TaskItemRecurPreview(this.name): key = 'TEMP_' + randomString(10), offCycle = false {
+    contexts = <TaskContext>[];
+  }
 
   @override
   TaskItemRecurPreview createNextRecurPreview({
@@ -99,7 +110,7 @@ class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
       ..name = name
       ..description = description
       ..area = area
-      ..context = context
+      ..contexts = List<TaskContext>.from(contexts)
       ..urgency = urgency
       ..priority = priority
       ..priorityScaleVersion = priorityScaleVersion
@@ -132,13 +143,15 @@ class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
     return key;
   }
 
+  // Marker class used by the preview's @JsonKey annotation. See
+  // `_TaskContextListConverter` in `task_item_blueprint.dart` — same logic.
   TaskItemBlueprint toBlueprint() {
     TaskItemBlueprint blueprint = TaskItemBlueprint();
 
     blueprint.name = name;
     blueprint.description = description;
     blueprint.area = area;
-    blueprint.context = context;
+    blueprint.contexts = List<TaskContext>.from(contexts);
     blueprint.urgency = urgency;
     blueprint.priority = priority;
     blueprint.priorityScaleVersion = priorityScaleVersion;
@@ -162,4 +175,47 @@ class TaskItemRecurPreview with DateHolder, SprintDisplayTask {
     return blueprint;
   }
 
+}
+
+/// Same logic as `_TaskContextListConverter` in `task_item_blueprint.dart`.
+/// Inlined here so json_serializable codegen can resolve the annotation
+/// against this file's `part 'task_item_recur_preview.g.dart'`.
+class _TaskContextListConverterPreview
+    implements JsonConverter<List<TaskContext>, Object?> {
+  const _TaskContextListConverterPreview();
+
+  @override
+  List<TaskContext> fromJson(Object? json) {
+    if (json == null) return <TaskContext>[];
+    if (json is String) {
+      return [TaskContext.named(json)];
+    }
+    if (json is List) {
+      final out = <TaskContext>[];
+      for (final entry in json) {
+        if (entry is Map) {
+          final name = entry['name'];
+          if (name is! String || name.isEmpty) continue;
+          final v = entry['value'];
+          out.add(TaskContext((b) => b
+            ..name = name
+            ..value = v is int ? v : (v is num ? v.toInt() : null)));
+        } else if (entry is String && entry.isNotEmpty) {
+          out.add(TaskContext.named(entry));
+        }
+      }
+      return out;
+    }
+    return <TaskContext>[];
+  }
+
+  @override
+  Object? toJson(List<TaskContext> object) {
+    return object
+        .map((c) => {
+              'name': c.name,
+              if (c.value != null) 'value': c.value,
+            })
+        .toList(growable: false);
+  }
 }

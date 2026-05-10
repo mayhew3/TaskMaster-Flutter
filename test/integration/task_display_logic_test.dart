@@ -1,5 +1,7 @@
+import 'package:built_collection/built_collection.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:taskmaestro/models/task_context.dart';
 import 'package:taskmaestro/models/task_item.dart';
 
 import 'integration_test_helper.dart';
@@ -400,7 +402,7 @@ void main() {
         ..dateAdded = now
         ..name = 'Task With Context'
         ..personDocId = 'test-person-123'
-        ..context = '@home'
+        ..contexts = ListBuilder<TaskContext>([TaskContext.named('@home')])
         ..completionDate = null
         ..retired = null
         ..offCycle = false

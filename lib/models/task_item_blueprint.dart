@@ -33,7 +33,14 @@ class TaskItemBlueprint with DateHolder {
   String? name;
   String? description;
   String? area;
-  String? context;
+
+  /// TM-181: multi-context list. Defaults to empty so an unset blueprint
+  /// doesn't accidentally serialize the legacy single-string field.
+  /// Marshalled by `_TaskContextListConverter` so json_serializable accepts
+  /// either a list of `{name, value?}` maps OR a legacy bare string in the
+  /// pre-181 `context` slot via the renamed accessor in the converter.
+  @_TaskContextListConverter()
+  List<TaskContext> contexts = <TaskContext>[];
 
   int? urgency;
   int? priority;
@@ -130,7 +137,7 @@ class TaskItemBlueprint with DateHolder {
     var allMismatch = other.name != name ||
         other.description != description ||
         other.area != area ||
-        other.context != context ||
+        !_taskContextsEqual(other.contexts, contexts) ||
         other.urgency != urgency ||
         other.priority != priority ||
         other.duration != duration ||
@@ -157,7 +164,7 @@ class TaskItemBlueprint with DateHolder {
       other.name != name ||
           other.description != description ||
           other.area != area ||
-          other.context != context ||
+          !_taskContextsEqual(other.contexts, contexts) ||
           other.urgency != urgency ||
           other.priority != priority ||
           other.duration != duration ||
@@ -182,4 +189,67 @@ class TaskItemBlueprint with DateHolder {
         'name: $name';
   }
 
+}
+
+/// Order-sensitive equality for two [TaskContext] lists. Mirror of the
+/// helper in `task_item.dart` so the blueprint's hasChanges paths stay in
+/// sync with the immutable model's.
+bool _taskContextsEqual(
+    Iterable<TaskContext>? a, Iterable<TaskContext>? b) {
+  final aList = a?.toList() ?? const <TaskContext>[];
+  final bList = b?.toList() ?? const <TaskContext>[];
+  if (aList.length != bList.length) return false;
+  for (var i = 0; i < aList.length; i++) {
+    if (aList[i].name != bList[i].name) return false;
+    if (aList[i].value != bList[i].value) return false;
+  }
+  return true;
+}
+
+/// JsonConverter that round-trips a `List<TaskContext>` for the blueprint's
+/// JsonSerializable layer. Built_value's `TaskContext` doesn't ship a
+/// `fromJson`/`toJson` constructor pair compatible with json_serializable,
+/// so we hand-roll the conversion. Mirrors [parseTaskContexts] in
+/// `core/database/converters.dart` (single source of truth for the legacy
+/// bare-string fallback). Empty list serialises as an empty list — null is
+/// only used when the field was never set.
+class _TaskContextListConverter
+    implements JsonConverter<List<TaskContext>, Object?> {
+  const _TaskContextListConverter();
+
+  @override
+  List<TaskContext> fromJson(Object? json) {
+    if (json == null) return <TaskContext>[];
+    if (json is String) {
+      // Legacy bare-string Firestore field.
+      return [TaskContext.named(json)];
+    }
+    if (json is List) {
+      final out = <TaskContext>[];
+      for (final entry in json) {
+        if (entry is Map) {
+          final name = entry['name'];
+          if (name is! String || name.isEmpty) continue;
+          final v = entry['value'];
+          out.add(TaskContext((b) => b
+            ..name = name
+            ..value = v is int ? v : (v is num ? v.toInt() : null)));
+        } else if (entry is String && entry.isNotEmpty) {
+          out.add(TaskContext.named(entry));
+        }
+      }
+      return out;
+    }
+    return <TaskContext>[];
+  }
+
+  @override
+  Object? toJson(List<TaskContext> object) {
+    return object
+        .map((c) => {
+              'name': c.name,
+              if (c.value != null) 'value': c.value,
+            })
+        .toList(growable: false);
+  }
 }

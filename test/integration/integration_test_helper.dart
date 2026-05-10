@@ -201,7 +201,13 @@ class IntegrationTestHelper {
           'pendingCompletion': task.pendingCompletion,
           if (task.description != null) 'description': task.description,
           if (task.area != null) 'area': task.area,
-          if (task.context != null) 'context': task.context,
+          if (task.contexts.isNotEmpty)
+            'contexts': task.contexts
+                .map((c) => {
+                      'name': c.name,
+                      if (c.value != null) 'value': c.value,
+                    })
+                .toList(),
           if (task.completionDate != null) 'completionDate': task.completionDate,
           if (task.retired != null) 'retired': task.retired,
           if (task.startDate != null) 'startDate': task.startDate,

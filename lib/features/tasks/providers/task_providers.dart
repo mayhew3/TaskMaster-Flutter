@@ -372,6 +372,7 @@ Stream<List<TaskItem>> tasksForRecurrence(Ref ref, String recurrenceDocId) {
           .map((doc) {
             final json = doc.data();
             json['docId'] = doc.id;
+            TaskItem.applyLegacyContextFallback(json);
             return serializers.deserializeWith(TaskItem.serializer, json);
           })
           .whereType<TaskItem>()
@@ -462,6 +463,7 @@ class OlderCompletedTasksBatches extends _$OlderCompletedTasksBatches {
           .map((doc) {
             final json = doc.data();
             json['docId'] = doc.id;
+            TaskItem.applyLegacyContextFallback(json);
             return serializers.deserializeWith(TaskItem.serializer, json);
           })
           .whereType<TaskItem>()

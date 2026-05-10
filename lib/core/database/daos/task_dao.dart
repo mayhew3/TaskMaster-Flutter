@@ -69,6 +69,21 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
         .get();
   }
 
+  /// Stream of every non-retired, non-pending-delete row for a user
+  /// (including completed). Powers the per-area / per-context task-count
+  /// badges on the Manage screens (TM-345 / TM-181) — the badges need to
+  /// reflect every task that references the catalog name regardless of
+  /// completion status, since the count is what informs the user's
+  /// "Remove from tasks?" decision when they delete the catalog entry.
+  Stream<List<Task>> watchAllNonRetiredForUser(String personDocId) {
+    return (select(tasks)
+          ..where((t) =>
+              t.personDocId.equals(personDocId) &
+              t.retired.isNull() &
+              t.syncState.equals(SyncState.pendingDelete.name).not()))
+        .watch();
+  }
+
   /// Upsert a row coming from Firestore. Skips rows whose current sync_state
   /// is anything other than `synced` — that catches pendingCreate /
   /// pendingUpdate / pendingDelete (pending-local-wins) and pendingConflict

@@ -79,12 +79,12 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _taskContextMeta = const VerificationMeta(
-    'taskContext',
+  static const VerificationMeta _taskContextsMeta = const VerificationMeta(
+    'taskContexts',
   );
   @override
-  late final GeneratedColumn<String> taskContext = GeneratedColumn<String>(
-    'task_context',
+  late final GeneratedColumn<String> taskContexts = GeneratedColumn<String>(
+    'task_contexts',
     aliasedName,
     true,
     type: DriftSqlType.string,
@@ -354,7 +354,7 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     name,
     description,
     area,
-    taskContext,
+    taskContexts,
     urgency,
     priority,
     priorityScaleVersion,
@@ -447,12 +447,12 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         area.isAcceptableOrUnknown(data['area']!, _areaMeta),
       );
     }
-    if (data.containsKey('task_context')) {
+    if (data.containsKey('task_contexts')) {
       context.handle(
-        _taskContextMeta,
-        taskContext.isAcceptableOrUnknown(
-          data['task_context']!,
-          _taskContextMeta,
+        _taskContextsMeta,
+        taskContexts.isAcceptableOrUnknown(
+          data['task_contexts']!,
+          _taskContextsMeta,
         ),
       );
     }
@@ -649,9 +649,9 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         DriftSqlType.string,
         data['${effectivePrefix}area'],
       ),
-      taskContext: attachedDatabase.typeMapping.read(
+      taskContexts: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}task_context'],
+        data['${effectivePrefix}task_contexts'],
       ),
       urgency: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
@@ -758,7 +758,7 @@ class Task extends DataClass implements Insertable<Task> {
   final String name;
   final String? description;
   final String? area;
-  final String? taskContext;
+  final String? taskContexts;
   final int? urgency;
   final int? priority;
   final int priorityScaleVersion;
@@ -789,7 +789,7 @@ class Task extends DataClass implements Insertable<Task> {
     required this.name,
     this.description,
     this.area,
-    this.taskContext,
+    this.taskContexts,
     this.urgency,
     this.priority,
     required this.priorityScaleVersion,
@@ -831,8 +831,8 @@ class Task extends DataClass implements Insertable<Task> {
     if (!nullToAbsent || area != null) {
       map['area'] = Variable<String>(area);
     }
-    if (!nullToAbsent || taskContext != null) {
-      map['task_context'] = Variable<String>(taskContext);
+    if (!nullToAbsent || taskContexts != null) {
+      map['task_contexts'] = Variable<String>(taskContexts);
     }
     if (!nullToAbsent || urgency != null) {
       map['urgency'] = Variable<int>(urgency);
@@ -910,9 +910,9 @@ class Task extends DataClass implements Insertable<Task> {
           ? const Value.absent()
           : Value(description),
       area: area == null && nullToAbsent ? const Value.absent() : Value(area),
-      taskContext: taskContext == null && nullToAbsent
+      taskContexts: taskContexts == null && nullToAbsent
           ? const Value.absent()
-          : Value(taskContext),
+          : Value(taskContexts),
       urgency: urgency == null && nullToAbsent
           ? const Value.absent()
           : Value(urgency),
@@ -987,7 +987,7 @@ class Task extends DataClass implements Insertable<Task> {
       name: serializer.fromJson<String>(json['name']),
       description: serializer.fromJson<String?>(json['description']),
       area: serializer.fromJson<String?>(json['area']),
-      taskContext: serializer.fromJson<String?>(json['taskContext']),
+      taskContexts: serializer.fromJson<String?>(json['taskContexts']),
       urgency: serializer.fromJson<int?>(json['urgency']),
       priority: serializer.fromJson<int?>(json['priority']),
       priorityScaleVersion: serializer.fromJson<int>(
@@ -1027,7 +1027,7 @@ class Task extends DataClass implements Insertable<Task> {
       'name': serializer.toJson<String>(name),
       'description': serializer.toJson<String?>(description),
       'area': serializer.toJson<String?>(area),
-      'taskContext': serializer.toJson<String?>(taskContext),
+      'taskContexts': serializer.toJson<String?>(taskContexts),
       'urgency': serializer.toJson<int?>(urgency),
       'priority': serializer.toJson<int?>(priority),
       'priorityScaleVersion': serializer.toJson<int>(priorityScaleVersion),
@@ -1061,7 +1061,7 @@ class Task extends DataClass implements Insertable<Task> {
     String? name,
     Value<String?> description = const Value.absent(),
     Value<String?> area = const Value.absent(),
-    Value<String?> taskContext = const Value.absent(),
+    Value<String?> taskContexts = const Value.absent(),
     Value<int?> urgency = const Value.absent(),
     Value<int?> priority = const Value.absent(),
     int? priorityScaleVersion,
@@ -1092,7 +1092,7 @@ class Task extends DataClass implements Insertable<Task> {
     name: name ?? this.name,
     description: description.present ? description.value : this.description,
     area: area.present ? area.value : this.area,
-    taskContext: taskContext.present ? taskContext.value : this.taskContext,
+    taskContexts: taskContexts.present ? taskContexts.value : this.taskContexts,
     urgency: urgency.present ? urgency.value : this.urgency,
     priority: priority.present ? priority.value : this.priority,
     priorityScaleVersion: priorityScaleVersion ?? this.priorityScaleVersion,
@@ -1139,9 +1139,9 @@ class Task extends DataClass implements Insertable<Task> {
           ? data.description.value
           : this.description,
       area: data.area.present ? data.area.value : this.area,
-      taskContext: data.taskContext.present
-          ? data.taskContext.value
-          : this.taskContext,
+      taskContexts: data.taskContexts.present
+          ? data.taskContexts.value
+          : this.taskContexts,
       urgency: data.urgency.present ? data.urgency.value : this.urgency,
       priority: data.priority.present ? data.priority.value : this.priority,
       priorityScaleVersion: data.priorityScaleVersion.present
@@ -1199,7 +1199,7 @@ class Task extends DataClass implements Insertable<Task> {
           ..write('name: $name, ')
           ..write('description: $description, ')
           ..write('area: $area, ')
-          ..write('taskContext: $taskContext, ')
+          ..write('taskContexts: $taskContexts, ')
           ..write('urgency: $urgency, ')
           ..write('priority: $priority, ')
           ..write('priorityScaleVersion: $priorityScaleVersion, ')
@@ -1235,7 +1235,7 @@ class Task extends DataClass implements Insertable<Task> {
     name,
     description,
     area,
-    taskContext,
+    taskContexts,
     urgency,
     priority,
     priorityScaleVersion,
@@ -1270,7 +1270,7 @@ class Task extends DataClass implements Insertable<Task> {
           other.name == this.name &&
           other.description == this.description &&
           other.area == this.area &&
-          other.taskContext == this.taskContext &&
+          other.taskContexts == this.taskContexts &&
           other.urgency == this.urgency &&
           other.priority == this.priority &&
           other.priorityScaleVersion == this.priorityScaleVersion &&
@@ -1303,7 +1303,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
   final Value<String> name;
   final Value<String?> description;
   final Value<String?> area;
-  final Value<String?> taskContext;
+  final Value<String?> taskContexts;
   final Value<int?> urgency;
   final Value<int?> priority;
   final Value<int> priorityScaleVersion;
@@ -1335,7 +1335,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.name = const Value.absent(),
     this.description = const Value.absent(),
     this.area = const Value.absent(),
-    this.taskContext = const Value.absent(),
+    this.taskContexts = const Value.absent(),
     this.urgency = const Value.absent(),
     this.priority = const Value.absent(),
     this.priorityScaleVersion = const Value.absent(),
@@ -1368,7 +1368,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     required String name,
     this.description = const Value.absent(),
     this.area = const Value.absent(),
-    this.taskContext = const Value.absent(),
+    this.taskContexts = const Value.absent(),
     this.urgency = const Value.absent(),
     this.priority = const Value.absent(),
     this.priorityScaleVersion = const Value.absent(),
@@ -1403,7 +1403,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Expression<String>? name,
     Expression<String>? description,
     Expression<String>? area,
-    Expression<String>? taskContext,
+    Expression<String>? taskContexts,
     Expression<int>? urgency,
     Expression<int>? priority,
     Expression<int>? priorityScaleVersion,
@@ -1436,7 +1436,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
       if (name != null) 'name': name,
       if (description != null) 'description': description,
       if (area != null) 'area': area,
-      if (taskContext != null) 'task_context': taskContext,
+      if (taskContexts != null) 'task_contexts': taskContexts,
       if (urgency != null) 'urgency': urgency,
       if (priority != null) 'priority': priority,
       if (priorityScaleVersion != null)
@@ -1473,7 +1473,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Value<String>? name,
     Value<String?>? description,
     Value<String?>? area,
-    Value<String?>? taskContext,
+    Value<String?>? taskContexts,
     Value<int?>? urgency,
     Value<int?>? priority,
     Value<int>? priorityScaleVersion,
@@ -1506,7 +1506,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
       name: name ?? this.name,
       description: description ?? this.description,
       area: area ?? this.area,
-      taskContext: taskContext ?? this.taskContext,
+      taskContexts: taskContexts ?? this.taskContexts,
       urgency: urgency ?? this.urgency,
       priority: priority ?? this.priority,
       priorityScaleVersion: priorityScaleVersion ?? this.priorityScaleVersion,
@@ -1557,8 +1557,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
     if (area.present) {
       map['area'] = Variable<String>(area.value);
     }
-    if (taskContext.present) {
-      map['task_context'] = Variable<String>(taskContext.value);
+    if (taskContexts.present) {
+      map['task_contexts'] = Variable<String>(taskContexts.value);
     }
     if (urgency.present) {
       map['urgency'] = Variable<int>(urgency.value);
@@ -1642,7 +1642,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
           ..write('name: $name, ')
           ..write('description: $description, ')
           ..write('area: $area, ')
-          ..write('taskContext: $taskContext, ')
+          ..write('taskContexts: $taskContexts, ')
           ..write('urgency: $urgency, ')
           ..write('priority: $priority, ')
           ..write('priorityScaleVersion: $priorityScaleVersion, ')
@@ -4194,6 +4194,624 @@ class AreasCompanion extends UpdateCompanion<Area> {
   }
 }
 
+class $ContextsTable extends Contexts with TableInfo<$ContextsTable, Context> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ContextsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _docIdMeta = const VerificationMeta('docId');
+  @override
+  late final GeneratedColumn<String> docId = GeneratedColumn<String>(
+    'doc_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateAddedMeta = const VerificationMeta(
+    'dateAdded',
+  );
+  @override
+  late final GeneratedColumn<DateTime> dateAdded = GeneratedColumn<DateTime>(
+    'date_added',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _iconNameMeta = const VerificationMeta(
+    'iconName',
+  );
+  @override
+  late final GeneratedColumn<String> iconName = GeneratedColumn<String>(
+    'icon_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+    'color',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _personDocIdMeta = const VerificationMeta(
+    'personDocId',
+  );
+  @override
+  late final GeneratedColumn<String> personDocId = GeneratedColumn<String>(
+    'person_doc_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _retiredMeta = const VerificationMeta(
+    'retired',
+  );
+  @override
+  late final GeneratedColumn<String> retired = GeneratedColumn<String>(
+    'retired',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _retiredDateMeta = const VerificationMeta(
+    'retiredDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> retiredDate = GeneratedColumn<DateTime>(
+    'retired_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncStateMeta = const VerificationMeta(
+    'syncState',
+  );
+  @override
+  late final GeneratedColumn<String> syncState = GeneratedColumn<String>(
+    'sync_state',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('synced'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    docId,
+    dateAdded,
+    name,
+    sortOrder,
+    iconName,
+    color,
+    personDocId,
+    retired,
+    retiredDate,
+    syncState,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'contexts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Context> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('doc_id')) {
+      context.handle(
+        _docIdMeta,
+        docId.isAcceptableOrUnknown(data['doc_id']!, _docIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_docIdMeta);
+    }
+    if (data.containsKey('date_added')) {
+      context.handle(
+        _dateAddedMeta,
+        dateAdded.isAcceptableOrUnknown(data['date_added']!, _dateAddedMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateAddedMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sortOrderMeta);
+    }
+    if (data.containsKey('icon_name')) {
+      context.handle(
+        _iconNameMeta,
+        iconName.isAcceptableOrUnknown(data['icon_name']!, _iconNameMeta),
+      );
+    }
+    if (data.containsKey('color')) {
+      context.handle(
+        _colorMeta,
+        color.isAcceptableOrUnknown(data['color']!, _colorMeta),
+      );
+    }
+    if (data.containsKey('person_doc_id')) {
+      context.handle(
+        _personDocIdMeta,
+        personDocId.isAcceptableOrUnknown(
+          data['person_doc_id']!,
+          _personDocIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_personDocIdMeta);
+    }
+    if (data.containsKey('retired')) {
+      context.handle(
+        _retiredMeta,
+        retired.isAcceptableOrUnknown(data['retired']!, _retiredMeta),
+      );
+    }
+    if (data.containsKey('retired_date')) {
+      context.handle(
+        _retiredDateMeta,
+        retiredDate.isAcceptableOrUnknown(
+          data['retired_date']!,
+          _retiredDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sync_state')) {
+      context.handle(
+        _syncStateMeta,
+        syncState.isAcceptableOrUnknown(data['sync_state']!, _syncStateMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {docId};
+  @override
+  Context map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Context(
+      docId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}doc_id'],
+      )!,
+      dateAdded: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date_added'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+      iconName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}icon_name'],
+      ),
+      color: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}color'],
+      ),
+      personDocId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}person_doc_id'],
+      )!,
+      retired: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}retired'],
+      ),
+      retiredDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}retired_date'],
+      ),
+      syncState: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_state'],
+      )!,
+    );
+  }
+
+  @override
+  $ContextsTable createAlias(String alias) {
+    return $ContextsTable(attachedDatabase, alias);
+  }
+}
+
+class Context extends DataClass implements Insertable<Context> {
+  final String docId;
+  final DateTime dateAdded;
+  final String name;
+  final int sortOrder;
+  final String? iconName;
+  final String? color;
+  final String personDocId;
+  final String? retired;
+  final DateTime? retiredDate;
+  final String syncState;
+  const Context({
+    required this.docId,
+    required this.dateAdded,
+    required this.name,
+    required this.sortOrder,
+    this.iconName,
+    this.color,
+    required this.personDocId,
+    this.retired,
+    this.retiredDate,
+    required this.syncState,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['doc_id'] = Variable<String>(docId);
+    map['date_added'] = Variable<DateTime>(dateAdded);
+    map['name'] = Variable<String>(name);
+    map['sort_order'] = Variable<int>(sortOrder);
+    if (!nullToAbsent || iconName != null) {
+      map['icon_name'] = Variable<String>(iconName);
+    }
+    if (!nullToAbsent || color != null) {
+      map['color'] = Variable<String>(color);
+    }
+    map['person_doc_id'] = Variable<String>(personDocId);
+    if (!nullToAbsent || retired != null) {
+      map['retired'] = Variable<String>(retired);
+    }
+    if (!nullToAbsent || retiredDate != null) {
+      map['retired_date'] = Variable<DateTime>(retiredDate);
+    }
+    map['sync_state'] = Variable<String>(syncState);
+    return map;
+  }
+
+  ContextsCompanion toCompanion(bool nullToAbsent) {
+    return ContextsCompanion(
+      docId: Value(docId),
+      dateAdded: Value(dateAdded),
+      name: Value(name),
+      sortOrder: Value(sortOrder),
+      iconName: iconName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(iconName),
+      color: color == null && nullToAbsent
+          ? const Value.absent()
+          : Value(color),
+      personDocId: Value(personDocId),
+      retired: retired == null && nullToAbsent
+          ? const Value.absent()
+          : Value(retired),
+      retiredDate: retiredDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(retiredDate),
+      syncState: Value(syncState),
+    );
+  }
+
+  factory Context.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Context(
+      docId: serializer.fromJson<String>(json['docId']),
+      dateAdded: serializer.fromJson<DateTime>(json['dateAdded']),
+      name: serializer.fromJson<String>(json['name']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      iconName: serializer.fromJson<String?>(json['iconName']),
+      color: serializer.fromJson<String?>(json['color']),
+      personDocId: serializer.fromJson<String>(json['personDocId']),
+      retired: serializer.fromJson<String?>(json['retired']),
+      retiredDate: serializer.fromJson<DateTime?>(json['retiredDate']),
+      syncState: serializer.fromJson<String>(json['syncState']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'docId': serializer.toJson<String>(docId),
+      'dateAdded': serializer.toJson<DateTime>(dateAdded),
+      'name': serializer.toJson<String>(name),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'iconName': serializer.toJson<String?>(iconName),
+      'color': serializer.toJson<String?>(color),
+      'personDocId': serializer.toJson<String>(personDocId),
+      'retired': serializer.toJson<String?>(retired),
+      'retiredDate': serializer.toJson<DateTime?>(retiredDate),
+      'syncState': serializer.toJson<String>(syncState),
+    };
+  }
+
+  Context copyWith({
+    String? docId,
+    DateTime? dateAdded,
+    String? name,
+    int? sortOrder,
+    Value<String?> iconName = const Value.absent(),
+    Value<String?> color = const Value.absent(),
+    String? personDocId,
+    Value<String?> retired = const Value.absent(),
+    Value<DateTime?> retiredDate = const Value.absent(),
+    String? syncState,
+  }) => Context(
+    docId: docId ?? this.docId,
+    dateAdded: dateAdded ?? this.dateAdded,
+    name: name ?? this.name,
+    sortOrder: sortOrder ?? this.sortOrder,
+    iconName: iconName.present ? iconName.value : this.iconName,
+    color: color.present ? color.value : this.color,
+    personDocId: personDocId ?? this.personDocId,
+    retired: retired.present ? retired.value : this.retired,
+    retiredDate: retiredDate.present ? retiredDate.value : this.retiredDate,
+    syncState: syncState ?? this.syncState,
+  );
+  Context copyWithCompanion(ContextsCompanion data) {
+    return Context(
+      docId: data.docId.present ? data.docId.value : this.docId,
+      dateAdded: data.dateAdded.present ? data.dateAdded.value : this.dateAdded,
+      name: data.name.present ? data.name.value : this.name,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+      iconName: data.iconName.present ? data.iconName.value : this.iconName,
+      color: data.color.present ? data.color.value : this.color,
+      personDocId: data.personDocId.present
+          ? data.personDocId.value
+          : this.personDocId,
+      retired: data.retired.present ? data.retired.value : this.retired,
+      retiredDate: data.retiredDate.present
+          ? data.retiredDate.value
+          : this.retiredDate,
+      syncState: data.syncState.present ? data.syncState.value : this.syncState,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Context(')
+          ..write('docId: $docId, ')
+          ..write('dateAdded: $dateAdded, ')
+          ..write('name: $name, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('iconName: $iconName, ')
+          ..write('color: $color, ')
+          ..write('personDocId: $personDocId, ')
+          ..write('retired: $retired, ')
+          ..write('retiredDate: $retiredDate, ')
+          ..write('syncState: $syncState')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    docId,
+    dateAdded,
+    name,
+    sortOrder,
+    iconName,
+    color,
+    personDocId,
+    retired,
+    retiredDate,
+    syncState,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Context &&
+          other.docId == this.docId &&
+          other.dateAdded == this.dateAdded &&
+          other.name == this.name &&
+          other.sortOrder == this.sortOrder &&
+          other.iconName == this.iconName &&
+          other.color == this.color &&
+          other.personDocId == this.personDocId &&
+          other.retired == this.retired &&
+          other.retiredDate == this.retiredDate &&
+          other.syncState == this.syncState);
+}
+
+class ContextsCompanion extends UpdateCompanion<Context> {
+  final Value<String> docId;
+  final Value<DateTime> dateAdded;
+  final Value<String> name;
+  final Value<int> sortOrder;
+  final Value<String?> iconName;
+  final Value<String?> color;
+  final Value<String> personDocId;
+  final Value<String?> retired;
+  final Value<DateTime?> retiredDate;
+  final Value<String> syncState;
+  final Value<int> rowid;
+  const ContextsCompanion({
+    this.docId = const Value.absent(),
+    this.dateAdded = const Value.absent(),
+    this.name = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.iconName = const Value.absent(),
+    this.color = const Value.absent(),
+    this.personDocId = const Value.absent(),
+    this.retired = const Value.absent(),
+    this.retiredDate = const Value.absent(),
+    this.syncState = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ContextsCompanion.insert({
+    required String docId,
+    required DateTime dateAdded,
+    required String name,
+    required int sortOrder,
+    this.iconName = const Value.absent(),
+    this.color = const Value.absent(),
+    required String personDocId,
+    this.retired = const Value.absent(),
+    this.retiredDate = const Value.absent(),
+    this.syncState = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : docId = Value(docId),
+       dateAdded = Value(dateAdded),
+       name = Value(name),
+       sortOrder = Value(sortOrder),
+       personDocId = Value(personDocId);
+  static Insertable<Context> custom({
+    Expression<String>? docId,
+    Expression<DateTime>? dateAdded,
+    Expression<String>? name,
+    Expression<int>? sortOrder,
+    Expression<String>? iconName,
+    Expression<String>? color,
+    Expression<String>? personDocId,
+    Expression<String>? retired,
+    Expression<DateTime>? retiredDate,
+    Expression<String>? syncState,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (docId != null) 'doc_id': docId,
+      if (dateAdded != null) 'date_added': dateAdded,
+      if (name != null) 'name': name,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (iconName != null) 'icon_name': iconName,
+      if (color != null) 'color': color,
+      if (personDocId != null) 'person_doc_id': personDocId,
+      if (retired != null) 'retired': retired,
+      if (retiredDate != null) 'retired_date': retiredDate,
+      if (syncState != null) 'sync_state': syncState,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ContextsCompanion copyWith({
+    Value<String>? docId,
+    Value<DateTime>? dateAdded,
+    Value<String>? name,
+    Value<int>? sortOrder,
+    Value<String?>? iconName,
+    Value<String?>? color,
+    Value<String>? personDocId,
+    Value<String?>? retired,
+    Value<DateTime?>? retiredDate,
+    Value<String>? syncState,
+    Value<int>? rowid,
+  }) {
+    return ContextsCompanion(
+      docId: docId ?? this.docId,
+      dateAdded: dateAdded ?? this.dateAdded,
+      name: name ?? this.name,
+      sortOrder: sortOrder ?? this.sortOrder,
+      iconName: iconName ?? this.iconName,
+      color: color ?? this.color,
+      personDocId: personDocId ?? this.personDocId,
+      retired: retired ?? this.retired,
+      retiredDate: retiredDate ?? this.retiredDate,
+      syncState: syncState ?? this.syncState,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (docId.present) {
+      map['doc_id'] = Variable<String>(docId.value);
+    }
+    if (dateAdded.present) {
+      map['date_added'] = Variable<DateTime>(dateAdded.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (iconName.present) {
+      map['icon_name'] = Variable<String>(iconName.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
+    }
+    if (personDocId.present) {
+      map['person_doc_id'] = Variable<String>(personDocId.value);
+    }
+    if (retired.present) {
+      map['retired'] = Variable<String>(retired.value);
+    }
+    if (retiredDate.present) {
+      map['retired_date'] = Variable<DateTime>(retiredDate.value);
+    }
+    if (syncState.present) {
+      map['sync_state'] = Variable<String>(syncState.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ContextsCompanion(')
+          ..write('docId: $docId, ')
+          ..write('dateAdded: $dateAdded, ')
+          ..write('name: $name, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('iconName: $iconName, ')
+          ..write('color: $color, ')
+          ..write('personDocId: $personDocId, ')
+          ..write('retired: $retired, ')
+          ..write('retiredDate: $retiredDate, ')
+          ..write('syncState: $syncState, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $FamiliesTable extends Families with TableInfo<$FamiliesTable, Family> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -5759,6 +6377,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SprintAssignmentsTable sprintAssignments =
       $SprintAssignmentsTable(this);
   late final $AreasTable areas = $AreasTable(this);
+  late final $ContextsTable contexts = $ContextsTable(this);
   late final $FamiliesTable families = $FamiliesTable(this);
   late final $FamilyInvitationsTable familyInvitations =
       $FamilyInvitationsTable(this);
@@ -5769,6 +6388,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final SprintDao sprintDao = SprintDao(this as AppDatabase);
   late final AreaDao areaDao = AreaDao(this as AppDatabase);
+  late final ContextDao contextDao = ContextDao(this as AppDatabase);
   late final FamilyDao familyDao = FamilyDao(this as AppDatabase);
   late final FamilyInvitationDao familyInvitationDao = FamilyInvitationDao(
     this as AppDatabase,
@@ -5784,6 +6404,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     sprints,
     sprintAssignments,
     areas,
+    contexts,
     families,
     familyInvitations,
     persons,
@@ -5799,7 +6420,7 @@ typedef $$TasksTableCreateCompanionBuilder =
       required String name,
       Value<String?> description,
       Value<String?> area,
-      Value<String?> taskContext,
+      Value<String?> taskContexts,
       Value<int?> urgency,
       Value<int?> priority,
       Value<int> priorityScaleVersion,
@@ -5833,7 +6454,7 @@ typedef $$TasksTableUpdateCompanionBuilder =
       Value<String> name,
       Value<String?> description,
       Value<String?> area,
-      Value<String?> taskContext,
+      Value<String?> taskContexts,
       Value<int?> urgency,
       Value<int?> priority,
       Value<int> priorityScaleVersion,
@@ -5902,8 +6523,8 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get taskContext => $composableBuilder(
-    column: $table.taskContext,
+  ColumnFilters<String> get taskContexts => $composableBuilder(
+    column: $table.taskContexts,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6062,8 +6683,8 @@ class $$TasksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get taskContext => $composableBuilder(
-    column: $table.taskContext,
+  ColumnOrderings<String> get taskContexts => $composableBuilder(
+    column: $table.taskContexts,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -6214,8 +6835,8 @@ class $$TasksTableAnnotationComposer
   GeneratedColumn<String> get area =>
       $composableBuilder(column: $table.area, builder: (column) => column);
 
-  GeneratedColumn<String> get taskContext => $composableBuilder(
-    column: $table.taskContext,
+  GeneratedColumn<String> get taskContexts => $composableBuilder(
+    column: $table.taskContexts,
     builder: (column) => column,
   );
 
@@ -6343,7 +6964,7 @@ class $$TasksTableTableManager
                 Value<String> name = const Value.absent(),
                 Value<String?> description = const Value.absent(),
                 Value<String?> area = const Value.absent(),
-                Value<String?> taskContext = const Value.absent(),
+                Value<String?> taskContexts = const Value.absent(),
                 Value<int?> urgency = const Value.absent(),
                 Value<int?> priority = const Value.absent(),
                 Value<int> priorityScaleVersion = const Value.absent(),
@@ -6375,7 +6996,7 @@ class $$TasksTableTableManager
                 name: name,
                 description: description,
                 area: area,
-                taskContext: taskContext,
+                taskContexts: taskContexts,
                 urgency: urgency,
                 priority: priority,
                 priorityScaleVersion: priorityScaleVersion,
@@ -6409,7 +7030,7 @@ class $$TasksTableTableManager
                 required String name,
                 Value<String?> description = const Value.absent(),
                 Value<String?> area = const Value.absent(),
-                Value<String?> taskContext = const Value.absent(),
+                Value<String?> taskContexts = const Value.absent(),
                 Value<int?> urgency = const Value.absent(),
                 Value<int?> priority = const Value.absent(),
                 Value<int> priorityScaleVersion = const Value.absent(),
@@ -6441,7 +7062,7 @@ class $$TasksTableTableManager
                 name: name,
                 description: description,
                 area: area,
-                taskContext: taskContext,
+                taskContexts: taskContexts,
                 urgency: urgency,
                 priority: priority,
                 priorityScaleVersion: priorityScaleVersion,
@@ -7702,6 +8323,299 @@ typedef $$AreasTableProcessedTableManager =
       Area,
       PrefetchHooks Function()
     >;
+typedef $$ContextsTableCreateCompanionBuilder =
+    ContextsCompanion Function({
+      required String docId,
+      required DateTime dateAdded,
+      required String name,
+      required int sortOrder,
+      Value<String?> iconName,
+      Value<String?> color,
+      required String personDocId,
+      Value<String?> retired,
+      Value<DateTime?> retiredDate,
+      Value<String> syncState,
+      Value<int> rowid,
+    });
+typedef $$ContextsTableUpdateCompanionBuilder =
+    ContextsCompanion Function({
+      Value<String> docId,
+      Value<DateTime> dateAdded,
+      Value<String> name,
+      Value<int> sortOrder,
+      Value<String?> iconName,
+      Value<String?> color,
+      Value<String> personDocId,
+      Value<String?> retired,
+      Value<DateTime?> retiredDate,
+      Value<String> syncState,
+      Value<int> rowid,
+    });
+
+class $$ContextsTableFilterComposer
+    extends Composer<_$AppDatabase, $ContextsTable> {
+  $$ContextsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get docId => $composableBuilder(
+    column: $table.docId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get dateAdded => $composableBuilder(
+    column: $table.dateAdded,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get iconName => $composableBuilder(
+    column: $table.iconName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get personDocId => $composableBuilder(
+    column: $table.personDocId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get retired => $composableBuilder(
+    column: $table.retired,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get retiredDate => $composableBuilder(
+    column: $table.retiredDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncState => $composableBuilder(
+    column: $table.syncState,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ContextsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ContextsTable> {
+  $$ContextsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get docId => $composableBuilder(
+    column: $table.docId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get dateAdded => $composableBuilder(
+    column: $table.dateAdded,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get iconName => $composableBuilder(
+    column: $table.iconName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get personDocId => $composableBuilder(
+    column: $table.personDocId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get retired => $composableBuilder(
+    column: $table.retired,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get retiredDate => $composableBuilder(
+    column: $table.retiredDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncState => $composableBuilder(
+    column: $table.syncState,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ContextsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ContextsTable> {
+  $$ContextsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get docId =>
+      $composableBuilder(column: $table.docId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get dateAdded =>
+      $composableBuilder(column: $table.dateAdded, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<String> get iconName =>
+      $composableBuilder(column: $table.iconName, builder: (column) => column);
+
+  GeneratedColumn<String> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumn<String> get personDocId => $composableBuilder(
+    column: $table.personDocId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get retired =>
+      $composableBuilder(column: $table.retired, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get retiredDate => $composableBuilder(
+    column: $table.retiredDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get syncState =>
+      $composableBuilder(column: $table.syncState, builder: (column) => column);
+}
+
+class $$ContextsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ContextsTable,
+          Context,
+          $$ContextsTableFilterComposer,
+          $$ContextsTableOrderingComposer,
+          $$ContextsTableAnnotationComposer,
+          $$ContextsTableCreateCompanionBuilder,
+          $$ContextsTableUpdateCompanionBuilder,
+          (Context, BaseReferences<_$AppDatabase, $ContextsTable, Context>),
+          Context,
+          PrefetchHooks Function()
+        > {
+  $$ContextsTableTableManager(_$AppDatabase db, $ContextsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ContextsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ContextsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ContextsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> docId = const Value.absent(),
+                Value<DateTime> dateAdded = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<String?> iconName = const Value.absent(),
+                Value<String?> color = const Value.absent(),
+                Value<String> personDocId = const Value.absent(),
+                Value<String?> retired = const Value.absent(),
+                Value<DateTime?> retiredDate = const Value.absent(),
+                Value<String> syncState = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ContextsCompanion(
+                docId: docId,
+                dateAdded: dateAdded,
+                name: name,
+                sortOrder: sortOrder,
+                iconName: iconName,
+                color: color,
+                personDocId: personDocId,
+                retired: retired,
+                retiredDate: retiredDate,
+                syncState: syncState,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String docId,
+                required DateTime dateAdded,
+                required String name,
+                required int sortOrder,
+                Value<String?> iconName = const Value.absent(),
+                Value<String?> color = const Value.absent(),
+                required String personDocId,
+                Value<String?> retired = const Value.absent(),
+                Value<DateTime?> retiredDate = const Value.absent(),
+                Value<String> syncState = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ContextsCompanion.insert(
+                docId: docId,
+                dateAdded: dateAdded,
+                name: name,
+                sortOrder: sortOrder,
+                iconName: iconName,
+                color: color,
+                personDocId: personDocId,
+                retired: retired,
+                retiredDate: retiredDate,
+                syncState: syncState,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ContextsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ContextsTable,
+      Context,
+      $$ContextsTableFilterComposer,
+      $$ContextsTableOrderingComposer,
+      $$ContextsTableAnnotationComposer,
+      $$ContextsTableCreateCompanionBuilder,
+      $$ContextsTableUpdateCompanionBuilder,
+      (Context, BaseReferences<_$AppDatabase, $ContextsTable, Context>),
+      Context,
+      PrefetchHooks Function()
+    >;
 typedef $$FamiliesTableCreateCompanionBuilder =
     FamiliesCompanion Function({
       required String docId,
@@ -8489,6 +9403,8 @@ class $AppDatabaseManager {
       $$SprintAssignmentsTableTableManager(_db, _db.sprintAssignments);
   $$AreasTableTableManager get areas =>
       $$AreasTableTableManager(_db, _db.areas);
+  $$ContextsTableTableManager get contexts =>
+      $$ContextsTableTableManager(_db, _db.contexts);
   $$FamiliesTableTableManager get families =>
       $$FamiliesTableTableManager(_db, _db.families);
   $$FamilyInvitationsTableTableManager get familyInvitations =>
