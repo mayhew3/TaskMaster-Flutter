@@ -444,8 +444,7 @@ class SyncService {
       if (data == null) return; // defensive
       final json = Map<String, dynamic>.from(data);
       json['docId'] = snap.id;
-      m.TaskItem.applyLegacyContextFallback(json);
-      final task = serializers.deserializeWith(m.TaskItem.serializer, json);
+      final task = m.TaskItem.fromFirestoreJson(json);
       if (task != null) {
         await db.taskDao.upsertFromRemote(taskItemToCompanion(task));
         // Use the server-fetched task — its state is authoritative — rather

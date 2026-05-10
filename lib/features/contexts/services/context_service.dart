@@ -13,12 +13,22 @@ import '../../../models/context_blueprint.dart';
 
 part 'context_service.g.dart';
 
-/// Names the picker UI uses as sentinels in the dropdown / inline-add.
-/// Creating or renaming a context to one of these breaks the picker:
-///   - `(none)` would re-persist as `null` when selected later
-///   - `+ Add new context…` would reopen the inline-add UI instead of
-///     selecting the context
-/// Mirrors the AreaService sentinel pattern (TM-345).
+/// Reserved context names rejected at create/rename time.
+///
+/// These strings would confuse users if they appeared as real catalog
+/// entries:
+///   - `(none)` reads like a "clear selection" affordance
+///   - `+ Add new context…` reads like an inline-add prompt (the picker
+///     does have an inline-add affordance, just not a row labelled this
+///     way)
+///
+/// The current `ContextPicker` and `ContextManageScreen` don't render
+/// either string as a selectable row — these aren't picker-UI sentinels
+/// in the literal sense — but blocking the names at the service layer
+/// keeps the catalog readable and matches the AreaService rejection set
+/// (TM-345) so the two catalogs stay symmetric. Validation runs both
+/// inline (via `InlineAddField.validator`) and in `createContext` /
+/// `renameContext` to catch programmatic callers.
 const String kNoneContextSentinelName = '(none)';
 const String kAddNewContextSentinelName = '+ Add new context…';
 const Set<String> kReservedContextNames = {

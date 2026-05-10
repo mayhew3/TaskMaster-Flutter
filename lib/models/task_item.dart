@@ -267,11 +267,19 @@ abstract class TaskItem with DateHolder, SprintDisplayTask implements Built<Task
   /// legacy bare-string fallback then deserializes via the canonical
   /// serializer; returns `null` when the serializer can't decode the doc.
   ///
-  /// Every Firestore deserialize callsite should funnel through this
-  /// helper instead of calling `serializers.deserializeWith` directly so
-  /// a future code path can't silently bypass the fallback and lose
-  /// pre-181 context values. Use `fromJson` for the bang-on-non-null
-  /// variant when failure should throw (test mocks, in-memory paths).
+  /// **When to use:** any deserialize callsite whose source JSON could
+  /// have been produced by a pre-181 client — i.e. real Firestore-read
+  /// paths (sync_service listeners, task_providers query streams). These
+  /// must funnel through this helper so the legacy `context: "Phone"`
+  /// shape doesn't silently disappear.
+  ///
+  /// **When NOT to use:** callsites whose JSON is locally constructed
+  /// from a `TaskItemBlueprint` (e.g. `task_repository.addRecurTask`,
+  /// `sprint_service.addSprint`) — those blobs already use the post-181
+  /// list shape, so the fallback is a no-op and the direct
+  /// `serializers.deserializeWith` call is fine. The legacy
+  /// `TaskRepository.createListener` is currently dead code; if it's
+  /// ever revived for tasks, route it through this helper.
   static TaskItem? fromFirestoreJson(Map<String, dynamic> json) {
     applyLegacyContextFallback(json);
     return serializers.deserializeWith(TaskItem.serializer, json);
