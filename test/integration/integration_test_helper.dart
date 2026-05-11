@@ -134,7 +134,7 @@ class IntegrationTestHelper {
           taskRecurrencesProvider.overrideWith((ref) => Stream.value(recurrencesList)),
           sprintsProvider.overrideWith((ref) => Stream.value(initialSprints ?? [])),
           // Override timezone helper notifier to immediately return mock
-          timezoneHelperNotifierProvider.overrideWith(() => _TestTimezoneHelperNotifier()),
+          timezoneHelperProvider.overrideWith(() => _TestTimezoneHelperNotifier()),
           notificationHelperProvider.overrideWithValue(_NoopNotificationHelper()),
         ],
         child: MaterialApp(
@@ -390,7 +390,7 @@ class IntegrationTestHelper {
         }),
 
         // Timezone helper mock
-        timezoneHelperNotifierProvider.overrideWith(() => _TestTimezoneHelperNotifier()),
+        timezoneHelperProvider.overrideWith(() => _TestTimezoneHelperNotifier()),
       ],
     );
 

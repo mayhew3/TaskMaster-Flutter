@@ -1087,7 +1087,7 @@ class ExpandedPanel extends ConsumerWidget {
             if (hasContexts)
               _ContextsRow(
                 contexts: taskItem.contexts.toList(),
-                catalog: ref.watch(contextsProvider).valueOrNull ??
+                catalog: ref.watch(contextsProvider).value ??
                     const [],
               ),
             if (repeat != null)

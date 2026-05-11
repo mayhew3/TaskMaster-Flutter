@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -29,7 +30,7 @@ const List<String> defaultAreaNames = [
 /// is what informs the user's "Remove from tasks?" decision when deleting
 /// the catalog entry — the decision shouldn't change just because some of
 /// those tasks have been ticked off.
-@riverpod
+@Riverpod(keepAlive: true)
 Stream<Map<String, int>> areaTaskCounts(Ref ref) {
   final personDocId = ref.watch(personDocIdProvider);
   final db = ref.watch(databaseProvider);
@@ -128,7 +129,7 @@ class AreasWithDefaults extends _$AreasWithDefaults {
       _seededForPersonDocIds.remove(personDocId);
       return;
     }
-    final current = ref.read(areasProvider).valueOrNull ?? const <Area>[];
+    final current = ref.read(areasProvider).value ?? const <Area>[];
     if (current.isNotEmpty) return; // Server confirmed they have areas.
 
     final service = ref.read(areaServiceProvider);
@@ -137,6 +138,8 @@ class AreasWithDefaults extends _$AreasWithDefaults {
         // Pass skipInitialPullWait: true — we've already awaited the gate
         // above. Without this, an offline batch hits the 5s timeout 5 times
         // in a row (~25s before all defaults appear).
+        // TM-361: see context_providers `_maybeSeedAfterInitialPull` for
+        // the broader catch (Riverpod 4 auto-dispose + service capture).
         await service.createArea(
           name: name,
           personDocId: personDocId,
@@ -147,6 +150,10 @@ class AreasWithDefaults extends _$AreasWithDefaults {
         // user manually, or via cross-device sync. Skip it and continue
         // seeding the rest. Without this catch the whole pass aborts and
         // _seededForPersonDocIds blocks any retry in this session.
+      } catch (e, st) {
+        debugPrint(
+            '⚠️ [AreasWithDefaults] seed createArea for $name '
+            'failed: $e\n$st');
       }
     }
   }

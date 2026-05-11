@@ -70,6 +70,17 @@ class Tasks extends Table {
   // is upserted.
   DateTimeColumn get lastModified => dateTime().nullable()();
 
+  // TM-361: server timestamp this row was last synced against — i.e. the
+  // most recent `lastModified` we observed from a server-confirmed listener
+  // fire or a successful "Use latest" resolution. Used by the conflict
+  // detector to compare against the *current* remote `lastModified` so a
+  // device editing offline can detect that another device's push landed
+  // while it was disconnected. Was previously inferred from `lastModified`,
+  // but that field tracks LOCAL clock for pending edits — comparing against
+  // it can't distinguish "I edited the latest version" from "I edited an
+  // old version while offline."
+  DateTimeColumn get lastSyncedRemoteVersion => dateTime().nullable()();
+
   // When push detects that the remote was modified after the local edit,
   // the remote version is JSON-stashed here and `syncState` becomes
   // `pendingConflict`. Cleared once the user resolves via the sync conflicts UI.
@@ -101,6 +112,8 @@ class TaskRecurrences extends Table {
 
   // See `Tasks.lastModified` (TM-342).
   DateTimeColumn get lastModified => dateTime().nullable()();
+  // TM-361: see `Tasks.lastSyncedRemoteVersion`.
+  DateTimeColumn get lastSyncedRemoteVersion => dateTime().nullable()();
   TextColumn get conflictRemoteJson => text().nullable()();
 
   TextColumn get syncState =>

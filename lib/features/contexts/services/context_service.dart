@@ -334,7 +334,16 @@ class ContextService {
   }
 }
 
-@riverpod
+// TM-361 Riverpod 4 migration: services need `keepAlive: true` because
+// Riverpod 4 changed the @riverpod default from keep-alive to
+// auto-dispose. The seed-defaults loop in `ContextsWithDefaults` reads
+// this once, captures the service instance, then awaits Drift writes;
+// each await yielded control back to the event loop, the auto-dispose
+// timer fired, and the captured service's `ref` became closed — so the
+// second iteration's `ref.read(syncServiceProvider).pushPendingWrites()`
+// threw and bailed the loop after only the first seed had landed.
+// Same fix on AreaService.
+@Riverpod(keepAlive: true)
 ContextService contextService(Ref ref) {
   return ContextService(
     db: ref.watch(databaseProvider),

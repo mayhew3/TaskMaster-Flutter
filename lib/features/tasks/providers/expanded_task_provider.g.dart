@@ -6,27 +6,78 @@ part of 'expanded_task_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$expandedTaskHash() => r'8261a7359bdbcf66a20022334c26ad4432341cc1';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+/// Tracks which task card (if any) is currently expanded inline.
+///
+/// Accordion semantics: at most one card is expanded at a time across all
+/// task lists. State is session-scoped (no `keepAlive`); switching tabs
+/// collapses any open card.
+
+@ProviderFor(ExpandedTask)
+final expandedTaskProvider = ExpandedTaskProvider._();
 
 /// Tracks which task card (if any) is currently expanded inline.
 ///
 /// Accordion semantics: at most one card is expanded at a time across all
 /// task lists. State is session-scoped (no `keepAlive`); switching tabs
 /// collapses any open card.
-///
-/// Copied from [ExpandedTask].
-@ProviderFor(ExpandedTask)
-final expandedTaskProvider =
-    AutoDisposeNotifierProvider<ExpandedTask, String?>.internal(
-      ExpandedTask.new,
-      name: r'expandedTaskProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$expandedTaskHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+final class ExpandedTaskProvider
+    extends $NotifierProvider<ExpandedTask, String?> {
+  /// Tracks which task card (if any) is currently expanded inline.
+  ///
+  /// Accordion semantics: at most one card is expanded at a time across all
+  /// task lists. State is session-scoped (no `keepAlive`); switching tabs
+  /// collapses any open card.
+  ExpandedTaskProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'expandedTaskProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
-typedef _$ExpandedTask = AutoDisposeNotifier<String?>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+  @override
+  String debugGetCreateSourceHash() => _$expandedTaskHash();
+
+  @$internal
+  @override
+  ExpandedTask create() => ExpandedTask();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(String? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<String?>(value),
+    );
+  }
+}
+
+String _$expandedTaskHash() => r'c988fac9523edc6d649583215cb4efa0c33a49fc';
+
+/// Tracks which task card (if any) is currently expanded inline.
+///
+/// Accordion semantics: at most one card is expanded at a time across all
+/// task lists. State is session-scoped (no `keepAlive`); switching tabs
+/// collapses any open card.
+
+abstract class _$ExpandedTask extends $Notifier<String?> {
+  String? build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<String?, String?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<String?, String?>,
+              String?,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}

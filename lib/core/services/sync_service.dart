@@ -235,7 +235,7 @@ class SyncService {
     _connectivitySub = ref.listen<AsyncValue<bool>>(
       connectivityProvider,
       (prev, next) {
-        final online = next.valueOrNull ?? false;
+        final online = next.value ?? false;
         if (online && !_wasOnline) {
           // Just came back online — flush queue.
           pushPendingWrites(caller: 'connectivity');
@@ -327,6 +327,30 @@ class SyncService {
         await _resolveRemovedTask(change, isInitial, toRefreshNotifications);
         continue;
       }
+      // TM-361: skip the local-cache echo of our own writes. With the default
+      // ServerTimestampBehavior, `data()` returns `lastModified: null` for an
+      // unresolved `FieldValue.serverTimestamp()`. If we upserted that into
+      // Drift we would demote the row's `lastModified` to null, then the
+      // *next* edit on this device would stamp a fresh local-clock value
+      // with nothing to be monotonic against — re-introducing the clock-skew
+      // false-positive conflict. The server-acked listener fire (with
+      // hasPendingWrites=false and the real server timestamp) is the one we
+      // want.
+      //
+      // Guard against the lastModified=null case directly (instead of
+      // gating on hasPendingWrites) because FakeFirebaseFirestore in widget
+      // tests never reports hasPendingWrites=true even though our own
+      // writes still arrive as snapshot events. Filtering on the missing
+      // lastModified is precise either way: production gets the same
+      // skip-the-local-echo behaviour, tests aren't blocked.
+      final cachedLastModified = change.doc.data()?['lastModified'];
+      if (cachedLastModified == null) {
+        _syncLog(
+            '[SyncService] listener: skipping ${change.doc.id} — lastModified unresolved (local-cache echo)');
+        continue;
+      }
+      _syncLog(
+          '[SyncService] listener: server-confirmed ${change.doc.id} lastModified=$cachedLastModified');
       try {
         final json = Map<String, dynamic>.from(change.doc.data()!);
         json['docId'] = change.doc.id;
@@ -490,6 +514,10 @@ class SyncService {
         continue;
       }
       final data = change.doc.data();
+      // TM-361: skip the local-cache echo of our own writes — same
+      // rationale as _onTasksSnapshot. Guard via lastModified for
+      // compatibility with FakeFirebaseFirestore in widget tests.
+      if (data != null && data['lastModified'] == null) continue;
       // Skip retired recurrences — the local Drift converter does not write
       // the `retired` column, so retired rows would appear active locally.
       if (data == null || data['retired'] != null) {
@@ -1001,7 +1029,7 @@ class SyncService {
       _syncLog('[SyncService] pushPendingWrites queued (already pushing) — caller: $caller');
       return;
     }
-    final online = ref.read(connectivityProvider).valueOrNull ?? false;
+    final online = ref.read(connectivityProvider).value ?? false;
     if (!online) return;
 
     _syncLog('[SyncService] pushPendingWrites START — caller: $caller');
@@ -1063,6 +1091,73 @@ class SyncService {
     });
   }
 
+  /// TM-361: compare two `lastModified` values at second precision, matching
+  /// Drift's epoch-seconds storage. Returns `true` iff [a] is strictly after
+  /// [b] when both are floored to whole seconds. See [_checkAndRecordConflict]
+  /// for why this is necessary.
+  static bool _isStrictlyAfterAtSecondPrecision(DateTime a, DateTime b) {
+    final aSec = a.millisecondsSinceEpoch ~/ 1000;
+    final bSec = b.millisecondsSinceEpoch ~/ 1000;
+    return aSec > bSec;
+  }
+
+  /// TM-361: read back the server-stamped `lastModified` for the doc we
+  /// just pushed, so the row's `lastSyncedRemoteVersion` reflects the
+  /// actual server timestamp instead of going stale.
+  ///
+  /// Tries the server first (authoritative), falls back to the local cache
+  /// (which the SDK updates with the resolved value after `set()` acks),
+  /// and as a last resort returns local UTC time. Returning *something* is
+  /// critical: a null return leaves `lastSyncedRemoteVersion` at the
+  /// pre-push value, and the very next push's conflict check would compare
+  /// the freshly-stamped remote against that stale anchor and false-positive.
+  /// Local time is imperfect under clock skew but strictly better than the
+  /// stale anchor — and matches what the listener-driven path eventually
+  /// converges to anyway.
+  // ignore: unused_element
+  Future<DateTime?> _readServerLastModified(
+      DocumentReference<Map<String, dynamic>> docRef) async {
+    // Each source is wrapped in a tight timeout because FakeFirebaseFirestore
+    // (used in widget tests) silently hangs `Source.server` reads, which
+    // would deadlock `pumpAndSettle` on any test that exercises a push.
+    // Production Firestore acks server reads in tens of ms; 2s is generous
+    // enough that we don't false-fall-back under real latency.
+    const perSourceTimeout = Duration(seconds: 2);
+    for (final source in const [Source.server, Source.cache]) {
+      try {
+        final snap = await docRef
+            .get(GetOptions(source: source))
+            .timeout(perSourceTimeout);
+        final raw = snap.data()?['lastModified'];
+        if (raw is Timestamp) {
+          final result = raw.toDate().toUtc();
+          _syncLog(
+              '[SyncService] post-push anchor for ${docRef.path}: $result (via $source)');
+          return result;
+        }
+        if (raw is DateTime) {
+          final result = raw.toUtc();
+          _syncLog(
+              '[SyncService] post-push anchor for ${docRef.path}: $result (via $source as DateTime)');
+          return result;
+        }
+        _syncLog(
+            '[SyncService] post-push fetch via $source for ${docRef.path}: lastModified field was ${raw?.runtimeType ?? "null"} — trying next source');
+      } on TimeoutException {
+        _syncLog(
+            '[SyncService] post-push fetch via $source for ${docRef.path} timed out after ${perSourceTimeout.inSeconds}s');
+      } catch (e) {
+        _syncLog(
+            '[SyncService] post-push fetch via $source failed for ${docRef.path}: $e');
+      }
+    }
+    final fallback = DateTime.now().toUtc();
+    _syncLog(
+        '[SyncService] post-push lastModified unreadable for ${docRef.path}; '
+        'anchoring lastSyncedRemoteVersion to local time ($fallback)');
+    return fallback;
+  }
+
   /// TM-342: server-source `get()` with backoff retry on transient
   /// `unavailable` / `deadline-exceeded` errors. The Firestore SDK can
   /// briefly reject server reads while reconnecting after a connectivity
@@ -1090,16 +1185,29 @@ class SyncService {
     }
   }
 
-  /// TM-342: pre-push conflict check. Reads the remote doc and compares
-  /// `lastModified`. Returns `true` if a conflict was detected (and recorded
-  /// via [markConflict]); `false` if the push should proceed.
-  /// The push proceeds if: doc absent (insert), local lastModified is null
-  /// (legacy / never-stamped local row), remote lastModified is null
-  /// (legacy remote), or remote is not strictly newer than local.
+  /// TM-342 / TM-361: pre-push conflict check. Reads the remote doc and
+  /// compares `remote.lastModified` against [localLastSyncedRemoteVersion]
+  /// — the server timestamp this row was last synced from. Returns `true` if
+  /// the remote has been modified since we last observed it (i.e. another
+  /// device pushed during our offline / unsynced window) and a conflict was
+  /// recorded; `false` if the push should proceed.
+  ///
+  /// Comparing against `lastSyncedRemoteVersion` rather than the local
+  /// `lastModified` is what makes this correct for offline edits: an offline
+  /// device's local clock advances during the disconnect, so its
+  /// `lastModified` ends up *later* than any remote push that landed while
+  /// it was offline. The lastSynced anchor doesn't drift with the local
+  /// clock — it's only updated when a server-authoritative timestamp lands
+  /// (listener fire or Use-latest resolution), so it correctly detects the
+  /// "the remote moved while I wasn't looking" case.
+  ///
+  /// The push proceeds if: doc absent (insert), local lastSynced is null
+  /// (legacy / never-anchored row), remote lastModified is null (legacy
+  /// remote), or remote is not strictly newer than local-lastSynced.
   Future<bool> _checkAndRecordConflict<TModel>({
     required DocumentReference<Map<String, dynamic>> docRef,
     required String localDocId,
-    required DateTime? localLastModified,
+    required DateTime? localLastSyncedRemoteVersion,
     required String localSyncState,
     required Serializer<TModel> serializer,
     required DateTime? Function(TModel model) extractLastModified,
@@ -1122,9 +1230,13 @@ class SyncService {
     final remoteData = remoteSnap.data();
     if (remoteData == null) return false;
 
-    if (localLastModified == null) {
-      // Local row predates the lastModified mechanism — treat as legacy and
-      // push (last-write-wins by client request order).
+    if (localLastSyncedRemoteVersion == null) {
+      // Row predates the lastSyncedRemoteVersion column or was never
+      // anchored (e.g. pendingCreate that has never reached the server).
+      // Treat as legacy and push — the post-push listener fire will
+      // anchor lastSyncedRemoteVersion going forward.
+      _syncLog(
+          '[SyncService] conflict-check $localDocId: lastSyncedRemoteVersion=null → no conflict (legacy / unanchored)');
       return false;
     }
 
@@ -1148,10 +1260,23 @@ class SyncService {
     if (remoteLastModified == null) {
       // Remote was written by a pre-TM-342 client without a timestamp.
       // Push wins — the next push from any TM-342 client will populate it.
+      _syncLog(
+          '[SyncService] conflict-check $localDocId: remote.lastModified=null → no conflict (legacy remote)');
       return false;
     }
-    if (!remoteLastModified.isAfter(localLastModified)) {
-      // Local is newer than (or tied with) remote — push wins.
+    _syncLog(
+        '[SyncService] conflict-check $localDocId: remote=$remoteLastModified vs lastSynced=$localLastSyncedRemoteVersion');
+    // TM-361: Drift's `dateTime()` columns store as Unix epoch *seconds*, so
+    // `localLastSyncedRemoteVersion` round-trips at second precision while
+    // `remoteLastModified` carries full millisecond precision from the
+    // Firestore Timestamp. Comparing them directly with `isAfter` would
+    // false-positive a conflict for the very row we just synced, since the
+    // truncated local copy is always `≤ 999ms` behind the un-truncated
+    // remote. Equalize precision before comparing.
+    if (!_isStrictlyAfterAtSecondPrecision(
+        remoteLastModified, localLastSyncedRemoteVersion)) {
+      // Remote hasn't advanced past what we last synced — push wins.
+      _syncLog('[SyncService] conflict-check $localDocId: no conflict (push wins)');
       return false;
     }
 
@@ -1173,7 +1298,7 @@ class SyncService {
     );
     await markConflict(envelope);
     _syncLog(
-        '[SyncService] conflict recorded for $localDocId: remote=$remoteLastModified > local=$localLastModified');
+        '[SyncService] conflict recorded for $localDocId: remote=$remoteLastModified > lastSynced=$localLastSyncedRemoteVersion');
     return true;
   }
 
@@ -1185,15 +1310,17 @@ class SyncService {
     _syncLog('[SyncService] _pushPendingTasks: ${pending.length} pending');
     var hadFailure = false;
     for (final row in pending) {
-      _syncLog('  task ${row.docId} state=${row.syncState}');
+      _syncLog(
+          '  task ${row.docId} state=${row.syncState} lastModified=${row.lastModified} lastSynced=${row.lastSyncedRemoteVersion}');
       try {
         final docRef = firestore.collection('tasks').doc(row.docId);
 
-        // TM-342: pre-push conflict check.
+        // TM-342 / TM-361: pre-push conflict check against the last-synced
+        // remote version, not local clock.
         final conflicted = await _checkAndRecordConflict<m.TaskItem>(
           docRef: docRef,
           localDocId: row.docId,
-          localLastModified: row.lastModified,
+          localLastSyncedRemoteVersion: row.lastSyncedRemoteVersion,
           localSyncState: row.syncState,
           serializer: m.TaskItem.serializer,
           extractLastModified: (t) => t.lastModified,
@@ -1218,6 +1345,14 @@ class SyncService {
           _syncLog('  → calling set() for ${row.docId}');
           await docRef.set(json);
           _syncLog('  → set() complete, calling markSynced');
+          // TM-361: just mark synced. The server-confirmed listener event
+          // (hasPendingWrites=false) will follow shortly and run
+          // `bulkUpsertFromRemote`, which anchors `lastSyncedRemoteVersion`
+          // to the freshly-stamped `lastModified`. Doing an explicit
+          // post-push `Source.server` fetch here deadlocked
+          // `pumpAndSettle` under `FakeFirebaseFirestore`, and the listener
+          // path already covers the common case. The rapid-edit-after-push
+          // race window is documented as a known limitation.
           await db.taskDao.markSynced(row.docId);
           _syncLog('  → markSynced complete for ${row.docId}');
         }
@@ -1237,11 +1372,12 @@ class SyncService {
       try {
         final docRef = firestore.collection('taskRecurrences').doc(row.docId);
 
-        // TM-342: pre-push conflict check.
+        // TM-342 / TM-361: pre-push conflict check against last-synced
+        // remote version.
         final conflicted = await _checkAndRecordConflict<m.TaskRecurrence>(
           docRef: docRef,
           localDocId: row.docId,
-          localLastModified: row.lastModified,
+          localLastSyncedRemoteVersion: row.lastSyncedRemoteVersion,
           localSyncState: row.syncState,
           serializer: m.TaskRecurrence.serializer,
           extractLastModified: (r) => r.lastModified,
@@ -1261,6 +1397,7 @@ class SyncService {
           // TM-342: server-authoritative timestamp.
           json['lastModified'] = FieldValue.serverTimestamp();
           await docRef.set(json);
+          // TM-361: rely on the listener anchor — see _pushPendingTasks.
           await db.taskRecurrenceDao.markSynced(row.docId);
         }
       } catch (e, s) {

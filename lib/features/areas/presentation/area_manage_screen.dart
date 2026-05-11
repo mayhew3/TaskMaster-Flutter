@@ -67,7 +67,7 @@ class AreaManageScreen extends ConsumerWidget {
   }
 
   Future<void> _showAddDialog(BuildContext context, WidgetRef ref) async {
-    final existing = ref.read(areasProvider).valueOrNull ?? const <Area>[];
+    final existing = ref.read(areasProvider).value ?? const <Area>[];
     final newName = await showDialog<String>(
       context: context,
       builder: (_) =>
@@ -104,7 +104,7 @@ class _AreaTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final counts = ref.watch(areaTaskCountsProvider).valueOrNull ??
+    final counts = ref.watch(areaTaskCountsProvider).value ??
         const <String, int>{};
     final count = counts[area.name.toLowerCase()] ?? 0;
     return ListTile(
@@ -137,7 +137,7 @@ class _AreaTile extends ConsumerWidget {
   }
 
   Future<void> _rename(BuildContext context, WidgetRef ref) async {
-    final existing = ref.read(areasProvider).valueOrNull ?? const <Area>[];
+    final existing = ref.read(areasProvider).value ?? const <Area>[];
     final otherNames = existing
         .where((a) => a.docId != area.docId)
         .map((a) => a.name)

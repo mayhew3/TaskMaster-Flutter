@@ -28,6 +28,7 @@ import 'package:mockito/src/dummies.dart' as _i8;
 // ignore_for_file: unnecessary_parenthesis
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
+// ignore_for_file: invalid_use_of_internal_member
 
 class _FakeGoogleSignInAuthentication_0 extends _i1.SmartFake
     implements _i2.GoogleSignInAuthentication {
@@ -90,6 +91,12 @@ class _FakeDocumentReference_9<T extends Object?> extends _i1.SmartFake
 
 class _FakeFuture_10<T1> extends _i1.SmartFake implements _i7.Future<T1> {
   _FakeFuture_10(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakePipelineSource_11 extends _i1.SmartFake
+    implements _i6.PipelineSource {
+  _FakePipelineSource_11(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
@@ -174,21 +181,6 @@ class MockFirebaseFirestore extends _i1.Mock implements _i6.FirebaseFirestore {
           as _i4.FirebaseApp);
 
   @override
-  String get databaseURL =>
-      (super.noSuchMethod(
-            Invocation.getter(#databaseURL),
-            returnValue: _i8.dummyValue<String>(
-              this,
-              Invocation.getter(#databaseURL),
-            ),
-            returnValueForMissingStub: _i8.dummyValue<String>(
-              this,
-              Invocation.getter(#databaseURL),
-            ),
-          )
-          as String);
-
-  @override
   String get databaseId =>
       (super.noSuchMethod(
             Invocation.getter(#databaseId),
@@ -216,20 +208,14 @@ class MockFirebaseFirestore extends _i1.Mock implements _i6.FirebaseFirestore {
           as _i5.Settings);
 
   @override
-  set app(_i4.FirebaseApp? _app) => super.noSuchMethod(
-    Invocation.setter(#app, _app),
+  set app(_i4.FirebaseApp? value) => super.noSuchMethod(
+    Invocation.setter(#app, value),
     returnValueForMissingStub: null,
   );
 
   @override
-  set databaseURL(String? _databaseURL) => super.noSuchMethod(
-    Invocation.setter(#databaseURL, _databaseURL),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  set databaseId(String? _databaseId) => super.noSuchMethod(
-    Invocation.setter(#databaseId, _databaseId),
+  set databaseId(String? value) => super.noSuchMethod(
+    Invocation.setter(#databaseId, value),
     returnValueForMissingStub: null,
   );
 
@@ -282,17 +268,6 @@ class MockFirebaseFirestore extends _i1.Mock implements _i6.FirebaseFirestore {
   _i7.Future<void> clearPersistence() =>
       (super.noSuchMethod(
             Invocation.method(#clearPersistence, []),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
-          )
-          as _i7.Future<void>);
-
-  @override
-  _i7.Future<void> enablePersistence([
-    _i5.PersistenceSettings? persistenceSettings,
-  ]) =>
-      (super.noSuchMethod(
-            Invocation.method(#enablePersistence, [persistenceSettings]),
             returnValue: _i7.Future<void>.value(),
             returnValueForMissingStub: _i7.Future<void>.value(),
           )
@@ -540,19 +515,19 @@ class MockFirebaseFirestore extends _i1.Mock implements _i6.FirebaseFirestore {
           as _i7.Future<void>);
 
   @override
-  _i7.Future<void> setIndexConfiguration({
-    required List<_i5.Index>? indexes,
-    List<_i5.FieldOverrides>? fieldOverrides,
-  }) =>
+  _i6.PipelineSource pipeline() =>
       (super.noSuchMethod(
-            Invocation.method(#setIndexConfiguration, [], {
-              #indexes: indexes,
-              #fieldOverrides: fieldOverrides,
-            }),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
+            Invocation.method(#pipeline, []),
+            returnValue: _FakePipelineSource_11(
+              this,
+              Invocation.method(#pipeline, []),
+            ),
+            returnValueForMissingStub: _FakePipelineSource_11(
+              this,
+              Invocation.method(#pipeline, []),
+            ),
           )
-          as _i7.Future<void>);
+          as _i6.PipelineSource);
 
   @override
   _i7.Future<void> setIndexConfigurationFromJSON(String? json) =>

@@ -186,7 +186,7 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
       );
     }
 
-    final groupedTasks = groupedTasksAsync.valueOrNull ?? [];
+    final groupedTasks = groupedTasksAsync.value ?? [];
     final sprintTasks = activeSprint != null
         ? ref.watch(tasksForSprintProvider(activeSprint))
         : <TaskItem>[];
@@ -268,8 +268,12 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
     final totalDays = endDate.difference(startDate).inDays;
     final sprintStr = 'Active Sprint - Day $currentDay of $totalDays';
 
-    final completed = sprintTasks.where((task) => task.completionDate != null).length;
-    final taskStr = '$completed/${sprintTasks.length} Tasks Complete';
+    // TM-361 manual-test #18: pull true completion counts from the
+    // DB-backed provider rather than the displayed merge — see
+    // sprintCompletionCountsProvider for rationale.
+    final counts = ref.watch(sprintCompletionCountsProvider(sprint)).value ??
+        SprintCounts.empty;
+    final taskStr = '${counts.completed}/${counts.total} Tasks Complete';
 
     // Active-sprint summary card: intentionally distinct (red tint, sprint-color outline).
     return Card(

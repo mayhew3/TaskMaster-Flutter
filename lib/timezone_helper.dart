@@ -16,8 +16,11 @@ class TimezoneHelper {
 
   Future<void> configureLocalTimeZone() async {
     tz.initializeTimeZones();
-    String timezone = await FlutterTimezone.getLocalTimezone();
-    tz.setLocalLocation(tz.getLocation(timezone));
+    // TM-361: flutter_timezone 5.x changed `getLocalTimezone()` to return
+    // a `TimezoneInfo` object instead of a raw String. We want the IANA
+    // identifier for tz.getLocation().
+    final info = await FlutterTimezone.getLocalTimezone();
+    tz.setLocalLocation(tz.getLocation(info.identifier));
     _timezoneInitialized = true;
   }
 

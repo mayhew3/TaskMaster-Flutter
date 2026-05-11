@@ -14,8 +14,7 @@ Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) =>
       'contexts': const _TaskContextListConverter().toJson(instance.contexts),
       'urgency': instance.urgency,
       'priority': instance.priority,
-      if (instance.priorityScaleVersion case final value?)
-        'priorityScaleVersion': value,
+      'priorityScaleVersion': ?instance.priorityScaleVersion,
       'duration': instance.duration,
       'gamePoints': instance.gamePoints,
       'startDate': _$JsonConverterToJson<DateTime, DateTime>(
@@ -49,12 +48,10 @@ Map<String, dynamic> _$TaskItemBlueprintToJson(TaskItemBlueprint instance) =>
       'retiredDate': instance.retiredDate?.toIso8601String(),
       'personDocId': instance.personDocId,
       'familyDocId': instance.familyDocId,
-      if (_$JsonConverterToJson<DateTime, DateTime>(
-            instance.lastModified,
-            const JsonDateTimePassThroughConverter().toJson,
-          )
-          case final value?)
-        'lastModified': value,
+      'lastModified': ?_$JsonConverterToJson<DateTime, DateTime>(
+        instance.lastModified,
+        const JsonDateTimePassThroughConverter().toJson,
+      ),
     };
 
 Json? _$JsonConverterToJson<Json, Value>(

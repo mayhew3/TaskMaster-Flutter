@@ -18,9 +18,11 @@ TaskItem _task({required String name, String? description}) {
 }
 
 void main() {
-  Widget _harness(Widget child, {List<Override> overrides = const []}) {
+  // TM-361: dropped the `overrides:` named arg — flutter_riverpod 3 no
+  // longer exports `Override` so the type annotation is awkward, and no
+  // caller in this file actually used it.
+  Widget _harness(Widget child) {
     return ProviderScope(
-      overrides: overrides,
       child: MaterialApp(home: Scaffold(body: Builder(builder: (ctx) => child))),
     );
   }

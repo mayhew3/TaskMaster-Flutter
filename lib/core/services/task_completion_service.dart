@@ -120,14 +120,14 @@ class TaskCompletionService {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 TaskCompletionService taskCompletionService(Ref ref) {
   final repository = ref.watch(taskRepositoryProvider);
   return TaskCompletionService(repository);
 }
 
 /// Controller for completing tasks
-@riverpod
+@Riverpod(keepAlive: true)
 class CompleteTask extends _$CompleteTask {
   @override
   FutureOr<void> build() {}
@@ -143,16 +143,29 @@ class CompleteTask extends _$CompleteTask {
       final db = ref.read(databaseProvider);
       final firestore = ref.read(firestoreProvider);
 
-      // Use cached data if available (don't wait for stream)
-      final tasksAsync = ref.read(tasksProvider);
-      final recurrencesAsync = ref.read(taskRecurrencesProvider);
-
-      final List<TaskItem> allTasks = tasksAsync.hasValue
-          ? tasksAsync.value!
-          : await ref.read(tasksProvider.future);
-      final List<TaskRecurrence> allRecurrences = recurrencesAsync.hasValue
-          ? recurrencesAsync.value!
-          : await ref.read(taskRecurrencesProvider.future);
+      // TM-361: Riverpod 4 + StreamProvider has a subtle quirk where
+      // `ref.read(tasksProvider)` from a notifier method returns AsyncLoading
+      // even though other consumers (e.g. filteredTasksProvider) clearly see
+      // data, and the matching `ref.read(tasksProvider.future)` await never
+      // resolves. Bypass the provider indirection — go straight to Drift
+      // (which is what tasksProvider does anyway) and only pay this cost
+      // when we actually need the list (recurring-completion case).
+      List<TaskItem> allTasks = const [];
+      List<TaskRecurrence> allRecurrences = const [];
+      final needsTaskList = task.recurrenceDocId != null && complete;
+      if (needsTaskList) {
+        final personDocIdForRead = ref.read(personDocIdProvider);
+        if (personDocIdForRead == null) {
+          throw StateError(
+              'Cannot complete recurring task: personDocId is null (not authenticated).');
+        }
+        final taskRows = await db.taskDao.allForUser(personDocIdForRead);
+        allTasks = taskRows.map(taskItemFromRow).toList();
+        final recurrenceRows = await db.taskRecurrenceDao
+            .watchActive(personDocIdForRead)
+            .first;
+        allRecurrences = recurrenceRows.map(taskRecurrenceFromRow).toList();
+      }
 
       perf.checkpoint('getData');
 
@@ -268,7 +281,7 @@ class CompleteTask extends _$CompleteTask {
 }
 
 /// Controller for skipping a recurring task instance
-@riverpod
+@Riverpod(keepAlive: true)
 class SkipTask extends _$SkipTask {
   @override
   FutureOr<void> build() {}
@@ -284,14 +297,15 @@ class SkipTask extends _$SkipTask {
         throw StateError('Cannot skip task: personDocId is null (not authenticated).');
       }
 
-      final tasksAsync = ref.read(tasksProvider);
-      final recurrencesAsync = ref.read(taskRecurrencesProvider);
-      final List<TaskItem> allTasks = tasksAsync.hasValue
-          ? tasksAsync.value!
-          : await ref.read(tasksProvider.future);
-      final List<TaskRecurrence> allRecurrences = recurrencesAsync.hasValue
-          ? recurrencesAsync.value!
-          : await ref.read(taskRecurrencesProvider.future);
+      // TM-361: same Riverpod 4 StreamProvider quirk as CompleteTask —
+      // read from Drift directly. See note there.
+      final taskRows = await db.taskDao.allForUser(personDocId);
+      final List<TaskItem> allTasks =
+          taskRows.map(taskItemFromRow).toList();
+      final recurrenceRows =
+          await db.taskRecurrenceDao.watchActive(personDocId).first;
+      final List<TaskRecurrence> allRecurrences =
+          recurrenceRows.map(taskRecurrenceFromRow).toList();
 
       if (task.recurrenceDocId != null && !_hasNextIteration(task, allTasks)) {
         final recurrence = allRecurrences.firstWhere(
@@ -388,7 +402,7 @@ class SkipTask extends _$SkipTask {
 /// is settled at construction; subsequent `state = AsyncLoading/AsyncData`
 /// re-completes it and throws "Bad state: Future already completed". UI
 /// loading state is handled locally by callers (e.g. `_busy` flags).
-@riverpod
+@Riverpod(keepAlive: true)
 class DeleteTask extends _$DeleteTask {
   @override
   FutureOr<void> build() {}
@@ -402,7 +416,7 @@ class DeleteTask extends _$DeleteTask {
 }
 
 /// Controller for adding new tasks.
-@riverpod
+@Riverpod(keepAlive: true)
 class AddTask extends _$AddTask {
   @override
   FutureOr<void> build() {}
@@ -480,7 +494,7 @@ class AddTask extends _$AddTask {
 }
 
 /// Controller for updating tasks.
-@riverpod
+@Riverpod(keepAlive: true)
 class UpdateTask extends _$UpdateTask {
   @override
   FutureOr<void> build() {}
@@ -590,7 +604,7 @@ class UpdateTask extends _$UpdateTask {
 }
 
 /// Controller for snoozing tasks
-@riverpod
+@Riverpod(keepAlive: true)
 class SnoozeTask extends _$SnoozeTask {
   @override
   FutureOr<void> build() {}
@@ -670,7 +684,7 @@ class SnoozeTask extends _$SnoozeTask {
 }
 
 /// Provider for legacy TaskRepository (for snooze functionality)
-@riverpod
+@Riverpod(keepAlive: true)
 legacy.TaskRepository legacyTaskRepository(Ref ref) {
   final firestore = ref.watch(firestoreProvider);
   return legacy.TaskRepository(firestore: firestore);

@@ -20,8 +20,7 @@ Map<String, dynamic> _$TaskItemRecurPreviewToJson(
   ),
   'urgency': instance.urgency,
   'priority': instance.priority,
-  if (instance.priorityScaleVersion case final value?)
-    'priorityScaleVersion': value,
+  'priorityScaleVersion': ?instance.priorityScaleVersion,
   'duration': instance.duration,
   'gamePoints': instance.gamePoints,
   'startDate': instance.startDate?.toIso8601String(),

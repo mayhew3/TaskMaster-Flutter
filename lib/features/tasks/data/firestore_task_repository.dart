@@ -62,7 +62,7 @@ class FirestoreTaskRepository implements TaskRepository {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 TaskRepository taskRepository(Ref ref) {
   final firestore = ref.watch(firestoreProvider);
   final legacyRepo = legacy.TaskRepository(firestore: firestore);

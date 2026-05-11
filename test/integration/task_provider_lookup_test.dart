@@ -33,10 +33,10 @@ void main() {
 
   /// Creates a container with the minimum overrides needed for task(taskId).
   /// [db] defaults to an empty in-memory database if not supplied.
-  ProviderContainer _makeContainer({
-    AppDatabase? db,
-    List<Override> extra = const [],
-  }) {
+  // TM-361: dropped the `extra` named arg — flutter_riverpod 3 no
+  // longer exports `Override` so the explicit type annotation is awkward,
+  // and no caller in this file passes it.
+  ProviderContainer _makeContainer({AppDatabase? db}) {
     final testDb = db ?? AppDatabase.forTesting(NativeDatabase.memory());
     return ProviderContainer(
       overrides: [
@@ -49,7 +49,6 @@ void main() {
         tasksWithRecurrencesProvider.overrideWith(
           (ref) => Stream.value(<TaskItem>[]),
         ),
-        ...extra,
       ],
     );
   }

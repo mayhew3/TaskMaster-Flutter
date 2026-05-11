@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart' hide Family;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/family_providers.dart';
 
@@ -15,7 +15,7 @@ class PendingInvitationBanner extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pending = ref.watch(pendingInvitationsForMeProvider).valueOrNull;
+    final pending = ref.watch(pendingInvitationsForMeProvider).value;
     if (pending == null || pending.isEmpty) {
       return const SizedBox.shrink();
     }

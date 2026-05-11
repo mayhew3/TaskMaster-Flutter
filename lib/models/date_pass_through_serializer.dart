@@ -1,6 +1,8 @@
-import 'package:built_collection/built_collection.dart';
 import 'package:built_value/serializer.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+// TM-361: cloud_firestore 6.x added its own `Type` symbol (for pipeline
+// expressions) which collides with `dart:core`'s `Type`. Hide it so the
+// `[DateTime]` literal infers as `List<core.Type>` correctly.
+import 'package:cloud_firestore/cloud_firestore.dart' hide Type;
 
 class DatePassThroughSerializer implements PrimitiveSerializer<DateTime> {
 
@@ -31,8 +33,8 @@ class DatePassThroughSerializer implements PrimitiveSerializer<DateTime> {
   }
 
   @override
-  final Iterable<Type> types = BuiltList<Type>([DateTime]);
+  Iterable<Type> get types => const [DateTime];
   @override
-  final String wireName = 'DateTime';
+  String get wireName => 'DateTime';
 
 }

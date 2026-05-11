@@ -6,126 +6,347 @@ part of 'family_task_filter_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$familyFilteredTasksHash() =>
-    r'c9257a3319b9f3cb86c24fec1b20c45a2de6952e';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+/// Filter state for the Family tab. Kept separate from the Tasks tab's filter
+/// providers so toggling on one tab doesn't affect the other (TM-335).
+
+@ProviderFor(FamilyShowCompleted)
+final familyShowCompletedProvider = FamilyShowCompletedProvider._();
+
+/// Filter state for the Family tab. Kept separate from the Tasks tab's filter
+/// providers so toggling on one tab doesn't affect the other (TM-335).
+final class FamilyShowCompletedProvider
+    extends $NotifierProvider<FamilyShowCompleted, bool> {
+  /// Filter state for the Family tab. Kept separate from the Tasks tab's filter
+  /// providers so toggling on one tab doesn't affect the other (TM-335).
+  FamilyShowCompletedProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'familyShowCompletedProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$familyShowCompletedHash();
+
+  @$internal
+  @override
+  FamilyShowCompleted create() => FamilyShowCompleted();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$familyShowCompletedHash() =>
+    r'47639aacfddb5bd94d2fb124a62eeabe78e380d8';
+
+/// Filter state for the Family tab. Kept separate from the Tasks tab's filter
+/// providers so toggling on one tab doesn't affect the other (TM-335).
+
+abstract class _$FamilyShowCompleted extends $Notifier<bool> {
+  bool build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<bool, bool>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<bool, bool>,
+              bool,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
+@ProviderFor(FamilyShowScheduled)
+final familyShowScheduledProvider = FamilyShowScheduledProvider._();
+
+final class FamilyShowScheduledProvider
+    extends $NotifierProvider<FamilyShowScheduled, bool> {
+  FamilyShowScheduledProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'familyShowScheduledProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$familyShowScheduledHash();
+
+  @$internal
+  @override
+  FamilyShowScheduled create() => FamilyShowScheduled();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$familyShowScheduledHash() =>
+    r'2c58b267d17f3538a776ef556b58ea5b6608fa58';
+
+abstract class _$FamilyShowScheduled extends $Notifier<bool> {
+  bool build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<bool, bool>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<bool, bool>,
+              bool,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
+@ProviderFor(FamilySearchQuery)
+final familySearchQueryProvider = FamilySearchQueryProvider._();
+
+final class FamilySearchQueryProvider
+    extends $NotifierProvider<FamilySearchQuery, String> {
+  FamilySearchQueryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'familySearchQueryProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$familySearchQueryHash();
+
+  @$internal
+  @override
+  FamilySearchQuery create() => FamilySearchQuery();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(String value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<String>(value),
+    );
+  }
+}
+
+String _$familySearchQueryHash() => r'45080988144a6101204328a7ce67f7bdfa812a51';
+
+abstract class _$FamilySearchQuery extends $Notifier<String> {
+  String build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<String, String>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<String, String>,
+              String,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
+/// Optional per-member filter chip — null means "all members".
+
+@ProviderFor(FamilyMemberFilter)
+final familyMemberFilterProvider = FamilyMemberFilterProvider._();
+
+/// Optional per-member filter chip — null means "all members".
+final class FamilyMemberFilterProvider
+    extends $NotifierProvider<FamilyMemberFilter, String?> {
+  /// Optional per-member filter chip — null means "all members".
+  FamilyMemberFilterProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'familyMemberFilterProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$familyMemberFilterHash();
+
+  @$internal
+  @override
+  FamilyMemberFilter create() => FamilyMemberFilter();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(String? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<String?>(value),
+    );
+  }
+}
+
+String _$familyMemberFilterHash() =>
+    r'403e2a10fcfcad29ee468160e52f7a7a55b6717e';
+
+/// Optional per-member filter chip — null means "all members".
+
+abstract class _$FamilyMemberFilter extends $Notifier<String?> {
+  String? build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<String?, String?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<String?, String?>,
+              String?,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
 
 /// Family tasks after applying the Family-tab filter toggles. Tasks completed
 /// in the current session (tracked by [recentlyCompletedTasksProvider]) are
 /// always included so the just-completed task stays visible — the grouping
 /// step keeps it in its original section until the user navigates away.
-///
-/// Copied from [familyFilteredTasks].
-@ProviderFor(familyFilteredTasks)
-final familyFilteredTasksProvider =
-    AutoDisposeProvider<List<TaskItem>>.internal(
-      familyFilteredTasks,
-      name: r'familyFilteredTasksProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$familyFilteredTasksHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef FamilyFilteredTasksRef = AutoDisposeProviderRef<List<TaskItem>>;
-String _$familyGroupedTasksHash() =>
-    r'd2aea6084832c12aa84cbd637d06993d13636997';
+@ProviderFor(familyFilteredTasks)
+final familyFilteredTasksProvider = FamilyFilteredTasksProvider._();
+
+/// Family tasks after applying the Family-tab filter toggles. Tasks completed
+/// in the current session (tracked by [recentlyCompletedTasksProvider]) are
+/// always included so the just-completed task stays visible — the grouping
+/// step keeps it in its original section until the user navigates away.
+
+final class FamilyFilteredTasksProvider
+    extends $FunctionalProvider<List<TaskItem>, List<TaskItem>, List<TaskItem>>
+    with $Provider<List<TaskItem>> {
+  /// Family tasks after applying the Family-tab filter toggles. Tasks completed
+  /// in the current session (tracked by [recentlyCompletedTasksProvider]) are
+  /// always included so the just-completed task stays visible — the grouping
+  /// step keeps it in its original section until the user navigates away.
+  FamilyFilteredTasksProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'familyFilteredTasksProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$familyFilteredTasksHash();
+
+  @$internal
+  @override
+  $ProviderElement<List<TaskItem>> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  List<TaskItem> create(Ref ref) {
+    return familyFilteredTasks(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<TaskItem> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<TaskItem>>(value),
+    );
+  }
+}
+
+String _$familyFilteredTasksHash() =>
+    r'fd5a09d9cacc41c7ebac304a41fe85823dc46aae';
 
 /// Family tasks grouped into Past Due / Urgent / Target / Tasks / Scheduled /
 /// Completed buckets. Mirrors the Tasks-tab grouping shape, including the
 /// TM-323 "recently completed stays in its original group" behavior so the
 /// just-completed task doesn't visibly jump to the Completed section until
 /// after the user navigates away and back.
-///
-/// Copied from [familyGroupedTasks].
+
 @ProviderFor(familyGroupedTasks)
-final familyGroupedTasksProvider =
-    AutoDisposeProvider<List<TaskGroup>>.internal(
-      familyGroupedTasks,
-      name: r'familyGroupedTasksProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$familyGroupedTasksHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
+final familyGroupedTasksProvider = FamilyGroupedTasksProvider._();
+
+/// Family tasks grouped into Past Due / Urgent / Target / Tasks / Scheduled /
+/// Completed buckets. Mirrors the Tasks-tab grouping shape, including the
+/// TM-323 "recently completed stays in its original group" behavior so the
+/// just-completed task doesn't visibly jump to the Completed section until
+/// after the user navigates away and back.
+
+final class FamilyGroupedTasksProvider
+    extends
+        $FunctionalProvider<List<TaskGroup>, List<TaskGroup>, List<TaskGroup>>
+    with $Provider<List<TaskGroup>> {
+  /// Family tasks grouped into Past Due / Urgent / Target / Tasks / Scheduled /
+  /// Completed buckets. Mirrors the Tasks-tab grouping shape, including the
+  /// TM-323 "recently completed stays in its original group" behavior so the
+  /// just-completed task doesn't visibly jump to the Completed section until
+  /// after the user navigates away and back.
+  FamilyGroupedTasksProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'familyGroupedTasksProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$familyGroupedTasksHash();
+
+  @$internal
+  @override
+  $ProviderElement<List<TaskGroup>> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  List<TaskGroup> create(Ref ref) {
+    return familyGroupedTasks(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<TaskGroup> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<TaskGroup>>(value),
     );
+  }
+}
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef FamilyGroupedTasksRef = AutoDisposeProviderRef<List<TaskGroup>>;
-String _$familyShowCompletedHash() =>
-    r'47639aacfddb5bd94d2fb124a62eeabe78e380d8';
-
-/// Filter state for the Family tab. Kept separate from the Tasks tab's filter
-/// providers so toggling on one tab doesn't affect the other (TM-335).
-///
-/// Copied from [FamilyShowCompleted].
-@ProviderFor(FamilyShowCompleted)
-final familyShowCompletedProvider =
-    NotifierProvider<FamilyShowCompleted, bool>.internal(
-      FamilyShowCompleted.new,
-      name: r'familyShowCompletedProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$familyShowCompletedHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-typedef _$FamilyShowCompleted = Notifier<bool>;
-String _$familyShowScheduledHash() =>
-    r'2c58b267d17f3538a776ef556b58ea5b6608fa58';
-
-/// See also [FamilyShowScheduled].
-@ProviderFor(FamilyShowScheduled)
-final familyShowScheduledProvider =
-    NotifierProvider<FamilyShowScheduled, bool>.internal(
-      FamilyShowScheduled.new,
-      name: r'familyShowScheduledProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$familyShowScheduledHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-typedef _$FamilyShowScheduled = Notifier<bool>;
-String _$familySearchQueryHash() => r'45080988144a6101204328a7ce67f7bdfa812a51';
-
-/// See also [FamilySearchQuery].
-@ProviderFor(FamilySearchQuery)
-final familySearchQueryProvider =
-    NotifierProvider<FamilySearchQuery, String>.internal(
-      FamilySearchQuery.new,
-      name: r'familySearchQueryProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$familySearchQueryHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-typedef _$FamilySearchQuery = Notifier<String>;
-String _$familyMemberFilterHash() =>
-    r'403e2a10fcfcad29ee468160e52f7a7a55b6717e';
-
-/// Optional per-member filter chip — null means "all members".
-///
-/// Copied from [FamilyMemberFilter].
-@ProviderFor(FamilyMemberFilter)
-final familyMemberFilterProvider =
-    NotifierProvider<FamilyMemberFilter, String?>.internal(
-      FamilyMemberFilter.new,
-      name: r'familyMemberFilterProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$familyMemberFilterHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-typedef _$FamilyMemberFilter = Notifier<String?>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+String _$familyGroupedTasksHash() =>
+    r'2f31d8dab48bd25365e9c9b4803ae89adcfe02b8';

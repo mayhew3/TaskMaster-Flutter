@@ -55,7 +55,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            timezoneHelperNotifierProvider.overrideWith(
+            timezoneHelperProvider.overrideWith(
               () => _TestTimezoneHelperNotifier(),
             ),
           ],
@@ -100,7 +100,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            timezoneHelperNotifierProvider.overrideWith(
+            timezoneHelperProvider.overrideWith(
               () => _TestTimezoneHelperNotifier(),
             ),
           ],
@@ -144,7 +144,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            timezoneHelperNotifierProvider.overrideWith(
+            timezoneHelperProvider.overrideWith(
               () => _TestTimezoneHelperNotifier(),
             ),
           ],
@@ -186,7 +186,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            timezoneHelperNotifierProvider.overrideWith(
+            timezoneHelperProvider.overrideWith(
               () => _TestTimezoneHelperNotifier(),
             ),
           ],

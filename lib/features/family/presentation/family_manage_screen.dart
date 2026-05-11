@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart' hide Family;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/auth_providers.dart';
 import '../../../models/family_invitation.dart';
@@ -16,12 +16,12 @@ class FamilyManageScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final family = ref.watch(currentFamilyProvider).valueOrNull;
-    final members = ref.watch(familyMembersProvider).valueOrNull ?? const [];
+    final family = ref.watch(currentFamilyProvider).value;
+    final members = ref.watch(familyMembersProvider).value ?? const [];
     // The provider returns every invite the user has sent (incl. accepted /
     // declined). The "Pending invitations" section is for outstanding ones
     // only, so filter here.
-    final outgoing = (ref.watch(outgoingInvitationsProvider).valueOrNull ??
+    final outgoing = (ref.watch(outgoingInvitationsProvider).value ??
             const <FamilyInvitation>[])
         .where((i) => i.status == FamilyInvitation.statusPending)
         .toList();

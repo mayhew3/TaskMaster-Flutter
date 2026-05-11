@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -31,9 +32,9 @@ const List<({String name, String iconName})> defaultContextSeeds = [
 /// task card's meta row so each card avoids rebuilding its own copy of the
 /// map on every render. Returns null entries for catalog rows whose icon
 /// hasn't been assigned (Tier 1 user-created contexts default to no icon).
-@riverpod
+@Riverpod(keepAlive: true)
 Map<String, String?> contextIconLookup(Ref ref) {
-  final catalog = ref.watch(contextsProvider).valueOrNull ??
+  final catalog = ref.watch(contextsProvider).value ??
       const <Context>[];
   return <String, String?>{
     for (final c in catalog) c.name.toLowerCase(): c.iconName,
@@ -45,7 +46,7 @@ Map<String, String?> contextIconLookup(Ref ref) {
 /// completed) tagged with that context. Used by the Manage Contexts screen
 /// to render count badges (TM-181). See `areaTaskCountsProvider` for the
 /// rationale behind including completed tasks.
-@riverpod
+@Riverpod(keepAlive: true)
 Stream<Map<String, int>> contextTaskCounts(Ref ref) {
   final personDocId = ref.watch(personDocIdProvider);
   final db = ref.watch(databaseProvider);
@@ -116,7 +117,7 @@ class ContextsWithDefaults extends _$ContextsWithDefaults {
       _seededForPersonDocIds.remove(personDocId);
       return;
     }
-    final current = ref.read(contextsProvider).valueOrNull ?? const <Context>[];
+    final current = ref.read(contextsProvider).value ?? const <Context>[];
     if (current.isNotEmpty) return;
 
     final service = ref.read(contextServiceProvider);
@@ -131,6 +132,16 @@ class ContextsWithDefaults extends _$ContextsWithDefaults {
       } on DuplicateContextNameException {
         // Race: a default name was already created (e.g. by the user manually
         // or via cross-device sync mid-wait). Skip and keep seeding the rest.
+      } catch (e, st) {
+        // TM-361: don't let an unexpected throw silently abort the seed
+        // loop — the previous version masked Riverpod 4's auto-dispose
+        // closing the contextService's ref between iterations, leaving
+        // the user with only the first seed in their catalog. Log and
+        // keep going; the catalog is more useful with N-1 entries than
+        // 1 entry.
+        debugPrint(
+            '⚠️ [ContextsWithDefaults] seed createContext for ${seed.name} '
+            'failed: $e\n$st');
       }
     }
   }

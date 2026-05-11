@@ -6,22 +6,46 @@ part of 'crash_reporter.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$crashReporterHash() => r'bc6ea93d0a1fc0573f1767ddfdc60c30c22058e5';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [crashReporter].
 @ProviderFor(crashReporter)
-final crashReporterProvider = Provider<CrashReporter>.internal(
-  crashReporter,
-  name: r'crashReporterProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$crashReporterHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final crashReporterProvider = CrashReporterProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef CrashReporterRef = ProviderRef<CrashReporter>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class CrashReporterProvider
+    extends $FunctionalProvider<CrashReporter, CrashReporter, CrashReporter>
+    with $Provider<CrashReporter> {
+  CrashReporterProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'crashReporterProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$crashReporterHash();
+
+  @$internal
+  @override
+  $ProviderElement<CrashReporter> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  CrashReporter create(Ref ref) {
+    return crashReporter(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(CrashReporter value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<CrashReporter>(value),
+    );
+  }
+}
+
+String _$crashReporterHash() => r'bc6ea93d0a1fc0573f1767ddfdc60c30c22058e5';

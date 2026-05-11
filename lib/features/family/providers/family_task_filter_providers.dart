@@ -1,5 +1,5 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart' hide Family;
-import 'package:riverpod_annotation/riverpod_annotation.dart' hide Family;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../models/task_item.dart';
 import '../../tasks/providers/task_filter_providers.dart' show TaskGroup;
@@ -46,7 +46,7 @@ class FamilyMemberFilter extends _$FamilyMemberFilter {
 /// in the current session (tracked by [recentlyCompletedTasksProvider]) are
 /// always included so the just-completed task stays visible — the grouping
 /// step keeps it in its original section until the user navigates away.
-@riverpod
+@Riverpod(keepAlive: true)
 List<TaskItem> familyFilteredTasks(Ref ref) {
   final showCompleted = ref.watch(familyShowCompletedProvider);
   final showScheduled = ref.watch(familyShowScheduledProvider);
@@ -56,7 +56,7 @@ List<TaskItem> familyFilteredTasks(Ref ref) {
   final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
   final recentlyCompletedIds = recentlyCompleted.map((t) => t.docId).toSet();
 
-  final tasks = tasksAsync.valueOrNull ?? const <TaskItem>[];
+  final tasks = tasksAsync.value ?? const <TaskItem>[];
 
   return tasks.where((task) {
     if (task.retired != null) return false;
@@ -88,7 +88,7 @@ List<TaskItem> familyFilteredTasks(Ref ref) {
 /// TM-323 "recently completed stays in its original group" behavior so the
 /// just-completed task doesn't visibly jump to the Completed section until
 /// after the user navigates away and back.
-@riverpod
+@Riverpod(keepAlive: true)
 List<TaskGroup> familyGroupedTasks(Ref ref) {
   final filtered = ref.watch(familyFilteredTasksProvider);
   final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);

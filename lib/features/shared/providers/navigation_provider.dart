@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../tasks/providers/task_filter_providers.dart';
@@ -56,13 +58,24 @@ class ActiveTabIndex extends _$ActiveTabIndex {
     // clamp on read.
     final maxIndex = NavTabs.forUser(inFamily: true).length - 1;
     final clamped = index.clamp(0, maxIndex).toInt();
-    // Clear recently completed tasks when navigating between tabs
-    // This allows completed tasks to move from their original section
-    // to the "Completed" section after navigation (TM-312)
-    ref.read(recentlyCompletedTasksProvider.notifier).clear();
-    ref.read(recentlyCompletedIndicesProvider.notifier).clear();
-    ref.read(searchQueryProvider.notifier).clear();
-    state = clamped;
+    // TM-361: defer the synchronous notification chain a microtask. The
+    // NavigationBar onTap handler fires while the gesture pipeline is mid-
+    // dispatch; under Riverpod 4, synchronously notifying watchers in that
+    // window occasionally lands on a ConsumerStatefulElement that has
+    // already begun unmounting (the previous tab body's children), and
+    // `markNeedsBuild` on the defunct element throws an assertion. The
+    // microtask hop lets the gesture pipeline unwind first, by which point
+    // any in-flight unmounts have finished and the subscription set is
+    // clean. No visible delay — runs before the next frame.
+    scheduleMicrotask(() {
+      // Clear recently completed tasks when navigating between tabs
+      // This allows completed tasks to move from their original section
+      // to the "Completed" section after navigation (TM-312)
+      ref.read(recentlyCompletedTasksProvider.notifier).clear();
+      ref.read(recentlyCompletedIndicesProvider.notifier).clear();
+      ref.read(searchQueryProvider.notifier).clear();
+      state = clamped;
+    });
   }
 
   /// Silently adjusts the stored index when a layout change makes it

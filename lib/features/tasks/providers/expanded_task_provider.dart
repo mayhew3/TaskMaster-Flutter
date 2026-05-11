@@ -7,7 +7,7 @@ part 'expanded_task_provider.g.dart';
 /// Accordion semantics: at most one card is expanded at a time across all
 /// task lists. State is session-scoped (no `keepAlive`); switching tabs
 /// collapses any open card.
-@riverpod
+@Riverpod(keepAlive: true)
 class ExpandedTask extends _$ExpandedTask {
   @override
   String? build() => null;

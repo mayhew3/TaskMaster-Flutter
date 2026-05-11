@@ -113,7 +113,7 @@ class SnoozeDialogState extends ConsumerState<SnoozeDialog> {
   }
 
   List<Widget> getWidgets() {
-    final timezoneHelperAsync = ref.watch(timezoneHelperNotifierProvider);
+    final timezoneHelperAsync = ref.watch(timezoneHelperProvider);
 
     var widgets = [
       Row(

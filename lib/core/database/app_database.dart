@@ -43,7 +43,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -103,6 +103,33 @@ class AppDatabase extends _$AppDatabase {
         await m.createTable(contexts);
         await customStatement(
           'ALTER TABLE tasks RENAME COLUMN task_context TO task_contexts',
+        );
+      }
+      if (from < 9) {
+        // TM-361: per-row `lastSyncedRemoteVersion` so the conflict check
+        // can compare the current remote `lastModified` against the server
+        // timestamp we last synced *for this row*, instead of against our
+        // own local clock. Without it, an offline edit's local-clock-stamped
+        // `lastModified` reads as "newer" than a remote that updated while
+        // we were disconnected, and the push silently overwrites that
+        // remote — exactly the data-loss case TM-361 manual-test #15
+        // surfaced.
+        await m.addColumn(tasks, tasks.lastSyncedRemoteVersion);
+        await m.addColumn(
+            taskRecurrences, taskRecurrences.lastSyncedRemoteVersion);
+        // Seed from `lastModified` for rows currently in `synced` state —
+        // those are by definition the last value we observed from the
+        // server. Pending rows can't safely backfill (their `lastModified`
+        // is the local edit time, not a server stamp); they'll get the
+        // right value on the next successful push / listener fire.
+        await customStatement(
+          'UPDATE tasks SET last_synced_remote_version = last_modified '
+          "WHERE sync_state = 'synced' AND last_synced_remote_version IS NULL",
+        );
+        await customStatement(
+          'UPDATE task_recurrences SET last_synced_remote_version = '
+          "last_modified WHERE sync_state = 'synced' "
+          'AND last_synced_remote_version IS NULL',
         );
       }
     },

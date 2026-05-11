@@ -71,7 +71,7 @@ class ContextManageScreen extends ConsumerWidget {
 
   Future<void> _showAddDialog(BuildContext context, WidgetRef ref) async {
     final existing =
-        ref.read(contextsProvider).valueOrNull ?? const <Context>[];
+        ref.read(contextsProvider).value ?? const <Context>[];
     final newName = await showDialog<String>(
       context: context,
       builder: (_) => _ContextNameDialog(
@@ -111,7 +111,7 @@ class _ContextTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final iconWidget = ContextIcon(name: this.context.iconName, size: 20);
     final hasIcon = ContextIcon.hasIcon(this.context.iconName);
-    final counts = ref.watch(contextTaskCountsProvider).valueOrNull ??
+    final counts = ref.watch(contextTaskCountsProvider).value ??
         const <String, int>{};
     final count = counts[this.context.name.toLowerCase()] ?? 0;
     return ListTile(
@@ -149,7 +149,7 @@ class _ContextTile extends ConsumerWidget {
 
   Future<void> _rename(BuildContext context, WidgetRef ref) async {
     final existing =
-        ref.read(contextsProvider).valueOrNull ?? const <Context>[];
+        ref.read(contextsProvider).value ?? const <Context>[];
     final otherNames = existing
         .where((c) => c.docId != this.context.docId)
         .map((c) => c.name)

@@ -6,136 +6,353 @@ part of 'task_filter_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$filteredTasksHash() => r'4b8793f333774ed7b111b1605bcd8dd7014a09b8';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+/// Simple state providers for filter toggles
+/// Using keepAlive: true to persist state across tab switches
 
-/// Filtered tasks based on visibility settings
-///
-/// Copied from [filteredTasks].
-@ProviderFor(filteredTasks)
-final filteredTasksProvider =
-    AutoDisposeFutureProvider<List<TaskItem>>.internal(
-      filteredTasks,
-      name: r'filteredTasksProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$filteredTasksHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
+@ProviderFor(ShowCompleted)
+final showCompletedProvider = ShowCompletedProvider._();
+
+/// Simple state providers for filter toggles
+/// Using keepAlive: true to persist state across tab switches
+final class ShowCompletedProvider
+    extends $NotifierProvider<ShowCompleted, bool> {
+  /// Simple state providers for filter toggles
+  /// Using keepAlive: true to persist state across tab switches
+  ShowCompletedProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'showCompletedProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$showCompletedHash();
+
+  @$internal
+  @override
+  ShowCompleted create() => ShowCompleted();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
     );
+  }
+}
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef FilteredTasksRef = AutoDisposeFutureProviderRef<List<TaskItem>>;
-String _$activeTaskCountHash() => r'2bebdf365f5d0aa271589aa7d69410a8f3c04e0b';
-
-/// Count of active (non-completed, non-retired) tasks
-///
-/// Copied from [activeTaskCount].
-@ProviderFor(activeTaskCount)
-final activeTaskCountProvider = AutoDisposeProvider<int>.internal(
-  activeTaskCount,
-  name: r'activeTaskCountProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$activeTaskCountHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef ActiveTaskCountRef = AutoDisposeProviderRef<int>;
-String _$completedTaskCountHash() =>
-    r'cb5b1d8c3f28f87537a1a5e4a285b3f8bd6d37e6';
-
-/// Count of completed (non-skipped, non-retired) tasks.
-/// Uses Firestore aggregation for the total (too many to store locally),
-/// then subtracts the local skipped count (always present since skip is local-first).
-///
-/// Copied from [completedTaskCount].
-@ProviderFor(completedTaskCount)
-final completedTaskCountProvider = AutoDisposeFutureProvider<int>.internal(
-  completedTaskCount,
-  name: r'completedTaskCountProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$completedTaskCountHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef CompletedTaskCountRef = AutoDisposeFutureProviderRef<int>;
-String _$groupedTasksHash() => r'd8ed7228a3c8e2c6413a4d25cabbaa4a1b639a4b';
-
-/// Grouped and sorted tasks for the task list
-///
-/// Copied from [groupedTasks].
-@ProviderFor(groupedTasks)
-final groupedTasksProvider =
-    AutoDisposeFutureProvider<List<TaskGroup>>.internal(
-      groupedTasks,
-      name: r'groupedTasksProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$groupedTasksHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef GroupedTasksRef = AutoDisposeFutureProviderRef<List<TaskGroup>>;
 String _$showCompletedHash() => r'a7c3485980d4e64d2b0945fd8a098070bd5fbffb';
 
 /// Simple state providers for filter toggles
 /// Using keepAlive: true to persist state across tab switches
-///
-/// Copied from [ShowCompleted].
-@ProviderFor(ShowCompleted)
-final showCompletedProvider = NotifierProvider<ShowCompleted, bool>.internal(
-  ShowCompleted.new,
-  name: r'showCompletedProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$showCompletedHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
 
-typedef _$ShowCompleted = Notifier<bool>;
+abstract class _$ShowCompleted extends $Notifier<bool> {
+  bool build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<bool, bool>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<bool, bool>,
+              bool,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
+@ProviderFor(ShowScheduled)
+final showScheduledProvider = ShowScheduledProvider._();
+
+final class ShowScheduledProvider
+    extends $NotifierProvider<ShowScheduled, bool> {
+  ShowScheduledProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'showScheduledProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$showScheduledHash();
+
+  @$internal
+  @override
+  ShowScheduled create() => ShowScheduled();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
 String _$showScheduledHash() => r'0ebc352bb4c95ca8b3f91d32a6db6323f5d01a84';
 
-/// See also [ShowScheduled].
-@ProviderFor(ShowScheduled)
-final showScheduledProvider = NotifierProvider<ShowScheduled, bool>.internal(
-  ShowScheduled.new,
-  name: r'showScheduledProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$showScheduledHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+abstract class _$ShowScheduled extends $Notifier<bool> {
+  bool build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<bool, bool>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<bool, bool>,
+              bool,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
 
-typedef _$ShowScheduled = Notifier<bool>;
+/// Text search query for filtering tasks by name
+
+@ProviderFor(SearchQuery)
+final searchQueryProvider = SearchQueryProvider._();
+
+/// Text search query for filtering tasks by name
+final class SearchQueryProvider extends $NotifierProvider<SearchQuery, String> {
+  /// Text search query for filtering tasks by name
+  SearchQueryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'searchQueryProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$searchQueryHash();
+
+  @$internal
+  @override
+  SearchQuery create() => SearchQuery();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(String value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<String>(value),
+    );
+  }
+}
+
 String _$searchQueryHash() => r'652516df14d1f054c2015886d77c308ba15b0a58';
 
 /// Text search query for filtering tasks by name
-///
-/// Copied from [SearchQuery].
-@ProviderFor(SearchQuery)
-final searchQueryProvider = NotifierProvider<SearchQuery, String>.internal(
-  SearchQuery.new,
-  name: r'searchQueryProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$searchQueryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
 
-typedef _$SearchQuery = Notifier<String>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$SearchQuery extends $Notifier<String> {
+  String build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<String, String>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<String, String>,
+              String,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
+/// Filtered tasks based on visibility settings
+
+@ProviderFor(filteredTasks)
+final filteredTasksProvider = FilteredTasksProvider._();
+
+/// Filtered tasks based on visibility settings
+
+final class FilteredTasksProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<TaskItem>>,
+          List<TaskItem>,
+          FutureOr<List<TaskItem>>
+        >
+    with $FutureModifier<List<TaskItem>>, $FutureProvider<List<TaskItem>> {
+  /// Filtered tasks based on visibility settings
+  FilteredTasksProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'filteredTasksProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$filteredTasksHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<TaskItem>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<TaskItem>> create(Ref ref) {
+    return filteredTasks(ref);
+  }
+}
+
+String _$filteredTasksHash() => r'da6b3bc5fd474016300c429559e04dec45cf97e8';
+
+/// Count of active (non-completed, non-retired) tasks
+
+@ProviderFor(activeTaskCount)
+final activeTaskCountProvider = ActiveTaskCountProvider._();
+
+/// Count of active (non-completed, non-retired) tasks
+
+final class ActiveTaskCountProvider extends $FunctionalProvider<int, int, int>
+    with $Provider<int> {
+  /// Count of active (non-completed, non-retired) tasks
+  ActiveTaskCountProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'activeTaskCountProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$activeTaskCountHash();
+
+  @$internal
+  @override
+  $ProviderElement<int> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  int create(Ref ref) {
+    return activeTaskCount(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(int value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<int>(value),
+    );
+  }
+}
+
+String _$activeTaskCountHash() => r'd5c4df1bda2592964ade4097c8476ce3de17a377';
+
+/// Count of completed (non-skipped, non-retired) tasks.
+/// Uses Firestore aggregation for the total (too many to store locally),
+/// then subtracts the local skipped count (always present since skip is local-first).
+
+@ProviderFor(completedTaskCount)
+final completedTaskCountProvider = CompletedTaskCountProvider._();
+
+/// Count of completed (non-skipped, non-retired) tasks.
+/// Uses Firestore aggregation for the total (too many to store locally),
+/// then subtracts the local skipped count (always present since skip is local-first).
+
+final class CompletedTaskCountProvider
+    extends $FunctionalProvider<AsyncValue<int>, int, FutureOr<int>>
+    with $FutureModifier<int>, $FutureProvider<int> {
+  /// Count of completed (non-skipped, non-retired) tasks.
+  /// Uses Firestore aggregation for the total (too many to store locally),
+  /// then subtracts the local skipped count (always present since skip is local-first).
+  CompletedTaskCountProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'completedTaskCountProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$completedTaskCountHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<int> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<int> create(Ref ref) {
+    return completedTaskCount(ref);
+  }
+}
+
+String _$completedTaskCountHash() =>
+    r'37f34a0cf5717a8370b4c5d6936c94a0a8527280';
+
+/// Grouped and sorted tasks for the task list
+
+@ProviderFor(groupedTasks)
+final groupedTasksProvider = GroupedTasksProvider._();
+
+/// Grouped and sorted tasks for the task list
+
+final class GroupedTasksProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<TaskGroup>>,
+          List<TaskGroup>,
+          FutureOr<List<TaskGroup>>
+        >
+    with $FutureModifier<List<TaskGroup>>, $FutureProvider<List<TaskGroup>> {
+  /// Grouped and sorted tasks for the task list
+  GroupedTasksProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'groupedTasksProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$groupedTasksHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<TaskGroup>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<TaskGroup>> create(Ref ref) {
+    return groupedTasks(ref);
+  }
+}
+
+String _$groupedTasksHash() => r'73667166812c7d01cc9bedd439e71857b0609cf9';

@@ -318,7 +318,7 @@ void main() {
     test('is configured with keepAlive', () async {
       // The provider should be defined and use keepAlive=true
       // (Tested indirectly by checking it compiles and is exported)
-      expect(timezoneHelperNotifierProvider, isNotNull);
+      expect(timezoneHelperProvider, isNotNull);
     });
   });
 
