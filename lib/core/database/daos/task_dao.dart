@@ -147,9 +147,20 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
         debugPrint(
             '[TaskDao.bulkUpsertFromRemote] skipped ${skipped.length} pending rows: $skipped');
       }
-      for (final r in toUpsert) {
+      // Aggregate the per-row anchor log — a per-row print floods debug
+      // builds on large initial syncs (and meaningfully slows widget tests
+      // that pump a full pull). Sample the first few IDs for traceability.
+      if (toUpsert.isNotEmpty) {
+        const sampleCount = 5;
+        final sample = toUpsert
+            .take(sampleCount)
+            .map((r) => r.docId.value)
+            .join(', ');
+        final suffix = toUpsert.length > sampleCount
+            ? ' (+${toUpsert.length - sampleCount} more)'
+            : '';
         debugPrint(
-            '[TaskDao.bulkUpsertFromRemote] anchoring ${r.docId.value}: lastSyncedRemoteVersion=${r.lastModified}');
+            '[TaskDao.bulkUpsertFromRemote] anchoring ${toUpsert.length} rows: $sample$suffix');
       }
     }
     if (toUpsert.isEmpty) return;

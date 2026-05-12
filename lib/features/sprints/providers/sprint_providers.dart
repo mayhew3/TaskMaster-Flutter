@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart' hide Type;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:rxdart/rxdart.dart';
+import '../../../core/database/app_database.dart' show Task;
 import '../../../core/database/converters.dart';
 import '../../../core/providers/auth_providers.dart';
 import '../../../core/providers/database_provider.dart';
@@ -180,29 +182,50 @@ Stream<SprintCounts> sprintCompletionCounts(Ref ref, Sprint sprint) async* {
     return;
   }
 
-  final firestoreRoster =
-      await ref.watch(sprintRosterFirestoreProvider(sprint).future);
-  final firestoreCompleted = <String, bool>{
-    for (final t in firestoreRoster) t.docId: t.completionDate != null,
-  };
+  // Show a correct denominator immediately so the banner doesn't briefly
+  // read "0/0" while the Firestore roster fetch is in flight on a slow
+  // or offline connection.
+  yield SprintCounts(completed: 0, total: docIds.length);
 
   final db = ref.watch(databaseProvider);
-  await for (final driftRows
-      in db.taskDao.watchTasksByDocIds(personDocId, docIds)) {
-    final driftCompleted = <String, bool>{
-      for (final r in driftRows) r.docId: r.completionDate != null,
-    };
-    var completed = 0;
-    for (final docId in docIds) {
-      final live = driftCompleted[docId];
-      if (live != null) {
-        if (live) completed++;
-      } else if (firestoreCompleted[docId] == true) {
-        completed++;
+
+  // Run Drift and Firestore in parallel and merge via combineLatest so:
+  //   • the first Drift emission (this device's view) lands without
+  //     waiting on the network round-trip,
+  //   • the Firestore-resolved count of cold completions from other
+  //     devices folds in as soon as the roster arrives (re-yielding
+  //     even if Drift is currently idle), and
+  //   • any subsequent local completion toggle (Drift emit) re-runs
+  //     the merge against the cached Firestore data.
+  // The Firestore stream starts with an empty map so combineLatest can
+  // yield Drift-only counts before the network completes.
+  final firestoreCompletedStream = ref
+      .watch(sprintRosterFirestoreProvider(sprint).future)
+      .asStream()
+      .map((roster) => <String, bool>{
+            for (final t in roster) t.docId: t.completionDate != null,
+          })
+      .startWith(const <String, bool>{});
+
+  yield* Rx.combineLatest2<List<Task>, Map<String, bool>, SprintCounts>(
+    db.taskDao.watchTasksByDocIds(personDocId, docIds),
+    firestoreCompletedStream,
+    (driftRows, firestoreCompleted) {
+      final driftCompleted = <String, bool>{
+        for (final r in driftRows) r.docId: r.completionDate != null,
+      };
+      var completed = 0;
+      for (final docId in docIds) {
+        final live = driftCompleted[docId];
+        if (live != null) {
+          if (live) completed++;
+        } else if (firestoreCompleted[docId] == true) {
+          completed++;
+        }
       }
-    }
-    yield SprintCounts(completed: completed, total: docIds.length);
-  }
+      return SprintCounts(completed: completed, total: docIds.length);
+    },
+  );
 }
 
 /// Get tasks for a specific sprint.
