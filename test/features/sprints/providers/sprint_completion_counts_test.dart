@@ -15,7 +15,6 @@
 // `0/0` until the network round-trip completed.
 
 import 'package:built_collection/built_collection.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
@@ -29,9 +28,6 @@ import 'package:taskmaestro/core/providers/firebase_providers.dart';
 import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaestro/models/sprint.dart';
 import 'package:taskmaestro/models/sprint_assignment.dart';
-import 'package:taskmaestro/models/task_item.dart';
-
-import '../../../helpers/async_provider_helpers.dart';
 
 const _personDocId = 'test-person';
 
