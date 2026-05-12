@@ -39,19 +39,28 @@ class TaskRecurrenceDao extends DatabaseAccessor<AppDatabase>
   /// Bulk upsert rows from a Firestore snapshot. See [TaskDao.bulkUpsertFromRemote].
   /// pendingConflict rows are also skipped (TM-342). TM-361: syncs
   /// `lastSyncedRemoteVersion` from each row's `lastModified`.
+  ///
+  /// TM-367: pending rows whose `lastSyncedRemoteVersion` is currently null
+  /// (legacy / never-anchored) get a one-time back-fill from the listener's
+  /// `lastModified` so the next push's conflict-check has a server-anchored
+  /// reference. Pending rows whose anchor is already set are NOT touched
+  /// here — see `TaskDao.bulkUpsertFromRemote` for the full rationale.
   Future<void> bulkUpsertFromRemote(List<TaskRecurrencesCompanion> rows) async {
     if (rows.isEmpty) return;
 
-    final pendingIds = await (select(taskRecurrences)
+    final pendingRows = await (select(taskRecurrences)
           ..where((r) => r.syncState.isIn([
                 SyncState.pendingCreate.name,
                 SyncState.pendingUpdate.name,
                 SyncState.pendingDelete.name,
                 SyncState.pendingConflict.name,
               ])))
-        .map((r) => r.docId)
         .get();
-    final pendingSet = pendingIds.toSet();
+    final pendingSet = {for (final r in pendingRows) r.docId};
+    final pendingNeverAnchored = {
+      for (final r in pendingRows)
+        if (r.lastSyncedRemoteVersion == null) r.docId
+    };
 
     final toUpsert = rows
         .where((r) => !pendingSet.contains(r.docId.value))
@@ -61,8 +70,25 @@ class TaskRecurrenceDao extends DatabaseAccessor<AppDatabase>
             ))
         .toList();
 
-    if (toUpsert.isEmpty) return;
-    await batch((b) => b.insertAllOnConflictUpdate(taskRecurrences, toUpsert));
+    // TM-367: one-time anchor back-fill for never-anchored pending rows.
+    final toAnchor = rows
+        .where((r) => pendingNeverAnchored.contains(r.docId.value))
+        .where((r) => r.lastModified.present && r.lastModified.value != null)
+        .toList();
+
+    if (toUpsert.isNotEmpty) {
+      await batch((b) => b.insertAllOnConflictUpdate(taskRecurrences, toUpsert));
+    }
+    if (toAnchor.isNotEmpty) {
+      await transaction(() async {
+        for (final r in toAnchor) {
+          await (update(taskRecurrences)
+                ..where((t) => t.docId.equals(r.docId.value)))
+              .write(TaskRecurrencesCompanion(
+                  lastSyncedRemoteVersion: r.lastModified));
+        }
+      });
+    }
   }
 
   Future<void> deleteFromRemote(String docId) async {
