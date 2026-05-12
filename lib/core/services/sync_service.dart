@@ -1245,6 +1245,15 @@ class SyncService {
 
     // Choose the anchor: prefer the server-authoritative lastSynced when
     // available; fall back to local lastModified for unanchored rows.
+    //
+    // TM-367: the lastModified fallback is imprecise under local clock skew
+    // (a device whose clock is ahead can have lastModified > a fresh remote
+    // even when the remote is the newer truth, leading to a missed
+    // conflict). The proper fix — anchoring lastSyncedRemoteVersion at
+    // listener time for pending rows — is tracked in TM-367 and is too
+    // large for this PR. Until then this is strictly better than the
+    // pre-TM-361 behaviour (which treated null anchors as "push wins"
+    // unconditionally).
     final localAnchor =
         localLastSyncedRemoteVersion ?? localLastModified;
     if (localAnchor == null) {
