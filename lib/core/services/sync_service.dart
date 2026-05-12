@@ -1103,63 +1103,6 @@ class SyncService {
     return aSec > bSec;
   }
 
-  /// TM-361: read back the server-stamped `lastModified` for the doc we
-  /// just pushed, so the row's `lastSyncedRemoteVersion` reflects the
-  /// actual server timestamp instead of going stale.
-  ///
-  /// Tries the server first (authoritative), falls back to the local cache
-  /// (which the SDK updates with the resolved value after `set()` acks),
-  /// and as a last resort returns local UTC time. Returning *something* is
-  /// critical: a null return leaves `lastSyncedRemoteVersion` at the
-  /// pre-push value, and the very next push's conflict check would compare
-  /// the freshly-stamped remote against that stale anchor and false-positive.
-  /// Local time is imperfect under clock skew but strictly better than the
-  /// stale anchor — and matches what the listener-driven path eventually
-  /// converges to anyway.
-  // ignore: unused_element
-  Future<DateTime?> _readServerLastModified(
-      DocumentReference<Map<String, dynamic>> docRef) async {
-    // Each source is wrapped in a tight timeout because FakeFirebaseFirestore
-    // (used in widget tests) silently hangs `Source.server` reads, which
-    // would deadlock `pumpAndSettle` on any test that exercises a push.
-    // Production Firestore acks server reads in tens of ms; 2s is generous
-    // enough that we don't false-fall-back under real latency.
-    const perSourceTimeout = Duration(seconds: 2);
-    for (final source in const [Source.server, Source.cache]) {
-      try {
-        final snap = await docRef
-            .get(GetOptions(source: source))
-            .timeout(perSourceTimeout);
-        final raw = snap.data()?['lastModified'];
-        if (raw is Timestamp) {
-          final result = raw.toDate().toUtc();
-          _syncLog(
-              '[SyncService] post-push anchor for ${docRef.path}: $result (via $source)');
-          return result;
-        }
-        if (raw is DateTime) {
-          final result = raw.toUtc();
-          _syncLog(
-              '[SyncService] post-push anchor for ${docRef.path}: $result (via $source as DateTime)');
-          return result;
-        }
-        _syncLog(
-            '[SyncService] post-push fetch via $source for ${docRef.path}: lastModified field was ${raw?.runtimeType ?? "null"} — trying next source');
-      } on TimeoutException {
-        _syncLog(
-            '[SyncService] post-push fetch via $source for ${docRef.path} timed out after ${perSourceTimeout.inSeconds}s');
-      } catch (e) {
-        _syncLog(
-            '[SyncService] post-push fetch via $source failed for ${docRef.path}: $e');
-      }
-    }
-    final fallback = DateTime.now().toUtc();
-    _syncLog(
-        '[SyncService] post-push lastModified unreadable for ${docRef.path}; '
-        'anchoring lastSyncedRemoteVersion to local time ($fallback)');
-    return fallback;
-  }
-
   /// TM-342: server-source `get()` with backoff retry on transient
   /// `unavailable` / `deadline-exceeded` errors. The Firestore SDK can
   /// briefly reject server reads while reconnecting after a connectivity

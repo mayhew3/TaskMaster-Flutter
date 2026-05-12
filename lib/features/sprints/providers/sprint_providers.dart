@@ -241,7 +241,15 @@ List<TaskItem> tasksForSprint(Ref ref, Sprint sprint) {
 
   return tasksAsync.maybeWhen(
     data: (incompleteTasks) {
-      final sprintDocIds = sprint.sprintAssignments.map((sa) => sa.taskDocId).toSet();
+      // Filter retired assignments — a retired SprintAssignment means the
+      // task has been removed from this sprint. Mirrors the same filter
+      // applied in `sprintRosterFirestoreProvider` and
+      // `sprintCompletionCountsProvider` so all three views agree on
+      // membership.
+      final sprintDocIds = sprint.sprintAssignments
+          .where((sa) => sa.retired == null)
+          .map((sa) => sa.taskDocId)
+          .toSet();
       // Map-based merge so higher-priority sources overwrite lower-priority ones.
       final tasksByDocId = <String, TaskItem>{};
 

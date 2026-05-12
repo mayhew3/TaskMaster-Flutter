@@ -50,13 +50,14 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
   // base set — the banner count therefore stayed at `0/N` even when sprint
   // tasks got completed mid-session.
   Sprint? activeSprint;
-  /// Full sprint task list including completed (TM-366) — used by the
-  /// banner count and as the source of truth for sprint membership.
-  BuiltList<TaskItem>? activeSprintItems;
-  /// docId-keyed lookup set for membership checks. Avoids a
-  /// `BuiltList<TaskItem>.contains(TaskItem)` reference-equality footgun
-  /// (the merged sprint provider may return rebuilt instances that don't
-  /// `==` the originals coming through `widget.taskItems`).
+  /// docId-keyed lookup set for sprint-membership checks. Derived from
+  /// the merged `tasksForSprintProvider` so it includes incomplete +
+  /// recently-completed + older-completed (when toggled) sprint tasks.
+  /// Used for filtering — avoids the `BuiltList<TaskItem>.contains(TaskItem)`
+  /// reference-equality footgun (the merged provider may return rebuilt
+  /// instances that don't `==` the originals from `widget.taskItems`).
+  /// Banner counts come from `sprintCompletionCountsProvider` (TM-366),
+  /// not from this set's size.
   Set<String> activeSprintDocIds = const {};
 
   bool initialized = false;
@@ -76,22 +77,22 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
       initialized = true;
     }
 
-    // Recompute the active-sprint snapshot every build so a completion
-    // landing mid-session updates the banner count immediately. The
-    // merged `tasksForSprintProvider` includes incomplete + recently-
-    // completed + (when `showCompleted` is on) older-completed tasks —
-    // exactly the set the banner needs. See task_list_screen.dart's
+    // Recompute the active-sprint membership set every build so a
+    // completion landing mid-session affects filtering immediately. The
+    // merged `tasksForSprintProvider` includes incomplete +
+    // recently-completed + (when `showCompleted` is on) older-completed
+    // tasks — exactly the set the filtering logic needs. The banner's
+    // count comes from `sprintCompletionCountsProvider` (DB-backed,
+    // includes cold completions); see task_list_screen.dart's
     // `_buildSprintBanner` for the parallel implementation.
     final allSprints = ref.watch(sprintsProvider).value ?? [];
     activeSprint = activeSprintSelector(BuiltList<Sprint>(allSprints));
     if (activeSprint != null) {
       final mergedSprintTasks =
           ref.watch(tasksForSprintProvider(activeSprint!));
-      activeSprintItems = BuiltList<TaskItem>(mergedSprintTasks);
       activeSprintDocIds =
           mergedSprintTasks.map((t) => t.docId).toSet();
     } else {
-      activeSprintItems = null;
       activeSprintDocIds = const {};
     }
 

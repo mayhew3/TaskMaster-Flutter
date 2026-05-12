@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../core/database/app_database.dart' as drift;
 import '../../../core/database/converters.dart';
 import '../../../core/database/tables.dart' show SyncState;
 import '../../../core/providers/auth_providers.dart';
@@ -16,13 +15,6 @@ import '../../../models/task_item.dart';
 import '../../../models/task_recurrence.dart';
 
 part 'sync_conflict_providers.g.dart';
-
-// TM-361: Riverpod 4 codegen can't introspect prefixed types
-// (`drift.Task`, `drift.TaskRecurrence`) when they appear in a provider's
-// return type. Local typedefs lift the type behind a non-prefixed alias
-// so the generator picks them up correctly.
-typedef DriftTaskRow = drift.Task;
-typedef DriftRecurrenceRow = drift.TaskRecurrence;
 
 /// TM-342: a sync conflict surfaces when [_pushPendingTasks] /
 /// [_pushPendingRecurrences] detects that the remote was modified after the
@@ -163,9 +155,9 @@ Stream<int> recurrenceConflictRowCount(Ref ref) {
 }
 
 /// Stream of task conflicts for the current user — only entries whose
-/// `conflictRemoteJson` envelope decodes cleanly. Use [taskConflictRowsProvider]
-/// for the count (which includes rows that fail to decode and would otherwise
-/// hide from the UI).
+/// `conflictRemoteJson` envelope decodes cleanly. Use
+/// [taskConflictRowCountProvider] for the count (which includes rows that
+/// fail to decode and would otherwise hide from the UI).
 @Riverpod(keepAlive: true)
 Stream<List<TaskConflict>> taskConflicts(Ref ref) {
   final personDocId = ref.watch(personDocIdProvider);

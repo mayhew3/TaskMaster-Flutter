@@ -53,8 +53,14 @@ Stream<List<TaskItem>> sprintAllTasks(Ref ref, Sprint sprint) {
 
   if (personDocId == null) return Stream.value(const []);
 
-  final docIds =
-      sprint.sprintAssignments.map((sa) => sa.taskDocId).toList(growable: false);
+  // Filter retired assignments — a retired SprintAssignment means the task
+  // has been removed from this sprint. Stays consistent with
+  // `sprintRosterFirestoreProvider` and `sprintCompletionCountsProvider`,
+  // both of which apply the same filter.
+  final docIds = sprint.sprintAssignments
+      .where((sa) => sa.retired == null)
+      .map((sa) => sa.taskDocId)
+      .toList(growable: false);
   if (docIds.isEmpty) return Stream.value(const []);
 
   final tasksStream =
@@ -120,8 +126,13 @@ Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
   final firestoreRoster =
       await ref.watch(sprintRosterFirestoreProvider(sprint).future);
 
-  final sprintDocIds =
-      sprint.sprintAssignments.map((sa) => sa.taskDocId).toSet();
+  // Retired assignments are excluded everywhere else (Firestore roster,
+  // completion counts, sprintAllTasks); match that here so a removed task
+  // doesn't continue to show in the sprint screen.
+  final sprintDocIds = sprint.sprintAssignments
+      .where((sa) => sa.retired == null)
+      .map((sa) => sa.taskDocId)
+      .toSet();
 
   // Build a docId → task map with pending state overlaid for optimistic UI.
   final taskMap = <String, TaskItem>{};
@@ -162,8 +173,10 @@ Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
 
   // Iterate sprint assignments IN ORDER so positions are stable across
   // completions (TM-339): completing a task doesn't reshuffle the list.
+  // Skip retired assignments to match the filter used for `sprintDocIds`.
   final ordered = <TaskItem>[];
   for (final sa in sprint.sprintAssignments) {
+    if (sa.retired != null) continue;
     final task = taskMap[sa.taskDocId];
     if (task != null) ordered.add(task);
   }
