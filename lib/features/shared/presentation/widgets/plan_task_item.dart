@@ -41,7 +41,7 @@ import 'delayed_checkbox.dart';
 /// scroll, title-truncation detection, etc.) lives in
 /// `editable_task_item.dart` and is shared verbatim between this widget
 /// and the main task list.
-class PlanTaskItemWidget extends ConsumerWidget {
+class PlanTaskItemWidget extends ConsumerStatefulWidget {
   final SprintDisplayTask sprintDisplayTask;
   final CheckCycleWaiter? onTaskAssignmentToggle;
   final DateTime? endDate;
@@ -57,54 +57,111 @@ class PlanTaskItemWidget extends ConsumerWidget {
     this.initialCheckState,
   });
 
+  @override
+  ConsumerState<PlanTaskItemWidget> createState() =>
+      _PlanTaskItemWidgetState();
+}
+
+class _PlanTaskItemWidgetState extends ConsumerState<PlanTaskItemWidget> {
+  /// TM-365: cache the synthesised TaskItem so we don't allocate a fresh
+  /// instance every build. The synthesis reads `DateTime.now()` for the
+  /// (unused-for-display) `dateAdded` field, which would otherwise break
+  /// the synthesised TaskItem's content-equality across frames and force
+  /// `EditableTaskItemWidget` to rebuild unnecessarily.
+  TaskItem? _cachedDisplayTask;
+  String? _cachedSourceKey;
+
   /// Returns the source as a `TaskItem` directly when possible, or a
-  /// synthesised TaskItem mirroring the preview's user-visible fields.
-  /// The synthesised TaskItem isn't persisted — it lives only for the
-  /// duration of this build pass, feeding the shared chrome which
-  /// already speaks TaskItem.
+  /// synthesised + cached TaskItem mirroring the preview's user-visible
+  /// fields. The synthesised TaskItem isn't persisted — it lives only as
+  /// a render-side adapter so the shared chrome can speak a single type.
   TaskItem _displayTask() {
-    final task = sprintDisplayTask;
-    if (task is TaskItem) return task;
-    if (task is TaskItemRecurPreview) {
+    final source = widget.sprintDisplayTask;
+    // Real TaskItem: pass through. Built-value equality handles change
+    // detection downstream; caching here would mask updates to the source.
+    if (source is TaskItem) return source;
+
+    // Synthesised path: cache by the source's stable key so the result
+    // is referentially identical across builds with the same source.
+    final sourceKey = source.getSprintDisplayTaskKey();
+    final cached = _cachedDisplayTask;
+    if (cached != null && _cachedSourceKey == sourceKey) {
+      return cached;
+    }
+    final fresh = _synthesise(source);
+    _cachedDisplayTask = fresh;
+    _cachedSourceKey = sourceKey;
+    return fresh;
+  }
+
+  TaskItem _synthesise(SprintDisplayTask source) {
+    if (source is TaskItemRecurPreview) {
       return TaskItem((b) => b
-        ..docId = task.key
+        ..docId = source.key
         ..dateAdded = DateTime.now().toUtc()
-        ..personDocId = task.personDocId
-        ..familyDocId = task.familyDocId
-        ..name = task.name
+        ..personDocId = source.personDocId
+        ..familyDocId = source.familyDocId
+        ..name = source.name
         ..description = null
-        ..area = task.area
-        ..contexts = ListBuilder<TaskContext>(task.contexts)
-        ..urgency = task.urgency
-        ..priority = task.priority
-        ..priorityScaleVersion = task.priorityScaleVersion ?? 2
-        ..duration = task.duration
-        ..gamePoints = task.gamePoints
-        ..startDate = task.startDate
-        ..targetDate = task.targetDate
-        ..urgentDate = task.urgentDate
-        ..dueDate = task.dueDate
+        ..area = source.area
+        ..contexts = ListBuilder<TaskContext>(source.contexts)
+        ..urgency = source.urgency
+        ..priority = source.priority
+        ..priorityScaleVersion = source.priorityScaleVersion ?? 2
+        ..duration = source.duration
+        ..gamePoints = source.gamePoints
+        ..startDate = source.startDate
+        ..targetDate = source.targetDate
+        ..urgentDate = source.urgentDate
+        ..dueDate = source.dueDate
         ..completionDate = null
-        ..recurNumber = task.recurNumber
-        ..recurUnit = task.recurUnit
-        ..recurWait = task.recurWait
+        ..recurNumber = source.recurNumber
+        ..recurUnit = source.recurUnit
+        ..recurWait = source.recurWait
         // No recurrenceDocId on previews — keeps the REPEAT row from
         // rendering as a (broken) link to a non-existent history page.
         ..recurrenceDocId = null
-        ..recurIteration = task.recurIteration
+        ..recurIteration = source.recurIteration
         ..retired = null
-        ..offCycle = task.offCycle
+        ..offCycle = source.offCycle
         ..skipped = false
         ..pendingCompletion = false);
     }
-    throw StateError(
-        'PlanTaskItemWidget: unsupported SprintDisplayTask runtime type ${task.runtimeType}');
+    // TM-365: graceful fallback for unknown SprintDisplayTask subtypes
+    // (the prior `throw StateError` made the widget crash if a new mixin
+    // implementor was passed in). Synthesise from the mixin's common
+    // surface; missing fields (personDocId, contexts, urgency, etc.)
+    // get sensible defaults. The row will render with the available
+    // information — enough for plan-mode display — instead of taking
+    // down the whole plan screen.
+    return TaskItem((b) => b
+      ..docId = source.getSprintDisplayTaskKey()
+      ..dateAdded = DateTime.now().toUtc()
+      ..personDocId = ''
+      ..name = source.name
+      ..area = source.area
+      ..contexts = ListBuilder<TaskContext>(const <TaskContext>[])
+      ..priorityScaleVersion = 2
+      ..startDate = source.startDate
+      ..targetDate = source.targetDate
+      ..urgentDate = source.urgentDate
+      ..dueDate = source.dueDate
+      ..completionDate = source.completionDate
+      ..recurNumber = source.recurNumber
+      ..recurUnit = source.recurUnit
+      ..recurWait = source.recurWait
+      ..recurIteration = source.recurIteration
+      ..recurrenceDocId = null
+      ..retired = null
+      ..offCycle = source.offCycle
+      ..skipped = false
+      ..pendingCompletion = false);
   }
 
   /// Reference timestamp for "would-be state" projection. The plan
   /// screen previews how a task's state will read at the END of the
-  /// sprint being assembled (`endDate` if set, else now).
-  DateTime _projectionRef() => endDate ?? DateTime.now();
+  /// sprint being assembled (`widget.endDate` if set, else now).
+  DateTime _projectionRef() => widget.endDate ?? DateTime.now();
 
   /// Date type [task] would be in at [_projectionRef] (sprint horizon
   /// or wall-clock now). Returns the highest-priority crossed
@@ -230,13 +287,14 @@ class PlanTaskItemWidget extends ConsumerWidget {
   }
 
   Widget _trailingCheckbox() {
-    if (onTaskAssignmentToggle == null || initialCheckState == null) {
+    if (widget.onTaskAssignmentToggle == null ||
+        widget.initialCheckState == null) {
       return const SizedBox.shrink();
     }
     return DelayedCheckbox(
-      taskName: sprintDisplayTask.name,
-      initialState: initialCheckState!,
-      checkCycleWaiter: onTaskAssignmentToggle!,
+      taskName: widget.sprintDisplayTask.name,
+      initialState: widget.initialCheckState!,
+      checkCycleWaiter: widget.onTaskAssignmentToggle!,
       checkedColor: Colors.green,
       // The "+" affordance signals "add to sprint." Always rendered in
       // the default colour (full white) — recurring vs one-off doesn't
@@ -246,11 +304,11 @@ class PlanTaskItemWidget extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final displayTask = _displayTask();
     return EditableTaskItemWidget(
       taskItem: displayTask,
-      highlightSprint: highlightSprint,
+      highlightSprint: widget.highlightSprint,
       pillContentOverride: _pillOverride,
       stripeColorOverride: _stripeOverride,
       trailingBuilder: _trailingCheckbox,
