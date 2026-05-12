@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart';
-// Riverpod re-exports a `Family` typedef from package:riverpod/src/framework.dart
-// which collides with our `Family` model. Hide it on both Riverpod imports so
-// the generated .g.dart resolves `Family` to our model.
+// TM-361: Riverpod 3 no longer exports a top-level `Family` typedef (it was
+// renamed in the 3.0 generator overhaul), so the `hide Family` directives the
+// pre-Riverpod-3 imports carried are now unnecessary — our `Family` model
+// resolves cleanly without them.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
