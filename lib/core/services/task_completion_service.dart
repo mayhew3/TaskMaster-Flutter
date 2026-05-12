@@ -127,9 +127,14 @@ TaskCompletionService taskCompletionService(Ref ref) {
 }
 
 /// Controller for completing tasks.
-/// TM-368: fire-and-forget mutation notifier — state is just the latest
-/// invocation's AsyncValue<void>. Auto-dispose is correct.
-@riverpod
+/// TM-368 + Copilot R8: kept `keepAlive: true`. Callers invoke these
+/// mutation notifiers via `ref.read(.notifier).call(...)` (no active
+/// listener), so auto-dispose could fire between the first `await` and a
+/// subsequent `ref.read(...)` inside `call()` → "Cannot use ref after
+/// disposal" mid-mutation. The Category C "case-by-case" note in TM-368's
+/// plan flagged this risk; the audit didn't catch every site, so Copilot
+/// did. Applies to all six mutation notifiers in this file.
+@Riverpod(keepAlive: true)
 class CompleteTask extends _$CompleteTask {
   @override
   FutureOr<void> build() {}
@@ -287,9 +292,9 @@ class CompleteTask extends _$CompleteTask {
   }
 }
 
-/// Controller for skipping a recurring task instance
-/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
-@riverpod
+/// Controller for skipping a recurring task instance.
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
+@Riverpod(keepAlive: true)
 class SkipTask extends _$SkipTask {
   @override
   FutureOr<void> build() {}
@@ -412,8 +417,8 @@ class SkipTask extends _$SkipTask {
 /// is settled at construction; subsequent `state = AsyncLoading/AsyncData`
 /// re-completes it and throws "Bad state: Future already completed". UI
 /// loading state is handled locally by callers (e.g. `_busy` flags).
-/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
-@riverpod
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
+@Riverpod(keepAlive: true)
 class DeleteTask extends _$DeleteTask {
   @override
   FutureOr<void> build() {}
@@ -427,8 +432,8 @@ class DeleteTask extends _$DeleteTask {
 }
 
 /// Controller for adding new tasks.
-/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
-@riverpod
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
+@Riverpod(keepAlive: true)
 class AddTask extends _$AddTask {
   @override
   FutureOr<void> build() {}
@@ -506,8 +511,8 @@ class AddTask extends _$AddTask {
 }
 
 /// Controller for updating tasks.
-/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
-@riverpod
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
+@Riverpod(keepAlive: true)
 class UpdateTask extends _$UpdateTask {
   @override
   FutureOr<void> build() {}
@@ -616,9 +621,9 @@ class UpdateTask extends _$UpdateTask {
   }
 }
 
-/// Controller for snoozing tasks
-/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
-@riverpod
+/// Controller for snoozing tasks.
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
+@Riverpod(keepAlive: true)
 class SnoozeTask extends _$SnoozeTask {
   @override
   FutureOr<void> build() {}

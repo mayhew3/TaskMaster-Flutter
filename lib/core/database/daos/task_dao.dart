@@ -191,37 +191,40 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
       if (skipped.isNotEmpty) {
         debugPrint(
             '[TaskDao.bulkUpsertFromRemote] skipped ${skipped.length} pending rows: $skipped'
-            ' (anchoring ${toAnchor.length} of them)');
+            ' (back-filling anchor on ${toAnchor.length} of them)');
       }
-      // Aggregate the per-row anchor log — a per-row print floods debug
-      // builds on large initial syncs (and meaningfully slows widget tests
-      // that pump a full pull). Sample the first few IDs for traceability.
-      if (toUpsert.isNotEmpty) {
+      // TM-367 back-fill sample — what TM-370's diagnostic plan needs to
+      // verify in the field. Sample the first few IDs to avoid flooding
+      // debug builds on large initial syncs.
+      if (toAnchor.isNotEmpty) {
         const sampleCount = 5;
-        final sample = toUpsert
+        final sample = toAnchor
             .take(sampleCount)
             .map((r) => r.docId.value)
             .join(', ');
-        final suffix = toUpsert.length > sampleCount
-            ? ' (+${toUpsert.length - sampleCount} more)'
+        final suffix = toAnchor.length > sampleCount
+            ? ' (+${toAnchor.length - sampleCount} more)'
             : '';
         debugPrint(
-            '[TaskDao.bulkUpsertFromRemote] anchoring ${toUpsert.length} rows: $sample$suffix');
+            '[TaskDao.bulkUpsertFromRemote] back-filling anchor on ${toAnchor.length} legacy pending rows: $sample$suffix');
       }
     }
     if (toUpsert.isNotEmpty) {
       await batch((b) => b.insertAllOnConflictUpdate(tasks, toUpsert));
     }
-    // TM-367: anchor-only updates run after the full upsert. One UPDATE
-    // per pending row — fine in practice because pending sets are small
-    // relative to full snapshots, and batching multiple per-row UPDATEs
-    // into a single SQL statement isn't supported by Drift's `.write()`
-    // API. Wrapped in a single transaction so all anchors land atomically.
+    // TM-367: anchor-only updates run after the full upsert. The WHERE
+    // clause guards `lastSyncedRemoteVersion IS NULL` so a concurrent
+    // writer that set the anchor between the pending-row read above and
+    // this update (e.g. a push completing in parallel) is not overwritten
+    // — the back-fill is strictly a one-time fill for legacy never-anchored
+    // rows. Wrapped in a single transaction so all anchors land atomically.
     if (toAnchor.isNotEmpty) {
       await transaction(() async {
         for (final r in toAnchor) {
           await (update(tasks)
-                ..where((t) => t.docId.equals(r.docId.value)))
+                ..where((t) =>
+                    t.docId.equals(r.docId.value) &
+                    t.lastSyncedRemoteVersion.isNull()))
               .write(TasksCompanion(
                   lastSyncedRemoteVersion: r.lastModified));
         }

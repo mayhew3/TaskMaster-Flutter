@@ -79,11 +79,16 @@ class TaskRecurrenceDao extends DatabaseAccessor<AppDatabase>
     if (toUpsert.isNotEmpty) {
       await batch((b) => b.insertAllOnConflictUpdate(taskRecurrences, toUpsert));
     }
+    // TM-367 + Copilot review: WHERE-clause guards `lastSyncedRemoteVersion
+    // IS NULL` so a concurrent writer that anchored the row between the
+    // pending-row snapshot above and this update can't be overwritten.
     if (toAnchor.isNotEmpty) {
       await transaction(() async {
         for (final r in toAnchor) {
           await (update(taskRecurrences)
-                ..where((t) => t.docId.equals(r.docId.value)))
+                ..where((t) =>
+                    t.docId.equals(r.docId.value) &
+                    t.lastSyncedRemoteVersion.isNull()))
               .write(TaskRecurrencesCompanion(
                   lastSyncedRemoteVersion: r.lastModified));
         }

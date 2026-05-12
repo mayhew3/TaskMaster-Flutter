@@ -267,9 +267,12 @@ int stuckConflictsCount(Ref ref) {
 /// Resolution: keep the local pending edit, restore the prior pending state,
 /// and trigger another push (which must win the next conflict-detection
 /// comparison so the user's intent isn't bounced right back into a conflict).
-/// TM-368: fire-and-forget mutation. Auto-dispose. Same for the two
-/// resolution notifiers below.
-@riverpod
+/// TM-368 + Copilot R8: kept `keepAlive: true` for all three conflict-
+/// resolution notifiers below. Callers invoke via `ref.read(.notifier)
+/// .call...()` (no active listener); auto-dispose could fire between
+/// awaits and break the subsequent `ref.read(syncServiceProvider)` /
+/// `pushPendingWrites` mid-resolution.
+@Riverpod(keepAlive: true)
 class KeepLocalConflict extends _$KeepLocalConflict {
   @override
   FutureOr<void> build() {}
@@ -323,7 +326,7 @@ DateTime _resolutionTimestamp(DateTime? remoteLastModified) {
 }
 
 /// Resolution: accept the remote version, overwriting the local pending edit.
-@riverpod
+@Riverpod(keepAlive: true)
 class AcceptRemoteConflict extends _$AcceptRemoteConflict {
   @override
   FutureOr<void> build() {}
@@ -348,7 +351,7 @@ class AcceptRemoteConflict extends _$AcceptRemoteConflict {
 /// Force-clear pendingConflict rows whose envelope failed to decode (the
 /// "stuck" set). Resets them to pendingUpdate with refreshed `lastModified`
 /// and triggers a push so the next sync can resolve them.
-@riverpod
+@Riverpod(keepAlive: true)
 class ForceClearStuckConflicts extends _$ForceClearStuckConflicts {
   @override
   FutureOr<void> build() {}

@@ -212,10 +212,11 @@ SprintService sprintService(Ref ref) {
 }
 
 /// Controller for creating sprints.
-/// TM-368: fire-and-forget mutation notifier — state is just the last
-/// operation's AsyncValue. Auto-dispose is correct; consumers re-attach
-/// per invocation.
-@riverpod
+/// TM-368 + Copilot R8: kept `keepAlive: true`. Callers invoke via
+/// `ref.read(.notifier).call(...)` (no active listener), so auto-dispose
+/// could fire between `await`s and break a subsequent `ref.read(...)`
+/// mid-mutation. Applies to both notifiers in this file.
+@Riverpod(keepAlive: true)
 class CreateSprint extends _$CreateSprint {
   @override
   FutureOr<void> build() {}
@@ -357,8 +358,8 @@ class CreateSprint extends _$CreateSprint {
 }
 
 /// Controller for adding tasks to existing sprint.
-/// TM-368: fire-and-forget mutation notifier — see `CreateSprint`.
-@riverpod
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CreateSprint` above.
+@Riverpod(keepAlive: true)
 class AddTasksToSprint extends _$AddTasksToSprint {
   @override
   FutureOr<void> build() {}

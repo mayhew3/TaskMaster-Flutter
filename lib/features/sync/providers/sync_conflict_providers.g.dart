@@ -347,8 +347,11 @@ String _$stuckConflictsCountHash() =>
 /// Resolution: keep the local pending edit, restore the prior pending state,
 /// and trigger another push (which must win the next conflict-detection
 /// comparison so the user's intent isn't bounced right back into a conflict).
-/// TM-368: fire-and-forget mutation. Auto-dispose. Same for the two
-/// resolution notifiers below.
+/// TM-368 + Copilot R8: kept `keepAlive: true` for all three conflict-
+/// resolution notifiers below. Callers invoke via `ref.read(.notifier)
+/// .call...()` (no active listener); auto-dispose could fire between
+/// awaits and break the subsequent `ref.read(syncServiceProvider)` /
+/// `pushPendingWrites` mid-resolution.
 
 @ProviderFor(KeepLocalConflict)
 final keepLocalConflictProvider = KeepLocalConflictProvider._();
@@ -356,22 +359,28 @@ final keepLocalConflictProvider = KeepLocalConflictProvider._();
 /// Resolution: keep the local pending edit, restore the prior pending state,
 /// and trigger another push (which must win the next conflict-detection
 /// comparison so the user's intent isn't bounced right back into a conflict).
-/// TM-368: fire-and-forget mutation. Auto-dispose. Same for the two
-/// resolution notifiers below.
+/// TM-368 + Copilot R8: kept `keepAlive: true` for all three conflict-
+/// resolution notifiers below. Callers invoke via `ref.read(.notifier)
+/// .call...()` (no active listener); auto-dispose could fire between
+/// awaits and break the subsequent `ref.read(syncServiceProvider)` /
+/// `pushPendingWrites` mid-resolution.
 final class KeepLocalConflictProvider
     extends $AsyncNotifierProvider<KeepLocalConflict, void> {
   /// Resolution: keep the local pending edit, restore the prior pending state,
   /// and trigger another push (which must win the next conflict-detection
   /// comparison so the user's intent isn't bounced right back into a conflict).
-  /// TM-368: fire-and-forget mutation. Auto-dispose. Same for the two
-  /// resolution notifiers below.
+  /// TM-368 + Copilot R8: kept `keepAlive: true` for all three conflict-
+  /// resolution notifiers below. Callers invoke via `ref.read(.notifier)
+  /// .call...()` (no active listener); auto-dispose could fire between
+  /// awaits and break the subsequent `ref.read(syncServiceProvider)` /
+  /// `pushPendingWrites` mid-resolution.
   KeepLocalConflictProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'keepLocalConflictProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -384,13 +393,16 @@ final class KeepLocalConflictProvider
   KeepLocalConflict create() => KeepLocalConflict();
 }
 
-String _$keepLocalConflictHash() => r'e4fbfd6851307e123c0ea3e8ed4a8d07839af408';
+String _$keepLocalConflictHash() => r'8726c448102d3560fb274fad905707b48fdb4c74';
 
 /// Resolution: keep the local pending edit, restore the prior pending state,
 /// and trigger another push (which must win the next conflict-detection
 /// comparison so the user's intent isn't bounced right back into a conflict).
-/// TM-368: fire-and-forget mutation. Auto-dispose. Same for the two
-/// resolution notifiers below.
+/// TM-368 + Copilot R8: kept `keepAlive: true` for all three conflict-
+/// resolution notifiers below. Callers invoke via `ref.read(.notifier)
+/// .call...()` (no active listener); auto-dispose could fire between
+/// awaits and break the subsequent `ref.read(syncServiceProvider)` /
+/// `pushPendingWrites` mid-resolution.
 
 abstract class _$KeepLocalConflict extends $AsyncNotifier<void> {
   FutureOr<void> build();
@@ -425,7 +437,7 @@ final class AcceptRemoteConflictProvider
         argument: null,
         retry: null,
         name: r'acceptRemoteConflictProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -439,7 +451,7 @@ final class AcceptRemoteConflictProvider
 }
 
 String _$acceptRemoteConflictHash() =>
-    r'90de3893a0de4ab05c06698b7776943069da19bb';
+    r'c576cec17649d3e732e6549bb448ae918299d505';
 
 /// Resolution: accept the remote version, overwriting the local pending edit.
 
@@ -482,7 +494,7 @@ final class ForceClearStuckConflictsProvider
         argument: null,
         retry: null,
         name: r'forceClearStuckConflictsProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -496,7 +508,7 @@ final class ForceClearStuckConflictsProvider
 }
 
 String _$forceClearStuckConflictsHash() =>
-    r'ea9290b15767eeb1678f48eee6a0613365e49191';
+    r'4a54ee8cb757d4de4c385e797846be86b3ac47f5';
 
 /// Force-clear pendingConflict rows whose envelope failed to decode (the
 /// "stuck" set). Resets them to pendingUpdate with refreshed `lastModified`

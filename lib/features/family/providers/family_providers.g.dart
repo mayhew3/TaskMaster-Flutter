@@ -333,30 +333,33 @@ String _$outgoingInvitationsHash() =>
     r'e8acc5d88b1018286d0b0cf5025a998e63f9c568';
 
 /// Creates a family with the current user as sole member and owner.
-/// TM-368: fire-and-forget mutation — state is just the last operation's
-/// AsyncValue. Auto-dispose is correct for all six family-mutation
-/// notifiers below (Create / Invite / Accept / Decline / Remove / Leave).
+/// TM-368 + Copilot R8: kept `keepAlive: true` for all six family
+/// mutation notifiers below. Callers invoke via `ref.read(.notifier)
+/// .call(...)` (no active listener), so auto-dispose could fire between
+/// awaits and break subsequent `ref.read(...)` mid-mutation.
 
 @ProviderFor(CreateFamily)
 final createFamilyProvider = CreateFamilyProvider._();
 
 /// Creates a family with the current user as sole member and owner.
-/// TM-368: fire-and-forget mutation — state is just the last operation's
-/// AsyncValue. Auto-dispose is correct for all six family-mutation
-/// notifiers below (Create / Invite / Accept / Decline / Remove / Leave).
+/// TM-368 + Copilot R8: kept `keepAlive: true` for all six family
+/// mutation notifiers below. Callers invoke via `ref.read(.notifier)
+/// .call(...)` (no active listener), so auto-dispose could fire between
+/// awaits and break subsequent `ref.read(...)` mid-mutation.
 final class CreateFamilyProvider
     extends $AsyncNotifierProvider<CreateFamily, void> {
   /// Creates a family with the current user as sole member and owner.
-  /// TM-368: fire-and-forget mutation — state is just the last operation's
-  /// AsyncValue. Auto-dispose is correct for all six family-mutation
-  /// notifiers below (Create / Invite / Accept / Decline / Remove / Leave).
+  /// TM-368 + Copilot R8: kept `keepAlive: true` for all six family
+  /// mutation notifiers below. Callers invoke via `ref.read(.notifier)
+  /// .call(...)` (no active listener), so auto-dispose could fire between
+  /// awaits and break subsequent `ref.read(...)` mid-mutation.
   CreateFamilyProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'createFamilyProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -369,12 +372,13 @@ final class CreateFamilyProvider
   CreateFamily create() => CreateFamily();
 }
 
-String _$createFamilyHash() => r'38ead9459f36c08509931bd3b96543198b8617e1';
+String _$createFamilyHash() => r'9ee36d8211c13efebdd000254b689aae86f308f0';
 
 /// Creates a family with the current user as sole member and owner.
-/// TM-368: fire-and-forget mutation — state is just the last operation's
-/// AsyncValue. Auto-dispose is correct for all six family-mutation
-/// notifiers below (Create / Invite / Accept / Decline / Remove / Leave).
+/// TM-368 + Copilot R8: kept `keepAlive: true` for all six family
+/// mutation notifiers below. Callers invoke via `ref.read(.notifier)
+/// .call(...)` (no active listener), so auto-dispose could fire between
+/// awaits and break subsequent `ref.read(...)` mid-mutation.
 
 abstract class _$CreateFamily extends $AsyncNotifier<void> {
   FutureOr<void> build();
@@ -424,7 +428,7 @@ final class InviteMemberProvider
         argument: null,
         retry: null,
         name: r'inviteMemberProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -437,7 +441,7 @@ final class InviteMemberProvider
   InviteMember create() => InviteMember();
 }
 
-String _$inviteMemberHash() => r'239123eed8e138dea16ce4df44dbe3f22f51a4e4';
+String _$inviteMemberHash() => r'0dffdb59e5247137acff9ae322a82a99f228c9c5';
 
 /// Send an invitation to [email] from the current user's family.
 ///
@@ -475,7 +479,7 @@ final class AcceptInvitationProvider
         argument: null,
         retry: null,
         name: r'acceptInvitationProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -488,7 +492,7 @@ final class AcceptInvitationProvider
   AcceptInvitation create() => AcceptInvitation();
 }
 
-String _$acceptInvitationHash() => r'c8c652d3382c8830568f0858c2fdc6a807632fad';
+String _$acceptInvitationHash() => r'2feea4b026eedc8df1f8a086147217cd1c45b54c';
 
 abstract class _$AcceptInvitation extends $AsyncNotifier<void> {
   FutureOr<void> build();
@@ -519,7 +523,7 @@ final class DeclineInvitationProvider
         argument: null,
         retry: null,
         name: r'declineInvitationProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -532,7 +536,7 @@ final class DeclineInvitationProvider
   DeclineInvitation create() => DeclineInvitation();
 }
 
-String _$declineInvitationHash() => r'f93e8882d7d8235696eb3b94cd7284fc29bf3237';
+String _$declineInvitationHash() => r'cbd2fa401f579bd306f2f37353d641614305c940';
 
 abstract class _$DeclineInvitation extends $AsyncNotifier<void> {
   FutureOr<void> build();
@@ -563,7 +567,7 @@ final class RemoveMemberProvider
         argument: null,
         retry: null,
         name: r'removeMemberProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -576,7 +580,7 @@ final class RemoveMemberProvider
   RemoveMember create() => RemoveMember();
 }
 
-String _$removeMemberHash() => r'1e2ce1e07dc2f1473360e2d8b7bafa3ee22a4b8e';
+String _$removeMemberHash() => r'582a0a7f29895fecdd8e488bc8cdd3335ee4035e';
 
 abstract class _$RemoveMember extends $AsyncNotifier<void> {
   FutureOr<void> build();
@@ -607,7 +611,7 @@ final class LeaveFamilyProvider
         argument: null,
         retry: null,
         name: r'leaveFamilyProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -620,7 +624,7 @@ final class LeaveFamilyProvider
   LeaveFamily create() => LeaveFamily();
 }
 
-String _$leaveFamilyHash() => r'9db7c087cdebfae5e031088c96d6a9b8fc625a98';
+String _$leaveFamilyHash() => r'a6ea4199be16470e6dece8317f6c076194c30099';
 
 abstract class _$LeaveFamily extends $AsyncNotifier<void> {
   FutureOr<void> build();

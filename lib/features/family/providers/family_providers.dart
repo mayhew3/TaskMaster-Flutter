@@ -141,10 +141,11 @@ Stream<List<FamilyInvitation>> outgoingInvitations(Ref ref) {
 // should manage it locally (e.g. via a `bool _busy` field in their widget).
 
 /// Creates a family with the current user as sole member and owner.
-/// TM-368: fire-and-forget mutation — state is just the last operation's
-/// AsyncValue. Auto-dispose is correct for all six family-mutation
-/// notifiers below (Create / Invite / Accept / Decline / Remove / Leave).
-@riverpod
+/// TM-368 + Copilot R8: kept `keepAlive: true` for all six family
+/// mutation notifiers below. Callers invoke via `ref.read(.notifier)
+/// .call(...)` (no active listener), so auto-dispose could fire between
+/// awaits and break subsequent `ref.read(...)` mid-mutation.
+@Riverpod(keepAlive: true)
 class CreateFamily extends _$CreateFamily {
   @override
   FutureOr<void> build() {}
@@ -171,7 +172,7 @@ class CreateFamily extends _$CreateFamily {
 /// when they've just created a family in the same flow — the Drift mirror of
 /// `persons/{me}.familyDocId` may not have caught up yet (Firestore listener
 /// round-trip), so reading from the provider would return null.
-@riverpod
+@Riverpod(keepAlive: true)
 class InviteMember extends _$InviteMember {
   @override
   FutureOr<void> build() {}
@@ -193,7 +194,7 @@ class InviteMember extends _$InviteMember {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class AcceptInvitation extends _$AcceptInvitation {
   @override
   FutureOr<void> build() {}
@@ -216,7 +217,7 @@ class AcceptInvitation extends _$AcceptInvitation {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class DeclineInvitation extends _$DeclineInvitation {
   @override
   FutureOr<void> build() {}
@@ -228,7 +229,7 @@ class DeclineInvitation extends _$DeclineInvitation {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class RemoveMember extends _$RemoveMember {
   @override
   FutureOr<void> build() {}
@@ -251,7 +252,7 @@ class RemoveMember extends _$RemoveMember {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class LeaveFamily extends _$LeaveFamily {
   @override
   FutureOr<void> build() {}
