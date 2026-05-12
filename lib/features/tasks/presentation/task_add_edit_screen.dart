@@ -389,7 +389,7 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
       data: (tasks) {
         _initialTaskCount ??= tasks.length;
 
-        final timezoneHelperAsync = ref.watch(timezoneHelperNotifierProvider);
+        final timezoneHelperAsync = ref.watch(timezoneHelperProvider);
         final timezoneHelper = timezoneHelperAsync.value;
         if (timezoneHelper == null) {
           return const Scaffold(

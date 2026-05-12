@@ -10,29 +10,28 @@ class MockFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNo
   late DidReceiveNotificationResponseCallback? onDidReceiveNotification;
 
   @override
-  Future<bool?> initialize(
-      InitializationSettings initializationSettings,
-      {
-        DidReceiveNotificationResponseCallback? onDidReceiveNotificationResponse,
-        DidReceiveBackgroundNotificationResponseCallback? onDidReceiveBackgroundNotificationResponse,
-      } ) async {
+  Future<bool?> initialize({
+    required InitializationSettings settings,
+    DidReceiveNotificationResponseCallback? onDidReceiveNotificationResponse,
+    DidReceiveBackgroundNotificationResponseCallback? onDidReceiveBackgroundNotificationResponse,
+  }) async {
     onDidReceiveNotification = onDidReceiveNotificationResponse;
     return Future.value(true);
   }
 
   @override
-  Future<void> zonedSchedule(
-      int id,
-      String? title,
-      String? body,
-      TZDateTime scheduledDate,
-      NotificationDetails notificationDetails, {
-        bool androidAllowWhileIdle = false,
-        AndroidScheduleMode? androidScheduleMode,
-        String? payload,
-        DateTimeComponents? matchDateTimeComponents,
-      }) async {
-    MockPendingNotificationRequest request = MockPendingNotificationRequest(id, payload, title, scheduledDate);
+  Future<void> zonedSchedule({
+    required int id,
+    String? title,
+    String? body,
+    required TZDateTime scheduledDate,
+    required NotificationDetails notificationDetails,
+    required AndroidScheduleMode androidScheduleMode,
+    String? payload,
+    DateTimeComponents? matchDateTimeComponents,
+  }) async {
+    MockPendingNotificationRequest request =
+        MockPendingNotificationRequest(id, payload, title, scheduledDate);
     pendings.add(request);
   }
 
@@ -58,7 +57,7 @@ class MockFlutterLocalNotificationsPlugin extends Fake implements FlutterLocalNo
   }
 
   @override
-  Future<void> cancel(int id, {String? tag}) async {
+  Future<void> cancel({required int id, String? tag}) async {
     pendings.removeWhere((request) => request.id == id);
   }
 

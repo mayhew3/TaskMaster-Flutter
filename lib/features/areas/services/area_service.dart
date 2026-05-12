@@ -309,7 +309,8 @@ class AreaService {
   }
 }
 
-@riverpod
+// TM-361: see ContextService for the Riverpod 4 keepAlive rationale.
+@Riverpod(keepAlive: true)
 AreaService areaService(Ref ref) {
   return AreaService(
     db: ref.watch(databaseProvider),

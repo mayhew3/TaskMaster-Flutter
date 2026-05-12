@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../core/database/app_database.dart' as drift;
 import '../../../core/database/converters.dart';
 import '../../../core/database/tables.dart' show SyncState;
 import '../../../core/providers/auth_providers.dart';
@@ -62,6 +61,18 @@ class RecurrenceConflict implements SyncConflict {
   String get docId => local.docId;
 }
 
+/// Decoded conflict envelope: the remote model plus the priorSyncState the
+/// row had before it became `pendingConflict`. Used to be a record type
+/// (`({TModel remote, String priorSyncState})?`), but riverpod_generator 4.x
+/// can't introspect record types in the same compilation unit as `@riverpod`-
+/// annotated providers — it bails with `InvalidTypeException`. Plain class
+/// avoids that cliff and keeps the providers below buildable (TM-361).
+class _DecodedEnvelope<TModel> {
+  _DecodedEnvelope({required this.remote, required this.priorSyncState});
+  final TModel remote;
+  final String priorSyncState;
+}
+
 /// Decodes a conflict envelope JSON written by SyncService into the local +
 /// remote pair plus the priorSyncState. Returns null on malformed envelopes
 /// (logged) so a corrupt row doesn't crash the UI.
@@ -71,7 +82,7 @@ class RecurrenceConflict implements SyncConflict {
 /// `area` for envelopes written by pre-TM-345 builds — without the remap,
 /// "Use latest" would deserialize the remote with `area == null` and
 /// silently drop the area tag.
-({TModel remote, String priorSyncState})? _decodeEnvelope<TModel>({
+_DecodedEnvelope<TModel>? _decodeEnvelope<TModel>({
   required String envelopeJson,
   required String docId,
   required Serializer<TModel> serializer,
@@ -85,7 +96,7 @@ class RecurrenceConflict implements SyncConflict {
     remoteJson['docId'] = docId;
     final remote = serializers.deserializeWith(serializer, remoteJson);
     if (remote == null) return null;
-    return (remote: remote, priorSyncState: priorSyncState);
+    return _DecodedEnvelope(remote: remote, priorSyncState: priorSyncState);
   } catch (e, s) {
     debugPrint('⚠️ [_decodeEnvelope] failed for $docId: $e\n$s');
     return null;
@@ -112,31 +123,42 @@ Map<String, dynamic> _renameTaskFieldsForLegacyEnvelope(
   return json;
 }
 
-/// Raw stream of Drift rows currently in `pendingConflict` for the user.
-/// Powers the banner count (so a row with an undecodable envelope still
-/// contributes to the count and doesn't silently disappear from the UI).
-@riverpod
-Stream<List<drift.Task>> taskConflictRows(Ref ref) {
+/// Raw count of pendingConflict task rows for the user. Powers the banner
+/// count and the "stuck-rows" calculation — used by `allConflictsCount`
+/// and `stuckConflictsCount` below.
+///
+/// **Returns just the count rather than the full row list** because
+/// riverpod_generator 4.x can't introspect Drift-generated row types
+/// (`drift.Task`, `drift.TaskRecurrence`) in a provider's return signature
+/// — it bails with `InvalidTypeException` (TM-361). The downstream
+/// consumers in this file only need the row counts; surfacing them as
+/// `int` avoids the cliff cleanly.
+@Riverpod(keepAlive: true)
+Stream<int> taskConflictRowCount(Ref ref) {
   final personDocId = ref.watch(personDocIdProvider);
-  if (personDocId == null) return Stream.value(const []);
+  if (personDocId == null) return Stream.value(0);
   final db = ref.watch(databaseProvider);
-  return db.taskDao.watchTasksWithConflicts(personDocId);
+  return db.taskDao
+      .watchTasksWithConflicts(personDocId)
+      .map((rows) => rows.length);
 }
 
-/// Same as [taskConflictRowsProvider] but for recurrences.
-@riverpod
-Stream<List<drift.TaskRecurrence>> recurrenceConflictRows(Ref ref) {
+/// Same as [taskConflictRowCountProvider] but for recurrences.
+@Riverpod(keepAlive: true)
+Stream<int> recurrenceConflictRowCount(Ref ref) {
   final personDocId = ref.watch(personDocIdProvider);
-  if (personDocId == null) return Stream.value(const []);
+  if (personDocId == null) return Stream.value(0);
   final db = ref.watch(databaseProvider);
-  return db.taskRecurrenceDao.watchRecurrencesWithConflicts(personDocId);
+  return db.taskRecurrenceDao
+      .watchRecurrencesWithConflicts(personDocId)
+      .map((rows) => rows.length);
 }
 
 /// Stream of task conflicts for the current user — only entries whose
-/// `conflictRemoteJson` envelope decodes cleanly. Use [taskConflictRowsProvider]
-/// for the count (which includes rows that fail to decode and would otherwise
-/// hide from the UI).
-@riverpod
+/// `conflictRemoteJson` envelope decodes cleanly. Use
+/// [taskConflictRowCountProvider] for the count (which includes rows that
+/// fail to decode and would otherwise hide from the UI).
+@Riverpod(keepAlive: true)
 Stream<List<TaskConflict>> taskConflicts(Ref ref) {
   final personDocId = ref.watch(personDocIdProvider);
   if (personDocId == null) return Stream.value(const []);
@@ -169,7 +191,7 @@ Stream<List<TaskConflict>> taskConflicts(Ref ref) {
 
 /// Stream of recurrence conflicts for the current user. Same caveat as
 /// [taskConflictsProvider] re: rows with undecodable envelopes.
-@riverpod
+@Riverpod(keepAlive: true)
 Stream<List<RecurrenceConflict>> recurrenceConflicts(Ref ref) {
   final personDocId = ref.watch(personDocIdProvider);
   if (personDocId == null) return Stream.value(const []);
@@ -208,24 +230,21 @@ Stream<List<RecurrenceConflict>> recurrenceConflicts(Ref ref) {
 /// length, so a row whose envelope fails to decode still contributes to the
 /// count. Otherwise the banner would silently disappear and the user would
 /// have no way to clear the stuck row.
-@riverpod
+@Riverpod(keepAlive: true)
 int allConflictsCount(Ref ref) {
-  final tasksAsync = ref.watch(taskConflictRowsProvider);
-  final recurrencesAsync = ref.watch(recurrenceConflictRowsProvider);
+  final tasksAsync = ref.watch(taskConflictRowCountProvider);
+  final recurrencesAsync = ref.watch(recurrenceConflictRowCountProvider);
   if (!tasksAsync.hasValue || !recurrencesAsync.hasValue) return 0;
-  final tasks = tasksAsync.value ?? const <drift.Task>[];
-  final recurrences =
-      recurrencesAsync.value ?? const <drift.TaskRecurrence>[];
-  return tasks.length + recurrences.length;
+  return (tasksAsync.value ?? 0) + (recurrencesAsync.value ?? 0);
 }
 
 /// Count of pendingConflict rows whose envelope did NOT decode (so they
 /// don't appear in the typed conflicts lists). When non-zero the screen
 /// surfaces a "force clear stuck" recovery action.
-@riverpod
+@Riverpod(keepAlive: true)
 int stuckConflictsCount(Ref ref) {
-  final taskRowsAsync = ref.watch(taskConflictRowsProvider);
-  final recurrenceRowsAsync = ref.watch(recurrenceConflictRowsProvider);
+  final taskRowsAsync = ref.watch(taskConflictRowCountProvider);
+  final recurrenceRowsAsync = ref.watch(recurrenceConflictRowCountProvider);
   final taskConflictsAsync = ref.watch(taskConflictsProvider);
   final recurrenceConflictsAsync = ref.watch(recurrenceConflictsProvider);
   if (!taskRowsAsync.hasValue ||
@@ -234,9 +253,9 @@ int stuckConflictsCount(Ref ref) {
       !recurrenceConflictsAsync.hasValue) {
     return 0;
   }
-  final taskStuck = (taskRowsAsync.value?.length ?? 0) -
+  final taskStuck = (taskRowsAsync.value ?? 0) -
       (taskConflictsAsync.value?.length ?? 0);
-  final recurrenceStuck = (recurrenceRowsAsync.value?.length ?? 0) -
+  final recurrenceStuck = (recurrenceRowsAsync.value ?? 0) -
       (recurrenceConflictsAsync.value?.length ?? 0);
   return (taskStuck < 0 ? 0 : taskStuck) +
       (recurrenceStuck < 0 ? 0 : recurrenceStuck);
@@ -245,7 +264,7 @@ int stuckConflictsCount(Ref ref) {
 /// Resolution: keep the local pending edit, restore the prior pending state,
 /// and trigger another push (which must win the next conflict-detection
 /// comparison so the user's intent isn't bounced right back into a conflict).
-@riverpod
+@Riverpod(keepAlive: true)
 class KeepLocalConflict extends _$KeepLocalConflict {
   @override
   FutureOr<void> build() {}
@@ -257,6 +276,10 @@ class KeepLocalConflict extends _$KeepLocalConflict {
       conflict.docId,
       restoreTo,
       now: _resolutionTimestamp(conflict.remote.lastModified),
+      // TM-361: anchor lastSyncedRemoteVersion to the envelope's remote so
+      // the next push's conflict check doesn't immediately re-fire on the
+      // same baseline.
+      acknowledgedRemoteVersion: conflict.remote.lastModified,
     );
     ref
         .read(syncServiceProvider)
@@ -271,6 +294,7 @@ class KeepLocalConflict extends _$KeepLocalConflict {
       conflict.docId,
       restoreTo,
       now: _resolutionTimestamp(conflict.remote.lastModified),
+      acknowledgedRemoteVersion: conflict.remote.lastModified,
     );
     ref
         .read(syncServiceProvider)
@@ -294,7 +318,7 @@ DateTime _resolutionTimestamp(DateTime? remoteLastModified) {
 }
 
 /// Resolution: accept the remote version, overwriting the local pending edit.
-@riverpod
+@Riverpod(keepAlive: true)
 class AcceptRemoteConflict extends _$AcceptRemoteConflict {
   @override
   FutureOr<void> build() {}
@@ -319,7 +343,7 @@ class AcceptRemoteConflict extends _$AcceptRemoteConflict {
 /// Force-clear pendingConflict rows whose envelope failed to decode (the
 /// "stuck" set). Resets them to pendingUpdate with refreshed `lastModified`
 /// and triggers a push so the next sync can resolve them.
-@riverpod
+@Riverpod(keepAlive: true)
 class ForceClearStuckConflicts extends _$ForceClearStuckConflicts {
   @override
   FutureOr<void> build() {}

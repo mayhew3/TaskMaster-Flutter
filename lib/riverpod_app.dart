@@ -467,7 +467,7 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
     // - When hidden, the banner collapses to SizedBox.shrink and the inner
     //   AppBar handles its own status-bar inset normally.
     final hasPendingInvite =
-        (ref.watch(pendingInvitationsForMeProvider).valueOrNull ?? const [])
+        (ref.watch(pendingInvitationsForMeProvider).value ?? const [])
             .isNotEmpty;
     final hasSyncConflict = ref.watch(allConflictsCountProvider) > 0;
     final hasAnyBanner = hasPendingInvite || hasSyncConflict;

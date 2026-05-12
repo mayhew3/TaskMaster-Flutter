@@ -36,7 +36,7 @@ class ContextPicker extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncContexts = ref.watch(contextsWithDefaultsProvider);
-    final available = asyncContexts.valueOrNull ?? const <ctx_model.Context>[];
+    final available = asyncContexts.value ?? const <ctx_model.Context>[];
 
     // Build a name → catalog Context lookup so each pill can read its
     // iconName from the catalog, even when the task's TaskContext only

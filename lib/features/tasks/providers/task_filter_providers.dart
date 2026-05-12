@@ -48,7 +48,7 @@ class SearchQuery extends _$SearchQuery {
 }
 
 /// Filtered tasks based on visibility settings
-@riverpod
+@Riverpod(keepAlive: true)
 Future<List<TaskItem>> filteredTasks(Ref ref) async {
   final showCompleted = ref.watch(showCompletedProvider);
   final showScheduled = ref.watch(showScheduledProvider);
@@ -150,7 +150,7 @@ Future<List<TaskItem>> filteredTasks(Ref ref) async {
 }
 
 /// Count of active (non-completed, non-retired) tasks
-@riverpod
+@Riverpod(keepAlive: true)
 int activeTaskCount(Ref ref) {
   final tasksAsync = ref.watch(tasksProvider);
 
@@ -165,7 +165,7 @@ int activeTaskCount(Ref ref) {
 /// Count of completed (non-skipped, non-retired) tasks.
 /// Uses Firestore aggregation for the total (too many to store locally),
 /// then subtracts the local skipped count (always present since skip is local-first).
-@riverpod
+@Riverpod(keepAlive: true)
 Future<int> completedTaskCount(Ref ref) async {
   final firestore = ref.watch(firestoreProvider);
   final db = ref.watch(databaseProvider);
@@ -198,7 +198,7 @@ class TaskGroup {
 }
 
 /// Grouped and sorted tasks for the task list
-@riverpod
+@Riverpod(keepAlive: true)
 Future<List<TaskGroup>> groupedTasks(Ref ref) async {
   print('📋 groupedTasksProvider: Starting');
 

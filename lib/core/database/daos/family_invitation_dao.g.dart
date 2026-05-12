@@ -6,4 +6,15 @@ part of 'family_invitation_dao.dart';
 mixin _$FamilyInvitationDaoMixin on DatabaseAccessor<AppDatabase> {
   $FamilyInvitationsTable get familyInvitations =>
       attachedDatabase.familyInvitations;
+  FamilyInvitationDaoManager get managers => FamilyInvitationDaoManager(this);
+}
+
+class FamilyInvitationDaoManager {
+  final _$FamilyInvitationDaoMixin _db;
+  FamilyInvitationDaoManager(this._db);
+  $$FamilyInvitationsTableTableManager get familyInvitations =>
+      $$FamilyInvitationsTableTableManager(
+        _db.attachedDatabase,
+        _db.familyInvitations,
+      );
 }

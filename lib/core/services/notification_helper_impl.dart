@@ -25,9 +25,9 @@ class NotificationHelperImpl {
         iOS: initializationSettingsIOS
     );
     var plugin = FlutterLocalNotificationsPlugin();
-    plugin.initialize(initializationSettings,
-      // onDidReceiveNotificationResponse: (response) => {}
-    );
+    // TM-361: flutter_local_notifications 21.x — `initialize` now takes
+    // the InitializationSettings as a `settings:` named arg.
+    plugin.initialize(settings: initializationSettings);
     // plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
 
     return plugin;
@@ -44,7 +44,7 @@ class NotificationHelperImpl {
     var existing = pendingNotificationRequests.where((notification) => notification.payload != null && notification.payload!.startsWith(taskSearch));
     for (PendingNotificationRequest notification in existing) {
       print('Removing task: ${notification.payload}');
-      await plugin.cancel(notification.id);
+      await plugin.cancel(id: notification.id);
     }
   }
 
@@ -88,7 +88,7 @@ class NotificationHelperImpl {
           (n) => n.payload != null && n.payload!.startsWith(taskSearch));
         for (final notification in existing) {
           print('Removing task: ${notification.payload}');
-          await plugin.cancel(notification.id);
+          await plugin.cancel(id: notification.id);
         }
       } else {
         await _syncNotificationForTask(task, requests);
@@ -121,7 +121,7 @@ class NotificationHelperImpl {
     var existing = requests.where((notification) => notification.payload == identifier);
     for (PendingNotificationRequest notification in existing) {
       removed = true;
-      await plugin.cancel(notification.id);
+      await plugin.cancel(id: notification.id);
     }
 
     // To keep the later dates from cluttering up the notifications, only schedule
@@ -205,12 +205,14 @@ class NotificationHelperImpl {
       iOS: iOSPlatformChannelSpecifics,
     );
     var localTime = tz.TZDateTime.from(scheduledTime, tz.local);
+    // TM-361: flutter_local_notifications 21.x — `zonedSchedule` now uses
+    // all-named arguments. Same payload, just renamed positional → named.
     await plugin.zonedSchedule(
-        id,
-        name,
-        message,
-        localTime,
-        platformChannelSpecifics,
+        id: id,
+        title: name,
+        body: message,
+        scheduledDate: localTime,
+        notificationDetails: platformChannelSpecifics,
         payload: payload,
         androidScheduleMode: AndroidScheduleMode.exact);
     print(verificationMessage);

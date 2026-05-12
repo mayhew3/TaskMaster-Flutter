@@ -14,6 +14,7 @@ import '../../shared/presentation/filter_button.dart';
 import '../../shared/presentation/refresh_button.dart';
 import '../../shared/presentation/app_drawer.dart';
 import '../../tasks/providers/task_providers.dart';
+import '../providers/sprint_providers.dart';
 import '../../shared/presentation/task_item_list.dart';
 
 part 'sprint_task_items_screen.g.dart';
@@ -45,15 +46,21 @@ class ShowScheduledInSprint extends _$ShowScheduledInSprint {
 /// loading), which broke the sprint screen's Completed section. This provider
 /// bypasses that restriction via a direct Drift query scoped to the sprint's
 /// task docIds, so the result set is bounded and cheap.
-@riverpod
+@Riverpod(keepAlive: true)
 Stream<List<TaskItem>> sprintAllTasks(Ref ref, Sprint sprint) {
   final personDocId = ref.watch(personDocIdProvider);
   final db = ref.watch(databaseProvider);
 
   if (personDocId == null) return Stream.value(const []);
 
-  final docIds =
-      sprint.sprintAssignments.map((sa) => sa.taskDocId).toList(growable: false);
+  // Filter retired assignments — a retired SprintAssignment means the task
+  // has been removed from this sprint. Stays consistent with
+  // `sprintRosterFirestoreProvider` and `sprintCompletionCountsProvider`,
+  // both of which apply the same filter.
+  final docIds = sprint.sprintAssignments
+      .where((sa) => sa.retired == null)
+      .map((sa) => sa.taskDocId)
+      .toList(growable: false);
   if (docIds.isEmpty) return Stream.value(const []);
 
   final tasksStream =
@@ -103,7 +110,7 @@ Stream<List<TaskItem>> sprintAllTasks(Ref ref, Sprint sprint) {
 }
 
 /// Provider for filtered tasks in the active sprint
-@riverpod
+@Riverpod(keepAlive: true)
 Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
   // Source: all sprint-assigned tasks (incomplete + completed) with recurrences.
   final allSprintTasks = await ref.watch(sprintAllTasksProvider(sprint).future);
@@ -112,9 +119,20 @@ Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
   final olderState = ref.watch(olderCompletedTasksBatchesProvider);
   final showCompleted = ref.watch(showCompletedInSprintProvider);
   final showScheduled = ref.watch(showScheduledInSprintProvider);
+  // Sprint-scoped Firestore roster: ensures completed-prior-to-session
+  // tasks are visible when "Finished" is toggled on, regardless of whether
+  // the global olderCompletedTasksBatches has been triggered. See
+  // sprintRosterFirestoreProvider for the rationale.
+  final firestoreRoster =
+      await ref.watch(sprintRosterFirestoreProvider(sprint).future);
 
-  final sprintDocIds =
-      sprint.sprintAssignments.map((sa) => sa.taskDocId).toSet();
+  // Retired assignments are excluded everywhere else (Firestore roster,
+  // completion counts, sprintAllTasks); match that here so a removed task
+  // doesn't continue to show in the sprint screen.
+  final sprintDocIds = sprint.sprintAssignments
+      .where((sa) => sa.retired == null)
+      .map((sa) => sa.taskDocId)
+      .toSet();
 
   // Build a docId → task map with pending state overlaid for optimistic UI.
   final taskMap = <String, TaskItem>{};
@@ -135,10 +153,18 @@ Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
     }
   }
   // Include older completed tasks loaded from Firestore that are absent from
-  // Drift (e.g. purged by the old deleteSyncedNotIn bug before TM-341 fix).
-  // Only bother when showCompleted is on — the filter below drops them anyway.
+  // Drift. Two sources: the global olderCompletedTasksBatches (loaded when
+  // the user toggles Show Completed on the Tasks tab) and the sprint-scoped
+  // Firestore roster (always fetched). Both are gated on showCompleted —
+  // the filter below would drop them otherwise. `putIfAbsent` so Drift's
+  // live state always wins over the Firestore snapshot.
   if (showCompleted) {
     for (final task in olderState.loadedTasks) {
+      if (sprintDocIds.contains(task.docId)) {
+        taskMap.putIfAbsent(task.docId, () => task);
+      }
+    }
+    for (final task in firestoreRoster) {
       if (sprintDocIds.contains(task.docId)) {
         taskMap.putIfAbsent(task.docId, () => task);
       }
@@ -147,8 +173,10 @@ Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
 
   // Iterate sprint assignments IN ORDER so positions are stable across
   // completions (TM-339): completing a task doesn't reshuffle the list.
+  // Skip retired assignments to match the filter used for `sprintDocIds`.
   final ordered = <TaskItem>[];
   for (final sa in sprint.sprintAssignments) {
+    if (sa.retired != null) continue;
     final task = taskMap[sa.taskDocId];
     if (task != null) ordered.add(task);
   }

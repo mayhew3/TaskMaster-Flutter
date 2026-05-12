@@ -39,7 +39,7 @@ class BadSchemaTasks extends _$BadSchemaTasks {
 /// Stream of incomplete tasks for the current user.
 /// Streams from the local Drift cache; SyncService keeps it in sync with Firestore.
 /// Completed tasks are loaded on demand via [OlderCompletedTasksBatches].
-@riverpod
+@Riverpod(keepAlive: true)
 Stream<List<TaskItem>> tasks(Ref ref) {
   final personDocId = ref.watch(personDocIdProvider);
   final db = ref.watch(databaseProvider);
@@ -71,7 +71,7 @@ Stream<List<TaskItem>> tasks(Ref ref) {
 /// Stream of active (non-retired) tasks across all members of the current
 /// user's family (TM-335). Includes completed rows so the Family tab can
 /// reveal them when "Show Completed" is on. Empty when the user is solo.
-@riverpod
+@Riverpod(keepAlive: true)
 Stream<List<TaskItem>> familyTasks(Ref ref) {
   final familyDocId = ref.watch(currentFamilyDocIdProvider);
   if (familyDocId == null) return Stream.value(const []);
@@ -93,7 +93,7 @@ Stream<List<TaskItem>> familyTasks(Ref ref) {
 
 /// Stream of task recurrences for the current user.
 /// Streams from the local Drift cache; SyncService keeps it in sync with Firestore.
-@riverpod
+@Riverpod(keepAlive: true)
 Stream<List<TaskRecurrence>> taskRecurrences(Ref ref) {
   final personDocId = ref.watch(personDocIdProvider);
   final db = ref.watch(databaseProvider);
@@ -180,7 +180,7 @@ Stream<List<TaskItem>> tasksWithRecurrences(Ref ref) {
 ///   2. recentlyCompletedTasksProvider (just-completed tasks in this session)
 ///   3. olderCompletedTasksBatchesProvider (paginated completed tasks from Firestore)
 ///   4. taskFromDbProvider (direct Drift lookup — covers force-quit + restart)
-@riverpod
+@Riverpod(keepAlive: true)
 TaskItem? task(Ref ref, String taskId) {
   final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
 
@@ -213,7 +213,7 @@ TaskItem? task(Ref ref, String taskId) {
   // Last resort: query Drift directly by docId (covers force-quit + restart when
   // the task is in the local DB but absent from all in-memory providers — TM-341).
   final taskFromDbAsync = ref.watch(taskFromDbProvider(taskId));
-  return taskFromDbAsync.valueOrNull;
+  return taskFromDbAsync.value;
 }
 
 /// Stream of a single task directly from Drift by docId, with recurrence populated.
@@ -221,7 +221,7 @@ TaskItem? task(Ref ref, String taskId) {
 /// Used as the ultimate fallback in [taskProvider] for cases where the task
 /// exists in the local DB but is absent from all in-memory providers
 /// (e.g., completed task after a force-quit + restart before any batches load).
-@riverpod
+@Riverpod(keepAlive: true)
 Stream<TaskItem?> taskFromDb(Ref ref, String taskId) {
   final db = ref.watch(databaseProvider);
   final personDocId = ref.watch(personDocIdProvider);
@@ -278,7 +278,14 @@ Stream<TaskItem?> taskFromDb(Ref ref, String taskId) {
 @Riverpod(keepAlive: true)
 class RecentlyCompletedTasks extends _$RecentlyCompletedTasks {
   @override
-  List<TaskItem> build() => [];
+  List<TaskItem> build() {
+    // Reset on user change to prevent cross-user leakage (TM-361 manual-test #17):
+    // without this watch the keepAlive provider retained User A's just-completed
+    // tasks after sign-out, and filteredTasksProvider injected them into User B's
+    // task list until the next tab switch flushed the view.
+    ref.watch(personDocIdProvider);
+    return [];
+  }
 
   void add(TaskItem task) {
     if (!state.any((t) => t.docId == task.docId)) {
@@ -306,7 +313,12 @@ class RecentlyCompletedTasks extends _$RecentlyCompletedTasks {
 @Riverpod(keepAlive: true)
 class RecentlyCompletedIndices extends _$RecentlyCompletedIndices {
   @override
-  Map<String, int> build() => const {};
+  Map<String, int> build() {
+    // Reset on user change (TM-361 manual-test #17) — paired with
+    // recentlyCompletedTasksProvider so stale indices don't outlive sign-out.
+    ref.watch(personDocIdProvider);
+    return const {};
+  }
 
   void set(String docId, int index) {
     state = {...state, docId: index};
@@ -328,7 +340,12 @@ class RecentlyCompletedIndices extends _$RecentlyCompletedIndices {
 @Riverpod(keepAlive: true)
 class PendingTasks extends _$PendingTasks {
   @override
-  Map<String, TaskItem> build() => {};
+  Map<String, TaskItem> build() {
+    // Reset on user change (TM-361 manual-test #17) — same rationale as
+    // recentlyCompletedTasksProvider.
+    ref.watch(personDocIdProvider);
+    return {};
+  }
 
   void markPending(TaskItem task) {
     final pendingTask = task.rebuild((b) => b..pendingCompletion = true);
@@ -342,7 +359,7 @@ class PendingTasks extends _$PendingTasks {
 
 /// Tasks with pending completion state merged in (optimistic UI overlay)
 /// This provider overlays optimistic pending state on top of Firestore data
-@riverpod
+@Riverpod(keepAlive: true)
 Future<List<TaskItem>> tasksWithPendingState(Ref ref) async {
   final tasks = await ref.watch(tasksWithRecurrencesProvider.future);
   final pendingTasks = ref.watch(pendingTasksProvider);
@@ -355,7 +372,7 @@ Future<List<TaskItem>> tasksWithPendingState(Ref ref) async {
 /// Stream of all tasks for a specific recurrence, including retired ones.
 /// This shows the full history of a recurring task for debugging/inspection.
 /// Ordered by recurIteration descending (newest first).
-@riverpod
+@Riverpod(keepAlive: true)
 Stream<List<TaskItem>> tasksForRecurrence(Ref ref, String recurrenceDocId) {
   final firestore = ref.watch(firestoreProvider);
   final personDocId = ref.watch(personDocIdProvider);

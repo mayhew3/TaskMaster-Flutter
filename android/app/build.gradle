@@ -53,7 +53,14 @@ android {
 
     defaultConfig {
         applicationId "com.mayhew3.taskmaestro.flutter"
-        minSdkVersion 23
+        // TM-361: defer to Flutter's toolchain default for the minSdkVersion
+        // (currently 21+). Firebase and flutter_local_notifications require
+        // 23+ in their recent majors — if the Flutter default ever falls
+        // below 23 (unlikely; Flutter has only ratcheted upward) or a
+        // dependency raises its floor, pin this back to an explicit
+        // `minSdkVersion 23`. We also expect to lift the floor explicitly
+        // once we start using API 26+ features.
+        minSdkVersion flutter.minSdkVersion
         targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName

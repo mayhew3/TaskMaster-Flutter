@@ -6,169 +6,381 @@ part of 'family_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$familyRepositoryHash() => r'6daf913eb5da4122cc4af65596a448955fa1589d';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+/// Repository wired with Firestore + the local Drift database.
+
+@ProviderFor(familyRepository)
+final familyRepositoryProvider = FamilyRepositoryProvider._();
 
 /// Repository wired with Firestore + the local Drift database.
-///
-/// Copied from [familyRepository].
-@ProviderFor(familyRepository)
-final familyRepositoryProvider = Provider<FamilyRepository>.internal(
-  familyRepository,
-  name: r'familyRepositoryProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$familyRepositoryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef FamilyRepositoryRef = ProviderRef<FamilyRepository>;
-String _$currentPersonHash() => r'f1905b057bcb7d7d95a775aafda7209f56b482e3';
+final class FamilyRepositoryProvider
+    extends
+        $FunctionalProvider<
+          FamilyRepository,
+          FamilyRepository,
+          FamilyRepository
+        >
+    with $Provider<FamilyRepository> {
+  /// Repository wired with Firestore + the local Drift database.
+  FamilyRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'familyRepositoryProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$familyRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<FamilyRepository> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  FamilyRepository create(Ref ref) {
+    return familyRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(FamilyRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<FamilyRepository>(value),
+    );
+  }
+}
+
+String _$familyRepositoryHash() => r'6daf913eb5da4122cc4af65596a448955fa1589d';
 
 /// Stream of the current user's Person doc from Drift. Emits null until the
 /// SyncService delivers the first persons-self snapshot.
-///
-/// Copied from [currentPerson].
-@ProviderFor(currentPerson)
-final currentPersonProvider = AutoDisposeStreamProvider<Person?>.internal(
-  currentPerson,
-  name: r'currentPersonProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$currentPersonHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef CurrentPersonRef = AutoDisposeStreamProviderRef<Person?>;
-String _$currentFamilyDocIdHash() =>
-    r'c552dda8463d908dce3bbb7ec27a5b5798955114';
+@ProviderFor(currentPerson)
+final currentPersonProvider = CurrentPersonProvider._();
+
+/// Stream of the current user's Person doc from Drift. Emits null until the
+/// SyncService delivers the first persons-self snapshot.
+
+final class CurrentPersonProvider
+    extends $FunctionalProvider<AsyncValue<Person?>, Person?, Stream<Person?>>
+    with $FutureModifier<Person?>, $StreamProvider<Person?> {
+  /// Stream of the current user's Person doc from Drift. Emits null until the
+  /// SyncService delivers the first persons-self snapshot.
+  CurrentPersonProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'currentPersonProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$currentPersonHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<Person?> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<Person?> create(Ref ref) {
+    return currentPerson(ref);
+  }
+}
+
+String _$currentPersonHash() => r'5ec950160183a2836ad9182a88ef9a43b60f3689';
 
 /// `familyDocId` of the current user (null if solo).
-///
-/// Copied from [currentFamilyDocId].
-@ProviderFor(currentFamilyDocId)
-final currentFamilyDocIdProvider = AutoDisposeProvider<String?>.internal(
-  currentFamilyDocId,
-  name: r'currentFamilyDocIdProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$currentFamilyDocIdHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef CurrentFamilyDocIdRef = AutoDisposeProviderRef<String?>;
-String _$currentFamilyHash() => r'bc77d44550ab8e840459e5e82b4a2250f12bd967';
+@ProviderFor(currentFamilyDocId)
+final currentFamilyDocIdProvider = CurrentFamilyDocIdProvider._();
+
+/// `familyDocId` of the current user (null if solo).
+
+final class CurrentFamilyDocIdProvider
+    extends $FunctionalProvider<String?, String?, String?>
+    with $Provider<String?> {
+  /// `familyDocId` of the current user (null if solo).
+  CurrentFamilyDocIdProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'currentFamilyDocIdProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$currentFamilyDocIdHash();
+
+  @$internal
+  @override
+  $ProviderElement<String?> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  String? create(Ref ref) {
+    return currentFamilyDocId(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(String? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<String?>(value),
+    );
+  }
+}
+
+String _$currentFamilyDocIdHash() =>
+    r'105549b4825837eafced10a73e29985313cfe713';
 
 /// Stream of the current user's Family doc from Drift, derived from
 /// [currentPersonProvider].familyDocId.
-///
-/// Copied from [currentFamily].
-@ProviderFor(currentFamily)
-final currentFamilyProvider = AutoDisposeStreamProvider<Family?>.internal(
-  currentFamily,
-  name: r'currentFamilyProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$currentFamilyHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef CurrentFamilyRef = AutoDisposeStreamProviderRef<Family?>;
-String _$familyMembersHash() => r'14806b2d8b0c7035fc1e57b8998b78d9322b6796';
+@ProviderFor(currentFamily)
+final currentFamilyProvider = CurrentFamilyProvider._();
+
+/// Stream of the current user's Family doc from Drift, derived from
+/// [currentPersonProvider].familyDocId.
+
+final class CurrentFamilyProvider
+    extends $FunctionalProvider<AsyncValue<Family?>, Family?, Stream<Family?>>
+    with $FutureModifier<Family?>, $StreamProvider<Family?> {
+  /// Stream of the current user's Family doc from Drift, derived from
+  /// [currentPersonProvider].familyDocId.
+  CurrentFamilyProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'currentFamilyProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$currentFamilyHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<Family?> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<Family?> create(Ref ref) {
+    return currentFamily(ref);
+  }
+}
+
+String _$currentFamilyHash() => r'7adb459ab340fdb7eb0dd96cf41db7e4599e075a';
 
 /// Stream of all Person docs in the current user's family (member roster).
 /// Empty list when solo.
-///
-/// Copied from [familyMembers].
-@ProviderFor(familyMembers)
-final familyMembersProvider = AutoDisposeStreamProvider<List<Person>>.internal(
-  familyMembers,
-  name: r'familyMembersProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$familyMembersHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef FamilyMembersRef = AutoDisposeStreamProviderRef<List<Person>>;
-String _$pendingInvitationsForMeHash() =>
-    r'e4ff5ebfaa59eecd0025c41ea3fb60d8ac2c0aff';
+@ProviderFor(familyMembers)
+final familyMembersProvider = FamilyMembersProvider._();
+
+/// Stream of all Person docs in the current user's family (member roster).
+/// Empty list when solo.
+
+final class FamilyMembersProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Person>>,
+          List<Person>,
+          Stream<List<Person>>
+        >
+    with $FutureModifier<List<Person>>, $StreamProvider<List<Person>> {
+  /// Stream of all Person docs in the current user's family (member roster).
+  /// Empty list when solo.
+  FamilyMembersProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'familyMembersProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$familyMembersHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<Person>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<Person>> create(Ref ref) {
+    return familyMembers(ref);
+  }
+}
+
+String _$familyMembersHash() => r'32a650b070e400706a9c4df29bc7811eec4ee683';
 
 /// Pending invitations addressed to the current user. Empty list when nothing
 /// is outstanding. Powers the `PendingInvitationBanner`.
-///
-/// Copied from [pendingInvitationsForMe].
-@ProviderFor(pendingInvitationsForMe)
-final pendingInvitationsForMeProvider =
-    AutoDisposeStreamProvider<List<FamilyInvitation>>.internal(
-      pendingInvitationsForMe,
-      name: r'pendingInvitationsForMeProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$pendingInvitationsForMeHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef PendingInvitationsForMeRef =
-    AutoDisposeStreamProviderRef<List<FamilyInvitation>>;
-String _$outgoingInvitationsHash() =>
-    r'e3347ddd33a44587c6d2b6d21a9c17354e711c10';
+@ProviderFor(pendingInvitationsForMe)
+final pendingInvitationsForMeProvider = PendingInvitationsForMeProvider._();
+
+/// Pending invitations addressed to the current user. Empty list when nothing
+/// is outstanding. Powers the `PendingInvitationBanner`.
+
+final class PendingInvitationsForMeProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<FamilyInvitation>>,
+          List<FamilyInvitation>,
+          Stream<List<FamilyInvitation>>
+        >
+    with
+        $FutureModifier<List<FamilyInvitation>>,
+        $StreamProvider<List<FamilyInvitation>> {
+  /// Pending invitations addressed to the current user. Empty list when nothing
+  /// is outstanding. Powers the `PendingInvitationBanner`.
+  PendingInvitationsForMeProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'pendingInvitationsForMeProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$pendingInvitationsForMeHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<FamilyInvitation>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<FamilyInvitation>> create(Ref ref) {
+    return pendingInvitationsForMe(ref);
+  }
+}
+
+String _$pendingInvitationsForMeHash() =>
+    r'f16ed809dad195c6103e36217cfcb02054be0ae6';
 
 /// Invitations sent by the current user (to render in FamilyManageScreen).
-///
-/// Copied from [outgoingInvitations].
-@ProviderFor(outgoingInvitations)
-final outgoingInvitationsProvider =
-    AutoDisposeStreamProvider<List<FamilyInvitation>>.internal(
-      outgoingInvitations,
-      name: r'outgoingInvitationsProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$outgoingInvitationsHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef OutgoingInvitationsRef =
-    AutoDisposeStreamProviderRef<List<FamilyInvitation>>;
-String _$createFamilyHash() => r'38ead9459f36c08509931bd3b96543198b8617e1';
+@ProviderFor(outgoingInvitations)
+final outgoingInvitationsProvider = OutgoingInvitationsProvider._();
+
+/// Invitations sent by the current user (to render in FamilyManageScreen).
+
+final class OutgoingInvitationsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<FamilyInvitation>>,
+          List<FamilyInvitation>,
+          Stream<List<FamilyInvitation>>
+        >
+    with
+        $FutureModifier<List<FamilyInvitation>>,
+        $StreamProvider<List<FamilyInvitation>> {
+  /// Invitations sent by the current user (to render in FamilyManageScreen).
+  OutgoingInvitationsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'outgoingInvitationsProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$outgoingInvitationsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<FamilyInvitation>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<FamilyInvitation>> create(Ref ref) {
+    return outgoingInvitations(ref);
+  }
+}
+
+String _$outgoingInvitationsHash() =>
+    r'e8acc5d88b1018286d0b0cf5025a998e63f9c568';
 
 /// Creates a family with the current user as sole member and owner.
-///
-/// Copied from [CreateFamily].
-@ProviderFor(CreateFamily)
-final createFamilyProvider =
-    AutoDisposeAsyncNotifierProvider<CreateFamily, void>.internal(
-      CreateFamily.new,
-      name: r'createFamilyProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$createFamilyHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
 
-typedef _$CreateFamily = AutoDisposeAsyncNotifier<void>;
-String _$inviteMemberHash() => r'239123eed8e138dea16ce4df44dbe3f22f51a4e4';
+@ProviderFor(CreateFamily)
+final createFamilyProvider = CreateFamilyProvider._();
+
+/// Creates a family with the current user as sole member and owner.
+final class CreateFamilyProvider
+    extends $AsyncNotifierProvider<CreateFamily, void> {
+  /// Creates a family with the current user as sole member and owner.
+  CreateFamilyProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'createFamilyProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$createFamilyHash();
+
+  @$internal
+  @override
+  CreateFamily create() => CreateFamily();
+}
+
+String _$createFamilyHash() => r'9ee36d8211c13efebdd000254b689aae86f308f0';
+
+/// Creates a family with the current user as sole member and owner.
+
+abstract class _$CreateFamily extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
 
 /// Send an invitation to [email] from the current user's family.
 ///
@@ -176,84 +388,242 @@ String _$inviteMemberHash() => r'239123eed8e138dea16ce4df44dbe3f22f51a4e4';
 /// when they've just created a family in the same flow — the Drift mirror of
 /// `persons/{me}.familyDocId` may not have caught up yet (Firestore listener
 /// round-trip), so reading from the provider would return null.
-///
-/// Copied from [InviteMember].
+
 @ProviderFor(InviteMember)
-final inviteMemberProvider =
-    AutoDisposeAsyncNotifierProvider<InviteMember, void>.internal(
-      InviteMember.new,
-      name: r'inviteMemberProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$inviteMemberHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+final inviteMemberProvider = InviteMemberProvider._();
 
-typedef _$InviteMember = AutoDisposeAsyncNotifier<void>;
-String _$acceptInvitationHash() => r'c8c652d3382c8830568f0858c2fdc6a807632fad';
+/// Send an invitation to [email] from the current user's family.
+///
+/// [familyDocIdOverride] lets the caller bypass [currentFamilyDocIdProvider]
+/// when they've just created a family in the same flow — the Drift mirror of
+/// `persons/{me}.familyDocId` may not have caught up yet (Firestore listener
+/// round-trip), so reading from the provider would return null.
+final class InviteMemberProvider
+    extends $AsyncNotifierProvider<InviteMember, void> {
+  /// Send an invitation to [email] from the current user's family.
+  ///
+  /// [familyDocIdOverride] lets the caller bypass [currentFamilyDocIdProvider]
+  /// when they've just created a family in the same flow — the Drift mirror of
+  /// `persons/{me}.familyDocId` may not have caught up yet (Firestore listener
+  /// round-trip), so reading from the provider would return null.
+  InviteMemberProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'inviteMemberProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
-/// See also [AcceptInvitation].
+  @override
+  String debugGetCreateSourceHash() => _$inviteMemberHash();
+
+  @$internal
+  @override
+  InviteMember create() => InviteMember();
+}
+
+String _$inviteMemberHash() => r'0dffdb59e5247137acff9ae322a82a99f228c9c5';
+
+/// Send an invitation to [email] from the current user's family.
+///
+/// [familyDocIdOverride] lets the caller bypass [currentFamilyDocIdProvider]
+/// when they've just created a family in the same flow — the Drift mirror of
+/// `persons/{me}.familyDocId` may not have caught up yet (Firestore listener
+/// round-trip), so reading from the provider would return null.
+
+abstract class _$InviteMember extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(AcceptInvitation)
-final acceptInvitationProvider =
-    AutoDisposeAsyncNotifierProvider<AcceptInvitation, void>.internal(
-      AcceptInvitation.new,
-      name: r'acceptInvitationProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$acceptInvitationHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+final acceptInvitationProvider = AcceptInvitationProvider._();
 
-typedef _$AcceptInvitation = AutoDisposeAsyncNotifier<void>;
-String _$declineInvitationHash() => r'f93e8882d7d8235696eb3b94cd7284fc29bf3237';
+final class AcceptInvitationProvider
+    extends $AsyncNotifierProvider<AcceptInvitation, void> {
+  AcceptInvitationProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'acceptInvitationProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
-/// See also [DeclineInvitation].
+  @override
+  String debugGetCreateSourceHash() => _$acceptInvitationHash();
+
+  @$internal
+  @override
+  AcceptInvitation create() => AcceptInvitation();
+}
+
+String _$acceptInvitationHash() => r'2feea4b026eedc8df1f8a086147217cd1c45b54c';
+
+abstract class _$AcceptInvitation extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(DeclineInvitation)
-final declineInvitationProvider =
-    AutoDisposeAsyncNotifierProvider<DeclineInvitation, void>.internal(
-      DeclineInvitation.new,
-      name: r'declineInvitationProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$declineInvitationHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+final declineInvitationProvider = DeclineInvitationProvider._();
 
-typedef _$DeclineInvitation = AutoDisposeAsyncNotifier<void>;
-String _$removeMemberHash() => r'1e2ce1e07dc2f1473360e2d8b7bafa3ee22a4b8e';
+final class DeclineInvitationProvider
+    extends $AsyncNotifierProvider<DeclineInvitation, void> {
+  DeclineInvitationProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'declineInvitationProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
-/// See also [RemoveMember].
+  @override
+  String debugGetCreateSourceHash() => _$declineInvitationHash();
+
+  @$internal
+  @override
+  DeclineInvitation create() => DeclineInvitation();
+}
+
+String _$declineInvitationHash() => r'cbd2fa401f579bd306f2f37353d641614305c940';
+
+abstract class _$DeclineInvitation extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(RemoveMember)
-final removeMemberProvider =
-    AutoDisposeAsyncNotifierProvider<RemoveMember, void>.internal(
-      RemoveMember.new,
-      name: r'removeMemberProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$removeMemberHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+final removeMemberProvider = RemoveMemberProvider._();
 
-typedef _$RemoveMember = AutoDisposeAsyncNotifier<void>;
-String _$leaveFamilyHash() => r'9db7c087cdebfae5e031088c96d6a9b8fc625a98';
+final class RemoveMemberProvider
+    extends $AsyncNotifierProvider<RemoveMember, void> {
+  RemoveMemberProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'removeMemberProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
-/// See also [LeaveFamily].
+  @override
+  String debugGetCreateSourceHash() => _$removeMemberHash();
+
+  @$internal
+  @override
+  RemoveMember create() => RemoveMember();
+}
+
+String _$removeMemberHash() => r'582a0a7f29895fecdd8e488bc8cdd3335ee4035e';
+
+abstract class _$RemoveMember extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(LeaveFamily)
-final leaveFamilyProvider =
-    AutoDisposeAsyncNotifierProvider<LeaveFamily, void>.internal(
-      LeaveFamily.new,
-      name: r'leaveFamilyProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$leaveFamilyHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+final leaveFamilyProvider = LeaveFamilyProvider._();
 
-typedef _$LeaveFamily = AutoDisposeAsyncNotifier<void>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class LeaveFamilyProvider
+    extends $AsyncNotifierProvider<LeaveFamily, void> {
+  LeaveFamilyProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'leaveFamilyProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$leaveFamilyHash();
+
+  @$internal
+  @override
+  LeaveFamily create() => LeaveFamily();
+}
+
+String _$leaveFamilyHash() => r'a6ea4199be16470e6dece8317f6c076194c30099';
+
+abstract class _$LeaveFamily extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}

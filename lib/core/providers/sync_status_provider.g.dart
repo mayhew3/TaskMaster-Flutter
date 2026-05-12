@@ -6,22 +6,58 @@ part of 'sync_status_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(SyncStatusController)
+final syncStatusControllerProvider = SyncStatusControllerProvider._();
+
+final class SyncStatusControllerProvider
+    extends $NotifierProvider<SyncStatusController, SyncStatus> {
+  SyncStatusControllerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'syncStatusControllerProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$syncStatusControllerHash();
+
+  @$internal
+  @override
+  SyncStatusController create() => SyncStatusController();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SyncStatus value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SyncStatus>(value),
+    );
+  }
+}
+
 String _$syncStatusControllerHash() =>
     r'e1220486970aa2d29675e4af9dffa33539022b5e';
 
-/// See also [SyncStatusController].
-@ProviderFor(SyncStatusController)
-final syncStatusControllerProvider =
-    NotifierProvider<SyncStatusController, SyncStatus>.internal(
-      SyncStatusController.new,
-      name: r'syncStatusControllerProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$syncStatusControllerHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-typedef _$SyncStatusController = Notifier<SyncStatus>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$SyncStatusController extends $Notifier<SyncStatus> {
+  SyncStatus build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<SyncStatus, SyncStatus>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<SyncStatus, SyncStatus>,
+              SyncStatus,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}

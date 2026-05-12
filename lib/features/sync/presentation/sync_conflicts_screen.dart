@@ -77,8 +77,8 @@ class SyncConflictsScreen extends ConsumerWidget {
                 onPressed: () {
                   ref.invalidate(taskConflictsProvider);
                   ref.invalidate(recurrenceConflictsProvider);
-                  ref.invalidate(taskConflictRowsProvider);
-                  ref.invalidate(recurrenceConflictRowsProvider);
+                  ref.invalidate(taskConflictRowCountProvider);
+                  ref.invalidate(recurrenceConflictRowCountProvider);
                 },
                 child: const Text('Retry'),
               ),

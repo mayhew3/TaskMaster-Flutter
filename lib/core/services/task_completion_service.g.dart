@@ -6,84 +6,155 @@ part of 'task_completion_service.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$taskCompletionServiceHash() =>
-    r'ad60561ea8cd39ea6765a3272a5776df358497a7';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [taskCompletionService].
 @ProviderFor(taskCompletionService)
-final taskCompletionServiceProvider =
-    AutoDisposeProvider<TaskCompletionService>.internal(
-      taskCompletionService,
-      name: r'taskCompletionServiceProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$taskCompletionServiceHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
+final taskCompletionServiceProvider = TaskCompletionServiceProvider._();
+
+final class TaskCompletionServiceProvider
+    extends
+        $FunctionalProvider<
+          TaskCompletionService,
+          TaskCompletionService,
+          TaskCompletionService
+        >
+    with $Provider<TaskCompletionService> {
+  TaskCompletionServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'taskCompletionServiceProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$taskCompletionServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<TaskCompletionService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  TaskCompletionService create(Ref ref) {
+    return taskCompletionService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(TaskCompletionService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<TaskCompletionService>(value),
     );
+  }
+}
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef TaskCompletionServiceRef =
-    AutoDisposeProviderRef<TaskCompletionService>;
-String _$legacyTaskRepositoryHash() =>
-    r'b8092e425e6000371e0635584509e6e293b20da3';
-
-/// Provider for legacy TaskRepository (for snooze functionality)
-///
-/// Copied from [legacyTaskRepository].
-@ProviderFor(legacyTaskRepository)
-final legacyTaskRepositoryProvider =
-    AutoDisposeProvider<legacy.TaskRepository>.internal(
-      legacyTaskRepository,
-      name: r'legacyTaskRepositoryProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$legacyTaskRepositoryHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef LegacyTaskRepositoryRef = AutoDisposeProviderRef<legacy.TaskRepository>;
-String _$completeTaskHash() => r'3fd182ac744139a005094da91cbecccfb0c13580';
+String _$taskCompletionServiceHash() =>
+    r'd8165489e9937c88a1919383230bd3dab18567e4';
 
 /// Controller for completing tasks
-///
-/// Copied from [CompleteTask].
-@ProviderFor(CompleteTask)
-final completeTaskProvider =
-    AutoDisposeAsyncNotifierProvider<CompleteTask, void>.internal(
-      CompleteTask.new,
-      name: r'completeTaskProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$completeTaskHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
 
-typedef _$CompleteTask = AutoDisposeAsyncNotifier<void>;
-String _$skipTaskHash() => r'34b2b385586596c1dc8432a42ede8b18439b2c43';
+@ProviderFor(CompleteTask)
+final completeTaskProvider = CompleteTaskProvider._();
+
+/// Controller for completing tasks
+final class CompleteTaskProvider
+    extends $AsyncNotifierProvider<CompleteTask, void> {
+  /// Controller for completing tasks
+  CompleteTaskProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'completeTaskProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$completeTaskHash();
+
+  @$internal
+  @override
+  CompleteTask create() => CompleteTask();
+}
+
+String _$completeTaskHash() => r'562c978733e56078b22aae620dc2415ad824fc9e';
+
+/// Controller for completing tasks
+
+abstract class _$CompleteTask extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
 
 /// Controller for skipping a recurring task instance
-///
-/// Copied from [SkipTask].
-@ProviderFor(SkipTask)
-final skipTaskProvider =
-    AutoDisposeAsyncNotifierProvider<SkipTask, void>.internal(
-      SkipTask.new,
-      name: r'skipTaskProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$skipTaskHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
 
-typedef _$SkipTask = AutoDisposeAsyncNotifier<void>;
-String _$deleteTaskHash() => r'75b5d13720fc5386dfd53999721eda028959ab36';
+@ProviderFor(SkipTask)
+final skipTaskProvider = SkipTaskProvider._();
+
+/// Controller for skipping a recurring task instance
+final class SkipTaskProvider extends $AsyncNotifierProvider<SkipTask, void> {
+  /// Controller for skipping a recurring task instance
+  SkipTaskProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'skipTaskProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$skipTaskHash();
+
+  @$internal
+  @override
+  SkipTask create() => SkipTask();
+}
+
+String _$skipTaskHash() => r'765867c5d4e0a14b6013a7017aac79d616985c36';
+
+/// Controller for skipping a recurring task instance
+
+abstract class _$SkipTask extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
 
 /// Controller for deleting tasks.
 ///
@@ -92,94 +163,326 @@ String _$deleteTaskHash() => r'75b5d13720fc5386dfd53999721eda028959ab36';
 /// is settled at construction; subsequent `state = AsyncLoading/AsyncData`
 /// re-completes it and throws "Bad state: Future already completed". UI
 /// loading state is handled locally by callers (e.g. `_busy` flags).
-///
-/// Copied from [DeleteTask].
-@ProviderFor(DeleteTask)
-final deleteTaskProvider =
-    AutoDisposeAsyncNotifierProvider<DeleteTask, void>.internal(
-      DeleteTask.new,
-      name: r'deleteTaskProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$deleteTaskHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
 
-typedef _$DeleteTask = AutoDisposeAsyncNotifier<void>;
-String _$addTaskHash() => r'0f96b22cf04235abe274be4d8869d6fca3010a9a';
+@ProviderFor(DeleteTask)
+final deleteTaskProvider = DeleteTaskProvider._();
+
+/// Controller for deleting tasks.
+///
+/// Notifier `state` is intentionally NOT mutated from `call`. With a sync
+/// `FutureOr<void> build()` the AsyncNotifier's internal future completer
+/// is settled at construction; subsequent `state = AsyncLoading/AsyncData`
+/// re-completes it and throws "Bad state: Future already completed". UI
+/// loading state is handled locally by callers (e.g. `_busy` flags).
+final class DeleteTaskProvider
+    extends $AsyncNotifierProvider<DeleteTask, void> {
+  /// Controller for deleting tasks.
+  ///
+  /// Notifier `state` is intentionally NOT mutated from `call`. With a sync
+  /// `FutureOr<void> build()` the AsyncNotifier's internal future completer
+  /// is settled at construction; subsequent `state = AsyncLoading/AsyncData`
+  /// re-completes it and throws "Bad state: Future already completed". UI
+  /// loading state is handled locally by callers (e.g. `_busy` flags).
+  DeleteTaskProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'deleteTaskProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$deleteTaskHash();
+
+  @$internal
+  @override
+  DeleteTask create() => DeleteTask();
+}
+
+String _$deleteTaskHash() => r'd2f97e71481efe7b87aae46d7415269289bdc295';
+
+/// Controller for deleting tasks.
+///
+/// Notifier `state` is intentionally NOT mutated from `call`. With a sync
+/// `FutureOr<void> build()` the AsyncNotifier's internal future completer
+/// is settled at construction; subsequent `state = AsyncLoading/AsyncData`
+/// re-completes it and throws "Bad state: Future already completed". UI
+/// loading state is handled locally by callers (e.g. `_busy` flags).
+
+abstract class _$DeleteTask extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
 
 /// Controller for adding new tasks.
-///
-/// Copied from [AddTask].
-@ProviderFor(AddTask)
-final addTaskProvider =
-    AutoDisposeAsyncNotifierProvider<AddTask, void>.internal(
-      AddTask.new,
-      name: r'addTaskProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$addTaskHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
 
-typedef _$AddTask = AutoDisposeAsyncNotifier<void>;
-String _$updateTaskHash() => r'8bb8c502dd05d7a2830670163db55a44686aed94';
+@ProviderFor(AddTask)
+final addTaskProvider = AddTaskProvider._();
+
+/// Controller for adding new tasks.
+final class AddTaskProvider extends $AsyncNotifierProvider<AddTask, void> {
+  /// Controller for adding new tasks.
+  AddTaskProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'addTaskProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$addTaskHash();
+
+  @$internal
+  @override
+  AddTask create() => AddTask();
+}
+
+String _$addTaskHash() => r'50ae61da56cfc6746bbd628a749f31948809b8cf';
+
+/// Controller for adding new tasks.
+
+abstract class _$AddTask extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
 
 /// Controller for updating tasks.
-///
-/// Copied from [UpdateTask].
-@ProviderFor(UpdateTask)
-final updateTaskProvider =
-    AutoDisposeAsyncNotifierProvider<UpdateTask, void>.internal(
-      UpdateTask.new,
-      name: r'updateTaskProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$updateTaskHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
 
-typedef _$UpdateTask = AutoDisposeAsyncNotifier<void>;
-String _$snoozeTaskHash() => r'7fc6c953aa372c8d82d62fdc567d699324f57a09';
+@ProviderFor(UpdateTask)
+final updateTaskProvider = UpdateTaskProvider._();
+
+/// Controller for updating tasks.
+final class UpdateTaskProvider
+    extends $AsyncNotifierProvider<UpdateTask, void> {
+  /// Controller for updating tasks.
+  UpdateTaskProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'updateTaskProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$updateTaskHash();
+
+  @$internal
+  @override
+  UpdateTask create() => UpdateTask();
+}
+
+String _$updateTaskHash() => r'9aaa89b631f83962d54ac6621b8fa911792da575';
+
+/// Controller for updating tasks.
+
+abstract class _$UpdateTask extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
 
 /// Controller for snoozing tasks
-///
-/// Copied from [SnoozeTask].
-@ProviderFor(SnoozeTask)
-final snoozeTaskProvider =
-    AutoDisposeAsyncNotifierProvider<SnoozeTask, void>.internal(
-      SnoozeTask.new,
-      name: r'snoozeTaskProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$snoozeTaskHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
 
-typedef _$SnoozeTask = AutoDisposeAsyncNotifier<void>;
+@ProviderFor(SnoozeTask)
+final snoozeTaskProvider = SnoozeTaskProvider._();
+
+/// Controller for snoozing tasks
+final class SnoozeTaskProvider
+    extends $AsyncNotifierProvider<SnoozeTask, void> {
+  /// Controller for snoozing tasks
+  SnoozeTaskProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'snoozeTaskProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$snoozeTaskHash();
+
+  @$internal
+  @override
+  SnoozeTask create() => SnoozeTask();
+}
+
+String _$snoozeTaskHash() => r'8f582f90888a9ee2239d0d431b25b7f39e4216af';
+
+/// Controller for snoozing tasks
+
+abstract class _$SnoozeTask extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
+/// Provider for legacy TaskRepository (for snooze functionality)
+
+@ProviderFor(legacyTaskRepository)
+final legacyTaskRepositoryProvider = LegacyTaskRepositoryProvider._();
+
+/// Provider for legacy TaskRepository (for snooze functionality)
+
+final class LegacyTaskRepositoryProvider
+    extends
+        $FunctionalProvider<
+          legacy.TaskRepository,
+          legacy.TaskRepository,
+          legacy.TaskRepository
+        >
+    with $Provider<legacy.TaskRepository> {
+  /// Provider for legacy TaskRepository (for snooze functionality)
+  LegacyTaskRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'legacyTaskRepositoryProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$legacyTaskRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<legacy.TaskRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  legacy.TaskRepository create(Ref ref) {
+    return legacyTaskRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(legacy.TaskRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<legacy.TaskRepository>(value),
+    );
+  }
+}
+
+String _$legacyTaskRepositoryHash() =>
+    r'736796d2f328e43cc027ff968fc453ada26d05d4';
+
+/// Provider for TimezoneHelper
+/// Must be initialized before use - call configureLocalTimeZone() first
+
+@ProviderFor(TimezoneHelperNotifier)
+final timezoneHelperProvider = TimezoneHelperNotifierProvider._();
+
+/// Provider for TimezoneHelper
+/// Must be initialized before use - call configureLocalTimeZone() first
+final class TimezoneHelperNotifierProvider
+    extends $AsyncNotifierProvider<TimezoneHelperNotifier, TimezoneHelper> {
+  /// Provider for TimezoneHelper
+  /// Must be initialized before use - call configureLocalTimeZone() first
+  TimezoneHelperNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'timezoneHelperProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$timezoneHelperNotifierHash();
+
+  @$internal
+  @override
+  TimezoneHelperNotifier create() => TimezoneHelperNotifier();
+}
+
 String _$timezoneHelperNotifierHash() =>
     r'38eced5cb9614d50d30a7b1c818fbc59981d6b30';
 
 /// Provider for TimezoneHelper
 /// Must be initialized before use - call configureLocalTimeZone() first
-///
-/// Copied from [TimezoneHelperNotifier].
-@ProviderFor(TimezoneHelperNotifier)
-final timezoneHelperNotifierProvider =
-    AsyncNotifierProvider<TimezoneHelperNotifier, TimezoneHelper>.internal(
-      TimezoneHelperNotifier.new,
-      name: r'timezoneHelperNotifierProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$timezoneHelperNotifierHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
 
-typedef _$TimezoneHelperNotifier = AsyncNotifier<TimezoneHelper>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$TimezoneHelperNotifier extends $AsyncNotifier<TimezoneHelper> {
+  FutureOr<TimezoneHelper> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<TimezoneHelper>, TimezoneHelper>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<TimezoneHelper>, TimezoneHelper>,
+              AsyncValue<TimezoneHelper>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}

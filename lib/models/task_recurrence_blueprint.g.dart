@@ -21,8 +21,7 @@ Map<String, dynamic> _$TaskRecurrenceBlueprintToJson(
   ),
   'retired': instance.retired,
   'retiredDate': instance.retiredDate?.toIso8601String(),
-  if (instance.lastModified?.toIso8601String() case final value?)
-    'lastModified': value,
+  'lastModified': ?instance.lastModified?.toIso8601String(),
 };
 
 Json? _$JsonConverterToJson<Json, Value>(

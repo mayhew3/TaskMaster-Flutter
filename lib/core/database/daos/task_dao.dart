@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 import '../app_database.dart';
 import '../tables.dart';
@@ -69,6 +70,22 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
         .get();
   }
 
+  /// One-shot fetch of incomplete, non-retired, non-pending-delete tasks for
+  /// a user. Mirrors [watchIncompleteTasks]'s filter so consumers that need a
+  /// snapshot of "what tasksProvider currently shows" can fetch it without
+  /// subscribing to a stream — important for write-path code that runs in a
+  /// notifier method where `ref.read(tasksProvider.future)` doesn't resolve
+  /// under Riverpod 4 + flutter_test.
+  Future<List<Task>> incompleteForUser(String personDocId) {
+    return (select(tasks)
+          ..where((t) =>
+              t.personDocId.equals(personDocId) &
+              t.retired.isNull() &
+              t.completionDate.isNull() &
+              t.syncState.equals(SyncState.pendingDelete.name).not()))
+        .get();
+  }
+
   /// Stream of every non-retired, non-pending-delete row for a user
   /// (including completed). Powers the per-area / per-context task-count
   /// badges on the Manage screens (TM-345 / TM-181) — the badges need to
@@ -88,6 +105,11 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
   /// is anything other than `synced` — that catches pendingCreate /
   /// pendingUpdate / pendingDelete (pending-local-wins) and pendingConflict
   /// (TM-342: don't overwrite a row the user is actively resolving).
+  ///
+  /// TM-361: also writes `lastSyncedRemoteVersion = row.lastModified` so the
+  /// conflict detector has the server timestamp this row was last observed
+  /// at. Without this, an offline edit later compares against its own
+  /// local-clock `lastModified` and can't tell that the remote moved.
   Future<void> upsertFromRemote(TasksCompanion row) async {
     final current = await (select(tasks)
           ..where((t) => t.docId.equals(row.docId.value)))
@@ -97,7 +119,10 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
       return;
     }
     await into(tasks).insertOnConflictUpdate(
-      row.copyWith(syncState: Value(SyncState.synced.name)),
+      row.copyWith(
+        syncState: Value(SyncState.synced.name),
+        lastSyncedRemoteVersion: row.lastModified,
+      ),
     );
   }
 
@@ -119,11 +144,41 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
         .get();
     final pendingSet = pendingIds.toSet();
 
+    // TM-361: sync the lastSyncedRemoteVersion column at the same time —
+    // see upsertFromRemote for rationale.
     final toUpsert = rows
         .where((r) => !pendingSet.contains(r.docId.value))
-        .map((r) => r.copyWith(syncState: Value(SyncState.synced.name)))
+        .map((r) => r.copyWith(
+              syncState: Value(SyncState.synced.name),
+              lastSyncedRemoteVersion: r.lastModified,
+            ))
         .toList();
 
+    if (kDebugMode) {
+      final skipped = rows
+          .where((r) => pendingSet.contains(r.docId.value))
+          .map((r) => r.docId.value)
+          .toList();
+      if (skipped.isNotEmpty) {
+        debugPrint(
+            '[TaskDao.bulkUpsertFromRemote] skipped ${skipped.length} pending rows: $skipped');
+      }
+      // Aggregate the per-row anchor log — a per-row print floods debug
+      // builds on large initial syncs (and meaningfully slows widget tests
+      // that pump a full pull). Sample the first few IDs for traceability.
+      if (toUpsert.isNotEmpty) {
+        const sampleCount = 5;
+        final sample = toUpsert
+            .take(sampleCount)
+            .map((r) => r.docId.value)
+            .join(', ');
+        final suffix = toUpsert.length > sampleCount
+            ? ' (+${toUpsert.length - sampleCount} more)'
+            : '';
+        debugPrint(
+            '[TaskDao.bulkUpsertFromRemote] anchoring ${toUpsert.length} rows: $sample$suffix');
+      }
+    }
     if (toUpsert.isEmpty) return;
     await batch((b) => b.insertAllOnConflictUpdate(tasks, toUpsert));
   }
@@ -156,6 +211,15 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
   /// pendingCreate (in which case it stays pendingCreate). Stamps
   /// `lastModified` with [now] (or the current UTC time) for TM-342 conflict
   /// detection.
+  ///
+  /// TM-361: the stamp is clamped to `max(now, current.lastModified + 1ms)`
+  /// so it never goes backwards from the previously-synced server timestamp.
+  /// Without the clamp, a device with a local clock that runs behind the
+  /// server clock (common on Android emulators and phones whose time hasn't
+  /// re-synced after sleep) would write `lastModified < remote.lastModified`,
+  /// and the push-time conflict check would false-positive against this same
+  /// device's own prior push — surfacing as "conflict between my change and
+  /// the baseline" and refusing to clear through Use Mine.
   Future<void> markUpdatePending(String docId, TasksCompanion diff,
       {DateTime? now}) async {
     final current = await (select(tasks)
@@ -166,10 +230,15 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
         current.syncState == SyncState.pendingCreate.name
             ? SyncState.pendingCreate.name
             : SyncState.pendingUpdate.name;
+    final stamp = _monotonicStamp(current.lastModified, now);
+    if (kDebugMode) {
+      debugPrint(
+          '[TaskDao.markUpdatePending] $docId: prior state=${current.syncState} lastModified=${current.lastModified} lastSynced=${current.lastSyncedRemoteVersion} → stamp=$stamp');
+    }
     await (update(tasks)..where((t) => t.docId.equals(docId))).write(
       diff.copyWith(
         syncState: Value(nextSyncState),
-        lastModified: Value(now ?? DateTime.now().toUtc()),
+        lastModified: Value(stamp),
       ),
     );
   }
@@ -177,6 +246,7 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
   /// Mark a row for delete. If it was pendingCreate (never pushed), delete
   /// outright. Stamps `lastModified` for TM-342 conflict detection so the
   /// push-time comparison can decide local-delete vs newer-remote-update.
+  /// TM-361: monotonic stamp; see [markUpdatePending] for rationale.
   Future<void> markDeletePending(String docId, {DateTime? now}) async {
     final current = await (select(tasks)
           ..where((t) => t.docId.equals(docId)))
@@ -186,18 +256,57 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
       await (delete(tasks)..where((t) => t.docId.equals(docId))).go();
       return;
     }
+    final stamp = _monotonicStamp(current.lastModified, now);
     await (update(tasks)..where((t) => t.docId.equals(docId))).write(
       TasksCompanion(
         syncState: Value(SyncState.pendingDelete.name),
-        lastModified: Value(now ?? DateTime.now().toUtc()),
+        lastModified: Value(stamp),
       ),
     );
+  }
+
+  /// Returns a `lastModified` value that is strictly greater than [previous]
+  /// while still preferring the wall-clock "now" when the wall clock is
+  /// already ahead. Ensures the local row's timestamp marches forward
+  /// monotonically across edits, so a slow local clock can't conflict with a
+  /// server timestamp this device itself just stamped (TM-361).
+  static DateTime _monotonicStamp(DateTime? previous, DateTime? now) {
+    final wall = now ?? DateTime.now().toUtc();
+    if (previous == null) return wall;
+    final priorUtc = previous.isUtc ? previous : previous.toUtc();
+    final beatsPrior = priorUtc.add(const Duration(milliseconds: 1));
+    return wall.isAfter(beatsPrior) ? wall : beatsPrior;
   }
 
   /// Mark a row as synced (called after successful push).
   Future<void> markSynced(String docId) {
     return (update(tasks)..where((t) => t.docId.equals(docId))).write(
       TasksCompanion(syncState: Value(SyncState.synced.name)),
+    );
+  }
+
+  /// TM-361: mark synced and anchor `lastSyncedRemoteVersion` to the
+  /// server-stamped timestamp we read back after the push. Without this
+  /// anchor, a rapid edit-then-push in the window before the snapshot
+  /// listener delivers the server-confirmed update would compare a stale
+  /// `lastSyncedRemoteVersion` against the freshly-stamped remote and
+  /// false-positive a conflict.
+  Future<void> markSyncedWithVersion(
+      String docId, DateTime? serverVersion) {
+    if (kDebugMode) {
+      debugPrint(
+          '[TaskDao.markSyncedWithVersion] $docId: serverVersion=$serverVersion ${serverVersion == null ? "(no anchor update — will rely on listener)" : "(anchoring lastSynced & lastModified)"}');
+    }
+    return (update(tasks)..where((t) => t.docId.equals(docId))).write(
+      TasksCompanion(
+        syncState: Value(SyncState.synced.name),
+        lastModified: serverVersion == null
+            ? const Value.absent()
+            : Value(serverVersion),
+        lastSyncedRemoteVersion: serverVersion == null
+            ? const Value.absent()
+            : Value(serverVersion),
+      ),
     );
   }
 
@@ -216,13 +325,15 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
 
   /// TM-342: resolve a conflict by accepting the remote version. Replaces the
   /// local row with [remoteRow], clears the conflict envelope, and marks the
-  /// row synced.
+  /// row synced. TM-361: also anchors `lastSyncedRemoteVersion` to the
+  /// remote's `lastModified` so we don't re-conflict on the next push.
   Future<void> clearConflictAndAcceptRemote(
       String docId, TasksCompanion remoteRow) async {
     await into(tasks).insertOnConflictUpdate(
       remoteRow.copyWith(
         syncState: Value(SyncState.synced.name),
         conflictRemoteJson: const Value(null),
+        lastSyncedRemoteVersion: remoteRow.lastModified,
       ),
     );
   }
@@ -231,14 +342,24 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
   /// the row to [restoreTo] (pendingUpdate or pendingDelete) and refreshes
   /// `lastModified` so the next push wins against the remote that beat us.
   /// Clears the conflict envelope.
+  ///
+  /// TM-361: also bumps `lastSyncedRemoteVersion` to [acknowledgedRemoteVersion]
+  /// (the timestamp from the conflict envelope's remote). The user has now
+  /// explicitly said "I saw that remote version and I'm overriding it"; if we
+  /// left `lastSyncedRemoteVersion` at the old value, the very next push's
+  /// conflict check would compare against the same stale baseline and
+  /// re-detect the same conflict in a loop.
   Future<void> clearConflictAndRestorePending(
       String docId, SyncState restoreTo,
-      {DateTime? now}) {
+      {DateTime? now, DateTime? acknowledgedRemoteVersion}) {
     return (update(tasks)..where((t) => t.docId.equals(docId))).write(
       TasksCompanion(
         syncState: Value(restoreTo.name),
         conflictRemoteJson: const Value(null),
         lastModified: Value(now ?? DateTime.now().toUtc()),
+        lastSyncedRemoteVersion: acknowledgedRemoteVersion == null
+            ? const Value.absent()
+            : Value(acknowledgedRemoteVersion),
       ),
     );
   }

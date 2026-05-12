@@ -158,9 +158,14 @@ void main() {
       // (which watches `areasProvider` internally) drives this — but the
       // test stub for `areasWithDefaultsProvider` bypasses that path, so
       // we have to trigger it manually for the dup check to see the seeded
-      // areas.
-      ProviderScope.containerOf(tester.element(find.byType(MaterialApp)))
-          .read(areasProvider);
+      // areas. Use a persistent listener (not a one-shot read) so that
+      // under Riverpod 4 the subscription is kept open long enough for the
+      // Stream.value microtask to fire and `.value` to populate before the
+      // dialog's synchronous `ref.read(...).value` runs.
+      final container =
+          ProviderScope.containerOf(tester.element(find.byType(MaterialApp)));
+      final sub = container.listen(areasProvider, (_, __) {});
+      addTearDown(sub.close);
       await tester.pumpAndSettle();
 
       await tester.tap(find.byType(FloatingActionButton));

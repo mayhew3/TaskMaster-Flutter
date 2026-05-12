@@ -45,8 +45,20 @@ class TaskItemList extends ConsumerStatefulWidget {
 }
 
 class _TaskItemListState extends ConsumerState<TaskItemList> {
-  late final Sprint? activeSprint;
-  late final BuiltList<TaskItem>? activeSprintItems;
+  // Recomputed every build (TM-366). Pre-fix these were `late final` and
+  // initialised once from `widget.taskItems`, which is the incomplete-only
+  // base set — the banner count therefore stayed at `0/N` even when sprint
+  // tasks got completed mid-session.
+  Sprint? activeSprint;
+  /// docId-keyed lookup set for sprint-membership checks. Derived from
+  /// the merged `tasksForSprintProvider` so it includes incomplete +
+  /// recently-completed + older-completed (when toggled) sprint tasks.
+  /// Used for filtering — avoids the `BuiltList<TaskItem>.contains(TaskItem)`
+  /// reference-equality footgun (the merged provider may return rebuilt
+  /// instances that don't `==` the originals from `widget.taskItems`).
+  /// Banner counts come from `sprintCompletionCountsProvider` (TM-366),
+  /// not from this set's size.
+  Set<String> activeSprintDocIds = const {};
 
   bool initialized = false;
   late bool showActive;
@@ -62,13 +74,26 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
 
     if (!initialized) {
       showActive = widget.sprintMode;
-      final allSprints = ref.read(sprintsProvider).value ?? [];
-      final allSprintsBuilt = BuiltList<Sprint>(allSprints);
-      activeSprint = activeSprintSelector(allSprintsBuilt);
-      activeSprintItems =
-          activeSprint == null ? null : taskItemsForSprintSelector(
-              widget.taskItems, activeSprint!);
       initialized = true;
+    }
+
+    // Recompute the active-sprint membership set every build so a
+    // completion landing mid-session affects filtering immediately. The
+    // merged `tasksForSprintProvider` includes incomplete +
+    // recently-completed + (when `showCompleted` is on) older-completed
+    // tasks — exactly the set the filtering logic needs. The banner's
+    // count comes from `sprintCompletionCountsProvider` (DB-backed,
+    // includes cold completions); see task_list_screen.dart's
+    // `_buildSprintBanner` for the parallel implementation.
+    final allSprints = ref.watch(sprintsProvider).value ?? [];
+    activeSprint = activeSprintSelector(BuiltList<Sprint>(allSprints));
+    if (activeSprint != null) {
+      final mergedSprintTasks =
+          ref.watch(tasksForSprintProvider(activeSprint!));
+      activeSprintDocIds =
+          mergedSprintTasks.map((t) => t.docId).toSet();
+    } else {
+      activeSprintDocIds = const {};
     }
 
     return Container(
@@ -83,7 +108,7 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
 
   List<TaskItem> getFilteredTasks(BuiltList<TaskItem> taskItems) {
     List<TaskItem> filtered = taskItems.where((taskItem) {
-      bool isInActiveSprint = (activeSprintItems != null && activeSprintItems!.contains(taskItem));
+      bool isInActiveSprint = activeSprintDocIds.contains(taskItem.docId);
       bool passesActiveFilter = widget.sprintMode ||
           showActive ||
           !isInActiveSprint;
@@ -111,7 +136,9 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
 
     var taskCard = EditableTaskItemWidget(
       taskItem: displayTask,
-      highlightSprint: (!widget.sprintMode && activeSprint != null && activeSprintItems != null && activeSprintItems!.contains(taskItem)),
+      highlightSprint: (!widget.sprintMode &&
+          activeSprint != null &&
+          activeSprintDocIds.contains(taskItem.docId)),
       onEdit: () => Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => TaskAddEditScreen(taskItemId: taskItem.docId),
@@ -156,8 +183,13 @@ class _TaskItemListState extends ConsumerState<TaskItemList> {
     var totalDays = endDate.difference(startDate).inDays;
     var sprintStr = 'Active Sprint - Day $currentDay of $totalDays';
 
-    var completed = activeSprintItems?.where((taskItem) => taskItem.completionDate != null) ?? [];
-    var taskStr = '${completed.length}/${activeSprintItems?.length ?? 0} Tasks Complete';
+    // TM-361 manual-test #18: source counts from the dedicated DB-backed
+    // provider so historical completions count even when not in the
+    // displayed merge. Both numerator and denominator come from the same
+    // Drift result — see sprintCompletionCountsProvider.
+    final counts = ref.watch(sprintCompletionCountsProvider(sprint)).value ??
+        SprintCounts.empty;
+    var taskStr = '${counts.completed}/${counts.total} Tasks Complete';
 
     // Active-sprint summary card: intentionally distinct (red tint, sprint-color outline).
     return Card(

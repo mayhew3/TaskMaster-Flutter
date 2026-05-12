@@ -6,6 +6,8 @@ import 'package:taskmaestro/features/shared/providers/navigation_provider.dart';
 import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaestro/models/task_item.dart';
 
+import '../helpers/async_provider_helpers.dart';
+
 /// Tests for TM-323: Tasks tab - completed task should temporarily stay
 ///
 /// Verifies that when a task is completed on the Tasks tab:
@@ -55,7 +57,7 @@ void main() {
       expect(container.read(showCompletedProvider), false);
 
       // Act: Get filtered tasks
-      final filtered = await container.read(filteredTasksProvider.future);
+      final filtered = await readAsyncValue(container, filteredTasksProvider);
 
       // Assert: Task should be included because it's recently completed
       expect(filtered.length, 1);
@@ -78,7 +80,7 @@ void main() {
       expect(container.read(showCompletedProvider), false);
 
       // Act: Get filtered tasks
-      final filtered = await container.read(filteredTasksProvider.future);
+      final filtered = await readAsyncValue(container, filteredTasksProvider);
 
       // Assert: Task should be excluded
       expect(filtered.length, 0);
@@ -105,7 +107,7 @@ void main() {
       container.read(recentlyCompletedTasksProvider.notifier).add(completedTask);
 
       // Act: Get grouped tasks
-      final groups = await container.read(groupedTasksProvider.future);
+      final groups = await readAsyncValue(container, groupedTasksProvider);
 
       // Assert: Task should be in "Urgent" group (past urgent date), NOT in "Completed"
       final urgentGroup = groups.where((g) => g.name == 'Urgent').firstOrNull;
@@ -136,18 +138,21 @@ void main() {
       container.read(showCompletedProvider.notifier).set(true);
 
       // Verify task is NOT in Completed group yet
-      var groups = await container.read(groupedTasksProvider.future);
+      var groups = await readAsyncValue(container, groupedTasksProvider);
       var completedGroup = groups.where((g) => g.name == 'Completed').firstOrNull;
       expect(completedGroup, isNull); // Not in Completed yet
 
       // Act: Simulate tab navigation (clears recently completed)
       container.read(activeTabIndexProvider.notifier).setTab(1);
+      // TM-361: setTab now defers its clear-and-set into a microtask
+      // (see navigation_provider.dart). Drain it before asserting.
+      await Future<void>.value();
 
       // Invalidate the provider to get fresh data
       container.invalidate(groupedTasksProvider);
 
       // Assert: Task should now be in Completed section
-      groups = await container.read(groupedTasksProvider.future);
+      groups = await readAsyncValue(container, groupedTasksProvider);
       completedGroup = groups.where((g) => g.name == 'Completed').firstOrNull;
 
       expect(completedGroup, isNotNull);
@@ -172,15 +177,16 @@ void main() {
       expect(container.read(showCompletedProvider), false);
 
       // Verify task is visible initially (because recently completed)
-      var filtered = await container.read(filteredTasksProvider.future);
+      var filtered = await readAsyncValue(container, filteredTasksProvider);
       expect(filtered.length, 1);
 
       // Act: Simulate tab navigation
       container.read(activeTabIndexProvider.notifier).setTab(1);
+      await Future<void>.value();
       container.invalidate(filteredTasksProvider);
 
       // Assert: Task should now be hidden (showCompleted=false and not recently completed)
-      filtered = await container.read(filteredTasksProvider.future);
+      filtered = await readAsyncValue(container, filteredTasksProvider);
       expect(filtered.length, 0);
     });
 
@@ -205,15 +211,16 @@ void main() {
         ..add(task3);
 
       // Verify all are visible
-      var filtered = await container.read(filteredTasksProvider.future);
+      var filtered = await readAsyncValue(container, filteredTasksProvider);
       expect(filtered.length, 3);
 
       // Act: Tab change
       container.read(activeTabIndexProvider.notifier).setTab(1);
+      await Future<void>.value();
       container.invalidate(filteredTasksProvider);
 
       // Assert: All should disappear
-      filtered = await container.read(filteredTasksProvider.future);
+      filtered = await readAsyncValue(container, filteredTasksProvider);
       expect(filtered.length, 0);
     });
 
@@ -259,7 +266,7 @@ void main() {
       container.read(recentlyCompletedTasksProvider.notifier).add(bCompleted);
       container.read(recentlyCompletedIndicesProvider.notifier).set('b', 1);
 
-      final filtered = await container.read(filteredTasksProvider.future);
+      final filtered = await readAsyncValue(container, filteredTasksProvider);
 
       expect(filtered.map((t) => t.docId).toList(), ['a', 'b', 'c'],
           reason: 'b should be re-inserted at index 1, not appended');
@@ -294,7 +301,7 @@ void main() {
         ..set('a', 0)
         ..set('c', 2);
 
-      final filtered = await container.read(filteredTasksProvider.future);
+      final filtered = await readAsyncValue(container, filteredTasksProvider);
 
       expect(filtered.map((t) => t.docId).toList(), ['a', 'b', 'c']);
     });
@@ -319,7 +326,7 @@ void main() {
       // Deliberately don't set an index — simulate fallback.
       container.read(showCompletedProvider.notifier).set(true);
 
-      final filtered = await container.read(filteredTasksProvider.future);
+      final filtered = await readAsyncValue(container, filteredTasksProvider);
 
       expect(filtered.length, 2);
       expect(filtered.last.docId, 'b',
@@ -344,6 +351,7 @@ void main() {
       expect(container.read(recentlyCompletedIndicesProvider).length, 1);
 
       container.read(activeTabIndexProvider.notifier).setTab(1);
+      await Future<void>.value();
 
       expect(container.read(recentlyCompletedIndicesProvider).length, 0,
           reason: 'setTab should clear the index side table too');

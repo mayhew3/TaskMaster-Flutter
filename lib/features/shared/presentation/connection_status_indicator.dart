@@ -50,7 +50,7 @@ class _ConnectionStatusIndicatorState
     final connectivityAsync = ref.watch(connectivityProvider);
     final syncStatus = ref.watch(syncStatusControllerProvider);
 
-    final online = connectivityAsync.valueOrNull ?? true;
+    final online = connectivityAsync.value ?? true;
 
     // Priority: offline > error > syncing > idle
     if (!online) {

@@ -3,14 +3,15 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i6;
+import 'dart:async' as _i7;
 
 import 'package:cloud_firestore/cloud_firestore.dart' as _i3;
-import 'package:flutter_riverpod/flutter_riverpod.dart' as _i4;
+import 'package:flutter_riverpod/flutter_riverpod.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:mockito/src/dummies.dart' as _i6;
 import 'package:taskmaestro/core/database/app_database.dart' as _i2;
-import 'package:taskmaestro/core/services/analytics_service.dart' as _i7;
-import 'package:taskmaestro/core/services/sync_service.dart' as _i5;
+import 'package:taskmaestro/core/services/analytics_service.dart' as _i8;
+import 'package:taskmaestro/core/services/sync_service.dart' as _i4;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -25,6 +26,7 @@ import 'package:taskmaestro/core/services/sync_service.dart' as _i5;
 // ignore_for_file: unnecessary_parenthesis
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
+// ignore_for_file: invalid_use_of_internal_member
 
 class _FakeAppDatabase_0 extends _i1.SmartFake implements _i2.AppDatabase {
   _FakeAppDatabase_0(Object parent, Invocation parentInvocation)
@@ -37,16 +39,10 @@ class _FakeFirebaseFirestore_1 extends _i1.SmartFake
     : super(parent, parentInvocation);
 }
 
-class _FakeRef_2<State extends Object?> extends _i1.SmartFake
-    implements _i4.Ref<State> {
-  _FakeRef_2(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
 /// A class which mocks [SyncService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockSyncService extends _i1.Mock implements _i5.SyncService {
+class MockSyncService extends _i1.Mock implements _i4.SyncService {
   @override
   _i2.AppDatabase get db =>
       (super.noSuchMethod(
@@ -75,76 +71,76 @@ class MockSyncService extends _i1.Mock implements _i5.SyncService {
           as _i3.FirebaseFirestore);
 
   @override
-  _i4.Ref<Object?> get ref =>
+  _i5.Ref get ref =>
       (super.noSuchMethod(
             Invocation.getter(#ref),
-            returnValue: _FakeRef_2<Object?>(this, Invocation.getter(#ref)),
-            returnValueForMissingStub: _FakeRef_2<Object?>(
+            returnValue: _i6.dummyValue<_i5.Ref>(this, Invocation.getter(#ref)),
+            returnValueForMissingStub: _i6.dummyValue<_i5.Ref>(
               this,
               Invocation.getter(#ref),
             ),
           )
-          as _i4.Ref<Object?>);
+          as _i5.Ref);
 
   @override
-  _i6.Future<void> get initialPullComplete =>
+  _i7.Future<void> get initialPullComplete =>
       (super.noSuchMethod(
             Invocation.getter(#initialPullComplete),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i6.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i6.Future<void> get areasInitialPullComplete =>
+  _i7.Future<void> get areasInitialPullComplete =>
       (super.noSuchMethod(
             Invocation.getter(#areasInitialPullComplete),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i6.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i6.Future<void> get contextsInitialPullComplete =>
+  _i7.Future<void> get contextsInitialPullComplete =>
       (super.noSuchMethod(
             Invocation.getter(#contextsInitialPullComplete),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i6.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i6.Future<void> start(String? personDocId, {String? email}) =>
+  _i7.Future<void> start(String? personDocId, {String? email}) =>
       (super.noSuchMethod(
             Invocation.method(#start, [personDocId], {#email: email}),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i6.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i6.Future<void> stop() =>
+  _i7.Future<void> stop() =>
       (super.noSuchMethod(
             Invocation.method(#stop, []),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i6.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i6.Future<void> pushPendingWrites({String? caller = 'unknown'}) =>
+  _i7.Future<void> pushPendingWrites({String? caller = 'unknown'}) =>
       (super.noSuchMethod(
             Invocation.method(#pushPendingWrites, [], {#caller: caller}),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i6.Future<void>);
+          as _i7.Future<void>);
 }
 
 /// A class which mocks [AnalyticsService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockAnalyticsService extends _i1.Mock implements _i7.AnalyticsService {
+class MockAnalyticsService extends _i1.Mock implements _i8.AnalyticsService {
   @override
   bool get isEnabled =>
       (super.noSuchMethod(
@@ -155,58 +151,58 @@ class MockAnalyticsService extends _i1.Mock implements _i7.AnalyticsService {
           as bool);
 
   @override
-  _i6.Future<void> setUserIdentifier(String? personDocId) =>
+  _i7.Future<void> setUserIdentifier(String? personDocId) =>
       (super.noSuchMethod(
             Invocation.method(#setUserIdentifier, [personDocId]),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i6.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i6.Future<void> logTaskCreated({bool? hasRecurrence = false}) =>
+  _i7.Future<void> logTaskCreated({bool? hasRecurrence = false}) =>
       (super.noSuchMethod(
             Invocation.method(#logTaskCreated, [], {
               #hasRecurrence: hasRecurrence,
             }),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i6.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i6.Future<void> logTaskCompleted({required bool? complete}) =>
+  _i7.Future<void> logTaskCompleted({required bool? complete}) =>
       (super.noSuchMethod(
             Invocation.method(#logTaskCompleted, [], {#complete: complete}),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i6.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i6.Future<void> logTaskDeleted() =>
+  _i7.Future<void> logTaskDeleted() =>
       (super.noSuchMethod(
             Invocation.method(#logTaskDeleted, []),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i6.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i6.Future<void> logSprintCreated({required int? taskCount}) =>
+  _i7.Future<void> logSprintCreated({required int? taskCount}) =>
       (super.noSuchMethod(
             Invocation.method(#logSprintCreated, [], {#taskCount: taskCount}),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i6.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i6.Future<void> logScreenView(String? screenName) =>
+  _i7.Future<void> logScreenView(String? screenName) =>
       (super.noSuchMethod(
             Invocation.method(#logScreenView, [screenName]),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i6.Future<void>);
+          as _i7.Future<void>);
 }

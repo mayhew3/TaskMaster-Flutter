@@ -508,6 +508,59 @@ void main() {
           reason: 'Firestore doc must NOT be deleted when conflict detected');
     });
 
+    // TM-367: documents the known limitation of the lastModified fallback
+    // in `_checkAndRecordConflict`. When a pending row has no
+    // `lastSyncedRemoteVersion` (the bulkUpsertFromRemote-skipped-anchor
+    // case) the conflict check falls back to comparing the remote against
+    // the local clock. If the local clock is ahead of true time, a freshly
+    // written newer remote can register as "older" than the local edit and
+    // slip past the conflict check — pushing wins, the remote is silently
+    // overwritten.
+    //
+    // The proper fix (anchor lastSyncedRemoteVersion at listener time for
+    // pending rows, so the precise compare path is always available) is
+    // tracked in TM-367. Marking this test `skip:` rather than asserting
+    // either outcome — it stays here so the boundary is documented in the
+    // test suite and the next TM-367 iteration can flip it on.
+    test(
+        'TM-367 (skipped): clock-skew can mask a real conflict via the '
+        'lastModified fallback',
+        skip: 'Tracked in TM-367 — anchor lastSyncedRemoteVersion at '
+            'listener time for pending rows. Until then the lastModified '
+            'fallback can false-negative under local-clock-ahead skew.',
+        () async {
+      // Setup the exact skew scenario:
+      //  - Local pendingUpdate, lastSynced=null, lastModified stamped from
+      //    a clock running ~6 weeks fast (Jul 15 by local clock; in reality
+      //    we're on Jun 1).
+      //  - Remote was just written by another device at true time = Jun 15
+      //    (which lands as June 15 in Firestore — the source of truth).
+      //  - Local clock thinks lastModified=Jul 15 is "newer" than the
+      //    remote's Jun 15, so the fallback compare returns "no conflict"
+      //    and the push proceeds, overwriting the legitimate remote change.
+      await db.into(db.tasks).insertOnConflictUpdate(
+            _pendingTaskRow(
+              docId: 'clock-skew',
+              name: 'My version (clock ahead)',
+              lastModified: DateTime.utc(2024, 7, 15),
+            ),
+          );
+      await firestore.collection('tasks').doc('clock-skew').set({
+        ..._personalTask(name: 'Their version (true time)'),
+        'lastModified': DateTime.utc(2024, 6, 15),
+      });
+      await _settleSnapshots();
+
+      await service.pushPendingWrites(caller: 'test');
+
+      // Once TM-367 lands, this should be pendingConflict (the listener
+      // anchor would have made lastSyncedRemoteVersion non-null, taking
+      // the precise compare path instead of the local-clock fallback).
+      final row = await db.taskDao.getByDocId('clock-skew');
+      expect(row!.syncState, SyncState.pendingConflict.name,
+          reason: 'TM-367: listener-time anchor must catch this conflict');
+    });
+
     test('upsertFromRemote skips pendingConflict rows (TM-342 invariant)',
         () async {
       // Seed a pendingConflict row.

@@ -7,7 +7,7 @@ import 'firebase_providers.dart';
 part 'auth_providers.g.dart';
 
 /// Stream of auth state changes from Firebase
-@riverpod
+@Riverpod(keepAlive: true)
 Stream<User?> authStateChanges(Ref ref) {
   final auth = ref.watch(firebaseAuthProvider);
   return auth.authStateChanges();
@@ -15,7 +15,7 @@ Stream<User?> authStateChanges(Ref ref) {
 
 /// Current Firebase user (nullable)
 /// This watches the auth notifier state for reactive updates
-@riverpod
+@Riverpod(keepAlive: true)
 User? currentUser(Ref ref) {
   final authState = ref.watch(authProvider);
   return authState.user;
@@ -23,21 +23,21 @@ User? currentUser(Ref ref) {
 
 /// Person doc ID from the auth state
 /// Returns null if not authenticated or person not verified
-@riverpod
+@Riverpod(keepAlive: true)
 String? personDocId(Ref ref) {
   final authState = ref.watch(authProvider);
   return authState.personDocId;
 }
 
 /// Whether the user is fully authenticated (signed in AND person verified)
-@riverpod
+@Riverpod(keepAlive: true)
 bool isAuthenticated(Ref ref) {
   final authState = ref.watch(authProvider);
   return authState.isAuthenticated;
 }
 
 /// Whether auth is still loading (initializing or authenticating)
-@riverpod
+@Riverpod(keepAlive: true)
 bool isAuthLoading(Ref ref) {
   final authState = ref.watch(authProvider);
   return authState.isLoading;

@@ -205,14 +205,14 @@ class SprintService {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 SprintService sprintService(Ref ref) {
   final firestore = ref.watch(firestoreProvider);
   return SprintService(firestore);
 }
 
 /// Controller for creating sprints
-@riverpod
+@Riverpod(keepAlive: true)
 class CreateSprint extends _$CreateSprint {
   @override
   FutureOr<void> build() {}
@@ -354,7 +354,7 @@ class CreateSprint extends _$CreateSprint {
 }
 
 /// Controller for adding tasks to existing sprint
-@riverpod
+@Riverpod(keepAlive: true)
 class AddTasksToSprint extends _$AddTasksToSprint {
   @override
   FutureOr<void> build() {}

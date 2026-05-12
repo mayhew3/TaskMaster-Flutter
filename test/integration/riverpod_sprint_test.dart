@@ -8,6 +8,8 @@ import 'package:taskmaestro/models/task_item.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../helpers/async_provider_helpers.dart';
+
 void main() {
   group('Riverpod Sprint Integration Tests', () {
     test('Tasks in active sprint are hidden from task list', () async {
@@ -66,12 +68,12 @@ void main() {
       addTearDown(container.dispose);
 
       // Wait for async providers to load
-      await container.read(tasksProvider.future);
-      await container.read(tasksWithRecurrencesProvider.future);
-      await container.read(sprintsProvider.future);
+      await readAsyncValue(container, tasksProvider);
+      await readAsyncValue(container, tasksWithRecurrencesProvider);
+      await readAsyncValue(container, sprintsProvider);
 
       // Get filtered tasks
-      final filteredTasks = await container.read(filteredTasksProvider.future);
+      final filteredTasks = await readAsyncValue(container, filteredTasksProvider);
 
       // Verify: Only task2 should be visible (task1 is in active sprint)
       expect(filteredTasks.length, 1);
@@ -120,15 +122,15 @@ void main() {
       addTearDown(container.dispose);
 
       // Wait for async providers to load
-      await container.read(tasksProvider.future);
-      await container.read(tasksWithRecurrencesProvider.future);
-      await container.read(sprintsProvider.future);
+      await readAsyncValue(container, tasksProvider);
+      await readAsyncValue(container, tasksWithRecurrencesProvider);
+      await readAsyncValue(container, sprintsProvider);
 
       // Enable show completed
       container.read(showCompletedProvider.notifier).set(true);
 
       // Get filtered tasks
-      final filteredTasks = await container.read(filteredTasksProvider.future);
+      final filteredTasks = await readAsyncValue(container, filteredTasksProvider);
 
       // Verify: Sprint task should NOT be in filteredTasks (even when completed)
       // This prevents duplicates when viewing sprint tasks via "Show Tasks" toggle
@@ -184,11 +186,11 @@ void main() {
       );
 
       addTearDown(container.dispose);
-      await container.read(tasksProvider.future);
-      await container.read(tasksWithRecurrencesProvider.future);
-      await container.read(sprintsProvider.future);
+      await readAsyncValue(container, tasksProvider);
+      await readAsyncValue(container, tasksWithRecurrencesProvider);
+      await readAsyncValue(container, sprintsProvider);
 
-      final filteredTasks = await container.read(filteredTasksProvider.future);
+      final filteredTasks = await readAsyncValue(container, filteredTasksProvider);
 
       // Verify: Both tasks should be visible
       expect(filteredTasks.length, 2);
@@ -241,7 +243,7 @@ void main() {
       );
 
       addTearDown(container.dispose);
-      await container.read(sprintsProvider.future);
+      await readAsyncValue(container, sprintsProvider);
 
       final activeSprintResult = container.read(activeSprintProvider);
 
@@ -286,7 +288,7 @@ void main() {
       );
 
       addTearDown(container.dispose);
-      await container.read(sprintsProvider.future);
+      await readAsyncValue(container, sprintsProvider);
 
       final activeSprintResult = container.read(activeSprintProvider);
 
@@ -357,11 +359,11 @@ void main() {
       );
 
       addTearDown(container.dispose);
-      await container.read(tasksProvider.future);
-      await container.read(tasksWithRecurrencesProvider.future);
-      await container.read(sprintsProvider.future);
+      await readAsyncValue(container, tasksProvider);
+      await readAsyncValue(container, tasksWithRecurrencesProvider);
+      await readAsyncValue(container, sprintsProvider);
 
-      final filteredTasks = await container.read(filteredTasksProvider.future);
+      final filteredTasks = await readAsyncValue(container, filteredTasksProvider);
 
       // Verify: Only task3 should be visible
       expect(filteredTasks.length, 1);
@@ -409,12 +411,12 @@ void main() {
       );
 
       addTearDown(container.dispose);
-      await container.read(tasksProvider.future);
-      await container.read(tasksWithRecurrencesProvider.future);
-      await container.read(sprintsProvider.future);
+      await readAsyncValue(container, tasksProvider);
+      await readAsyncValue(container, tasksWithRecurrencesProvider);
+      await readAsyncValue(container, sprintsProvider);
 
       final activeSprintResult = container.read(activeSprintProvider);
-      final filteredTasks = await container.read(filteredTasksProvider.future);
+      final filteredTasks = await readAsyncValue(container, filteredTasksProvider);
 
       // Verify: No active sprint (closed sprint doesn't count)
       expect(activeSprintResult, isNull);

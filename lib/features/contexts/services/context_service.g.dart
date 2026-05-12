@@ -6,22 +6,46 @@ part of 'context_service.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$contextServiceHash() => r'63790d675420ab66f6afaaac95b8065470571379';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [contextService].
 @ProviderFor(contextService)
-final contextServiceProvider = AutoDisposeProvider<ContextService>.internal(
-  contextService,
-  name: r'contextServiceProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$contextServiceHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final contextServiceProvider = ContextServiceProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef ContextServiceRef = AutoDisposeProviderRef<ContextService>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class ContextServiceProvider
+    extends $FunctionalProvider<ContextService, ContextService, ContextService>
+    with $Provider<ContextService> {
+  ContextServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'contextServiceProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$contextServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<ContextService> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  ContextService create(Ref ref) {
+    return contextService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ContextService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ContextService>(value),
+    );
+  }
+}
+
+String _$contextServiceHash() => r'f6b5f08f7c0dd7c40dff2025056e109439653a06';

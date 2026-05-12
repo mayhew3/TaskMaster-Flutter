@@ -58,9 +58,11 @@ Future<void> main() async {
       // Initialize timezone database for notifications
       // This is needed for flutter_local_notifications.zonedSchedule() to handle DST correctly
       tz.initializeTimeZones();
-      final String timezoneName = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(timezoneName));
-      print('🕐 Timezone initialized: $timezoneName');
+      // TM-361: flutter_timezone 5.x — getLocalTimezone() now returns
+      // TimezoneInfo; pull the IANA identifier off it.
+      final tzInfo = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(tzInfo.identifier));
+      print('🕐 Timezone initialized: ${tzInfo.identifier}');
 
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,

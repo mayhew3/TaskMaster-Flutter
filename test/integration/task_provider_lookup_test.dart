@@ -9,6 +9,8 @@ import 'package:taskmaestro/features/tasks/providers/task_providers.dart';
 import 'package:taskmaestro/models/task_item.dart';
 import 'package:drift/drift.dart' show Value;
 
+import '../helpers/async_provider_helpers.dart';
+
 /// Regression tests for TM-341: task(taskId) lookup fallbacks.
 ///
 /// Verifies that the provider finds a task even when it is:
@@ -33,10 +35,10 @@ void main() {
 
   /// Creates a container with the minimum overrides needed for task(taskId).
   /// [db] defaults to an empty in-memory database if not supplied.
-  ProviderContainer _makeContainer({
-    AppDatabase? db,
-    List<Override> extra = const [],
-  }) {
+  // TM-361: dropped the `extra` named arg — flutter_riverpod 3 no
+  // longer exports `Override` so the explicit type annotation is awkward,
+  // and no caller in this file passes it.
+  ProviderContainer _makeContainer({AppDatabase? db}) {
     final testDb = db ?? AppDatabase.forTesting(NativeDatabase.memory());
     return ProviderContainer(
       overrides: [
@@ -49,7 +51,6 @@ void main() {
         tasksWithRecurrencesProvider.overrideWith(
           (ref) => Stream.value(<TaskItem>[]),
         ),
-        ...extra,
       ],
     );
   }
@@ -76,7 +77,7 @@ void main() {
       container.read(recentlyCompletedTasksProvider.notifier).add(completedTask);
 
       // Wait for stream provider to settle
-      await container.read(tasksWithRecurrencesProvider.future);
+      await readAsyncValue(container, tasksWithRecurrencesProvider);
 
       final result = container.read(taskProvider('task-1'));
       expect(result, isNotNull,
@@ -98,7 +99,7 @@ void main() {
       addTearDown(sub.close);
 
       // Wait for the Drift stream to emit null for the nonexistent ID
-      await container.read(taskFromDbProvider('nonexistent').future);
+      await readAsyncValue(container, taskFromDbProvider('nonexistent'));
 
       final result = container.read(taskProvider('nonexistent'));
       expect(result, isNull);
@@ -147,7 +148,7 @@ void main() {
       addTearDown(sub.close);
 
       // Wait for the Drift stream to emit and propagate to taskProvider
-      await container.read(taskFromDbProvider('task-drift').future);
+      await readAsyncValue(container, taskFromDbProvider('task-drift'));
 
       // Now taskFromDbProvider has a value; taskProvider recomputed via the watch
       final result = container.read(taskProvider('task-drift'));

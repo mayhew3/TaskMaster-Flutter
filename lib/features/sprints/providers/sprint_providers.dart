@@ -1,9 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart' hide Type;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:rxdart/rxdart.dart';
+import '../../../core/database/app_database.dart' show Task;
 import '../../../core/database/converters.dart';
 import '../../../core/providers/auth_providers.dart';
 import '../../../core/providers/database_provider.dart';
+import '../../../core/providers/firebase_providers.dart';
 import '../../../models/sprint.dart';
 import '../../../models/task_item.dart';
 import '../../tasks/providers/task_filter_providers.dart';
@@ -46,7 +50,7 @@ Stream<List<Sprint>> sprints(Ref ref) {
 }
 
 /// Get active sprint (currently in progress)
-@riverpod
+@Riverpod(keepAlive: true)
 Sprint? activeSprint(Ref ref) {
   final sprintsAsync = ref.watch(sprintsProvider);
 
@@ -64,7 +68,7 @@ Sprint? activeSprint(Ref ref) {
 }
 
 /// Get last completed sprint
-@riverpod
+@Riverpod(keepAlive: true)
 Sprint? lastCompletedSprint(Ref ref) {
   final sprintsAsync = ref.watch(sprintsProvider);
 
@@ -81,7 +85,7 @@ Sprint? lastCompletedSprint(Ref ref) {
 }
 
 /// Get sprints for a specific task
-@riverpod
+@Riverpod(keepAlive: true)
 List<Sprint> sprintsForTask(Ref ref, TaskItem task) {
   final sprintsAsync = ref.watch(sprintsProvider);
 
@@ -95,11 +99,140 @@ List<Sprint> sprintsForTask(Ref ref, TaskItem task) {
   );
 }
 
+class SprintCounts {
+  final int completed;
+  final int total;
+  const SprintCounts({required this.completed, required this.total});
+
+  static const empty = SprintCounts(completed: 0, total: 0);
+}
+
+/// One-shot Firestore fetch of the sprint's full task roster — every task
+/// referenced by a non-retired sprint assignment, regardless of completion
+/// state. Backfills the cases the personal-tasks Drift listener misses:
+/// the listener filters `completionDate isNull`, so a task completed in a
+/// prior session on another device never lands in Drift. Without this
+/// fetch the Sprint UI would silently hide such tasks even with
+/// "Finished" toggled on (TM-361 manual-test #18 follow-up).
+///
+/// Bounded and cheap: one whereIn query per 30 docIds, results cached for
+/// the session. Re-fetches when [sprint] changes (a new sprint instance
+/// arrives from the assignments stream).
+@Riverpod(keepAlive: true)
+Future<List<TaskItem>> sprintRosterFirestore(Ref ref, Sprint sprint) async {
+  final personDocId = ref.watch(personDocIdProvider);
+  if (personDocId == null) return const [];
+  final firestore = ref.watch(firestoreProvider);
+  final docIds = sprint.sprintAssignments
+      .where((sa) => sa.retired == null)
+      .map((sa) => sa.taskDocId)
+      .toList(growable: false);
+  if (docIds.isEmpty) return const [];
+
+  final results = <TaskItem>[];
+  // Firestore whereIn supports max 30 values per query — chunk so big sprints
+  // still round-trip in one provider build.
+  for (var i = 0; i < docIds.length; i += 30) {
+    final end = i + 30 > docIds.length ? docIds.length : i + 30;
+    final chunk = docIds.sublist(i, end);
+    try {
+      final snapshot = await firestore
+          .collection('tasks')
+          .where(FieldPath.documentId, whereIn: chunk)
+          .get();
+      for (final doc in snapshot.docs) {
+        final json = doc.data();
+        json['docId'] = doc.id;
+        final task = TaskItem.fromFirestoreJson(json);
+        if (task != null && task.retired == null) results.add(task);
+      }
+    } catch (e, st) {
+      debugPrint('⚠️ [sprintRosterFirestore] chunk fetch failed: $e\n$st');
+      // Fall through with whatever we have — partial roster beats hanging
+      // the sprint screen on a transient Firestore error.
+    }
+  }
+  return results;
+}
+
+/// (completed, total) counts for the active-sprint banner. Merges the
+/// Firestore roster (full sprint membership, includes cold completions)
+/// with Drift state (live, reflects this session's completions). Drift
+/// wins on docId conflicts so a just-completed task is counted correctly
+/// even before the next Firestore round-trip.
+///
+/// Streams from the Drift watch on the sprint's task docIds so toggling
+/// completion (or any other change to those rows) re-emits a fresh count
+/// to the banner. Using `.first` here instead — as an earlier revision did
+/// — pinned the count to the very first emission and the banner stayed
+/// stale through subsequent toggles.
+@Riverpod(keepAlive: true)
+Stream<SprintCounts> sprintCompletionCounts(Ref ref, Sprint sprint) async* {
+  final personDocId = ref.watch(personDocIdProvider);
+  if (personDocId == null) {
+    yield SprintCounts.empty;
+    return;
+  }
+  final docIds = sprint.sprintAssignments
+      .where((sa) => sa.retired == null)
+      .map((sa) => sa.taskDocId)
+      .toList(growable: false);
+  if (docIds.isEmpty) {
+    yield SprintCounts.empty;
+    return;
+  }
+
+  // Show a correct denominator immediately so the banner doesn't briefly
+  // read "0/0" while the Firestore roster fetch is in flight on a slow
+  // or offline connection.
+  yield SprintCounts(completed: 0, total: docIds.length);
+
+  final db = ref.watch(databaseProvider);
+
+  // Run Drift and Firestore in parallel and merge via combineLatest so:
+  //   • the first Drift emission (this device's view) lands without
+  //     waiting on the network round-trip,
+  //   • the Firestore-resolved count of cold completions from other
+  //     devices folds in as soon as the roster arrives (re-yielding
+  //     even if Drift is currently idle), and
+  //   • any subsequent local completion toggle (Drift emit) re-runs
+  //     the merge against the cached Firestore data.
+  // The Firestore stream starts with an empty map so combineLatest can
+  // yield Drift-only counts before the network completes.
+  final firestoreCompletedStream = ref
+      .watch(sprintRosterFirestoreProvider(sprint).future)
+      .asStream()
+      .map((roster) => <String, bool>{
+            for (final t in roster) t.docId: t.completionDate != null,
+          })
+      .startWith(const <String, bool>{});
+
+  yield* Rx.combineLatest2<List<Task>, Map<String, bool>, SprintCounts>(
+    db.taskDao.watchTasksByDocIds(personDocId, docIds),
+    firestoreCompletedStream,
+    (driftRows, firestoreCompleted) {
+      final driftCompleted = <String, bool>{
+        for (final r in driftRows) r.docId: r.completionDate != null,
+      };
+      var completed = 0;
+      for (final docId in docIds) {
+        final live = driftCompleted[docId];
+        if (live != null) {
+          if (live) completed++;
+        } else if (firestoreCompleted[docId] == true) {
+          completed++;
+        }
+      }
+      return SprintCounts(completed: completed, total: docIds.length);
+    },
+  );
+}
+
 /// Get tasks for a specific sprint.
 /// Includes incomplete tasks from the base stream, recently completed tasks
 /// (visible immediately after completion), and older completed tasks from the
 /// on-demand batch when "Show Completed" is active (TM-341).
-@riverpod
+@Riverpod(keepAlive: true)
 List<TaskItem> tasksForSprint(Ref ref, Sprint sprint) {
   final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
   final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
@@ -108,7 +241,15 @@ List<TaskItem> tasksForSprint(Ref ref, Sprint sprint) {
 
   return tasksAsync.maybeWhen(
     data: (incompleteTasks) {
-      final sprintDocIds = sprint.sprintAssignments.map((sa) => sa.taskDocId).toSet();
+      // Filter retired assignments — a retired SprintAssignment means the
+      // task has been removed from this sprint. Mirrors the same filter
+      // applied in `sprintRosterFirestoreProvider` and
+      // `sprintCompletionCountsProvider` so all three views agree on
+      // membership.
+      final sprintDocIds = sprint.sprintAssignments
+          .where((sa) => sa.retired == null)
+          .map((sa) => sa.taskDocId)
+          .toSet();
       // Map-based merge so higher-priority sources overwrite lower-priority ones.
       final tasksByDocId = <String, TaskItem>{};
 

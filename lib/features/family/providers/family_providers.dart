@@ -1,9 +1,10 @@
 import 'package:flutter/foundation.dart';
-// Riverpod re-exports a `Family` typedef from package:riverpod/src/framework.dart
-// which collides with our `Family` model. Hide it on both Riverpod imports so
-// the generated .g.dart resolves `Family` to our model.
-import 'package:flutter_riverpod/flutter_riverpod.dart' hide Family;
-import 'package:riverpod_annotation/riverpod_annotation.dart' hide Family;
+// TM-361: Riverpod 3 no longer exports a top-level `Family` typedef (it was
+// renamed in the 3.0 generator overhaul), so the `hide Family` directives the
+// pre-Riverpod-3 imports carried are now unnecessary — our `Family` model
+// resolves cleanly without them.
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/database/converters.dart';
 import '../../../core/providers/auth_providers.dart';
@@ -28,7 +29,7 @@ FamilyRepository familyRepository(Ref ref) {
 
 /// Stream of the current user's Person doc from Drift. Emits null until the
 /// SyncService delivers the first persons-self snapshot.
-@riverpod
+@Riverpod(keepAlive: true)
 Stream<Person?> currentPerson(Ref ref) {
   final personDocId = ref.watch(personDocIdProvider);
   if (personDocId == null) return Stream.value(null);
@@ -45,15 +46,15 @@ Stream<Person?> currentPerson(Ref ref) {
 }
 
 /// `familyDocId` of the current user (null if solo).
-@riverpod
+@Riverpod(keepAlive: true)
 String? currentFamilyDocId(Ref ref) {
-  final person = ref.watch(currentPersonProvider).valueOrNull;
+  final person = ref.watch(currentPersonProvider).value;
   return person?.familyDocId;
 }
 
 /// Stream of the current user's Family doc from Drift, derived from
 /// [currentPersonProvider].familyDocId.
-@riverpod
+@Riverpod(keepAlive: true)
 Stream<Family?> currentFamily(Ref ref) {
   final familyDocId = ref.watch(currentFamilyDocIdProvider);
   if (familyDocId == null) return Stream.value(null);
@@ -71,7 +72,7 @@ Stream<Family?> currentFamily(Ref ref) {
 
 /// Stream of all Person docs in the current user's family (member roster).
 /// Empty list when solo.
-@riverpod
+@Riverpod(keepAlive: true)
 Stream<List<Person>> familyMembers(Ref ref) {
   final familyDocId = ref.watch(currentFamilyDocIdProvider);
   if (familyDocId == null) return Stream.value(const []);
@@ -91,7 +92,7 @@ Stream<List<Person>> familyMembers(Ref ref) {
 
 /// Pending invitations addressed to the current user. Empty list when nothing
 /// is outstanding. Powers the `PendingInvitationBanner`.
-@riverpod
+@Riverpod(keepAlive: true)
 Stream<List<FamilyInvitation>> pendingInvitationsForMe(Ref ref) {
   final email = ref.watch(currentUserProvider)?.email;
   if (email == null) return Stream.value(const []);
@@ -111,7 +112,7 @@ Stream<List<FamilyInvitation>> pendingInvitationsForMe(Ref ref) {
 }
 
 /// Invitations sent by the current user (to render in FamilyManageScreen).
-@riverpod
+@Riverpod(keepAlive: true)
 Stream<List<FamilyInvitation>> outgoingInvitations(Ref ref) {
   final personDocId = ref.watch(personDocIdProvider);
   if (personDocId == null) return Stream.value(const []);
@@ -140,7 +141,7 @@ Stream<List<FamilyInvitation>> outgoingInvitations(Ref ref) {
 // should manage it locally (e.g. via a `bool _busy` field in their widget).
 
 /// Creates a family with the current user as sole member and owner.
-@riverpod
+@Riverpod(keepAlive: true)
 class CreateFamily extends _$CreateFamily {
   @override
   FutureOr<void> build() {}
@@ -167,7 +168,7 @@ class CreateFamily extends _$CreateFamily {
 /// when they've just created a family in the same flow — the Drift mirror of
 /// `persons/{me}.familyDocId` may not have caught up yet (Firestore listener
 /// round-trip), so reading from the provider would return null.
-@riverpod
+@Riverpod(keepAlive: true)
 class InviteMember extends _$InviteMember {
   @override
   FutureOr<void> build() {}
@@ -189,7 +190,7 @@ class InviteMember extends _$InviteMember {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class AcceptInvitation extends _$AcceptInvitation {
   @override
   FutureOr<void> build() {}
@@ -212,7 +213,7 @@ class AcceptInvitation extends _$AcceptInvitation {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class DeclineInvitation extends _$DeclineInvitation {
   @override
   FutureOr<void> build() {}
@@ -224,7 +225,7 @@ class DeclineInvitation extends _$DeclineInvitation {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class RemoveMember extends _$RemoveMember {
   @override
   FutureOr<void> build() {}
@@ -247,7 +248,7 @@ class RemoveMember extends _$RemoveMember {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class LeaveFamily extends _$LeaveFamily {
   @override
   FutureOr<void> build() {}

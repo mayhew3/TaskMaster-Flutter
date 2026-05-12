@@ -16,7 +16,7 @@ part 'area_color_providers.g.dart';
 /// the hash-based `AreaColorHelper.colorForArea` at the call site.
 @Riverpod(keepAlive: true)
 Map<String, Color> areaColors(Ref ref) {
-  final areas = ref.watch(areasProvider).valueOrNull ?? const [];
+  final areas = ref.watch(areasProvider).value ?? const [];
   final palette = TaskColors.areaPalette;
   final result = <String, Color>{};
   for (var i = 0; i < areas.length; i++) {
