@@ -16,6 +16,12 @@ analyzer:
     # duplicate_ignore warnings. Excluding generated mocks from analysis
     # is standard practice and silences this noise.
     - "**/*.mocks.dart"
+  errors:
+    # TM-361: `invalid_use_of_visible_for_testing_member` is an analyzer
+    # diagnostic (not a lint), so its severity belongs here rather than
+    # under `linter.rules`. Configuring it as a lint rule under newer
+    # analyzers emits an `undefined_lint` warning that CI treats as fatal.
+    invalid_use_of_visible_for_testing_member: error
 
 linter:
   # The lint rules applied to this project can be customized in the
@@ -31,7 +37,6 @@ linter:
   rules:
     # avoid_print: false  # Uncomment to disable the `avoid_print` rule
     prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
-    invalid_use_of_visible_for_testing_member: error
     hash_and_equals: error
 
 # Additional information about this file can be found at
