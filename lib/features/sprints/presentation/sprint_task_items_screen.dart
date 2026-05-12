@@ -20,10 +20,12 @@ import '../../shared/presentation/task_item_list.dart';
 part 'sprint_task_items_screen.g.dart';
 
 /// Provider for sprint-screen filter settings.
-/// TM-368: sprint-screen-local UI state. Defaults are "show everything"
-/// (true / true), so re-initializing on consumer remount is the same
-/// behavior the user gets on first visit. Auto-dispose is correct.
-@riverpod
+/// TM-368 self-review: kept `keepAlive: true`. The pre-TM-368 contract was
+/// "toggle persists across tab switches" — without keepAlive, auto-dispose
+/// fires on consumer unmount and any user-toggled value silently resets
+/// to the default the next time a sprint is opened. Defaults-on-first-
+/// visit alone doesn't preserve that contract.
+@Riverpod(keepAlive: true)
 class ShowCompletedInSprint extends _$ShowCompletedInSprint {
   @override
   bool build() => true; // Default to true for sprint tab
@@ -31,7 +33,7 @@ class ShowCompletedInSprint extends _$ShowCompletedInSprint {
   void toggle() => state = !state;
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class ShowScheduledInSprint extends _$ShowScheduledInSprint {
   @override
   bool build() => true;

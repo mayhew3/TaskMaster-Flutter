@@ -12,8 +12,6 @@ import '../providers/notification_providers.dart';
 import '../utils/performance_logger.dart';
 import 'analytics_service.dart';
 import 'sync_service.dart';
-import '../../features/tasks/data/firestore_task_repository.dart';
-import '../../features/tasks/domain/task_repository.dart';
 import '../../features/tasks/providers/task_providers.dart';
 import '../../models/task_item.dart';
 import '../../models/task_item_blueprint.dart';
@@ -37,93 +35,6 @@ class RecurrenceNotFoundException implements Exception {
   @override
   String toString() =>
       'RecurrenceNotFoundException(recurrenceDocId: $recurrenceDocId, taskDocId: $taskDocId)';
-}
-
-class TaskCompletionResult {
-  const TaskCompletionResult({
-    required this.completedTask,
-    this.nextRecurrence,
-  });
-
-  final TaskItem completedTask;
-  final TaskItem? nextRecurrence;
-}
-
-class TaskCompletionService {
-  TaskCompletionService(this._repository);
-
-  final TaskRepository _repository;
-
-  Future<TaskCompletionResult> completeTask({
-    required TaskItem task,
-    required List<TaskItem> allTasks,
-    required List<TaskRecurrence> allRecurrences,
-    required bool complete,
-  }) async {
-    final perf = PerformanceLogger.start('TaskCompletionService.completeTask');
-    TaskItem? nextScheduledTask;
-
-    // Create next recurrence if needed (before completing current task)
-    if (task.recurrenceDocId != null &&
-        complete &&
-        !_hasNextIteration(task, allTasks)) {
-      perf.checkpoint('needsNextRecurrence=true');
-
-      // Find and populate the recurrence on the task
-      final recurrence = allRecurrences.firstWhere(
-        (r) => r.docId == task.recurrenceDocId,
-        orElse: () => throw RecurrenceNotFoundException(
-          recurrenceDocId: task.recurrenceDocId!,
-          taskDocId: task.docId,
-        ),
-      );
-
-      // Rebuild task with recurrence populated
-      final taskWithRecurrence = task.rebuild((b) => b..recurrence = recurrence.toBuilder());
-
-      final completionDate = DateTime.now();
-      final nextPreview = RecurrenceHelper.createNextIteration(
-        taskWithRecurrence,
-        completionDate,
-      );
-      perf.checkpoint('createNextIteration');
-
-      // Add the new task
-      await _repository.addTask(nextPreview.toBlueprint());
-      perf.checkpoint('repository.addTask (next recurrence)');
-    } else {
-      perf.checkpoint('needsNextRecurrence=false');
-    }
-
-    // Update the completed task
-    final updatedTask = await _repository.toggleTaskCompletion(
-      task,
-      complete: complete,
-    );
-    perf.checkpoint('repository.toggleTaskCompletion');
-
-    perf.finish();
-    return TaskCompletionResult(
-      completedTask: updatedTask,
-      nextRecurrence: nextScheduledTask,
-    );
-  }
-
-  bool _hasNextIteration(TaskItem task, List<TaskItem> allTasks) {
-    final recurIteration = task.recurIteration;
-    if (recurIteration == null) return false;
-
-    return allTasks.any((ti) =>
-        ti.recurrenceDocId == task.recurrenceDocId &&
-        ti.recurIteration != null &&
-        ti.recurIteration! > recurIteration);
-  }
-}
-
-@Riverpod(keepAlive: true)
-TaskCompletionService taskCompletionService(Ref ref) {
-  final repository = ref.watch(taskRepositoryProvider);
-  return TaskCompletionService(repository);
 }
 
 /// Controller for completing tasks.

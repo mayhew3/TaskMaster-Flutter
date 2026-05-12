@@ -13,6 +13,18 @@ import 'package:timeago/timeago.dart' as timeago;
 
 import 'delayed_checkbox.dart';
 
+/// Default `priorityScaleVersion` for synthesised plan-row TaskItems when
+/// the source `SprintDisplayTask` doesn't supply one. Tracks the legacy
+/// default that pre-TM-345 task migrations used.
+const _kDefaultPriorityScaleVersion = 2;
+
+/// Marker prefix on synthesised `personDocId` when the unknown-subtype
+/// fallback path fires. Real Firestore `personDocId`s are auto-generated
+/// document IDs and never start with an underscore, so this prefix makes
+/// the fallback origin recognisable in logs / queries and prevents the
+/// synthesised row from accidentally matching any real user's filter.
+const _kFallbackPersonDocIdPrefix = '_fallback_';
+
 /// Sprint-planning task row — a thin adapter on top of
 /// [EditableTaskItemWidget].
 ///
@@ -75,6 +87,14 @@ class _PlanTaskItemWidgetState extends ConsumerState<PlanTaskItemWidget> {
   /// synthesised + cached TaskItem mirroring the preview's user-visible
   /// fields. The synthesised TaskItem isn't persisted — it lives only as
   /// a render-side adapter so the shared chrome can speak a single type.
+  ///
+  /// **Cache invariant:** the source `SprintDisplayTask` is content-
+  /// immutable for the lifetime of a given `getSprintDisplayTaskKey()`.
+  /// `TaskItemRecurPreview` is the only non-`TaskItem` subtype today and
+  /// is constructed once per plan-mode render; a future implementor that
+  /// mutates fields while the key stays stable would render stale values
+  /// here — either bump the key on each mutation, or switch this cache
+  /// to a content hash.
   TaskItem _displayTask() {
     final source = widget.sprintDisplayTask;
     // Real TaskItem: pass through. Built-value equality handles change
@@ -107,7 +127,8 @@ class _PlanTaskItemWidgetState extends ConsumerState<PlanTaskItemWidget> {
         ..contexts = ListBuilder<TaskContext>(source.contexts)
         ..urgency = source.urgency
         ..priority = source.priority
-        ..priorityScaleVersion = source.priorityScaleVersion ?? 2
+        ..priorityScaleVersion =
+            source.priorityScaleVersion ?? _kDefaultPriorityScaleVersion
         ..duration = source.duration
         ..gamePoints = source.gamePoints
         ..startDate = source.startDate
@@ -130,18 +151,32 @@ class _PlanTaskItemWidgetState extends ConsumerState<PlanTaskItemWidget> {
     // TM-365: graceful fallback for unknown SprintDisplayTask subtypes
     // (the prior `throw StateError` made the widget crash if a new mixin
     // implementor was passed in). Synthesise from the mixin's common
-    // surface; missing fields (personDocId, contexts, urgency, etc.)
-    // get sensible defaults. The row will render with the available
-    // information — enough for plan-mode display — instead of taking
-    // down the whole plan screen.
+    // surface; missing fields (contexts, urgency, etc.) get sensible
+    // defaults. The row will render with the available information —
+    // enough for plan-mode display — instead of taking down the whole
+    // plan screen.
+    //
+    // `personDocId` gets a recognisable `_fallback_<key>` marker rather
+    // than a real-looking value, so a synthesised row that ever leaks
+    // into a write/filter path is obvious in logs and won't collide
+    // with any real user's data. A debug-mode log emits when this path
+    // fires so new mixin implementors are surfaced during development.
+    final fallbackPersonDocId =
+        '$_kFallbackPersonDocIdPrefix${source.getSprintDisplayTaskKey()}';
+    assert(() {
+      // ignore: avoid_print
+      print(
+          '[PlanTaskItemWidget] unknown SprintDisplayTask subtype ${source.runtimeType} — using fallback render with personDocId=$fallbackPersonDocId');
+      return true;
+    }());
     return TaskItem((b) => b
       ..docId = source.getSprintDisplayTaskKey()
       ..dateAdded = DateTime.now().toUtc()
-      ..personDocId = ''
+      ..personDocId = fallbackPersonDocId
       ..name = source.name
       ..area = source.area
       ..contexts = ListBuilder<TaskContext>(const <TaskContext>[])
-      ..priorityScaleVersion = 2
+      ..priorityScaleVersion = _kDefaultPriorityScaleVersion
       ..startDate = source.startDate
       ..targetDate = source.targetDate
       ..urgentDate = source.urgentDate

@@ -8,55 +8,6 @@ part of 'task_completion_service.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-
-@ProviderFor(taskCompletionService)
-final taskCompletionServiceProvider = TaskCompletionServiceProvider._();
-
-final class TaskCompletionServiceProvider
-    extends
-        $FunctionalProvider<
-          TaskCompletionService,
-          TaskCompletionService,
-          TaskCompletionService
-        >
-    with $Provider<TaskCompletionService> {
-  TaskCompletionServiceProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'taskCompletionServiceProvider',
-        isAutoDispose: false,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$taskCompletionServiceHash();
-
-  @$internal
-  @override
-  $ProviderElement<TaskCompletionService> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
-
-  @override
-  TaskCompletionService create(Ref ref) {
-    return taskCompletionService(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(TaskCompletionService value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<TaskCompletionService>(value),
-    );
-  }
-}
-
-String _$taskCompletionServiceHash() =>
-    r'd8165489e9937c88a1919383230bd3dab18567e4';
-
 /// Controller for completing tasks.
 /// TM-368 + Copilot R8: kept `keepAlive: true`. Callers invoke these
 /// mutation notifiers via `ref.read(.notifier).call(...)` (no active

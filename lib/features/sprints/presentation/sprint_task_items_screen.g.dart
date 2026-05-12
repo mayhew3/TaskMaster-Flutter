@@ -9,30 +9,36 @@ part of 'sprint_task_items_screen.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// Provider for sprint-screen filter settings.
-/// TM-368: sprint-screen-local UI state. Defaults are "show everything"
-/// (true / true), so re-initializing on consumer remount is the same
-/// behavior the user gets on first visit. Auto-dispose is correct.
+/// TM-368 self-review: kept `keepAlive: true`. The pre-TM-368 contract was
+/// "toggle persists across tab switches" — without keepAlive, auto-dispose
+/// fires on consumer unmount and any user-toggled value silently resets
+/// to the default the next time a sprint is opened. Defaults-on-first-
+/// visit alone doesn't preserve that contract.
 
 @ProviderFor(ShowCompletedInSprint)
 final showCompletedInSprintProvider = ShowCompletedInSprintProvider._();
 
 /// Provider for sprint-screen filter settings.
-/// TM-368: sprint-screen-local UI state. Defaults are "show everything"
-/// (true / true), so re-initializing on consumer remount is the same
-/// behavior the user gets on first visit. Auto-dispose is correct.
+/// TM-368 self-review: kept `keepAlive: true`. The pre-TM-368 contract was
+/// "toggle persists across tab switches" — without keepAlive, auto-dispose
+/// fires on consumer unmount and any user-toggled value silently resets
+/// to the default the next time a sprint is opened. Defaults-on-first-
+/// visit alone doesn't preserve that contract.
 final class ShowCompletedInSprintProvider
     extends $NotifierProvider<ShowCompletedInSprint, bool> {
   /// Provider for sprint-screen filter settings.
-  /// TM-368: sprint-screen-local UI state. Defaults are "show everything"
-  /// (true / true), so re-initializing on consumer remount is the same
-  /// behavior the user gets on first visit. Auto-dispose is correct.
+  /// TM-368 self-review: kept `keepAlive: true`. The pre-TM-368 contract was
+  /// "toggle persists across tab switches" — without keepAlive, auto-dispose
+  /// fires on consumer unmount and any user-toggled value silently resets
+  /// to the default the next time a sprint is opened. Defaults-on-first-
+  /// visit alone doesn't preserve that contract.
   ShowCompletedInSprintProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'showCompletedInSprintProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -54,12 +60,14 @@ final class ShowCompletedInSprintProvider
 }
 
 String _$showCompletedInSprintHash() =>
-    r'62f0de50f01bb8b585fac5029f09d3e59dfed202';
+    r'67c243d224d05ac3af4a5f6c9580eb115c6b8536';
 
 /// Provider for sprint-screen filter settings.
-/// TM-368: sprint-screen-local UI state. Defaults are "show everything"
-/// (true / true), so re-initializing on consumer remount is the same
-/// behavior the user gets on first visit. Auto-dispose is correct.
+/// TM-368 self-review: kept `keepAlive: true`. The pre-TM-368 contract was
+/// "toggle persists across tab switches" — without keepAlive, auto-dispose
+/// fires on consumer unmount and any user-toggled value silently resets
+/// to the default the next time a sprint is opened. Defaults-on-first-
+/// visit alone doesn't preserve that contract.
 
 abstract class _$ShowCompletedInSprint extends $Notifier<bool> {
   bool build();
@@ -90,7 +98,7 @@ final class ShowScheduledInSprintProvider
         argument: null,
         retry: null,
         name: r'showScheduledInSprintProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -112,7 +120,7 @@ final class ShowScheduledInSprintProvider
 }
 
 String _$showScheduledInSprintHash() =>
-    r'8226ae33a8e249ff8b182817aaf16e10d26a46f7';
+    r'bdc0ae9d43164417c196030c54d8fac7dda13884';
 
 abstract class _$ShowScheduledInSprint extends $Notifier<bool> {
   bool build();

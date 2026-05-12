@@ -304,6 +304,19 @@ void main() {
       expect(find.text('Fallback Row'), findsOneWidget);
       // Shared chrome still rendered.
       expect(find.byType(AreaStripe), findsOneWidget);
+
+      // PR #31 review follow-up: the fallback must stamp `personDocId`
+      // with the `_fallback_` marker — never empty or anything that
+      // looks like a real Firestore docId. If a synthesised row ever
+      // leaks into a write/filter path, the marker makes it obvious
+      // in logs and prevents accidental matches against any real
+      // user's data.
+      final synthesised = tester
+          .widget<EditableTaskItemWidget>(find.byType(EditableTaskItemWidget))
+          .taskItem;
+      expect(synthesised.personDocId, startsWith('_fallback_'));
+      expect(synthesised.personDocId,
+          contains(fake.getSprintDisplayTaskKey()));
     });
   });
 }
