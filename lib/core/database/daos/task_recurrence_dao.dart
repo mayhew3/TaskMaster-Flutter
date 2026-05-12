@@ -48,19 +48,30 @@ class TaskRecurrenceDao extends DatabaseAccessor<AppDatabase>
   Future<void> bulkUpsertFromRemote(List<TaskRecurrencesCompanion> rows) async {
     if (rows.isEmpty) return;
 
-    final pendingRows = await (select(taskRecurrences)
-          ..where((r) => r.syncState.isIn([
-                SyncState.pendingCreate.name,
-                SyncState.pendingUpdate.name,
-                SyncState.pendingDelete.name,
-                SyncState.pendingConflict.name,
-              ])))
-        .get();
-    final pendingSet = {for (final r in pendingRows) r.docId};
-    final pendingNeverAnchored = {
-      for (final r in pendingRows)
-        if (r.lastSyncedRemoteVersion == null) r.docId
-    };
+    // `selectOnly` reads only the two columns we actually use (mirrors
+    // the same optimization in `TaskDao.bulkUpsertFromRemote`). Avoids
+    // pulling every column — including potentially large
+    // `conflictRemoteJson` blobs on pendingConflict rows — for a query
+    // that only builds docId sets.
+    final pendingQuery = selectOnly(taskRecurrences)
+      ..addColumns(
+          [taskRecurrences.docId, taskRecurrences.lastSyncedRemoteVersion])
+      ..where(taskRecurrences.syncState.isIn([
+        SyncState.pendingCreate.name,
+        SyncState.pendingUpdate.name,
+        SyncState.pendingDelete.name,
+        SyncState.pendingConflict.name,
+      ]));
+    final pendingProjection = await pendingQuery.get();
+    final pendingSet = <String>{};
+    final pendingNeverAnchored = <String>{};
+    for (final row in pendingProjection) {
+      final docId = row.read(taskRecurrences.docId)!;
+      pendingSet.add(docId);
+      if (row.read(taskRecurrences.lastSyncedRemoteVersion) == null) {
+        pendingNeverAnchored.add(docId);
+      }
+    }
 
     final toUpsert = rows
         .where((r) => !pendingSet.contains(r.docId.value))

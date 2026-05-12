@@ -144,22 +144,30 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
   Future<void> bulkUpsertFromRemote(List<TasksCompanion> rows) async {
     if (rows.isEmpty) return;
 
-    // Fetch the docId AND lastSyncedRemoteVersion of every pending row so
-    // we can distinguish "never anchored" (NULL → back-fill candidate)
-    // from "already anchored" (preserve as-is).
-    final pendingRows = await (select(tasks)
-          ..where((t) => t.syncState.isIn([
-                SyncState.pendingCreate.name,
-                SyncState.pendingUpdate.name,
-                SyncState.pendingDelete.name,
-                SyncState.pendingConflict.name,
-              ])))
-        .get();
-    final pendingSet = {for (final r in pendingRows) r.docId};
-    final pendingNeverAnchored = {
-      for (final r in pendingRows)
-        if (r.lastSyncedRemoteVersion == null) r.docId
-    };
+    // Fetch only the two columns needed to distinguish "never anchored"
+    // (NULL → back-fill candidate) from "already anchored" (preserve as-
+    // is). `selectOnly` avoids reading every column of every pending row
+    // on each listener batch — relevant because `conflictRemoteJson` can
+    // be large for pendingConflict rows and the row payload here is
+    // never used (we only build sets of docIds).
+    final pendingQuery = selectOnly(tasks)
+      ..addColumns([tasks.docId, tasks.lastSyncedRemoteVersion])
+      ..where(tasks.syncState.isIn([
+        SyncState.pendingCreate.name,
+        SyncState.pendingUpdate.name,
+        SyncState.pendingDelete.name,
+        SyncState.pendingConflict.name,
+      ]));
+    final pendingProjection = await pendingQuery.get();
+    final pendingSet = <String>{};
+    final pendingNeverAnchored = <String>{};
+    for (final row in pendingProjection) {
+      final docId = row.read(tasks.docId)!;
+      pendingSet.add(docId);
+      if (row.read(tasks.lastSyncedRemoteVersion) == null) {
+        pendingNeverAnchored.add(docId);
+      }
+    }
 
     // TM-361: sync the lastSyncedRemoteVersion column at the same time —
     // see upsertFromRemote for rationale.
