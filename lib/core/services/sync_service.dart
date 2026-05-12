@@ -337,18 +337,20 @@ class SyncService {
       // hasPendingWrites=false and the real server timestamp) is the one we
       // want.
       //
-      // Guard against the lastModified=null case directly (instead of
-      // gating on hasPendingWrites) because FakeFirebaseFirestore in widget
-      // tests never reports hasPendingWrites=true even though our own
-      // writes still arrive as snapshot events. Filtering on the missing
-      // lastModified is precise either way: production gets the same
-      // skip-the-local-echo behaviour, tests aren't blocked.
-      final cachedLastModified = change.doc.data()?['lastModified'];
-      if (cachedLastModified == null) {
+      // Use `metadata.hasPendingWrites` rather than `lastModified == null`:
+      // production behaviour is identical (an unresolved server timestamp
+      // always coincides with a pending write), and this avoids dropping
+      // remote docs that legitimately lack a lastModified field (legacy
+      // rows, test fixtures, cross-device writes that predate TM-342).
+      // FakeFirebaseFirestore resolves FieldValue.serverTimestamp() inline,
+      // so its snapshot data carries a non-null lastModified anyway — no
+      // need to special-case the test path.
+      if (change.doc.metadata.hasPendingWrites) {
         _syncLog(
-            '[SyncService] listener: skipping ${change.doc.id} — lastModified unresolved (local-cache echo)');
+            '[SyncService] listener: skipping ${change.doc.id} — local-cache echo (hasPendingWrites)');
         continue;
       }
+      final cachedLastModified = change.doc.data()?['lastModified'];
       _syncLog(
           '[SyncService] listener: server-confirmed ${change.doc.id} lastModified=$cachedLastModified');
       try {
@@ -513,11 +515,11 @@ class SyncService {
         await db.taskRecurrenceDao.deleteFromRemote(change.doc.id);
         continue;
       }
-      final data = change.doc.data();
       // TM-361: skip the local-cache echo of our own writes — same
-      // rationale as _onTasksSnapshot. Guard via lastModified for
-      // compatibility with FakeFirebaseFirestore in widget tests.
-      if (data != null && data['lastModified'] == null) continue;
+      // rationale as _onTasksSnapshot. Use hasPendingWrites (not
+      // lastModified==null) so legacy/test docs lacking the field still sync.
+      if (change.doc.metadata.hasPendingWrites) continue;
+      final data = change.doc.data();
       // Skip retired recurrences — the local Drift converter does not write
       // the `retired` column, so retired rows would appear active locally.
       if (data == null || data['retired'] != null) {
@@ -1201,13 +1203,24 @@ class SyncService {
   /// (listener fire or Use-latest resolution), so it correctly detects the
   /// "the remote moved while I wasn't looking" case.
   ///
-  /// The push proceeds if: doc absent (insert), local lastSynced is null
-  /// (legacy / never-anchored row), remote lastModified is null (legacy
-  /// remote), or remote is not strictly newer than local-lastSynced.
+  /// The push proceeds if: doc absent (insert), both anchors are null
+  /// (legacy / never-anchored row with no usable comparison), remote
+  /// lastModified is null (legacy remote), or remote is not strictly newer
+  /// than the chosen anchor.
+  ///
+  /// TM-361 follow-up: when `localLastSyncedRemoteVersion` is null we fall
+  /// back to `localLastModified` as the anchor. This catches the
+  /// first-write-conflict case — a pending row that has never been anchored
+  /// (e.g. its remote update landed during the local pending window so the
+  /// listener's bulkUpsert skipped it) still needs to detect "remote
+  /// advanced past what we have." The fallback is less precise than
+  /// lastSynced (subject to local clock drift) but still correct: if remote
+  /// is newer than even the local clock's view, there is a real conflict.
   Future<bool> _checkAndRecordConflict<TModel>({
     required DocumentReference<Map<String, dynamic>> docRef,
     required String localDocId,
     required DateTime? localLastSyncedRemoteVersion,
+    required DateTime? localLastModified,
     required String localSyncState,
     required Serializer<TModel> serializer,
     required DateTime? Function(TModel model) extractLastModified,
@@ -1230,15 +1243,19 @@ class SyncService {
     final remoteData = remoteSnap.data();
     if (remoteData == null) return false;
 
-    if (localLastSyncedRemoteVersion == null) {
-      // Row predates the lastSyncedRemoteVersion column or was never
-      // anchored (e.g. pendingCreate that has never reached the server).
-      // Treat as legacy and push — the post-push listener fire will
-      // anchor lastSyncedRemoteVersion going forward.
+    // Choose the anchor: prefer the server-authoritative lastSynced when
+    // available; fall back to local lastModified for unanchored rows.
+    final localAnchor =
+        localLastSyncedRemoteVersion ?? localLastModified;
+    if (localAnchor == null) {
+      // No anchor at all (pendingCreate that has never seen any remote).
+      // Push — the post-push listener fire will anchor going forward.
       _syncLog(
-          '[SyncService] conflict-check $localDocId: lastSyncedRemoteVersion=null → no conflict (legacy / unanchored)');
+          '[SyncService] conflict-check $localDocId: no local anchor → no conflict (legacy / unanchored)');
       return false;
     }
+    final anchorSource =
+        localLastSyncedRemoteVersion != null ? 'lastSynced' : 'lastModified';
 
     final json = Map<String, dynamic>.from(remoteData);
     json['docId'] = localDocId;
@@ -1265,17 +1282,16 @@ class SyncService {
       return false;
     }
     _syncLog(
-        '[SyncService] conflict-check $localDocId: remote=$remoteLastModified vs lastSynced=$localLastSyncedRemoteVersion');
+        '[SyncService] conflict-check $localDocId: remote=$remoteLastModified vs $anchorSource=$localAnchor');
     // TM-361: Drift's `dateTime()` columns store as Unix epoch *seconds*, so
-    // `localLastSyncedRemoteVersion` round-trips at second precision while
+    // the local anchor round-trips at second precision while
     // `remoteLastModified` carries full millisecond precision from the
     // Firestore Timestamp. Comparing them directly with `isAfter` would
     // false-positive a conflict for the very row we just synced, since the
     // truncated local copy is always `≤ 999ms` behind the un-truncated
     // remote. Equalize precision before comparing.
-    if (!_isStrictlyAfterAtSecondPrecision(
-        remoteLastModified, localLastSyncedRemoteVersion)) {
-      // Remote hasn't advanced past what we last synced — push wins.
+    if (!_isStrictlyAfterAtSecondPrecision(remoteLastModified, localAnchor)) {
+      // Remote hasn't advanced past our anchor — push wins.
       _syncLog('[SyncService] conflict-check $localDocId: no conflict (push wins)');
       return false;
     }
@@ -1298,7 +1314,7 @@ class SyncService {
     );
     await markConflict(envelope);
     _syncLog(
-        '[SyncService] conflict recorded for $localDocId: remote=$remoteLastModified > lastSynced=$localLastSyncedRemoteVersion');
+        '[SyncService] conflict recorded for $localDocId: remote=$remoteLastModified > $anchorSource=$localAnchor');
     return true;
   }
 
@@ -1321,6 +1337,7 @@ class SyncService {
           docRef: docRef,
           localDocId: row.docId,
           localLastSyncedRemoteVersion: row.lastSyncedRemoteVersion,
+          localLastModified: row.lastModified,
           localSyncState: row.syncState,
           serializer: m.TaskItem.serializer,
           extractLastModified: (t) => t.lastModified,
@@ -1378,6 +1395,7 @@ class SyncService {
           docRef: docRef,
           localDocId: row.docId,
           localLastSyncedRemoteVersion: row.lastSyncedRemoteVersion,
+          localLastModified: row.lastModified,
           localSyncState: row.syncState,
           serializer: m.TaskRecurrence.serializer,
           extractLastModified: (r) => r.lastModified,

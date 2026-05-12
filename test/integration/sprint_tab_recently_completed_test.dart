@@ -7,6 +7,8 @@ import 'package:taskmaestro/models/sprint.dart';
 import 'package:taskmaestro/models/sprint_assignment.dart';
 import 'package:taskmaestro/models/task_item.dart';
 
+import '../helpers/async_provider_helpers.dart';
+
 /// Tests for TM-339: Sprint screen - completed task behavior
 ///
 /// Verifies:
@@ -80,7 +82,7 @@ void main() {
           .add(completedTask);
       container.read(showCompletedInSprintProvider.notifier).state = false;
 
-      final result = await container.read(sprintTaskItemsProvider(sprint).future);
+      final result = await readAsyncValue(container, sprintTaskItemsProvider(sprint));
 
       expect(result.length, 1);
       expect(result.first.docId, 'task1');
@@ -104,7 +106,7 @@ void main() {
           .add(completedTask);
       // showCompletedInSprint defaults to true
 
-      final result = await container.read(sprintTaskItemsProvider(sprint).future);
+      final result = await readAsyncValue(container, sprintTaskItemsProvider(sprint));
 
       expect(result.length, 1);
       expect(result.first.docId, 'task1');
@@ -127,7 +129,7 @@ void main() {
       addTearDown(container.dispose);
       // showCompletedInSprint defaults to true; recentlyCompleted empty.
 
-      final result = await container.read(sprintTaskItemsProvider(sprint).future);
+      final result = await readAsyncValue(container, sprintTaskItemsProvider(sprint));
 
       expect(result.length, 1);
       expect(result.first.docId, 'task1');
@@ -148,7 +150,7 @@ void main() {
 
       container.read(showCompletedInSprintProvider.notifier).state = false;
 
-      final result = await container.read(sprintTaskItemsProvider(sprint).future);
+      final result = await readAsyncValue(container, sprintTaskItemsProvider(sprint));
 
       expect(result.length, 0);
     });
@@ -173,7 +175,7 @@ void main() {
 
       container.read(recentlyCompletedTasksProvider.notifier).add(b);
 
-      final result = await container.read(sprintTaskItemsProvider(sprint).future);
+      final result = await readAsyncValue(container, sprintTaskItemsProvider(sprint));
 
       expect(result.map((t) => t.docId).toList(), ['a', 'b', 'c']);
     });
@@ -200,7 +202,7 @@ void main() {
 
       container.read(recentlyCompletedTasksProvider.notifier).add(bCompleted);
 
-      final result = await container.read(sprintTaskItemsProvider(sprint).future);
+      final result = await readAsyncValue(container, sprintTaskItemsProvider(sprint));
 
       expect(result.map((t) => t.docId).toList(), ['a', 'b', 'c']);
     });
@@ -224,7 +226,7 @@ void main() {
         ..add(task3);
       container.read(showCompletedInSprintProvider.notifier).state = false;
 
-      final result = await container.read(sprintTaskItemsProvider(sprint).future);
+      final result = await readAsyncValue(container, sprintTaskItemsProvider(sprint));
 
       expect(result.length, 3);
     });
@@ -245,7 +247,7 @@ void main() {
         ..add(sprintTask)
         ..add(otherTask);
 
-      final result = await container.read(sprintTaskItemsProvider(sprint).future);
+      final result = await readAsyncValue(container, sprintTaskItemsProvider(sprint));
 
       expect(result.length, 1);
       expect(result.first.docId, 'task1');

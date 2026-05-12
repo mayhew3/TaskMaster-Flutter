@@ -2,6 +2,7 @@ import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:taskmaestro/core/providers/auth_providers.dart';
 import 'package:taskmaestro/features/areas/providers/area_color_providers.dart';
 import 'package:taskmaestro/features/contexts/providers/context_providers.dart';
 import 'package:taskmaestro/features/shared/presentation/task_item_list.dart';
@@ -74,9 +75,14 @@ Widget _wrap({
   required List<TaskItem> incompleteTasks,
   required List<TaskItem> recentlyCompleted,
   required Sprint sprint,
+  required SprintCounts counts,
 }) {
   return ProviderScope(
     overrides: [
+      // tasksForSprintProvider transitively watches olderCompletedTasksBatchesProvider,
+      // whose build() reads personDocIdProvider. Without this override the
+      // real auth chain runs (GoogleSignIn.initialize → UnimplementedError).
+      personDocIdProvider.overrideWith((ref) => 'me'),
       // Stub the catalog providers that EditableTaskItemWidget pulls so we
       // don't subscribe to real Drift streams (would leak cleanup timers
       // past finalizeTree per MEMORY.md).
@@ -85,6 +91,12 @@ Widget _wrap({
           .overrideWith((ref) => Stream.value(const <ctx_model.Context>[])),
       // Sprint setup.
       sprintsProvider.overrideWith((ref) => Stream.value([sprint])),
+      // TM-361 manual-test #18: the banner now reads its M/N from this
+      // dedicated DB-backed provider (sprintCompletionCountsProvider)
+      // rather than off the merged in-memory list. Override it so the
+      // banner can render without spinning up Firestore + Drift roster.
+      sprintCompletionCountsProvider(sprint)
+          .overrideWith((ref) => Stream.value(counts)),
       // Inputs to `tasksForSprintProvider`. The merged provider reads
       // these (plus the show-completed and older-completed batches, which
       // default to empty / off) and merges them into the sprint's full
@@ -129,13 +141,14 @@ void main() {
         incompleteTasks: incomplete,
         recentlyCompleted: completed,
         sprint: sprint,
+        counts: const SprintCounts(completed: 3, total: 7),
       ));
       await tester.pumpAndSettle();
 
       // Pre-fix the banner read `0/4 Tasks Complete` because the count
       // was computed off the incomplete-only `widget.taskItems`. Fix
-      // moves the source to `tasksForSprintProvider`, which merges in
-      // recentlyCompleted, so the count reads `3/7`.
+      // moves the source to sprintCompletionCountsProvider (DB-backed),
+      // which the test stubs with 3/7.
       expect(find.text('3/7 Tasks Complete'), findsOneWidget);
     });
 
@@ -151,6 +164,7 @@ void main() {
         incompleteTasks: incomplete,
         recentlyCompleted: const [],
         sprint: sprint,
+        counts: const SprintCounts(completed: 0, total: 5),
       ));
       await tester.pumpAndSettle();
 

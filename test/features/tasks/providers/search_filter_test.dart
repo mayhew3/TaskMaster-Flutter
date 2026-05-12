@@ -8,6 +8,8 @@ import 'package:taskmaestro/features/tasks/providers/task_filter_providers.dart'
 import 'package:taskmaestro/features/tasks/providers/task_providers.dart';
 import 'package:taskmaestro/models/task_item.dart';
 
+import '../../../helpers/async_provider_helpers.dart';
+
 void main() {
   const testPersonDocId = 'test-person-123';
 
@@ -66,7 +68,7 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      final filtered = await container.read(filteredTasksProvider.future);
+      final filtered = await readAsyncValue(container, filteredTasksProvider);
       expect(filtered.length, 3);
     });
 
@@ -92,7 +94,7 @@ void main() {
       // Set search query
       container.read(searchQueryProvider.notifier).set('buy');
 
-      final filtered = await container.read(filteredTasksProvider.future);
+      final filtered = await readAsyncValue(container, filteredTasksProvider);
       expect(filtered.length, 1);
       expect(filtered.first.name, 'Buy groceries');
     });
@@ -117,7 +119,7 @@ void main() {
 
       container.read(searchQueryProvider.notifier).set('GROCERIES');
 
-      final filtered = await container.read(filteredTasksProvider.future);
+      final filtered = await readAsyncValue(container, filteredTasksProvider);
       expect(filtered.length, 1);
       expect(filtered.first.name, 'Buy Groceries');
     });

@@ -401,7 +401,16 @@ class IntegrationTestHelper {
 
     // Pre-warm connectivityProvider so SyncService.pushPendingWrites sees
     // online=true the first time it's read (during a task save).
-    await container.read(connectivityProvider.future);
+    //
+    // TM-361: must NOT use `await container.read(connectivityProvider.future)`
+    // here — under Riverpod 4 + flutter_test, awaiting a StreamProvider's
+    // `.future` causes every subsequent `pumpAndSettle` in the test to hang
+    // until its timeout. A plain `read(connectivityProvider)` is enough to
+    // start the inner stream subscription; the microtask delivering the
+    // first value is drained by the `pumpAndSettle` below, so by the time
+    // any production code calls `ref.read(connectivityProvider).value` the
+    // AsyncValue is `data(true)`.
+    container.read(connectivityProvider);
 
     final navigatorKey = GlobalKey<NavigatorState>();
 

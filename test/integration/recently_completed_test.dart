@@ -24,7 +24,7 @@ void main() {
         ..pendingCompletion = false);
     }
 
-    test('recentlyCompleted list is cleared on tab change', () {
+    test('recentlyCompleted list is cleared on tab change', () async {
       // Arrange: Create container and add a recently completed task
       final container = ProviderContainer();
       addTearDown(container.dispose);
@@ -37,6 +37,8 @@ void main() {
 
       // Act: Simulate tab change
       container.read(activeTabIndexProvider.notifier).setTab(1);
+      // TM-361: setTab defers its clear into a microtask.
+      await Future<void>.value();
 
       // Assert: recentlyCompleted should be cleared
       expect(container.read(recentlyCompletedTasksProvider).length, 0);
@@ -55,7 +57,7 @@ void main() {
       expect(container.read(recentlyCompletedTasksProvider).first.docId, 'task1');
     });
 
-    test('multiple completed tasks are all cleared on tab change', () {
+    test('multiple completed tasks are all cleared on tab change', () async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
@@ -69,12 +71,14 @@ void main() {
 
       // Act: Tab change
       container.read(activeTabIndexProvider.notifier).setTab(2);
+      await Future<void>.value();
 
       // Assert: All cleared
       expect(container.read(recentlyCompletedTasksProvider).length, 0);
     });
 
-    test('recentlyCompleted is cleared even when switching to same tab', () {
+    test('recentlyCompleted is cleared even when switching to same tab',
+        () async {
       // Edge case: switching to the same tab should also clear
       // This handles scenarios like refreshing the current view
       final container = ProviderContainer();
@@ -89,6 +93,7 @@ void main() {
 
       // Act: Switch to tab 0 (same as current)
       container.read(activeTabIndexProvider.notifier).setTab(0);
+      await Future<void>.value();
 
       // Assert: Should still clear (allows "refresh" behavior)
       expect(container.read(recentlyCompletedTasksProvider).length, 0);
