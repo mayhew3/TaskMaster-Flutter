@@ -461,7 +461,7 @@ final class SprintCompletionCountsProvider
 }
 
 String _$sprintCompletionCountsHash() =>
-    r'd04100b56ff4944dab56354ffd4f48e19c636cb5';
+    r'4efc6c94150fa37da57baaa8aaff8b5ed9c29120';
 
 /// (completed, total) counts for the active-sprint banner. Merges the
 /// Firestore roster (full sprint membership, includes cold completions)
@@ -576,7 +576,7 @@ final class TasksForSprintProvider
   }
 }
 
-String _$tasksForSprintHash() => r'1c2b0555a5896fbf693fdf2d2d8eabfcce228ae6';
+String _$tasksForSprintHash() => r'e5a0615495ffeac984d2f9b2d4bb17c6d4104405';
 
 /// Get tasks for a specific sprint.
 /// Includes incomplete tasks from the base stream, recently completed tasks

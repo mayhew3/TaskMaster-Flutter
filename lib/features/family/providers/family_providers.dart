@@ -141,6 +141,10 @@ Stream<List<FamilyInvitation>> outgoingInvitations(Ref ref) {
 // should manage it locally (e.g. via a `bool _busy` field in their widget).
 
 /// Creates a family with the current user as sole member and owner.
+/// TM-368 + Copilot R8: kept `keepAlive: true` for all six family
+/// mutation notifiers below. Callers invoke via `ref.read(.notifier)
+/// .call(...)` (no active listener), so auto-dispose could fire between
+/// awaits and break subsequent `ref.read(...)` mid-mutation.
 @Riverpod(keepAlive: true)
 class CreateFamily extends _$CreateFamily {
   @override

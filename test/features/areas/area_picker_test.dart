@@ -10,6 +10,7 @@ import 'package:taskmaestro/core/providers/firebase_providers.dart';
 import 'package:taskmaestro/core/services/sync_service.dart';
 import 'package:taskmaestro/features/areas/presentation/area_picker.dart';
 import 'package:taskmaestro/features/areas/providers/area_providers.dart';
+import 'package:taskmaestro/features/areas/services/area_service.dart';
 import 'package:taskmaestro/models/area.dart';
 
 class _FakeSyncService extends SyncService {
@@ -42,6 +43,34 @@ class _StubAreasWithDefaults extends AreasWithDefaults {
   AsyncValue<List<Area>> build() => AsyncValue.data(_areas);
 }
 
+/// AreaService subclass whose `createArea` always throws the supplied
+/// exception. Used to simulate the service-rejection race where the
+/// in-memory validator passes (no cached collision) but the canonical
+/// `AreaService.createArea` rejects after a Firestore round-trip
+/// (DuplicateAreaNameException) or because the requested name is a
+/// reserved sentinel that the validator's reserved-list check missed
+/// (ReservedAreaNameException — defensive coverage of the second catch
+/// branch in `_createAreaInline`).
+class _ThrowingAreaService extends AreaService {
+  _ThrowingAreaService({
+    required super.db,
+    required super.firestore,
+    required super.ref,
+    required this.exceptionToThrow,
+  });
+
+  final Exception exceptionToThrow;
+
+  @override
+  Future<Area> createArea({
+    required String name,
+    required String personDocId,
+    bool skipInitialPullWait = false,
+  }) async {
+    throw exceptionToThrow;
+  }
+}
+
 Area _area({required String docId, required String name, int sortOrder = 0}) {
   return Area((b) => b
     ..docId = docId
@@ -57,6 +86,7 @@ Widget _buildHarness({
   required void Function(String?) valueSetter,
   required List<Area> areas,
   String? initialValue,
+  Exception? createAreaThrows,
 }) {
   return ProviderScope(
     overrides: [
@@ -71,6 +101,13 @@ Widget _buildHarness({
       // Stub AreasWithDefaults so the picker doesn't watch a Drift stream.
       areasWithDefaultsProvider
           .overrideWith(() => _StubAreasWithDefaults(areas)),
+      if (createAreaThrows != null)
+        areaServiceProvider.overrideWith((ref) => _ThrowingAreaService(
+              db: ref.watch(databaseProvider),
+              firestore: ref.watch(firestoreProvider),
+              ref: ref,
+              exceptionToThrow: createAreaThrows,
+            )),
     ],
     child: MaterialApp(
       home: Scaffold(
@@ -189,6 +226,92 @@ void main() {
         expect(captured, isNull,
             reason:
                 'valueSetter must NOT fire when the inline validator rejects the name.');
+      },
+    );
+
+    testWidgets(
+      'duplicate-name exception from service displays inline and preserves typed text',
+      (tester) async {
+        // Covers the DuplicateAreaNameException catch branch in
+        // _createAreaInline (area_picker.dart:297-301). This is the race
+        // where the in-memory validator (against cached `areasProvider`)
+        // passes — because the cache hasn't seen the conflicting area —
+        // but `AreaService.createArea` rejects after the Firestore
+        // round-trip. The user's typed text must be preserved so they can
+        // edit-and-retry without re-typing.
+        String? captured;
+        await tester.pumpWidget(_buildHarness(
+          db: db,
+          firestore: firestore,
+          // Seed only 'Home' so the in-memory validator passes for
+          // 'Workshop'. The throwing service then provides the rejection.
+          areas: [_area(docId: 'home', name: 'Home')],
+          valueSetter: (v) => captured = v,
+          createAreaThrows: DuplicateAreaNameException('Workshop'),
+        ));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(const Key('area_picker_button')));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(find.byType(TextField), 'Workshop');
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Add'));
+        await tester.pumpAndSettle();
+
+        // The service-rejection message renders inline below the input.
+        expect(find.text('Area "Workshop" already exists.'), findsOneWidget,
+            reason:
+                'Inline error must display the DuplicateAreaNameException message.');
+
+        // Typed text preserved — InlineAddField only clears the controller
+        // on success, so the user can edit-and-retry.
+        final textField = tester.widget<TextField>(find.byType(TextField));
+        expect(textField.controller!.text, 'Workshop',
+            reason:
+                'Typed text must NOT be cleared when the service rejects.');
+
+        expect(captured, isNull,
+            reason: 'valueSetter must NOT fire on service rejection.');
+      },
+    );
+
+    testWidgets(
+      'reserved-name exception from service displays inline',
+      (tester) async {
+        // Covers the ReservedAreaNameException catch branch in
+        // _createAreaInline (area_picker.dart:302-304). The in-memory
+        // validator already checks kReservedAreaNames, but the service
+        // re-checks defensively against the canonical reserved list (which
+        // could diverge in future refactors). This test exercises that
+        // second branch even though it's not reachable via the validator
+        // today — making the contract explicit if either side changes.
+        String? captured;
+        await tester.pumpWidget(_buildHarness(
+          db: db,
+          firestore: firestore,
+          areas: [_area(docId: 'home', name: 'Home')],
+          valueSetter: (v) => captured = v,
+          // 'Workshop' is NOT in kReservedAreaNames — the in-memory
+          // validator passes — but our throwing service unconditionally
+          // throws ReservedAreaNameException to drive the second catch.
+          createAreaThrows: ReservedAreaNameException('Workshop'),
+        ));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(const Key('area_picker_button')));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(find.byType(TextField), 'Workshop');
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Add'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Area name "Workshop" is reserved.'), findsOneWidget,
+            reason:
+                'Inline error must display the ReservedAreaNameException message.');
+        expect(captured, isNull,
+            reason: 'valueSetter must NOT fire on reserved-name rejection.');
       },
     );
   });

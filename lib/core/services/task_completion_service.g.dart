@@ -8,64 +8,36 @@ part of 'task_completion_service.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-
-@ProviderFor(taskCompletionService)
-final taskCompletionServiceProvider = TaskCompletionServiceProvider._();
-
-final class TaskCompletionServiceProvider
-    extends
-        $FunctionalProvider<
-          TaskCompletionService,
-          TaskCompletionService,
-          TaskCompletionService
-        >
-    with $Provider<TaskCompletionService> {
-  TaskCompletionServiceProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'taskCompletionServiceProvider',
-        isAutoDispose: false,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$taskCompletionServiceHash();
-
-  @$internal
-  @override
-  $ProviderElement<TaskCompletionService> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
-
-  @override
-  TaskCompletionService create(Ref ref) {
-    return taskCompletionService(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(TaskCompletionService value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<TaskCompletionService>(value),
-    );
-  }
-}
-
-String _$taskCompletionServiceHash() =>
-    r'd8165489e9937c88a1919383230bd3dab18567e4';
-
-/// Controller for completing tasks
+/// Controller for completing tasks.
+/// TM-368 + Copilot R8: kept `keepAlive: true`. Callers invoke these
+/// mutation notifiers via `ref.read(.notifier).call(...)` (no active
+/// listener), so auto-dispose could fire between the first `await` and a
+/// subsequent `ref.read(...)` inside `call()` → "Cannot use ref after
+/// disposal" mid-mutation. The Category C "case-by-case" note in TM-368's
+/// plan flagged this risk; the audit didn't catch every site, so Copilot
+/// did. Applies to all six mutation notifiers in this file.
 
 @ProviderFor(CompleteTask)
 final completeTaskProvider = CompleteTaskProvider._();
 
-/// Controller for completing tasks
+/// Controller for completing tasks.
+/// TM-368 + Copilot R8: kept `keepAlive: true`. Callers invoke these
+/// mutation notifiers via `ref.read(.notifier).call(...)` (no active
+/// listener), so auto-dispose could fire between the first `await` and a
+/// subsequent `ref.read(...)` inside `call()` → "Cannot use ref after
+/// disposal" mid-mutation. The Category C "case-by-case" note in TM-368's
+/// plan flagged this risk; the audit didn't catch every site, so Copilot
+/// did. Applies to all six mutation notifiers in this file.
 final class CompleteTaskProvider
     extends $AsyncNotifierProvider<CompleteTask, void> {
-  /// Controller for completing tasks
+  /// Controller for completing tasks.
+  /// TM-368 + Copilot R8: kept `keepAlive: true`. Callers invoke these
+  /// mutation notifiers via `ref.read(.notifier).call(...)` (no active
+  /// listener), so auto-dispose could fire between the first `await` and a
+  /// subsequent `ref.read(...)` inside `call()` → "Cannot use ref after
+  /// disposal" mid-mutation. The Category C "case-by-case" note in TM-368's
+  /// plan flagged this risk; the audit didn't catch every site, so Copilot
+  /// did. Applies to all six mutation notifiers in this file.
   CompleteTaskProvider._()
     : super(
         from: null,
@@ -85,9 +57,16 @@ final class CompleteTaskProvider
   CompleteTask create() => CompleteTask();
 }
 
-String _$completeTaskHash() => r'562c978733e56078b22aae620dc2415ad824fc9e';
+String _$completeTaskHash() => r'276e8a5a922267bc0be2bbc625b8e415f457d591';
 
-/// Controller for completing tasks
+/// Controller for completing tasks.
+/// TM-368 + Copilot R8: kept `keepAlive: true`. Callers invoke these
+/// mutation notifiers via `ref.read(.notifier).call(...)` (no active
+/// listener), so auto-dispose could fire between the first `await` and a
+/// subsequent `ref.read(...)` inside `call()` → "Cannot use ref after
+/// disposal" mid-mutation. The Category C "case-by-case" note in TM-368's
+/// plan flagged this risk; the audit didn't catch every site, so Copilot
+/// did. Applies to all six mutation notifiers in this file.
 
 abstract class _$CompleteTask extends $AsyncNotifier<void> {
   FutureOr<void> build();
@@ -107,14 +86,17 @@ abstract class _$CompleteTask extends $AsyncNotifier<void> {
   }
 }
 
-/// Controller for skipping a recurring task instance
+/// Controller for skipping a recurring task instance.
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
 
 @ProviderFor(SkipTask)
 final skipTaskProvider = SkipTaskProvider._();
 
-/// Controller for skipping a recurring task instance
+/// Controller for skipping a recurring task instance.
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
 final class SkipTaskProvider extends $AsyncNotifierProvider<SkipTask, void> {
-  /// Controller for skipping a recurring task instance
+  /// Controller for skipping a recurring task instance.
+  /// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
   SkipTaskProvider._()
     : super(
         from: null,
@@ -134,9 +116,10 @@ final class SkipTaskProvider extends $AsyncNotifierProvider<SkipTask, void> {
   SkipTask create() => SkipTask();
 }
 
-String _$skipTaskHash() => r'765867c5d4e0a14b6013a7017aac79d616985c36';
+String _$skipTaskHash() => r'0ce20d77e64c67a98e85885df6557d1f9c6ad102';
 
-/// Controller for skipping a recurring task instance
+/// Controller for skipping a recurring task instance.
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
 
 abstract class _$SkipTask extends $AsyncNotifier<void> {
   FutureOr<void> build();
@@ -163,6 +146,7 @@ abstract class _$SkipTask extends $AsyncNotifier<void> {
 /// is settled at construction; subsequent `state = AsyncLoading/AsyncData`
 /// re-completes it and throws "Bad state: Future already completed". UI
 /// loading state is handled locally by callers (e.g. `_busy` flags).
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
 
 @ProviderFor(DeleteTask)
 final deleteTaskProvider = DeleteTaskProvider._();
@@ -174,6 +158,7 @@ final deleteTaskProvider = DeleteTaskProvider._();
 /// is settled at construction; subsequent `state = AsyncLoading/AsyncData`
 /// re-completes it and throws "Bad state: Future already completed". UI
 /// loading state is handled locally by callers (e.g. `_busy` flags).
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
 final class DeleteTaskProvider
     extends $AsyncNotifierProvider<DeleteTask, void> {
   /// Controller for deleting tasks.
@@ -183,6 +168,7 @@ final class DeleteTaskProvider
   /// is settled at construction; subsequent `state = AsyncLoading/AsyncData`
   /// re-completes it and throws "Bad state: Future already completed". UI
   /// loading state is handled locally by callers (e.g. `_busy` flags).
+  /// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
   DeleteTaskProvider._()
     : super(
         from: null,
@@ -211,6 +197,7 @@ String _$deleteTaskHash() => r'd2f97e71481efe7b87aae46d7415269289bdc295';
 /// is settled at construction; subsequent `state = AsyncLoading/AsyncData`
 /// re-completes it and throws "Bad state: Future already completed". UI
 /// loading state is handled locally by callers (e.g. `_busy` flags).
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
 
 abstract class _$DeleteTask extends $AsyncNotifier<void> {
   FutureOr<void> build();
@@ -231,13 +218,16 @@ abstract class _$DeleteTask extends $AsyncNotifier<void> {
 }
 
 /// Controller for adding new tasks.
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
 
 @ProviderFor(AddTask)
 final addTaskProvider = AddTaskProvider._();
 
 /// Controller for adding new tasks.
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
 final class AddTaskProvider extends $AsyncNotifierProvider<AddTask, void> {
   /// Controller for adding new tasks.
+  /// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
   AddTaskProvider._()
     : super(
         from: null,
@@ -260,6 +250,7 @@ final class AddTaskProvider extends $AsyncNotifierProvider<AddTask, void> {
 String _$addTaskHash() => r'50ae61da56cfc6746bbd628a749f31948809b8cf';
 
 /// Controller for adding new tasks.
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
 
 abstract class _$AddTask extends $AsyncNotifier<void> {
   FutureOr<void> build();
@@ -280,14 +271,17 @@ abstract class _$AddTask extends $AsyncNotifier<void> {
 }
 
 /// Controller for updating tasks.
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
 
 @ProviderFor(UpdateTask)
 final updateTaskProvider = UpdateTaskProvider._();
 
 /// Controller for updating tasks.
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
 final class UpdateTaskProvider
     extends $AsyncNotifierProvider<UpdateTask, void> {
   /// Controller for updating tasks.
+  /// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
   UpdateTaskProvider._()
     : super(
         from: null,
@@ -310,6 +304,7 @@ final class UpdateTaskProvider
 String _$updateTaskHash() => r'9aaa89b631f83962d54ac6621b8fa911792da575';
 
 /// Controller for updating tasks.
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
 
 abstract class _$UpdateTask extends $AsyncNotifier<void> {
   FutureOr<void> build();
@@ -329,15 +324,18 @@ abstract class _$UpdateTask extends $AsyncNotifier<void> {
   }
 }
 
-/// Controller for snoozing tasks
+/// Controller for snoozing tasks.
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
 
 @ProviderFor(SnoozeTask)
 final snoozeTaskProvider = SnoozeTaskProvider._();
 
-/// Controller for snoozing tasks
+/// Controller for snoozing tasks.
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
 final class SnoozeTaskProvider
     extends $AsyncNotifierProvider<SnoozeTask, void> {
-  /// Controller for snoozing tasks
+  /// Controller for snoozing tasks.
+  /// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
   SnoozeTaskProvider._()
     : super(
         from: null,
@@ -359,7 +357,8 @@ final class SnoozeTaskProvider
 
 String _$snoozeTaskHash() => r'8f582f90888a9ee2239d0d431b25b7f39e4216af';
 
-/// Controller for snoozing tasks
+/// Controller for snoozing tasks.
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
 
 abstract class _$SnoozeTask extends $AsyncNotifier<void> {
   FutureOr<void> build();

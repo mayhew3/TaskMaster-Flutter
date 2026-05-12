@@ -70,6 +70,70 @@ void main() {
     });
   });
 
+  group('TaskDao.bulkUpsertFromRemote — TM-367 anchor back-fill', () {
+    test('back-fills lastSyncedRemoteVersion on never-anchored pending row',
+        () async {
+      // Insert a pending row with lastSyncedRemoteVersion=null (the
+      // legacy case TM-367 addresses — a row that pre-dates TM-361 and
+      // never got an anchor written by a prior listener fire).
+      await db.taskDao.insertPending(_makeCompanion(docId: 'pending-null'));
+      final pre = await db.taskDao.allForUser(personDocId);
+      // `equals(null)` rather than `isNull`: this test file imports
+      // `drift/drift.dart`, which exports a top-level `isNull` symbol
+      // that collides with matcher's `isNull` and won't compile.
+      expect(pre.first.lastSyncedRemoteVersion, equals(null));
+      expect(pre.first.syncState, SyncState.pendingCreate.name);
+
+      // Simulate a Firestore listener fire delivering a remote snapshot
+      // for the same docId. The back-fill should populate the anchor
+      // without flipping the row to synced (data + syncState preserved).
+      final remoteLastModified = DateTime.utc(2025, 8, 1);
+      await db.taskDao.bulkUpsertFromRemote([
+        _makeCompanion(docId: 'pending-null', name: 'Remote name')
+            .copyWith(lastModified: Value(remoteLastModified)),
+      ]);
+
+      final post = await db.taskDao.allForUser(personDocId);
+      expect(post.first.syncState, SyncState.pendingCreate.name);
+      expect(post.first.lastSyncedRemoteVersion?.toUtc(), remoteLastModified);
+      // Local-edited data is preserved — the back-fill is anchor-only.
+      expect(post.first.name, 'Test task');
+    });
+
+    test(
+        'does NOT overwrite lastSyncedRemoteVersion on already-anchored pending row',
+        () async {
+      // Race-guard invariant (R8 review): back-fill is strictly one-time
+      // for never-anchored rows. A row that's already anchored — whether
+      // by a previous push or, under race, by a concurrent writer between
+      // the DAO's pending-row snapshot read and its anchor UPDATE — must
+      // not be overwritten. Tests both layers of defense (the
+      // pendingNeverAnchored filter AND the `lastSyncedRemoteVersion IS
+      // NULL` WHERE clause) by exercising the broader invariant.
+      final originalAnchor = DateTime.utc(2025, 7, 1);
+      await db.into(db.tasks).insert(_makeCompanion(
+            docId: 'pending-anchored',
+            syncState: SyncState.pendingUpdate.name,
+          ).copyWith(
+            lastSyncedRemoteVersion: Value(originalAnchor),
+            lastModified: Value(originalAnchor),
+          ));
+
+      // A fresher remote snapshot arrives via the listener.
+      final newerRemote = DateTime.utc(2025, 8, 1);
+      await db.taskDao.bulkUpsertFromRemote([
+        _makeCompanion(docId: 'pending-anchored', name: 'Remote name')
+            .copyWith(lastModified: Value(newerRemote)),
+      ]);
+
+      final post = await db.taskDao.allForUser(personDocId);
+      expect(post.first.lastSyncedRemoteVersion?.toUtc(), originalAnchor,
+          reason: 'Existing anchor must not be overwritten — preserves '
+              'the legitimate-conflict signal for rows that have a baseline.');
+      expect(post.first.syncState, SyncState.pendingUpdate.name);
+    });
+  });
+
   group('TaskDao.insertPending', () {
     test('sets syncState to pendingCreate', () async {
       await db.taskDao.insertPending(_makeCompanion());

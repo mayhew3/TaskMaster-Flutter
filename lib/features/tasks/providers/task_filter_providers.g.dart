@@ -223,23 +223,29 @@ final class FilteredTasksProvider
 
 String _$filteredTasksHash() => r'da6b3bc5fd474016300c429559e04dec45cf97e8';
 
-/// Count of active (non-completed, non-retired) tasks
+/// Count of active (non-completed, non-retired) tasks.
+/// TM-368: pure-derived from `tasksProvider` (keepAlive). Cheap to
+/// recompute when a consumer reattaches, so auto-dispose is correct here.
 
 @ProviderFor(activeTaskCount)
 final activeTaskCountProvider = ActiveTaskCountProvider._();
 
-/// Count of active (non-completed, non-retired) tasks
+/// Count of active (non-completed, non-retired) tasks.
+/// TM-368: pure-derived from `tasksProvider` (keepAlive). Cheap to
+/// recompute when a consumer reattaches, so auto-dispose is correct here.
 
 final class ActiveTaskCountProvider extends $FunctionalProvider<int, int, int>
     with $Provider<int> {
-  /// Count of active (non-completed, non-retired) tasks
+  /// Count of active (non-completed, non-retired) tasks.
+  /// TM-368: pure-derived from `tasksProvider` (keepAlive). Cheap to
+  /// recompute when a consumer reattaches, so auto-dispose is correct here.
   ActiveTaskCountProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'activeTaskCountProvider',
-        isAutoDispose: false,
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -266,11 +272,16 @@ final class ActiveTaskCountProvider extends $FunctionalProvider<int, int, int>
   }
 }
 
-String _$activeTaskCountHash() => r'd5c4df1bda2592964ade4097c8476ce3de17a377';
+String _$activeTaskCountHash() => r'2bebdf365f5d0aa271589aa7d69410a8f3c04e0b';
 
 /// Count of completed (non-skipped, non-retired) tasks.
 /// Uses Firestore aggregation for the total (too many to store locally),
 /// then subtracts the local skipped count (always present since skip is local-first).
+/// TM-368: Firestore aggregation cost matters per call, but the value is
+/// only read by infrequently-visited screens (Manage Areas badges, profile
+/// stats). Auto-dispose so the count doesn't sit cached when nothing's
+/// reading it — the staleness penalty for keepAlive (count drifts as the
+/// user completes tasks) is worse than the rebuild cost.
 
 @ProviderFor(completedTaskCount)
 final completedTaskCountProvider = CompletedTaskCountProvider._();
@@ -278,6 +289,11 @@ final completedTaskCountProvider = CompletedTaskCountProvider._();
 /// Count of completed (non-skipped, non-retired) tasks.
 /// Uses Firestore aggregation for the total (too many to store locally),
 /// then subtracts the local skipped count (always present since skip is local-first).
+/// TM-368: Firestore aggregation cost matters per call, but the value is
+/// only read by infrequently-visited screens (Manage Areas badges, profile
+/// stats). Auto-dispose so the count doesn't sit cached when nothing's
+/// reading it — the staleness penalty for keepAlive (count drifts as the
+/// user completes tasks) is worse than the rebuild cost.
 
 final class CompletedTaskCountProvider
     extends $FunctionalProvider<AsyncValue<int>, int, FutureOr<int>>
@@ -285,13 +301,18 @@ final class CompletedTaskCountProvider
   /// Count of completed (non-skipped, non-retired) tasks.
   /// Uses Firestore aggregation for the total (too many to store locally),
   /// then subtracts the local skipped count (always present since skip is local-first).
+  /// TM-368: Firestore aggregation cost matters per call, but the value is
+  /// only read by infrequently-visited screens (Manage Areas badges, profile
+  /// stats). Auto-dispose so the count doesn't sit cached when nothing's
+  /// reading it — the staleness penalty for keepAlive (count drifts as the
+  /// user completes tasks) is worse than the rebuild cost.
   CompletedTaskCountProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'completedTaskCountProvider',
-        isAutoDispose: false,
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -311,7 +332,7 @@ final class CompletedTaskCountProvider
 }
 
 String _$completedTaskCountHash() =>
-    r'37f34a0cf5717a8370b4c5d6936c94a0a8527280';
+    r'cb5b1d8c3f28f87537a1a5e4a285b3f8bd6d37e6';
 
 /// Grouped and sorted tasks for the task list
 

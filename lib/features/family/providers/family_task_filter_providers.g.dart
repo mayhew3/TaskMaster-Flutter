@@ -239,6 +239,9 @@ abstract class _$FamilyMemberFilter extends $Notifier<String?> {
 /// in the current session (tracked by [recentlyCompletedTasksProvider]) are
 /// always included so the just-completed task stays visible — the grouping
 /// step keeps it in its original section until the user navigates away.
+///
+/// TM-368: pure-derived from upstream filter toggles + tasks stream. Cheap
+/// to recompute when the Family tab remounts; auto-dispose is correct.
 
 @ProviderFor(familyFilteredTasks)
 final familyFilteredTasksProvider = FamilyFilteredTasksProvider._();
@@ -247,6 +250,9 @@ final familyFilteredTasksProvider = FamilyFilteredTasksProvider._();
 /// in the current session (tracked by [recentlyCompletedTasksProvider]) are
 /// always included so the just-completed task stays visible — the grouping
 /// step keeps it in its original section until the user navigates away.
+///
+/// TM-368: pure-derived from upstream filter toggles + tasks stream. Cheap
+/// to recompute when the Family tab remounts; auto-dispose is correct.
 
 final class FamilyFilteredTasksProvider
     extends $FunctionalProvider<List<TaskItem>, List<TaskItem>, List<TaskItem>>
@@ -255,13 +261,16 @@ final class FamilyFilteredTasksProvider
   /// in the current session (tracked by [recentlyCompletedTasksProvider]) are
   /// always included so the just-completed task stays visible — the grouping
   /// step keeps it in its original section until the user navigates away.
+  ///
+  /// TM-368: pure-derived from upstream filter toggles + tasks stream. Cheap
+  /// to recompute when the Family tab remounts; auto-dispose is correct.
   FamilyFilteredTasksProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'familyFilteredTasksProvider',
-        isAutoDispose: false,
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -289,13 +298,16 @@ final class FamilyFilteredTasksProvider
 }
 
 String _$familyFilteredTasksHash() =>
-    r'fd5a09d9cacc41c7ebac304a41fe85823dc46aae';
+    r'4166e9fba1fd525a5eabe9366c60c18d1bc3e958';
 
 /// Family tasks grouped into Past Due / Urgent / Target / Tasks / Scheduled /
 /// Completed buckets. Mirrors the Tasks-tab grouping shape, including the
 /// TM-323 "recently completed stays in its original group" behavior so the
 /// just-completed task doesn't visibly jump to the Completed section until
 /// after the user navigates away and back.
+///
+/// TM-368: pure-derived from `familyFilteredTasks` + recently-completed.
+/// Cheap iteration; auto-dispose is correct.
 
 @ProviderFor(familyGroupedTasks)
 final familyGroupedTasksProvider = FamilyGroupedTasksProvider._();
@@ -305,6 +317,9 @@ final familyGroupedTasksProvider = FamilyGroupedTasksProvider._();
 /// TM-323 "recently completed stays in its original group" behavior so the
 /// just-completed task doesn't visibly jump to the Completed section until
 /// after the user navigates away and back.
+///
+/// TM-368: pure-derived from `familyFilteredTasks` + recently-completed.
+/// Cheap iteration; auto-dispose is correct.
 
 final class FamilyGroupedTasksProvider
     extends
@@ -315,13 +330,16 @@ final class FamilyGroupedTasksProvider
   /// TM-323 "recently completed stays in its original group" behavior so the
   /// just-completed task doesn't visibly jump to the Completed section until
   /// after the user navigates away and back.
+  ///
+  /// TM-368: pure-derived from `familyFilteredTasks` + recently-completed.
+  /// Cheap iteration; auto-dispose is correct.
   FamilyGroupedTasksProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'familyGroupedTasksProvider',
-        isAutoDispose: false,
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -349,4 +367,4 @@ final class FamilyGroupedTasksProvider
 }
 
 String _$familyGroupedTasksHash() =>
-    r'2f31d8dab48bd25365e9c9b4803ae89adcfe02b8';
+    r'd2aea6084832c12aa84cbd637d06993d13636997';

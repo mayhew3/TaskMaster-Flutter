@@ -130,19 +130,44 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
   /// one query (pending-local-wins) then batch-inserts the rest in one shot —
   /// far fewer SQL round-trips than calling [upsertFromRemote] per row.
   /// pendingConflict rows are also skipped (TM-342).
+  ///
+  /// TM-367: for pending rows whose `lastSyncedRemoteVersion` is currently
+  /// **null** (legacy rows that pre-date TM-361, never anchored by a prior
+  /// listener fire), back-fill it from the listener's `lastModified` so the
+  /// next push's conflict-check has a server-anchored reference instead of
+  /// falling back to the local clock (the imprecise path that surfaced
+  /// TM-370 on real Android). The back-fill is **one-time only**: rows
+  /// whose anchor is already set keep it untouched — that anchor IS "the
+  /// server version this pending edit is based on", and overwriting it on
+  /// every listener fire would mask legitimate conflicts where another
+  /// device wrote between our last sync and our push.
   Future<void> bulkUpsertFromRemote(List<TasksCompanion> rows) async {
     if (rows.isEmpty) return;
 
-    final pendingIds = await (select(tasks)
-          ..where((t) => t.syncState.isIn([
-                SyncState.pendingCreate.name,
-                SyncState.pendingUpdate.name,
-                SyncState.pendingDelete.name,
-                SyncState.pendingConflict.name,
-              ])))
-        .map((t) => t.docId)
-        .get();
-    final pendingSet = pendingIds.toSet();
+    // Fetch only the two columns needed to distinguish "never anchored"
+    // (NULL → back-fill candidate) from "already anchored" (preserve as-
+    // is). `selectOnly` avoids reading every column of every pending row
+    // on each listener batch — relevant because `conflictRemoteJson` can
+    // be large for pendingConflict rows and the row payload here is
+    // never used (we only build sets of docIds).
+    final pendingQuery = selectOnly(tasks)
+      ..addColumns([tasks.docId, tasks.lastSyncedRemoteVersion])
+      ..where(tasks.syncState.isIn([
+        SyncState.pendingCreate.name,
+        SyncState.pendingUpdate.name,
+        SyncState.pendingDelete.name,
+        SyncState.pendingConflict.name,
+      ]));
+    final pendingProjection = await pendingQuery.get();
+    final pendingSet = <String>{};
+    final pendingNeverAnchored = <String>{};
+    for (final row in pendingProjection) {
+      final docId = row.read(tasks.docId)!;
+      pendingSet.add(docId);
+      if (row.read(tasks.lastSyncedRemoteVersion) == null) {
+        pendingNeverAnchored.add(docId);
+      }
+    }
 
     // TM-361: sync the lastSyncedRemoteVersion column at the same time —
     // see upsertFromRemote for rationale.
@@ -154,6 +179,18 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
             ))
         .toList();
 
+    // TM-367: one-time anchor back-fill for pending rows that have never
+    // been anchored. Only touches `lastSyncedRemoteVersion`, preserving
+    // syncState + data. Rows whose anchor is already set are NOT touched
+    // here — that anchor records the server version this local edit is
+    // based on, and overwriting it would discard the conflict signal.
+    // Rows without a resolved `lastModified` in the snapshot are also
+    // excluded (no useful anchor to write).
+    final toAnchor = rows
+        .where((r) => pendingNeverAnchored.contains(r.docId.value))
+        .where((r) => r.lastModified.present && r.lastModified.value != null)
+        .toList();
+
     if (kDebugMode) {
       final skipped = rows
           .where((r) => pendingSet.contains(r.docId.value))
@@ -161,26 +198,46 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
           .toList();
       if (skipped.isNotEmpty) {
         debugPrint(
-            '[TaskDao.bulkUpsertFromRemote] skipped ${skipped.length} pending rows: $skipped');
+            '[TaskDao.bulkUpsertFromRemote] skipped ${skipped.length} pending rows: $skipped'
+            ' (back-filling anchor on ${toAnchor.length} of them)');
       }
-      // Aggregate the per-row anchor log — a per-row print floods debug
-      // builds on large initial syncs (and meaningfully slows widget tests
-      // that pump a full pull). Sample the first few IDs for traceability.
-      if (toUpsert.isNotEmpty) {
+      // TM-367 back-fill sample — what TM-370's diagnostic plan needs to
+      // verify in the field. Sample the first few IDs to avoid flooding
+      // debug builds on large initial syncs.
+      if (toAnchor.isNotEmpty) {
         const sampleCount = 5;
-        final sample = toUpsert
+        final sample = toAnchor
             .take(sampleCount)
             .map((r) => r.docId.value)
             .join(', ');
-        final suffix = toUpsert.length > sampleCount
-            ? ' (+${toUpsert.length - sampleCount} more)'
+        final suffix = toAnchor.length > sampleCount
+            ? ' (+${toAnchor.length - sampleCount} more)'
             : '';
         debugPrint(
-            '[TaskDao.bulkUpsertFromRemote] anchoring ${toUpsert.length} rows: $sample$suffix');
+            '[TaskDao.bulkUpsertFromRemote] back-filling anchor on ${toAnchor.length} legacy pending rows: $sample$suffix');
       }
     }
-    if (toUpsert.isEmpty) return;
-    await batch((b) => b.insertAllOnConflictUpdate(tasks, toUpsert));
+    if (toUpsert.isNotEmpty) {
+      await batch((b) => b.insertAllOnConflictUpdate(tasks, toUpsert));
+    }
+    // TM-367: anchor-only updates run after the full upsert. The WHERE
+    // clause guards `lastSyncedRemoteVersion IS NULL` so a concurrent
+    // writer that set the anchor between the pending-row read above and
+    // this update (e.g. a push completing in parallel) is not overwritten
+    // — the back-fill is strictly a one-time fill for legacy never-anchored
+    // rows. Wrapped in a single transaction so all anchors land atomically.
+    if (toAnchor.isNotEmpty) {
+      await transaction(() async {
+        for (final r in toAnchor) {
+          await (update(tasks)
+                ..where((t) =>
+                    t.docId.equals(r.docId.value) &
+                    t.lastSyncedRemoteVersion.isNull()))
+              .write(TasksCompanion(
+                  lastSyncedRemoteVersion: r.lastModified));
+        }
+      });
+    }
   }
 
   /// Delete a row that no longer exists in Firestore. Skips if local row is

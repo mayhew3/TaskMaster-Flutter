@@ -8,18 +8,30 @@ part of 'sprint_task_items_screen.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Provider for sprint filter settings
-/// Using keepAlive to persist state across tab switches
+/// Provider for sprint-screen filter settings.
+/// TM-368 self-review: kept `keepAlive: true`. The pre-TM-368 contract was
+/// "toggle persists across tab switches" — without keepAlive, auto-dispose
+/// fires on consumer unmount and any user-toggled value silently resets
+/// to the default the next time a sprint is opened. Defaults-on-first-
+/// visit alone doesn't preserve that contract.
 
 @ProviderFor(ShowCompletedInSprint)
 final showCompletedInSprintProvider = ShowCompletedInSprintProvider._();
 
-/// Provider for sprint filter settings
-/// Using keepAlive to persist state across tab switches
+/// Provider for sprint-screen filter settings.
+/// TM-368 self-review: kept `keepAlive: true`. The pre-TM-368 contract was
+/// "toggle persists across tab switches" — without keepAlive, auto-dispose
+/// fires on consumer unmount and any user-toggled value silently resets
+/// to the default the next time a sprint is opened. Defaults-on-first-
+/// visit alone doesn't preserve that contract.
 final class ShowCompletedInSprintProvider
     extends $NotifierProvider<ShowCompletedInSprint, bool> {
-  /// Provider for sprint filter settings
-  /// Using keepAlive to persist state across tab switches
+  /// Provider for sprint-screen filter settings.
+  /// TM-368 self-review: kept `keepAlive: true`. The pre-TM-368 contract was
+  /// "toggle persists across tab switches" — without keepAlive, auto-dispose
+  /// fires on consumer unmount and any user-toggled value silently resets
+  /// to the default the next time a sprint is opened. Defaults-on-first-
+  /// visit alone doesn't preserve that contract.
   ShowCompletedInSprintProvider._()
     : super(
         from: null,
@@ -50,8 +62,12 @@ final class ShowCompletedInSprintProvider
 String _$showCompletedInSprintHash() =>
     r'67c243d224d05ac3af4a5f6c9580eb115c6b8536';
 
-/// Provider for sprint filter settings
-/// Using keepAlive to persist state across tab switches
+/// Provider for sprint-screen filter settings.
+/// TM-368 self-review: kept `keepAlive: true`. The pre-TM-368 contract was
+/// "toggle persists across tab switches" — without keepAlive, auto-dispose
+/// fires on consumer unmount and any user-toggled value silently resets
+/// to the default the next time a sprint is opened. Defaults-on-first-
+/// visit alone doesn't preserve that contract.
 
 abstract class _$ShowCompletedInSprint extends $Notifier<bool> {
   bool build();
@@ -133,6 +149,10 @@ abstract class _$ShowScheduledInSprint extends $Notifier<bool> {
 /// loading), which broke the sprint screen's Completed section. This provider
 /// bypasses that restriction via a direct Drift query scoped to the sprint's
 /// task docIds, so the result set is bounded and cheap.
+///
+/// TM-368: family provider keyed by Sprint. keepAlive would pin every
+/// sprint a user has ever opened in this session into memory. Auto-dispose
+/// releases the watch when the sprint screen unmounts.
 
 @ProviderFor(sprintAllTasks)
 final sprintAllTasksProvider = SprintAllTasksFamily._();
@@ -146,6 +166,10 @@ final sprintAllTasksProvider = SprintAllTasksFamily._();
 /// loading), which broke the sprint screen's Completed section. This provider
 /// bypasses that restriction via a direct Drift query scoped to the sprint's
 /// task docIds, so the result set is bounded and cheap.
+///
+/// TM-368: family provider keyed by Sprint. keepAlive would pin every
+/// sprint a user has ever opened in this session into memory. Auto-dispose
+/// releases the watch when the sprint screen unmounts.
 
 final class SprintAllTasksProvider
     extends
@@ -164,13 +188,17 @@ final class SprintAllTasksProvider
   /// loading), which broke the sprint screen's Completed section. This provider
   /// bypasses that restriction via a direct Drift query scoped to the sprint's
   /// task docIds, so the result set is bounded and cheap.
+  ///
+  /// TM-368: family provider keyed by Sprint. keepAlive would pin every
+  /// sprint a user has ever opened in this session into memory. Auto-dispose
+  /// releases the watch when the sprint screen unmounts.
   SprintAllTasksProvider._({
     required SprintAllTasksFamily super.from,
     required Sprint super.argument,
   }) : super(
          retry: null,
          name: r'sprintAllTasksProvider',
-         isAutoDispose: false,
+         isAutoDispose: true,
          dependencies: null,
          $allTransitiveDependencies: null,
        );
@@ -208,7 +236,7 @@ final class SprintAllTasksProvider
   }
 }
 
-String _$sprintAllTasksHash() => r'e2aff7036139c44d2c6a178fa4d5ed95f0bc9cd8';
+String _$sprintAllTasksHash() => r'7c8cba53d789b1e861a0b2d5700eb2e565c369a2';
 
 /// Stream of all tasks assigned to a sprint — INCLUDING completed ones —
 /// with recurrences populated. Used by [sprintTaskItems] so that completed
@@ -219,6 +247,10 @@ String _$sprintAllTasksHash() => r'e2aff7036139c44d2c6a178fa4d5ed95f0bc9cd8';
 /// loading), which broke the sprint screen's Completed section. This provider
 /// bypasses that restriction via a direct Drift query scoped to the sprint's
 /// task docIds, so the result set is bounded and cheap.
+///
+/// TM-368: family provider keyed by Sprint. keepAlive would pin every
+/// sprint a user has ever opened in this session into memory. Auto-dispose
+/// releases the watch when the sprint screen unmounts.
 
 final class SprintAllTasksFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<TaskItem>>, Sprint> {
@@ -228,7 +260,7 @@ final class SprintAllTasksFamily extends $Family
         name: r'sprintAllTasksProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
-        isAutoDispose: false,
+        isAutoDispose: true,
       );
 
   /// Stream of all tasks assigned to a sprint — INCLUDING completed ones —
@@ -240,6 +272,10 @@ final class SprintAllTasksFamily extends $Family
   /// loading), which broke the sprint screen's Completed section. This provider
   /// bypasses that restriction via a direct Drift query scoped to the sprint's
   /// task docIds, so the result set is bounded and cheap.
+  ///
+  /// TM-368: family provider keyed by Sprint. keepAlive would pin every
+  /// sprint a user has ever opened in this session into memory. Auto-dispose
+  /// releases the watch when the sprint screen unmounts.
 
   SprintAllTasksProvider call(Sprint sprint) =>
       SprintAllTasksProvider._(argument: sprint, from: this);
@@ -248,12 +284,16 @@ final class SprintAllTasksFamily extends $Family
   String toString() => r'sprintAllTasksProvider';
 }
 
-/// Provider for filtered tasks in the active sprint
+/// Provider for filtered tasks in the active sprint.
+/// TM-368: pure-derived family provider — auto-dispose for the same
+/// reason as `sprintAllTasks` (per-sprint instances shouldn't pin in memory).
 
 @ProviderFor(sprintTaskItems)
 final sprintTaskItemsProvider = SprintTaskItemsFamily._();
 
-/// Provider for filtered tasks in the active sprint
+/// Provider for filtered tasks in the active sprint.
+/// TM-368: pure-derived family provider — auto-dispose for the same
+/// reason as `sprintAllTasks` (per-sprint instances shouldn't pin in memory).
 
 final class SprintTaskItemsProvider
     extends
@@ -263,14 +303,16 @@ final class SprintTaskItemsProvider
           FutureOr<List<TaskItem>>
         >
     with $FutureModifier<List<TaskItem>>, $FutureProvider<List<TaskItem>> {
-  /// Provider for filtered tasks in the active sprint
+  /// Provider for filtered tasks in the active sprint.
+  /// TM-368: pure-derived family provider — auto-dispose for the same
+  /// reason as `sprintAllTasks` (per-sprint instances shouldn't pin in memory).
   SprintTaskItemsProvider._({
     required SprintTaskItemsFamily super.from,
     required Sprint super.argument,
   }) : super(
          retry: null,
          name: r'sprintTaskItemsProvider',
-         isAutoDispose: false,
+         isAutoDispose: true,
          dependencies: null,
          $allTransitiveDependencies: null,
        );
@@ -308,9 +350,11 @@ final class SprintTaskItemsProvider
   }
 }
 
-String _$sprintTaskItemsHash() => r'a65f487eecd2f6971b5fba37b869d0035f41841f';
+String _$sprintTaskItemsHash() => r'3dc3a1da2c3dbcb8fb43711b546a4bbbf4f97aa6';
 
-/// Provider for filtered tasks in the active sprint
+/// Provider for filtered tasks in the active sprint.
+/// TM-368: pure-derived family provider — auto-dispose for the same
+/// reason as `sprintAllTasks` (per-sprint instances shouldn't pin in memory).
 
 final class SprintTaskItemsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<TaskItem>>, Sprint> {
@@ -320,10 +364,12 @@ final class SprintTaskItemsFamily extends $Family
         name: r'sprintTaskItemsProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
-        isAutoDispose: false,
+        isAutoDispose: true,
       );
 
-  /// Provider for filtered tasks in the active sprint
+  /// Provider for filtered tasks in the active sprint.
+  /// TM-368: pure-derived family provider — auto-dispose for the same
+  /// reason as `sprintAllTasks` (per-sprint instances shouldn't pin in memory).
 
   SprintTaskItemsProvider call(Sprint sprint) =>
       SprintTaskItemsProvider._(argument: sprint, from: this);

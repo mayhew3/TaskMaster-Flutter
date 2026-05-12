@@ -333,14 +333,26 @@ String _$outgoingInvitationsHash() =>
     r'e8acc5d88b1018286d0b0cf5025a998e63f9c568';
 
 /// Creates a family with the current user as sole member and owner.
+/// TM-368 + Copilot R8: kept `keepAlive: true` for all six family
+/// mutation notifiers below. Callers invoke via `ref.read(.notifier)
+/// .call(...)` (no active listener), so auto-dispose could fire between
+/// awaits and break subsequent `ref.read(...)` mid-mutation.
 
 @ProviderFor(CreateFamily)
 final createFamilyProvider = CreateFamilyProvider._();
 
 /// Creates a family with the current user as sole member and owner.
+/// TM-368 + Copilot R8: kept `keepAlive: true` for all six family
+/// mutation notifiers below. Callers invoke via `ref.read(.notifier)
+/// .call(...)` (no active listener), so auto-dispose could fire between
+/// awaits and break subsequent `ref.read(...)` mid-mutation.
 final class CreateFamilyProvider
     extends $AsyncNotifierProvider<CreateFamily, void> {
   /// Creates a family with the current user as sole member and owner.
+  /// TM-368 + Copilot R8: kept `keepAlive: true` for all six family
+  /// mutation notifiers below. Callers invoke via `ref.read(.notifier)
+  /// .call(...)` (no active listener), so auto-dispose could fire between
+  /// awaits and break subsequent `ref.read(...)` mid-mutation.
   CreateFamilyProvider._()
     : super(
         from: null,
@@ -363,6 +375,10 @@ final class CreateFamilyProvider
 String _$createFamilyHash() => r'9ee36d8211c13efebdd000254b689aae86f308f0';
 
 /// Creates a family with the current user as sole member and owner.
+/// TM-368 + Copilot R8: kept `keepAlive: true` for all six family
+/// mutation notifiers below. Callers invoke via `ref.read(.notifier)
+/// .call(...)` (no active listener), so auto-dispose could fire between
+/// awaits and break subsequent `ref.read(...)` mid-mutation.
 
 abstract class _$CreateFamily extends $AsyncNotifier<void> {
   FutureOr<void> build();

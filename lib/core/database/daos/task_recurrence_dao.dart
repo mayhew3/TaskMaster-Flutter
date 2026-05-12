@@ -39,19 +39,39 @@ class TaskRecurrenceDao extends DatabaseAccessor<AppDatabase>
   /// Bulk upsert rows from a Firestore snapshot. See [TaskDao.bulkUpsertFromRemote].
   /// pendingConflict rows are also skipped (TM-342). TM-361: syncs
   /// `lastSyncedRemoteVersion` from each row's `lastModified`.
+  ///
+  /// TM-367: pending rows whose `lastSyncedRemoteVersion` is currently null
+  /// (legacy / never-anchored) get a one-time back-fill from the listener's
+  /// `lastModified` so the next push's conflict-check has a server-anchored
+  /// reference. Pending rows whose anchor is already set are NOT touched
+  /// here — see `TaskDao.bulkUpsertFromRemote` for the full rationale.
   Future<void> bulkUpsertFromRemote(List<TaskRecurrencesCompanion> rows) async {
     if (rows.isEmpty) return;
 
-    final pendingIds = await (select(taskRecurrences)
-          ..where((r) => r.syncState.isIn([
-                SyncState.pendingCreate.name,
-                SyncState.pendingUpdate.name,
-                SyncState.pendingDelete.name,
-                SyncState.pendingConflict.name,
-              ])))
-        .map((r) => r.docId)
-        .get();
-    final pendingSet = pendingIds.toSet();
+    // `selectOnly` reads only the two columns we actually use (mirrors
+    // the same optimization in `TaskDao.bulkUpsertFromRemote`). Avoids
+    // pulling every column — including potentially large
+    // `conflictRemoteJson` blobs on pendingConflict rows — for a query
+    // that only builds docId sets.
+    final pendingQuery = selectOnly(taskRecurrences)
+      ..addColumns(
+          [taskRecurrences.docId, taskRecurrences.lastSyncedRemoteVersion])
+      ..where(taskRecurrences.syncState.isIn([
+        SyncState.pendingCreate.name,
+        SyncState.pendingUpdate.name,
+        SyncState.pendingDelete.name,
+        SyncState.pendingConflict.name,
+      ]));
+    final pendingProjection = await pendingQuery.get();
+    final pendingSet = <String>{};
+    final pendingNeverAnchored = <String>{};
+    for (final row in pendingProjection) {
+      final docId = row.read(taskRecurrences.docId)!;
+      pendingSet.add(docId);
+      if (row.read(taskRecurrences.lastSyncedRemoteVersion) == null) {
+        pendingNeverAnchored.add(docId);
+      }
+    }
 
     final toUpsert = rows
         .where((r) => !pendingSet.contains(r.docId.value))
@@ -61,8 +81,30 @@ class TaskRecurrenceDao extends DatabaseAccessor<AppDatabase>
             ))
         .toList();
 
-    if (toUpsert.isEmpty) return;
-    await batch((b) => b.insertAllOnConflictUpdate(taskRecurrences, toUpsert));
+    // TM-367: one-time anchor back-fill for never-anchored pending rows.
+    final toAnchor = rows
+        .where((r) => pendingNeverAnchored.contains(r.docId.value))
+        .where((r) => r.lastModified.present && r.lastModified.value != null)
+        .toList();
+
+    if (toUpsert.isNotEmpty) {
+      await batch((b) => b.insertAllOnConflictUpdate(taskRecurrences, toUpsert));
+    }
+    // TM-367 + Copilot review: WHERE-clause guards `lastSyncedRemoteVersion
+    // IS NULL` so a concurrent writer that anchored the row between the
+    // pending-row snapshot above and this update can't be overwritten.
+    if (toAnchor.isNotEmpty) {
+      await transaction(() async {
+        for (final r in toAnchor) {
+          await (update(taskRecurrences)
+                ..where((t) =>
+                    t.docId.equals(r.docId.value) &
+                    t.lastSyncedRemoteVersion.isNull()))
+              .write(TaskRecurrencesCompanion(
+                  lastSyncedRemoteVersion: r.lastModified));
+        }
+      });
+    }
   }
 
   Future<void> deleteFromRemote(String docId) async {

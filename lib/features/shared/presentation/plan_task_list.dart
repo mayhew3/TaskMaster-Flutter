@@ -89,6 +89,13 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
     required Sprint? lastSprint,
   }) {
     return PlanTaskItemWidget(
+      // TM-365: stable ValueKey tied to the source's identifier
+      // (`docId` for real TaskItems, `key` for previews). Without it,
+      // ListView.builder falls back to index-based Element matching, so
+      // list reorder remounts each row — losing the inline `DelayedCheckbox`
+      // state and the synthesised-TaskItem cache (PlanTaskItemWidget's
+      // State is per-Element, not per-Widget).
+      key: ValueKey(taskItem.getSprintDisplayTaskKey()),
       sprintDisplayTask: taskItem,
       endDate: endDate,
       highlightSprint: highlightSprint(taskItem, lastSprint),

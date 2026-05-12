@@ -12,8 +12,6 @@ import '../providers/notification_providers.dart';
 import '../utils/performance_logger.dart';
 import 'analytics_service.dart';
 import 'sync_service.dart';
-import '../../features/tasks/data/firestore_task_repository.dart';
-import '../../features/tasks/domain/task_repository.dart';
 import '../../features/tasks/providers/task_providers.dart';
 import '../../models/task_item.dart';
 import '../../models/task_item_blueprint.dart';
@@ -39,94 +37,14 @@ class RecurrenceNotFoundException implements Exception {
       'RecurrenceNotFoundException(recurrenceDocId: $recurrenceDocId, taskDocId: $taskDocId)';
 }
 
-class TaskCompletionResult {
-  const TaskCompletionResult({
-    required this.completedTask,
-    this.nextRecurrence,
-  });
-
-  final TaskItem completedTask;
-  final TaskItem? nextRecurrence;
-}
-
-class TaskCompletionService {
-  TaskCompletionService(this._repository);
-
-  final TaskRepository _repository;
-
-  Future<TaskCompletionResult> completeTask({
-    required TaskItem task,
-    required List<TaskItem> allTasks,
-    required List<TaskRecurrence> allRecurrences,
-    required bool complete,
-  }) async {
-    final perf = PerformanceLogger.start('TaskCompletionService.completeTask');
-    TaskItem? nextScheduledTask;
-
-    // Create next recurrence if needed (before completing current task)
-    if (task.recurrenceDocId != null &&
-        complete &&
-        !_hasNextIteration(task, allTasks)) {
-      perf.checkpoint('needsNextRecurrence=true');
-
-      // Find and populate the recurrence on the task
-      final recurrence = allRecurrences.firstWhere(
-        (r) => r.docId == task.recurrenceDocId,
-        orElse: () => throw RecurrenceNotFoundException(
-          recurrenceDocId: task.recurrenceDocId!,
-          taskDocId: task.docId,
-        ),
-      );
-
-      // Rebuild task with recurrence populated
-      final taskWithRecurrence = task.rebuild((b) => b..recurrence = recurrence.toBuilder());
-
-      final completionDate = DateTime.now();
-      final nextPreview = RecurrenceHelper.createNextIteration(
-        taskWithRecurrence,
-        completionDate,
-      );
-      perf.checkpoint('createNextIteration');
-
-      // Add the new task
-      await _repository.addTask(nextPreview.toBlueprint());
-      perf.checkpoint('repository.addTask (next recurrence)');
-    } else {
-      perf.checkpoint('needsNextRecurrence=false');
-    }
-
-    // Update the completed task
-    final updatedTask = await _repository.toggleTaskCompletion(
-      task,
-      complete: complete,
-    );
-    perf.checkpoint('repository.toggleTaskCompletion');
-
-    perf.finish();
-    return TaskCompletionResult(
-      completedTask: updatedTask,
-      nextRecurrence: nextScheduledTask,
-    );
-  }
-
-  bool _hasNextIteration(TaskItem task, List<TaskItem> allTasks) {
-    final recurIteration = task.recurIteration;
-    if (recurIteration == null) return false;
-
-    return allTasks.any((ti) =>
-        ti.recurrenceDocId == task.recurrenceDocId &&
-        ti.recurIteration != null &&
-        ti.recurIteration! > recurIteration);
-  }
-}
-
-@Riverpod(keepAlive: true)
-TaskCompletionService taskCompletionService(Ref ref) {
-  final repository = ref.watch(taskRepositoryProvider);
-  return TaskCompletionService(repository);
-}
-
-/// Controller for completing tasks
+/// Controller for completing tasks.
+/// TM-368 + Copilot R8: kept `keepAlive: true`. Callers invoke these
+/// mutation notifiers via `ref.read(.notifier).call(...)` (no active
+/// listener), so auto-dispose could fire between the first `await` and a
+/// subsequent `ref.read(...)` inside `call()` → "Cannot use ref after
+/// disposal" mid-mutation. The Category C "case-by-case" note in TM-368's
+/// plan flagged this risk; the audit didn't catch every site, so Copilot
+/// did. Applies to all six mutation notifiers in this file.
 @Riverpod(keepAlive: true)
 class CompleteTask extends _$CompleteTask {
   @override
@@ -285,7 +203,8 @@ class CompleteTask extends _$CompleteTask {
   }
 }
 
-/// Controller for skipping a recurring task instance
+/// Controller for skipping a recurring task instance.
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
 @Riverpod(keepAlive: true)
 class SkipTask extends _$SkipTask {
   @override
@@ -409,6 +328,7 @@ class SkipTask extends _$SkipTask {
 /// is settled at construction; subsequent `state = AsyncLoading/AsyncData`
 /// re-completes it and throws "Bad state: Future already completed". UI
 /// loading state is handled locally by callers (e.g. `_busy` flags).
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
 @Riverpod(keepAlive: true)
 class DeleteTask extends _$DeleteTask {
   @override
@@ -423,6 +343,7 @@ class DeleteTask extends _$DeleteTask {
 }
 
 /// Controller for adding new tasks.
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
 @Riverpod(keepAlive: true)
 class AddTask extends _$AddTask {
   @override
@@ -501,6 +422,7 @@ class AddTask extends _$AddTask {
 }
 
 /// Controller for updating tasks.
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
 @Riverpod(keepAlive: true)
 class UpdateTask extends _$UpdateTask {
   @override
@@ -610,7 +532,8 @@ class UpdateTask extends _$UpdateTask {
   }
 }
 
-/// Controller for snoozing tasks
+/// Controller for snoozing tasks.
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.
 @Riverpod(keepAlive: true)
 class SnoozeTask extends _$SnoozeTask {
   @override

@@ -230,7 +230,9 @@ Stream<List<RecurrenceConflict>> recurrenceConflicts(Ref ref) {
 /// length, so a row whose envelope fails to decode still contributes to the
 /// count. Otherwise the banner would silently disappear and the user would
 /// have no way to clear the stuck row.
-@Riverpod(keepAlive: true)
+/// TM-368: pure-derived from two upstream count streams (both keepAlive).
+/// Auto-dispose; rebuild is a trivial sum.
+@riverpod
 int allConflictsCount(Ref ref) {
   final tasksAsync = ref.watch(taskConflictRowCountProvider);
   final recurrencesAsync = ref.watch(recurrenceConflictRowCountProvider);
@@ -241,7 +243,8 @@ int allConflictsCount(Ref ref) {
 /// Count of pendingConflict rows whose envelope did NOT decode (so they
 /// don't appear in the typed conflicts lists). When non-zero the screen
 /// surfaces a "force clear stuck" recovery action.
-@Riverpod(keepAlive: true)
+/// TM-368: pure-derived. Auto-dispose; trivial diff between two counts.
+@riverpod
 int stuckConflictsCount(Ref ref) {
   final taskRowsAsync = ref.watch(taskConflictRowCountProvider);
   final recurrenceRowsAsync = ref.watch(recurrenceConflictRowCountProvider);
@@ -264,6 +267,11 @@ int stuckConflictsCount(Ref ref) {
 /// Resolution: keep the local pending edit, restore the prior pending state,
 /// and trigger another push (which must win the next conflict-detection
 /// comparison so the user's intent isn't bounced right back into a conflict).
+/// TM-368 + Copilot R8: kept `keepAlive: true` for all three conflict-
+/// resolution notifiers below. Callers invoke via `ref.read(.notifier)
+/// .call...()` (no active listener); auto-dispose could fire between
+/// awaits and break the subsequent `ref.read(syncServiceProvider)` /
+/// `pushPendingWrites` mid-resolution.
 @Riverpod(keepAlive: true)
 class KeepLocalConflict extends _$KeepLocalConflict {
   @override

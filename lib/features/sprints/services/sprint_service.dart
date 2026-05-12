@@ -211,7 +211,11 @@ SprintService sprintService(Ref ref) {
   return SprintService(firestore);
 }
 
-/// Controller for creating sprints
+/// Controller for creating sprints.
+/// TM-368 + Copilot R8: kept `keepAlive: true`. Callers invoke via
+/// `ref.read(.notifier).call(...)` (no active listener), so auto-dispose
+/// could fire between `await`s and break a subsequent `ref.read(...)`
+/// mid-mutation. Applies to both notifiers in this file.
 @Riverpod(keepAlive: true)
 class CreateSprint extends _$CreateSprint {
   @override
@@ -353,7 +357,8 @@ class CreateSprint extends _$CreateSprint {
   }
 }
 
-/// Controller for adding tasks to existing sprint
+/// Controller for adding tasks to existing sprint.
+/// TM-368 + Copilot R8: kept `keepAlive: true` — see `CreateSprint` above.
 @Riverpod(keepAlive: true)
 class AddTasksToSprint extends _$AddTasksToSprint {
   @override

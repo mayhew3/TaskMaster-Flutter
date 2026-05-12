@@ -348,6 +348,7 @@ void main() {
     required String name,
     required DateTime lastModified,
     SyncState syncState = SyncState.pendingUpdate,
+    DateTime? lastSyncedRemoteVersion,
   }) {
     return TasksCompanion(
       docId: Value(docId),
@@ -357,6 +358,9 @@ void main() {
       offCycle: const Value(false),
       lastModified: Value(lastModified),
       syncState: Value(syncState.name),
+      lastSyncedRemoteVersion: lastSyncedRemoteVersion == null
+          ? const Value.absent()
+          : Value(lastSyncedRemoteVersion),
     );
   }
 
@@ -447,11 +451,18 @@ void main() {
     test(
         'push with remote lastModified > local → conflict recorded, no set()',
         () async {
+      // TM-367 update: seed `lastSyncedRemoteVersion` to the version this
+      // local edit was based on (May 1). The TM-367 listener-time anchor
+      // back-fill only fires for *never-anchored* rows (lastSynced=null), so
+      // this row preserves its anchor through the listener fire and the
+      // conflict-check takes the precise compare path — detecting that
+      // the remote (Aug 1) has moved past our anchor (May 1).
       await db.into(db.tasks).insertOnConflictUpdate(
             _pendingTaskRow(
               docId: 'contested',
               name: 'My version',
               lastModified: DateTime.utc(2024, 6, 1),
+              lastSyncedRemoteVersion: DateTime.utc(2024, 5, 1),
             ),
           );
       await firestore.collection('tasks').doc('contested').set({
@@ -481,12 +492,16 @@ void main() {
     test(
         'pendingDelete + newer remote → conflict recorded, no Firestore '
         'delete', () async {
+      // TM-367 update: see comment in the sibling test — seed `lastSynced`
+      // so the precise compare path detects the remote-newer-than-anchor
+      // case (Aug 1 > May 1) instead of the listener back-fill masking it.
       await db.into(db.tasks).insertOnConflictUpdate(
             _pendingTaskRow(
               docId: 'to-delete',
               name: 'Local before delete',
               lastModified: DateTime.utc(2024, 6, 1),
               syncState: SyncState.pendingDelete,
+              lastSyncedRemoteVersion: DateTime.utc(2024, 5, 1),
             ),
           );
       await firestore.collection('tasks').doc('to-delete').set({
@@ -508,36 +523,23 @@ void main() {
           reason: 'Firestore doc must NOT be deleted when conflict detected');
     });
 
-    // TM-367: documents the known limitation of the lastModified fallback
-    // in `_checkAndRecordConflict`. When a pending row has no
-    // `lastSyncedRemoteVersion` (the bulkUpsertFromRemote-skipped-anchor
-    // case) the conflict check falls back to comparing the remote against
-    // the local clock. If the local clock is ahead of true time, a freshly
-    // written newer remote can register as "older" than the local edit and
-    // slip past the conflict check — pushing wins, the remote is silently
-    // overwritten.
-    //
-    // The proper fix (anchor lastSyncedRemoteVersion at listener time for
-    // pending rows, so the precise compare path is always available) is
-    // tracked in TM-367. Marking this test `skip:` rather than asserting
-    // either outcome — it stays here so the boundary is documented in the
-    // test suite and the next TM-367 iteration can flip it on.
+    // TM-367 (was: skipped — now exercises the listener-time anchor
+    // back-fill). The scenario: legacy pending row with no anchor; clock
+    // skew puts local lastModified ahead of remote lastModified. The
+    // pre-TM-367 fallback compared local-clock to remote-clock and could
+    // false-positive a conflict (or false-negative, depending on the skew
+    // direction). The TM-367 back-fill populates lastSynced from the
+    // listener's resolved remote, so the conflict-check takes the precise
+    // compare path: remote == anchor → no conflict, push wins.
     test(
-        'TM-367 (skipped): clock-skew can mask a real conflict via the '
-        'lastModified fallback',
-        skip: 'Tracked in TM-367 — anchor lastSyncedRemoteVersion at '
-            'listener time for pending rows. Until then the lastModified '
-            'fallback can false-negative under local-clock-ahead skew.',
-        () async {
-      // Setup the exact skew scenario:
-      //  - Local pendingUpdate, lastSynced=null, lastModified stamped from
-      //    a clock running ~6 weeks fast (Jul 15 by local clock; in reality
-      //    we're on Jun 1).
-      //  - Remote was just written by another device at true time = Jun 15
-      //    (which lands as June 15 in Firestore — the source of truth).
-      //  - Local clock thinks lastModified=Jul 15 is "newer" than the
-      //    remote's Jun 15, so the fallback compare returns "no conflict"
-      //    and the push proceeds, overwriting the legitimate remote change.
+        'TM-367: legacy null-anchor row gets anchor back-filled on listener '
+        'fire, suppressing clock-skew false positives', () async {
+      // Local pendingUpdate, lastSynced=null (the legacy state), with a
+      // local-clock-ahead lastModified (Jul 15) — under the old fallback
+      // this would have read as a conflict against the older remote
+      // (Jun 15). The TM-367 back-fill sets anchor = Jun 15 on the
+      // listener fire, so the precise compare returns no-conflict and
+      // the push proceeds.
       await db.into(db.tasks).insertOnConflictUpdate(
             _pendingTaskRow(
               docId: 'clock-skew',
@@ -551,14 +553,29 @@ void main() {
       });
       await _settleSnapshots();
 
+      // Verify the back-fill ran: anchor populated from listener.
+      // Drift stores DateTime as epoch seconds and reads back in local time,
+      // so compare instants via UTC rather than the literal DateTime value.
+      final rowAfterListener =
+          await db.taskDao.getByDocId('clock-skew');
+      expect(rowAfterListener!.lastSyncedRemoteVersion?.toUtc(),
+          DateTime.utc(2024, 6, 15),
+          reason:
+              'TM-367 anchor back-fill must run for never-anchored '
+              'pending rows on listener fire.');
+      expect(rowAfterListener.syncState, SyncState.pendingUpdate.name,
+          reason: 'Back-fill must NOT change syncState.');
+      expect(rowAfterListener.name, 'My version (clock ahead)',
+          reason: 'Back-fill must NOT overwrite locally-edited data.');
+
       await service.pushPendingWrites(caller: 'test');
 
-      // Once TM-367 lands, this should be pendingConflict (the listener
-      // anchor would have made lastSyncedRemoteVersion non-null, taking
-      // the precise compare path instead of the local-clock fallback).
-      final row = await db.taskDao.getByDocId('clock-skew');
-      expect(row!.syncState, SyncState.pendingConflict.name,
-          reason: 'TM-367: listener-time anchor must catch this conflict');
+      // Push went through cleanly — no false-positive conflict.
+      final rowAfterPush = await db.taskDao.getByDocId('clock-skew');
+      expect(rowAfterPush!.syncState, SyncState.synced.name,
+          reason:
+              'TM-367: precise compare via back-filled anchor must let '
+              'the push proceed when remote has not moved past the anchor.');
     });
 
     test('upsertFromRemote skips pendingConflict rows (TM-342 invariant)',
