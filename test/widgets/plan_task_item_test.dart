@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaestro/features/areas/providers/area_color_providers.dart';
 import 'package:taskmaestro/features/contexts/providers/context_providers.dart';
-import 'package:taskmaestro/models/anchor_date.dart';
 import 'package:taskmaestro/models/context.dart' as ctx_model;
 import 'package:taskmaestro/features/shared/presentation/editable_task_item.dart'
     show AreaStripe, EditableTaskItemWidget, PillView;

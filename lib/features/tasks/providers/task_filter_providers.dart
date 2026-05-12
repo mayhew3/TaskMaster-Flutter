@@ -149,8 +149,10 @@ Future<List<TaskItem>> filteredTasks(Ref ref) async {
   return filtered;
 }
 
-/// Count of active (non-completed, non-retired) tasks
-@Riverpod(keepAlive: true)
+/// Count of active (non-completed, non-retired) tasks.
+/// TM-368: pure-derived from `tasksProvider` (keepAlive). Cheap to
+/// recompute when a consumer reattaches, so auto-dispose is correct here.
+@riverpod
 int activeTaskCount(Ref ref) {
   final tasksAsync = ref.watch(tasksProvider);
 
@@ -165,7 +167,12 @@ int activeTaskCount(Ref ref) {
 /// Count of completed (non-skipped, non-retired) tasks.
 /// Uses Firestore aggregation for the total (too many to store locally),
 /// then subtracts the local skipped count (always present since skip is local-first).
-@Riverpod(keepAlive: true)
+/// TM-368: Firestore aggregation cost matters per call, but the value is
+/// only read by infrequently-visited screens (Manage Areas badges, profile
+/// stats). Auto-dispose so the count doesn't sit cached when nothing's
+/// reading it — the staleness penalty for keepAlive (count drifts as the
+/// user completes tasks) is worse than the rebuild cost.
+@riverpod
 Future<int> completedTaskCount(Ref ref) async {
   final firestore = ref.watch(firestoreProvider);
   final db = ref.watch(databaseProvider);

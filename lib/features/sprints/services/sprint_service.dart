@@ -211,8 +211,11 @@ SprintService sprintService(Ref ref) {
   return SprintService(firestore);
 }
 
-/// Controller for creating sprints
-@Riverpod(keepAlive: true)
+/// Controller for creating sprints.
+/// TM-368: fire-and-forget mutation notifier — state is just the last
+/// operation's AsyncValue. Auto-dispose is correct; consumers re-attach
+/// per invocation.
+@riverpod
 class CreateSprint extends _$CreateSprint {
   @override
   FutureOr<void> build() {}
@@ -353,8 +356,9 @@ class CreateSprint extends _$CreateSprint {
   }
 }
 
-/// Controller for adding tasks to existing sprint
-@Riverpod(keepAlive: true)
+/// Controller for adding tasks to existing sprint.
+/// TM-368: fire-and-forget mutation notifier — see `CreateSprint`.
+@riverpod
 class AddTasksToSprint extends _$AddTasksToSprint {
   @override
   FutureOr<void> build() {}

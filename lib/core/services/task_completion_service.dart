@@ -126,8 +126,10 @@ TaskCompletionService taskCompletionService(Ref ref) {
   return TaskCompletionService(repository);
 }
 
-/// Controller for completing tasks
-@Riverpod(keepAlive: true)
+/// Controller for completing tasks.
+/// TM-368: fire-and-forget mutation notifier — state is just the latest
+/// invocation's AsyncValue<void>. Auto-dispose is correct.
+@riverpod
 class CompleteTask extends _$CompleteTask {
   @override
   FutureOr<void> build() {}
@@ -286,7 +288,8 @@ class CompleteTask extends _$CompleteTask {
 }
 
 /// Controller for skipping a recurring task instance
-@Riverpod(keepAlive: true)
+/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
+@riverpod
 class SkipTask extends _$SkipTask {
   @override
   FutureOr<void> build() {}
@@ -409,7 +412,8 @@ class SkipTask extends _$SkipTask {
 /// is settled at construction; subsequent `state = AsyncLoading/AsyncData`
 /// re-completes it and throws "Bad state: Future already completed". UI
 /// loading state is handled locally by callers (e.g. `_busy` flags).
-@Riverpod(keepAlive: true)
+/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
+@riverpod
 class DeleteTask extends _$DeleteTask {
   @override
   FutureOr<void> build() {}
@@ -423,7 +427,8 @@ class DeleteTask extends _$DeleteTask {
 }
 
 /// Controller for adding new tasks.
-@Riverpod(keepAlive: true)
+/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
+@riverpod
 class AddTask extends _$AddTask {
   @override
   FutureOr<void> build() {}
@@ -501,7 +506,8 @@ class AddTask extends _$AddTask {
 }
 
 /// Controller for updating tasks.
-@Riverpod(keepAlive: true)
+/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
+@riverpod
 class UpdateTask extends _$UpdateTask {
   @override
   FutureOr<void> build() {}
@@ -611,7 +617,8 @@ class UpdateTask extends _$UpdateTask {
 }
 
 /// Controller for snoozing tasks
-@Riverpod(keepAlive: true)
+/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
+@riverpod
 class SnoozeTask extends _$SnoozeTask {
   @override
   FutureOr<void> build() {}

@@ -57,22 +57,28 @@ final class TaskCompletionServiceProvider
 String _$taskCompletionServiceHash() =>
     r'd8165489e9937c88a1919383230bd3dab18567e4';
 
-/// Controller for completing tasks
+/// Controller for completing tasks.
+/// TM-368: fire-and-forget mutation notifier — state is just the latest
+/// invocation's AsyncValue<void>. Auto-dispose is correct.
 
 @ProviderFor(CompleteTask)
 final completeTaskProvider = CompleteTaskProvider._();
 
-/// Controller for completing tasks
+/// Controller for completing tasks.
+/// TM-368: fire-and-forget mutation notifier — state is just the latest
+/// invocation's AsyncValue<void>. Auto-dispose is correct.
 final class CompleteTaskProvider
     extends $AsyncNotifierProvider<CompleteTask, void> {
-  /// Controller for completing tasks
+  /// Controller for completing tasks.
+  /// TM-368: fire-and-forget mutation notifier — state is just the latest
+  /// invocation's AsyncValue<void>. Auto-dispose is correct.
   CompleteTaskProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'completeTaskProvider',
-        isAutoDispose: false,
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -85,9 +91,11 @@ final class CompleteTaskProvider
   CompleteTask create() => CompleteTask();
 }
 
-String _$completeTaskHash() => r'562c978733e56078b22aae620dc2415ad824fc9e';
+String _$completeTaskHash() => r'cce9e58cfdc8c8c417707ab2b7a9c4ffd81c44df';
 
-/// Controller for completing tasks
+/// Controller for completing tasks.
+/// TM-368: fire-and-forget mutation notifier — state is just the latest
+/// invocation's AsyncValue<void>. Auto-dispose is correct.
 
 abstract class _$CompleteTask extends $AsyncNotifier<void> {
   FutureOr<void> build();
@@ -108,20 +116,23 @@ abstract class _$CompleteTask extends $AsyncNotifier<void> {
 }
 
 /// Controller for skipping a recurring task instance
+/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
 
 @ProviderFor(SkipTask)
 final skipTaskProvider = SkipTaskProvider._();
 
 /// Controller for skipping a recurring task instance
+/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
 final class SkipTaskProvider extends $AsyncNotifierProvider<SkipTask, void> {
   /// Controller for skipping a recurring task instance
+  /// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
   SkipTaskProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'skipTaskProvider',
-        isAutoDispose: false,
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -134,9 +145,10 @@ final class SkipTaskProvider extends $AsyncNotifierProvider<SkipTask, void> {
   SkipTask create() => SkipTask();
 }
 
-String _$skipTaskHash() => r'765867c5d4e0a14b6013a7017aac79d616985c36';
+String _$skipTaskHash() => r'0aaa83e64b81003c518422c56b3142bdb4688b86';
 
 /// Controller for skipping a recurring task instance
+/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
 
 abstract class _$SkipTask extends $AsyncNotifier<void> {
   FutureOr<void> build();
@@ -163,6 +175,7 @@ abstract class _$SkipTask extends $AsyncNotifier<void> {
 /// is settled at construction; subsequent `state = AsyncLoading/AsyncData`
 /// re-completes it and throws "Bad state: Future already completed". UI
 /// loading state is handled locally by callers (e.g. `_busy` flags).
+/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
 
 @ProviderFor(DeleteTask)
 final deleteTaskProvider = DeleteTaskProvider._();
@@ -174,6 +187,7 @@ final deleteTaskProvider = DeleteTaskProvider._();
 /// is settled at construction; subsequent `state = AsyncLoading/AsyncData`
 /// re-completes it and throws "Bad state: Future already completed". UI
 /// loading state is handled locally by callers (e.g. `_busy` flags).
+/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
 final class DeleteTaskProvider
     extends $AsyncNotifierProvider<DeleteTask, void> {
   /// Controller for deleting tasks.
@@ -183,13 +197,14 @@ final class DeleteTaskProvider
   /// is settled at construction; subsequent `state = AsyncLoading/AsyncData`
   /// re-completes it and throws "Bad state: Future already completed". UI
   /// loading state is handled locally by callers (e.g. `_busy` flags).
+  /// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
   DeleteTaskProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'deleteTaskProvider',
-        isAutoDispose: false,
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -202,7 +217,7 @@ final class DeleteTaskProvider
   DeleteTask create() => DeleteTask();
 }
 
-String _$deleteTaskHash() => r'd2f97e71481efe7b87aae46d7415269289bdc295';
+String _$deleteTaskHash() => r'75b5d13720fc5386dfd53999721eda028959ab36';
 
 /// Controller for deleting tasks.
 ///
@@ -211,6 +226,7 @@ String _$deleteTaskHash() => r'd2f97e71481efe7b87aae46d7415269289bdc295';
 /// is settled at construction; subsequent `state = AsyncLoading/AsyncData`
 /// re-completes it and throws "Bad state: Future already completed". UI
 /// loading state is handled locally by callers (e.g. `_busy` flags).
+/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
 
 abstract class _$DeleteTask extends $AsyncNotifier<void> {
   FutureOr<void> build();
@@ -231,20 +247,23 @@ abstract class _$DeleteTask extends $AsyncNotifier<void> {
 }
 
 /// Controller for adding new tasks.
+/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
 
 @ProviderFor(AddTask)
 final addTaskProvider = AddTaskProvider._();
 
 /// Controller for adding new tasks.
+/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
 final class AddTaskProvider extends $AsyncNotifierProvider<AddTask, void> {
   /// Controller for adding new tasks.
+  /// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
   AddTaskProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'addTaskProvider',
-        isAutoDispose: false,
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -257,9 +276,10 @@ final class AddTaskProvider extends $AsyncNotifierProvider<AddTask, void> {
   AddTask create() => AddTask();
 }
 
-String _$addTaskHash() => r'50ae61da56cfc6746bbd628a749f31948809b8cf';
+String _$addTaskHash() => r'0f96b22cf04235abe274be4d8869d6fca3010a9a';
 
 /// Controller for adding new tasks.
+/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
 
 abstract class _$AddTask extends $AsyncNotifier<void> {
   FutureOr<void> build();
@@ -280,21 +300,24 @@ abstract class _$AddTask extends $AsyncNotifier<void> {
 }
 
 /// Controller for updating tasks.
+/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
 
 @ProviderFor(UpdateTask)
 final updateTaskProvider = UpdateTaskProvider._();
 
 /// Controller for updating tasks.
+/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
 final class UpdateTaskProvider
     extends $AsyncNotifierProvider<UpdateTask, void> {
   /// Controller for updating tasks.
+  /// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
   UpdateTaskProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'updateTaskProvider',
-        isAutoDispose: false,
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -307,9 +330,10 @@ final class UpdateTaskProvider
   UpdateTask create() => UpdateTask();
 }
 
-String _$updateTaskHash() => r'9aaa89b631f83962d54ac6621b8fa911792da575';
+String _$updateTaskHash() => r'8bb8c502dd05d7a2830670163db55a44686aed94';
 
 /// Controller for updating tasks.
+/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
 
 abstract class _$UpdateTask extends $AsyncNotifier<void> {
   FutureOr<void> build();
@@ -330,21 +354,24 @@ abstract class _$UpdateTask extends $AsyncNotifier<void> {
 }
 
 /// Controller for snoozing tasks
+/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
 
 @ProviderFor(SnoozeTask)
 final snoozeTaskProvider = SnoozeTaskProvider._();
 
 /// Controller for snoozing tasks
+/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
 final class SnoozeTaskProvider
     extends $AsyncNotifierProvider<SnoozeTask, void> {
   /// Controller for snoozing tasks
+  /// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
   SnoozeTaskProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'snoozeTaskProvider',
-        isAutoDispose: false,
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -357,9 +384,10 @@ final class SnoozeTaskProvider
   SnoozeTask create() => SnoozeTask();
 }
 
-String _$snoozeTaskHash() => r'8f582f90888a9ee2239d0d431b25b7f39e4216af';
+String _$snoozeTaskHash() => r'7fc6c953aa372c8d82d62fdc567d699324f57a09';
 
 /// Controller for snoozing tasks
+/// TM-368: fire-and-forget mutation notifier — see `CompleteTask`.
 
 abstract class _$SnoozeTask extends $AsyncNotifier<void> {
   FutureOr<void> build();

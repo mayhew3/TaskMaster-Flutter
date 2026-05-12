@@ -230,7 +230,9 @@ Stream<List<RecurrenceConflict>> recurrenceConflicts(Ref ref) {
 /// length, so a row whose envelope fails to decode still contributes to the
 /// count. Otherwise the banner would silently disappear and the user would
 /// have no way to clear the stuck row.
-@Riverpod(keepAlive: true)
+/// TM-368: pure-derived from two upstream count streams (both keepAlive).
+/// Auto-dispose; rebuild is a trivial sum.
+@riverpod
 int allConflictsCount(Ref ref) {
   final tasksAsync = ref.watch(taskConflictRowCountProvider);
   final recurrencesAsync = ref.watch(recurrenceConflictRowCountProvider);
@@ -241,7 +243,8 @@ int allConflictsCount(Ref ref) {
 /// Count of pendingConflict rows whose envelope did NOT decode (so they
 /// don't appear in the typed conflicts lists). When non-zero the screen
 /// surfaces a "force clear stuck" recovery action.
-@Riverpod(keepAlive: true)
+/// TM-368: pure-derived. Auto-dispose; trivial diff between two counts.
+@riverpod
 int stuckConflictsCount(Ref ref) {
   final taskRowsAsync = ref.watch(taskConflictRowCountProvider);
   final recurrenceRowsAsync = ref.watch(recurrenceConflictRowCountProvider);
@@ -264,7 +267,9 @@ int stuckConflictsCount(Ref ref) {
 /// Resolution: keep the local pending edit, restore the prior pending state,
 /// and trigger another push (which must win the next conflict-detection
 /// comparison so the user's intent isn't bounced right back into a conflict).
-@Riverpod(keepAlive: true)
+/// TM-368: fire-and-forget mutation. Auto-dispose. Same for the two
+/// resolution notifiers below.
+@riverpod
 class KeepLocalConflict extends _$KeepLocalConflict {
   @override
   FutureOr<void> build() {}
@@ -318,7 +323,7 @@ DateTime _resolutionTimestamp(DateTime? remoteLastModified) {
 }
 
 /// Resolution: accept the remote version, overwriting the local pending edit.
-@Riverpod(keepAlive: true)
+@riverpod
 class AcceptRemoteConflict extends _$AcceptRemoteConflict {
   @override
   FutureOr<void> build() {}
@@ -343,7 +348,7 @@ class AcceptRemoteConflict extends _$AcceptRemoteConflict {
 /// Force-clear pendingConflict rows whose envelope failed to decode (the
 /// "stuck" set). Resets them to pendingUpdate with refreshed `lastModified`
 /// and triggers a push so the next sync can resolve them.
-@Riverpod(keepAlive: true)
+@riverpod
 class ForceClearStuckConflicts extends _$ForceClearStuckConflicts {
   @override
   FutureOr<void> build() {}

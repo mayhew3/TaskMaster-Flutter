@@ -50,22 +50,31 @@ final class SprintServiceProvider
 
 String _$sprintServiceHash() => r'1b6f508815ec93fa67e44a8c041f86796af6582a';
 
-/// Controller for creating sprints
+/// Controller for creating sprints.
+/// TM-368: fire-and-forget mutation notifier — state is just the last
+/// operation's AsyncValue. Auto-dispose is correct; consumers re-attach
+/// per invocation.
 
 @ProviderFor(CreateSprint)
 final createSprintProvider = CreateSprintProvider._();
 
-/// Controller for creating sprints
+/// Controller for creating sprints.
+/// TM-368: fire-and-forget mutation notifier — state is just the last
+/// operation's AsyncValue. Auto-dispose is correct; consumers re-attach
+/// per invocation.
 final class CreateSprintProvider
     extends $AsyncNotifierProvider<CreateSprint, void> {
-  /// Controller for creating sprints
+  /// Controller for creating sprints.
+  /// TM-368: fire-and-forget mutation notifier — state is just the last
+  /// operation's AsyncValue. Auto-dispose is correct; consumers re-attach
+  /// per invocation.
   CreateSprintProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'createSprintProvider',
-        isAutoDispose: false,
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -78,9 +87,12 @@ final class CreateSprintProvider
   CreateSprint create() => CreateSprint();
 }
 
-String _$createSprintHash() => r'2e6e2d6e5da51229f3503c502b51f5a0d70336fb';
+String _$createSprintHash() => r'e50a6f5bd03aae791f0fa5cd4126ff7cd09f2e91';
 
-/// Controller for creating sprints
+/// Controller for creating sprints.
+/// TM-368: fire-and-forget mutation notifier — state is just the last
+/// operation's AsyncValue. Auto-dispose is correct; consumers re-attach
+/// per invocation.
 
 abstract class _$CreateSprint extends $AsyncNotifier<void> {
   FutureOr<void> build();
@@ -100,22 +112,25 @@ abstract class _$CreateSprint extends $AsyncNotifier<void> {
   }
 }
 
-/// Controller for adding tasks to existing sprint
+/// Controller for adding tasks to existing sprint.
+/// TM-368: fire-and-forget mutation notifier — see `CreateSprint`.
 
 @ProviderFor(AddTasksToSprint)
 final addTasksToSprintProvider = AddTasksToSprintProvider._();
 
-/// Controller for adding tasks to existing sprint
+/// Controller for adding tasks to existing sprint.
+/// TM-368: fire-and-forget mutation notifier — see `CreateSprint`.
 final class AddTasksToSprintProvider
     extends $AsyncNotifierProvider<AddTasksToSprint, void> {
-  /// Controller for adding tasks to existing sprint
+  /// Controller for adding tasks to existing sprint.
+  /// TM-368: fire-and-forget mutation notifier — see `CreateSprint`.
   AddTasksToSprintProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'addTasksToSprintProvider',
-        isAutoDispose: false,
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -128,9 +143,10 @@ final class AddTasksToSprintProvider
   AddTasksToSprint create() => AddTasksToSprint();
 }
 
-String _$addTasksToSprintHash() => r'6eea1ad300e77129664e9a47b9562ceea8d26f54';
+String _$addTasksToSprintHash() => r'e15560bc6430f0a7868079c045d76c63e963d89a';
 
-/// Controller for adding tasks to existing sprint
+/// Controller for adding tasks to existing sprint.
+/// TM-368: fire-and-forget mutation notifier — see `CreateSprint`.
 
 abstract class _$AddTasksToSprint extends $AsyncNotifier<void> {
   FutureOr<void> build();

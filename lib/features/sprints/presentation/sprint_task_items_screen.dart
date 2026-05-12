@@ -19,9 +19,11 @@ import '../../shared/presentation/task_item_list.dart';
 
 part 'sprint_task_items_screen.g.dart';
 
-/// Provider for sprint filter settings
-/// Using keepAlive to persist state across tab switches
-@Riverpod(keepAlive: true)
+/// Provider for sprint-screen filter settings.
+/// TM-368: sprint-screen-local UI state. Defaults are "show everything"
+/// (true / true), so re-initializing on consumer remount is the same
+/// behavior the user gets on first visit. Auto-dispose is correct.
+@riverpod
 class ShowCompletedInSprint extends _$ShowCompletedInSprint {
   @override
   bool build() => true; // Default to true for sprint tab
@@ -29,7 +31,7 @@ class ShowCompletedInSprint extends _$ShowCompletedInSprint {
   void toggle() => state = !state;
 }
 
-@Riverpod(keepAlive: true)
+@riverpod
 class ShowScheduledInSprint extends _$ShowScheduledInSprint {
   @override
   bool build() => true;
@@ -46,7 +48,11 @@ class ShowScheduledInSprint extends _$ShowScheduledInSprint {
 /// loading), which broke the sprint screen's Completed section. This provider
 /// bypasses that restriction via a direct Drift query scoped to the sprint's
 /// task docIds, so the result set is bounded and cheap.
-@Riverpod(keepAlive: true)
+///
+/// TM-368: family provider keyed by Sprint. keepAlive would pin every
+/// sprint a user has ever opened in this session into memory. Auto-dispose
+/// releases the watch when the sprint screen unmounts.
+@riverpod
 Stream<List<TaskItem>> sprintAllTasks(Ref ref, Sprint sprint) {
   final personDocId = ref.watch(personDocIdProvider);
   final db = ref.watch(databaseProvider);
@@ -109,8 +115,10 @@ Stream<List<TaskItem>> sprintAllTasks(Ref ref, Sprint sprint) {
   );
 }
 
-/// Provider for filtered tasks in the active sprint
-@Riverpod(keepAlive: true)
+/// Provider for filtered tasks in the active sprint.
+/// TM-368: pure-derived family provider — auto-dispose for the same
+/// reason as `sprintAllTasks` (per-sprint instances shouldn't pin in memory).
+@riverpod
 Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
   // Source: all sprint-assigned tasks (incomplete + completed) with recurrences.
   final allSprintTasks = await ref.watch(sprintAllTasksProvider(sprint).future);

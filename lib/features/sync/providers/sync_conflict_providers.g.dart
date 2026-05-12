@@ -115,17 +115,17 @@ String _$recurrenceConflictRowCountHash() =>
     r'4f90771b8293bf20a5fc299a4e7c392bc6bf872e';
 
 /// Stream of task conflicts for the current user — only entries whose
-/// `conflictRemoteJson` envelope decodes cleanly. Use [taskConflictRowsProvider]
-/// for the count (which includes rows that fail to decode and would otherwise
-/// hide from the UI).
+/// `conflictRemoteJson` envelope decodes cleanly. Use
+/// [taskConflictRowCountProvider] for the count (which includes rows that
+/// fail to decode and would otherwise hide from the UI).
 
 @ProviderFor(taskConflicts)
 final taskConflictsProvider = TaskConflictsProvider._();
 
 /// Stream of task conflicts for the current user — only entries whose
-/// `conflictRemoteJson` envelope decodes cleanly. Use [taskConflictRowsProvider]
-/// for the count (which includes rows that fail to decode and would otherwise
-/// hide from the UI).
+/// `conflictRemoteJson` envelope decodes cleanly. Use
+/// [taskConflictRowCountProvider] for the count (which includes rows that
+/// fail to decode and would otherwise hide from the UI).
 
 final class TaskConflictsProvider
     extends
@@ -138,9 +138,9 @@ final class TaskConflictsProvider
         $FutureModifier<List<TaskConflict>>,
         $StreamProvider<List<TaskConflict>> {
   /// Stream of task conflicts for the current user — only entries whose
-  /// `conflictRemoteJson` envelope decodes cleanly. Use [taskConflictRowsProvider]
-  /// for the count (which includes rows that fail to decode and would otherwise
-  /// hide from the UI).
+  /// `conflictRemoteJson` envelope decodes cleanly. Use
+  /// [taskConflictRowCountProvider] for the count (which includes rows that
+  /// fail to decode and would otherwise hide from the UI).
   TaskConflictsProvider._()
     : super(
         from: null,
@@ -226,6 +226,8 @@ String _$recurrenceConflictsHash() =>
 /// length, so a row whose envelope fails to decode still contributes to the
 /// count. Otherwise the banner would silently disappear and the user would
 /// have no way to clear the stuck row.
+/// TM-368: pure-derived from two upstream count streams (both keepAlive).
+/// Auto-dispose; rebuild is a trivial sum.
 
 @ProviderFor(allConflictsCount)
 final allConflictsCountProvider = AllConflictsCountProvider._();
@@ -237,6 +239,8 @@ final allConflictsCountProvider = AllConflictsCountProvider._();
 /// length, so a row whose envelope fails to decode still contributes to the
 /// count. Otherwise the banner would silently disappear and the user would
 /// have no way to clear the stuck row.
+/// TM-368: pure-derived from two upstream count streams (both keepAlive).
+/// Auto-dispose; rebuild is a trivial sum.
 
 final class AllConflictsCountProvider extends $FunctionalProvider<int, int, int>
     with $Provider<int> {
@@ -247,13 +251,15 @@ final class AllConflictsCountProvider extends $FunctionalProvider<int, int, int>
   /// length, so a row whose envelope fails to decode still contributes to the
   /// count. Otherwise the banner would silently disappear and the user would
   /// have no way to clear the stuck row.
+  /// TM-368: pure-derived from two upstream count streams (both keepAlive).
+  /// Auto-dispose; rebuild is a trivial sum.
   AllConflictsCountProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'allConflictsCountProvider',
-        isAutoDispose: false,
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -280,11 +286,12 @@ final class AllConflictsCountProvider extends $FunctionalProvider<int, int, int>
   }
 }
 
-String _$allConflictsCountHash() => r'c03c39e64a0fe622d1cf31e535bd0565d4d690d4';
+String _$allConflictsCountHash() => r'0c96fd83ce2eac655a5ef19eba3d13de6a1fa064';
 
 /// Count of pendingConflict rows whose envelope did NOT decode (so they
 /// don't appear in the typed conflicts lists). When non-zero the screen
 /// surfaces a "force clear stuck" recovery action.
+/// TM-368: pure-derived. Auto-dispose; trivial diff between two counts.
 
 @ProviderFor(stuckConflictsCount)
 final stuckConflictsCountProvider = StuckConflictsCountProvider._();
@@ -292,6 +299,7 @@ final stuckConflictsCountProvider = StuckConflictsCountProvider._();
 /// Count of pendingConflict rows whose envelope did NOT decode (so they
 /// don't appear in the typed conflicts lists). When non-zero the screen
 /// surfaces a "force clear stuck" recovery action.
+/// TM-368: pure-derived. Auto-dispose; trivial diff between two counts.
 
 final class StuckConflictsCountProvider
     extends $FunctionalProvider<int, int, int>
@@ -299,13 +307,14 @@ final class StuckConflictsCountProvider
   /// Count of pendingConflict rows whose envelope did NOT decode (so they
   /// don't appear in the typed conflicts lists). When non-zero the screen
   /// surfaces a "force clear stuck" recovery action.
+  /// TM-368: pure-derived. Auto-dispose; trivial diff between two counts.
   StuckConflictsCountProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'stuckConflictsCountProvider',
-        isAutoDispose: false,
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -333,11 +342,13 @@ final class StuckConflictsCountProvider
 }
 
 String _$stuckConflictsCountHash() =>
-    r'd04f6a955be260083487af763ed52db36abf8b4b';
+    r'bafa6591533c5d6cd41d9813644d161d62cb5bd0';
 
 /// Resolution: keep the local pending edit, restore the prior pending state,
 /// and trigger another push (which must win the next conflict-detection
 /// comparison so the user's intent isn't bounced right back into a conflict).
+/// TM-368: fire-and-forget mutation. Auto-dispose. Same for the two
+/// resolution notifiers below.
 
 @ProviderFor(KeepLocalConflict)
 final keepLocalConflictProvider = KeepLocalConflictProvider._();
@@ -345,18 +356,22 @@ final keepLocalConflictProvider = KeepLocalConflictProvider._();
 /// Resolution: keep the local pending edit, restore the prior pending state,
 /// and trigger another push (which must win the next conflict-detection
 /// comparison so the user's intent isn't bounced right back into a conflict).
+/// TM-368: fire-and-forget mutation. Auto-dispose. Same for the two
+/// resolution notifiers below.
 final class KeepLocalConflictProvider
     extends $AsyncNotifierProvider<KeepLocalConflict, void> {
   /// Resolution: keep the local pending edit, restore the prior pending state,
   /// and trigger another push (which must win the next conflict-detection
   /// comparison so the user's intent isn't bounced right back into a conflict).
+  /// TM-368: fire-and-forget mutation. Auto-dispose. Same for the two
+  /// resolution notifiers below.
   KeepLocalConflictProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'keepLocalConflictProvider',
-        isAutoDispose: false,
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -369,11 +384,13 @@ final class KeepLocalConflictProvider
   KeepLocalConflict create() => KeepLocalConflict();
 }
 
-String _$keepLocalConflictHash() => r'8726c448102d3560fb274fad905707b48fdb4c74';
+String _$keepLocalConflictHash() => r'e4fbfd6851307e123c0ea3e8ed4a8d07839af408';
 
 /// Resolution: keep the local pending edit, restore the prior pending state,
 /// and trigger another push (which must win the next conflict-detection
 /// comparison so the user's intent isn't bounced right back into a conflict).
+/// TM-368: fire-and-forget mutation. Auto-dispose. Same for the two
+/// resolution notifiers below.
 
 abstract class _$KeepLocalConflict extends $AsyncNotifier<void> {
   FutureOr<void> build();
@@ -408,7 +425,7 @@ final class AcceptRemoteConflictProvider
         argument: null,
         retry: null,
         name: r'acceptRemoteConflictProvider',
-        isAutoDispose: false,
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -422,7 +439,7 @@ final class AcceptRemoteConflictProvider
 }
 
 String _$acceptRemoteConflictHash() =>
-    r'c576cec17649d3e732e6549bb448ae918299d505';
+    r'90de3893a0de4ab05c06698b7776943069da19bb';
 
 /// Resolution: accept the remote version, overwriting the local pending edit.
 
@@ -465,7 +482,7 @@ final class ForceClearStuckConflictsProvider
         argument: null,
         retry: null,
         name: r'forceClearStuckConflictsProvider',
-        isAutoDispose: false,
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -479,7 +496,7 @@ final class ForceClearStuckConflictsProvider
 }
 
 String _$forceClearStuckConflictsHash() =>
-    r'4a54ee8cb757d4de4c385e797846be86b3ac47f5';
+    r'ea9290b15767eeb1678f48eee6a0613365e49191';
 
 /// Force-clear pendingConflict rows whose envelope failed to decode (the
 /// "stuck" set). Resets them to pendingUpdate with refreshed `lastModified`

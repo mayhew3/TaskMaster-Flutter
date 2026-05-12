@@ -46,7 +46,10 @@ class FamilyMemberFilter extends _$FamilyMemberFilter {
 /// in the current session (tracked by [recentlyCompletedTasksProvider]) are
 /// always included so the just-completed task stays visible — the grouping
 /// step keeps it in its original section until the user navigates away.
-@Riverpod(keepAlive: true)
+///
+/// TM-368: pure-derived from upstream filter toggles + tasks stream. Cheap
+/// to recompute when the Family tab remounts; auto-dispose is correct.
+@riverpod
 List<TaskItem> familyFilteredTasks(Ref ref) {
   final showCompleted = ref.watch(familyShowCompletedProvider);
   final showScheduled = ref.watch(familyShowScheduledProvider);
@@ -88,7 +91,10 @@ List<TaskItem> familyFilteredTasks(Ref ref) {
 /// TM-323 "recently completed stays in its original group" behavior so the
 /// just-completed task doesn't visibly jump to the Completed section until
 /// after the user navigates away and back.
-@Riverpod(keepAlive: true)
+///
+/// TM-368: pure-derived from `familyFilteredTasks` + recently-completed.
+/// Cheap iteration; auto-dispose is correct.
+@riverpod
 List<TaskGroup> familyGroupedTasks(Ref ref) {
   final filtered = ref.watch(familyFilteredTasksProvider);
   final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);

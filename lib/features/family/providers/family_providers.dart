@@ -141,7 +141,10 @@ Stream<List<FamilyInvitation>> outgoingInvitations(Ref ref) {
 // should manage it locally (e.g. via a `bool _busy` field in their widget).
 
 /// Creates a family with the current user as sole member and owner.
-@Riverpod(keepAlive: true)
+/// TM-368: fire-and-forget mutation — state is just the last operation's
+/// AsyncValue. Auto-dispose is correct for all six family-mutation
+/// notifiers below (Create / Invite / Accept / Decline / Remove / Leave).
+@riverpod
 class CreateFamily extends _$CreateFamily {
   @override
   FutureOr<void> build() {}
@@ -168,7 +171,7 @@ class CreateFamily extends _$CreateFamily {
 /// when they've just created a family in the same flow — the Drift mirror of
 /// `persons/{me}.familyDocId` may not have caught up yet (Firestore listener
 /// round-trip), so reading from the provider would return null.
-@Riverpod(keepAlive: true)
+@riverpod
 class InviteMember extends _$InviteMember {
   @override
   FutureOr<void> build() {}
@@ -190,7 +193,7 @@ class InviteMember extends _$InviteMember {
   }
 }
 
-@Riverpod(keepAlive: true)
+@riverpod
 class AcceptInvitation extends _$AcceptInvitation {
   @override
   FutureOr<void> build() {}
@@ -213,7 +216,7 @@ class AcceptInvitation extends _$AcceptInvitation {
   }
 }
 
-@Riverpod(keepAlive: true)
+@riverpod
 class DeclineInvitation extends _$DeclineInvitation {
   @override
   FutureOr<void> build() {}
@@ -225,7 +228,7 @@ class DeclineInvitation extends _$DeclineInvitation {
   }
 }
 
-@Riverpod(keepAlive: true)
+@riverpod
 class RemoveMember extends _$RemoveMember {
   @override
   FutureOr<void> build() {}
@@ -248,7 +251,7 @@ class RemoveMember extends _$RemoveMember {
   }
 }
 
-@Riverpod(keepAlive: true)
+@riverpod
 class LeaveFamily extends _$LeaveFamily {
   @override
   FutureOr<void> build() {}
