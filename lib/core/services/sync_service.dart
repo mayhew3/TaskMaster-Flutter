@@ -1267,6 +1267,22 @@ class SyncService {
     await markConflict(envelope);
     _syncLog(
         '[SyncService] conflict recorded for $localDocId: remote=$remoteLastModified > $anchorSource=$localAnchor');
+    // TM-370: TM-361 manual testing surfaced a suspected false-positive
+    // conflict on real Android devices when the conflict-check fell back
+    // to `localLastModified` (because `localLastSyncedRemoteVersion` was
+    // null) and the device clock was behind the server. This high-signal
+    // log makes that case visible in user-collected diagnostic captures:
+    // when present, it strongly suggests the conflict is spurious and
+    // the right resolution is "Keep mine." See TM-370 for the
+    // investigation context.
+    if (anchorSource == 'lastModified') {
+      final skewMs = remoteLastModified.millisecondsSinceEpoch -
+          localAnchor.millisecondsSinceEpoch;
+      _syncLog(
+          '[SyncService] ⚠️ TM-370 candidate: $localDocId conflict via lastModified-fallback '
+          '(lastSynced was null) — remote ahead by ${skewMs}ms. '
+          'If clock-skew is the cause, the conflict is a false positive.');
+    }
     return true;
   }
 

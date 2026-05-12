@@ -53,6 +53,11 @@ android {
 
     defaultConfig {
         applicationId "com.mayhew3.taskmaestro.flutter"
+        // Pinned at 23 (Android 6.0 Marshmallow) — required by Firebase
+        // and flutter_local_notifications. The TM-361 dependency bump
+        // accidentally swapped this for `flutter.minSdkVersion`, which
+        // tracks the Flutter toolchain default and can silently change
+        // on future Flutter upgrades.
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
