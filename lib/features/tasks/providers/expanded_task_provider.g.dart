@@ -11,8 +11,11 @@ part of 'expanded_task_provider.dart';
 /// Tracks which task card (if any) is currently expanded inline.
 ///
 /// Accordion semantics: at most one card is expanded at a time across all
-/// task lists. State is session-scoped (no `keepAlive`); switching tabs
-/// collapses any open card.
+/// task lists. TM-361 promoted this to `keepAlive: true` so the
+/// notifier survives transient widget unmount/remount under Riverpod 4
+/// (e.g. during tab swaps when no consumer is currently mounted). The
+/// expansion state therefore persists across tab swaps; reset it
+/// explicitly when that's not desired.
 
 @ProviderFor(ExpandedTask)
 final expandedTaskProvider = ExpandedTaskProvider._();
@@ -20,15 +23,21 @@ final expandedTaskProvider = ExpandedTaskProvider._();
 /// Tracks which task card (if any) is currently expanded inline.
 ///
 /// Accordion semantics: at most one card is expanded at a time across all
-/// task lists. State is session-scoped (no `keepAlive`); switching tabs
-/// collapses any open card.
+/// task lists. TM-361 promoted this to `keepAlive: true` so the
+/// notifier survives transient widget unmount/remount under Riverpod 4
+/// (e.g. during tab swaps when no consumer is currently mounted). The
+/// expansion state therefore persists across tab swaps; reset it
+/// explicitly when that's not desired.
 final class ExpandedTaskProvider
     extends $NotifierProvider<ExpandedTask, String?> {
   /// Tracks which task card (if any) is currently expanded inline.
   ///
   /// Accordion semantics: at most one card is expanded at a time across all
-  /// task lists. State is session-scoped (no `keepAlive`); switching tabs
-  /// collapses any open card.
+  /// task lists. TM-361 promoted this to `keepAlive: true` so the
+  /// notifier survives transient widget unmount/remount under Riverpod 4
+  /// (e.g. during tab swaps when no consumer is currently mounted). The
+  /// expansion state therefore persists across tab swaps; reset it
+  /// explicitly when that's not desired.
   ExpandedTaskProvider._()
     : super(
         from: null,
@@ -61,8 +70,11 @@ String _$expandedTaskHash() => r'c988fac9523edc6d649583215cb4efa0c33a49fc';
 /// Tracks which task card (if any) is currently expanded inline.
 ///
 /// Accordion semantics: at most one card is expanded at a time across all
-/// task lists. State is session-scoped (no `keepAlive`); switching tabs
-/// collapses any open card.
+/// task lists. TM-361 promoted this to `keepAlive: true` so the
+/// notifier survives transient widget unmount/remount under Riverpod 4
+/// (e.g. during tab swaps when no consumer is currently mounted). The
+/// expansion state therefore persists across tab swaps; reset it
+/// explicitly when that's not desired.
 
 abstract class _$ExpandedTask extends $Notifier<String?> {
   String? build();
