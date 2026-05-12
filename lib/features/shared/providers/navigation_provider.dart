@@ -68,6 +68,13 @@ class ActiveTabIndex extends _$ActiveTabIndex {
     // any in-flight unmounts have finished and the subscription set is
     // clean. No visible delay — runs before the next frame.
     scheduleMicrotask(() {
+      // Guard against the notifier (and its ref) having been disposed
+      // between the synchronous setTab call and this microtask firing.
+      // Rapid teardown paths (sign-out / scope re-creation) can dispose
+      // the keepAlive ActiveTabIndex before the microtask runs; touching
+      // `ref.read` or `state =` on a disposed notifier throws. Bail out
+      // cleanly — the new scope will rebuild from defaults anyway.
+      if (!ref.mounted) return;
       // Clear recently completed tasks when navigating between tabs
       // This allows completed tasks to move from their original section
       // to the "Completed" section after navigation (TM-312)
