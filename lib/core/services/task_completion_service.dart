@@ -148,19 +148,24 @@ class CompleteTask extends _$CompleteTask {
       // even though other consumers (e.g. filteredTasksProvider) clearly see
       // data, and the matching `ref.read(tasksProvider.future)` await never
       // resolves. Bypass the provider indirection — go straight to Drift
-      // (which is what tasksProvider does anyway) and only pay this cost
-      // when we actually need the list (recurring-completion case).
-      List<TaskItem> allTasks = const [];
+      // via `incompleteForUser`, which uses the exact same filter as
+      // `tasksProvider`'s underlying `watchIncompleteTasks` query.
+      //
+      // We always need this list (the `recentlyCompletedIndices` write below
+      // needs the same index a UI consumer of `tasksProvider` would see, so
+      // non-recurring completions also have to populate it). The recurrence
+      // catalog is the extra fetch we only pay for recurring completions.
+      final personDocIdForRead = ref.read(personDocIdProvider);
+      if (personDocIdForRead == null) {
+        throw StateError(
+            'Cannot complete task: personDocId is null (not authenticated).');
+      }
+      final taskRows =
+          await db.taskDao.incompleteForUser(personDocIdForRead);
+      final List<TaskItem> allTasks =
+          taskRows.map(taskItemFromRow).toList();
       List<TaskRecurrence> allRecurrences = const [];
-      final needsTaskList = task.recurrenceDocId != null && complete;
-      if (needsTaskList) {
-        final personDocIdForRead = ref.read(personDocIdProvider);
-        if (personDocIdForRead == null) {
-          throw StateError(
-              'Cannot complete recurring task: personDocId is null (not authenticated).');
-        }
-        final taskRows = await db.taskDao.allForUser(personDocIdForRead);
-        allTasks = taskRows.map(taskItemFromRow).toList();
+      if (task.recurrenceDocId != null && complete) {
         final recurrenceRows = await db.taskRecurrenceDao
             .watchActive(personDocIdForRead)
             .first;
@@ -298,8 +303,10 @@ class SkipTask extends _$SkipTask {
       }
 
       // TM-361: same Riverpod 4 StreamProvider quirk as CompleteTask —
-      // read from Drift directly. See note there.
-      final taskRows = await db.taskDao.allForUser(personDocId);
+      // read from Drift directly via `incompleteForUser` so the index used
+      // for `recentlyCompletedIndices` matches `tasksProvider`'s UI list.
+      // See note in CompleteTask.
+      final taskRows = await db.taskDao.incompleteForUser(personDocId);
       final List<TaskItem> allTasks =
           taskRows.map(taskItemFromRow).toList();
       final recurrenceRows =

@@ -70,6 +70,22 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
         .get();
   }
 
+  /// One-shot fetch of incomplete, non-retired, non-pending-delete tasks for
+  /// a user. Mirrors [watchIncompleteTasks]'s filter so consumers that need a
+  /// snapshot of "what tasksProvider currently shows" can fetch it without
+  /// subscribing to a stream — important for write-path code that runs in a
+  /// notifier method where `ref.read(tasksProvider.future)` doesn't resolve
+  /// under Riverpod 4 + flutter_test.
+  Future<List<Task>> incompleteForUser(String personDocId) {
+    return (select(tasks)
+          ..where((t) =>
+              t.personDocId.equals(personDocId) &
+              t.retired.isNull() &
+              t.completionDate.isNull() &
+              t.syncState.equals(SyncState.pendingDelete.name).not()))
+        .get();
+  }
+
   /// Stream of every non-retired, non-pending-delete row for a user
   /// (including completed). Powers the per-area / per-context task-count
   /// badges on the Manage screens (TM-345 / TM-181) — the badges need to
