@@ -28,13 +28,20 @@ const List<({String name, String iconName})> defaultContextSeeds = [
 ];
 
 /// Lowercased name → catalog `iconName` lookup map for the current user's
-/// contexts. Built once per `contextsProvider` emission, then read by every
-/// task card's meta row so each card avoids rebuilding its own copy of the
-/// map on every render. Returns null entries for catalog rows whose icon
-/// hasn't been assigned (Tier 1 user-created contexts default to no icon).
+/// contexts. Built once per emission, then read by every task card's meta
+/// row so each card avoids rebuilding its own copy of the map on every
+/// render. Returns null entries for catalog rows whose icon hasn't been
+/// assigned (Tier 1 user-created contexts default to no icon).
+///
+/// Reads from `contextsWithDefaultsProvider` (not raw `contextsProvider`)
+/// so that rendering any task card triggers the default-seed code path
+/// on first launch — otherwise an account with no contexts yet would
+/// render task pills without icons until the user happened to visit
+/// the Manage Contexts screen (which was the only other entry point to
+/// the seeder).
 @Riverpod(keepAlive: true)
 Map<String, String?> contextIconLookup(Ref ref) {
-  final catalog = ref.watch(contextsProvider).value ??
+  final catalog = ref.watch(contextsWithDefaultsProvider).value ??
       const <Context>[];
   return <String, String?>{
     for (final c in catalog) c.name.toLowerCase(): c.iconName,
