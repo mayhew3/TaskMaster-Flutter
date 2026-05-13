@@ -15,7 +15,11 @@ import '../../../models/task_colors.dart';
 import '../../../models/task_display_grouping.dart';
 import '../../../models/task_item.dart';
 import '../../../models/task_item_recur_preview.dart';
+import '../../../models/task_list_view.dart';
 import '../../../core/providers/auth_providers.dart';
+import '../../shared/logic/task_grouping.dart' show applyTaskFilters;
+import '../../shared/presentation/view_options_sheet.dart';
+import '../../shared/providers/task_list_view_providers.dart';
 import '../../sprints/providers/sprint_providers.dart';
 import '../../sprints/services/sprint_service.dart';
 import '../../tasks/providers/task_providers.dart';
@@ -240,7 +244,23 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
   ListView _buildListView(BuildContext context, BuiltList<TaskItem> allTaskItems, BuiltList<Sprint> allSprints,
       Sprint? lastSprint, BuiltList<TaskItem> recentlyCompleted) {
     final List<SprintDisplayTask> otherTasks = [];
-    otherTasks.addAll(getBaseList(allTaskItems));
+    // TM-359: apply the user's TaskFilters to the TaskItem subset before
+    // bucketing. The plan-mode 8-bucket grouping below is sprint-history-
+    // aware and intentionally stays hardcoded for v1 — only the *filter*
+    // axes (search, recurrence, areas, etc.) take effect here. TaskItem-
+    // RecurPreview rows always flow through (they're forward-looking
+    // synthesized rows that the filter set wasn't designed to cover).
+    final view = ref.read(taskListViewStateProvider(TaskListSurface.plan));
+    final baseTasks = getBaseList(allTaskItems);
+    final recentlyCompletedDocIds =
+        recentlyCompleted.map((t) => t.docId).toSet();
+    final filteredBase = applyTaskFilters(
+      baseTasks,
+      view.filters,
+      now: DateTime.now(),
+      recentlyCompletedDocIds: recentlyCompletedDocIds,
+    );
+    otherTasks.addAll(filteredBase);
     otherTasks.addAll(tempIterations);
 
     startDateSort(SprintDisplayTask a, SprintDisplayTask b) => a.startDate!.compareTo(b.startDate!);
@@ -478,7 +498,17 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Select Tasks'),
+        title: const Text('Select Tasks'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.tune),
+            tooltip: 'View options',
+            onPressed: () => ViewOptionsSheet.show(
+              context,
+              surface: TaskListSurface.plan,
+            ),
+          ),
+        ],
       ),
       body: _buildListView(context, allTasksBuilt, allSprintsBuilt, lastSprint, recentlyCompleted),
       floatingActionButton: Visibility(
