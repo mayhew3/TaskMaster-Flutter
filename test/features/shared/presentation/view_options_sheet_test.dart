@@ -16,7 +16,7 @@ Future<Widget> _wrap({
 }) async {
   return ProviderScope(
     overrides: [
-      sharedPreferencesProvider.overrideWithValue(prefs),
+      sharedPreferencesProvider.overrideWith((_) async => prefs),
       areasProvider.overrideWith((ref) => Stream.value(const [])),
       contextsProvider
           .overrideWith((ref) => Stream.value(const <ctx_model.Context>[])),
@@ -63,7 +63,7 @@ void main() {
   testWidgets('changing group axis writes through the notifier',
       (tester) async {
     final container = ProviderContainer(overrides: [
-      sharedPreferencesProvider.overrideWithValue(prefs),
+      sharedPreferencesProvider.overrideWith((_) async => prefs),
       areasProvider.overrideWith((ref) => Stream.value(const [])),
       contextsProvider
           .overrideWith((ref) => Stream.value(const <ctx_model.Context>[])),

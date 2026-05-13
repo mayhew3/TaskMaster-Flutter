@@ -71,6 +71,18 @@ List<TaskGroupResult> groupAndSortTasks({
   }
 }
 
+/// Public entry point for the filter step alone (without grouping/sorting).
+/// Used by per-surface "filteredTasks" providers that need a flat list of
+/// matching tasks but don't want to pay for grouping when the grouping
+/// pass will be done elsewhere.
+Iterable<TaskItem> applyTaskFilters(
+  Iterable<TaskItem> tasks,
+  TaskFilters filters, {
+  required DateTime now,
+  Set<String> recentlyCompletedDocIds = const {},
+}) =>
+    _applyFilters(tasks, filters, now, recentlyCompletedDocIds);
+
 // ── Filter step ─────────────────────────────────────────────────────────
 
 Iterable<TaskItem> _applyFilters(

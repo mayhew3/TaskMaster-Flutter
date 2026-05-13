@@ -17,15 +17,42 @@ part 'task_list_view_providers.g.dart';
 /// shouldn't be auto-disposed.
 @Riverpod(keepAlive: true)
 class TaskListViewState extends _$TaskListViewState {
-  late final TaskListSurface _surface;
-  late final TaskListViewStorage _storage;
+  late TaskListSurface _surface;
+  TaskListViewStorage? _storage;
 
   @override
   TaskListView build(TaskListSurface surface) {
     _surface = surface;
-    final prefs = ref.watch(sharedPreferencesProvider);
-    _storage = TaskListViewStorage(prefs);
-    return _storage.loadSync(surface);
+    // Sync path: if SharedPreferences is already resolved (production
+    // main.dart pre-warms it before runApp; many tests have already
+    // awaited a microtask before reading this provider), initialize
+    // synchronously and load from storage.
+    final prefsAsync = ref.read(sharedPreferencesProvider);
+    if (prefsAsync.hasValue) {
+      _storage = TaskListViewStorage(prefsAsync.requireValue);
+      return _storage!.loadSync(surface);
+    }
+    // Async path: prefs not yet resolved. Return the surface default and
+    // schedule a one-time init that either loads from storage (state
+    // still default → safe to overwrite) or persists the current state
+    // (user mutated before init → preserve their change). Crucially we
+    // do NOT `ref.watch` the prefs provider — re-entering build() on
+    // prefs resolution would stomp any mutations made in the interim.
+    _storage = null;
+    ref.read(sharedPreferencesProvider.future).then((prefs) {
+      if (!ref.mounted) return;
+      _storage = TaskListViewStorage(prefs);
+      final defaultView = TaskListView.defaultForSurface(_surface);
+      if (state == defaultView) {
+        // No user mutation since build — load persisted (if any).
+        state = _storage!.loadSync(_surface);
+      } else {
+        // User mutated before storage was ready; flush the divergence
+        // through so the next session sees it.
+        _storage!.save(_surface, state).ignore();
+      }
+    }).ignore();
+    return TaskListView.defaultForSurface(surface);
   }
 
   void setGroupAxis(TaskGroupAxis axis) {
@@ -86,12 +113,13 @@ class TaskListViewState extends _$TaskListViewState {
     state = fresh;
     // Fire-and-forget; SharedPreferences errors are non-fatal and would
     // log internally — the in-memory state is already correct for the
-    // current session.
-    _storage.clear(_surface).ignore();
+    // current session. Storage may be null during the brief window
+    // before sharedPreferencesProvider resolves; skip persistence then.
+    _storage?.clear(_surface).ignore();
   }
 
   void _emit(TaskListView next) {
     state = next;
-    _storage.save(_surface, next).ignore();
+    _storage?.save(_surface, next).ignore();
   }
 }

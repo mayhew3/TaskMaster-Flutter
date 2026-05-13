@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskmaestro/models/bad_schema_task.dart';
 import 'package:taskmaestro/models/task_item.dart';
 import '../../../core/services/task_completion_service.dart';
+import '../../../models/task_list_view.dart' show TaskListSurface;
 import '../providers/task_filter_providers.dart';
 import '../providers/task_providers.dart';
 import '../../sprints/providers/sprint_providers.dart';
@@ -12,12 +13,15 @@ import '../../../models/check_state.dart';
 import 'task_add_edit_screen.dart';
 import '../../../models/task_colors.dart';
 import '../../shared/presentation/editable_task_item.dart';
+import '../../shared/presentation/view_options_sheet.dart';
+import '../../shared/presentation/widgets/collapsible_group_header.dart';
 import '../../shared/presentation/widgets/header_list_item.dart';
 import '../../shared/presentation/snooze_dialog.dart';
 import '../../shared/presentation/app_drawer.dart';
 import '../../shared/presentation/connection_status_indicator.dart';
 import '../../shared/presentation/refresh_button.dart';
 import '../../shared/presentation/task_action_error_helper.dart';
+import '../../shared/providers/task_list_view_providers.dart';
 
 /// Riverpod version of the Task List screen
 /// Displays grouped tasks with filtering and completion functionality
@@ -79,7 +83,14 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
             icon: Icon(_searchBarVisible ? Icons.close : Icons.search),
             onPressed: _toggleSearch,
           ),
-          _FilterPopupMenu(),
+          IconButton(
+            icon: const Icon(Icons.tune),
+            tooltip: 'View options',
+            onPressed: () => ViewOptionsSheet.show(
+              context,
+              surface: TaskListSurface.tasks,
+            ),
+          ),
           const RefreshButton(),
         ],
       ),
@@ -126,38 +137,6 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
     );
   }
 
-}
-
-/// Filter popup menu for showing/hiding completed and scheduled tasks
-class _FilterPopupMenu extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final showCompleted = ref.watch(showCompletedProvider);
-    final showScheduled = ref.watch(showScheduledProvider);
-
-    return PopupMenuButton<String>(
-      icon: const Icon(Icons.filter_list),
-      onSelected: (value) {
-        if (value == 'completed') {
-          ref.read(showCompletedProvider.notifier).toggle();
-        } else if (value == 'scheduled') {
-          ref.read(showScheduledProvider.notifier).toggle();
-        }
-      },
-      itemBuilder: (context) => [
-        CheckedPopupMenuItem<String>(
-          checked: showScheduled,
-          value: 'scheduled',
-          child: const Text('Show Scheduled'),
-        ),
-        CheckedPopupMenuItem<String>(
-          checked: showCompleted,
-          value: 'completed',
-          child: const Text('Show Finished'),
-        ),
-      ],
-    );
-  }
 }
 
 class _TaskListBody extends ConsumerStatefulWidget {
@@ -227,14 +206,30 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
     }
 
     final showCompleted = ref.watch(showCompletedProvider);
+    final view = ref.watch(taskListViewStateProvider(TaskListSurface.tasks));
+    final viewNotifier =
+        ref.read(taskListViewStateProvider(TaskListSurface.tasks).notifier);
 
     for (final group in groupedTasks) {
-      tiles.add(HeadingItem(group.name));
-      for (final task in group.tasks) {
-        tiles.add(_TaskListItem(task: task));
+      final collapsed = view.collapsedGroups.contains(group.key);
+      // Group axis = none renders a single bucket with empty displayName;
+      // skip the header entirely in that case (matches plan §5).
+      if (group.displayName.isNotEmpty) {
+        tiles.add(CollapsibleGroupHeader(
+          label: group.displayName,
+          count: group.tasks.length,
+          collapsed: collapsed,
+          onTap: () => viewNotifier.toggleGroupCollapsed(group.key),
+        ));
       }
-      // Add "Load More" button after the Completed group
-      if (group.name == 'Completed' && showCompleted) {
+      if (!collapsed) {
+        for (final task in group.tasks) {
+          tiles.add(_TaskListItem(task: task));
+        }
+      }
+      // "Load More" button only after the Completed bucket, only when
+      // showCompleted is on and the group is expanded.
+      if (group.key == 'due:completed' && showCompleted && !collapsed) {
         final olderState = ref.watch(olderCompletedTasksBatchesProvider);
         if (olderState.hasMore) {
           tiles.add(_LoadMoreCompletedButton());

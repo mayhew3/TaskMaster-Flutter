@@ -15,7 +15,7 @@ void main() {
 
   ProviderContainer createContainer() {
     final container = ProviderContainer(overrides: [
-      sharedPreferencesProvider.overrideWithValue(prefs),
+      sharedPreferencesProvider.overrideWith((_) async => prefs),
     ]);
     addTearDown(container.dispose);
     return container;
@@ -46,12 +46,18 @@ void main() {
             .groupAxis,
         TaskGroupAxis.area,
       );
-      // Flush pending microtasks so the SharedPreferences write resolves.
+      // Flush microtasks so storage init runs and persists the mutation
+      // (the build started before SharedPreferences resolved, so the
+      // notifier defers its first storage write to the microtask).
+      await Future<void>.value();
       await Future<void>.value();
 
-      // Recreate the container; the new TaskListViewState build()
-      // should rehydrate from storage.
+      // Recreate the container; the new TaskListViewState build() loads
+      // from storage. Flush microtasks again so the async init resolves.
       final container2 = createContainer();
+      container2.read(taskListViewStateProvider(TaskListSurface.tasks));
+      await Future<void>.value();
+      await Future<void>.value();
       expect(
         container2
             .read(taskListViewStateProvider(TaskListSurface.tasks))
@@ -152,6 +158,7 @@ void main() {
           .read(taskListViewStateProvider(TaskListSurface.tasks).notifier);
       notifier.setGroupAxis(TaskGroupAxis.area);
       await Future<void>.value();
+      await Future<void>.value();
       notifier.reset();
       await Future<void>.value();
       expect(
@@ -160,6 +167,9 @@ void main() {
       );
       // New container should also see the default — storage cleared.
       final container2 = createContainer();
+      container2.read(taskListViewStateProvider(TaskListSurface.tasks));
+      await Future<void>.value();
+      await Future<void>.value();
       expect(
         container2.read(taskListViewStateProvider(TaskListSurface.tasks)),
         TaskListView.tasksDefault(),
@@ -208,19 +218,17 @@ void main() {
       expect(identical(firstRef, secondRef), isTrue);
     });
 
-    test('sharedPreferencesProvider without an override throws clearly', () {
+    test('flutter_test_config seeds an empty mock store; getInstance resolves',
+        () async {
+      // The global `test/flutter_test_config.dart` calls
+      // `SharedPreferences.setMockInitialValues({})` before every test
+      // file, so the provider resolves to an empty in-memory instance
+      // without needing an explicit override.
       final container = ProviderContainer();
       addTearDown(container.dispose);
-      // Riverpod wraps the provider-build throw in a ProviderException;
-      // match on the underlying message so the contract still asserts
-      // "the override is required and the error tells you how to fix it"
-      // without coupling to Riverpod's internal exception type.
-      expect(
-        () => container.read(sharedPreferencesProvider),
-        throwsA(predicate((Object? e) =>
-            e.toString().contains('overridden') &&
-            e.toString().contains('SharedPreferences'))),
-      );
+      final prefs = await container.read(sharedPreferencesProvider.future);
+      // Empty store: no keys.
+      expect(prefs.getKeys(), isEmpty);
     });
   });
 }

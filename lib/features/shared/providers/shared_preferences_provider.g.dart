@@ -10,68 +10,61 @@ part of 'shared_preferences_provider.dart';
 // ignore_for_file: type=lint, type=warning
 /// Provides the singleton [SharedPreferences] instance.
 ///
-/// Synchronous — bootstrap (`main.dart`) calls
-/// `SharedPreferences.getInstance()` and supplies the resolved value via
-/// an override on `ProviderScope`. The override is **required**: the
-/// uninjected base provider throws, which guarantees synchronous
-/// consumers (e.g. `taskListViewProvider`) never see a missing instance
-/// at runtime.
+/// Asynchronous — bootstrap (`main.dart`) awaits the future before
+/// `runApp` so by the time the widget tree mounts, the value is ready.
+/// Consumers that need to read it synchronously should handle the
+/// `AsyncValue.loading` state gracefully (e.g. fall back to defaults
+/// until the value resolves).
 ///
-/// Tests:
-/// ```dart
-/// SharedPreferences.setMockInitialValues({});
-/// final prefs = await SharedPreferences.getInstance();
-/// container = ProviderContainer(overrides: [
-///   sharedPreferencesProvider.overrideWithValue(prefs),
-/// ]);
-/// ```
+/// Tests: the project's `test/flutter_test_config.dart` calls
+/// `SharedPreferences.setMockInitialValues({})` before every test file,
+/// so `getInstance()` resolves to an empty in-memory store on the next
+/// microtask. Tests that want pre-populated state can either call
+/// `setMockInitialValues` themselves with seed data, or override this
+/// provider directly with an already-loaded instance.
 
 @ProviderFor(sharedPreferences)
 final sharedPreferencesProvider = SharedPreferencesProvider._();
 
 /// Provides the singleton [SharedPreferences] instance.
 ///
-/// Synchronous — bootstrap (`main.dart`) calls
-/// `SharedPreferences.getInstance()` and supplies the resolved value via
-/// an override on `ProviderScope`. The override is **required**: the
-/// uninjected base provider throws, which guarantees synchronous
-/// consumers (e.g. `taskListViewProvider`) never see a missing instance
-/// at runtime.
+/// Asynchronous — bootstrap (`main.dart`) awaits the future before
+/// `runApp` so by the time the widget tree mounts, the value is ready.
+/// Consumers that need to read it synchronously should handle the
+/// `AsyncValue.loading` state gracefully (e.g. fall back to defaults
+/// until the value resolves).
 ///
-/// Tests:
-/// ```dart
-/// SharedPreferences.setMockInitialValues({});
-/// final prefs = await SharedPreferences.getInstance();
-/// container = ProviderContainer(overrides: [
-///   sharedPreferencesProvider.overrideWithValue(prefs),
-/// ]);
-/// ```
+/// Tests: the project's `test/flutter_test_config.dart` calls
+/// `SharedPreferences.setMockInitialValues({})` before every test file,
+/// so `getInstance()` resolves to an empty in-memory store on the next
+/// microtask. Tests that want pre-populated state can either call
+/// `setMockInitialValues` themselves with seed data, or override this
+/// provider directly with an already-loaded instance.
 
 final class SharedPreferencesProvider
     extends
         $FunctionalProvider<
+          AsyncValue<SharedPreferences>,
           SharedPreferences,
-          SharedPreferences,
-          SharedPreferences
+          FutureOr<SharedPreferences>
         >
-    with $Provider<SharedPreferences> {
+    with
+        $FutureModifier<SharedPreferences>,
+        $FutureProvider<SharedPreferences> {
   /// Provides the singleton [SharedPreferences] instance.
   ///
-  /// Synchronous — bootstrap (`main.dart`) calls
-  /// `SharedPreferences.getInstance()` and supplies the resolved value via
-  /// an override on `ProviderScope`. The override is **required**: the
-  /// uninjected base provider throws, which guarantees synchronous
-  /// consumers (e.g. `taskListViewProvider`) never see a missing instance
-  /// at runtime.
+  /// Asynchronous — bootstrap (`main.dart`) awaits the future before
+  /// `runApp` so by the time the widget tree mounts, the value is ready.
+  /// Consumers that need to read it synchronously should handle the
+  /// `AsyncValue.loading` state gracefully (e.g. fall back to defaults
+  /// until the value resolves).
   ///
-  /// Tests:
-  /// ```dart
-  /// SharedPreferences.setMockInitialValues({});
-  /// final prefs = await SharedPreferences.getInstance();
-  /// container = ProviderContainer(overrides: [
-  ///   sharedPreferencesProvider.overrideWithValue(prefs),
-  /// ]);
-  /// ```
+  /// Tests: the project's `test/flutter_test_config.dart` calls
+  /// `SharedPreferences.setMockInitialValues({})` before every test file,
+  /// so `getInstance()` resolves to an empty in-memory store on the next
+  /// microtask. Tests that want pre-populated state can either call
+  /// `setMockInitialValues` themselves with seed data, or override this
+  /// provider directly with an already-loaded instance.
   SharedPreferencesProvider._()
     : super(
         from: null,
@@ -88,22 +81,14 @@ final class SharedPreferencesProvider
 
   @$internal
   @override
-  $ProviderElement<SharedPreferences> $createElement(
+  $FutureProviderElement<SharedPreferences> $createElement(
     $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
+  ) => $FutureProviderElement(pointer);
 
   @override
-  SharedPreferences create(Ref ref) {
+  FutureOr<SharedPreferences> create(Ref ref) {
     return sharedPreferences(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(SharedPreferences value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<SharedPreferences>(value),
-    );
   }
 }
 
-String _$sharedPreferencesHash() => r'4cba2b80ee7cc89e95fb5be4b3dc93f09210eba2';
+String _$sharedPreferencesHash() => r'48e60558ea6530114ea20ea03e69b9fb339ab129';

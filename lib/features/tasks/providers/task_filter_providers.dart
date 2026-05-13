@@ -1,161 +1,191 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../../../core/providers/auth_providers.dart';
 import '../../../core/providers/database_provider.dart';
 import '../../../core/providers/firebase_providers.dart';
+import '../../../models/area.dart';
 import '../../../models/task_item.dart';
-import 'task_providers.dart';
+import '../../../models/task_list_view.dart';
+import '../../shared/logic/task_grouping.dart';
+import '../../shared/providers/task_list_view_providers.dart';
+import '../../areas/providers/area_providers.dart';
 import '../../sprints/providers/sprint_providers.dart';
+import 'task_providers.dart';
 
 part 'task_filter_providers.g.dart';
 
-/// Simple state providers for filter toggles
-/// Using keepAlive: true to persist state across tab switches
+// ─── Legacy filter facades (TM-359) ──────────────────────────────────────
+//
+// TM-359 unified all per-axis filter state into
+// `taskListViewStateProvider(TaskListSurface.tasks)`. These three legacy
+// providers stay as thin facades that read/write through the new state
+// so the rest of the codebase (sprint_providers, navigation_provider,
+// integration tests) can be migrated commit-by-commit without one giant
+// disruptive change. They will be deleted in commit 9 once no consumers
+// remain.
+
 @Riverpod(keepAlive: true)
 class ShowCompleted extends _$ShowCompleted {
   @override
-  bool build() => false;
-
-  void toggle() {
-    state = !state;
-    print('📋 ShowCompleted.toggle: state=$state');
-    if (state) {
-      // Pre-fetch first batch of older completed tasks when toggling on
-      print('📋 ShowCompleted.toggle: triggering loadNextBatch');
-      ref.read(olderCompletedTasksBatchesProvider.notifier).loadNextBatch();
-    }
+  bool build() {
+    final value = ref.watch(taskListViewStateProvider(TaskListSurface.tasks)
+        .select((v) => v.filters.showCompleted));
+    // Side effect: lazily prefetch the first older-completed-tasks batch
+    // when the value transitions off→on, regardless of *which* UI path
+    // (legacy popup vs new ViewOptionsSheet) triggered the change.
+    ref.listen<TaskListView>(
+      taskListViewStateProvider(TaskListSurface.tasks),
+      (prev, next) {
+        final wasOn = prev?.filters.showCompleted ?? false;
+        final isOn = next.filters.showCompleted;
+        if (!wasOn && isOn) {
+          ref
+              .read(olderCompletedTasksBatchesProvider.notifier)
+              .loadNextBatch();
+        }
+      },
+    );
+    return value;
   }
-  void set(bool value) => state = value;
+
+  void toggle() => set(!state);
+
+  void set(bool value) {
+    if (state == value) return;
+    final viewNotifier = ref
+        .read(taskListViewStateProvider(TaskListSurface.tasks).notifier);
+    final current =
+        ref.read(taskListViewStateProvider(TaskListSurface.tasks));
+    viewNotifier.setFilters(
+        current.filters.rebuild((b) => b..showCompleted = value));
+  }
 }
 
 @Riverpod(keepAlive: true)
 class ShowScheduled extends _$ShowScheduled {
   @override
-  bool build() => false; // Default to false to hide scheduled tasks
+  bool build() {
+    return ref.watch(taskListViewStateProvider(TaskListSurface.tasks)
+        .select((v) => v.filters.showScheduled));
+  }
 
-  void toggle() => state = !state;
-  void set(bool value) => state = value;
+  void toggle() => set(!state);
+
+  void set(bool value) {
+    if (state == value) return;
+    final viewNotifier = ref
+        .read(taskListViewStateProvider(TaskListSurface.tasks).notifier);
+    final current =
+        ref.read(taskListViewStateProvider(TaskListSurface.tasks));
+    viewNotifier.setFilters(
+        current.filters.rebuild((b) => b..showScheduled = value));
+  }
 }
 
-/// Text search query for filtering tasks by name
 @Riverpod(keepAlive: true)
 class SearchQuery extends _$SearchQuery {
   @override
-  String build() => '';
+  String build() {
+    return ref.watch(taskListViewStateProvider(TaskListSurface.tasks)
+        .select((v) => v.filters.search));
+  }
 
-  void set(String value) => state = value;
-  void clear() => state = '';
+  void set(String value) {
+    if (state == value) return;
+    ref
+        .read(taskListViewStateProvider(TaskListSurface.tasks).notifier)
+        .setSearch(value);
+  }
+
+  void clear() => set('');
 }
 
-/// Filtered tasks based on visibility settings
+// ─── Derived providers (rewritten on top of `groupAndSortTasks`) ─────────
+
+/// Tasks visible on the Tasks tab — surface-specific pre-filtering
+/// (hide-family-shared, hide-active-sprint, retired removal) PLUS the
+/// user's TaskFilters via the pipeline.
 @Riverpod(keepAlive: true)
 Future<List<TaskItem>> filteredTasks(Ref ref) async {
-  final showCompleted = ref.watch(showCompletedProvider);
-  final showScheduled = ref.watch(showScheduledProvider);
-  final searchQuery = ref.watch(searchQueryProvider).toLowerCase();
+  final view = ref.watch(taskListViewStateProvider(TaskListSurface.tasks));
   final activeSprint = ref.watch(activeSprintProvider);
   final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
 
-  print('📋 filteredTasksProvider: Starting with showCompleted=$showCompleted, showScheduled=$showScheduled, search="${searchQuery.isNotEmpty ? searchQuery : ""}"');
-
-  // Watch the tasks future with pending state for optimistic UI
-  // Base query only returns incomplete tasks
+  // Base query (incomplete) plus optimistic-pending overlay.
   final tasks = await ref.watch(tasksWithPendingStateProvider.future);
-  print('📋 filteredTasksProvider: Received ${tasks.length} incomplete tasks');
 
-  // Build combined task list
   final taskDocIds = tasks.map((t) => t.docId).toSet();
-  List<TaskItem> allTasks = [...tasks];
+  final allTasks = <TaskItem>[...tasks];
 
-  // Merge recently completed tasks (keeps just-completed tasks visible
-  // even though the base query no longer includes them). Insert each one
-  // at its captured original index so it doesn't visibly jump to the
-  // bottom of its group (TM-339 Tasks tab follow-up).
+  // TM-323: merge recently-completed tasks (the base query no longer
+  // returns them once their `completionDate` is set, but they should stay
+  // visible at the captured original index until the list refreshes).
   if (recentlyCompleted.isNotEmpty) {
     final indices = ref.watch(recentlyCompletedIndicesProvider);
     final uniqueRecent = recentlyCompleted
         .where((t) => !taskDocIds.contains(t.docId))
         .toList()
-      // Ascending by captured index so earlier positions insert first
-      // and later positions account for the preceding inserts.
       ..sort((a, b) {
         final ai = indices[a.docId] ?? allTasks.length;
         final bi = indices[b.docId] ?? allTasks.length;
         final cmp = ai.compareTo(bi);
-        // Stable tiebreaker: tasks with equal (or absent) captured indices
-        // get a deterministic order so the list doesn't jitter on recompute.
         return cmp != 0 ? cmp : a.docId.compareTo(b.docId);
       });
-
     for (final task in uniqueRecent) {
       final captured = indices[task.docId];
       final insertAt = captured == null
           ? allTasks.length
-          : (captured < 0 ? 0 : (captured > allTasks.length ? allTasks.length : captured));
+          : (captured < 0
+              ? 0
+              : (captured > allTasks.length ? allTasks.length : captured));
       allTasks.insert(insertAt, task);
       taskDocIds.add(task.docId);
     }
   }
 
-  // Merge progressively loaded completed tasks when showCompleted is enabled
-  if (showCompleted) {
+  // Merge progressively-loaded older completed tasks when showCompleted is on.
+  if (view.filters.showCompleted) {
     final olderState = ref.watch(olderCompletedTasksBatchesProvider);
     if (olderState.loadedTasks.isNotEmpty) {
       final uniqueOlder = olderState.loadedTasks
           .where((t) => !taskDocIds.contains(t.docId))
           .toList();
       allTasks.addAll(uniqueOlder);
-      print('📋 filteredTasksProvider: Merged ${uniqueOlder.length} completed tasks');
     }
   }
 
-  final filtered = allTasks.where((task) {
-    // Always hide retired tasks
+  final surfaceFiltered = allTasks.where((task) {
     if (task.retired != null) return false;
-
-    // Hide family-shared tasks — they live exclusively on the Family tab
-    // (TM-335). The Tasks tab is the user's personal queue.
+    // Tasks tab is the personal queue — family-shared rows live on the
+    // Family tab only (TM-335).
     if (task.familyDocId != null) return false;
-
-    // Apply text search filter
-    if (searchQuery.isNotEmpty) {
-      if (!task.name.toLowerCase().contains(searchQuery)) return false;
+    // Active-sprint tasks are surfaced via the sprint banner instead.
+    if (activeSprint != null &&
+        activeSprint.sprintAssignments
+            .any((sa) => sa.taskDocId == task.docId)) {
+      return false;
     }
-
-    // Hide all tasks in active sprint (they're shown via sprint banner's "Show Tasks")
-    if (activeSprint != null) {
-      final isInActiveSprint = activeSprint.sprintAssignments
-          .any((sa) => sa.taskDocId == task.docId);
-      if (isInActiveSprint) {
-        return false;
-      }
-    }
-
-    // Completed/skipped tasks: show when showCompleted is true OR if recently completed (TM-323)
-    if (task.completionDate != null) {
-      final isRecentlyCompleted =
-          recentlyCompleted.any((t) => t.docId == task.docId);
-      return showCompleted || isRecentlyCompleted;
-    }
-
-    // Non-completed tasks: check scheduled filter
-    final scheduledPredicate = task.startDate == null ||
-        task.startDate!.isBefore(DateTime.now()) ||
-        showScheduled;
-    return scheduledPredicate;
-  }).toList();
-
-  print('📋 filteredTasksProvider: Returning ${filtered.length} filtered tasks');
-  return filtered;
+    return true;
+  });
+  // Apply the user-selected TaskFilters via the shared pipeline. This is
+  // the canonical filter step that mirrors the pre-TM-359 inline logic
+  // (search / showCompleted / showScheduled / recurrence / age / etc.)
+  // plus the recently-completed bypass.
+  return applyTaskFilters(
+    surfaceFiltered,
+    view.filters,
+    now: DateTime.now(),
+    recentlyCompletedDocIds: recentlyCompleted.map((t) => t.docId).toSet(),
+  ).toList();
 }
 
 /// Count of active (non-completed, non-retired) tasks.
 /// TM-368: pure-derived from `tasksProvider` (keepAlive). Cheap to
-/// recompute when a consumer reattaches, so auto-dispose is correct here.
+/// recompute when a consumer reattaches.
 @riverpod
 int activeTaskCount(Ref ref) {
   final tasksAsync = ref.watch(tasksProvider);
-
   return tasksAsync.maybeWhen(
     data: (tasks) => tasks
         .where((t) => t.completionDate == null && t.retired == null)
@@ -164,14 +194,8 @@ int activeTaskCount(Ref ref) {
   );
 }
 
-/// Count of completed (non-skipped, non-retired) tasks.
-/// Uses Firestore aggregation for the total (too many to store locally),
-/// then subtracts the local skipped count (always present since skip is local-first).
-/// TM-368: Firestore aggregation cost matters per call, but the value is
-/// only read by infrequently-visited screens (Manage Areas badges, profile
-/// stats). Auto-dispose so the count doesn't sit cached when nothing's
-/// reading it — the staleness penalty for keepAlive (count drifts as the
-/// user completes tasks) is worse than the rebuild cost.
+/// Count of completed (non-skipped, non-retired) tasks. See pre-TM-359
+/// comment for the Firestore-aggregation rationale.
 @riverpod
 Future<int> completedTaskCount(Ref ref) async {
   final firestore = ref.watch(firestoreProvider);
@@ -191,84 +215,43 @@ Future<int> completedTaskCount(Ref ref) async {
   return (total - skipped).clamp(0, total);
 }
 
-/// Task grouping for display (Past Due, Urgent, Target, Scheduled, Tasks, Completed)
+/// TM-359: grouped + sorted Tasks-tab tasks. Wraps `groupAndSortTasks`
+/// with the per-surface TaskListView state.
+@Riverpod(keepAlive: true)
+Future<List<TaskGroupResult>> groupedTasks(Ref ref) async {
+  final view = ref.watch(taskListViewStateProvider(TaskListSurface.tasks));
+  final filtered = await ref.watch(filteredTasksProvider.future);
+  final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
+  // Read `areasProvider` only when the area axis actually needs it.
+  // `areasProvider` streams from Drift; unconditional reads force a
+  // database open even on tests that have overridden every other input
+  // but not the areas stream.
+  final List<Area> areas = view.groupAxis == TaskGroupAxis.area
+      ? (ref.watch(areasProvider).value ?? const <Area>[])
+      : const <Area>[];
+
+  return groupAndSortTasks(
+    tasks: filtered,
+    view: view,
+    now: DateTime.now(),
+    areas: areas,
+    recentlyCompletedDocIds:
+        recentlyCompleted.map((t) => t.docId).toSet(),
+  );
+}
+
+/// Legacy TaskGroup shape preserved as a thin wrapper around
+/// [TaskGroupResult] so the Family tab (which still references this type
+/// in commit 5) keeps compiling. Removed in commit 6 when Family
+/// migrates to TaskGroupResult directly.
+@Deprecated('Use TaskGroupResult from features/shared/logic/task_grouping.dart')
 class TaskGroup {
   final String name;
   final int displayOrder;
   final List<TaskItem> tasks;
-
-  TaskGroup({
+  const TaskGroup({
     required this.name,
     required this.displayOrder,
     required this.tasks,
   });
-}
-
-/// Grouped and sorted tasks for the task list
-@Riverpod(keepAlive: true)
-Future<List<TaskGroup>> groupedTasks(Ref ref) async {
-  print('📋 groupedTasksProvider: Starting');
-
-  // Watch the filtered tasks future
-  final filtered = await ref.watch(filteredTasksProvider.future);
-  final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
-  print('📋 groupedTasksProvider: Received ${filtered.length} filtered tasks');
-
-  final groups = <String, List<TaskItem>>{
-    'Past Due': [],
-    'Urgent': [],
-    'Target': [],
-    'Tasks': [],
-    'Scheduled': [],
-    'Completed': [],
-  };
-
-  // Categorize tasks
-  // Recently completed tasks stay in their original category (TM-323)
-  for (final task in filtered) {
-    final isRecentlyCompleted =
-        recentlyCompleted.any((t) => t.docId == task.docId);
-
-    if (task.completionDate != null && !isRecentlyCompleted) {
-      // Only move to Completed if NOT recently completed
-      groups['Completed']!.add(task);
-    } else if (task.isPastDue()) {
-      groups['Past Due']!.add(task);
-    } else if (task.isUrgent()) {
-      groups['Urgent']!.add(task);
-    } else if (task.isTarget()) {
-      groups['Target']!.add(task);
-    } else if (task.isScheduled()) {
-      groups['Scheduled']!.add(task);
-    } else {
-      groups['Tasks']!.add(task);
-    }
-  }
-
-  // Sort tasks within groups
-  groups['Scheduled']!.sort((a, b) => a.startDate!.compareTo(b.startDate!));
-  groups['Completed']!.sort((a, b) => b.completionDate!.compareTo(a.completionDate!));
-
-  // Create task groups with display order
-  final displayOrder = {
-    'Past Due': 1,
-    'Urgent': 2,
-    'Target': 3,
-    'Tasks': 4,
-    'Scheduled': 5,
-    'Completed': 6,
-  };
-
-  final result = groups.entries
-      .where((entry) => entry.value.isNotEmpty)
-      .map((entry) => TaskGroup(
-            name: entry.key,
-            displayOrder: displayOrder[entry.key]!,
-            tasks: entry.value,
-          ))
-      .toList()
-    ..sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
-
-  print('📋 groupedTasksProvider: Returning ${result.length} task groups');
-  return result;
 }

@@ -1,6 +1,7 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taskmaestro/core/providers/auth_providers.dart';
 import 'package:taskmaestro/core/providers/firebase_providers.dart';
 import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
@@ -11,6 +12,14 @@ import 'package:taskmaestro/models/task_item.dart';
 import '../../../helpers/async_provider_helpers.dart';
 
 void main() {
+  // Reset persisted TaskListView state between tests so an earlier test's
+  // `searchQueryProvider.notifier.set('hello')` doesn't leak its 'hello'
+  // into the next test's "empty search" assertion.
+  setUp(() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  });
+
   const testPersonDocId = 'test-person-123';
 
   TaskItem createTask(String docId, String name) {
