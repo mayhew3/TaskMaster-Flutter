@@ -6,13 +6,16 @@ import '../../../core/providers/auth_providers.dart';
 import '../../../core/services/task_completion_service.dart';
 import '../../../models/check_state.dart';
 import '../../../models/task_item.dart';
+import '../../../models/task_list_view.dart';
 import '../../shared/presentation/app_drawer.dart';
 import '../../shared/presentation/connection_status_indicator.dart';
 import '../../shared/presentation/editable_task_item.dart';
 import '../../shared/presentation/refresh_button.dart';
 import '../../shared/presentation/snooze_dialog.dart';
 import '../../shared/presentation/task_action_error_helper.dart';
-import '../../shared/presentation/widgets/header_list_item.dart';
+import '../../shared/presentation/view_options_sheet.dart';
+import '../../shared/presentation/widgets/collapsible_group_header.dart';
+import '../../shared/providers/task_list_view_providers.dart';
 import '../../tasks/presentation/task_add_edit_screen.dart';
 import '../providers/family_task_filter_providers.dart';
 import 'family_manage_screen.dart';
@@ -43,7 +46,9 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
       _searchBarVisible = !_searchBarVisible;
       if (!_searchBarVisible) {
         _searchController.clear();
-        ref.read(familySearchQueryProvider.notifier).clear();
+        ref
+            .read(taskListViewStateProvider(TaskListSurface.family).notifier)
+            .setSearch('');
       }
     });
   }
@@ -51,29 +56,41 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
   @override
   Widget build(BuildContext context) {
     final groups = ref.watch(familyGroupedTasksProvider);
-    // Sync the search controller's text when the provider is cleared
-    // externally (e.g. tab navigation). Done via `ref.listen` rather
-    // than during build so the `_searchController.clear()` mutation
-    // happens outside the build phase — mutating a TextEditingController
-    // mid-build can trigger an `EditableText` listener rebuild that
-    // racing with the in-progress build risks a "markNeedsBuild during
-    // build" exception. Intentionally does NOT close the search bar
-    // itself — losing the open input on an external clear would be
-    // surprising and removes the user's affordance to type again.
-    // The bar stays visible until the user dismisses it.
-    ref.listen<String>(familySearchQueryProvider, (prev, next) {
-      if (next.isEmpty &&
-          _searchBarVisible &&
-          _searchController.text.isNotEmpty) {
-        _searchController.clear();
-      }
-    });
+    final view = ref.watch(taskListViewStateProvider(TaskListSurface.family));
+    final viewNotifier = ref
+        .read(taskListViewStateProvider(TaskListSurface.family).notifier);
+
+    // Sync the search controller's text when the filter is cleared
+    // externally (e.g. via the View Options sheet's Reset button). Done
+    // via `ref.listen` rather than during build so mutating the
+    // TextEditingController can't race the in-progress build.
+    ref.listen<String>(
+      taskListViewStateProvider(TaskListSurface.family)
+          .select((v) => v.filters.search),
+      (prev, next) {
+        if (next.isEmpty &&
+            _searchBarVisible &&
+            _searchController.text.isNotEmpty) {
+          _searchController.clear();
+        }
+      },
+    );
 
     final tiles = <Widget>[];
     for (final group in groups) {
-      tiles.add(HeadingItem(group.name));
-      for (final task in group.tasks) {
-        tiles.add(_FamilyTaskTile(task: task));
+      final collapsed = view.collapsedGroups.contains(group.key);
+      if (group.displayName.isNotEmpty) {
+        tiles.add(CollapsibleGroupHeader(
+          label: group.displayName,
+          count: group.tasks.length,
+          collapsed: collapsed,
+          onTap: () => viewNotifier.toggleGroupCollapsed(group.key),
+        ));
+      }
+      if (!collapsed) {
+        for (final task in group.tasks) {
+          tiles.add(_FamilyTaskTile(task: task));
+        }
       }
     }
 
@@ -89,8 +106,7 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
                   hintStyle: TextStyle(color: Colors.white70),
                 ),
                 style: const TextStyle(color: Colors.white),
-                onChanged: (value) =>
-                    ref.read(familySearchQueryProvider.notifier).set(value),
+                onChanged: viewNotifier.setSearch,
               )
             : const Text('Family'),
         actions: [
@@ -99,7 +115,14 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
             icon: Icon(_searchBarVisible ? Icons.close : Icons.search),
             onPressed: _toggleSearch,
           ),
-          const _FamilyFilterPopupMenu(),
+          IconButton(
+            icon: const Icon(Icons.tune),
+            tooltip: 'View options',
+            onPressed: () => ViewOptionsSheet.show(
+              context,
+              surface: TaskListSurface.family,
+            ),
+          ),
           IconButton(
             tooltip: 'Manage family',
             icon: const Icon(Icons.group),
@@ -213,41 +236,6 @@ class _FamilyTaskTile extends ConsumerWidget {
               }
               return false;
             },
-    );
-  }
-}
-
-/// Filter popup menu mirroring the Tasks tab's `_FilterPopupMenu` — shows
-/// explicit text options instead of icons so it's clear what's being toggled.
-class _FamilyFilterPopupMenu extends ConsumerWidget {
-  const _FamilyFilterPopupMenu();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final showCompleted = ref.watch(familyShowCompletedProvider);
-    final showScheduled = ref.watch(familyShowScheduledProvider);
-
-    return PopupMenuButton<String>(
-      icon: const Icon(Icons.filter_list),
-      onSelected: (value) {
-        if (value == 'completed') {
-          ref.read(familyShowCompletedProvider.notifier).toggle();
-        } else if (value == 'scheduled') {
-          ref.read(familyShowScheduledProvider.notifier).toggle();
-        }
-      },
-      itemBuilder: (context) => [
-        CheckedPopupMenuItem<String>(
-          checked: showScheduled,
-          value: 'scheduled',
-          child: const Text('Show Scheduled'),
-        ),
-        CheckedPopupMenuItem<String>(
-          checked: showCompleted,
-          value: 'completed',
-          child: const Text('Show Finished'),
-        ),
-      ],
     );
   }
 }

@@ -240,18 +240,3 @@ Future<List<TaskGroupResult>> groupedTasks(Ref ref) async {
   );
 }
 
-/// Legacy TaskGroup shape preserved as a thin wrapper around
-/// [TaskGroupResult] so the Family tab (which still references this type
-/// in commit 5) keeps compiling. Removed in commit 6 when Family
-/// migrates to TaskGroupResult directly.
-@Deprecated('Use TaskGroupResult from features/shared/logic/task_grouping.dart')
-class TaskGroup {
-  final String name;
-  final int displayOrder;
-  final List<TaskItem> tasks;
-  const TaskGroup({
-    required this.name,
-    required this.displayOrder,
-    required this.tasks,
-  });
-}

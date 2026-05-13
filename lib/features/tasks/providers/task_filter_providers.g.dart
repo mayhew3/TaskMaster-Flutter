@@ -212,7 +212,7 @@ final class FilteredTasksProvider
   }
 }
 
-String _$filteredTasksHash() => r'c01a88c151174ef64438813b355a0c58ede4bd8c';
+String _$filteredTasksHash() => r'7621c61c78ddf9648bb81133c2d8ef16eea4f346';
 
 /// Count of active (non-completed, non-retired) tasks.
 /// TM-368: pure-derived from `tasksProvider` (keepAlive). Cheap to
@@ -354,4 +354,4 @@ final class GroupedTasksProvider
   }
 }
 
-String _$groupedTasksHash() => r'546405f22af8ed3ded6bf10fb7775cb92005eac7';
+String _$groupedTasksHash() => r'38ec61f1cd836f687e6e42e656fbf35b2789c31b';
