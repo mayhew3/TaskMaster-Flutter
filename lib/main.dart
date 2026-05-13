@@ -8,7 +8,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:logging/logging.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taskmaestro/core/services/log_storage_service.dart';
+import 'package:taskmaestro/features/shared/providers/shared_preferences_provider.dart';
 import 'package:taskmaestro/riverpod_app.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -87,11 +89,18 @@ Future<void> main() async {
       // Resolve emulator host before building widget tree (avoids async race in initState)
       final emulatorHost = await _resolveEmulatorHost();
 
+      // TM-359: load SharedPreferences before runApp so synchronous
+      // consumers (taskListViewProvider) can read it without an
+      // AsyncValue ladder. The base provider throws if not overridden —
+      // pinning the instance here is what makes that contract hold.
+      final sharedPrefs = await SharedPreferences.getInstance();
+
       // Wrap app with ProviderScope for Riverpod state management
       runApp(
         ProviderScope(
           overrides: [
             logStorageServiceProvider.overrideWithValue(logStorage),
+            sharedPreferencesProvider.overrideWithValue(sharedPrefs),
           ],
           child: RiverpodTaskMaestroApp(emulatorHost: emulatorHost),
         ),
