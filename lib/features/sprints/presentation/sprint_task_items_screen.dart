@@ -1,45 +1,33 @@
-import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:rxdart/rxdart.dart';
 import '../../../core/database/converters.dart';
 import '../../../core/providers/auth_providers.dart';
 import '../../../core/providers/database_provider.dart';
+import '../../../core/services/task_completion_service.dart';
+import '../../../models/check_state.dart';
 import '../../../models/sprint.dart';
 import '../../../models/task_item.dart';
+import '../../../models/task_list_view.dart';
 import '../../../models/task_recurrence.dart';
-import '../../shared/presentation/connection_status_indicator.dart';
-import '../../shared/presentation/filter_button.dart';
-import '../../shared/presentation/refresh_button.dart';
+import '../../shared/logic/task_grouping.dart';
 import '../../shared/presentation/app_drawer.dart';
+import '../../shared/presentation/connection_status_indicator.dart';
+import '../../shared/presentation/editable_task_item.dart';
+import '../../shared/presentation/plan_task_list.dart';
+import '../../shared/presentation/refresh_button.dart';
+import '../../shared/presentation/snooze_dialog.dart';
+import '../../shared/presentation/task_action_error_helper.dart';
+import '../../shared/presentation/view_options_sheet.dart';
+import '../../shared/presentation/widgets/collapsible_group_header.dart';
+import '../../shared/providers/task_list_view_providers.dart';
+import '../../tasks/presentation/task_add_edit_screen.dart';
 import '../../tasks/providers/task_providers.dart';
 import '../providers/sprint_providers.dart';
-import '../../shared/presentation/task_item_list.dart';
 
 part 'sprint_task_items_screen.g.dart';
-
-/// Provider for sprint-screen filter settings.
-/// TM-368 self-review: kept `keepAlive: true`. The pre-TM-368 contract was
-/// "toggle persists across tab switches" — without keepAlive, auto-dispose
-/// fires on consumer unmount and any user-toggled value silently resets
-/// to the default the next time a sprint is opened. Defaults-on-first-
-/// visit alone doesn't preserve that contract.
-@Riverpod(keepAlive: true)
-class ShowCompletedInSprint extends _$ShowCompletedInSprint {
-  @override
-  bool build() => true; // Default to true for sprint tab
-
-  void toggle() => state = !state;
-}
-
-@Riverpod(keepAlive: true)
-class ShowScheduledInSprint extends _$ShowScheduledInSprint {
-  @override
-  bool build() => true;
-
-  void toggle() => state = !state;
-}
 
 /// Stream of all tasks assigned to a sprint — INCLUDING completed ones —
 /// with recurrences populated. Used by [sprintTaskItems] so that completed
@@ -61,10 +49,6 @@ Stream<List<TaskItem>> sprintAllTasks(Ref ref, Sprint sprint) {
 
   if (personDocId == null) return Stream.value(const []);
 
-  // Filter retired assignments — a retired SprintAssignment means the task
-  // has been removed from this sprint. Stays consistent with
-  // `sprintRosterFirestoreProvider` and `sprintCompletionCountsProvider`,
-  // both of which apply the same filter.
   final docIds = sprint.sprintAssignments
       .where((sa) => sa.retired == null)
       .map((sa) => sa.taskDocId)
@@ -117,42 +101,31 @@ Stream<List<TaskItem>> sprintAllTasks(Ref ref, Sprint sprint) {
   );
 }
 
-/// Provider for filtered tasks in the active sprint.
+/// Sprint task list in sprint-assignment order (TM-339), with the user's
+/// TaskFilters applied via the shared pipeline.
+///
 /// TM-368: pure-derived family provider — auto-dispose for the same
-/// reason as `sprintAllTasks` (per-sprint instances shouldn't pin in memory).
+/// reason as `sprintAllTasks`.
 @riverpod
 Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
-  // Source: all sprint-assigned tasks (incomplete + completed) with recurrences.
-  final allSprintTasks = await ref.watch(sprintAllTasksProvider(sprint).future);
+  final view = ref.watch(taskListViewStateProvider(TaskListSurface.sprint));
+  final allSprintTasks =
+      await ref.watch(sprintAllTasksProvider(sprint).future);
   final pendingTasks = ref.watch(pendingTasksProvider);
   final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
   final olderState = ref.watch(olderCompletedTasksBatchesProvider);
-  final showCompleted = ref.watch(showCompletedInSprintProvider);
-  final showScheduled = ref.watch(showScheduledInSprintProvider);
-  // Sprint-scoped Firestore roster: ensures completed-prior-to-session
-  // tasks are visible when "Finished" is toggled on, regardless of whether
-  // the global olderCompletedTasksBatches has been triggered. See
-  // sprintRosterFirestoreProvider for the rationale.
   final firestoreRoster =
       await ref.watch(sprintRosterFirestoreProvider(sprint).future);
 
-  // Retired assignments are excluded everywhere else (Firestore roster,
-  // completion counts, sprintAllTasks); match that here so a removed task
-  // doesn't continue to show in the sprint screen.
   final sprintDocIds = sprint.sprintAssignments
       .where((sa) => sa.retired == null)
       .map((sa) => sa.taskDocId)
       .toSet();
 
-  // Build a docId → task map with pending state overlaid for optimistic UI.
   final taskMap = <String, TaskItem>{};
   for (final task in allSprintTasks) {
     taskMap[task.docId] = pendingTasks[task.docId] ?? task;
   }
-  // Include any recentlyCompleted tasks that haven't propagated through the
-  // Drift stream yet (write-confirmation race). Overwrite the existing entry
-  // when recentlyCompleted carries a completionDate — Drift may still have the
-  // pre-completion row, which would incorrectly treat the task as incomplete.
   for (final task in recentlyCompleted) {
     if (sprintDocIds.contains(task.docId)) {
       if (task.completionDate != null) {
@@ -162,13 +135,7 @@ Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
       }
     }
   }
-  // Include older completed tasks loaded from Firestore that are absent from
-  // Drift. Two sources: the global olderCompletedTasksBatches (loaded when
-  // the user toggles Show Completed on the Tasks tab) and the sprint-scoped
-  // Firestore roster (always fetched). Both are gated on showCompleted —
-  // the filter below would drop them otherwise. `putIfAbsent` so Drift's
-  // live state always wins over the Firestore snapshot.
-  if (showCompleted) {
+  if (view.filters.showCompleted) {
     for (final task in olderState.loadedTasks) {
       if (sprintDocIds.contains(task.docId)) {
         taskMap.putIfAbsent(task.docId, () => task);
@@ -181,9 +148,8 @@ Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
     }
   }
 
-  // Iterate sprint assignments IN ORDER so positions are stable across
-  // completions (TM-339): completing a task doesn't reshuffle the list.
-  // Skip retired assignments to match the filter used for `sprintDocIds`.
+  // Iterate sprint assignments IN ORDER (TM-339) — completion doesn't
+  // reshuffle the displayed list.
   final ordered = <TaskItem>[];
   for (final sa in sprint.sprintAssignments) {
     if (sa.retired != null) continue;
@@ -191,24 +157,33 @@ Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
     if (task != null) ordered.add(task);
   }
 
-  // Apply filters
-  return ordered.where((task) {
-    if (task.retired != null) return false;
+  return applyTaskFilters(
+    ordered.where((t) => t.retired == null),
+    view.filters,
+    now: DateTime.now(),
+    recentlyCompletedDocIds:
+        recentlyCompleted.map((t) => t.docId).toSet(),
+  ).toList();
+}
 
-    // Completed tasks: show when showCompleted is true OR if recently completed.
-    // Bypasses the scheduled filter so completed tasks with future start dates still appear.
-    if (task.completionDate != null) {
-      final isRecentlyCompleted =
-          recentlyCompleted.any((t) => t.docId == task.docId);
-      return showCompleted || isRecentlyCompleted;
-    }
+/// Sprint tasks grouped + sorted via the shared pipeline. With the
+/// sprint surface's defaults (groupAxis=none, sortAxis=dueStatus
+/// sentinel) the result is a single bucket preserving sprint-assignment
+/// order. If the user picks a non-default group axis via ViewOptionsSheet,
+/// proper bucketing kicks in.
+@riverpod
+Future<List<TaskGroupResult>> sprintGroupedTasks(Ref ref, Sprint sprint) async {
+  final view = ref.watch(taskListViewStateProvider(TaskListSurface.sprint));
+  final tasks = await ref.watch(sprintTaskItemsProvider(sprint).future);
+  final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
 
-    // Non-completed tasks: check scheduled filter
-    final scheduledPredicate = task.startDate == null ||
-        task.startDate!.isBefore(DateTime.now()) ||
-        showScheduled;
-    return scheduledPredicate;
-  }).toList();
+  return groupAndSortTasks(
+    tasks: tasks,
+    view: view,
+    now: DateTime.now(),
+    recentlyCompletedDocIds:
+        recentlyCompleted.map((t) => t.docId).toSet(),
+  );
 }
 
 class SprintTaskItemsScreen extends ConsumerWidget {
@@ -221,38 +196,29 @@ class SprintTaskItemsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final taskItemsAsync = ref.watch(sprintTaskItemsProvider(sprint));
-    final showCompleted = ref.watch(showCompletedInSprintProvider);
-    final showScheduled = ref.watch(showScheduledInSprintProvider);
+    final groupedAsync = ref.watch(sprintGroupedTasksProvider(sprint));
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sprint Tasks'),
         actions: <Widget>[
           const ConnectionStatusIndicator(),
-          FilterButton(
-            scheduledGetter: () => showScheduled,
-            completedGetter: () => showCompleted,
-            toggleScheduled: () =>
-                ref.read(showScheduledInSprintProvider.notifier).toggle(),
-            toggleCompleted: () =>
-                ref.read(showCompletedInSprintProvider.notifier).toggle(),
+          IconButton(
+            icon: const Icon(Icons.tune),
+            tooltip: 'View options',
+            onPressed: () => ViewOptionsSheet.show(
+              context,
+              surface: TaskListSurface.sprint,
+            ),
           ),
           const RefreshButton(),
         ],
       ),
-      body: taskItemsAsync.when(
-        data: (taskItems) => TaskItemList(
-          taskItems: BuiltList<TaskItem>(taskItems),
-          sprintMode: true,
-        ),
+      body: groupedAsync.when(
+        data: (groups) => _SprintBody(sprint: sprint, groups: groups),
         loading: () {
-          // Preserve previous data during loading to prevent list disappearing
-          if (taskItemsAsync.hasValue) {
-            return TaskItemList(
-              taskItems: BuiltList<TaskItem>(taskItemsAsync.value!),
-              sprintMode: true,
-            );
+          if (groupedAsync.hasValue) {
+            return _SprintBody(sprint: sprint, groups: groupedAsync.value!);
           }
           return const Center(child: CircularProgressIndicator());
         },
@@ -265,7 +231,8 @@ class SprintTaskItemsScreen extends ConsumerWidget {
                 const Text('Unable to load sprint tasks. Please try again.'),
                 const SizedBox(height: 12),
                 FilledButton.icon(
-                  onPressed: () => ref.invalidate(sprintTaskItemsProvider(sprint)),
+                  onPressed: () =>
+                      ref.invalidate(sprintGroupedTasksProvider(sprint)),
                   icon: const Icon(Icons.refresh),
                   label: const Text('Retry'),
                 ),
@@ -275,6 +242,150 @@ class SprintTaskItemsScreen extends ConsumerWidget {
         },
       ),
       drawer: const AppDrawer(),
+    );
+  }
+}
+
+class _SprintBody extends ConsumerWidget {
+  final Sprint sprint;
+  final List<TaskGroupResult> groups;
+
+  const _SprintBody({required this.sprint, required this.groups});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final view = ref.watch(taskListViewStateProvider(TaskListSurface.sprint));
+    final viewNotifier = ref
+        .read(taskListViewStateProvider(TaskListSurface.sprint).notifier);
+
+    final tiles = <Widget>[];
+    for (final group in groups) {
+      final collapsed = view.collapsedGroups.contains(group.key);
+      if (group.displayName.isNotEmpty) {
+        tiles.add(CollapsibleGroupHeader(
+          label: group.displayName,
+          count: group.tasks.length,
+          collapsed: collapsed,
+          onTap: () => viewNotifier.toggleGroupCollapsed(group.key),
+        ));
+      }
+      if (!collapsed) {
+        for (final task in group.tasks) {
+          tiles.add(_SprintTaskTile(task: task));
+        }
+      }
+    }
+
+    // "Add More..." entry point: opens the plan-mode picker so the user
+    // can append more tasks to this sprint.
+    tiles.add(_AddMoreButton(sprint: sprint));
+
+    if (groups.isEmpty || groups.every((g) => g.tasks.isEmpty)) {
+      return ListView(
+        children: const [
+          _NoTasksFoundCard(),
+        ],
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.only(
+        top: 7.0,
+        bottom: kFloatingActionButtonMargin + 54,
+      ),
+      itemCount: tiles.length,
+      itemBuilder: (_, i) => tiles[i],
+    );
+  }
+}
+
+class _SprintTaskTile extends ConsumerWidget {
+  final TaskItem task;
+  const _SprintTaskTile({required this.task});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pendingTasks = ref.watch(pendingTasksProvider);
+    final displayTask = pendingTasks[task.docId] ?? task;
+    return EditableTaskItemWidget(
+      taskItem: displayTask,
+      highlightSprint: false,
+      onEdit: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => TaskAddEditScreen(taskItemId: task.docId),
+        ),
+      ),
+      onLongPress: () {
+        HapticFeedback.mediumImpact();
+        showDialog<void>(
+          context: context,
+          builder: (context) => SnoozeDialog(taskItem: task),
+        );
+      },
+      onTaskCompleteToggle: (checkState) {
+        if (checkState == CheckState.pending) return null;
+        if (checkState == CheckState.skipped) {
+          ref.read(skipTaskProvider.notifier).unskip(task).catchError(
+              (Object e, StackTrace st) =>
+                  showTaskActionError(context, e, st));
+          return null;
+        }
+        ref
+            .read(completeTaskProvider.notifier)
+            .call(task, complete: checkState == CheckState.inactive)
+            .catchError((Object e, StackTrace st) =>
+                showTaskActionError(context, e, st));
+        return null;
+      },
+      confirmDismiss: (direction) async {
+        if (direction == DismissDirection.endToStart) {
+          try {
+            await ref.read(deleteTaskProvider.notifier).call(task);
+            return true;
+          } catch (_) {
+            return false;
+          }
+        }
+        return false;
+      },
+    );
+  }
+}
+
+class _AddMoreButton extends StatelessWidget {
+  final Sprint sprint;
+  const _AddMoreButton({required this.sprint});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(25.0),
+      child: Center(
+        child: GestureDetector(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => PlanTaskList()),
+          ),
+          child: const Text(
+            'Add More...',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NoTasksFoundCard extends StatelessWidget {
+  const _NoTasksFoundCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+      child: Text(
+        'No eligible tasks found.',
+        style: TextStyle(fontSize: 17.0),
+      ),
     );
   }
 }

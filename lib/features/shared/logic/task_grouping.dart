@@ -461,14 +461,11 @@ List<TaskItem> _sortBucket(
       return [...tasks]
         ..sort((a, b) => _cmpDate(a.completionDate, b.completionDate, -1));
     }
-    if (bucket == null) {
-      // Non-dueStatus group axis with sortAxis=dueStatus → degrade to
-      // dateAdded so users still get a deterministic ordering.
-      final dir = view.sortDirection == SortDirection.ascending ? 1 : -1;
-      return [...tasks]
-        ..sort((a, b) => _cmpDate(a.dateAdded, b.dateAdded, dir));
-    }
-    // Past Due / Urgent / Target / Tasks: insertion order.
+    // Past Due / Urgent / Target / Tasks (under dueStatus axis) AND
+    // every bucket under any non-dueStatus axis: preserve input order.
+    // For the Sprint surface in particular, the caller passes tasks in
+    // sprint-assignment order (TM-339); the sortAxis=dueStatus sentinel
+    // means "don't reorder."
     return tasks.toList();
   }
 

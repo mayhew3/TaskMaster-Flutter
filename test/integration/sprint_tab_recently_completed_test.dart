@@ -1,11 +1,14 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:taskmaestro/features/shared/providers/task_list_view_providers.dart';
 import 'package:taskmaestro/features/sprints/presentation/sprint_task_items_screen.dart';
 import 'package:taskmaestro/features/tasks/providers/task_providers.dart';
 import 'package:taskmaestro/models/sprint.dart';
 import 'package:taskmaestro/models/sprint_assignment.dart';
 import 'package:taskmaestro/models/task_item.dart';
+import 'package:taskmaestro/models/task_list_view.dart';
 
 import '../helpers/async_provider_helpers.dart';
 
@@ -18,7 +21,29 @@ import '../helpers/async_provider_helpers.dart';
 ///    groups them into the "Completed" section at the bottom.
 ///  - Ordering is determined by sprint.sprintAssignments so completions
 ///    do not reshuffle the list.
+/// TM-359 migration: the Sprint surface's "showCompleted" toggle moved
+/// from the old `showCompletedInSprintProvider` to the new shared
+/// `TaskFilters.showCompleted` axis (per-surface via
+/// `taskListViewStateProvider`). This helper sets that flag on the
+/// Sprint surface's TaskListView.
+void _setShowCompleted(ProviderContainer container, bool value) {
+  final notifier = container
+      .read(taskListViewStateProvider(TaskListSurface.sprint).notifier);
+  final current =
+      container.read(taskListViewStateProvider(TaskListSurface.sprint));
+  notifier.setFilters(
+    current.filters.rebuild((b) => b..showCompleted = value),
+  );
+}
+
 void main() {
+  // Clear persisted TaskListView state between tests so an earlier
+  // `showCompleted=false` doesn't leak across test boundaries.
+  setUp(() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  });
+
   group('Sprint Screen Recently Completed Behavior (TM-339)', () {
     final now = DateTime.now().toUtc();
 
@@ -80,7 +105,7 @@ void main() {
       container
           .read(recentlyCompletedTasksProvider.notifier)
           .add(completedTask);
-      container.read(showCompletedInSprintProvider.notifier).state = false;
+      _setShowCompleted(container, false);
 
       final result = await readAsyncValue(container, sprintTaskItemsProvider(sprint));
 
@@ -148,7 +173,7 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      container.read(showCompletedInSprintProvider.notifier).state = false;
+      _setShowCompleted(container, false);
 
       final result = await readAsyncValue(container, sprintTaskItemsProvider(sprint));
 
@@ -224,7 +249,7 @@ void main() {
         ..add(task1)
         ..add(task2)
         ..add(task3);
-      container.read(showCompletedInSprintProvider.notifier).state = false;
+      _setShowCompleted(container, false);
 
       final result = await readAsyncValue(container, sprintTaskItemsProvider(sprint));
 
