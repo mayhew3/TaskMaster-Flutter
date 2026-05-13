@@ -10,10 +10,10 @@ import 'package:taskmaestro/features/shared/providers/task_list_view_providers.d
 import 'package:taskmaestro/models/context.dart' as ctx_model;
 import 'package:taskmaestro/models/task_list_view.dart';
 
-Future<Widget> _wrap({
-  required TaskListSurface surface,
+ProviderScope _scope({
+  required Widget child,
   required SharedPreferences prefs,
-}) async {
+}) {
   return ProviderScope(
     overrides: [
       sharedPreferencesProvider.overrideWith((_) async => prefs),
@@ -25,13 +25,7 @@ Future<Widget> _wrap({
       theme: ThemeData.dark(),
       home: Builder(
         builder: (context) => Scaffold(
-          body: Center(
-            child: ElevatedButton(
-              onPressed: () =>
-                  ViewOptionsSheet.show(context, surface: surface),
-              child: const Text('Open'),
-            ),
-          ),
+          body: Center(child: child),
         ),
       ),
     ),
@@ -46,21 +40,34 @@ void main() {
     prefs = await SharedPreferences.getInstance();
   });
 
+  Widget _openButton(TaskListSurface surface) {
+    return Builder(
+      builder: (context) => ElevatedButton(
+        onPressed: () => ViewOptionsSheet.show(context, surface: surface),
+        child: const Text('Open'),
+      ),
+    );
+  }
+
   testWidgets('pumps the sheet for each surface without throwing',
       (tester) async {
     for (final surface in TaskListSurface.values) {
-      await tester.pumpWidget(
-          await _wrap(surface: surface, prefs: prefs));
+      await tester.pumpWidget(_scope(
+        prefs: prefs,
+        child: _openButton(surface),
+      ));
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
       expect(find.text('View options'), findsOneWidget,
           reason: 'sheet did not open for $surface');
-      await tester.tap(find.text('Done'));
+      expect(find.text('Cancel'), findsOneWidget);
+      expect(find.text('Apply Changes'), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
     }
   });
 
-  testWidgets('changing group axis writes through the notifier',
+  testWidgets('Apply Changes commits group-axis selection; Cancel discards',
       (tester) async {
     final container = ProviderContainer(overrides: [
       sharedPreferencesProvider.overrideWith((_) async => prefs),
@@ -76,13 +83,7 @@ void main() {
         theme: ThemeData.dark(),
         home: Builder(
           builder: (context) => Scaffold(
-            body: Center(
-              child: ElevatedButton(
-                onPressed: () => ViewOptionsSheet.show(context,
-                    surface: TaskListSurface.tasks),
-                child: const Text('Open'),
-              ),
-            ),
+            body: Center(child: _openButton(TaskListSurface.tasks)),
           ),
         ),
       ),
@@ -90,39 +91,69 @@ void main() {
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
 
-    // Initial state: groupAxis = dueStatus (Tasks default).
+    final initial =
+        container.read(taskListViewStateProvider(TaskListSurface.tasks));
+    expect(initial.groupAxis, TaskGroupAxis.dueStatus);
+
+    // Change the Group dropdown to "Area" by tapping it then the option.
+    // The Group dropdown is the first DropdownButton<TaskGroupAxis>.
+    await tester.tap(find.byType(DropdownButton<TaskGroupAxis>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Area').last);
+    await tester.pumpAndSettle();
+
+    // Saved state hasn't moved yet — working copy only.
     expect(
-      container.read(taskListViewStateProvider(TaskListSurface.tasks))
+      container
+          .read(taskListViewStateProvider(TaskListSurface.tasks))
           .groupAxis,
       TaskGroupAxis.dueStatus,
     );
 
-    // Tap the "Area" chip in the Group section. Both Group and Sort
-    // sections offer an "Area" axis; Group is rendered above Sort so
-    // `.first` picks the Group chip.
-    await tester.tap(find.widgetWithText(ChoiceChip, 'Area').first);
+    // Apply commits.
+    await tester.tap(find.text('Apply Changes'));
     await tester.pumpAndSettle();
     expect(
-      container.read(taskListViewStateProvider(TaskListSurface.tasks))
+      container
+          .read(taskListViewStateProvider(TaskListSurface.tasks))
           .groupAxis,
       TaskGroupAxis.area,
     );
+
+    // Reopen + change + Cancel → no commit.
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(DropdownButton<TaskGroupAxis>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Priority').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(
+      container
+          .read(taskListViewStateProvider(TaskListSurface.tasks))
+          .groupAxis,
+      TaskGroupAxis.area,
+      reason: 'Cancel must not commit working-copy changes',
+    );
   });
 
-  testWidgets('Owned-by-me toggle only appears on the Family surface',
+  testWidgets('Owned by me only toggle only appears on the Family surface',
       (tester) async {
-    // Tasks surface — no Owned switch.
-    await tester.pumpWidget(
-        await _wrap(surface: TaskListSurface.tasks, prefs: prefs));
+    await tester.pumpWidget(_scope(
+      prefs: prefs,
+      child: _openButton(TaskListSurface.tasks),
+    ));
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
     expect(find.text('Owned by me only'), findsNothing);
-    await tester.tap(find.text('Done'));
+    await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
 
-    // Family surface — Owned switch present.
-    await tester.pumpWidget(
-        await _wrap(surface: TaskListSurface.family, prefs: prefs));
+    await tester.pumpWidget(_scope(
+      prefs: prefs,
+      child: _openButton(TaskListSurface.family),
+    ));
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
     expect(find.text('Owned by me only'), findsOneWidget);

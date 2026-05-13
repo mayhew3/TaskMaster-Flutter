@@ -173,9 +173,7 @@ void main() {
         now: _now,
         view: _view(
           groupAxis: TaskGroupAxis.none,
-          filters: (b) => b
-            ..recurrence = RecurrenceFilter.scheduled
-            ..showCompleted = true,
+          filters: (b) => b..recurrence = RecurrenceFilter.scheduled,
         ),
       );
       expect(r1.single.tasks.map((t) => t.docId), ['a']);
@@ -186,9 +184,7 @@ void main() {
         now: _now,
         view: _view(
           groupAxis: TaskGroupAxis.none,
-          filters: (b) => b
-            ..recurrence = RecurrenceFilter.completed
-            ..showCompleted = true,
+          filters: (b) => b..recurrence = RecurrenceFilter.completed,
         ),
       );
       expect(r2.single.tasks.map((t) => t.docId), ['b']);
@@ -221,7 +217,8 @@ void main() {
       expect(r.single.tasks.map((t) => t.docId), ['a']);
     });
 
-    test('legacy showScheduled off drops future-startDate tasks', () {
+    test('dueStatus whitelist excluding scheduled hides future-startDate tasks',
+        () {
       final tasks = [
         _t(docId: 'a', startDate: _hourAhead),
         _t(docId: 'b'),
@@ -229,12 +226,23 @@ void main() {
       final r = groupAndSortTasks(
         tasks: tasks,
         now: _now,
-        view: _view(groupAxis: TaskGroupAxis.none),
+        view: _view(
+          groupAxis: TaskGroupAxis.none,
+          filters: (b) => b
+            ..dueStatus.replace(const {
+              DueStatusBucket.pastDue,
+              DueStatusBucket.urgent,
+              DueStatusBucket.target,
+              DueStatusBucket.normal,
+              DueStatusBucket.completed,
+            }),
+        ),
       );
       expect(r.single.tasks.map((t) => t.docId), ['b']);
     });
 
-    test('legacy showCompleted off drops completed tasks', () {
+    test('dueStatus whitelist excluding completed hides completed tasks',
+        () {
       final tasks = [
         _t(docId: 'a', completionDate: _hourAgo),
         _t(docId: 'b'),
@@ -242,7 +250,17 @@ void main() {
       final r = groupAndSortTasks(
         tasks: tasks,
         now: _now,
-        view: _view(groupAxis: TaskGroupAxis.none),
+        view: _view(
+          groupAxis: TaskGroupAxis.none,
+          filters: (b) => b
+            ..dueStatus.replace(const {
+              DueStatusBucket.pastDue,
+              DueStatusBucket.urgent,
+              DueStatusBucket.target,
+              DueStatusBucket.normal,
+              DueStatusBucket.scheduled,
+            }),
+        ),
       );
       expect(r.single.tasks.map((t) => t.docId), ['b']);
     });
@@ -278,9 +296,7 @@ void main() {
       final r = groupAndSortTasks(
         tasks: tasks,
         now: _now,
-        view: _view(filters: (b) => b
-          ..showScheduled = true
-          ..showCompleted = true),
+        view: _view(),
       );
       expect(r.map((g) => g.key), [
         'due:pastDue',
@@ -318,7 +334,7 @@ void main() {
       final r1 = groupAndSortTasks(
         tasks: tasks,
         now: _now,
-        view: _view(filters: (b) => b..showCompleted = true),
+        view: _view(),
       );
       expect(r1.single.key, 'due:completed');
 
@@ -326,20 +342,34 @@ void main() {
       final r2 = groupAndSortTasks(
         tasks: tasks,
         now: _now,
-        view: _view(filters: (b) => b..showCompleted = true),
+        view: _view(),
         recentlyCompletedDocIds: {'a'},
       );
       expect(r2.single.key, 'due:pastDue');
     });
 
-    test('recently-completed also bypasses the showCompleted=false cut', () {
+    test('recently-completed bypasses a dueStatus whitelist that excludes '
+        'completed', () {
       final tasks = [
         _t(docId: 'a', completionDate: _hourAgo),
       ];
+      // dueStatus excludes completed, so a non-bypassed completed task
+      // would be hidden. The recently-completed bypass routes the filter
+      // check through the pre-completion bucket (normal), which IS in
+      // the whitelist.
       final r = groupAndSortTasks(
         tasks: tasks,
         now: _now,
-        view: _view(),
+        view: _view(
+          filters: (b) => b
+            ..dueStatus.replace(const {
+              DueStatusBucket.pastDue,
+              DueStatusBucket.urgent,
+              DueStatusBucket.target,
+              DueStatusBucket.normal,
+              DueStatusBucket.scheduled,
+            }),
+        ),
         recentlyCompletedDocIds: {'a'},
       );
       expect(r.single.tasks.map((t) => t.docId), ['a']);
@@ -361,9 +391,7 @@ void main() {
       final r = groupAndSortTasks(
         tasks: tasks,
         now: _now,
-        view: _view(filters: (b) => b
-          ..showScheduled = true
-          ..showCompleted = true),
+        view: _view(),
       );
       final sched = r.firstWhere((g) => g.key == 'due:scheduled');
       expect(sched.tasks.map((t) => t.docId), ['sA', 'sB']);

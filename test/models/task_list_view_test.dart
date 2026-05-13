@@ -16,8 +16,6 @@ void main() {
       expect(f.maxAgeDays, null);
       expect(f.ownedByMeOnly, false);
       expect(f.search, '');
-      expect(f.showScheduled, false);
-      expect(f.showCompleted, false);
     });
 
     test('rebuild mutates a single axis without touching the rest', () {
@@ -29,7 +27,7 @@ void main() {
       expect(next.maxPriority, 4);
       // Everything else still at default.
       expect(next.recurrence, RecurrenceFilter.all);
-      expect(next.showCompleted, false);
+      expect(next.dueStatus, isEmpty);
       // Built-value equality: base unchanged.
       expect(base.minPriority, null);
     });
@@ -46,9 +44,7 @@ void main() {
         ..recurrence = RecurrenceFilter.scheduled
         ..maxAgeDays = 30
         ..ownedByMeOnly = true
-        ..search = 'demo'
-        ..showScheduled = true
-        ..showCompleted = true);
+        ..search = 'demo');
       final roundTripped = TaskFilters.fromJson(original.toJson());
       expect(roundTripped, original);
     });
@@ -67,44 +63,52 @@ void main() {
     test('fromJson tolerates wrong types for primitive fields', () {
       final f = TaskFilters.fromJson({
         'minPriority': 'banana',
-        'showCompleted': 'true', // String, not bool
+        'ownedByMeOnly': 'true', // String, not bool
         'search': 42, // int, not String
       });
       expect(f.minPriority, null);
-      expect(f.showCompleted, false);
+      expect(f.ownedByMeOnly, false);
       expect(f.search, '');
     });
   });
 
   group('TaskListView', () {
-    test('tasksDefault matches the documented Tasks-tab baseline', () {
+    test('tasksDefault pre-populates dueStatus to hide scheduled + completed',
+        () {
       final v = TaskListView.tasksDefault();
       expect(v.groupAxis, TaskGroupAxis.dueStatus);
       expect(v.sortAxis, TaskSortAxis.dateAdded);
       expect(v.sortDirection, SortDirection.descending);
-      expect(v.filters.showCompleted, false);
-      expect(v.filters.showScheduled, false);
+      // Whitelist of four "actionable" buckets — matches pre-TM-359's
+      // hide-scheduled / hide-completed defaults.
+      expect(v.filters.dueStatus, {
+        DueStatusBucket.pastDue,
+        DueStatusBucket.urgent,
+        DueStatusBucket.target,
+        DueStatusBucket.normal,
+      });
       expect(v.collapsedGroups, isEmpty);
     });
 
-    test('sprintDefault preserves TM-339 sprint-assignment-order intent', () {
+    test('sprintDefault has empty dueStatus (no filter, all buckets visible)',
+        () {
       final v = TaskListView.sprintDefault();
       expect(v.groupAxis, TaskGroupAxis.none);
       // dueStatus sentinel = "use bucket's natural sort"; under groupAxis=none
       // the grouping pipeline falls through to insertion order (sprint
       // assignment).
       expect(v.sortAxis, TaskSortAxis.dueStatus);
-      expect(v.filters.showCompleted, true);
-      expect(v.filters.showScheduled, true);
+      expect(v.filters.dueStatus, isEmpty);
     });
 
     test('familyDefault matches tasksDefault (same UX shell)', () {
       expect(TaskListView.familyDefault(), TaskListView.tasksDefault());
     });
 
-    test('planDefault matches tasksDefault (history overlay is pipeline-side)',
+    test('planDefault has empty dueStatus (every eligible task visible)',
         () {
-      expect(TaskListView.planDefault(), TaskListView.tasksDefault());
+      final v = TaskListView.planDefault();
+      expect(v.filters.dueStatus, isEmpty);
     });
 
     test('defaultForSurface dispatches correctly', () {
@@ -173,9 +177,9 @@ void main() {
         {'groupAxis': 'none'},
         defaultView: def,
       );
-      // Sprint default's showScheduled/showCompleted are both true.
-      expect(v.filters.showScheduled, true);
-      expect(v.filters.showCompleted, true);
+      // Sprint default has empty dueStatus → no filter, every bucket
+      // visible (effectively the same UX as the old all-toggles-on).
+      expect(v.filters.dueStatus, isEmpty);
     });
 
     test('rebuild keeps built-value equality semantics', () {

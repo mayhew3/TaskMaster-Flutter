@@ -91,12 +91,6 @@ abstract class TaskFilters implements Built<TaskFilters, TaskFiltersBuilder> {
   /// Case-insensitive search across `name`. Empty = no search.
   String get search;
 
-  /// Legacy parity toggle: include scheduled (start-date-future) tasks.
-  bool get showScheduled;
-
-  /// Legacy parity toggle: include completed tasks.
-  bool get showCompleted;
-
   TaskFilters._();
 
   factory TaskFilters([void Function(TaskFiltersBuilder) updates]) =
@@ -109,13 +103,11 @@ abstract class TaskFilters implements Built<TaskFilters, TaskFiltersBuilder> {
   static void _setDefaults(TaskFiltersBuilder b) => b
     ..recurrence = RecurrenceFilter.all
     ..ownedByMeOnly = false
-    ..search = ''
-    ..showScheduled = false
-    ..showCompleted = false;
+    ..search = '';
 
   /// JSON shape used by SharedPreferences. Stable across releases: don't
   /// remove a key or its meaning, only add new keys with defaults so old
-  /// payloads round-trip.
+  /// payloads round-trip. Unknown keys are ignored.
   Map<String, dynamic> toJson() => {
         'areas': areas.toList(),
         'contexts': contexts.toList(),
@@ -128,8 +120,6 @@ abstract class TaskFilters implements Built<TaskFilters, TaskFiltersBuilder> {
         if (maxAgeDays != null) 'maxAgeDays': maxAgeDays,
         'ownedByMeOnly': ownedByMeOnly,
         'search': search,
-        'showScheduled': showScheduled,
-        'showCompleted': showCompleted,
       };
 
   /// Inverse of [toJson]. Unknown enum names and bad types fall back to the
@@ -151,9 +141,7 @@ abstract class TaskFilters implements Built<TaskFilters, TaskFiltersBuilder> {
           RecurrenceFilter.values, json['recurrence'], RecurrenceFilter.all)
       ..maxAgeDays = _asIntOrNull(json['maxAgeDays'])
       ..ownedByMeOnly = _asBool(json['ownedByMeOnly'], false)
-      ..search = _asString(json['search'], '')
-      ..showScheduled = _asBool(json['showScheduled'], false)
-      ..showCompleted = _asBool(json['showCompleted'], false));
+      ..search = _asString(json['search'], ''));
   }
 }
 
@@ -178,31 +166,45 @@ abstract class TaskListView implements Built<TaskListView, TaskListViewBuilder> 
   factory TaskListView([void Function(TaskListViewBuilder) updates]) =
       _$TaskListView;
 
-  /// Default state for Tasks tab (matches pre-TM-359 behavior).
+  /// Default state for Tasks tab. `dueStatus` is pre-populated with the
+  /// four "actionable" buckets so scheduled and completed tasks are
+  /// hidden by default (matches pre-TM-359's `showScheduled=false` /
+  /// `showCompleted=false` toggles). The other multi-select filters
+  /// (`areas`, `contexts`) start empty = "no filter applied, show all";
+  /// the View Options sheet visually renders empty as "all selected" so
+  /// a newly-added area/context is included by default.
   factory TaskListView.tasksDefault() => TaskListView((b) => b
     ..groupAxis = TaskGroupAxis.dueStatus
     ..sortAxis = TaskSortAxis.dateAdded
     ..sortDirection = SortDirection.descending
-    ..filters.replace(TaskFilters.empty()));
+    ..filters.replace(TaskFilters.empty().rebuild((f) => f
+      ..dueStatus.replace(const {
+        DueStatusBucket.pastDue,
+        DueStatusBucket.urgent,
+        DueStatusBucket.target,
+        DueStatusBucket.normal,
+      }))));
 
   /// Default state for Family tab (mirror of Tasks tab).
   factory TaskListView.familyDefault() => TaskListView.tasksDefault();
 
   /// Default state for Sprint tab — preserves TM-339 sprint-assignment
-  /// order (group=none, sort sentinel=dueStatus → falls through to natural
-  /// order; the sprint provider keeps insertion order).
+  /// order. `dueStatus` is empty (= no filter / show all buckets) so
+  /// every assigned task remains visible regardless of state.
   factory TaskListView.sprintDefault() => TaskListView((b) => b
     ..groupAxis = TaskGroupAxis.none
     ..sortAxis = TaskSortAxis.dueStatus
     ..sortDirection = SortDirection.descending
-    ..filters.replace(TaskFilters.empty().rebuild((f) => f
-      ..showScheduled = true
-      ..showCompleted = true)));
+    ..filters.replace(TaskFilters.empty()));
 
   /// Default state for plan-mode (Create Sprint / Add Tasks to Sprint).
-  /// `groupAxis == dueStatus` triggers the plan-mode 8-bucket overlay
-  /// inside `groupAndSortTasks` when `planEndDate` is supplied.
-  factory TaskListView.planDefault() => TaskListView.tasksDefault();
+  /// `dueStatus` is empty so every eligible task is visible; the plan-
+  /// mode 8-bucket overlay continues to render the existing categories.
+  factory TaskListView.planDefault() => TaskListView((b) => b
+    ..groupAxis = TaskGroupAxis.dueStatus
+    ..sortAxis = TaskSortAxis.dateAdded
+    ..sortDirection = SortDirection.descending
+    ..filters.replace(TaskFilters.empty()));
 
   /// Factory dispatch for surface-keyed lookup.
   factory TaskListView.defaultForSurface(TaskListSurface surface) {

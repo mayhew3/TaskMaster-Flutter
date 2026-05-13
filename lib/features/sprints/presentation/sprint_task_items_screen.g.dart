@@ -224,7 +224,7 @@ final class SprintTaskItemsProvider
   }
 }
 
-String _$sprintTaskItemsHash() => r'915ef53c0027bebeb8b647c5ea8d9cf29f7e8c29';
+String _$sprintTaskItemsHash() => r'80ff1d40375b3f51946fd33fc07067f5de87c655';
 
 /// Sprint task list in sprint-assignment order (TM-339), with the user's
 /// TaskFilters applied via the shared pipeline.

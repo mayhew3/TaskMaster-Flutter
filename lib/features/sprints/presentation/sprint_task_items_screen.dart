@@ -135,7 +135,9 @@ Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
       }
     }
   }
-  if (view.filters.showCompleted) {
+  final sprintCompletedVisible = view.filters.dueStatus.isEmpty ||
+      view.filters.dueStatus.contains(DueStatusBucket.completed);
+  if (sprintCompletedVisible) {
     for (final task in olderState.loadedTasks) {
       if (sprintDocIds.contains(task.docId)) {
         taskMap.putIfAbsent(task.docId, () => task);

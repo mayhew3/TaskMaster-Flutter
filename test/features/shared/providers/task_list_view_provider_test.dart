@@ -89,7 +89,7 @@ void main() {
           .read(taskListViewStateProvider(TaskListSurface.tasks).notifier);
       final updated = TaskFilters.empty().rebuild((b) => b
         ..minPriority = 3
-        ..showCompleted = true);
+        ..dueStatus.add(DueStatusBucket.completed));
       notifier.setFilters(updated);
       expect(
         container
@@ -107,9 +107,9 @@ void main() {
       final view =
           container.read(taskListViewStateProvider(TaskListSurface.tasks));
       expect(view.filters.search, 'demo');
-      // Other filter axes still at default.
+      // Other filter axes still at the surface default.
       expect(view.filters.minPriority, null);
-      expect(view.filters.showCompleted, false);
+      expect(view.filters.dueStatus, TaskListView.tasksDefault().filters.dueStatus);
     });
 
     test('toggleGroupCollapsed flips group-key membership', () {

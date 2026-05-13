@@ -25,20 +25,33 @@ part 'task_filter_providers.g.dart';
 // disruptive change. They will be deleted in commit 9 once no consumers
 // remain.
 
+/// Returns whether `bucket` is currently visible on `surface`. Under the
+/// new model, "visible" = either `dueStatus` is empty (= no filter) OR the
+/// bucket is in the whitelist set.
+bool _bucketIsVisible(
+  TaskListView view,
+  DueStatusBucket bucket,
+) {
+  final set = view.filters.dueStatus;
+  return set.isEmpty || set.contains(bucket);
+}
+
 @Riverpod(keepAlive: true)
 class ShowCompleted extends _$ShowCompleted {
   @override
   bool build() {
     final value = ref.watch(taskListViewStateProvider(TaskListSurface.tasks)
-        .select((v) => v.filters.showCompleted));
+        .select((v) => _bucketIsVisible(v, DueStatusBucket.completed)));
     // Side effect: lazily prefetch the first older-completed-tasks batch
     // when the value transitions off→on, regardless of *which* UI path
     // (legacy popup vs new ViewOptionsSheet) triggered the change.
     ref.listen<TaskListView>(
       taskListViewStateProvider(TaskListSurface.tasks),
       (prev, next) {
-        final wasOn = prev?.filters.showCompleted ?? false;
-        final isOn = next.filters.showCompleted;
+        final wasOn = prev == null
+            ? false
+            : _bucketIsVisible(prev, DueStatusBucket.completed);
+        final isOn = _bucketIsVisible(next, DueStatusBucket.completed);
         if (!wasOn && isOn) {
           ref
               .read(olderCompletedTasksBatchesProvider.notifier)
@@ -53,12 +66,7 @@ class ShowCompleted extends _$ShowCompleted {
 
   void set(bool value) {
     if (state == value) return;
-    final viewNotifier = ref
-        .read(taskListViewStateProvider(TaskListSurface.tasks).notifier);
-    final current =
-        ref.read(taskListViewStateProvider(TaskListSurface.tasks));
-    viewNotifier.setFilters(
-        current.filters.rebuild((b) => b..showCompleted = value));
+    _toggleBucket(ref, DueStatusBucket.completed, visible: value);
   }
 }
 
@@ -67,19 +75,45 @@ class ShowScheduled extends _$ShowScheduled {
   @override
   bool build() {
     return ref.watch(taskListViewStateProvider(TaskListSurface.tasks)
-        .select((v) => v.filters.showScheduled));
+        .select((v) => _bucketIsVisible(v, DueStatusBucket.scheduled)));
   }
 
   void toggle() => set(!state);
 
   void set(bool value) {
     if (state == value) return;
-    final viewNotifier = ref
-        .read(taskListViewStateProvider(TaskListSurface.tasks).notifier);
-    final current =
-        ref.read(taskListViewStateProvider(TaskListSurface.tasks));
+    _toggleBucket(ref, DueStatusBucket.scheduled, visible: value);
+  }
+}
+
+/// Add or remove [bucket] from the Tasks-tab `dueStatus` whitelist.
+///
+/// The translation accounts for the empty-set sentinel: when the whitelist
+/// is empty (= "no filter, show all"), toggling a bucket *off* requires
+/// materializing the catalog-minus-this-bucket; toggling a bucket *on*
+/// when already implicitly visible is a no-op.
+void _toggleBucket(Ref ref, DueStatusBucket bucket, {required bool visible}) {
+  final viewNotifier =
+      ref.read(taskListViewStateProvider(TaskListSurface.tasks).notifier);
+  final current = ref.read(taskListViewStateProvider(TaskListSurface.tasks));
+  final set = current.filters.dueStatus;
+  if (visible) {
+    if (set.isEmpty || set.contains(bucket)) return;
+    final next = {...set, bucket};
     viewNotifier.setFilters(
-        current.filters.rebuild((b) => b..showScheduled = value));
+        current.filters.rebuild((b) => b..dueStatus.replace(next)));
+  } else {
+    if (set.isEmpty) {
+      // Materialize: hide this one bucket, keep everything else visible.
+      final next =
+          DueStatusBucket.values.where((b) => b != bucket).toSet();
+      viewNotifier.setFilters(
+          current.filters.rebuild((b) => b..dueStatus.replace(next)));
+    } else if (set.contains(bucket)) {
+      final next = {...set}..remove(bucket);
+      viewNotifier.setFilters(
+          current.filters.rebuild((b) => b..dueStatus.replace(next)));
+    }
   }
 }
 
@@ -144,8 +178,12 @@ Future<List<TaskItem>> filteredTasks(Ref ref) async {
     }
   }
 
-  // Merge progressively-loaded older completed tasks when showCompleted is on.
-  if (view.filters.showCompleted) {
+  // Merge progressively-loaded older completed tasks when the Completed
+  // bucket is visible (empty `dueStatus` = no filter = show all = include
+  // completed; or explicit whitelist contains the completed bucket).
+  final completedVisible = view.filters.dueStatus.isEmpty ||
+      view.filters.dueStatus.contains(DueStatusBucket.completed);
+  if (completedVisible) {
     final olderState = ref.watch(olderCompletedTasksBatchesProvider);
     if (olderState.loadedTasks.isNotEmpty) {
       final uniqueOlder = olderState.loadedTasks

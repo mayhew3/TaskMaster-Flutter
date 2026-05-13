@@ -104,10 +104,19 @@ Iterable<TaskItem> _applyFilters(
       return false;
     }
 
-    // Due-status multi-select.
+    // Due-status whitelist (empty = no filter / show all). When a task is
+    // in the recently-completed set we check against the bucket it had
+    // *before* completion (TM-323): a just-completed urgent task remains
+    // visible under `dueStatus = {pastDue, urgent, target, normal}`.
     if (f.dueStatus.isNotEmpty) {
-      final bucket = _dueStatusBucketOf(task, now);
-      if (!f.dueStatus.contains(bucket)) return false;
+      final actualBucket = _dueStatusBucketOf(task, now);
+      final isRecentlyCompleted =
+          recentlyCompletedDocIds.contains(task.docId);
+      final effectiveBucket =
+          (isRecentlyCompleted && actualBucket == DueStatusBucket.completed)
+              ? _dueStatusBucketIgnoringCompletion(task, now)
+              : actualBucket;
+      if (!f.dueStatus.contains(effectiveBucket)) return false;
     }
 
     // Priority bounds. Null priority always excluded when ANY bound is set.
@@ -126,23 +135,6 @@ Iterable<TaskItem> _applyFilters(
     if (f.maxAgeDays != null) {
       final ageDays = now.difference(task.dateAdded).inDays;
       if (ageDays > f.maxAgeDays!) return false;
-    }
-
-    // Legacy showScheduled toggle: drop tasks with a future startDate
-    // when off.
-    if (!f.showScheduled &&
-        task.startDate != null &&
-        task.startDate!.isAfter(now)) {
-      return false;
-    }
-
-    // Legacy showCompleted toggle. Recently-completed tasks bypass the
-    // cut (TM-323 contract) so they stay visible in the originating
-    // bucket until the list refreshes.
-    if (!f.showCompleted &&
-        task.completionDate != null &&
-        !recentlyCompletedDocIds.contains(task.docId)) {
-      return false;
     }
 
     // Case-insensitive search over name.

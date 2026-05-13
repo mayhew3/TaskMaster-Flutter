@@ -29,10 +29,6 @@ class _$TaskFilters extends TaskFilters {
   final bool ownedByMeOnly;
   @override
   final String search;
-  @override
-  final bool showScheduled;
-  @override
-  final bool showCompleted;
 
   factory _$TaskFilters([void Function(TaskFiltersBuilder)? updates]) =>
       (TaskFiltersBuilder()..update(updates))._build();
@@ -49,8 +45,6 @@ class _$TaskFilters extends TaskFilters {
     this.maxAgeDays,
     required this.ownedByMeOnly,
     required this.search,
-    required this.showScheduled,
-    required this.showCompleted,
   }) : super._();
   @override
   TaskFilters rebuild(void Function(TaskFiltersBuilder) updates) =>
@@ -73,9 +67,7 @@ class _$TaskFilters extends TaskFilters {
         recurrence == other.recurrence &&
         maxAgeDays == other.maxAgeDays &&
         ownedByMeOnly == other.ownedByMeOnly &&
-        search == other.search &&
-        showScheduled == other.showScheduled &&
-        showCompleted == other.showCompleted;
+        search == other.search;
   }
 
   @override
@@ -92,8 +84,6 @@ class _$TaskFilters extends TaskFilters {
     _$hash = $jc(_$hash, maxAgeDays.hashCode);
     _$hash = $jc(_$hash, ownedByMeOnly.hashCode);
     _$hash = $jc(_$hash, search.hashCode);
-    _$hash = $jc(_$hash, showScheduled.hashCode);
-    _$hash = $jc(_$hash, showCompleted.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -111,9 +101,7 @@ class _$TaskFilters extends TaskFilters {
           ..add('recurrence', recurrence)
           ..add('maxAgeDays', maxAgeDays)
           ..add('ownedByMeOnly', ownedByMeOnly)
-          ..add('search', search)
-          ..add('showScheduled', showScheduled)
-          ..add('showCompleted', showCompleted))
+          ..add('search', search))
         .toString();
   }
 }
@@ -169,16 +157,6 @@ class TaskFiltersBuilder implements Builder<TaskFilters, TaskFiltersBuilder> {
   String? get search => _$this._search;
   set search(String? search) => _$this._search = search;
 
-  bool? _showScheduled;
-  bool? get showScheduled => _$this._showScheduled;
-  set showScheduled(bool? showScheduled) =>
-      _$this._showScheduled = showScheduled;
-
-  bool? _showCompleted;
-  bool? get showCompleted => _$this._showCompleted;
-  set showCompleted(bool? showCompleted) =>
-      _$this._showCompleted = showCompleted;
-
   TaskFiltersBuilder() {
     TaskFilters._setDefaults(this);
   }
@@ -197,8 +175,6 @@ class TaskFiltersBuilder implements Builder<TaskFilters, TaskFiltersBuilder> {
       _maxAgeDays = $v.maxAgeDays;
       _ownedByMeOnly = $v.ownedByMeOnly;
       _search = $v.search;
-      _showScheduled = $v.showScheduled;
-      _showCompleted = $v.showCompleted;
       _$v = null;
     }
     return this;
@@ -245,16 +221,6 @@ class TaskFiltersBuilder implements Builder<TaskFilters, TaskFiltersBuilder> {
               search,
               r'TaskFilters',
               'search',
-            ),
-            showScheduled: BuiltValueNullFieldError.checkNotNull(
-              showScheduled,
-              r'TaskFilters',
-              'showScheduled',
-            ),
-            showCompleted: BuiltValueNullFieldError.checkNotNull(
-              showCompleted,
-              r'TaskFilters',
-              'showCompleted',
             ),
           );
     } catch (_) {

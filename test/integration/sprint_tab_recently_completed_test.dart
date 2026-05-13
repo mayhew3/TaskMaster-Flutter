@@ -22,17 +22,33 @@ import '../helpers/async_provider_helpers.dart';
 ///  - Ordering is determined by sprint.sprintAssignments so completions
 ///    do not reshuffle the list.
 /// TM-359 migration: the Sprint surface's "showCompleted" toggle moved
-/// from the old `showCompletedInSprintProvider` to the new shared
-/// `TaskFilters.showCompleted` axis (per-surface via
-/// `taskListViewStateProvider`). This helper sets that flag on the
-/// Sprint surface's TaskListView.
+/// from the old `showCompletedInSprintProvider` into membership of the
+/// `TaskFilters.dueStatus` whitelist. `value = true` means "include the
+/// Completed bucket in the visible set"; `value = false` means "exclude
+/// it." Empty whitelist = no filter applied = everything visible.
 void _setShowCompleted(ProviderContainer container, bool value) {
   final notifier = container
       .read(taskListViewStateProvider(TaskListSurface.sprint).notifier);
   final current =
       container.read(taskListViewStateProvider(TaskListSurface.sprint));
+  final set = current.filters.dueStatus;
+  Set<DueStatusBucket> next;
+  if (value) {
+    if (set.isEmpty || set.contains(DueStatusBucket.completed)) return;
+    next = {...set, DueStatusBucket.completed};
+  } else {
+    if (set.isEmpty) {
+      next = DueStatusBucket.values
+          .where((b) => b != DueStatusBucket.completed)
+          .toSet();
+    } else if (set.contains(DueStatusBucket.completed)) {
+      next = {...set}..remove(DueStatusBucket.completed);
+    } else {
+      return;
+    }
+  }
   notifier.setFilters(
-    current.filters.rebuild((b) => b..showCompleted = value),
+    current.filters.rebuild((b) => b..dueStatus.replace(next)),
   );
 }
 

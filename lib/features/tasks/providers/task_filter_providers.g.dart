@@ -41,7 +41,7 @@ final class ShowCompletedProvider
   }
 }
 
-String _$showCompletedHash() => r'f82b90eb306c4e853f094db14d08a82c0bb999ef';
+String _$showCompletedHash() => r'a97fbcdc4d50de6b90e1e1bf4bc98d692f1ee6a8';
 
 abstract class _$ShowCompleted extends $Notifier<bool> {
   bool build();
@@ -93,7 +93,7 @@ final class ShowScheduledProvider
   }
 }
 
-String _$showScheduledHash() => r'08164fd4e7a3ddb79f636f23a8b9dc4f4da7950d';
+String _$showScheduledHash() => r'c5bc4847684d69dff14560f99db1daafe15e4f84';
 
 abstract class _$ShowScheduled extends $Notifier<bool> {
   bool build();
@@ -212,7 +212,7 @@ final class FilteredTasksProvider
   }
 }
 
-String _$filteredTasksHash() => r'7621c61c78ddf9648bb81133c2d8ef16eea4f346';
+String _$filteredTasksHash() => r'7e378bb531620578b89e9e7ab4a0fe9b2f430c9c';
 
 /// Count of active (non-completed, non-retired) tasks.
 /// TM-368: pure-derived from `tasksProvider` (keepAlive). Cheap to
