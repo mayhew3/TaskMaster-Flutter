@@ -20,6 +20,14 @@ class TaskListViewState extends _$TaskListViewState {
   late TaskListSurface _surface;
   TaskListViewStorage? _storage;
 
+  /// True once *any* mutator (including `reset()`) has run while
+  /// `_storage` was still null. Tracks intent rather than state value:
+  /// a `state == defaultView` after `reset()` is conceptually different
+  /// from a `state == defaultView` that has never been touched, and
+  /// the async init needs to distinguish them so it doesn't overwrite
+  /// the user's intent with a stale persisted entry.
+  bool _touchedBeforeStorageReady = false;
+
   @override
   TaskListView build(TaskListSurface surface) {
     _surface = surface;
@@ -33,23 +41,31 @@ class TaskListViewState extends _$TaskListViewState {
       return _storage!.loadSync(surface);
     }
     // Async path: prefs not yet resolved. Return the surface default and
-    // schedule a one-time init that either loads from storage (state
-    // still default → safe to overwrite) or persists the current state
-    // (user mutated before init → preserve their change). Crucially we
-    // do NOT `ref.watch` the prefs provider — re-entering build() on
-    // prefs resolution would stomp any mutations made in the interim.
+    // schedule a one-time init that either loads from storage (user
+    // has not touched state → safe to overwrite) or persists the
+    // current state (user mutated before init → preserve their change).
+    // Crucially we do NOT `ref.watch` the prefs provider — re-entering
+    // build() on prefs resolution would stomp any mutations made in
+    // the interim.
     _storage = null;
+    _touchedBeforeStorageReady = false;
     ref.read(sharedPreferencesProvider.future).then((prefs) {
       if (!ref.mounted) return;
       _storage = TaskListViewStorage(prefs);
-      final defaultView = TaskListView.defaultForSurface(_surface);
-      if (state == defaultView) {
+      if (_touchedBeforeStorageReady) {
+        // User mutated before storage was ready; flush the divergence
+        // so the next session sees it. `reset()` lands in this branch
+        // too — current state happens to match the surface default,
+        // so clearing the persisted entry produces the same future
+        // load result as saving the default verbatim.
+        if (state == TaskListView.defaultForSurface(_surface)) {
+          _storage!.clear(_surface).ignore();
+        } else {
+          _storage!.save(_surface, state).ignore();
+        }
+      } else {
         // No user mutation since build — load persisted (if any).
         state = _storage!.loadSync(_surface);
-      } else {
-        // User mutated before storage was ready; flush the divergence
-        // through so the next session sees it.
-        _storage!.save(_surface, state).ignore();
       }
     }).ignore();
     return TaskListView.defaultForSurface(surface);
@@ -111,15 +127,24 @@ class TaskListViewState extends _$TaskListViewState {
   void reset() {
     final fresh = TaskListView.defaultForSurface(_surface);
     state = fresh;
-    // Fire-and-forget; SharedPreferences errors are non-fatal and would
-    // log internally — the in-memory state is already correct for the
-    // current session. Storage may be null during the brief window
-    // before sharedPreferencesProvider resolves; skip persistence then.
-    _storage?.clear(_surface).ignore();
+    // Storage may be null during the brief window before
+    // sharedPreferencesProvider resolves. Record the touch so the
+    // async init's "no user mutation since build" branch doesn't
+    // overwrite the reset with a stale persisted entry; otherwise
+    // persist immediately.
+    if (_storage == null) {
+      _touchedBeforeStorageReady = true;
+    } else {
+      _storage!.clear(_surface).ignore();
+    }
   }
 
   void _emit(TaskListView next) {
     state = next;
-    _storage?.save(_surface, next).ignore();
+    if (_storage == null) {
+      _touchedBeforeStorageReady = true;
+    } else {
+      _storage!.save(_surface, next).ignore();
+    }
   }
 }

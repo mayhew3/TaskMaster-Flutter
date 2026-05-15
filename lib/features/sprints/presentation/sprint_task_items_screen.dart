@@ -357,12 +357,21 @@ class _AddMoreButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // TextButton (instead of the prior GestureDetector-on-Text): full
+    // Material affordances — focus + hover ring, ≥48dp tap target,
+    // screen-reader "button" role — without changing the bold-text
+    // visual.
     return Padding(
-      padding: const EdgeInsets.all(25.0),
+      padding: const EdgeInsets.symmetric(vertical: 17),
       child: Center(
-        child: GestureDetector(
-          onTap: () => Navigator.of(context).push(
+        child: TextButton(
+          onPressed: () => Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => PlanTaskList()),
+          ),
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 32, vertical: 12),
+            minimumSize: const Size(120, 48),
           ),
           child: const Text(
             'Add More...',
