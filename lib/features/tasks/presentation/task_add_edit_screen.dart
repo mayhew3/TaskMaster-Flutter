@@ -130,10 +130,21 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
         // pop the screen).
         final migratedPriority = task.displayPriority;
         taskItemBlueprint.priority = migratedPriority;
-        ref.read(updateTaskProvider.notifier).call(
-              task: task,
-              blueprint: taskItemBlueprint,
-            );
+        // Schedule the persistence write for after the current frame so
+        // it doesn't fire a provider mutation while we're still inside
+        // build() — `_initializeTask` is called from build() on the
+        // edit-mode loading path, and writing through the provider mid-
+        // build risks setState-during-build errors. Mounted check
+        // covers the race where the screen pops before the post-frame
+        // callback fires.
+        final blueprintAtMigration = taskItemBlueprint;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          ref.read(updateTaskProvider.notifier).call(
+                task: task,
+                blueprint: blueprintAtMigration,
+              );
+        });
         taskItem = task.rebuild((b) => b
           ..priority = migratedPriority
           ..priorityScaleVersion = 2);

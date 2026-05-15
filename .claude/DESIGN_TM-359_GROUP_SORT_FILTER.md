@@ -153,7 +153,7 @@ Rule (2) is the safety guard: a remote that's newer than *both* the anchor *and*
 4. **`TaskItemRecurPreview` rows aren't user-filtered on plan mode** — they flow through unfiltered. Acceptable for v1.
 5. **No custom age range** — preset chips only (Any / ≤7d / ≤30d / ≤90d).
 6. **Group/sort selections don't persist across devices** — local-only via `shared_preferences`. Cross-device sync was an explicit scope decision; defer until there's a clearer user need.
-7. **Deferred review findings — [TM-372](https://mayhew3.atlassian.net/browse/TM-372).** Items surfaced by the pre-push parallel review that were triaged as real-but-non-blocking: `_initializeTask` priority-migration `ref.read` during build (the edit-screen race fix's setState-during-build landmine for legacy `priorityScaleVersion==1` tasks); sub-second precision window in the TaskDao back-fill comparison; in-memory-vs-SQL precision drift in the same back-fill's WHERE-clause guard; `BuiltSet → toSet()` allocation churn in `_DueStatusDropdown`. None block this PR.
+7. **Deferred review findings — [TM-372](https://mayhew3.atlassian.net/browse/TM-372).** Items surfaced by review passes that were triaged as real-but-non-blocking: sub-second precision window in the TaskDao back-fill comparison; in-memory-vs-SQL precision drift in the same back-fill's WHERE-clause guard; `BuiltSet → toSet()` allocation churn in `_DueStatusDropdown`. None block this PR. The original `_initializeTask` priority-migration concern (also originally tracked here) was resolved in commit `<round-3>` by scheduling the migration write via `WidgetsBinding.addPostFrameCallback`.
 
 ---
 

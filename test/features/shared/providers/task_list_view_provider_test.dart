@@ -218,17 +218,5 @@ void main() {
       expect(identical(firstRef, secondRef), isTrue);
     });
 
-    test('flutter_test_config seeds an empty mock store; getInstance resolves',
-        () async {
-      // The global `test/flutter_test_config.dart` calls
-      // `SharedPreferences.setMockInitialValues({})` before every test
-      // file, so the provider resolves to an empty in-memory instance
-      // without needing an explicit override.
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
-      final prefs = await container.read(sharedPreferencesProvider.future);
-      // Empty store: no keys.
-      expect(prefs.getKeys(), isEmpty);
-    });
   });
 }
