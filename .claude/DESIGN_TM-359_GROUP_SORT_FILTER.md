@@ -221,7 +221,7 @@ The PR lands as a foundation (commits 1–10) plus follow-up iteration rounds (c
 4. `CollapsibleGroupHeader` + `AreaMultiPicker` + `ViewOptionsSheet` widgets
 5. Tasks tab uses TaskListView (plus the major architecture pivot to async-prefs + `flutter_test_config.dart`)
 6. Family tab uses TaskListView
-7. Sprint tab uses TaskListView (drops `TaskItemList`, sprint-assignment-order preserved via sort sentinel)
+7. Sprint tab uses TaskListView (drops `TaskItemList`; the legacy TM-339 sprint-assignment-order stability contract is retired — the Sprint surface now groups by due-status and sorts by urgency like Tasks/Family, since `sprintGroupedTasks` re-buckets + sorts before render)
 8. Plan mode wires View Options sheet + filters (group/sort deferred — see limitations)
 9. Delete `FilterButton` (now dead)
 10. Initial design doc
