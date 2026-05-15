@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../date_util.dart';
 import '../../../parse_helper.dart';
 import '../providers/sprint_providers.dart';
-import 'sprint_planning_screen.dart';
+import '../../shared/presentation/plan_task_list.dart';
 import '../../shared/presentation/widgets/editable_task_field.dart';
 import '../../shared/presentation/widgets/nullable_dropdown.dart';
 import '../../shared/presentation/connection_status_indicator.dart';
@@ -110,7 +110,7 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) {
-          return SprintPlanningScreen(
+          return PlanTaskList(
             numUnits: numUnits,
             unitName: unitName,
             startDate: sprintStart,

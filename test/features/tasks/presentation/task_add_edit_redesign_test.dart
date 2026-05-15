@@ -139,6 +139,45 @@ void main() {
     );
 
     testWidgets(
+      'Edit-mode screen shows loading until the task materializes — '
+      'previously fell through to blank "New task" form on startup race',
+      (tester) async {
+        // Pump the app with NO tasks seeded; navigate directly to the edit
+        // screen for a task ID that the provider can't yet resolve. The
+        // pre-fix behaviour was: didChangeDependencies fires ref.read,
+        // sees null, initializes as a blank new-task blueprint, and latches
+        // — so the screen showed "New task" with all fields empty even
+        // though the user had clicked Edit on an existing task tile. The
+        // fix watches the provider so the screen shows loading until the
+        // task is actually available.
+        await IntegrationTestHelper.pumpAppWithLiveFirestore(
+          tester,
+          firestore: fakeFirestore,
+          initialTasks: [],
+          initialSprints: [],
+        );
+        await tester.pumpAndSettle();
+
+        // Push the edit screen directly — bypassing the tile flow lets us
+        // hit the "task not yet in any source" state deterministically.
+        final navState = tester
+            .state<NavigatorState>(find.byType(Navigator).first);
+        navState.push(MaterialPageRoute<void>(
+          builder: (_) => const TaskAddEditScreen(taskItemId: 'never-loads'),
+        ));
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.byType(TaskAddEditScreen), findsOneWidget);
+        expect(find.byType(CircularProgressIndicator), findsOneWidget,
+            reason: 'Edit-mode screen should render a loading spinner '
+                'while the task is still resolving in the provider.');
+        expect(find.text('New task'), findsNothing,
+            reason: 'Must not fall through to blank create-new mode.');
+      },
+    );
+
+    testWidgets(
       'New-task screen shows "New task" title and "Add task" button '
       '(no trash icon)',
       (tester) async {

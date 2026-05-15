@@ -80,6 +80,11 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.42
   connectivity_plus: ^7.1.1
 
+  # TM-359: per-surface Group/Sort/Filter selections persisted across
+  # app restarts. SharedPreferences (not Drift) because the payload is
+  # tiny and one settings table isn't worth a Drift migration.
+  shared_preferences: ^2.3.0
+
 # TM-361: win32 6.x switched to the Flutter native_assets build pipeline,
 # whose build hook breaks on Windows usernames containing spaces (e.g.
 # "Mayhew Seavey") — the unquoted PATH variable in the cl.exe invocation

@@ -1,155 +1,71 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/providers/auth_providers.dart';
 import '../../../models/task_item.dart';
-import '../../tasks/providers/task_filter_providers.dart' show TaskGroup;
+import '../../../models/task_list_view.dart';
+import '../../shared/logic/task_grouping.dart';
+import '../../shared/providers/task_list_view_providers.dart';
 import '../../tasks/providers/task_providers.dart';
 
 part 'family_task_filter_providers.g.dart';
 
-/// Filter state for the Family tab. Kept separate from the Tasks tab's filter
-/// providers so toggling on one tab doesn't affect the other (TM-335).
-@Riverpod(keepAlive: true)
-class FamilyShowCompleted extends _$FamilyShowCompleted {
-  @override
-  bool build() => false;
-  void toggle() => state = !state;
-  void set(bool value) => state = value;
-}
-
-@Riverpod(keepAlive: true)
-class FamilyShowScheduled extends _$FamilyShowScheduled {
-  @override
-  bool build() => false;
-  void toggle() => state = !state;
-  void set(bool value) => state = value;
-}
-
-@Riverpod(keepAlive: true)
-class FamilySearchQuery extends _$FamilySearchQuery {
-  @override
-  String build() => '';
-  void set(String value) => state = value;
-  void clear() => state = '';
-}
-
-/// Optional per-member filter chip — null means "all members".
-@Riverpod(keepAlive: true)
-class FamilyMemberFilter extends _$FamilyMemberFilter {
-  @override
-  String? build() => null;
-  void set(String? personDocId) => state = personDocId;
-  void clear() => state = null;
-}
-
-/// Family tasks after applying the Family-tab filter toggles. Tasks completed
-/// in the current session (tracked by [recentlyCompletedTasksProvider]) are
-/// always included so the just-completed task stays visible — the grouping
-/// step keeps it in its original section until the user navigates away.
+/// Family tab tasks after surface-specific gates + the user's `TaskFilters`.
 ///
-/// TM-368: pure-derived from upstream filter toggles + tasks stream. Cheap
-/// to recompute when the Family tab remounts; auto-dispose is correct.
+/// Surface gates applied here (not part of the shared pipeline):
+/// - drop retired rows.
+/// - `ownedByMeOnly` filters to tasks created by the current user.
+///
+/// Everything else (search / showCompleted / showScheduled / recurrence /
+/// age / priority / points / due-status / context / area) is delegated to
+/// `applyTaskFilters` so the Family tab and the Tasks tab share a single
+/// filtering code path.
+///
+/// TM-368: pure-derived. Cheap to recompute on consumer remount.
 @riverpod
 List<TaskItem> familyFilteredTasks(Ref ref) {
-  final showCompleted = ref.watch(familyShowCompletedProvider);
-  final showScheduled = ref.watch(familyShowScheduledProvider);
-  final searchQuery = ref.watch(familySearchQueryProvider).toLowerCase();
-  final memberFilter = ref.watch(familyMemberFilterProvider);
+  final view = ref.watch(taskListViewStateProvider(TaskListSurface.family));
   final tasksAsync = ref.watch(familyTasksProvider);
   final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
-  final recentlyCompletedIds = recentlyCompleted.map((t) => t.docId).toSet();
+  final myPersonDocId = ref.watch(personDocIdProvider);
 
   final tasks = tasksAsync.value ?? const <TaskItem>[];
 
-  return tasks.where((task) {
+  final surfaceFiltered = tasks.where((task) {
     if (task.retired != null) return false;
-
-    if (memberFilter != null && task.personDocId != memberFilter) return false;
-
-    if (searchQuery.isNotEmpty &&
-        !task.name.toLowerCase().contains(searchQuery)) {
+    if (view.filters.ownedByMeOnly &&
+        myPersonDocId != null &&
+        task.personDocId != myPersonDocId) {
       return false;
     }
+    return true;
+  });
 
-    if (task.completionDate != null) {
-      // Recently-completed tasks always stay visible (they're shown in their
-      // original group via the grouper). All other completed tasks are gated
-      // by the Show Completed toggle.
-      if (recentlyCompletedIds.contains(task.docId)) return true;
-      return showCompleted;
-    }
-
-    final scheduledPredicate = task.startDate == null ||
-        task.startDate!.isBefore(DateTime.now()) ||
-        showScheduled;
-    return scheduledPredicate;
-  }).toList();
+  return applyTaskFilters(
+    surfaceFiltered,
+    view.filters,
+    now: DateTime.now(),
+    recentlyCompletedDocIds:
+        recentlyCompleted.map((t) => t.docId).toSet(),
+  ).toList();
 }
 
-/// Family tasks grouped into Past Due / Urgent / Target / Tasks / Scheduled /
-/// Completed buckets. Mirrors the Tasks-tab grouping shape, including the
-/// TM-323 "recently completed stays in its original group" behavior so the
-/// just-completed task doesn't visibly jump to the Completed section until
-/// after the user navigates away and back.
+/// Grouped + sorted Family tab tasks, routed through `groupAndSortTasks`.
 ///
-/// TM-368: pure-derived from `familyFilteredTasks` + recently-completed.
-/// Cheap iteration; auto-dispose is correct.
+/// TM-368: pure-derived. `areasProvider` is read only when the active
+/// group axis is `area` — otherwise this provider doesn't transitively
+/// force a Drift open in tests that don't override the areas stream.
 @riverpod
-List<TaskGroup> familyGroupedTasks(Ref ref) {
+List<TaskGroupResult> familyGroupedTasks(Ref ref) {
+  final view = ref.watch(taskListViewStateProvider(TaskListSurface.family));
   final filtered = ref.watch(familyFilteredTasksProvider);
   final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
-  final recentlyCompletedIds = recentlyCompleted.map((t) => t.docId).toSet();
 
-  final groups = <String, List<TaskItem>>{
-    'Past Due': [],
-    'Urgent': [],
-    'Target': [],
-    'Tasks': [],
-    'Scheduled': [],
-    'Completed': [],
-  };
-
-  for (final task in filtered) {
-    final isRecentlyCompleted = recentlyCompletedIds.contains(task.docId);
-    if (task.completionDate != null && !isRecentlyCompleted) {
-      groups['Completed']!.add(task);
-    } else if (task.isPastDue()) {
-      groups['Past Due']!.add(task);
-    } else if (task.isUrgent()) {
-      groups['Urgent']!.add(task);
-    } else if (task.isTarget()) {
-      groups['Target']!.add(task);
-    } else if (task.isScheduled()) {
-      groups['Scheduled']!.add(task);
-    } else {
-      groups['Tasks']!.add(task);
-    }
-  }
-
-  if (groups['Scheduled']!.isNotEmpty) {
-    groups['Scheduled']!.sort((a, b) => a.startDate!.compareTo(b.startDate!));
-  }
-  if (groups['Completed']!.isNotEmpty) {
-    groups['Completed']!
-        .sort((a, b) => b.completionDate!.compareTo(a.completionDate!));
-  }
-
-  const displayOrder = {
-    'Past Due': 1,
-    'Urgent': 2,
-    'Target': 3,
-    'Tasks': 4,
-    'Scheduled': 5,
-    'Completed': 6,
-  };
-
-  return groups.entries
-      .where((entry) => entry.value.isNotEmpty)
-      .map((entry) => TaskGroup(
-            name: entry.key,
-            displayOrder: displayOrder[entry.key]!,
-            tasks: entry.value,
-          ))
-      .toList()
-    ..sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
+  return groupAndSortTasks(
+    tasks: filtered,
+    view: view,
+    now: DateTime.now(),
+    recentlyCompletedDocIds:
+        recentlyCompleted.map((t) => t.docId).toSet(),
+  );
 }

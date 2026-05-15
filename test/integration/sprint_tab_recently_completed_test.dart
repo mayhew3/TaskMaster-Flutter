@@ -1,24 +1,75 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:taskmaestro/features/shared/providers/task_list_view_providers.dart';
 import 'package:taskmaestro/features/sprints/presentation/sprint_task_items_screen.dart';
 import 'package:taskmaestro/features/tasks/providers/task_providers.dart';
 import 'package:taskmaestro/models/sprint.dart';
 import 'package:taskmaestro/models/sprint_assignment.dart';
 import 'package:taskmaestro/models/task_item.dart';
+import 'package:taskmaestro/models/task_list_view.dart';
 
 import '../helpers/async_provider_helpers.dart';
 
 /// Tests for TM-339: Sprint screen - completed task behavior
 ///
 /// Verifies:
-///  - A just-completed task stays visible and in its original sprint
-///    assignment position (does not jump to the end of its group).
+///  - A just-completed task stays visible (does not disappear) while it
+///    is still in the recently-completed set.
 ///  - Older completed tasks flow through the provider so the TaskItemList
 ///    groups them into the "Completed" section at the bottom.
-///  - Ordering is determined by sprint.sprintAssignments so completions
-///    do not reshuffle the list.
+///
+/// NOTE: the original TM-339 sprint-assignment-order stability contract
+/// was retired in TM-359. `sprintGroupedTasks` re-buckets + sorts by the
+/// surface's group/sort axes before rendering, so `sprintTaskItems` no
+/// longer guarantees any particular order — these tests only assert
+/// membership / visibility, never sequence.
+/// TM-359 migration: the Sprint surface's "showCompleted" toggle moved
+/// from the old `showCompletedInSprintProvider` into membership of the
+/// `TaskFilters.dueStatus` whitelist. `value = true` means "include the
+/// Completed bucket in the visible set"; `value = false` means "exclude
+/// it." Empty whitelist = no filter applied = everything visible.
+/// Mirrors the production `_toggleBucket` normalization: a full
+/// 6-of-6 whitelist collapses back to the empty "show all" sentinel so
+/// the helper produces the same canonical state production code would.
+void _setShowCompleted(ProviderContainer container, bool value) {
+  final notifier = container
+      .read(taskListViewStateProvider(TaskListSurface.sprint).notifier);
+  final current =
+      container.read(taskListViewStateProvider(TaskListSurface.sprint));
+  final set = current.filters.dueStatus;
+  Set<DueStatusBucket> next;
+  if (value) {
+    if (set.isEmpty || set.contains(DueStatusBucket.completed)) return;
+    next = {...set, DueStatusBucket.completed};
+  } else {
+    if (set.isEmpty) {
+      next = DueStatusBucket.values
+          .where((b) => b != DueStatusBucket.completed)
+          .toSet();
+    } else if (set.contains(DueStatusBucket.completed)) {
+      next = {...set}..remove(DueStatusBucket.completed);
+    } else {
+      return;
+    }
+  }
+  if (next.length == DueStatusBucket.values.length) {
+    next = <DueStatusBucket>{};
+  }
+  notifier.setFilters(
+    current.filters.rebuild((b) => b..dueStatus.replace(next)),
+  );
+}
+
 void main() {
+  // Clear persisted TaskListView state between tests so an earlier
+  // `showCompleted=false` doesn't leak across test boundaries.
+  setUp(() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  });
+
   group('Sprint Screen Recently Completed Behavior (TM-339)', () {
     final now = DateTime.now().toUtc();
 
@@ -80,7 +131,7 @@ void main() {
       container
           .read(recentlyCompletedTasksProvider.notifier)
           .add(completedTask);
-      container.read(showCompletedInSprintProvider.notifier).state = false;
+      _setShowCompleted(container, false);
 
       final result = await readAsyncValue(container, sprintTaskItemsProvider(sprint));
 
@@ -148,63 +199,11 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      container.read(showCompletedInSprintProvider.notifier).state = false;
+      _setShowCompleted(container, false);
 
       final result = await readAsyncValue(container, sprintTaskItemsProvider(sprint));
 
       expect(result.length, 0);
-    });
-
-    test('order matches sprint.sprintAssignments regardless of completion',
-        () async {
-      // Stability check: assignment order is [a, b, c]. Completing b should
-      // not move it to the end.
-      final a = createTask('a');
-      final b = createTask('b', completionDate: now); // just completed
-      final c = createTask('c');
-      final sprint = createSprintWithTasks(['a', 'b', 'c']);
-
-      final container = ProviderContainer(
-        overrides: [
-          // Drift stream still includes b as completed
-          sprintAllTasksProvider(sprint)
-              .overrideWith((ref) => Stream.value([a, b, c])),
-        ],
-      );
-      addTearDown(container.dispose);
-
-      container.read(recentlyCompletedTasksProvider.notifier).add(b);
-
-      final result = await readAsyncValue(container, sprintTaskItemsProvider(sprint));
-
-      expect(result.map((t) => t.docId).toList(), ['a', 'b', 'c']);
-    });
-
-    test(
-        'position is preserved even when Drift has not yet emitted the completion',
-        () async {
-      // Race window: task was completed, Firestore write is in flight.
-      // Drift stream still has b as incomplete; recentlyCompleted has the
-      // completed copy of b. The provider should merge without reshuffling.
-      final a = createTask('a');
-      final bIncomplete = createTask('b'); // old state in Drift stream
-      final bCompleted = createTask('b', completionDate: now); // in recentlyCompleted
-      final c = createTask('c');
-      final sprint = createSprintWithTasks(['a', 'b', 'c']);
-
-      final container = ProviderContainer(
-        overrides: [
-          sprintAllTasksProvider(sprint)
-              .overrideWith((ref) => Stream.value([a, bIncomplete, c])),
-        ],
-      );
-      addTearDown(container.dispose);
-
-      container.read(recentlyCompletedTasksProvider.notifier).add(bCompleted);
-
-      final result = await readAsyncValue(container, sprintTaskItemsProvider(sprint));
-
-      expect(result.map((t) => t.docId).toList(), ['a', 'b', 'c']);
     });
 
     test('multiple recently completed tasks all stay visible', () async {
@@ -224,7 +223,7 @@ void main() {
         ..add(task1)
         ..add(task2)
         ..add(task3);
-      container.read(showCompletedInSprintProvider.notifier).state = false;
+      _setShowCompleted(container, false);
 
       final result = await readAsyncValue(container, sprintTaskItemsProvider(sprint));
 

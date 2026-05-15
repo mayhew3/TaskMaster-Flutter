@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taskmaestro/features/tasks/providers/task_providers.dart';
 import 'package:taskmaestro/features/tasks/providers/task_filter_providers.dart';
 import 'package:taskmaestro/features/shared/providers/navigation_provider.dart';
@@ -14,6 +15,14 @@ import '../helpers/async_provider_helpers.dart';
 /// 1. It stays visible in its original category (not immediately hidden)
 /// 2. It moves to "Completed" section only after navigating away and back
 void main() {
+  // Reset persisted TaskListView state so toggling `showCompletedProvider`
+  // in one test doesn't carry over and pre-empt the next test's filter
+  // assertions.
+  setUp(() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  });
+
   group('Tasks Tab Recently Completed Behavior (TM-323)', () {
     // Helper to create a task
     TaskItem createTask(
@@ -110,8 +119,8 @@ void main() {
       final groups = await readAsyncValue(container, groupedTasksProvider);
 
       // Assert: Task should be in "Urgent" group (past urgent date), NOT in "Completed"
-      final urgentGroup = groups.where((g) => g.name == 'Urgent').firstOrNull;
-      final completedGroup = groups.where((g) => g.name == 'Completed').firstOrNull;
+      final urgentGroup = groups.where((g) => g.displayName == 'Urgent').firstOrNull;
+      final completedGroup = groups.where((g) => g.displayName == 'Completed').firstOrNull;
 
       expect(urgentGroup, isNotNull);
       expect(urgentGroup!.tasks.length, 1);
@@ -139,7 +148,7 @@ void main() {
 
       // Verify task is NOT in Completed group yet
       var groups = await readAsyncValue(container, groupedTasksProvider);
-      var completedGroup = groups.where((g) => g.name == 'Completed').firstOrNull;
+      var completedGroup = groups.where((g) => g.displayName == 'Completed').firstOrNull;
       expect(completedGroup, isNull); // Not in Completed yet
 
       // Act: Simulate tab navigation (clears recently completed)
@@ -153,7 +162,7 @@ void main() {
 
       // Assert: Task should now be in Completed section
       groups = await readAsyncValue(container, groupedTasksProvider);
-      completedGroup = groups.where((g) => g.name == 'Completed').firstOrNull;
+      completedGroup = groups.where((g) => g.displayName == 'Completed').firstOrNull;
 
       expect(completedGroup, isNotNull);
       expect(completedGroup!.tasks.length, 1);

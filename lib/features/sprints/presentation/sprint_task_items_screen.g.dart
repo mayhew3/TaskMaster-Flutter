@@ -8,138 +8,6 @@ part of 'sprint_task_items_screen.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Provider for sprint-screen filter settings.
-/// TM-368 self-review: kept `keepAlive: true`. The pre-TM-368 contract was
-/// "toggle persists across tab switches" — without keepAlive, auto-dispose
-/// fires on consumer unmount and any user-toggled value silently resets
-/// to the default the next time a sprint is opened. Defaults-on-first-
-/// visit alone doesn't preserve that contract.
-
-@ProviderFor(ShowCompletedInSprint)
-final showCompletedInSprintProvider = ShowCompletedInSprintProvider._();
-
-/// Provider for sprint-screen filter settings.
-/// TM-368 self-review: kept `keepAlive: true`. The pre-TM-368 contract was
-/// "toggle persists across tab switches" — without keepAlive, auto-dispose
-/// fires on consumer unmount and any user-toggled value silently resets
-/// to the default the next time a sprint is opened. Defaults-on-first-
-/// visit alone doesn't preserve that contract.
-final class ShowCompletedInSprintProvider
-    extends $NotifierProvider<ShowCompletedInSprint, bool> {
-  /// Provider for sprint-screen filter settings.
-  /// TM-368 self-review: kept `keepAlive: true`. The pre-TM-368 contract was
-  /// "toggle persists across tab switches" — without keepAlive, auto-dispose
-  /// fires on consumer unmount and any user-toggled value silently resets
-  /// to the default the next time a sprint is opened. Defaults-on-first-
-  /// visit alone doesn't preserve that contract.
-  ShowCompletedInSprintProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'showCompletedInSprintProvider',
-        isAutoDispose: false,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$showCompletedInSprintHash();
-
-  @$internal
-  @override
-  ShowCompletedInSprint create() => ShowCompletedInSprint();
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(bool value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<bool>(value),
-    );
-  }
-}
-
-String _$showCompletedInSprintHash() =>
-    r'67c243d224d05ac3af4a5f6c9580eb115c6b8536';
-
-/// Provider for sprint-screen filter settings.
-/// TM-368 self-review: kept `keepAlive: true`. The pre-TM-368 contract was
-/// "toggle persists across tab switches" — without keepAlive, auto-dispose
-/// fires on consumer unmount and any user-toggled value silently resets
-/// to the default the next time a sprint is opened. Defaults-on-first-
-/// visit alone doesn't preserve that contract.
-
-abstract class _$ShowCompletedInSprint extends $Notifier<bool> {
-  bool build();
-  @$mustCallSuper
-  @override
-  void runBuild() {
-    final ref = this.ref as $Ref<bool, bool>;
-    final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<bool, bool>,
-              bool,
-              Object?,
-              Object?
-            >;
-    element.handleCreate(ref, build);
-  }
-}
-
-@ProviderFor(ShowScheduledInSprint)
-final showScheduledInSprintProvider = ShowScheduledInSprintProvider._();
-
-final class ShowScheduledInSprintProvider
-    extends $NotifierProvider<ShowScheduledInSprint, bool> {
-  ShowScheduledInSprintProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'showScheduledInSprintProvider',
-        isAutoDispose: false,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$showScheduledInSprintHash();
-
-  @$internal
-  @override
-  ShowScheduledInSprint create() => ShowScheduledInSprint();
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(bool value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<bool>(value),
-    );
-  }
-}
-
-String _$showScheduledInSprintHash() =>
-    r'bdc0ae9d43164417c196030c54d8fac7dda13884';
-
-abstract class _$ShowScheduledInSprint extends $Notifier<bool> {
-  bool build();
-  @$mustCallSuper
-  @override
-  void runBuild() {
-    final ref = this.ref as $Ref<bool, bool>;
-    final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<bool, bool>,
-              bool,
-              Object?,
-              Object?
-            >;
-    element.handleCreate(ref, build);
-  }
-}
-
 /// Stream of all tasks assigned to a sprint — INCLUDING completed ones —
 /// with recurrences populated. Used by [sprintTaskItems] so that completed
 /// tasks appear in the "Completed" section at the bottom of the list
@@ -284,16 +152,20 @@ final class SprintAllTasksFamily extends $Family
   String toString() => r'sprintAllTasksProvider';
 }
 
-/// Provider for filtered tasks in the active sprint.
+/// Sprint task list in sprint-assignment order (TM-339), with the user's
+/// TaskFilters applied via the shared pipeline.
+///
 /// TM-368: pure-derived family provider — auto-dispose for the same
-/// reason as `sprintAllTasks` (per-sprint instances shouldn't pin in memory).
+/// reason as `sprintAllTasks`.
 
 @ProviderFor(sprintTaskItems)
 final sprintTaskItemsProvider = SprintTaskItemsFamily._();
 
-/// Provider for filtered tasks in the active sprint.
+/// Sprint task list in sprint-assignment order (TM-339), with the user's
+/// TaskFilters applied via the shared pipeline.
+///
 /// TM-368: pure-derived family provider — auto-dispose for the same
-/// reason as `sprintAllTasks` (per-sprint instances shouldn't pin in memory).
+/// reason as `sprintAllTasks`.
 
 final class SprintTaskItemsProvider
     extends
@@ -303,9 +175,11 @@ final class SprintTaskItemsProvider
           FutureOr<List<TaskItem>>
         >
     with $FutureModifier<List<TaskItem>>, $FutureProvider<List<TaskItem>> {
-  /// Provider for filtered tasks in the active sprint.
+  /// Sprint task list in sprint-assignment order (TM-339), with the user's
+  /// TaskFilters applied via the shared pipeline.
+  ///
   /// TM-368: pure-derived family provider — auto-dispose for the same
-  /// reason as `sprintAllTasks` (per-sprint instances shouldn't pin in memory).
+  /// reason as `sprintAllTasks`.
   SprintTaskItemsProvider._({
     required SprintTaskItemsFamily super.from,
     required Sprint super.argument,
@@ -350,11 +224,13 @@ final class SprintTaskItemsProvider
   }
 }
 
-String _$sprintTaskItemsHash() => r'3dc3a1da2c3dbcb8fb43711b546a4bbbf4f97aa6';
+String _$sprintTaskItemsHash() => r'80ff1d40375b3f51946fd33fc07067f5de87c655';
 
-/// Provider for filtered tasks in the active sprint.
+/// Sprint task list in sprint-assignment order (TM-339), with the user's
+/// TaskFilters applied via the shared pipeline.
+///
 /// TM-368: pure-derived family provider — auto-dispose for the same
-/// reason as `sprintAllTasks` (per-sprint instances shouldn't pin in memory).
+/// reason as `sprintAllTasks`.
 
 final class SprintTaskItemsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<TaskItem>>, Sprint> {
@@ -367,13 +243,122 @@ final class SprintTaskItemsFamily extends $Family
         isAutoDispose: true,
       );
 
-  /// Provider for filtered tasks in the active sprint.
+  /// Sprint task list in sprint-assignment order (TM-339), with the user's
+  /// TaskFilters applied via the shared pipeline.
+  ///
   /// TM-368: pure-derived family provider — auto-dispose for the same
-  /// reason as `sprintAllTasks` (per-sprint instances shouldn't pin in memory).
+  /// reason as `sprintAllTasks`.
 
   SprintTaskItemsProvider call(Sprint sprint) =>
       SprintTaskItemsProvider._(argument: sprint, from: this);
 
   @override
   String toString() => r'sprintTaskItemsProvider';
+}
+
+/// Sprint tasks grouped + sorted via the shared pipeline. With the
+/// sprint surface's defaults (groupAxis=dueStatus, sortAxis=urgency) the
+/// result is the bucketed view with most-pressing tasks first within
+/// each bucket. The user can pick any other group/sort axis via the
+/// View Options sheet.
+
+@ProviderFor(sprintGroupedTasks)
+final sprintGroupedTasksProvider = SprintGroupedTasksFamily._();
+
+/// Sprint tasks grouped + sorted via the shared pipeline. With the
+/// sprint surface's defaults (groupAxis=dueStatus, sortAxis=urgency) the
+/// result is the bucketed view with most-pressing tasks first within
+/// each bucket. The user can pick any other group/sort axis via the
+/// View Options sheet.
+
+final class SprintGroupedTasksProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<TaskGroupResult>>,
+          List<TaskGroupResult>,
+          FutureOr<List<TaskGroupResult>>
+        >
+    with
+        $FutureModifier<List<TaskGroupResult>>,
+        $FutureProvider<List<TaskGroupResult>> {
+  /// Sprint tasks grouped + sorted via the shared pipeline. With the
+  /// sprint surface's defaults (groupAxis=dueStatus, sortAxis=urgency) the
+  /// result is the bucketed view with most-pressing tasks first within
+  /// each bucket. The user can pick any other group/sort axis via the
+  /// View Options sheet.
+  SprintGroupedTasksProvider._({
+    required SprintGroupedTasksFamily super.from,
+    required Sprint super.argument,
+  }) : super(
+         retry: null,
+         name: r'sprintGroupedTasksProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$sprintGroupedTasksHash();
+
+  @override
+  String toString() {
+    return r'sprintGroupedTasksProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<TaskGroupResult>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<TaskGroupResult>> create(Ref ref) {
+    final argument = this.argument as Sprint;
+    return sprintGroupedTasks(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SprintGroupedTasksProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$sprintGroupedTasksHash() =>
+    r'5fdfdc0ea16c796aa9df25dfe16438e4fb7c93b8';
+
+/// Sprint tasks grouped + sorted via the shared pipeline. With the
+/// sprint surface's defaults (groupAxis=dueStatus, sortAxis=urgency) the
+/// result is the bucketed view with most-pressing tasks first within
+/// each bucket. The user can pick any other group/sort axis via the
+/// View Options sheet.
+
+final class SprintGroupedTasksFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<List<TaskGroupResult>>, Sprint> {
+  SprintGroupedTasksFamily._()
+    : super(
+        retry: null,
+        name: r'sprintGroupedTasksProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Sprint tasks grouped + sorted via the shared pipeline. With the
+  /// sprint surface's defaults (groupAxis=dueStatus, sortAxis=urgency) the
+  /// result is the bucketed view with most-pressing tasks first within
+  /// each bucket. The user can pick any other group/sort axis via the
+  /// View Options sheet.
+
+  SprintGroupedTasksProvider call(Sprint sprint) =>
+      SprintGroupedTasksProvider._(argument: sprint, from: this);
+
+  @override
+  String toString() => r'sprintGroupedTasksProvider';
 }

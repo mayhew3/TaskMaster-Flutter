@@ -8,18 +8,12 @@ part of 'task_filter_providers.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Simple state providers for filter toggles
-/// Using keepAlive: true to persist state across tab switches
 
 @ProviderFor(ShowCompleted)
 final showCompletedProvider = ShowCompletedProvider._();
 
-/// Simple state providers for filter toggles
-/// Using keepAlive: true to persist state across tab switches
 final class ShowCompletedProvider
     extends $NotifierProvider<ShowCompleted, bool> {
-  /// Simple state providers for filter toggles
-  /// Using keepAlive: true to persist state across tab switches
   ShowCompletedProvider._()
     : super(
         from: null,
@@ -47,10 +41,7 @@ final class ShowCompletedProvider
   }
 }
 
-String _$showCompletedHash() => r'a7c3485980d4e64d2b0945fd8a098070bd5fbffb';
-
-/// Simple state providers for filter toggles
-/// Using keepAlive: true to persist state across tab switches
+String _$showCompletedHash() => r'a97fbcdc4d50de6b90e1e1bf4bc98d692f1ee6a8';
 
 abstract class _$ShowCompleted extends $Notifier<bool> {
   bool build();
@@ -102,7 +93,7 @@ final class ShowScheduledProvider
   }
 }
 
-String _$showScheduledHash() => r'0ebc352bb4c95ca8b3f91d32a6db6323f5d01a84';
+String _$showScheduledHash() => r'c5bc4847684d69dff14560f99db1daafe15e4f84';
 
 abstract class _$ShowScheduled extends $Notifier<bool> {
   bool build();
@@ -122,14 +113,10 @@ abstract class _$ShowScheduled extends $Notifier<bool> {
   }
 }
 
-/// Text search query for filtering tasks by name
-
 @ProviderFor(SearchQuery)
 final searchQueryProvider = SearchQueryProvider._();
 
-/// Text search query for filtering tasks by name
 final class SearchQueryProvider extends $NotifierProvider<SearchQuery, String> {
-  /// Text search query for filtering tasks by name
   SearchQueryProvider._()
     : super(
         from: null,
@@ -157,9 +144,7 @@ final class SearchQueryProvider extends $NotifierProvider<SearchQuery, String> {
   }
 }
 
-String _$searchQueryHash() => r'652516df14d1f054c2015886d77c308ba15b0a58';
-
-/// Text search query for filtering tasks by name
+String _$searchQueryHash() => r'80f5a508547bee329989930ebc81e0179e667516';
 
 abstract class _$SearchQuery extends $Notifier<String> {
   String build();
@@ -179,12 +164,16 @@ abstract class _$SearchQuery extends $Notifier<String> {
   }
 }
 
-/// Filtered tasks based on visibility settings
+/// Tasks visible on the Tasks tab — surface-specific pre-filtering
+/// (hide-family-shared, hide-active-sprint, retired removal) PLUS the
+/// user's TaskFilters via the pipeline.
 
 @ProviderFor(filteredTasks)
 final filteredTasksProvider = FilteredTasksProvider._();
 
-/// Filtered tasks based on visibility settings
+/// Tasks visible on the Tasks tab — surface-specific pre-filtering
+/// (hide-family-shared, hide-active-sprint, retired removal) PLUS the
+/// user's TaskFilters via the pipeline.
 
 final class FilteredTasksProvider
     extends
@@ -194,7 +183,9 @@ final class FilteredTasksProvider
           FutureOr<List<TaskItem>>
         >
     with $FutureModifier<List<TaskItem>>, $FutureProvider<List<TaskItem>> {
-  /// Filtered tasks based on visibility settings
+  /// Tasks visible on the Tasks tab — surface-specific pre-filtering
+  /// (hide-family-shared, hide-active-sprint, retired removal) PLUS the
+  /// user's TaskFilters via the pipeline.
   FilteredTasksProvider._()
     : super(
         from: null,
@@ -221,24 +212,24 @@ final class FilteredTasksProvider
   }
 }
 
-String _$filteredTasksHash() => r'da6b3bc5fd474016300c429559e04dec45cf97e8';
+String _$filteredTasksHash() => r'7e378bb531620578b89e9e7ab4a0fe9b2f430c9c';
 
 /// Count of active (non-completed, non-retired) tasks.
 /// TM-368: pure-derived from `tasksProvider` (keepAlive). Cheap to
-/// recompute when a consumer reattaches, so auto-dispose is correct here.
+/// recompute when a consumer reattaches.
 
 @ProviderFor(activeTaskCount)
 final activeTaskCountProvider = ActiveTaskCountProvider._();
 
 /// Count of active (non-completed, non-retired) tasks.
 /// TM-368: pure-derived from `tasksProvider` (keepAlive). Cheap to
-/// recompute when a consumer reattaches, so auto-dispose is correct here.
+/// recompute when a consumer reattaches.
 
 final class ActiveTaskCountProvider extends $FunctionalProvider<int, int, int>
     with $Provider<int> {
   /// Count of active (non-completed, non-retired) tasks.
   /// TM-368: pure-derived from `tasksProvider` (keepAlive). Cheap to
-  /// recompute when a consumer reattaches, so auto-dispose is correct here.
+  /// recompute when a consumer reattaches.
   ActiveTaskCountProvider._()
     : super(
         from: null,
@@ -274,38 +265,20 @@ final class ActiveTaskCountProvider extends $FunctionalProvider<int, int, int>
 
 String _$activeTaskCountHash() => r'2bebdf365f5d0aa271589aa7d69410a8f3c04e0b';
 
-/// Count of completed (non-skipped, non-retired) tasks.
-/// Uses Firestore aggregation for the total (too many to store locally),
-/// then subtracts the local skipped count (always present since skip is local-first).
-/// TM-368: Firestore aggregation cost matters per call, but the value is
-/// only read by infrequently-visited screens (Manage Areas badges, profile
-/// stats). Auto-dispose so the count doesn't sit cached when nothing's
-/// reading it — the staleness penalty for keepAlive (count drifts as the
-/// user completes tasks) is worse than the rebuild cost.
+/// Count of completed (non-skipped, non-retired) tasks. See pre-TM-359
+/// comment for the Firestore-aggregation rationale.
 
 @ProviderFor(completedTaskCount)
 final completedTaskCountProvider = CompletedTaskCountProvider._();
 
-/// Count of completed (non-skipped, non-retired) tasks.
-/// Uses Firestore aggregation for the total (too many to store locally),
-/// then subtracts the local skipped count (always present since skip is local-first).
-/// TM-368: Firestore aggregation cost matters per call, but the value is
-/// only read by infrequently-visited screens (Manage Areas badges, profile
-/// stats). Auto-dispose so the count doesn't sit cached when nothing's
-/// reading it — the staleness penalty for keepAlive (count drifts as the
-/// user completes tasks) is worse than the rebuild cost.
+/// Count of completed (non-skipped, non-retired) tasks. See pre-TM-359
+/// comment for the Firestore-aggregation rationale.
 
 final class CompletedTaskCountProvider
     extends $FunctionalProvider<AsyncValue<int>, int, FutureOr<int>>
     with $FutureModifier<int>, $FutureProvider<int> {
-  /// Count of completed (non-skipped, non-retired) tasks.
-  /// Uses Firestore aggregation for the total (too many to store locally),
-  /// then subtracts the local skipped count (always present since skip is local-first).
-  /// TM-368: Firestore aggregation cost matters per call, but the value is
-  /// only read by infrequently-visited screens (Manage Areas badges, profile
-  /// stats). Auto-dispose so the count doesn't sit cached when nothing's
-  /// reading it — the staleness penalty for keepAlive (count drifts as the
-  /// user completes tasks) is worse than the rebuild cost.
+  /// Count of completed (non-skipped, non-retired) tasks. See pre-TM-359
+  /// comment for the Firestore-aggregation rationale.
   CompletedTaskCountProvider._()
     : super(
         from: null,
@@ -334,22 +307,27 @@ final class CompletedTaskCountProvider
 String _$completedTaskCountHash() =>
     r'cb5b1d8c3f28f87537a1a5e4a285b3f8bd6d37e6';
 
-/// Grouped and sorted tasks for the task list
+/// TM-359: grouped + sorted Tasks-tab tasks. Wraps `groupAndSortTasks`
+/// with the per-surface TaskListView state.
 
 @ProviderFor(groupedTasks)
 final groupedTasksProvider = GroupedTasksProvider._();
 
-/// Grouped and sorted tasks for the task list
+/// TM-359: grouped + sorted Tasks-tab tasks. Wraps `groupAndSortTasks`
+/// with the per-surface TaskListView state.
 
 final class GroupedTasksProvider
     extends
         $FunctionalProvider<
-          AsyncValue<List<TaskGroup>>,
-          List<TaskGroup>,
-          FutureOr<List<TaskGroup>>
+          AsyncValue<List<TaskGroupResult>>,
+          List<TaskGroupResult>,
+          FutureOr<List<TaskGroupResult>>
         >
-    with $FutureModifier<List<TaskGroup>>, $FutureProvider<List<TaskGroup>> {
-  /// Grouped and sorted tasks for the task list
+    with
+        $FutureModifier<List<TaskGroupResult>>,
+        $FutureProvider<List<TaskGroupResult>> {
+  /// TM-359: grouped + sorted Tasks-tab tasks. Wraps `groupAndSortTasks`
+  /// with the per-surface TaskListView state.
   GroupedTasksProvider._()
     : super(
         from: null,
@@ -366,14 +344,14 @@ final class GroupedTasksProvider
 
   @$internal
   @override
-  $FutureProviderElement<List<TaskGroup>> $createElement(
+  $FutureProviderElement<List<TaskGroupResult>> $createElement(
     $ProviderPointer pointer,
   ) => $FutureProviderElement(pointer);
 
   @override
-  FutureOr<List<TaskGroup>> create(Ref ref) {
+  FutureOr<List<TaskGroupResult>> create(Ref ref) {
     return groupedTasks(ref);
   }
 }
 
-String _$groupedTasksHash() => r'73667166812c7d01cc9bedd439e71857b0609cf9';
+String _$groupedTasksHash() => r'38ec61f1cd836f687e6e42e656fbf35b2789c31b';
