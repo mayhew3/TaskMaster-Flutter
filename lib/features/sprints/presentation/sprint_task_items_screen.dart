@@ -101,8 +101,14 @@ Stream<List<TaskItem>> sprintAllTasks(Ref ref, Sprint sprint) {
   );
 }
 
-/// Sprint task list in sprint-assignment order (TM-339), with the user's
-/// TaskFilters applied via the shared pipeline.
+/// Sprint task set (membership-resolved), with the user's TaskFilters
+/// applied via the shared pipeline. Ordering is intentionally NOT
+/// preserved here — `sprintGroupedTasks` re-buckets + sorts by the
+/// surface's group/sort axes (default: due-status grouping, urgency
+/// sort) before anything renders, so any order this provider produced
+/// would be discarded. (Pre-TM-359 this walked
+/// `sprint.sprintAssignments` in order for the TM-339 stability
+/// contract; that contract no longer holds at the UI level.)
 ///
 /// TM-368: pure-derived family provider — auto-dispose for the same
 /// reason as `sprintAllTasks`.
@@ -150,17 +156,8 @@ Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
     }
   }
 
-  // Iterate sprint assignments IN ORDER (TM-339) — completion doesn't
-  // reshuffle the displayed list.
-  final ordered = <TaskItem>[];
-  for (final sa in sprint.sprintAssignments) {
-    if (sa.retired != null) continue;
-    final task = taskMap[sa.taskDocId];
-    if (task != null) ordered.add(task);
-  }
-
   return applyTaskFilters(
-    ordered.where((t) => t.retired == null),
+    taskMap.values.where((t) => t.retired == null),
     view.filters,
     now: DateTime.now(),
     recentlyCompletedDocIds:
