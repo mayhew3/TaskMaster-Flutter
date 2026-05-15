@@ -146,6 +146,15 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
   bool _contextsDeselectedAll = false;
   bool _dueStatusDeselectedAll = false;
 
+  /// True once the user has applied any local mutation (any field
+  /// setter, Reset, multi-select commit). While false, build() keeps
+  /// `_working` synced with the watched `saved` state — covers the
+  /// case where SharedPreferences hydrates async after initState, or
+  /// an external write lands while the sheet is open. Without this,
+  /// the working copy would stay at the in-memory default and the
+  /// dirty check (`_working != saved`) would fire spuriously.
+  bool _touched = false;
+
   @override
   void initState() {
     super.initState();
@@ -154,25 +163,35 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
 
   void _mutateFilters(void Function(TaskFiltersBuilder) update) {
     setState(() {
+      _touched = true;
       _working = _working
           .rebuild((b) => b..filters.replace(_working.filters.rebuild(update)));
     });
   }
 
   void _setGroupAxis(TaskGroupAxis axis) {
-    setState(() => _working = _working.rebuild((b) => b.groupAxis = axis));
+    setState(() {
+      _touched = true;
+      _working = _working.rebuild((b) => b.groupAxis = axis);
+    });
   }
 
   void _setSortAxis(TaskSortAxis axis) {
-    setState(() => _working = _working.rebuild((b) => b.sortAxis = axis));
+    setState(() {
+      _touched = true;
+      _working = _working.rebuild((b) => b.sortAxis = axis);
+    });
   }
 
   void _toggleSortDirection() {
-    setState(() => _working = _working.rebuild((b) {
-          b.sortDirection = _working.sortDirection == SortDirection.ascending
-              ? SortDirection.descending
-              : SortDirection.ascending;
-        }));
+    setState(() {
+      _touched = true;
+      _working = _working.rebuild((b) {
+        b.sortDirection = _working.sortDirection == SortDirection.ascending
+            ? SortDirection.descending
+            : SortDirection.ascending;
+      });
+    });
   }
 
   // ── Min/Max bounds setters (clamp the dependent bound so min ≤ max) ──
@@ -256,6 +275,7 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
 
   void _onResetToDefaults() {
     setState(() {
+      _touched = true;
       _working = TaskListView.defaultForSurface(widget.surface);
       _areasDeselectedAll = false;
       _contextsDeselectedAll = false;
@@ -286,6 +306,20 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
   @override
   Widget build(BuildContext context) {
     final saved = ref.watch(taskListViewStateProvider(widget.surface));
+    // While the user hasn't made any local edit, keep the working copy
+    // synced with whatever `saved` resolves to. Covers two cases:
+    //   1. SharedPreferences hydrates asynchronously: initState's
+    //      `ref.read` captures the in-memory default, then later the
+    //      persisted state lands and `saved` updates.
+    //   2. An external write lands while the sheet is open (cross-
+    //      device sync, another notifier, etc.).
+    // Without this re-sync, the dirty check (`_working != saved`)
+    // would false-positive on stale-default-vs-fresh-persisted and
+    // Apply would silently clobber the freshly-loaded state back to
+    // the default.
+    if (!_touched && _working != saved) {
+      _working = saved;
+    }
     final dirty = _working != saved;
     final defaults = TaskListView.defaultForSurface(widget.surface);
     final df = defaults.filters;

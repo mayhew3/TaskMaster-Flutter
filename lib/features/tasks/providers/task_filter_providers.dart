@@ -101,29 +101,37 @@ class ShowScheduled extends _$ShowScheduled {
 /// is empty (= "no filter, show all"), toggling a bucket *off* requires
 /// materializing the catalog-minus-this-bucket; toggling a bucket *on*
 /// when already implicitly visible is a no-op.
+///
+/// Whenever a write would land on "every bucket selected", normalize back
+/// to the empty set — that's the canonical "show all" representation, and
+/// `TaskListView.isDefaultForSurface` / `ViewOptionsButton._hasNonDefaults`
+/// rely on it. Without this normalization, e.g. on Sprint (default
+/// `dueStatus = {}`), toggling Completed off then back on would leave the
+/// view at `{all 6 buckets}` and the green non-default badge would stay
+/// lit even though the effective filter is unchanged.
 void _toggleBucket(Ref ref, DueStatusBucket bucket, {required bool visible}) {
   final viewNotifier =
       ref.read(taskListViewStateProvider(TaskListSurface.tasks).notifier);
   final current = ref.read(taskListViewStateProvider(TaskListSurface.tasks));
   final set = current.filters.dueStatus;
+  Set<DueStatusBucket>? next;
   if (visible) {
     if (set.isEmpty || set.contains(bucket)) return;
-    final next = {...set, bucket};
-    viewNotifier.setFilters(
-        current.filters.rebuild((b) => b..dueStatus.replace(next)));
+    next = {...set, bucket};
   } else {
     if (set.isEmpty) {
       // Materialize: hide this one bucket, keep everything else visible.
-      final next =
-          DueStatusBucket.values.where((b) => b != bucket).toSet();
-      viewNotifier.setFilters(
-          current.filters.rebuild((b) => b..dueStatus.replace(next)));
+      next = DueStatusBucket.values.where((b) => b != bucket).toSet();
     } else if (set.contains(bucket)) {
-      final next = {...set}..remove(bucket);
-      viewNotifier.setFilters(
-          current.filters.rebuild((b) => b..dueStatus.replace(next)));
+      next = {...set}..remove(bucket);
     }
   }
+  if (next == null) return;
+  // Normalize: "all buckets selected" collapses to empty = canonical
+  // "show all" sentinel.
+  if (next.length == DueStatusBucket.values.length) next = <DueStatusBucket>{};
+  viewNotifier.setFilters(
+      current.filters.rebuild((b) => b..dueStatus.replace(next!)));
 }
 
 @Riverpod(keepAlive: true)
