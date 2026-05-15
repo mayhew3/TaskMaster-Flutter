@@ -27,6 +27,12 @@ class TaskGroupResult {
     required this.displayOrder,
     required this.tasks,
   });
+
+  /// Sum of `gamePoints` across `tasks`. Null `gamePoints` count as 0.
+  /// Used by `CollapsibleGroupHeader` to render the per-group points
+  /// badge alongside the task-count badge.
+  int get pointsTotal =>
+      tasks.fold<int>(0, (acc, t) => acc + (t.gamePoints ?? 0));
 }
 
 /// Apply [view]'s filters → group axis → in-group sort to [tasks].
@@ -499,9 +505,9 @@ Comparable? Function(TaskItem) _sortKeyFor(TaskSortAxis axis) {
         return pts / d;
       };
     case TaskSortAxis.urgency:
-      // Intercepted upstream in _sortBucket; the fallthrough keeps the
-      // switch exhaustive without changing observable behavior.
-      return (t) => t.dateAdded;
+      throw StateError(
+          'TaskSortAxis.urgency must be intercepted by _sortBucket — '
+          '_sortKeyFor should never be called with it');
   }
 }
 
@@ -524,8 +530,10 @@ Comparable? Function(TaskItem) _sortKeyFor(TaskSortAxis axis) {
 int _cmpUrgency(TaskItem a, TaskItem b, DateTime now) {
   final bucketA = _dueStatusBucketOf(a, now);
   final bucketB = _dueStatusBucketOf(b, now);
-  final tierA = _kDueStatusOrder[bucketA] ?? 99;
-  final tierB = _kDueStatusOrder[bucketB] ?? 99;
+  // `_kDueStatusOrder` covers every `DueStatusBucket` value, so the
+  // lookup is non-null; `!` makes the invariant explicit.
+  final tierA = _kDueStatusOrder[bucketA]!;
+  final tierB = _kDueStatusOrder[bucketB]!;
   if (tierA != tierB) return tierA.compareTo(tierB);
 
   switch (bucketA) {

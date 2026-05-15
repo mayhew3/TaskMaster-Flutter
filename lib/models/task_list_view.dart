@@ -217,6 +217,22 @@ abstract class TaskListView implements Built<TaskListView, TaskListViewBuilder> 
     ..sortDirection = SortDirection.ascending
     ..filters.replace(TaskFilters.empty()));
 
+  /// True iff every axis except `collapsedGroups` and `filters.search`
+  /// matches the surface's default. Used by `ViewOptionsButton` to decide
+  /// whether to render the green non-default-state indicator.
+  ///
+  /// `collapsedGroups` is transient UI state; `search` has its own
+  /// app-bar entry point and is not part of the View Options sheet's
+  /// scope — neither should drive the non-default badge.
+  bool isDefaultForSurface(TaskListSurface surface) {
+    final def = TaskListView.defaultForSurface(surface);
+    return groupAxis == def.groupAxis &&
+        sortAxis == def.sortAxis &&
+        sortDirection == def.sortDirection &&
+        filters.rebuild((b) => b..search = '') ==
+            def.filters.rebuild((b) => b..search = '');
+  }
+
   /// Factory dispatch for surface-keyed lookup.
   factory TaskListView.defaultForSurface(TaskListSurface surface) {
     switch (surface) {

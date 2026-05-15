@@ -260,8 +260,7 @@ class _SprintBody extends ConsumerWidget {
         tiles.add(CollapsibleGroupHeader(
           label: group.displayName,
           count: group.tasks.length,
-          pointsTotal: group.tasks
-              .fold<int>(0, (acc, t) => acc + (t.gamePoints ?? 0)),
+          pointsTotal: group.pointsTotal,
           collapsed: collapsed,
           onTap: () => viewNotifier.toggleGroupCollapsed(group.key),
         ));

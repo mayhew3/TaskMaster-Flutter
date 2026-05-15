@@ -74,31 +74,10 @@ class ViewOptionsButton extends ConsumerWidget {
     this.tooltip = 'View options',
   });
 
-  static bool _hasNonDefaults(TaskListView v, TaskListView d) {
-    if (v.groupAxis != d.groupAxis) return true;
-    if (v.sortAxis != d.sortAxis) return true;
-    if (v.sortDirection != d.sortDirection) return true;
-    final vf = v.filters;
-    final df = d.filters;
-    return vf.areas != df.areas ||
-        vf.contexts != df.contexts ||
-        vf.dueStatus != df.dueStatus ||
-        vf.minPriority != df.minPriority ||
-        vf.maxPriority != df.maxPriority ||
-        vf.minPoints != df.minPoints ||
-        vf.maxPoints != df.maxPoints ||
-        vf.minDuration != df.minDuration ||
-        vf.maxDuration != df.maxDuration ||
-        vf.recurrence != df.recurrence ||
-        vf.maxAgeDays != df.maxAgeDays ||
-        vf.ownedByMeOnly != df.ownedByMeOnly;
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final view = ref.watch(taskListViewStateProvider(surface));
-    final defaults = TaskListView.defaultForSurface(surface);
-    final hasNonDefaults = _hasNonDefaults(view, defaults);
+    final hasNonDefaults = !view.isDefaultForSurface(surface);
     final button = IconButton(
       icon: const Icon(Icons.tune),
       tooltip: tooltip,
@@ -196,6 +175,83 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
         }));
   }
 
+  // ── Min/Max bounds setters (clamp the dependent bound so min ≤ max) ──
+  //
+  // Each pair mutates one bound and pushes the other if the new value
+  // would invert the range. Extracted from the bounds-row callback
+  // closures so call sites can pass these directly via tear-off.
+
+  void _setMinPriority(int? v) => _mutateFilters((b) {
+        b.minPriority = v;
+        if (v != null && b.maxPriority != null && b.maxPriority! < v) {
+          b.maxPriority = v;
+        }
+      });
+  void _setMaxPriority(int? v) => _mutateFilters((b) {
+        b.maxPriority = v;
+        if (v != null && b.minPriority != null && b.minPriority! > v) {
+          b.minPriority = v;
+        }
+      });
+
+  void _setMinPoints(int? v) => _mutateFilters((b) {
+        b.minPoints = v;
+        if (v != null && b.maxPoints != null && b.maxPoints! < v) {
+          b.maxPoints = v;
+        }
+      });
+  void _setMaxPoints(int? v) => _mutateFilters((b) {
+        b.maxPoints = v;
+        if (v != null && b.minPoints != null && b.minPoints! > v) {
+          b.minPoints = v;
+        }
+      });
+
+  void _setMinDuration(int? v) => _mutateFilters((b) {
+        b.minDuration = v;
+        if (v != null && b.maxDuration != null && b.maxDuration! < v) {
+          b.maxDuration = v;
+        }
+      });
+  void _setMaxDuration(int? v) => _mutateFilters((b) {
+        b.maxDuration = v;
+        if (v != null && b.minDuration != null && b.minDuration! > v) {
+          b.minDuration = v;
+        }
+      });
+
+  /// Per-axis validation: a multi-select is in "accidentally empty"
+  /// state when the working set is empty, the user has not explicitly
+  /// hit Deselect All (transient flag is false), and the empty state
+  /// differs from this surface's default. The error rule blocks Apply
+  /// for those cases so a user who unchecks every chip individually
+  /// gets explicit feedback rather than silently saving "show all" —
+  /// which is the persistence semantic for an empty set but probably
+  /// NOT what the user intended.
+  ///
+  /// Reset-to-defaults is unaffected: it puts working == default, so
+  /// the third condition fails and Apply remains enabled. Deselect-All
+  /// is also unaffected (transient flag is true).
+  List<String> _validationErrors() {
+    final wf = _working.filters;
+    final df = TaskListView.defaultForSurface(widget.surface).filters;
+    final errors = <String>[];
+    if (wf.dueStatus.isEmpty &&
+        !_dueStatusDeselectedAll &&
+        wf.dueStatus != df.dueStatus) {
+      errors.add('Due status');
+    }
+    if (wf.areas.isEmpty && !_areasDeselectedAll && wf.areas != df.areas) {
+      errors.add('Areas');
+    }
+    if (wf.contexts.isEmpty &&
+        !_contextsDeselectedAll &&
+        wf.contexts != df.contexts) {
+      errors.add('Contexts');
+    }
+    return errors;
+  }
+
   void _onCancel() => Navigator.of(context).pop();
 
   void _onResetToDefaults() {
@@ -223,6 +279,7 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
     if (current.filters != _working.filters) {
       notifier.setFilters(_working.filters);
     }
+    if (!mounted) return;
     Navigator.of(context).pop();
   }
 
@@ -233,6 +290,8 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
     final defaults = TaskListView.defaultForSurface(widget.surface);
     final df = defaults.filters;
     final wf = _working.filters;
+    final errors = _validationErrors();
+    final canApply = dirty && errors.isEmpty;
     return Container(
       decoration: const BoxDecoration(
         color: TaskColors.backgroundColor,
@@ -248,40 +307,7 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 14, 8, 8),
-                child: Row(
-                  children: [
-                    const Expanded(
-                      child: Text(
-                        'View options',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    TextButton.icon(
-                      onPressed: _onResetToDefaults,
-                      icon: const Icon(Icons.refresh,
-                          size: 16, color: Colors.white70),
-                      label: const Text(
-                        'Reset to defaults',
-                        style:
-                            TextStyle(color: Colors.white70, fontSize: 12),
-                      ),
-                      style: TextButton.styleFrom(
-                        side: BorderSide.none,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _SheetHeader(onResetToDefaults: _onResetToDefaults),
               Flexible(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
@@ -323,24 +349,10 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
                         changed: wf.minDuration != df.minDuration ||
                             wf.maxDuration != df.maxDuration,
                         child: _DurationBoundsRow(
-                        minValue: _working.filters.minDuration,
-                        maxValue: _working.filters.maxDuration,
-                        onMinChanged: (v) => _mutateFilters((b) {
-                          b.minDuration = v;
-                          if (v != null &&
-                              b.maxDuration != null &&
-                              b.maxDuration! < v) {
-                            b.maxDuration = v;
-                          }
-                        }),
-                        onMaxChanged: (v) => _mutateFilters((b) {
-                          b.maxDuration = v;
-                          if (v != null &&
-                              b.minDuration != null &&
-                              b.minDuration! > v) {
-                            b.minDuration = v;
-                          }
-                        }),
+                          minValue: _working.filters.minDuration,
+                          maxValue: _working.filters.maxDuration,
+                          onMinChanged: _setMinDuration,
+                          onMaxChanged: _setMaxDuration,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -351,22 +363,8 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
                         child: _PointsBoundsRow(
                           minValue: _working.filters.minPoints,
                           maxValue: _working.filters.maxPoints,
-                          onMinChanged: (v) => _mutateFilters((b) {
-                            b.minPoints = v;
-                            if (v != null &&
-                                b.maxPoints != null &&
-                                b.maxPoints! < v) {
-                              b.maxPoints = v;
-                            }
-                          }),
-                          onMaxChanged: (v) => _mutateFilters((b) {
-                            b.maxPoints = v;
-                            if (v != null &&
-                                b.minPoints != null &&
-                                b.minPoints! > v) {
-                              b.minPoints = v;
-                            }
-                          }),
+                          onMinChanged: _setMinPoints,
+                          onMaxChanged: _setMaxPoints,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -380,22 +378,8 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
                           segments: 5,
                           labels: const ['1', '2', '3', '4', '5'],
                           accent: SegmentedBarAccent.priority,
-                          onMinChanged: (v) => _mutateFilters((b) {
-                            b.minPriority = v;
-                            if (v != null &&
-                                b.maxPriority != null &&
-                                b.maxPriority! < v) {
-                              b.maxPriority = v;
-                            }
-                          }),
-                          onMaxChanged: (v) => _mutateFilters((b) {
-                            b.maxPriority = v;
-                            if (v != null &&
-                                b.minPriority != null &&
-                                b.minPriority! > v) {
-                              b.minPriority = v;
-                            }
-                          }),
+                          onMinChanged: _setMinPriority,
+                          onMaxChanged: _setMaxPriority,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -480,9 +464,10 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
                   ),
                 ),
               ),
+              if (errors.isNotEmpty) _ValidationBanner(fieldNames: errors),
               _StickyBottomBar(
                 onCancel: _onCancel,
-                onApply: dirty ? _onApply : null,
+                onApply: canApply ? _onApply : null,
               ),
             ],
           ),
@@ -508,6 +493,127 @@ class _SectionDivider extends StatelessWidget {
           fontWeight: FontWeight.w700,
           letterSpacing: 1.2,
         ),
+      ),
+    );
+  }
+}
+
+/// Pure resolver for `_MultiSelectDropdown._open`'s Done semantics.
+/// Returns the `(saveSet, savedDeselectAll)` pair to hand back to the
+/// parent state:
+///
+/// - working empty + transient flag set (Deselect All was pressed) →
+///   save empty + flag=true. The empty set persists as "no filter,
+///   show all"; the flag tells the parent to render the summary as
+///   "None" so the user gets immediate visual confirmation that their
+///   Deselect All click took effect.
+/// - working contains every item → save empty + flag=false. Saving
+///   empty here is intentional — it auto-reacts to catalog growth
+///   (newly-added areas/contexts are included).
+/// - any other case → save the explicit working set verbatim, flag=false.
+///
+/// Catalog-not-loaded handling and the "is working empty without
+/// transient flag set" validation are the caller's responsibility.
+(Set<T>, bool) _resolveMultiSelectSave<T>({
+  required Set<T> working,
+  required int itemsCount,
+  required bool transientDeselectAll,
+}) {
+  if (transientDeselectAll && working.isEmpty) {
+    return (<T>{}, true);
+  }
+  if (working.length == itemsCount) {
+    return (<T>{}, false);
+  }
+  return ({...working}, false);
+}
+
+/// Sheet header strip: title on the left, Reset-to-defaults text button
+/// on the right. Reset reverts the working copy only — Apply still
+/// required to commit.
+class _SheetHeader extends StatelessWidget {
+  final VoidCallback onResetToDefaults;
+  const _SheetHeader({required this.onResetToDefaults});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 14, 8, 8),
+      child: Row(
+        children: [
+          const Expanded(
+            child: Text(
+              'View options',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton.icon(
+            onPressed: onResetToDefaults,
+            icon:
+                const Icon(Icons.refresh, size: 16, color: Colors.white70),
+            label: const Text(
+              'Reset to defaults',
+              style: TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+            style: TextButton.styleFrom(
+              side: BorderSide.none,
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 10, vertical: 6),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Inline error banner shown immediately above the sticky bottom bar
+/// when one or more multi-select axes are accidentally empty (working
+/// set empty + transient flag false + working != surface default).
+/// See `_validationErrors` for the rule. Apply is also disabled in
+/// that state; the banner explains why.
+class _ValidationBanner extends StatelessWidget {
+  final List<String> fieldNames;
+  const _ValidationBanner({required this.fieldNames});
+
+  @override
+  Widget build(BuildContext context) {
+    final pluralS = fieldNames.length == 1 ? '' : 's';
+    final list = fieldNames.join(', ');
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE85D5D).withValues(alpha: 0.15),
+        border: Border(
+          top: BorderSide(
+            color: const Color(0xFFE85D5D).withValues(alpha: 0.35),
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline,
+              size: 18, color: Color(0xFFE85D5D)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Select at least one option for $list, '
+              'or tap Deselect All to clear$pluralS explicitly.',
+              style: const TextStyle(
+                color: Color(0xFFF4B0B0),
+                fontSize: 12.5,
+                height: 1.3,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -797,21 +903,21 @@ class _MultiSelectDropdown<T> extends StatelessWidget {
             }
 
             void done() {
-              // If everything is checked, save as empty (= "no filter,
-              // show all" — also auto-reacts to catalog growth).
-              // Otherwise save the explicit set.
-              final Set<T> toSave;
-              final bool savedDeselectAll;
-              if (transientDeselectAll && working.isEmpty) {
-                toSave = <T>{};
-                savedDeselectAll = true;
-              } else if (working.length == items.length) {
-                toSave = <T>{};
-                savedDeselectAll = false;
-              } else {
-                toSave = {...working};
-                savedDeselectAll = false;
+              // Catalog-not-loaded guard: if `items` is empty but the
+              // user has a non-empty saved selection, the modal rendered
+              // with zero chips and there's no meaningful edit they could
+              // have made — treat Done as Cancel so we don't silently
+              // overwrite their saved selection with empty.
+              if (items.isEmpty && selected.isNotEmpty) {
+                Navigator.of(sheetContext).pop();
+                return;
               }
+              final (toSave, savedDeselectAll) =
+                  _resolveMultiSelectSave<T>(
+                working: working,
+                itemsCount: items.length,
+                transientDeselectAll: transientDeselectAll,
+              );
               onChanged(toSave, savedDeselectAll);
               Navigator.of(sheetContext).pop();
             }

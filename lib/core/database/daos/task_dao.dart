@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 import '../app_database.dart';
+import '../sync_time.dart';
 import '../tables.dart';
 
 part 'task_dao.g.dart';
@@ -143,12 +144,25 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
   Future<void> bulkUpsertFromRemote(List<TasksCompanion> rows) async {
     if (rows.isEmpty) return;
 
-    // Fetch only the two columns needed to build the per-doc anchor map.
-    // `selectOnly` avoids reading every column of every pending row on
-    // each listener batch — relevant because `conflictRemoteJson` can be
-    // large for pendingConflict rows and the row payload here is never
-    // used (we only build the anchor lookup).
-    final pendingQuery = selectOnly(tasks)
+    final pending = await _loadPendingAnchors();
+    final toUpsert = _buildToUpsert(rows, pending);
+    final toAnchor = _buildToAnchor(rows, pending);
+
+    if (kDebugMode) _logAnchoring(rows, pending, toAnchor);
+
+    if (toUpsert.isNotEmpty) {
+      await batch((b) => b.insertAllOnConflictUpdate(tasks, toUpsert));
+    }
+    if (toAnchor.isNotEmpty) await _anchorPendingRows(toAnchor);
+  }
+
+  /// Projection of the current pending-row state used by the listener
+  /// path: per-docId anchor + local `lastModified`. `selectOnly` reads
+  /// only the three columns we need — avoids pulling `conflictRemoteJson`
+  /// (potentially large for pendingConflict rows).
+  Future<({Map<String, DateTime?> anchor, Map<String, DateTime?> lastModified})>
+      _loadPendingAnchors() async {
+    final query = selectOnly(tasks)
       ..addColumns([
         tasks.docId,
         tasks.lastSyncedRemoteVersion,
@@ -160,109 +174,113 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
         SyncState.pendingDelete.name,
         SyncState.pendingConflict.name,
       ]));
-    final pendingProjection = await pendingQuery.get();
-    final pendingAnchorByDocId = <String, DateTime?>{};
-    final pendingLastModifiedByDocId = <String, DateTime?>{};
-    for (final row in pendingProjection) {
+    final result = await query.get();
+    final anchor = <String, DateTime?>{};
+    final lastModified = <String, DateTime?>{};
+    for (final row in result) {
       final docId = row.read(tasks.docId)!;
-      pendingAnchorByDocId[docId] = row.read(tasks.lastSyncedRemoteVersion);
-      pendingLastModifiedByDocId[docId] = row.read(tasks.lastModified);
+      anchor[docId] = row.read(tasks.lastSyncedRemoteVersion);
+      lastModified[docId] = row.read(tasks.lastModified);
     }
+    return (anchor: anchor, lastModified: lastModified);
+  }
 
-    // TM-361: sync the lastSyncedRemoteVersion column at the same time —
-    // see upsertFromRemote for rationale.
-    final toUpsert = rows
-        .where((r) => !pendingAnchorByDocId.containsKey(r.docId.value))
+  /// Non-pending rows from the listener — these flip to `synced` and
+  /// have their anchor synced to the server's `lastModified` at the
+  /// same time (TM-361). See `upsertFromRemote` for the per-row variant.
+  List<TasksCompanion> _buildToUpsert(
+      List<TasksCompanion> rows,
+      ({Map<String, DateTime?> anchor, Map<String, DateTime?> lastModified})
+          pending) {
+    return rows
+        .where((r) => !pending.anchor.containsKey(r.docId.value))
         .map((r) => r.copyWith(
               syncState: Value(SyncState.synced.name),
               lastSyncedRemoteVersion: r.lastModified,
             ))
         .toList();
+  }
 
-    // TM-367 (round 2): refresh `lastSyncedRemoteVersion` for pending rows
-    // when the listener brings a newer server-confirmed version, **only
-    // when the local pending edit's `lastModified` is at least as recent
-    // as the incoming remote**. This narrow rule preserves the spurious-
-    // conflict fix (the local edit was stamped after the remote, so the
-    // user has already incorporated whatever the remote contains) while
-    // refusing to anchor in the cross-device case (the remote moved past
-    // both our anchor AND our pending edit — genuine divergence the
-    // push-time conflict-check must surface). Comparison is at second
-    // precision to match Drift's `dateTime()` storage.
-    final toAnchor = <TasksCompanion>[];
+  /// TM-367 (round 2): pending rows get their `lastSyncedRemoteVersion`
+  /// refreshed when the listener brings a *newer* server-confirmed
+  /// version — null OR stale current anchor — **only when the local
+  /// pending edit's `lastModified` is at least as recent as the incoming
+  /// remote** (or null, meaning the row has never been stamped locally).
+  /// A remote that outran both our anchor AND our pending edit is
+  /// genuine cross-device divergence and stays unanchored so the push-
+  /// time `_checkAndRecordConflict` surfaces it.
+  List<TasksCompanion> _buildToAnchor(
+      List<TasksCompanion> rows,
+      ({Map<String, DateTime?> anchor, Map<String, DateTime?> lastModified})
+          pending) {
+    final result = <TasksCompanion>[];
     for (final r in rows) {
-      if (!pendingAnchorByDocId.containsKey(r.docId.value)) continue;
+      if (!pending.anchor.containsKey(r.docId.value)) continue;
       if (!r.lastModified.present) continue;
       final newRemote = r.lastModified.value;
       if (newRemote == null) continue;
-      final currentAnchor = pendingAnchorByDocId[r.docId.value];
-      final localLastModified = pendingLastModifiedByDocId[r.docId.value];
+      final currentAnchor = pending.anchor[r.docId.value];
+      final localLastModified = pending.lastModified[r.docId.value];
       final anchorIsOlder = currentAnchor == null ||
-          _isStrictlyAfterAtSecondPrecision(newRemote, currentAnchor);
-      final localIsAtLeastAsRecent = localLastModified != null &&
-          !_isStrictlyAfterAtSecondPrecision(newRemote, localLastModified);
+          isStrictlyAfterAtSecondPrecision(newRemote, currentAnchor);
+      // Null `localLastModified` is a legacy row that has never been
+      // stamped — no local-edit timestamp to compare against, so we
+      // trust the listener (same disposition as the never-anchored case).
+      final localIsAtLeastAsRecent = localLastModified == null ||
+          !isStrictlyAfterAtSecondPrecision(newRemote, localLastModified);
       if (anchorIsOlder && localIsAtLeastAsRecent) {
-        toAnchor.add(r);
+        result.add(r);
       }
     }
-
-    if (kDebugMode) {
-      final skipped = rows
-          .where((r) => pendingAnchorByDocId.containsKey(r.docId.value))
-          .map((r) => r.docId.value)
-          .toList();
-      if (skipped.isNotEmpty) {
-        debugPrint(
-            '[TaskDao.bulkUpsertFromRemote] skipped ${skipped.length} pending rows: $skipped'
-            ' (anchoring ${toAnchor.length} of them)');
-      }
-      if (toAnchor.isNotEmpty) {
-        const sampleCount = 5;
-        final sample = toAnchor
-            .take(sampleCount)
-            .map((r) => r.docId.value)
-            .join(', ');
-        final suffix = toAnchor.length > sampleCount
-            ? ' (+${toAnchor.length - sampleCount} more)'
-            : '';
-        debugPrint(
-            '[TaskDao.bulkUpsertFromRemote] anchoring ${toAnchor.length} pending rows: $sample$suffix');
-      }
-    }
-    if (toUpsert.isNotEmpty) {
-      await batch((b) => b.insertAllOnConflictUpdate(tasks, toUpsert));
-    }
-    // Anchor-only updates run after the full upsert. WHERE clause guards
-    // against concurrent writers that may have set the anchor to
-    // something even fresher between our pending-row snapshot read above
-    // and this update — only overwrite when the current anchor is null
-    // or strictly older than what we're writing. Wrapped in a single
-    // transaction so all anchors land atomically.
-    if (toAnchor.isNotEmpty) {
-      await transaction(() async {
-        for (final r in toAnchor) {
-          final newRemote = r.lastModified.value!;
-          await (update(tasks)
-                ..where((t) =>
-                    t.docId.equals(r.docId.value) &
-                    (t.lastSyncedRemoteVersion.isNull() |
-                        t.lastSyncedRemoteVersion
-                            .isSmallerThanValue(newRemote))))
-              .write(TasksCompanion(
-                  lastSyncedRemoteVersion: r.lastModified));
-        }
-      });
-    }
+    return result;
   }
 
-  /// Strictly-after comparison at Drift's storage precision (seconds).
-  /// Mirrors `SyncService._isStrictlyAfterAtSecondPrecision`. Sub-second
-  /// differences within the same write would otherwise trip the back-fill
-  /// every time the same row round-trips through the listener.
-  static bool _isStrictlyAfterAtSecondPrecision(DateTime a, DateTime b) {
-    final aSec = a.millisecondsSinceEpoch ~/ 1000;
-    final bSec = b.millisecondsSinceEpoch ~/ 1000;
-    return aSec > bSec;
+  /// Per-row anchor UPDATE for `toAnchor`. WHERE clause guards against
+  /// concurrent writers that may have set the anchor to something even
+  /// fresher between our pending-row snapshot read and this update —
+  /// only overwrite when the current anchor is null or strictly older
+  /// than what we're writing. Wrapped in a single transaction so all
+  /// anchors land atomically.
+  Future<void> _anchorPendingRows(List<TasksCompanion> toAnchor) async {
+    await transaction(() async {
+      for (final r in toAnchor) {
+        final newRemote = r.lastModified.value!;
+        await (update(tasks)
+              ..where((t) =>
+                  t.docId.equals(r.docId.value) &
+                  (t.lastSyncedRemoteVersion.isNull() |
+                      t.lastSyncedRemoteVersion
+                          .isSmallerThanValue(newRemote))))
+            .write(TasksCompanion(
+                lastSyncedRemoteVersion: r.lastModified));
+      }
+    });
+  }
+
+  void _logAnchoring(
+      List<TasksCompanion> rows,
+      ({Map<String, DateTime?> anchor, Map<String, DateTime?> lastModified})
+          pending,
+      List<TasksCompanion> toAnchor) {
+    final skipped = rows
+        .where((r) => pending.anchor.containsKey(r.docId.value))
+        .map((r) => r.docId.value)
+        .toList();
+    if (skipped.isNotEmpty) {
+      debugPrint(
+          '[TaskDao.bulkUpsertFromRemote] skipped ${skipped.length} pending rows: $skipped'
+          ' (anchoring ${toAnchor.length} of them)');
+    }
+    if (toAnchor.isNotEmpty) {
+      const sampleCount = 5;
+      final sample =
+          toAnchor.take(sampleCount).map((r) => r.docId.value).join(', ');
+      final suffix = toAnchor.length > sampleCount
+          ? ' (+${toAnchor.length - sampleCount} more)'
+          : '';
+      debugPrint(
+          '[TaskDao.bulkUpsertFromRemote] anchoring ${toAnchor.length} pending rows: $sample$suffix');
+    }
   }
 
   /// Delete a row that no longer exists in Firestore. Skips if local row is

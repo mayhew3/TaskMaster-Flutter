@@ -101,6 +101,38 @@ void main() {
     });
 
     test(
+        'refreshes anchor when localLastModified is null (legacy un-stamped '
+        'row): listener is trusted because there is no local timestamp to '
+        'compare against',
+        () async {
+      // I3 follow-up: a pending row that has no `lastModified` (legacy /
+      // never-stamped) must NOT block the anchor refresh — there's no
+      // local edit timestamp, so we trust the listener (same disposition
+      // as the never-anchored branch).
+      final staleAnchor = DateTime.utc(2025, 5, 1);
+      await db.into(db.tasks).insert(_makeCompanion(
+            docId: 'pending-no-lastmod',
+            syncState: SyncState.pendingUpdate.name,
+            name: 'Local edit',
+          ).copyWith(
+            lastSyncedRemoteVersion: Value(staleAnchor),
+            lastModified: const Value(null),
+          ));
+
+      final newerRemote = DateTime.utc(2025, 8, 1);
+      await db.taskDao.bulkUpsertFromRemote([
+        _makeCompanion(docId: 'pending-no-lastmod', name: 'Remote name')
+            .copyWith(lastModified: Value(newerRemote)),
+      ]);
+
+      final post = await db.taskDao.allForUser(personDocId);
+      expect(post.first.lastSyncedRemoteVersion?.toUtc(), newerRemote,
+          reason: 'Null localLastModified must not block back-fill — '
+              'no timestamp to compare ⇒ trust the listener.');
+      expect(post.first.syncState, SyncState.pendingUpdate.name);
+    });
+
+    test(
         'refreshes stale anchor when listener remote ≤ local lastModified',
         () async {
       // TM-367 round 2: the user's spurious-conflict scenario. A pending

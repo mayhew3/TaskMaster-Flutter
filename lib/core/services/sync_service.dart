@@ -19,6 +19,7 @@ import '../../models/task_item.dart' as m;
 import '../../models/task_recurrence.dart' as m;
 import '../database/app_database.dart';
 import '../database/converters.dart';
+import '../database/sync_time.dart';
 import '../database/tables.dart';
 import '../providers/connectivity_provider.dart';
 import '../providers/database_provider.dart';
@@ -1093,16 +1094,6 @@ class SyncService {
     });
   }
 
-  /// TM-361: compare two `lastModified` values at second precision, matching
-  /// Drift's epoch-seconds storage. Returns `true` iff [a] is strictly after
-  /// [b] when both are floored to whole seconds. See [_checkAndRecordConflict]
-  /// for why this is necessary.
-  static bool _isStrictlyAfterAtSecondPrecision(DateTime a, DateTime b) {
-    final aSec = a.millisecondsSinceEpoch ~/ 1000;
-    final bSec = b.millisecondsSinceEpoch ~/ 1000;
-    return aSec > bSec;
-  }
-
   /// TM-342: server-source `get()` with backoff retry on transient
   /// `unavailable` / `deadline-exceeded` errors. The Firestore SDK can
   /// briefly reject server reads while reconnecting after a connectivity
@@ -1242,7 +1233,7 @@ class SyncService {
     // false-positive a conflict for the very row we just synced, since the
     // truncated local copy is always `≤ 999ms` behind the un-truncated
     // remote. Equalize precision before comparing.
-    if (!_isStrictlyAfterAtSecondPrecision(remoteLastModified, localAnchor)) {
+    if (!isStrictlyAfterAtSecondPrecision(remoteLastModified, localAnchor)) {
       // Remote hasn't advanced past our anchor — push wins.
       _syncLog('[SyncService] conflict-check $localDocId: no conflict (push wins)');
       return false;

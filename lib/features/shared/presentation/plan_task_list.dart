@@ -60,8 +60,6 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
   // ALL preview items to be displayed (existing task item list is dynamically created)
   List<TaskItemRecurPreview> tempIterations = [];
 
-  bool hasTiles = false;
-
   bool popped = false;
 
   late final DateTime endDate;
@@ -238,7 +236,6 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
       allSprints: allSprints,
       lastSprint: lastSprint,
     ));
-    hasTiles = true;
   }
 
   ListView _buildListView(BuildContext context, BuiltList<TaskItem> allTaskItems, BuiltList<Sprint> allSprints,
@@ -304,7 +301,7 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
       }
     }
 
-    if (!hasTiles) {
+    if (tiles.isEmpty) {
       tiles.add(_createNoTasksFoundCard());
     }
 
