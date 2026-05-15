@@ -272,17 +272,20 @@ class _SprintBody extends ConsumerWidget {
       }
     }
 
-    // "Add More..." entry point: opens the plan-mode picker so the user
-    // can append more tasks to this sprint.
-    tiles.add(_AddMoreButton(sprint: sprint));
-
+    // Empty state: show the "No tasks found" card above the Add More
+    // entry point. The empty case used to short-circuit into a separate
+    // ListView that omitted Add More entirely, making it impossible to
+    // add tasks from an empty sprint. Keeping `tiles` as the single
+    // source of truth here means the empty-state card just slots in
+    // ahead of the Add More button instead of replacing the whole view.
     if (groups.isEmpty || groups.every((g) => g.tasks.isEmpty)) {
-      return ListView(
-        children: const [
-          _NoTasksFoundCard(),
-        ],
-      );
+      tiles.add(const _NoTasksFoundCard());
     }
+
+    // "Add More..." entry point: opens the plan-mode picker so the user
+    // can append more tasks to this sprint. Last in the list so it
+    // always appears below any tiles / empty-state card.
+    tiles.add(_AddMoreButton(sprint: sprint));
 
     return ListView.builder(
       padding: const EdgeInsets.only(

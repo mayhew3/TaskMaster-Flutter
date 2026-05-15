@@ -45,6 +45,14 @@ class ShowCompleted extends _$ShowCompleted {
     // Side effect: lazily prefetch the first older-completed-tasks batch
     // when the value transitions off→on, regardless of *which* UI path
     // (legacy popup vs new ViewOptionsSheet) triggered the change.
+    //
+    // `fireImmediately: true` covers the startup case: if the persisted
+    // Tasks-surface view already has the Completed bucket visible when
+    // `build()` first runs (e.g., user toggled it on in a prior session),
+    // the listener won't otherwise fire and `loadNextBatch()` would never
+    // run until the user toggled off then on again. The wasOn=false
+    // fallback for `prev == null` ensures the first synthetic fire is
+    // treated as the off→on transition we want.
     ref.listen<TaskListView>(
       taskListViewStateProvider(TaskListSurface.tasks),
       (prev, next) {
@@ -58,6 +66,7 @@ class ShowCompleted extends _$ShowCompleted {
               .loadNextBatch();
         }
       },
+      fireImmediately: true,
     );
     return value;
   }

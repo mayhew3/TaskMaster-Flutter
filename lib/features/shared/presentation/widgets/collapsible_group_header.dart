@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
-/// Section header for a [TaskGroupResult] bucket. Visually matches the
-/// pre-TM-359 `HeadingItem` (uppercase + bodySmall) but adds a leading
-/// chevron that rotates 90° when collapsed, count + points badges, and
-/// taps to toggle. Tappable only when [onTap] is non-null; otherwise it
-/// renders identically to `HeadingItem`.
+/// Section header for a [TaskGroupResult] bucket. Replaces the
+/// pre-TM-359 `HeadingItem`. Renders an uppercase label (bodySmall +
+/// semibold), a leading chevron that rotates 90° when collapsed, a
+/// task-count badge, and an optional points-total badge (when
+/// `pointsTotal > 0`). When [onTap] is non-null the whole row becomes
+/// an `InkWell` that toggles collapse state; otherwise the same visual
+/// is rendered without the `InkWell` wrapper (non-interactive).
 class CollapsibleGroupHeader extends StatelessWidget {
   final String label;
   final int count;
