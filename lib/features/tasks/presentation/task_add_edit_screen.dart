@@ -137,12 +137,22 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
         // build risks setState-during-build errors. Mounted check
         // covers the race where the screen pops before the post-frame
         // callback fires.
-        final blueprintAtMigration = taskItemBlueprint;
+        //
+        // Snapshot a *separate* blueprint that captures only the
+        // migration intent. `taskItemBlueprint` is the screen's
+        // live, mutable editing buffer — any field the user changes
+        // before the post-frame callback fires would otherwise piggy-
+        // back on this silent migration write. Building a fresh
+        // blueprint from `task` keeps every other field at its
+        // pre-edit value.
+        final migrationBlueprint = task.createBlueprint()
+          ..priority = migratedPriority
+          ..priorityScaleVersion = 2;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           ref.read(updateTaskProvider.notifier).call(
                 task: task,
-                blueprint: blueprintAtMigration,
+                blueprint: migrationBlueprint,
               );
         });
         taskItem = task.rebuild((b) => b

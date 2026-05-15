@@ -9,11 +9,18 @@ import '../../../models/task_list_view.dart';
 /// key itself rather than inside the JSON, so a forward-incompatible
 /// schema change can stage `v2.*` keys while leaving `v1.*` intact for
 /// safe downgrades. JSON parse failures fall back to the surface default
-/// silently (logged once) so a corrupt entry can't crash the app.
+/// silently (logged once per surface per process) so a corrupt entry
+/// can't crash the app and doesn't spam logs on every read.
 class TaskListViewStorage {
   TaskListViewStorage(this._prefs);
 
   final SharedPreferences _prefs;
+
+  /// Process-lifetime gate for the malformed-payload warning so the same
+  /// corrupt entry doesn't log on every `loadSync` call (the keepAlive
+  /// notifier calls `loadSync` once per build, but `_storage` can be
+  /// reconstructed across hot reloads / test re-entrances).
+  static final Set<TaskListSurface> _loggedMalformed = <TaskListSurface>{};
 
   static String keyFor(TaskListSurface surface) =>
       'taskmaestro.listview.v1.${surface.name}';
@@ -27,10 +34,9 @@ class TaskListViewStorage {
     final raw = _prefs.getString(keyFor(surface));
     if (raw == null) return defaultView;
     final parsed = TaskListView.fromJsonString(raw, defaultView: defaultView);
-    if (identical(parsed, defaultView) && raw.isNotEmpty) {
-      // fromJsonString returned the fallback because parsing failed; log
-      // once so a corrupt entry is visible in flight recordings without
-      // spamming on every read.
+    if (identical(parsed, defaultView) &&
+        raw.isNotEmpty &&
+        _loggedMalformed.add(surface)) {
       developer.log(
         'TaskListViewStorage: malformed payload for $surface — using default',
         name: 'TaskListViewStorage',

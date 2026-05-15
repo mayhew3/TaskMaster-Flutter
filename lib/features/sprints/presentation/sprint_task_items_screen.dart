@@ -179,9 +179,18 @@ Future<List<TaskGroupResult>> sprintGroupedTasks(Ref ref, Sprint sprint) async {
   final tasks = await ref.watch(sprintTaskItemsProvider(sprint).future);
   final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
 
+  // `sprintTaskItems` already ran the user's TaskFilters via
+  // `applyTaskFilters`; running them again here would (a) be redundant
+  // work and (b) introduce a subtle time-boundary inconsistency because
+  // each pass captures its own `DateTime.now()` — a task right at the
+  // urgent/target boundary could land in different buckets across the
+  // two passes. Pass a filters-stripped view so `groupAndSortTasks`
+  // skips its internal filter step and only buckets + sorts.
+  final groupingView = view.rebuild((b) => b
+    ..filters.replace(TaskFilters.empty()));
   return groupAndSortTasks(
     tasks: tasks,
-    view: view,
+    view: groupingView,
     now: DateTime.now(),
     recentlyCompletedDocIds:
         recentlyCompleted.map((t) => t.docId).toSet(),

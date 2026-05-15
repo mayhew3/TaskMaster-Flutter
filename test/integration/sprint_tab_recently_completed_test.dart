@@ -26,6 +26,9 @@ import '../helpers/async_provider_helpers.dart';
 /// `TaskFilters.dueStatus` whitelist. `value = true` means "include the
 /// Completed bucket in the visible set"; `value = false` means "exclude
 /// it." Empty whitelist = no filter applied = everything visible.
+/// Mirrors the production `_toggleBucket` normalization: a full
+/// 6-of-6 whitelist collapses back to the empty "show all" sentinel so
+/// the helper produces the same canonical state production code would.
 void _setShowCompleted(ProviderContainer container, bool value) {
   final notifier = container
       .read(taskListViewStateProvider(TaskListSurface.sprint).notifier);
@@ -46,6 +49,9 @@ void _setShowCompleted(ProviderContainer container, bool value) {
     } else {
       return;
     }
+  }
+  if (next.length == DueStatusBucket.values.length) {
+    next = <DueStatusBucket>{};
   }
   notifier.setFilters(
     current.filters.rebuild((b) => b..dueStatus.replace(next)),
