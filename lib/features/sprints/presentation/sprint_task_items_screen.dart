@@ -235,8 +235,19 @@ class SprintTaskItemsScreen extends ConsumerWidget {
                 const Text('Unable to load sprint tasks. Please try again.'),
                 const SizedBox(height: 12),
                 FilledButton.icon(
-                  onPressed: () =>
-                      ref.invalidate(sprintGroupedTasksProvider(sprint)),
+                  onPressed: () {
+                    // Invalidate upstream-to-downstream so a cached
+                    // error in any pre-dependency actually recomputes.
+                    // The error surfaced here may have originated in
+                    // `sprintAllTasks` (Drift stream), the Firestore
+                    // roster, or `sprintTaskItems` itself — invalidating
+                    // only the leaf grouping provider wouldn't recover
+                    // those.
+                    ref.invalidate(sprintAllTasksProvider(sprint));
+                    ref.invalidate(sprintRosterFirestoreProvider(sprint));
+                    ref.invalidate(sprintTaskItemsProvider(sprint));
+                    ref.invalidate(sprintGroupedTasksProvider(sprint));
+                  },
                   icon: const Icon(Icons.refresh),
                   label: const Text('Retry'),
                 ),
