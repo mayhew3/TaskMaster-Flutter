@@ -221,11 +221,26 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
           tiles.add(_TaskListItem(task: task));
         }
       }
-      // "Load More" button only after the Completed bucket, only when
-      // showCompleted is on and the group is expanded.
-      if (group.key == 'due:completed' && showCompleted && !collapsed) {
-        final olderState = ref.watch(olderCompletedTasksBatchesProvider);
-        if (olderState.hasMore) {
+    }
+
+    // "Load More" button: appended once at end-of-list when there's
+    // more completed history to fetch. Under group-by-dueStatus the
+    // Completed bucket is the last group anyway, so this lands in
+    // the same visual spot. Under any other group axis (Area /
+    // Priority / Points / Estimated Time / none), completed tasks
+    // are interleaved across buckets and there's no Completed group
+    // to anchor the button to — so end-of-list is the only natural
+    // home. Respect collapse state only when the Completed bucket
+    // actually exists (i.e. dueStatus grouping); without it there's
+    // nothing for the user to collapse.
+    if (showCompleted) {
+      final olderState = ref.watch(olderCompletedTasksBatchesProvider);
+      if (olderState.hasMore) {
+        final hasCompletedGroup =
+            groupedTasks.any((g) => g.key == 'due:completed');
+        final completedCollapsed =
+            view.collapsedGroups.contains('due:completed');
+        if (!hasCompletedGroup || !completedCollapsed) {
           tiles.add(_LoadMoreCompletedButton());
         }
       }
