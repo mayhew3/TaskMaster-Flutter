@@ -80,11 +80,14 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_initialized) {
-      final task = widget.taskItemId != null
-          ? ref.read(taskProvider(widget.taskItemId!))
-          : null;
-      _initializeTask(task);
+    // For new tasks (no ID), initialize immediately with a blank
+    // blueprint. For edits, defer initialization to build() — a
+    // ref.read here returns null during the brief startup window
+    // between screen mount and Drift hydration, which silently
+    // flipped the screen into "new task / blank" mode for the rest
+    // of its lifetime even after the task became available.
+    if (!_initialized && widget.taskItemId == null) {
+      _initializeTask(null);
       _initialized = true;
     }
   }
@@ -373,6 +376,24 @@ class _TaskAddEditScreenState extends ConsumerState<TaskAddEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Edit mode: wait for the task to materialize in the provider before
+    // initializing the form. ref.watch (not read) so a startup-race null
+    // recovers as soon as Drift / Firestore / family / completed-batches
+    // populate it. _initialized is the latch — once we've populated the
+    // blueprint, subsequent provider emits won't clobber the user's
+    // in-flight edits.
+    if (widget.taskItemId != null && !_initialized) {
+      final task = ref.watch(taskProvider(widget.taskItemId!));
+      if (task == null) {
+        return Scaffold(
+          appBar: AppBar(title: const Text('Task Details')),
+          body: const Center(child: CircularProgressIndicator()),
+        );
+      }
+      _initializeTask(task);
+      _initialized = true;
+    }
+
     final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
 
     ref.listen<AsyncValue<List<TaskItem>>>(

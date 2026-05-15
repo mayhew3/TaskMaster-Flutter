@@ -101,36 +101,106 @@ void main() {
     });
 
     test(
-        'does NOT overwrite lastSyncedRemoteVersion on already-anchored pending row',
+        'refreshes stale anchor when listener remote ≤ local lastModified',
         () async {
-      // Race-guard invariant (R8 review): back-fill is strictly one-time
-      // for never-anchored rows. A row that's already anchored — whether
-      // by a previous push or, under race, by a concurrent writer between
-      // the DAO's pending-row snapshot read and its anchor UPDATE — must
-      // not be overwritten. Tests both layers of defense (the
-      // pendingNeverAnchored filter AND the `lastSyncedRemoteVersion IS
-      // NULL` WHERE clause) by exercising the broader invariant.
-      final originalAnchor = DateTime.utc(2025, 7, 1);
+      // TM-367 round 2: the user's spurious-conflict scenario. A pending
+      // row's anchor is stale (e.g. a prior listener fire was skipped
+      // because the row was momentarily pending), and the listener now
+      // brings a newer remote that this device's pending edit has already
+      // incorporated (local.lastModified ≥ remote.lastModified). Safe to
+      // anchor — the local edit was stamped after the remote, so its
+      // content supersedes whatever the remote contains. Without this
+      // refresh, the next push false-positives a conflict.
+      final staleAnchor = DateTime.utc(2025, 5, 1);
+      final remoteFromEarlierSyncRound = DateTime.utc(2025, 8, 1);
+      final localPendingEdit = DateTime.utc(2025, 8, 2); // > remote
       await db.into(db.tasks).insert(_makeCompanion(
-            docId: 'pending-anchored',
+            docId: 'pending-stale',
             syncState: SyncState.pendingUpdate.name,
+            name: 'Local edit',
           ).copyWith(
-            lastSyncedRemoteVersion: Value(originalAnchor),
-            lastModified: Value(originalAnchor),
+            lastSyncedRemoteVersion: Value(staleAnchor),
+            lastModified: Value(localPendingEdit),
           ));
 
-      // A fresher remote snapshot arrives via the listener.
-      final newerRemote = DateTime.utc(2025, 8, 1);
       await db.taskDao.bulkUpsertFromRemote([
-        _makeCompanion(docId: 'pending-anchored', name: 'Remote name')
-            .copyWith(lastModified: Value(newerRemote)),
+        _makeCompanion(docId: 'pending-stale', name: 'Remote name')
+            .copyWith(lastModified: Value(remoteFromEarlierSyncRound)),
       ]);
 
       final post = await db.taskDao.allForUser(personDocId);
-      expect(post.first.lastSyncedRemoteVersion?.toUtc(), originalAnchor,
-          reason: 'Existing anchor must not be overwritten — preserves '
-              'the legitimate-conflict signal for rows that have a baseline.');
+      expect(post.first.lastSyncedRemoteVersion?.toUtc(),
+          remoteFromEarlierSyncRound,
+          reason:
+              'Stale anchor must be refreshed when the local edit was made '
+              'after the listener-observed remote — the spurious-conflict fix.');
       expect(post.first.syncState, SyncState.pendingUpdate.name);
+      expect(post.first.name, 'Local edit',
+          reason: 'Local pending content stays — only the anchor moves.');
+    });
+
+    test(
+        'does NOT refresh anchor when listener remote > local lastModified '
+        '(genuine cross-device divergence)',
+        () async {
+      // Safety rule: if the listener brings a remote that's newer than
+      // BOTH our anchor AND our pending edit, it represents a true
+      // cross-device write the user hasn't seen. Anchoring would silently
+      // overwrite the other device's change on the next push. Preserve
+      // the stale anchor so the push-time conflict-check fires.
+      final staleAnchor = DateTime.utc(2025, 5, 1);
+      final localPendingEdit = DateTime.utc(2025, 6, 1);
+      final freshRemote = DateTime.utc(2025, 8, 1); // > local edit
+      await db.into(db.tasks).insert(_makeCompanion(
+            docId: 'pending-divergent',
+            syncState: SyncState.pendingUpdate.name,
+          ).copyWith(
+            lastSyncedRemoteVersion: Value(staleAnchor),
+            lastModified: Value(localPendingEdit),
+          ));
+
+      await db.taskDao.bulkUpsertFromRemote([
+        _makeCompanion(docId: 'pending-divergent', name: 'Other device edit')
+            .copyWith(lastModified: Value(freshRemote)),
+      ]);
+
+      final post = await db.taskDao.allForUser(personDocId);
+      expect(post.first.lastSyncedRemoteVersion?.toUtc(), staleAnchor,
+          reason: 'Anchor must not move when the remote outran our pending '
+              'edit — the push-time check must still surface this as a '
+              'conflict.');
+    });
+
+    test(
+        'does NOT regress anchor when listener brings a remote older than '
+        'the existing anchor (race guard)',
+        () async {
+      // Independent race-guard: if a concurrent writer (e.g. a parallel
+      // push that already advanced the anchor) has set the anchor to
+      // something newer than the listener's incoming row, the bulk
+      // update's WHERE clause must skip it. Otherwise we'd undo the
+      // concurrent writer's progress.
+      final freshAnchor = DateTime.utc(2025, 9, 1);
+      final localPendingEdit = DateTime.utc(2025, 9, 2);
+      await db.into(db.tasks).insert(_makeCompanion(
+            docId: 'pending-fresh',
+            syncState: SyncState.pendingUpdate.name,
+          ).copyWith(
+            lastSyncedRemoteVersion: Value(freshAnchor),
+            lastModified: Value(localPendingEdit),
+          ));
+
+      // A listener delivers an older snapshot (e.g. arrived out of order).
+      final olderRemote = DateTime.utc(2025, 8, 1);
+      await db.taskDao.bulkUpsertFromRemote([
+        _makeCompanion(docId: 'pending-fresh', name: 'Remote name')
+            .copyWith(lastModified: Value(olderRemote)),
+      ]);
+
+      final post = await db.taskDao.allForUser(personDocId);
+      expect(post.first.lastSyncedRemoteVersion?.toUtc(), freshAnchor,
+          reason: 'Anchor must not regress to an older listener-observed '
+              'version.');
     });
   });
 

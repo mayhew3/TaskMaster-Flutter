@@ -61,7 +61,7 @@ Area _area(String name, int sortOrder) => Area((b) => b
 
 TaskListView _view({
   TaskGroupAxis groupAxis = TaskGroupAxis.dueStatus,
-  TaskSortAxis sortAxis = TaskSortAxis.dueStatus,
+  TaskSortAxis sortAxis = TaskSortAxis.urgency,
   SortDirection sortDirection = SortDirection.descending,
   void Function(TaskFiltersBuilder)? filters,
 }) {
@@ -156,6 +156,26 @@ void main() {
           filters: (b) => b
             ..minPoints = 2
             ..maxPoints = 8,
+        ),
+      );
+      expect(r.single.tasks.map((t) => t.docId), ['b']);
+    });
+
+    test('duration bounds work the same way as priority/points', () {
+      final tasks = [
+        _t(docId: 'a', duration: 5),
+        _t(docId: 'b', duration: 30),
+        _t(docId: 'c', duration: 240),
+        _t(docId: 'd', duration: null),
+      ];
+      final r = groupAndSortTasks(
+        tasks: tasks,
+        now: _now,
+        view: _view(
+          groupAxis: TaskGroupAxis.none,
+          filters: (b) => b
+            ..minDuration = 15
+            ..maxDuration = 120,
         ),
       );
       expect(r.single.tasks.map((t) => t.docId), ['b']);
@@ -376,7 +396,7 @@ void main() {
       expect(r.single.key, 'due:normal');
     });
 
-    test('default within-bucket sort: Scheduled ascends by startDate; '
+    test('urgency-ascending: Scheduled ascends by startDate; '
         'Completed descends by completionDate', () {
       final earlierStart = _now.add(const Duration(hours: 1));
       final laterStart = _now.add(const Duration(hours: 5));
@@ -391,11 +411,14 @@ void main() {
       final r = groupAndSortTasks(
         tasks: tasks,
         now: _now,
-        view: _view(),
+        view: _view(sortDirection: SortDirection.ascending),
       );
       final sched = r.firstWhere((g) => g.key == 'due:scheduled');
       expect(sched.tasks.map((t) => t.docId), ['sA', 'sB']);
       final done = r.firstWhere((g) => g.key == 'due:completed');
+      // Completed always shows most-recent first under urgency — the
+      // bucket's internal comparator is descending-by-completionDate so
+      // that direction=ascending puts most-recent at top of the bucket.
       expect(done.tasks.map((t) => t.docId), ['dB', 'dA']);
     });
   });
@@ -562,25 +585,175 @@ void main() {
       expect(r.single.tasks.map((t) => t.docId), ['a', 'b', 'c']);
     });
 
-    test('sortAxis=dueStatus + non-dueStatus group axis degrades to dateAdded',
+  });
+
+  group('groupAndSortTasks — urgency sort (bucket-aware)', () {
+    // Times relative to _now (2025-06-15 12:00 UTC).
+    final twoDaysAgo = _now.subtract(const Duration(days: 2));
+    final oneDayAgo = _now.subtract(const Duration(days: 1));
+    final inOneDay = _now.add(const Duration(days: 1));
+    final inTwoDays = _now.add(const Duration(days: 2));
+
+    test('Past Due bucket sorts by dueDate ascending (most overdue first)',
         () {
-      final older = _now.subtract(const Duration(days: 60));
-      final newer = _now.subtract(const Duration(days: 1));
       final tasks = [
-        _t(docId: 'newer', area: 'Work', dateAdded: newer),
-        _t(docId: 'older', area: 'Work', dateAdded: older),
+        _t(docId: 'recent', dueDate: oneDayAgo),
+        _t(docId: 'oldest', dueDate: twoDaysAgo.subtract(const Duration(days: 3))),
+        _t(docId: 'older', dueDate: twoDaysAgo),
       ];
       final r = groupAndSortTasks(
         tasks: tasks,
         now: _now,
         view: _view(
-          groupAxis: TaskGroupAxis.area,
-          sortAxis: TaskSortAxis.dueStatus,
+          groupAxis: TaskGroupAxis.dueStatus,
+          sortAxis: TaskSortAxis.urgency,
+          sortDirection: SortDirection.ascending,
+        ),
+      );
+      expect(r.single.key, 'due:pastDue');
+      expect(r.single.tasks.map((t) => t.docId), ['oldest', 'older', 'recent']);
+    });
+
+    test(
+        'Urgent bucket sorts by dueDate, then urgentDate (tiebreak)',
+        () {
+      // All urgent (urgentDate < now < dueDate). Two share the same dueDate
+      // but differ on urgentDate → urgentDate breaks the tie.
+      final tasks = [
+        _t(
+            docId: 'sameDueOlderUrgent',
+            urgentDate: twoDaysAgo,
+            dueDate: inOneDay),
+        _t(docId: 'laterDue', urgentDate: oneDayAgo, dueDate: inTwoDays),
+        _t(
+            docId: 'sameDueNewerUrgent',
+            urgentDate: oneDayAgo,
+            dueDate: inOneDay),
+      ];
+      final r = groupAndSortTasks(
+        tasks: tasks,
+        now: _now,
+        view: _view(
+          groupAxis: TaskGroupAxis.dueStatus,
+          sortAxis: TaskSortAxis.urgency,
+          sortDirection: SortDirection.ascending,
+        ),
+      );
+      expect(r.single.key, 'due:urgent');
+      expect(r.single.tasks.map((t) => t.docId),
+          ['sameDueOlderUrgent', 'sameDueNewerUrgent', 'laterDue']);
+    });
+
+    test('Target bucket sorts by urgentDate, then targetDate', () {
+      // All target (targetDate < now < urgentDate). Two share urgentDate but
+      // differ on targetDate → targetDate breaks the tie.
+      final tasks = [
+        _t(
+            docId: 'laterUrgent',
+            targetDate: oneDayAgo,
+            urgentDate: inTwoDays),
+        _t(
+            docId: 'sameUrgentOlderTarget',
+            targetDate: twoDaysAgo,
+            urgentDate: inOneDay),
+        _t(
+            docId: 'sameUrgentNewerTarget',
+            targetDate: oneDayAgo,
+            urgentDate: inOneDay),
+      ];
+      final r = groupAndSortTasks(
+        tasks: tasks,
+        now: _now,
+        view: _view(
+          groupAxis: TaskGroupAxis.dueStatus,
+          sortAxis: TaskSortAxis.urgency,
+          sortDirection: SortDirection.ascending,
+        ),
+      );
+      expect(r.single.key, 'due:target');
+      expect(r.single.tasks.map((t) => t.docId),
+          ['sameUrgentOlderTarget', 'sameUrgentNewerTarget', 'laterUrgent']);
+    });
+
+    test('Normal "Tasks" bucket sorts by targetDate, then dateAdded', () {
+      // All normal (no due/urgent/target in the past, no start in the future).
+      // tA has no targetDate; goes last (nulls last).
+      final oldAdd = _now.subtract(const Duration(days: 60));
+      final newAdd = _now.subtract(const Duration(days: 1));
+      final tasks = [
+        _t(docId: 'noTarget', dateAdded: oldAdd),
+        _t(docId: 'laterTarget', targetDate: inTwoDays),
+        _t(
+            docId: 'earlierTargetNewerAdd',
+            targetDate: inOneDay,
+            dateAdded: newAdd),
+        _t(
+            docId: 'earlierTargetOlderAdd',
+            targetDate: inOneDay,
+            dateAdded: oldAdd),
+      ];
+      final r = groupAndSortTasks(
+        tasks: tasks,
+        now: _now,
+        view: _view(
+          groupAxis: TaskGroupAxis.dueStatus,
+          sortAxis: TaskSortAxis.urgency,
+          sortDirection: SortDirection.ascending,
+        ),
+      );
+      expect(r.single.key, 'due:normal');
+      expect(
+          r.single.tasks.map((t) => t.docId),
+          [
+            'earlierTargetOlderAdd',
+            'earlierTargetNewerAdd',
+            'laterTarget',
+            'noTarget',
+          ]);
+    });
+
+    test('under groupAxis=none, urgency sort interleaves tiers correctly',
+        () {
+      // One task per tier — confirms past-due → urgent → target → normal
+      // → scheduled → completed ordering.
+      final tasks = [
+        _t(docId: 'normal'),
+        _t(docId: 'past', dueDate: oneDayAgo),
+        _t(docId: 'completed', completionDate: oneDayAgo),
+        _t(docId: 'urgent', urgentDate: oneDayAgo, dueDate: inOneDay),
+        _t(docId: 'scheduled', startDate: inOneDay),
+        _t(docId: 'target', targetDate: oneDayAgo, urgentDate: inOneDay),
+      ];
+      final r = groupAndSortTasks(
+        tasks: tasks,
+        now: _now,
+        view: _view(
+          groupAxis: TaskGroupAxis.none,
+          sortAxis: TaskSortAxis.urgency,
+          sortDirection: SortDirection.ascending,
+        ),
+      );
+      expect(
+        r.single.tasks.map((t) => t.docId),
+        ['past', 'urgent', 'target', 'normal', 'scheduled', 'completed'],
+      );
+    });
+
+    test('descending direction reverses the entire urgency order', () {
+      final tasks = [
+        _t(docId: 'normal'),
+        _t(docId: 'past', dueDate: oneDayAgo),
+      ];
+      final r = groupAndSortTasks(
+        tasks: tasks,
+        now: _now,
+        view: _view(
+          groupAxis: TaskGroupAxis.none,
+          sortAxis: TaskSortAxis.urgency,
           sortDirection: SortDirection.descending,
         ),
-        areas: [_area('Work', 1)],
       );
-      expect(r.single.tasks.map((t) => t.docId), ['newer', 'older']);
+      expect(r.single.tasks.map((t) => t.docId), ['normal', 'past']);
     });
   });
 

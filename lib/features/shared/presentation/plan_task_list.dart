@@ -250,7 +250,11 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
     // axes (search, recurrence, areas, etc.) take effect here. TaskItem-
     // RecurPreview rows always flow through (they're forward-looking
     // synthesized rows that the filter set wasn't designed to cover).
-    final view = ref.read(taskListViewStateProvider(TaskListSurface.plan));
+    //
+    // `ref.watch` (not `read`): the View Options sheet mutates this provider
+    // and the plan-mode body must rebuild when the user applies a new
+    // filter, otherwise the sheet visually opens but the list does nothing.
+    final view = ref.watch(taskListViewStateProvider(TaskListSurface.plan));
     final baseTasks = getBaseList(allTaskItems);
     final recentlyCompletedDocIds =
         recentlyCompleted.map((t) => t.docId).toSet();
@@ -500,14 +504,7 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
       appBar: AppBar(
         title: const Text('Select Tasks'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.tune),
-            tooltip: 'View options',
-            onPressed: () => ViewOptionsSheet.show(
-              context,
-              surface: TaskListSurface.plan,
-            ),
-          ),
+          const ViewOptionsButton(surface: TaskListSurface.plan),
         ],
       ),
       body: _buildListView(context, allTasksBuilt, allSprintsBuilt, lastSprint, recentlyCompleted),

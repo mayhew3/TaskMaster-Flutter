@@ -83,6 +83,8 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
         tiles.add(CollapsibleGroupHeader(
           label: group.displayName,
           count: group.tasks.length,
+          pointsTotal: group.tasks
+              .fold<int>(0, (acc, t) => acc + (t.gamePoints ?? 0)),
           collapsed: collapsed,
           onTap: () => viewNotifier.toggleGroupCollapsed(group.key),
         ));
@@ -115,14 +117,7 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
             icon: Icon(_searchBarVisible ? Icons.close : Icons.search),
             onPressed: _toggleSearch,
           ),
-          IconButton(
-            icon: const Icon(Icons.tune),
-            tooltip: 'View options',
-            onPressed: () => ViewOptionsSheet.show(
-              context,
-              surface: TaskListSurface.family,
-            ),
-          ),
+          const ViewOptionsButton(surface: TaskListSurface.family),
           IconButton(
             tooltip: 'Manage family',
             icon: const Icon(Icons.group),

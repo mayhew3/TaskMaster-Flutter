@@ -12,6 +12,8 @@ void main() {
       expect(f.maxPriority, null);
       expect(f.minPoints, null);
       expect(f.maxPoints, null);
+      expect(f.minDuration, null);
+      expect(f.maxDuration, null);
       expect(f.recurrence, RecurrenceFilter.all);
       expect(f.maxAgeDays, null);
       expect(f.ownedByMeOnly, false);
@@ -41,6 +43,8 @@ void main() {
         ..maxPriority = 5
         ..minPoints = 2
         ..maxPoints = 13
+        ..minDuration = 15
+        ..maxDuration = 240
         ..recurrence = RecurrenceFilter.scheduled
         ..maxAgeDays = 30
         ..ownedByMeOnly = true
@@ -77,8 +81,10 @@ void main() {
         () {
       final v = TaskListView.tasksDefault();
       expect(v.groupAxis, TaskGroupAxis.dueStatus);
-      expect(v.sortAxis, TaskSortAxis.dateAdded);
-      expect(v.sortDirection, SortDirection.descending);
+      // Urgency is the default sort across all surfaces — surfaces what's
+      // most pressing first within each due-status bucket.
+      expect(v.sortAxis, TaskSortAxis.urgency);
+      expect(v.sortDirection, SortDirection.ascending);
       // Whitelist of four "actionable" buckets — matches pre-TM-359's
       // hide-scheduled / hide-completed defaults.
       expect(v.filters.dueStatus, {
@@ -90,14 +96,12 @@ void main() {
       expect(v.collapsedGroups, isEmpty);
     });
 
-    test('sprintDefault has empty dueStatus (no filter, all buckets visible)',
-        () {
+    test('sprintDefault groups by due status + urgency sort', () {
       final v = TaskListView.sprintDefault();
-      expect(v.groupAxis, TaskGroupAxis.none);
-      // dueStatus sentinel = "use bucket's natural sort"; under groupAxis=none
-      // the grouping pipeline falls through to insertion order (sprint
-      // assignment).
-      expect(v.sortAxis, TaskSortAxis.dueStatus);
+      expect(v.groupAxis, TaskGroupAxis.dueStatus);
+      expect(v.sortAxis, TaskSortAxis.urgency);
+      expect(v.sortDirection, SortDirection.ascending);
+      // Empty filter = no whitelist applied, every bucket visible.
       expect(v.filters.dueStatus, isEmpty);
     });
 
@@ -109,6 +113,7 @@ void main() {
         () {
       final v = TaskListView.planDefault();
       expect(v.filters.dueStatus, isEmpty);
+      expect(v.sortAxis, TaskSortAxis.urgency);
     });
 
     test('defaultForSurface dispatches correctly', () {

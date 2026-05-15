@@ -23,22 +23,21 @@ enum TaskGroupAxis {
   duration,
 }
 
-/// Axes a user can sort tasks by within a group. `dueStatus` is a sentinel
-/// meaning "use the bucket's natural sort" — preserves the existing per-
-/// bucket sort behavior under group-by-dueStatus (Scheduled ascending by
-/// startDate, Completed descending by completionDate, others insertion
-/// order). For non-dueStatus group axes, `dueStatus` falls back to
-/// `dateAdded`.
+/// Axes a user can sort tasks by within a group.
+///
+/// `urgency` is the default — a bucket-aware sort that surfaces "what's
+/// most pressing" first: tier by due-status bucket (past-due → urgent →
+/// target → normal → scheduled → completed), then within each tier by
+/// the relevant date fields (dueDate for past-due, dueDate+urgentDate
+/// for urgent, etc.). See `_cmpUrgency` in `task_grouping.dart`.
 enum TaskSortAxis {
-  dueStatus,
+  urgency,
   dateAdded,
   points,
   area,
   duration,
   priority,
   efficiency,
-  startDate,
-  completionDate,
 }
 
 enum SortDirection { ascending, descending }
@@ -79,6 +78,12 @@ abstract class TaskFilters implements Built<TaskFilters, TaskFiltersBuilder> {
   /// Inclusive upper bound on `gamePoints`. Null = no upper bound.
   int? get maxPoints;
 
+  /// Inclusive lower bound on `duration` (minutes). Null = no lower bound.
+  int? get minDuration;
+
+  /// Inclusive upper bound on `duration` (minutes). Null = no upper bound.
+  int? get maxDuration;
+
   /// Recurrence-shape filter. Default = [RecurrenceFilter.all].
   RecurrenceFilter get recurrence;
 
@@ -116,6 +121,8 @@ abstract class TaskFilters implements Built<TaskFilters, TaskFiltersBuilder> {
         if (maxPriority != null) 'maxPriority': maxPriority,
         if (minPoints != null) 'minPoints': minPoints,
         if (maxPoints != null) 'maxPoints': maxPoints,
+        if (minDuration != null) 'minDuration': minDuration,
+        if (maxDuration != null) 'maxDuration': maxDuration,
         'recurrence': recurrence.name,
         if (maxAgeDays != null) 'maxAgeDays': maxAgeDays,
         'ownedByMeOnly': ownedByMeOnly,
@@ -137,6 +144,8 @@ abstract class TaskFilters implements Built<TaskFilters, TaskFiltersBuilder> {
       ..maxPriority = _asIntOrNull(json['maxPriority'])
       ..minPoints = _asIntOrNull(json['minPoints'])
       ..maxPoints = _asIntOrNull(json['maxPoints'])
+      ..minDuration = _asIntOrNull(json['minDuration'])
+      ..maxDuration = _asIntOrNull(json['maxDuration'])
       ..recurrence = _byNameOr(
           RecurrenceFilter.values, json['recurrence'], RecurrenceFilter.all)
       ..maxAgeDays = _asIntOrNull(json['maxAgeDays'])
@@ -175,8 +184,8 @@ abstract class TaskListView implements Built<TaskListView, TaskListViewBuilder> 
   /// a newly-added area/context is included by default.
   factory TaskListView.tasksDefault() => TaskListView((b) => b
     ..groupAxis = TaskGroupAxis.dueStatus
-    ..sortAxis = TaskSortAxis.dateAdded
-    ..sortDirection = SortDirection.descending
+    ..sortAxis = TaskSortAxis.urgency
+    ..sortDirection = SortDirection.ascending
     ..filters.replace(TaskFilters.empty().rebuild((f) => f
       ..dueStatus.replace(const {
         DueStatusBucket.pastDue,
@@ -188,13 +197,15 @@ abstract class TaskListView implements Built<TaskListView, TaskListViewBuilder> 
   /// Default state for Family tab (mirror of Tasks tab).
   factory TaskListView.familyDefault() => TaskListView.tasksDefault();
 
-  /// Default state for Sprint tab — preserves TM-339 sprint-assignment
-  /// order. `dueStatus` is empty (= no filter / show all buckets) so
-  /// every assigned task remains visible regardless of state.
+  /// Default state for Sprint tab — groups by due status to match Tasks
+  /// and Family. `dueStatus` filter is empty (= no filter / show all
+  /// buckets) so every assigned task in every state remains visible by
+  /// default; sort defaults to urgency so within each bucket the most
+  /// pressing task surfaces first.
   factory TaskListView.sprintDefault() => TaskListView((b) => b
-    ..groupAxis = TaskGroupAxis.none
-    ..sortAxis = TaskSortAxis.dueStatus
-    ..sortDirection = SortDirection.descending
+    ..groupAxis = TaskGroupAxis.dueStatus
+    ..sortAxis = TaskSortAxis.urgency
+    ..sortDirection = SortDirection.ascending
     ..filters.replace(TaskFilters.empty()));
 
   /// Default state for plan-mode (Create Sprint / Add Tasks to Sprint).
@@ -202,8 +213,8 @@ abstract class TaskListView implements Built<TaskListView, TaskListViewBuilder> 
   /// mode 8-bucket overlay continues to render the existing categories.
   factory TaskListView.planDefault() => TaskListView((b) => b
     ..groupAxis = TaskGroupAxis.dueStatus
-    ..sortAxis = TaskSortAxis.dateAdded
-    ..sortDirection = SortDirection.descending
+    ..sortAxis = TaskSortAxis.urgency
+    ..sortDirection = SortDirection.ascending
     ..filters.replace(TaskFilters.empty()));
 
   /// Factory dispatch for surface-keyed lookup.

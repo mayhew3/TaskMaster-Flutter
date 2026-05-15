@@ -59,15 +59,15 @@ List<TaskGroupResult> groupAndSortTasks({
     case TaskGroupAxis.dueStatus:
       return _dueStatusBuckets(filtered, view, now, recentlyCompletedDocIds);
     case TaskGroupAxis.none:
-      return _noBuckets(filtered, view);
+      return _noBuckets(filtered, view, now);
     case TaskGroupAxis.priority:
-      return _priorityBuckets(filtered, view);
+      return _priorityBuckets(filtered, view, now);
     case TaskGroupAxis.area:
-      return _areaBuckets(filtered, view, areas);
+      return _areaBuckets(filtered, view, areas, now);
     case TaskGroupAxis.points:
-      return _pointsBuckets(filtered, view);
+      return _pointsBuckets(filtered, view, now);
     case TaskGroupAxis.duration:
-      return _durationBuckets(filtered, view);
+      return _durationBuckets(filtered, view, now);
   }
 }
 
@@ -128,6 +128,15 @@ Iterable<TaskItem> _applyFilters(
     final pts = task.gamePoints;
     if (f.minPoints != null && (pts == null || pts < f.minPoints!)) return false;
     if (f.maxPoints != null && (pts == null || pts > f.maxPoints!)) return false;
+
+    // Duration bounds (minutes). Same null-treatment as priority/points.
+    final dur = task.duration;
+    if (f.minDuration != null && (dur == null || dur < f.minDuration!)) {
+      return false;
+    }
+    if (f.maxDuration != null && (dur == null || dur > f.maxDuration!)) {
+      return false;
+    }
 
     if (!_matchesRecurrence(task, f.recurrence)) return false;
 
@@ -222,25 +231,26 @@ List<TaskGroupResult> _dueStatusBuckets(
             key: 'due:${e.key.name}',
             displayName: _kDueStatusDisplayName[e.key]!,
             displayOrder: e.value,
-            tasks: _sortBucket(buckets[e.key]!, view, e.key),
+            tasks: _sortBucket(buckets[e.key]!, view, e.key, now),
           ))
       .toList();
 }
 
-List<TaskGroupResult> _noBuckets(Iterable<TaskItem> tasks, TaskListView view) {
+List<TaskGroupResult> _noBuckets(
+    Iterable<TaskItem> tasks, TaskListView view, DateTime now) {
   final list = tasks.toList();
   return [
     TaskGroupResult(
       key: 'all',
       displayName: '',
       displayOrder: 1,
-      tasks: _sortBucket(list, view, null),
+      tasks: _sortBucket(list, view, null, now),
     ),
   ];
 }
 
 List<TaskGroupResult> _priorityBuckets(
-    Iterable<TaskItem> tasks, TaskListView view) {
+    Iterable<TaskItem> tasks, TaskListView view, DateTime now) {
   final buckets = <int?, List<TaskItem>>{};
   for (final t in tasks) {
     buckets.putIfAbsent(t.displayPriority, () => []).add(t);
@@ -254,7 +264,7 @@ List<TaskGroupResult> _priorityBuckets(
       key: 'priority:$p',
       displayName: 'Priority $p',
       displayOrder: p,
-      tasks: _sortBucket(list, view, null),
+      tasks: _sortBucket(list, view, null, now),
     ));
   }
   final noPriority = buckets[null];
@@ -263,14 +273,14 @@ List<TaskGroupResult> _priorityBuckets(
       key: 'priority:none',
       displayName: 'No priority',
       displayOrder: 6,
-      tasks: _sortBucket(noPriority, view, null),
+      tasks: _sortBucket(noPriority, view, null, now),
     ));
   }
   return result;
 }
 
-List<TaskGroupResult> _areaBuckets(
-    Iterable<TaskItem> tasks, TaskListView view, List<Area> areas) {
+List<TaskGroupResult> _areaBuckets(Iterable<TaskItem> tasks, TaskListView view,
+    List<Area> areas, DateTime now) {
   final buckets = <String?, List<TaskItem>>{};
   for (final t in tasks) {
     buckets.putIfAbsent(t.area, () => []).add(t);
@@ -299,7 +309,7 @@ List<TaskGroupResult> _areaBuckets(
       key: 'area:$name',
       displayName: name,
       displayOrder: order++,
-      tasks: _sortBucket(buckets[name]!, view, null),
+      tasks: _sortBucket(buckets[name]!, view, null, now),
     ));
   }
   final noArea = buckets[null];
@@ -308,7 +318,7 @@ List<TaskGroupResult> _areaBuckets(
       key: 'area:none',
       displayName: 'No area',
       displayOrder: order,
-      tasks: _sortBucket(noArea, view, null),
+      tasks: _sortBucket(noArea, view, null, now),
     ));
   }
   return result;
@@ -319,7 +329,7 @@ List<TaskGroupResult> _areaBuckets(
 const _kPointsBuckets = [1, 2, 3, 5, 8, 13];
 
 List<TaskGroupResult> _pointsBuckets(
-    Iterable<TaskItem> tasks, TaskListView view) {
+    Iterable<TaskItem> tasks, TaskListView view, DateTime now) {
   final buckets = <int?, List<TaskItem>>{};
   for (final t in tasks) {
     final pts = t.gamePoints;
@@ -342,7 +352,7 @@ List<TaskGroupResult> _pointsBuckets(
       key: 'points:$pts',
       displayName: '$pts pts',
       displayOrder: order++,
-      tasks: _sortBucket(list, view, null),
+      tasks: _sortBucket(list, view, null, now),
     ));
   }
   final other = buckets[-1];
@@ -351,7 +361,7 @@ List<TaskGroupResult> _pointsBuckets(
       key: 'points:other',
       displayName: 'Other points',
       displayOrder: order++,
-      tasks: _sortBucket(other, view, null),
+      tasks: _sortBucket(other, view, null, now),
     ));
   }
   final none = buckets[null];
@@ -360,7 +370,7 @@ List<TaskGroupResult> _pointsBuckets(
       key: 'points:none',
       displayName: 'No points',
       displayOrder: order,
-      tasks: _sortBucket(none, view, null),
+      tasks: _sortBucket(none, view, null, now),
     ));
   }
   return result;
@@ -382,7 +392,7 @@ const _kDurationBucketLabels = [
 ];
 
 List<TaskGroupResult> _durationBuckets(
-    Iterable<TaskItem> tasks, TaskListView view) {
+    Iterable<TaskItem> tasks, TaskListView view, DateTime now) {
   final buckets = <int?, List<TaskItem>>{};
   for (final t in tasks) {
     final d = t.duration;
@@ -401,7 +411,7 @@ List<TaskGroupResult> _durationBuckets(
       key: 'duration:${_kDurationBucketsMin[i]}',
       displayName: _kDurationBucketLabels[i],
       displayOrder: order++,
-      tasks: _sortBucket(list, view, null),
+      tasks: _sortBucket(list, view, null, now),
     ));
   }
   final none = buckets[null];
@@ -410,7 +420,7 @@ List<TaskGroupResult> _durationBuckets(
       key: 'duration:none',
       displayName: 'No duration',
       displayOrder: order,
-      tasks: _sortBucket(none, view, null),
+      tasks: _sortBucket(none, view, null, now),
     ));
   }
   return result;
@@ -437,28 +447,15 @@ List<TaskItem> _sortBucket(
   List<TaskItem> tasks,
   TaskListView view,
   DueStatusBucket? bucket,
+  DateTime now,
 ) {
-  // Sort-axis = dueStatus is a sentinel meaning "use the bucket's natural
-  // sort". For non-dueStatus group axes it falls through to dateAdded
-  // (so the sortAxis isn't surfaced as "broken" when the user combines
-  // sort=dueStatus with group=area).
-  if (view.sortAxis == TaskSortAxis.dueStatus) {
-    if (bucket == DueStatusBucket.scheduled) {
-      // Existing pre-TM-359 behavior: Scheduled ascends by startDate.
-      return [...tasks]
-        ..sort((a, b) => _cmpDate(a.startDate, b.startDate, 1));
-    }
-    if (bucket == DueStatusBucket.completed) {
-      // Existing pre-TM-359 behavior: Completed descends by completionDate.
-      return [...tasks]
-        ..sort((a, b) => _cmpDate(a.completionDate, b.completionDate, -1));
-    }
-    // Past Due / Urgent / Target / Tasks (under dueStatus axis) AND
-    // every bucket under any non-dueStatus axis: preserve input order.
-    // For the Sprint surface in particular, the caller passes tasks in
-    // sprint-assignment order (TM-339); the sortAxis=dueStatus sentinel
-    // means "don't reorder."
-    return tasks.toList();
+  // Urgency: bucket-aware. Each task's bucket determines which dates
+  // act as the primary/secondary sort key. The global ascending /
+  // descending toggle flips the entire ordering (ascending = most
+  // urgent first).
+  if (view.sortAxis == TaskSortAxis.urgency) {
+    final dir = view.sortDirection == SortDirection.ascending ? 1 : -1;
+    return [...tasks]..sort((a, b) => _cmpUrgency(a, b, now) * dir);
   }
 
   final keyOf = _sortKeyFor(view.sortAxis);
@@ -501,13 +498,56 @@ Comparable? Function(TaskItem) _sortKeyFor(TaskSortAxis axis) {
         if (pts == null || d == null || d == 0) return null;
         return pts / d;
       };
-    case TaskSortAxis.startDate:
-      return (t) => t.startDate;
-    case TaskSortAxis.completionDate:
-      return (t) => t.completionDate;
-    case TaskSortAxis.dueStatus:
-      // Should be intercepted upstream; fall back to dateAdded for safety.
+    case TaskSortAxis.urgency:
+      // Intercepted upstream in _sortBucket; the fallthrough keeps the
+      // switch exhaustive without changing observable behavior.
       return (t) => t.dateAdded;
+  }
+}
+
+/// Comparator for the [TaskSortAxis.urgency] sort. Tasks first sort by
+/// due-status tier (past-due → urgent → target → normal → scheduled →
+/// completed), then within each tier by the date fields most relevant
+/// to that bucket. Always returns ascending = "most urgent first";
+/// `_sortBucket` flips the sign for descending direction.
+///
+/// Per-bucket secondary keys:
+/// - **pastDue**: dueDate
+/// - **urgent**: dueDate, then urgentDate
+/// - **target**: urgentDate, then targetDate
+/// - **normal**: targetDate, then dateAdded
+/// - **scheduled**: startDate (ascending — matches the legacy
+///   dueStatus-sentinel behavior)
+/// - **completed**: completionDate descending (also matches the legacy
+///   sentinel; the outer direction multiplier composes with this so
+///   global descending still puts completed last)
+int _cmpUrgency(TaskItem a, TaskItem b, DateTime now) {
+  final bucketA = _dueStatusBucketOf(a, now);
+  final bucketB = _dueStatusBucketOf(b, now);
+  final tierA = _kDueStatusOrder[bucketA] ?? 99;
+  final tierB = _kDueStatusOrder[bucketB] ?? 99;
+  if (tierA != tierB) return tierA.compareTo(tierB);
+
+  switch (bucketA) {
+    case DueStatusBucket.pastDue:
+      return _cmpDate(a.dueDate, b.dueDate, 1);
+    case DueStatusBucket.urgent:
+      final c = _cmpDate(a.dueDate, b.dueDate, 1);
+      if (c != 0) return c;
+      return _cmpDate(a.urgentDate, b.urgentDate, 1);
+    case DueStatusBucket.target:
+      final c = _cmpDate(a.urgentDate, b.urgentDate, 1);
+      if (c != 0) return c;
+      return _cmpDate(a.targetDate, b.targetDate, 1);
+    case DueStatusBucket.normal:
+      final c = _cmpDate(a.targetDate, b.targetDate, 1);
+      if (c != 0) return c;
+      return _cmpDate(a.dateAdded, b.dateAdded, 1);
+    case DueStatusBucket.scheduled:
+      return _cmpDate(a.startDate, b.startDate, 1);
+    case DueStatusBucket.completed:
+      // Within Completed, most-recent first — same as the legacy sentinel.
+      return _cmpDate(a.completionDate, b.completionDate, -1);
   }
 }
 

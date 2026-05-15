@@ -257,19 +257,19 @@ final class SprintTaskItemsFamily extends $Family
 }
 
 /// Sprint tasks grouped + sorted via the shared pipeline. With the
-/// sprint surface's defaults (groupAxis=none, sortAxis=dueStatus
-/// sentinel) the result is a single bucket preserving sprint-assignment
-/// order. If the user picks a non-default group axis via ViewOptionsSheet,
-/// proper bucketing kicks in.
+/// sprint surface's defaults (groupAxis=dueStatus, sortAxis=urgency) the
+/// result is the bucketed view with most-pressing tasks first within
+/// each bucket. The user can pick any other group/sort axis via the
+/// View Options sheet.
 
 @ProviderFor(sprintGroupedTasks)
 final sprintGroupedTasksProvider = SprintGroupedTasksFamily._();
 
 /// Sprint tasks grouped + sorted via the shared pipeline. With the
-/// sprint surface's defaults (groupAxis=none, sortAxis=dueStatus
-/// sentinel) the result is a single bucket preserving sprint-assignment
-/// order. If the user picks a non-default group axis via ViewOptionsSheet,
-/// proper bucketing kicks in.
+/// sprint surface's defaults (groupAxis=dueStatus, sortAxis=urgency) the
+/// result is the bucketed view with most-pressing tasks first within
+/// each bucket. The user can pick any other group/sort axis via the
+/// View Options sheet.
 
 final class SprintGroupedTasksProvider
     extends
@@ -282,10 +282,10 @@ final class SprintGroupedTasksProvider
         $FutureModifier<List<TaskGroupResult>>,
         $FutureProvider<List<TaskGroupResult>> {
   /// Sprint tasks grouped + sorted via the shared pipeline. With the
-  /// sprint surface's defaults (groupAxis=none, sortAxis=dueStatus
-  /// sentinel) the result is a single bucket preserving sprint-assignment
-  /// order. If the user picks a non-default group axis via ViewOptionsSheet,
-  /// proper bucketing kicks in.
+  /// sprint surface's defaults (groupAxis=dueStatus, sortAxis=urgency) the
+  /// result is the bucketed view with most-pressing tasks first within
+  /// each bucket. The user can pick any other group/sort axis via the
+  /// View Options sheet.
   SprintGroupedTasksProvider._({
     required SprintGroupedTasksFamily super.from,
     required Sprint super.argument,
@@ -334,10 +334,10 @@ String _$sprintGroupedTasksHash() =>
     r'5fdfdc0ea16c796aa9df25dfe16438e4fb7c93b8';
 
 /// Sprint tasks grouped + sorted via the shared pipeline. With the
-/// sprint surface's defaults (groupAxis=none, sortAxis=dueStatus
-/// sentinel) the result is a single bucket preserving sprint-assignment
-/// order. If the user picks a non-default group axis via ViewOptionsSheet,
-/// proper bucketing kicks in.
+/// sprint surface's defaults (groupAxis=dueStatus, sortAxis=urgency) the
+/// result is the bucketed view with most-pressing tasks first within
+/// each bucket. The user can pick any other group/sort axis via the
+/// View Options sheet.
 
 final class SprintGroupedTasksFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<TaskGroupResult>>, Sprint> {
@@ -351,10 +351,10 @@ final class SprintGroupedTasksFamily extends $Family
       );
 
   /// Sprint tasks grouped + sorted via the shared pipeline. With the
-  /// sprint surface's defaults (groupAxis=none, sortAxis=dueStatus
-  /// sentinel) the result is a single bucket preserving sprint-assignment
-  /// order. If the user picks a non-default group axis via ViewOptionsSheet,
-  /// proper bucketing kicks in.
+  /// sprint surface's defaults (groupAxis=dueStatus, sortAxis=urgency) the
+  /// result is the bucketed view with most-pressing tasks first within
+  /// each bucket. The user can pick any other group/sort axis via the
+  /// View Options sheet.
 
   SprintGroupedTasksProvider call(Sprint sprint) =>
       SprintGroupedTasksProvider._(argument: sprint, from: this);

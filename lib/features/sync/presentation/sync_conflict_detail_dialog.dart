@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../models/anchor_date.dart';
 import '../providers/sync_conflict_providers.dart';
 
 /// TM-342: per-conflict modal showing the local pending edit alongside the
@@ -83,6 +84,16 @@ class SyncConflictDetailDialog extends ConsumerWidget {
           'Iteration',
           conflict.local.recurIteration.toString(),
           conflict.remote.recurIteration.toString()),
+      // Anchor is the only "computed" recurrence field — it tracks which
+      // task date (due/urgent/target/start) is currently driving the
+      // recurrence schedule. A task-side date edit can change it on its
+      // own, so it can be the *only* diff between two versions of a
+      // recurrence; without this row the conflict dialog would render
+      // empty for that case.
+      _FieldComparison(
+          'Anchor',
+          _fmtAnchor(conflict.local.anchorDate),
+          _fmtAnchor(conflict.remote.anchorDate)),
     ];
 
     return SyncConflictDetailDialog._(
@@ -199,6 +210,11 @@ class SyncConflictDetailDialog extends ConsumerWidget {
   static String _fmtDate(DateTime? dt) {
     if (dt == null) return '—';
     return DateFormat.yMd().add_jm().format(dt.toLocal());
+  }
+
+  static String _fmtAnchor(AnchorDate a) {
+    return '${a.dateType.label}: '
+        '${DateFormat.yMd().add_jm().format(a.dateValue.toLocal())}';
   }
 }
 

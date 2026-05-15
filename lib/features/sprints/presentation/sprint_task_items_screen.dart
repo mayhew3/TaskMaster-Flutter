@@ -169,10 +169,10 @@ Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
 }
 
 /// Sprint tasks grouped + sorted via the shared pipeline. With the
-/// sprint surface's defaults (groupAxis=none, sortAxis=dueStatus
-/// sentinel) the result is a single bucket preserving sprint-assignment
-/// order. If the user picks a non-default group axis via ViewOptionsSheet,
-/// proper bucketing kicks in.
+/// sprint surface's defaults (groupAxis=dueStatus, sortAxis=urgency) the
+/// result is the bucketed view with most-pressing tasks first within
+/// each bucket. The user can pick any other group/sort axis via the
+/// View Options sheet.
 @riverpod
 Future<List<TaskGroupResult>> sprintGroupedTasks(Ref ref, Sprint sprint) async {
   final view = ref.watch(taskListViewStateProvider(TaskListSurface.sprint));
@@ -205,14 +205,7 @@ class SprintTaskItemsScreen extends ConsumerWidget {
         title: const Text('Sprint Tasks'),
         actions: <Widget>[
           const ConnectionStatusIndicator(),
-          IconButton(
-            icon: const Icon(Icons.tune),
-            tooltip: 'View options',
-            onPressed: () => ViewOptionsSheet.show(
-              context,
-              surface: TaskListSurface.sprint,
-            ),
-          ),
+          const ViewOptionsButton(surface: TaskListSurface.sprint),
           const RefreshButton(),
         ],
       ),
@@ -267,6 +260,8 @@ class _SprintBody extends ConsumerWidget {
         tiles.add(CollapsibleGroupHeader(
           label: group.displayName,
           count: group.tasks.length,
+          pointsTotal: group.tasks
+              .fold<int>(0, (acc, t) => acc + (t.gamePoints ?? 0)),
           collapsed: collapsed,
           onTap: () => viewNotifier.toggleGroupCollapsed(group.key),
         ));

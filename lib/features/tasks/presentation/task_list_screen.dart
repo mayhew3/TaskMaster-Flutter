@@ -83,14 +83,7 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
             icon: Icon(_searchBarVisible ? Icons.close : Icons.search),
             onPressed: _toggleSearch,
           ),
-          IconButton(
-            icon: const Icon(Icons.tune),
-            tooltip: 'View options',
-            onPressed: () => ViewOptionsSheet.show(
-              context,
-              surface: TaskListSurface.tasks,
-            ),
-          ),
+          const ViewOptionsButton(surface: TaskListSurface.tasks),
           const RefreshButton(),
         ],
       ),
@@ -218,6 +211,8 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
         tiles.add(CollapsibleGroupHeader(
           label: group.displayName,
           count: group.tasks.length,
+          pointsTotal: group.tasks
+              .fold<int>(0, (acc, t) => acc + (t.gamePoints ?? 0)),
           collapsed: collapsed,
           onTap: () => viewNotifier.toggleGroupCollapsed(group.key),
         ));

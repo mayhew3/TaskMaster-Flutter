@@ -22,6 +22,10 @@ class _$TaskFilters extends TaskFilters {
   @override
   final int? maxPoints;
   @override
+  final int? minDuration;
+  @override
+  final int? maxDuration;
+  @override
   final RecurrenceFilter recurrence;
   @override
   final int? maxAgeDays;
@@ -41,6 +45,8 @@ class _$TaskFilters extends TaskFilters {
     this.maxPriority,
     this.minPoints,
     this.maxPoints,
+    this.minDuration,
+    this.maxDuration,
     required this.recurrence,
     this.maxAgeDays,
     required this.ownedByMeOnly,
@@ -64,6 +70,8 @@ class _$TaskFilters extends TaskFilters {
         maxPriority == other.maxPriority &&
         minPoints == other.minPoints &&
         maxPoints == other.maxPoints &&
+        minDuration == other.minDuration &&
+        maxDuration == other.maxDuration &&
         recurrence == other.recurrence &&
         maxAgeDays == other.maxAgeDays &&
         ownedByMeOnly == other.ownedByMeOnly &&
@@ -80,6 +88,8 @@ class _$TaskFilters extends TaskFilters {
     _$hash = $jc(_$hash, maxPriority.hashCode);
     _$hash = $jc(_$hash, minPoints.hashCode);
     _$hash = $jc(_$hash, maxPoints.hashCode);
+    _$hash = $jc(_$hash, minDuration.hashCode);
+    _$hash = $jc(_$hash, maxDuration.hashCode);
     _$hash = $jc(_$hash, recurrence.hashCode);
     _$hash = $jc(_$hash, maxAgeDays.hashCode);
     _$hash = $jc(_$hash, ownedByMeOnly.hashCode);
@@ -98,6 +108,8 @@ class _$TaskFilters extends TaskFilters {
           ..add('maxPriority', maxPriority)
           ..add('minPoints', minPoints)
           ..add('maxPoints', maxPoints)
+          ..add('minDuration', minDuration)
+          ..add('maxDuration', maxDuration)
           ..add('recurrence', recurrence)
           ..add('maxAgeDays', maxAgeDays)
           ..add('ownedByMeOnly', ownedByMeOnly)
@@ -139,6 +151,14 @@ class TaskFiltersBuilder implements Builder<TaskFilters, TaskFiltersBuilder> {
   int? get maxPoints => _$this._maxPoints;
   set maxPoints(int? maxPoints) => _$this._maxPoints = maxPoints;
 
+  int? _minDuration;
+  int? get minDuration => _$this._minDuration;
+  set minDuration(int? minDuration) => _$this._minDuration = minDuration;
+
+  int? _maxDuration;
+  int? get maxDuration => _$this._maxDuration;
+  set maxDuration(int? maxDuration) => _$this._maxDuration = maxDuration;
+
   RecurrenceFilter? _recurrence;
   RecurrenceFilter? get recurrence => _$this._recurrence;
   set recurrence(RecurrenceFilter? recurrence) =>
@@ -171,6 +191,8 @@ class TaskFiltersBuilder implements Builder<TaskFilters, TaskFiltersBuilder> {
       _maxPriority = $v.maxPriority;
       _minPoints = $v.minPoints;
       _maxPoints = $v.maxPoints;
+      _minDuration = $v.minDuration;
+      _maxDuration = $v.maxDuration;
       _recurrence = $v.recurrence;
       _maxAgeDays = $v.maxAgeDays;
       _ownedByMeOnly = $v.ownedByMeOnly;
@@ -206,6 +228,8 @@ class TaskFiltersBuilder implements Builder<TaskFilters, TaskFiltersBuilder> {
             maxPriority: maxPriority,
             minPoints: minPoints,
             maxPoints: maxPoints,
+            minDuration: minDuration,
+            maxDuration: maxDuration,
             recurrence: BuiltValueNullFieldError.checkNotNull(
               recurrence,
               r'TaskFilters',

@@ -9,19 +9,33 @@ part of 'context_providers.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// Lowercased name → catalog `iconName` lookup map for the current user's
-/// contexts. Built once per `contextsProvider` emission, then read by every
-/// task card's meta row so each card avoids rebuilding its own copy of the
-/// map on every render. Returns null entries for catalog rows whose icon
-/// hasn't been assigned (Tier 1 user-created contexts default to no icon).
+/// contexts. Built once per emission, then read by every task card's meta
+/// row so each card avoids rebuilding its own copy of the map on every
+/// render. Returns null entries for catalog rows whose icon hasn't been
+/// assigned (Tier 1 user-created contexts default to no icon).
+///
+/// Reads from `contextsWithDefaultsProvider` (not raw `contextsProvider`)
+/// so that rendering any task card triggers the default-seed code path
+/// on first launch — otherwise an account with no contexts yet would
+/// render task pills without icons until the user happened to visit
+/// the Manage Contexts screen (which was the only other entry point to
+/// the seeder).
 
 @ProviderFor(contextIconLookup)
 final contextIconLookupProvider = ContextIconLookupProvider._();
 
 /// Lowercased name → catalog `iconName` lookup map for the current user's
-/// contexts. Built once per `contextsProvider` emission, then read by every
-/// task card's meta row so each card avoids rebuilding its own copy of the
-/// map on every render. Returns null entries for catalog rows whose icon
-/// hasn't been assigned (Tier 1 user-created contexts default to no icon).
+/// contexts. Built once per emission, then read by every task card's meta
+/// row so each card avoids rebuilding its own copy of the map on every
+/// render. Returns null entries for catalog rows whose icon hasn't been
+/// assigned (Tier 1 user-created contexts default to no icon).
+///
+/// Reads from `contextsWithDefaultsProvider` (not raw `contextsProvider`)
+/// so that rendering any task card triggers the default-seed code path
+/// on first launch — otherwise an account with no contexts yet would
+/// render task pills without icons until the user happened to visit
+/// the Manage Contexts screen (which was the only other entry point to
+/// the seeder).
 
 final class ContextIconLookupProvider
     extends
@@ -32,10 +46,17 @@ final class ContextIconLookupProvider
         >
     with $Provider<Map<String, String?>> {
   /// Lowercased name → catalog `iconName` lookup map for the current user's
-  /// contexts. Built once per `contextsProvider` emission, then read by every
-  /// task card's meta row so each card avoids rebuilding its own copy of the
-  /// map on every render. Returns null entries for catalog rows whose icon
-  /// hasn't been assigned (Tier 1 user-created contexts default to no icon).
+  /// contexts. Built once per emission, then read by every task card's meta
+  /// row so each card avoids rebuilding its own copy of the map on every
+  /// render. Returns null entries for catalog rows whose icon hasn't been
+  /// assigned (Tier 1 user-created contexts default to no icon).
+  ///
+  /// Reads from `contextsWithDefaultsProvider` (not raw `contextsProvider`)
+  /// so that rendering any task card triggers the default-seed code path
+  /// on first launch — otherwise an account with no contexts yet would
+  /// render task pills without icons until the user happened to visit
+  /// the Manage Contexts screen (which was the only other entry point to
+  /// the seeder).
   ContextIconLookupProvider._()
     : super(
         from: null,
@@ -70,7 +91,7 @@ final class ContextIconLookupProvider
   }
 }
 
-String _$contextIconLookupHash() => r'57ee26d7ec0f5fc8ccfa59a497989c7f6a28eb5b';
+String _$contextIconLookupHash() => r'e118ac187272a1b34fcecb80191640c4603ee3fe';
 
 /// Per-context task counts for the current user. Keyed by lowercased
 /// context name; the value is the number of non-retired tasks (active +

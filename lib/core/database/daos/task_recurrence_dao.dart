@@ -40,11 +40,16 @@ class TaskRecurrenceDao extends DatabaseAccessor<AppDatabase>
   /// pendingConflict rows are also skipped (TM-342). TM-361: syncs
   /// `lastSyncedRemoteVersion` from each row's `lastModified`.
   ///
-  /// TM-367: pending rows whose `lastSyncedRemoteVersion` is currently null
-  /// (legacy / never-anchored) get a one-time back-fill from the listener's
-  /// `lastModified` so the next push's conflict-check has a server-anchored
-  /// reference. Pending rows whose anchor is already set are NOT touched
-  /// here — see `TaskDao.bulkUpsertFromRemote` for the full rationale.
+  /// TM-367 (round 2): pending rows get their `lastSyncedRemoteVersion`
+  /// refreshed from the listener's `lastModified` whenever the listener
+  /// brings a *newer* server-confirmed version — whether the anchor is
+  /// currently null (legacy / never-anchored) or just stale (a prior
+  /// listener fire was skipped because this row was momentarily pending
+  /// at the time). Keeping the anchor fresh prevents the next push from
+  /// false-positive-conflicting against its own freshly-stamped remote.
+  /// Genuine cross-device races are still caught by the pre-push
+  /// `_serverGetWithRetry` in `SyncService._checkAndRecordConflict`, which
+  /// re-reads from the server right before the set() call.
   Future<void> bulkUpsertFromRemote(List<TaskRecurrencesCompanion> rows) async {
     if (rows.isEmpty) return;
 
@@ -52,10 +57,13 @@ class TaskRecurrenceDao extends DatabaseAccessor<AppDatabase>
     // the same optimization in `TaskDao.bulkUpsertFromRemote`). Avoids
     // pulling every column — including potentially large
     // `conflictRemoteJson` blobs on pendingConflict rows — for a query
-    // that only builds docId sets.
+    // that only builds the per-doc anchor map.
     final pendingQuery = selectOnly(taskRecurrences)
-      ..addColumns(
-          [taskRecurrences.docId, taskRecurrences.lastSyncedRemoteVersion])
+      ..addColumns([
+        taskRecurrences.docId,
+        taskRecurrences.lastSyncedRemoteVersion,
+        taskRecurrences.lastModified,
+      ])
       ..where(taskRecurrences.syncState.isIn([
         SyncState.pendingCreate.name,
         SyncState.pendingUpdate.name,
@@ -63,48 +71,79 @@ class TaskRecurrenceDao extends DatabaseAccessor<AppDatabase>
         SyncState.pendingConflict.name,
       ]));
     final pendingProjection = await pendingQuery.get();
-    final pendingSet = <String>{};
-    final pendingNeverAnchored = <String>{};
+    final pendingAnchorByDocId = <String, DateTime?>{};
+    final pendingLastModifiedByDocId = <String, DateTime?>{};
     for (final row in pendingProjection) {
       final docId = row.read(taskRecurrences.docId)!;
-      pendingSet.add(docId);
-      if (row.read(taskRecurrences.lastSyncedRemoteVersion) == null) {
-        pendingNeverAnchored.add(docId);
-      }
+      pendingAnchorByDocId[docId] =
+          row.read(taskRecurrences.lastSyncedRemoteVersion);
+      pendingLastModifiedByDocId[docId] =
+          row.read(taskRecurrences.lastModified);
     }
 
     final toUpsert = rows
-        .where((r) => !pendingSet.contains(r.docId.value))
+        .where((r) => !pendingAnchorByDocId.containsKey(r.docId.value))
         .map((r) => r.copyWith(
               syncState: Value(SyncState.synced.name),
               lastSyncedRemoteVersion: r.lastModified,
             ))
         .toList();
 
-    // TM-367: one-time anchor back-fill for never-anchored pending rows.
-    final toAnchor = rows
-        .where((r) => pendingNeverAnchored.contains(r.docId.value))
-        .where((r) => r.lastModified.present && r.lastModified.value != null)
-        .toList();
+    // Refresh anchor only when the local pending edit's `lastModified` is
+    // at least as recent as the incoming remote — so a remote that's
+    // newer than BOTH our anchor AND our pending edit (genuine cross-
+    // device divergence) is preserved as a real conflict by the push-
+    // time check. See `TaskDao.bulkUpsertFromRemote` for the full
+    // rationale.
+    final toAnchor = <TaskRecurrencesCompanion>[];
+    for (final r in rows) {
+      if (!pendingAnchorByDocId.containsKey(r.docId.value)) continue;
+      if (!r.lastModified.present) continue;
+      final newRemote = r.lastModified.value;
+      if (newRemote == null) continue;
+      final currentAnchor = pendingAnchorByDocId[r.docId.value];
+      final localLastModified = pendingLastModifiedByDocId[r.docId.value];
+      final anchorIsOlder = currentAnchor == null ||
+          _isStrictlyAfterAtSecondPrecision(newRemote, currentAnchor);
+      final localIsAtLeastAsRecent = localLastModified != null &&
+          !_isStrictlyAfterAtSecondPrecision(newRemote, localLastModified);
+      if (anchorIsOlder && localIsAtLeastAsRecent) {
+        toAnchor.add(r);
+      }
+    }
 
     if (toUpsert.isNotEmpty) {
       await batch((b) => b.insertAllOnConflictUpdate(taskRecurrences, toUpsert));
     }
-    // TM-367 + Copilot review: WHERE-clause guards `lastSyncedRemoteVersion
-    // IS NULL` so a concurrent writer that anchored the row between the
-    // pending-row snapshot above and this update can't be overwritten.
+    // WHERE clause guards against concurrent writers that may have set
+    // the anchor to something even fresher between our pending-row
+    // snapshot read above and this update — only overwrite when the
+    // current anchor is null or strictly older than what we're writing.
     if (toAnchor.isNotEmpty) {
       await transaction(() async {
         for (final r in toAnchor) {
+          final newRemote = r.lastModified.value!;
           await (update(taskRecurrences)
                 ..where((t) =>
                     t.docId.equals(r.docId.value) &
-                    t.lastSyncedRemoteVersion.isNull()))
+                    (t.lastSyncedRemoteVersion.isNull() |
+                        t.lastSyncedRemoteVersion
+                            .isSmallerThanValue(newRemote))))
               .write(TaskRecurrencesCompanion(
                   lastSyncedRemoteVersion: r.lastModified));
         }
       });
     }
+  }
+
+  /// Strictly-after comparison at Drift's storage precision (seconds).
+  /// Mirrors `SyncService._isStrictlyAfterAtSecondPrecision`. Sub-second
+  /// differences within the same write would otherwise trip the back-fill
+  /// every time the same row round-trips through the listener.
+  static bool _isStrictlyAfterAtSecondPrecision(DateTime a, DateTime b) {
+    final aSec = a.millisecondsSinceEpoch ~/ 1000;
+    final bSec = b.millisecondsSinceEpoch ~/ 1000;
+    return aSec > bSec;
   }
 
   Future<void> deleteFromRemote(String docId) async {

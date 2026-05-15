@@ -8,15 +8,14 @@ import 'mocks/mock_recurrence_builder.dart';
 
 /// Tests for the safety limit on recurrence iteration generation.
 ///
-/// The `addNextIterations` method in PlanTaskList and SprintPlanningScreen
-/// recursively generates future task iterations. This test verifies that
-/// the same iteration pattern (using RecurrenceHelper.createNextIteration)
-/// terminates correctly with a depth limit, preventing infinite loops from
-/// corrupted data or date calculation bugs.
+/// The `addNextIterations` method in PlanTaskList recursively generates
+/// future task iterations. This test verifies that the same iteration
+/// pattern (using RecurrenceHelper.createNextIteration) terminates
+/// correctly with a depth limit, preventing infinite loops from corrupted
+/// data or date calculation bugs.
 void main() {
   /// Simulates the same recursion pattern as addNextIterations in
-  /// plan_task_list.dart and sprint_planning_screen.dart, with the
-  /// same depth limit of 365.
+  /// plan_task_list.dart, with the same depth limit of 365.
   List<TaskItemRecurPreview> simulateAddNextIterations(
     SprintDisplayTask newest,
     DateTime endDate, {

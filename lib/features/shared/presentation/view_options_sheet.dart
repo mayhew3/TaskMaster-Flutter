@@ -6,6 +6,8 @@ import '../../../models/task_list_view.dart';
 import '../../areas/providers/area_providers.dart';
 import '../../contexts/providers/context_providers.dart';
 import '../../shared/providers/task_list_view_providers.dart';
+import 'widgets/length_bucket_picker.dart';
+import 'widgets/points_picker.dart';
 import 'widgets/segmented_bar.dart';
 
 const _kGroupAxisLabels = <TaskGroupAxis, String>{
@@ -14,19 +16,17 @@ const _kGroupAxisLabels = <TaskGroupAxis, String>{
   TaskGroupAxis.priority: 'Priority',
   TaskGroupAxis.area: 'Area',
   TaskGroupAxis.points: 'Points',
-  TaskGroupAxis.duration: 'Duration',
+  TaskGroupAxis.duration: 'Estimated Time',
 };
 
 const _kSortAxisLabels = <TaskSortAxis, String>{
-  TaskSortAxis.dueStatus: 'Default',
+  TaskSortAxis.urgency: 'Urgency',
   TaskSortAxis.dateAdded: 'Date Added',
   TaskSortAxis.points: 'Points',
   TaskSortAxis.area: 'Area',
-  TaskSortAxis.duration: 'Duration',
+  TaskSortAxis.duration: 'Estimated Time',
   TaskSortAxis.priority: 'Priority',
   TaskSortAxis.efficiency: 'Efficiency',
-  TaskSortAxis.startDate: 'Start Date',
-  TaskSortAxis.completionDate: 'Completion Date',
 };
 
 const _kDueStatusLabels = <DueStatusBucket, String>{
@@ -58,6 +58,76 @@ const _kAgePresets = <int?, String>{
 /// feedback).
 const Color _kSelectionAccent = TaskColors.cardColor;
 
+/// AppBar action button that opens the View Options sheet for [surface].
+/// Shows a small green dot overlay when the saved view for that surface
+/// differs from the per-surface default in any group/sort/filter axis
+/// (search and collapse state excluded). Mirrors the green ring used on
+/// individual fields inside the sheet so non-default state is visible at
+/// a glance from the task-list screen.
+class ViewOptionsButton extends ConsumerWidget {
+  final TaskListSurface surface;
+  final String tooltip;
+
+  const ViewOptionsButton({
+    super.key,
+    required this.surface,
+    this.tooltip = 'View options',
+  });
+
+  static bool _hasNonDefaults(TaskListView v, TaskListView d) {
+    if (v.groupAxis != d.groupAxis) return true;
+    if (v.sortAxis != d.sortAxis) return true;
+    if (v.sortDirection != d.sortDirection) return true;
+    final vf = v.filters;
+    final df = d.filters;
+    return vf.areas != df.areas ||
+        vf.contexts != df.contexts ||
+        vf.dueStatus != df.dueStatus ||
+        vf.minPriority != df.minPriority ||
+        vf.maxPriority != df.maxPriority ||
+        vf.minPoints != df.minPoints ||
+        vf.maxPoints != df.maxPoints ||
+        vf.minDuration != df.minDuration ||
+        vf.maxDuration != df.maxDuration ||
+        vf.recurrence != df.recurrence ||
+        vf.maxAgeDays != df.maxAgeDays ||
+        vf.ownedByMeOnly != df.ownedByMeOnly;
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final view = ref.watch(taskListViewStateProvider(surface));
+    final defaults = TaskListView.defaultForSurface(surface);
+    final hasNonDefaults = _hasNonDefaults(view, defaults);
+    final button = IconButton(
+      icon: const Icon(Icons.tune),
+      tooltip: tooltip,
+      onPressed: () => ViewOptionsSheet.show(context, surface: surface),
+    );
+    if (!hasNonDefaults) return button;
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.center,
+      children: [
+        button,
+        Positioned(
+          top: 10,
+          right: 10,
+          child: Container(
+            width: 9,
+            height: 9,
+            decoration: BoxDecoration(
+              color: _ChangedFieldHighlight.accent,
+              shape: BoxShape.circle,
+              border: Border.all(color: TaskColors.menuColor, width: 1.5),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 /// View options bottom sheet (TM-359). Edits a *working copy* of the
 /// per-surface `TaskListView` and only commits via "Apply Changes." A
 /// sticky bottom row keeps Cancel / Apply visible without competing
@@ -76,6 +146,7 @@ class ViewOptionsSheet extends ConsumerStatefulWidget {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => ViewOptionsSheet(surface: surface),
     );
   }
@@ -127,6 +198,15 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
 
   void _onCancel() => Navigator.of(context).pop();
 
+  void _onResetToDefaults() {
+    setState(() {
+      _working = TaskListView.defaultForSurface(widget.surface);
+      _areasDeselectedAll = false;
+      _contextsDeselectedAll = false;
+      _dueStatusDeselectedAll = false;
+    });
+  }
+
   void _onApply() {
     final notifier =
         ref.read(taskListViewStateProvider(widget.surface).notifier);
@@ -148,9 +228,14 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final saved = ref.watch(taskListViewStateProvider(widget.surface));
+    final dirty = _working != saved;
+    final defaults = TaskListView.defaultForSurface(widget.surface);
+    final df = defaults.filters;
+    final wf = _working.filters;
     return Container(
       decoration: const BoxDecoration(
-        color: TaskColors.popupBg,
+        color: TaskColors.backgroundColor,
         borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
       child: SafeArea(
@@ -163,15 +248,38 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(18, 14, 18, 8),
-                child: Text(
-                  'View options',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 14, 8, 8),
+                child: Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'View options',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: _onResetToDefaults,
+                      icon: const Icon(Icons.refresh,
+                          size: 16, color: Colors.white70),
+                      label: const Text(
+                        'Reset to defaults',
+                        style:
+                            TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
+                      style: TextButton.styleFrom(
+                        side: BorderSide.none,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               Flexible(
@@ -184,96 +292,198 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
                         groupAxis: _working.groupAxis,
                         sortAxis: _working.sortAxis,
                         sortDirection: _working.sortDirection,
+                        groupChanged:
+                            _working.groupAxis != defaults.groupAxis,
+                        sortChanged: _working.sortAxis != defaults.sortAxis,
+                        directionChanged: _working.sortDirection !=
+                            defaults.sortDirection,
                         onGroupChanged: _setGroupAxis,
                         onSortChanged: _setSortAxis,
                         onDirectionToggle: _toggleSortDirection,
                       ),
                       const SizedBox(height: 12),
                       _SectionDivider('Filter by'),
-                      _AreasDropdown(
-                        selected: _working.filters.areas.toSet(),
-                        deselectedAll: _areasDeselectedAll,
-                        onChanged: (set, deselectedAll) {
-                          setState(() {
-                            _areasDeselectedAll = deselectedAll;
-                          });
-                          _mutateFilters(
-                              (b) => b..areas.replace(set));
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      _ContextsDropdown(
-                        selected: _working.filters.contexts.toSet(),
-                        deselectedAll: _contextsDeselectedAll,
-                        onChanged: (set, deselectedAll) {
-                          setState(() {
-                            _contextsDeselectedAll = deselectedAll;
-                          });
-                          _mutateFilters(
-                              (b) => b..contexts.replace(set));
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      _DueStatusDropdown(
-                        selected: _working.filters.dueStatus.toSet(),
-                        deselectedAll: _dueStatusDeselectedAll,
-                        onChanged: (set, deselectedAll) {
-                          setState(() {
-                            _dueStatusDeselectedAll = deselectedAll;
-                          });
-                          _mutateFilters(
-                              (b) => b..dueStatus.replace(set));
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      _RecurrenceDropdown(
-                        value: _working.filters.recurrence,
-                        onChanged: (r) =>
-                            _mutateFilters((b) => b..recurrence = r),
-                      ),
-                      const SizedBox(height: 8),
-                      _AgeDropdown(
-                        value: _working.filters.maxAgeDays,
-                        onChanged: (d) =>
-                            _mutateFilters((b) => b..maxAgeDays = d),
+                      _ChangedFieldHighlight(
+                        changed: wf.dueStatus != df.dueStatus,
+                        child: _DueStatusDropdown(
+                          selected: _working.filters.dueStatus.toSet(),
+                          deselectedAll: _dueStatusDeselectedAll,
+                          onChanged: (set, deselectedAll) {
+                            setState(() {
+                              _dueStatusDeselectedAll = deselectedAll;
+                            });
+                            _mutateFilters(
+                                (b) => b..dueStatus.replace(set));
+                          },
+                        ),
                       ),
                       const SizedBox(height: 12),
-                      _SectionDivider('Priority'),
-                      _BoundsRow(
-                        minValue: _working.filters.minPriority,
-                        maxValue: _working.filters.maxPriority,
-                        segments: 5,
-                        labels: const ['1', '2', '3', '4', '5'],
-                        accent: SegmentedBarAccent.priority,
-                        onMinChanged: (v) =>
-                            _mutateFilters((b) => b..minPriority = v),
-                        onMaxChanged: (v) =>
-                            _mutateFilters((b) => b..maxPriority = v),
+                      const _FieldLabel('Estimated time'),
+                      _ChangedFieldHighlight(
+                        changed: wf.minDuration != df.minDuration ||
+                            wf.maxDuration != df.maxDuration,
+                        child: _DurationBoundsRow(
+                        minValue: _working.filters.minDuration,
+                        maxValue: _working.filters.maxDuration,
+                        onMinChanged: (v) => _mutateFilters((b) {
+                          b.minDuration = v;
+                          if (v != null &&
+                              b.maxDuration != null &&
+                              b.maxDuration! < v) {
+                            b.maxDuration = v;
+                          }
+                        }),
+                        onMaxChanged: (v) => _mutateFilters((b) {
+                          b.maxDuration = v;
+                          if (v != null &&
+                              b.minDuration != null &&
+                              b.minDuration! > v) {
+                            b.minDuration = v;
+                          }
+                        }),
+                        ),
                       ),
                       const SizedBox(height: 12),
-                      _SectionDivider('Points'),
-                      _PointsBoundsRow(
-                        minValue: _working.filters.minPoints,
-                        maxValue: _working.filters.maxPoints,
-                        onMinChanged: (v) =>
-                            _mutateFilters((b) => b..minPoints = v),
-                        onMaxChanged: (v) =>
-                            _mutateFilters((b) => b..maxPoints = v),
+                      const _FieldLabel('Points'),
+                      _ChangedFieldHighlight(
+                        changed: wf.minPoints != df.minPoints ||
+                            wf.maxPoints != df.maxPoints,
+                        child: _PointsBoundsRow(
+                          minValue: _working.filters.minPoints,
+                          maxValue: _working.filters.maxPoints,
+                          onMinChanged: (v) => _mutateFilters((b) {
+                            b.minPoints = v;
+                            if (v != null &&
+                                b.maxPoints != null &&
+                                b.maxPoints! < v) {
+                              b.maxPoints = v;
+                            }
+                          }),
+                          onMaxChanged: (v) => _mutateFilters((b) {
+                            b.maxPoints = v;
+                            if (v != null &&
+                                b.minPoints != null &&
+                                b.minPoints! > v) {
+                              b.minPoints = v;
+                            }
+                          }),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      const _FieldLabel('Priority'),
+                      _ChangedFieldHighlight(
+                        changed: wf.minPriority != df.minPriority ||
+                            wf.maxPriority != df.maxPriority,
+                        child: _BoundsRow(
+                          minValue: _working.filters.minPriority,
+                          maxValue: _working.filters.maxPriority,
+                          segments: 5,
+                          labels: const ['1', '2', '3', '4', '5'],
+                          accent: SegmentedBarAccent.priority,
+                          onMinChanged: (v) => _mutateFilters((b) {
+                            b.minPriority = v;
+                            if (v != null &&
+                                b.maxPriority != null &&
+                                b.maxPriority! < v) {
+                              b.maxPriority = v;
+                            }
+                          }),
+                          onMaxChanged: (v) => _mutateFilters((b) {
+                            b.maxPriority = v;
+                            if (v != null &&
+                                b.minPriority != null &&
+                                b.minPriority! > v) {
+                              b.minPriority = v;
+                            }
+                          }),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: _ChangedFieldHighlight(
+                              changed: wf.areas != df.areas,
+                              child: _AreasDropdown(
+                                selected: _working.filters.areas.toSet(),
+                                deselectedAll: _areasDeselectedAll,
+                                onChanged: (set, deselectedAll) {
+                                  setState(() {
+                                    _areasDeselectedAll = deselectedAll;
+                                  });
+                                  _mutateFilters(
+                                      (b) => b..areas.replace(set));
+                                },
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _ChangedFieldHighlight(
+                              changed: wf.contexts != df.contexts,
+                              child: _ContextsDropdown(
+                                selected: _working.filters.contexts.toSet(),
+                                deselectedAll: _contextsDeselectedAll,
+                                onChanged: (set, deselectedAll) {
+                                  setState(() {
+                                    _contextsDeselectedAll = deselectedAll;
+                                  });
+                                  _mutateFilters(
+                                      (b) => b..contexts.replace(set));
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: _ChangedFieldHighlight(
+                              changed: wf.recurrence != df.recurrence,
+                              child: _RecurrenceDropdown(
+                                value: _working.filters.recurrence,
+                                onChanged: (r) => _mutateFilters(
+                                    (b) => b..recurrence = r),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _ChangedFieldHighlight(
+                              changed: wf.maxAgeDays != df.maxAgeDays,
+                              child: _AgeDropdown(
+                                value: _working.filters.maxAgeDays,
+                                onChanged: (d) => _mutateFilters(
+                                    (b) => b..maxAgeDays = d),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       if (widget.surface == TaskListSurface.family) ...[
                         const SizedBox(height: 12),
                         _SectionDivider('Family'),
-                        _OwnedByMeRow(
-                          value: _working.filters.ownedByMeOnly,
-                          onChanged: (v) => _mutateFilters(
-                              (b) => b..ownedByMeOnly = v),
+                        _ChangedFieldHighlight(
+                          changed: wf.ownedByMeOnly != df.ownedByMeOnly,
+                          child: _OwnedByMeRow(
+                            value: _working.filters.ownedByMeOnly,
+                            onChanged: (v) => _mutateFilters(
+                                (b) => b..ownedByMeOnly = v),
+                          ),
                         ),
                       ],
                     ],
                   ),
                 ),
               ),
-              _StickyBottomBar(onCancel: _onCancel, onApply: _onApply),
+              _StickyBottomBar(
+                onCancel: _onCancel,
+                onApply: dirty ? _onApply : null,
+              ),
             ],
           ),
         ),
@@ -305,7 +515,9 @@ class _SectionDivider extends StatelessWidget {
 
 class _StickyBottomBar extends StatelessWidget {
   final VoidCallback onCancel;
-  final VoidCallback onApply;
+
+  /// Null = Apply Changes disabled (working copy matches saved state).
+  final VoidCallback? onApply;
 
   const _StickyBottomBar({required this.onCancel, required this.onApply});
 
@@ -314,7 +526,7 @@ class _StickyBottomBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
       decoration: BoxDecoration(
-        color: TaskColors.popupBg,
+        color: TaskColors.cardColor,
         border: Border(
           top: BorderSide(
             color: Colors.white.withValues(alpha: 0.08),
@@ -341,7 +553,8 @@ class _StickyBottomBar extends StatelessWidget {
             child: FilledButton(
               onPressed: onApply,
               style: FilledButton.styleFrom(
-                backgroundColor: _kSelectionAccent,
+                backgroundColor: Theme.of(context).colorScheme.secondary,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
               child: const Text('Apply Changes'),
@@ -357,6 +570,9 @@ class _GroupSortRow extends StatelessWidget {
   final TaskGroupAxis groupAxis;
   final TaskSortAxis sortAxis;
   final SortDirection sortDirection;
+  final bool groupChanged;
+  final bool sortChanged;
+  final bool directionChanged;
   final ValueChanged<TaskGroupAxis> onGroupChanged;
   final ValueChanged<TaskSortAxis> onSortChanged;
   final VoidCallback onDirectionToggle;
@@ -365,6 +581,9 @@ class _GroupSortRow extends StatelessWidget {
     required this.groupAxis,
     required this.sortAxis,
     required this.sortDirection,
+    required this.groupChanged,
+    required this.sortChanged,
+    required this.directionChanged,
     required this.onGroupChanged,
     required this.onSortChanged,
     required this.onDirectionToggle,
@@ -376,37 +595,47 @@ class _GroupSortRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Expanded(
-          child: _LabeledDropdown<TaskGroupAxis>(
-            label: 'Group',
-            value: groupAxis,
-            items: TaskGroupAxis.values,
-            labelOf: (a) => _kGroupAxisLabels[a]!,
-            onChanged: onGroupChanged,
+          child: _ChangedFieldHighlight(
+            changed: groupChanged,
+            child: _LabeledDropdown<TaskGroupAxis>(
+              label: 'Group',
+              value: groupAxis,
+              items: TaskGroupAxis.values,
+              labelOf: (a) => _kGroupAxisLabels[a]!,
+              onChanged: onGroupChanged,
+            ),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: _LabeledDropdown<TaskSortAxis>(
-            label: 'Sort',
-            value: sortAxis,
-            items: TaskSortAxis.values,
-            labelOf: (a) => _kSortAxisLabels[a]!,
-            onChanged: onSortChanged,
+          child: _ChangedFieldHighlight(
+            changed: sortChanged,
+            child: _LabeledDropdown<TaskSortAxis>(
+              label: 'Sort',
+              value: sortAxis,
+              items: TaskSortAxis.values,
+              labelOf: (a) => _kSortAxisLabels[a]!,
+              onChanged: onSortChanged,
+            ),
           ),
         ),
         const SizedBox(width: 4),
         Padding(
           padding: const EdgeInsets.only(bottom: 4),
-          child: IconButton(
-            iconSize: 18,
-            onPressed: onDirectionToggle,
-            icon: Icon(sortDirection == SortDirection.ascending
-                ? Icons.arrow_upward
-                : Icons.arrow_downward),
-            color: Colors.white,
-            tooltip: sortDirection == SortDirection.ascending
-                ? 'Ascending'
-                : 'Descending',
+          child: _ChangedFieldHighlight(
+            changed: directionChanged,
+            borderRadius: const BorderRadius.all(Radius.circular(20)),
+            child: IconButton(
+              iconSize: 18,
+              onPressed: onDirectionToggle,
+              icon: Icon(sortDirection == SortDirection.ascending
+                  ? Icons.arrow_upward
+                  : Icons.arrow_downward),
+              color: Colors.white,
+              tooltip: sortDirection == SortDirection.ascending
+                  ? 'Ascending'
+                  : 'Descending',
+            ),
           ),
         ),
       ],
@@ -438,8 +667,8 @@ class _LabeledDropdown<T> extends StatelessWidget {
         _FieldLabel(label),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.06),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+            color: TaskColors.cardColor,
+            border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
             borderRadius: BorderRadius.circular(8),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -447,7 +676,7 @@ class _LabeledDropdown<T> extends StatelessWidget {
             child: DropdownButton<T>(
               value: value,
               isExpanded: true,
-              dropdownColor: TaskColors.popupBg,
+              dropdownColor: TaskColors.cardColor,
               iconEnabledColor: Colors.white70,
               style: const TextStyle(color: Colors.white, fontSize: 14),
               items: [
@@ -538,6 +767,7 @@ class _MultiSelectDropdown<T> extends StatelessWidget {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (sheetContext) {
         return StatefulBuilder(
           builder: (sheetContext, setSheetState) {
@@ -588,7 +818,7 @@ class _MultiSelectDropdown<T> extends StatelessWidget {
 
             return Container(
               decoration: const BoxDecoration(
-                color: TaskColors.popupBg,
+                color: TaskColors.backgroundColor,
                 borderRadius:
                     BorderRadius.vertical(top: Radius.circular(18)),
               ),
@@ -667,30 +897,21 @@ class _MultiSelectDropdown<T> extends StatelessWidget {
                                   ),
                                 ),
                               )
-                            : ListView.builder(
-                                shrinkWrap: true,
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 4),
-                                itemCount: items.length,
-                                itemBuilder: (context, i) {
-                                  final item = items[i];
-                                  return CheckboxListTile(
-                                    value: working.contains(item),
-                                    onChanged: (_) => toggle(item),
-                                    title: Text(
-                                      labelOf(item),
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 14,
+                            : SingleChildScrollView(
+                                padding: const EdgeInsets.fromLTRB(
+                                    14, 10, 14, 16),
+                                child: Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    for (final item in items)
+                                      _SelectableChip(
+                                        label: labelOf(item),
+                                        selected: working.contains(item),
+                                        onTap: () => toggle(item),
                                       ),
-                                    ),
-                                    dense: true,
-                                    controlAffinity:
-                                        ListTileControlAffinity.leading,
-                                    activeColor: _kSelectionAccent,
-                                    checkColor: Colors.white,
-                                  );
-                                },
+                                  ],
+                                ),
                               ),
                       ),
                     ],
@@ -715,9 +936,9 @@ class _MultiSelectDropdown<T> extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.06),
+              color: TaskColors.cardColor,
               border:
-                  Border.all(color: Colors.white.withValues(alpha: 0.14)),
+                  Border.all(color: Colors.white.withValues(alpha: 0.12)),
               borderRadius: BorderRadius.circular(8),
             ),
             padding:
@@ -851,8 +1072,8 @@ class _AgeDropdown extends StatelessWidget {
         const _FieldLabel('Age'),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.06),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+            color: TaskColors.cardColor,
+            border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
             borderRadius: BorderRadius.circular(8),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -860,7 +1081,7 @@ class _AgeDropdown extends StatelessWidget {
             child: DropdownButton<int?>(
               value: value,
               isExpanded: true,
-              dropdownColor: TaskColors.popupBg,
+              dropdownColor: TaskColors.cardColor,
               iconEnabledColor: Colors.white70,
               style: const TextStyle(color: Colors.white, fontSize: 14),
               items: [
@@ -966,6 +1187,63 @@ class _BoundLabeledBar extends StatelessWidget {
   }
 }
 
+/// Estimated-time filter min/max bounds. Each bound reuses
+/// [LengthBucketPicker] so the user gets the same 5m / 15m / 30m / 1h /
+/// 2h / 4h / 8h / 1d buckets as the Edit Task screen.
+class _DurationBoundsRow extends StatelessWidget {
+  final int? minValue;
+  final int? maxValue;
+  final ValueChanged<int?> onMinChanged;
+  final ValueChanged<int?> onMaxChanged;
+  const _DurationBoundsRow({
+    required this.minValue,
+    required this.maxValue,
+    required this.onMinChanged,
+    required this.onMaxChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            const SizedBox(
+              width: 32,
+              child: Text('Min',
+                  style: TextStyle(color: Colors.white70, fontSize: 12)),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: LengthBucketPicker(
+                  minutes: minValue, onChanged: onMinChanged),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            const SizedBox(
+              width: 32,
+              child: Text('Max',
+                  style: TextStyle(color: Colors.white70, fontSize: 12)),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: LengthBucketPicker(
+                  minutes: maxValue, onChanged: onMaxChanged),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Points filter min/max bounds. Each bound reuses [PointsPicker] so the
+/// user gets the Fibonacci 1/2/3/5/8 scale plus an "Other" segment with
+/// a numeric-input dialog — matching the Edit Task screen's points picker.
 class _PointsBoundsRow extends StatelessWidget {
   final int? minValue;
   final int? maxValue;
@@ -978,43 +1256,37 @@ class _PointsBoundsRow extends StatelessWidget {
     required this.onMaxChanged,
   });
 
-  static const _values = [1, 2, 3, 5, 8, 13];
-  static const _labels = ['1', '2', '3', '5', '8', '13'];
-
-  int? _indexOf(int? value) {
-    if (value == null) return null;
-    final i = _values.indexOf(value);
-    return i < 0 ? null : i + 1;
-  }
-
-  int? _valueOf(int? oneBasedIndex) {
-    if (oneBasedIndex == null) return null;
-    final i = oneBasedIndex - 1;
-    if (i < 0 || i >= _values.length) return null;
-    return _values[i];
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _BoundLabeledBar(
-          label: 'Min',
-          value: _indexOf(minValue),
-          segments: 6,
-          labels: _labels,
-          accent: SegmentedBarAccent.points,
-          onChanged: (idx) => onMinChanged(_valueOf(idx)),
+        Row(
+          children: [
+            const SizedBox(
+              width: 32,
+              child: Text('Min',
+                  style: TextStyle(color: Colors.white70, fontSize: 12)),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: PointsPicker(value: minValue, onChanged: onMinChanged),
+            ),
+          ],
         ),
         const SizedBox(height: 6),
-        _BoundLabeledBar(
-          label: 'Max',
-          value: _indexOf(maxValue),
-          segments: 6,
-          labels: _labels,
-          accent: SegmentedBarAccent.points,
-          onChanged: (idx) => onMaxChanged(_valueOf(idx)),
+        Row(
+          children: [
+            const SizedBox(
+              width: 32,
+              child: Text('Max',
+                  style: TextStyle(color: Colors.white70, fontSize: 12)),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: PointsPicker(value: maxValue, onChanged: onMaxChanged),
+            ),
+          ],
         ),
       ],
     );
@@ -1038,6 +1310,99 @@ class _OwnedByMeRow extends StatelessWidget {
       value: value,
       onChanged: onChanged,
       activeThumbColor: _kSelectionAccent,
+    );
+  }
+}
+
+/// Wraps a sheet field with a soft 2-px green ring when [changed] is true,
+/// mirroring `_ChangedFieldHighlight` on the Edit Task screen. The padding
+/// is preserved when not changed (transparent border occupies the same
+/// space) so toggling doesn't shift layout.
+class _ChangedFieldHighlight extends StatelessWidget {
+  final bool changed;
+  final BorderRadius borderRadius;
+  final Widget child;
+
+  /// Light green that reads against the brand-blue card surface.
+  /// Matches `_ChangedFieldHighlight._accent` on the Edit Task screen.
+  static const Color accent = Color(0xFF8FE5A1);
+  static const Duration _animDuration = Duration(milliseconds: 180);
+  static const double _borderWidth = 2;
+  static const double _innerGap = 2;
+
+  const _ChangedFieldHighlight({
+    required this.changed,
+    required this.child,
+    this.borderRadius = const BorderRadius.all(Radius.circular(10)),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: _animDuration,
+      curve: Curves.easeOut,
+      padding: const EdgeInsets.all(_innerGap),
+      decoration: BoxDecoration(
+        borderRadius: borderRadius,
+        border: Border.all(
+          color: changed ? accent : Colors.transparent,
+          width: _borderWidth,
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
+/// Pill-shaped chip used in the multi-select modal. Selected = filled
+/// with the cards-blue accent + a leading check; unselected = outlined
+/// translucent. Replaces CheckboxListTile (TM-359 round-2 feedback).
+class _SelectableChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _SelectableChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 120),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? _kSelectionAccent : Colors.transparent,
+          border: Border.all(
+            color: selected
+                ? _kSelectionAccent
+                : Colors.white.withValues(alpha: 0.30),
+            width: 1.2,
+          ),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (selected) ...[
+              const Icon(Icons.check, size: 16, color: Colors.white),
+              const SizedBox(width: 6),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

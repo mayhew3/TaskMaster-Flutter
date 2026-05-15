@@ -44,6 +44,36 @@ void main() {
     expect(find.byType(InkWell), findsNothing);
   });
 
+  testWidgets('renders the points badge when pointsTotal > 0', (tester) async {
+    await tester.pumpWidget(_wrap(const CollapsibleGroupHeader(
+      label: 'Urgent',
+      count: 3,
+      pointsTotal: 13,
+      collapsed: false,
+    )));
+    expect(find.text('3'), findsOneWidget);
+    expect(find.text('13 pts'), findsOneWidget);
+  });
+
+  testWidgets('hides points badge when pointsTotal is 0 or null',
+      (tester) async {
+    await tester.pumpWidget(_wrap(const CollapsibleGroupHeader(
+      label: 'Urgent',
+      count: 3,
+      pointsTotal: 0,
+      collapsed: false,
+    )));
+    expect(find.text('3'), findsOneWidget);
+    expect(find.textContaining('pts'), findsNothing);
+
+    await tester.pumpWidget(_wrap(const CollapsibleGroupHeader(
+      label: 'Urgent',
+      count: 3,
+      collapsed: false,
+    )));
+    expect(find.textContaining('pts'), findsNothing);
+  });
+
   testWidgets('the chevron rotation is driven by `collapsed`', (tester) async {
     await tester.pumpWidget(_wrap(const CollapsibleGroupHeader(
       label: 'Open group',
