@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:taskmaestro/core/platform/form_factor.dart';
 import 'package:taskmaestro/core/services/log_storage_service.dart';
 import 'package:taskmaestro/riverpod_app.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -44,6 +45,24 @@ Future<void> main() async {
     () async {
       // Initialize binding inside the zone so runApp uses the same zone
       WidgetsFlutterBinding.ensureInitialized();
+
+      // TM-371: lock phones (iPhone + Android) to portrait before the
+      // first frame so there's no landscape flash if launched rotated.
+      // Tablets and web are excluded (web landscape is a deliberate
+      // future feature — TM-354). Done here, first thing post-binding:
+      // setPreferredOrientations needs the binding, it doesn't print so
+      // it's safe inside the log-capturing zone, and applying it before
+      // any UI work guarantees the constraint holds for frame one.
+      final views = WidgetsBinding.instance.platformDispatcher.views;
+      if (views.isNotEmpty) {
+        final view = views.first;
+        final logicalSize = view.physicalSize / view.devicePixelRatio;
+        if (shouldLockPortrait(isWeb: kIsWeb, logicalSize: logicalSize)) {
+          await SystemChrome.setPreferredOrientations(
+            const [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown],
+          );
+        }
+      }
 
       // Now that the binding is ready, path_provider can resolve the documents dir
       await logStorage.initialize();
