@@ -1,5 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -60,6 +60,29 @@ class AuthState {
   String toString() {
     return 'AuthState(status: $status, user: ${user?.email}, personDocId: $personDocId)';
   }
+}
+
+/// Maps a sign-in/verify error to the right terminal [AuthState].
+/// Shared by the native and web completion paths so the connection-vs-
+/// generic classification can't drift between them. A bounded-query
+/// `TimeoutException` stringifies with "timeout" → connectionError, so
+/// a stalled Firestore lookup degrades to the recoverable screen.
+@visibleForTesting
+AuthState classifyAuthError(Object error) {
+  final s = error.toString().toLowerCase();
+  if (s.contains('unavailable') ||
+      s.contains('timeout') ||
+      s.contains('econnrefused') ||
+      s.contains('failed to connect')) {
+    return const AuthState(
+      status: AuthStatus.connectionError,
+      errorMessage: 'Cannot connect to server. Please check your connection.',
+    );
+  }
+  return AuthState(
+    status: AuthStatus.unauthenticated,
+    errorMessage: 'Sign in failed: $error',
+  );
 }
 
 /// Service class that handles authentication logic
@@ -164,6 +187,12 @@ class AuthService {
   User? get currentUser => _firebaseAuth.currentUser;
 }
 
+/// Platform gate for the auth path. Defaults to `kIsWeb` (compile-time
+/// false under `flutter test`); overridable in tests so the web auth
+/// flow can be exercised on the VM. Hand-written (not codegen) so it
+/// adds no build_runner surface.
+final targetIsWebProvider = Provider<bool>((ref) => kIsWeb);
+
 /// Provider for GoogleSignIn instance
 @Riverpod(keepAlive: true)
 GoogleSignIn googleSignIn(Ref ref) => GoogleSignIn.instance;
@@ -188,7 +217,7 @@ class Auth extends _$Auth {
   }
 
   Future<void> _initialize() async {
-    if (kIsWeb) {
+    if (ref.read(targetIsWebProvider)) {
       await _initializeWeb();
       return;
     }
@@ -331,9 +360,7 @@ class Auth extends _$Auth {
 
       // Success!
       print('🔐 Auth: Fully authenticated - user: ${user.email}, personDocId: $personDocId');
-      // Associate crashes and analytics with this user (anonymized — personDocId, not email)
-      await ref.read(crashReporterProvider).setUserIdentifier(personDocId);
-      await ref.read(analyticsServiceProvider).setUserIdentifier(personDocId);
+      await _associateUser(personDocId);
       state = AuthState(
         status: AuthStatus.authenticated,
         user: user,
@@ -341,23 +368,20 @@ class Auth extends _$Auth {
       );
     } catch (e) {
       print('🔐 Auth: Error during sign-in completion: $e');
+      state = classifyAuthError(e);
+    }
+  }
 
-      // Check if this is a connection error
-      final errorStr = e.toString().toLowerCase();
-      if (errorStr.contains('unavailable') ||
-          errorStr.contains('timeout') ||
-          errorStr.contains('econnrefused') ||
-          errorStr.contains('failed to connect')) {
-        state = AuthState(
-          status: AuthStatus.connectionError,
-          errorMessage: 'Cannot connect to server. Please check your connection.',
-        );
-      } else {
-        state = AuthState(
-          status: AuthStatus.unauthenticated,
-          errorMessage: 'Sign in failed: $e',
-        );
-      }
+  /// Best-effort: associate crashes/analytics with the user (anonymized
+  /// — personDocId, not email). Never fatal: a telemetry failure (e.g.
+  /// firebase_analytics misbehaving on web) must not get caught by the
+  /// completion handler and misreported as a failed sign-in.
+  Future<void> _associateUser(String personDocId) async {
+    try {
+      await ref.read(crashReporterProvider).setUserIdentifier(personDocId);
+      await ref.read(analyticsServiceProvider).setUserIdentifier(personDocId);
+    } catch (e) {
+      print('🔐 Auth: user-identifier association failed (non-fatal): $e');
     }
   }
 
@@ -378,25 +402,27 @@ class Auth extends _$Auth {
     try {
       print('🔐 Auth(web): Initializing...');
       final auth = ref.read(firebaseAuthProvider);
-      final existing = auth.currentUser;
-      print('🔐 Auth(web): currentUser = ${existing?.email ?? "null"}');
-      if (existing != null && existing.email != null) {
-        print('🔐 Auth(web): restoring persisted session…');
-        await _completeWebSignIn(existing);
-        print('🔐 Auth(web): persisted-session completion returned');
-      } else {
-        print('🔐 Auth(web): no session → setting unauthenticated');
-        state = const AuthState(status: AuthStatus.unauthenticated);
-        print('🔐 Auth(web): state set, status=${state.status}');
-      }
-      // Reflect external sign-out (token revoked elsewhere).
-      auth.authStateChanges().listen((user) {
-        print('🔐 Auth(web): authStateChanges → ${user?.email ?? "null"}');
+
+      // Register the external-auth-state listener exactly once, BEFORE
+      // the restore branch, so a sign-out tick that lands during restore
+      // isn't missed. The `status == authenticated` guard makes the
+      // initial currentUser tick (and any tick during initial/
+      // authenticating) a no-op, so it can't clobber an in-flight
+      // restore. Cancelled on dispose (keepAlive providers are still
+      // disposed by `ref.invalidate` / container teardown in tests).
+      final sub = auth.authStateChanges().listen((user) {
         if (user == null && state.status == AuthStatus.authenticated) {
           state = const AuthState(status: AuthStatus.unauthenticated);
         }
       });
-      print('🔐 Auth(web): _initializeWeb finished');
+      ref.onDispose(sub.cancel);
+
+      final existing = auth.currentUser;
+      if (existing != null && existing.email != null) {
+        await _completeWebSignIn(existing);
+      } else {
+        state = const AuthState(status: AuthStatus.unauthenticated);
+      }
     } catch (e, stackTrace) {
       print('🔐 Auth(web): Fatal init error: $e');
       print('🔐 Auth(web): $stackTrace');
@@ -430,7 +456,6 @@ class Auth extends _$Auth {
   /// into Firebase, so skip `signInToFirebase` and reuse the shared
   /// person-verification + state transitions.
   Future<void> _completeWebSignIn(User user) async {
-    print('🔐 Auth(web): _completeWebSignIn entered for ${user.email}');
     try {
       if (user.email == null) {
         state = const AuthState(
@@ -451,30 +476,15 @@ class Auth extends _$Auth {
         return;
       }
       print('🔐 Auth(web): Fully authenticated - ${user.email}');
-      await ref.read(crashReporterProvider).setUserIdentifier(personDocId);
-      await ref.read(analyticsServiceProvider).setUserIdentifier(personDocId);
+      await _associateUser(personDocId);
       state = AuthState(
         status: AuthStatus.authenticated,
         user: user,
         personDocId: personDocId,
       );
     } catch (e) {
-      final errorStr = e.toString().toLowerCase();
-      if (errorStr.contains('unavailable') ||
-          errorStr.contains('timeout') ||
-          errorStr.contains('econnrefused') ||
-          errorStr.contains('failed to connect')) {
-        state = AuthState(
-          status: AuthStatus.connectionError,
-          errorMessage:
-              'Cannot connect to server. Please check your connection.',
-        );
-      } else {
-        state = AuthState(
-          status: AuthStatus.unauthenticated,
-          errorMessage: 'Sign in failed: $e',
-        );
-      }
+      print('🔐 Auth(web): Error during sign-in completion: $e');
+      state = classifyAuthError(e);
     }
   }
 

@@ -63,7 +63,12 @@ Future<void> main() async {
       if (views.isNotEmpty) {
         final view = views.first;
         final logicalSize = view.physicalSize / view.devicePixelRatio;
-        if (shouldLockPortrait(isWeb: kIsWeb, logicalSize: logicalSize)) {
+        // Skip when the engine hasn't reported a real size yet
+        // (physicalSize == Size.zero pre-binding): a zero shortestSide
+        // is < 600 and would wrongly portrait-lock a tablet/desktop on
+        // frame one.
+        if (logicalSize.shortestSide > 0 &&
+            shouldLockPortrait(isWeb: kIsWeb, logicalSize: logicalSize)) {
           await SystemChrome.setPreferredOrientations(
             const [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown],
           );
@@ -111,6 +116,16 @@ Future<void> main() async {
       // TM-353: firebase_crashlytics has no web support and throws on
       // web — skip the whole block there (crashReporterProvider is
       // overridden with a no-op below so app code stays unaware).
+      //
+      // KNOWN WEB GAP (intentional, interim — TM-374): on web there is
+      // currently NO durable capture of fatal/uncaught errors at all —
+      // Crashlytics is a no-op, the global FlutterError/PlatformDispatcher
+      // handlers below are skipped, and LogStorageWebNoop discards the
+      // print-zone output. A failed Drift→Firestore outbox push on web
+      // would be invisible here. The Drift sync layer still has its own
+      // user-visible connectivity/retry signaling (ConnectionStatus), so
+      // this is an observability gap, not silent data loss. Web error
+      // reporting (e.g. Sentry / console export) is tracked in TM-374.
       if (!kIsWeb) {
         await FirebaseCrashlytics.instance
             .setCrashlyticsCollectionEnabled(!kDebugMode);
