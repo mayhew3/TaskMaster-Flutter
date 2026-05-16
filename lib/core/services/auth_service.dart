@@ -465,6 +465,20 @@ class Auth extends _$Auth {
         return;
       }
       final personDocId = await _verifyPerson(user.email!);
+
+      // A sign-out / account-switch (null or different authStateChanges
+      // tick) that lands DURING the Firestore verify await is ignored
+      // by the listener (its guard requires status==authenticated,
+      // which isn't true yet). Re-check the live Firebase user before
+      // committing ANY post-verify terminal state — including
+      // personNotFound — so a mid-verify session change resolves to
+      // unauthenticated rather than stranding a stale screen.
+      final live = ref.read(firebaseAuthProvider).currentUser;
+      if (live == null || live.email != user.email) {
+        print('🔐 Auth(web): session changed during verify — aborting');
+        state = const AuthState(status: AuthStatus.unauthenticated);
+        return;
+      }
       if (personDocId == null) {
         print('🔐 Auth(web): Person not found for email ${user.email}');
         state = AuthState(
@@ -473,18 +487,6 @@ class Auth extends _$Auth {
           errorMessage:
               'No account found for ${user.email}. Contact administrator.',
         );
-        return;
-      }
-      // A sign-out (null authStateChanges tick) that lands DURING the
-      // Firestore verify await is ignored by the listener (its guard
-      // requires status==authenticated, which isn't true yet). Re-check
-      // the live Firebase user before committing `authenticated` so we
-      // don't strand a stale session for a user who signed out — or
-      // swapped accounts — mid-verification.
-      final live = ref.read(firebaseAuthProvider).currentUser;
-      if (live == null || live.email != user.email) {
-        print('🔐 Auth(web): session changed during verify — aborting');
-        state = const AuthState(status: AuthStatus.unauthenticated);
         return;
       }
       print('🔐 Auth(web): Fully authenticated - ${user.email}');

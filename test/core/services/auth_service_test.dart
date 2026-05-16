@@ -165,6 +165,29 @@ void main() {
       expect(settled.status, AuthStatus.unauthenticated);
     });
 
+    test(
+        'R3 regression: sign-out during verify with NO person doc → '
+        'unauthenticated (not personNotFound)', () async {
+      final firestore = FakeFirebaseFirestore(); // no persons seeded
+      final container = ProviderContainer(
+        overrides: [
+          targetIsWebProvider.overrideWithValue(true),
+          firebaseAuthProvider.overrideWithValue(
+              _SignsOutDuringVerifyAuth(_FakeUser('gone@example.com'))),
+          firestoreProvider.overrideWithValue(firestore),
+          crashReporterProvider.overrideWithValue(CrashReporterWebNoop()),
+          analyticsServiceProvider.overrideWithValue(_NoopAnalytics()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final settled = await _awaitAuthSettled(container);
+
+      // The post-verify live-user re-check runs BEFORE the
+      // personNotFound branch, so a mid-verify sign-out wins.
+      expect(settled.status, AuthStatus.unauthenticated);
+    });
+
     test('no persisted session → unauthenticated', () async {
       final container = _webContainer(
         auth: _FakeFirebaseAuth(null),
