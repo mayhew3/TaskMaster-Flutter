@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,6 +36,14 @@ class _FakeFirebaseAuth implements FirebaseAuth {
 class _NoopAnalytics implements AnalyticsService {
   @override
   dynamic noSuchMethod(Invocation invocation) => Future<void>.value();
+}
+
+/// Every operation throws a connection-ish error — models `_verifyPerson`
+/// failing on web (e.g. the bounded-query timeout).
+class _ThrowingFirestore implements FirebaseFirestore {
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw Exception('unavailable');
 }
 
 /// `currentUser` is non-null on the first read (so `_initializeWeb`
@@ -341,6 +350,29 @@ void main() {
       // `authenticated` for A.
       expect(container.read(authProvider).status,
           isNot(AuthStatus.authenticated));
+    });
+
+    test(
+        'R7 regression: web verify error preserves user (connectionError '
+        'keeps user so Retry re-verifies, not native silent sign-in)',
+        () async {
+      final container = ProviderContainer(
+        overrides: [
+          targetIsWebProvider.overrideWithValue(true),
+          firebaseAuthProvider
+              .overrideWithValue(_FakeFirebaseAuth(_FakeUser('me@example.com'))),
+          firestoreProvider.overrideWithValue(_ThrowingFirestore()),
+          crashReporterProvider.overrideWithValue(CrashReporterWebNoop()),
+          analyticsServiceProvider.overrideWithValue(_NoopAnalytics()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final settled = await _awaitAuthSettled(container);
+
+      expect(settled.status, AuthStatus.connectionError);
+      expect(settled.user, isNotNull,
+          reason: 'user must survive so web retry() re-verifies');
     });
 
     test('no persisted session → unauthenticated', () async {

@@ -306,7 +306,11 @@ class Auth extends _$Auth {
 
   /// Manual sign-in (user clicked button)
   Future<void> signIn() async {
-    if (kIsWeb) {
+    // Use the same overridable platform gate as `_initialize()` so both
+    // web auth entry points follow one seam (and the popup branch is
+    // VM-testable). Prod behavior is unchanged — the provider defaults
+    // to kIsWeb.
+    if (ref.read(targetIsWebProvider)) {
       await _signInWeb();
       return;
     }
@@ -566,7 +570,11 @@ class Auth extends _$Auth {
       // The verify threw after an async gap — don't let a stale
       // failure clobber a newer session either.
       if (_abortIfSessionChanged(user)) return;
-      state = classifyAuthError(e);
+      // Preserve the (still live, per the re-check above) Firebase
+      // user: web `retry()` keys off `state.user != null` to re-run
+      // Firestore verification; without it Retry would fall into the
+      // native GoogleSignIn silent path, which is meaningless on web.
+      state = classifyAuthError(e).copyWith(user: user);
     } finally {
       if (_webCompletingEmail == user.email) _webCompletingEmail = null;
     }
