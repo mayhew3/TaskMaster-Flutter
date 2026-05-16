@@ -57,13 +57,15 @@ class _RiverpodTaskMaestroAppState extends ConsumerState<RiverpodTaskMaestroApp>
         persistenceEnabled: false,
       );
     } else if (kIsWeb) {
-      // TM-353: web Firestore persistence is IndexedDB-backed and
-      // single-tab by default (multi-tab sync is limited). This is a
-      // secondary cache only — Drift (also IndexedDB-backed on web) is
-      // the UI source of truth — so the single-tab limitation is
-      // acceptable for the bare-minimum web build.
+      // TM-353: do NOT enable Firestore IndexedDB persistence on web.
+      // Drift (IndexedDB-backed on web) is the durable UI source of
+      // truth, so Firestore's own persistence is redundant — and
+      // enabling it blocks the first Firestore operation on
+      // IndexedDB-persistence init, which hung app startup at
+      // "Signing In…". In-memory cache is the right choice here.
       print('☁️  USING PRODUCTION FIRESTORE (web, serverEnv: $serverEnv)');
-      firestore.settings = const Settings(persistenceEnabled: true);
+      firestore.settings =
+          const Settings(persistenceEnabled: false);
     } else {
       print('☁️  USING PRODUCTION FIRESTORE (serverEnv: $serverEnv)');
       firestore.settings = const Settings(cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED);

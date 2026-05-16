@@ -366,21 +366,37 @@ class Auth extends _$Auth {
   /// Web init: Firebase Auth persists the session itself, so restore
   /// from `currentUser` instead of google_sign_in silent sign-in.
   Future<void> _initializeWeb() async {
+    // CRITICAL: `_initialize()` is called from the notifier's `build()`
+    // (not awaited). Unlike the native path — whose first `state =` is
+    // after `await googleSignIn.initialize()` — the web branches can
+    // reach a `state =` with no preceding await, which would run
+    // *synchronously during build()*; Riverpod then applies build()'s
+    // return value (AuthStatus.initial) afterwards, clobbering it and
+    // pinning the UI on the splash forever. Yield once so everything
+    // below runs as a proper post-build state update.
+    await Future<void>.delayed(Duration.zero);
     try {
       print('🔐 Auth(web): Initializing...');
       final auth = ref.read(firebaseAuthProvider);
       final existing = auth.currentUser;
+      print('🔐 Auth(web): currentUser = ${existing?.email ?? "null"}');
       if (existing != null && existing.email != null) {
+        print('🔐 Auth(web): restoring persisted session…');
         await _completeWebSignIn(existing);
+        print('🔐 Auth(web): persisted-session completion returned');
       } else {
+        print('🔐 Auth(web): no session → setting unauthenticated');
         state = const AuthState(status: AuthStatus.unauthenticated);
+        print('🔐 Auth(web): state set, status=${state.status}');
       }
       // Reflect external sign-out (token revoked elsewhere).
       auth.authStateChanges().listen((user) {
+        print('🔐 Auth(web): authStateChanges → ${user?.email ?? "null"}');
         if (user == null && state.status == AuthStatus.authenticated) {
           state = const AuthState(status: AuthStatus.unauthenticated);
         }
       });
+      print('🔐 Auth(web): _initializeWeb finished');
     } catch (e, stackTrace) {
       print('🔐 Auth(web): Fatal init error: $e');
       print('🔐 Auth(web): $stackTrace');
@@ -414,6 +430,7 @@ class Auth extends _$Auth {
   /// into Firebase, so skip `signInToFirebase` and reuse the shared
   /// person-verification + state transitions.
   Future<void> _completeWebSignIn(User user) async {
+    print('🔐 Auth(web): _completeWebSignIn entered for ${user.email}');
     try {
       if (user.email == null) {
         state = const AuthState(
@@ -484,10 +501,14 @@ class Auth extends _$Auth {
       }
     }
 
+    // Bounded so a stalled Firestore connection (notably on web, where
+    // there's no native socket-level failure to surface) becomes a
+    // recoverable connectionError instead of an infinite "Signing In…".
     final snapshot = await firestore
         .collection('persons')
         .where('email', isEqualTo: email)
-        .get();
+        .get()
+        .timeout(const Duration(seconds: 15));
 
     return snapshot.docs.firstOrNull?.id;
   }

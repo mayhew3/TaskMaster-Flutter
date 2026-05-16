@@ -89,7 +89,9 @@ Future<void> main() async {
       // and skip the platform call. Native (TM-361): flutter_timezone
       // 5.x getLocalTimezone() returns TimezoneInfo; pull the IANA id.
       if (kIsWeb) {
-        tz.setLocalLocation(tz.getLocation('UTC'));
+        // `getLocation('UTC')` throws — the timezone package handles UTC
+        // as the built-in `tz.UTC` Location, not a named DB entry.
+        tz.setLocalLocation(tz.UTC);
         print('🕐 Timezone (web): UTC');
       } else {
         final tzInfo = await FlutterTimezone.getLocalTimezone();
