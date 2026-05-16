@@ -52,6 +52,44 @@ class _SignsOutDuringVerifyAuth implements FirebaseAuth {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Models Firebase web async session restore: `currentUser` is null
+/// until the stream has emitted the restored user (mirrors the real
+/// SDK, where currentUser hydrates via the first authStateChanges).
+class _AsyncRestoreAuth implements FirebaseAuth {
+  _AsyncRestoreAuth(this._user);
+  final User? _user;
+  bool _restored = false;
+  @override
+  User? get currentUser => _restored ? _user : null;
+  @override
+  Stream<User?> authStateChanges() async* {
+    yield null; // startup: session not hydrated yet
+    await Future<void>.delayed(Duration.zero);
+    _restored = true;
+    yield _user; // session restored asynchronously
+  }
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Completes when `authProvider` reaches [target] (state may pass
+/// through other terminal values first, e.g. unauthenticated → then a
+/// late async restore → authenticated).
+Future<AuthState> _awaitStatus(
+  ProviderContainer container,
+  AuthStatus target,
+) {
+  final completer = Completer<AuthState>();
+  final sub = container.listen<AuthState>(authProvider, (prev, next) {
+    if (!completer.isCompleted && next.status == target) {
+      completer.complete(next);
+    }
+  }, fireImmediately: true);
+  return completer.future
+      .timeout(const Duration(seconds: 5))
+      .whenComplete(sub.close);
+}
+
 /// `authProvider` is a sync Notifier whose `_initialize()` runs async off
 /// `build()`. Resolve once it leaves the loading states (the post-build
 /// defer regression manifests as never leaving `initial` → this times
@@ -186,6 +224,31 @@ void main() {
       // The post-verify live-user re-check runs BEFORE the
       // personNotFound branch, so a mid-verify sign-out wins.
       expect(settled.status, AuthStatus.unauthenticated);
+    });
+
+    test(
+        'R4 regression: async-restored session (currentUser null at '
+        'startup) reaches authenticated via the stream', () async {
+      final firestore = FakeFirebaseFirestore();
+      await firestore.collection('persons').add({'email': 'me@example.com'});
+      final container = ProviderContainer(
+        overrides: [
+          targetIsWebProvider.overrideWithValue(true),
+          firebaseAuthProvider.overrideWithValue(
+              _AsyncRestoreAuth(_FakeUser('me@example.com'))),
+          firestoreProvider.overrideWithValue(firestore),
+          crashReporterProvider.overrideWithValue(CrashReporterWebNoop()),
+          analyticsServiceProvider.overrideWithValue(_NoopAnalytics()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      // Synchronous read is null → transiently unauthenticated, but the
+      // non-null authStateChanges event must drive it to authenticated.
+      final settled = await _awaitStatus(container, AuthStatus.authenticated);
+
+      expect(settled.status, AuthStatus.authenticated);
+      expect(settled.personDocId, isNotNull);
     });
 
     test('no persisted session → unauthenticated', () async {

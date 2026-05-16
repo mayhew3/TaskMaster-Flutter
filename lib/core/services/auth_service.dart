@@ -209,6 +209,12 @@ AuthService authService(Ref ref) {
 /// Main auth state notifier - manages authentication flow
 @Riverpod(keepAlive: true)
 class Auth extends _$Auth {
+  /// Email currently being processed by `_completeWebSignIn`, so the
+  /// `authStateChanges` listener doesn't double-process the same user
+  /// that the synchronous fast path (or a prior event) is already
+  /// completing. Web-only.
+  String? _webCompletingEmail;
+
   @override
   AuthState build() {
     // Start with initial state - will trigger initialization
@@ -403,20 +409,38 @@ class Auth extends _$Auth {
       print('🔐 Auth(web): Initializing...');
       final auth = ref.read(firebaseAuthProvider);
 
-      // Register the external-auth-state listener exactly once, BEFORE
-      // the restore branch, so a sign-out tick that lands during restore
-      // isn't missed. The `status == authenticated` guard makes the
-      // initial currentUser tick (and any tick during initial/
-      // authenticating) a no-op, so it can't clobber an in-flight
-      // restore. Cancelled on dispose (keepAlive providers are still
-      // disposed by `ref.invalidate` / container teardown in tests).
+      // `authStateChanges()` is the source of truth (web restores the
+      // session asynchronously — `currentUser` is frequently null at
+      // startup until the first stream emit). Registered once, BEFORE
+      // the fast-path read, cancelled on dispose (keepAlive providers
+      // are still disposed by `ref.invalidate` / container teardown).
+      //   - null  → only downgrade an established session (don't fight
+      //             an in-flight sign-in; mid-verify is handled by the
+      //             live re-check in `_completeWebSignIn`).
+      //   - user  → run completion unless it's already the
+      //             authenticated user or a completion for that email
+      //             is in flight (covers async session restore AND a
+      //             cross-tab account switch).
       final sub = auth.authStateChanges().listen((user) {
-        if (user == null && state.status == AuthStatus.authenticated) {
-          state = const AuthState(status: AuthStatus.unauthenticated);
+        if (user == null) {
+          if (state.status == AuthStatus.authenticated) {
+            state = const AuthState(status: AuthStatus.unauthenticated);
+          }
+          return;
         }
+        if (user.email == _webCompletingEmail) return;
+        if (state.status == AuthStatus.authenticated &&
+            state.user?.email == user.email) {
+          return;
+        }
+        _completeWebSignIn(user);
       });
       ref.onDispose(sub.cancel);
 
+      // Fast path: if the session is already hydrated synchronously,
+      // complete immediately rather than waiting for the stream. If
+      // not, settle `unauthenticated` so the UI leaves the splash — a
+      // later non-null `authStateChanges` event re-runs completion.
       final existing = auth.currentUser;
       if (existing != null && existing.email != null) {
         await _completeWebSignIn(existing);
@@ -456,6 +480,7 @@ class Auth extends _$Auth {
   /// into Firebase, so skip `signInToFirebase` and reuse the shared
   /// person-verification + state transitions.
   Future<void> _completeWebSignIn(User user) async {
+    _webCompletingEmail = user.email;
     try {
       if (user.email == null) {
         state = const AuthState(
@@ -499,6 +524,8 @@ class Auth extends _$Auth {
     } catch (e) {
       print('🔐 Auth(web): Error during sign-in completion: $e');
       state = classifyAuthError(e);
+    } finally {
+      if (_webCompletingEmail == user.email) _webCompletingEmail = null;
     }
   }
 
