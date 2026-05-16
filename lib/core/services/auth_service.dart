@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -107,6 +108,19 @@ class AuthService {
     }
   }
 
+  /// Web sign-in. google_sign_in 7.x has no programmatic
+  /// `authenticate()` on web, so go straight through Firebase Auth's
+  /// Google popup (the OAuth client is the one Firebase configures for
+  /// the project's web app — no google_sign_in client-id meta tag
+  /// needed). Returns the signed-in Firebase user.
+  Future<User?> signInWithFirebasePopup() async {
+    print('🔐 Web: starting Firebase Google popup sign-in...');
+    final provider = GoogleAuthProvider()..addScope('email');
+    final cred = await _firebaseAuth.signInWithPopup(provider);
+    print('🔐 Web: Firebase popup sign-in result: ${cred.user?.email}');
+    return cred.user;
+  }
+
   /// Sign in to Firebase with Google account
   Future<UserCredential> signInToFirebase(GoogleSignInAccount account) async {
     print('🔐 Signing in to Firebase...');
@@ -134,10 +148,14 @@ class AuthService {
     return userCredential;
   }
 
-  /// Sign out from both Google and Firebase
+  /// Sign out from both Google and Firebase. On web there is no
+  /// google_sign_in session to disconnect (auth goes through the
+  /// Firebase popup) — just sign out of Firebase.
   Future<void> signOut() async {
     print('🔐 Signing out...');
-    await _googleSignIn.disconnect();
+    if (!kIsWeb) {
+      await _googleSignIn.disconnect();
+    }
     await _firebaseAuth.signOut();
     print('🔐 Sign out complete');
   }
@@ -170,6 +188,10 @@ class Auth extends _$Auth {
   }
 
   Future<void> _initialize() async {
+    if (kIsWeb) {
+      await _initializeWeb();
+      return;
+    }
     try {
       print('🔐 Auth: Initializing...');
 
@@ -245,6 +267,10 @@ class Auth extends _$Auth {
 
   /// Manual sign-in (user clicked button)
   Future<void> signIn() async {
+    if (kIsWeb) {
+      await _signInWeb();
+      return;
+    }
     final service = ref.read(authServiceProvider);
 
     state = state.copyWith(status: AuthStatus.authenticating);
@@ -325,6 +351,106 @@ class Auth extends _$Auth {
         state = AuthState(
           status: AuthStatus.connectionError,
           errorMessage: 'Cannot connect to server. Please check your connection.',
+        );
+      } else {
+        state = AuthState(
+          status: AuthStatus.unauthenticated,
+          errorMessage: 'Sign in failed: $e',
+        );
+      }
+    }
+  }
+
+  // ── Web auth path (Firebase popup; google_sign_in is native-only) ──
+
+  /// Web init: Firebase Auth persists the session itself, so restore
+  /// from `currentUser` instead of google_sign_in silent sign-in.
+  Future<void> _initializeWeb() async {
+    try {
+      print('🔐 Auth(web): Initializing...');
+      final auth = ref.read(firebaseAuthProvider);
+      final existing = auth.currentUser;
+      if (existing != null && existing.email != null) {
+        await _completeWebSignIn(existing);
+      } else {
+        state = const AuthState(status: AuthStatus.unauthenticated);
+      }
+      // Reflect external sign-out (token revoked elsewhere).
+      auth.authStateChanges().listen((user) {
+        if (user == null && state.status == AuthStatus.authenticated) {
+          state = const AuthState(status: AuthStatus.unauthenticated);
+        }
+      });
+    } catch (e, stackTrace) {
+      print('🔐 Auth(web): Fatal init error: $e');
+      print('🔐 Auth(web): $stackTrace');
+      state = AuthState(
+        status: AuthStatus.unauthenticated,
+        errorMessage: 'Auth initialization failed: $e',
+      );
+    }
+  }
+
+  /// Web manual sign-in via the Firebase Google popup.
+  Future<void> _signInWeb() async {
+    state = state.copyWith(status: AuthStatus.authenticating);
+    try {
+      final service = ref.read(authServiceProvider);
+      final user = await service.signInWithFirebasePopup();
+      if (user == null) {
+        state = const AuthState(status: AuthStatus.unauthenticated);
+        return;
+      }
+      await _completeWebSignIn(user);
+    } catch (e) {
+      state = AuthState(
+        status: AuthStatus.unauthenticated,
+        errorMessage: 'Sign in failed: $e',
+      );
+    }
+  }
+
+  /// Post-auth completion for web: the popup already signed the user
+  /// into Firebase, so skip `signInToFirebase` and reuse the shared
+  /// person-verification + state transitions.
+  Future<void> _completeWebSignIn(User user) async {
+    try {
+      if (user.email == null) {
+        state = const AuthState(
+          status: AuthStatus.unauthenticated,
+          errorMessage: 'Firebase sign in returned no email',
+        );
+        return;
+      }
+      final personDocId = await _verifyPerson(user.email!);
+      if (personDocId == null) {
+        print('🔐 Auth(web): Person not found for email ${user.email}');
+        state = AuthState(
+          status: AuthStatus.personNotFound,
+          user: user,
+          errorMessage:
+              'No account found for ${user.email}. Contact administrator.',
+        );
+        return;
+      }
+      print('🔐 Auth(web): Fully authenticated - ${user.email}');
+      await ref.read(crashReporterProvider).setUserIdentifier(personDocId);
+      await ref.read(analyticsServiceProvider).setUserIdentifier(personDocId);
+      state = AuthState(
+        status: AuthStatus.authenticated,
+        user: user,
+        personDocId: personDocId,
+      );
+    } catch (e) {
+      final errorStr = e.toString().toLowerCase();
+      if (errorStr.contains('unavailable') ||
+          errorStr.contains('timeout') ||
+          errorStr.contains('econnrefused') ||
+          errorStr.contains('failed to connect')) {
+        state = AuthState(
+          status: AuthStatus.connectionError,
+          errorMessage:
+              'Cannot connect to server. Please check your connection.',
         );
       } else {
         state = AuthState(

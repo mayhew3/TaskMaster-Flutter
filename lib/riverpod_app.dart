@@ -1,5 +1,6 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskmaestro/app_theme.dart';
@@ -55,6 +56,14 @@ class _RiverpodTaskMaestroAppState extends ConsumerState<RiverpodTaskMaestroApp>
       firestore.settings = const Settings(
         persistenceEnabled: false,
       );
+    } else if (kIsWeb) {
+      // TM-353: web Firestore persistence is IndexedDB-backed and
+      // single-tab by default (multi-tab sync is limited). This is a
+      // secondary cache only — Drift (also IndexedDB-backed on web) is
+      // the UI source of truth — so the single-tab limitation is
+      // acceptable for the bare-minimum web build.
+      print('☁️  USING PRODUCTION FIRESTORE (web, serverEnv: $serverEnv)');
+      firestore.settings = const Settings(persistenceEnabled: true);
     } else {
       print('☁️  USING PRODUCTION FIRESTORE (serverEnv: $serverEnv)');
       firestore.settings = const Settings(cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED);
