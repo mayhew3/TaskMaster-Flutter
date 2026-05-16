@@ -437,7 +437,20 @@ class Auth extends _$Auth {
       final sub = auth.authStateChanges().listen((user) {
         if (!ref.mounted) return;
         if (user == null) {
-          if (state.status == AuthStatus.authenticated) {
+          // Sign-out clears any user-bearing terminal state — not just
+          // `authenticated`. `connectionError` (preserves user so web
+          // retry can re-verify) and `personNotFound` (carries the
+          // rejected user) would otherwise leave a stale user that
+          // Retry could re-verify into `authenticated` despite Firebase
+          // being signed out. `authenticating`/`initial` are left alone
+          // so a null tick can't fight an in-flight sign-in (mid-verify
+          // is handled by the live re-check in `_completeWebSignIn`).
+          const downgradable = {
+            AuthStatus.authenticated,
+            AuthStatus.connectionError,
+            AuthStatus.personNotFound,
+          };
+          if (downgradable.contains(state.status)) {
             state = const AuthState(status: AuthStatus.unauthenticated);
           }
           return;
@@ -625,10 +638,22 @@ class Auth extends _$Auth {
   /// Retry after connection error
   Future<void> retry() async {
     if (state.user != null) {
+      // Web: a preserved user-bearing state (connectionError /
+      // personNotFound) can outlive the Firebase session if sign-out
+      // raced ahead of the listener. Don't re-verify a stale cached
+      // user into `authenticated` when Firebase is actually signed out.
+      if (ref.read(targetIsWebProvider) &&
+          ref.read(firebaseAuthProvider).currentUser == null) {
+        print('🔐 Auth(web): retry — Firebase signed out, clearing stale '
+            'user');
+        state = const AuthState(status: AuthStatus.unauthenticated);
+        return;
+      }
       // We have a user, just need to verify person
       state = state.copyWith(status: AuthStatus.authenticating);
       try {
         final personDocId = await _verifyPerson(state.user!.email!);
+        if (!ref.mounted) return;
         if (personDocId != null) {
           state = AuthState(
             status: AuthStatus.authenticated,

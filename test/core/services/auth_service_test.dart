@@ -46,6 +46,21 @@ class _ThrowingFirestore implements FirebaseFirestore {
       throw Exception('unavailable');
 }
 
+/// `currentUser` is the user until `signedOut` is flipped — models
+/// Firebase signing out AFTER a user-bearing terminal state was
+/// committed (e.g. connectionError preserving the user).
+class _SignsOutAfterCompletionAuth implements FirebaseAuth {
+  _SignsOutAfterCompletionAuth(this._user);
+  final User _user;
+  bool signedOut = false;
+  @override
+  User? get currentUser => signedOut ? null : _user;
+  @override
+  Stream<User?> authStateChanges() => Stream<User?>.value(_user);
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 /// `currentUser` is non-null on the first read (so `_initializeWeb`
 /// enters `_completeWebSignIn`) and null thereafter — models a sign-out
 /// landing during the Firestore verify await.
@@ -373,6 +388,38 @@ void main() {
       expect(settled.status, AuthStatus.connectionError);
       expect(settled.user, isNotNull,
           reason: 'user must survive so web retry() re-verifies');
+    });
+
+    test(
+        'R8 regression: Retry after Firebase sign-out under preserved '
+        'user → clears stale session (does NOT re-verify to authenticated)',
+        () async {
+      final auth = _SignsOutAfterCompletionAuth(_FakeUser('me@example.com'));
+      final container = ProviderContainer(
+        overrides: [
+          targetIsWebProvider.overrideWithValue(true),
+          firebaseAuthProvider.overrideWithValue(auth),
+          firestoreProvider.overrideWithValue(_ThrowingFirestore()),
+          crashReporterProvider.overrideWithValue(CrashReporterWebNoop()),
+          analyticsServiceProvider.overrideWithValue(_NoopAnalytics()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      // Verify fails while Firebase still has the user → connectionError
+      // with user preserved (R7 behavior).
+      final ce = await _awaitAuthSettled(container);
+      expect(ce.status, AuthStatus.connectionError);
+      expect(ce.user, isNotNull);
+
+      // Firebase signs out, THEN the user presses Retry.
+      auth.signedOut = true;
+      await container.read(authProvider.notifier).retry();
+
+      expect(container.read(authProvider).status,
+          AuthStatus.unauthenticated,
+          reason: 'stale cached user must not be re-verified into '
+              'authenticated when Firebase is signed out');
     });
 
     test('no persisted session → unauthenticated', () async {
