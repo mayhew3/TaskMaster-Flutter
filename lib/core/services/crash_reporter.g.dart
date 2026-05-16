@@ -13,8 +13,13 @@ part of 'crash_reporter.dart';
 final crashReporterProvider = CrashReporterProvider._();
 
 final class CrashReporterProvider
-    extends $FunctionalProvider<CrashReporter, CrashReporter, CrashReporter>
-    with $Provider<CrashReporter> {
+    extends
+        $FunctionalProvider<
+          CrashReporterBase,
+          CrashReporterBase,
+          CrashReporterBase
+        >
+    with $Provider<CrashReporterBase> {
   CrashReporterProvider._()
     : super(
         from: null,
@@ -31,21 +36,22 @@ final class CrashReporterProvider
 
   @$internal
   @override
-  $ProviderElement<CrashReporter> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $ProviderElement<CrashReporterBase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
 
   @override
-  CrashReporter create(Ref ref) {
+  CrashReporterBase create(Ref ref) {
     return crashReporter(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(CrashReporter value) {
+  Override overrideWithValue(CrashReporterBase value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<CrashReporter>(value),
+      providerOverride: $SyncValueProvider<CrashReporterBase>(value),
     );
   }
 }
 
-String _$crashReporterHash() => r'bc6ea93d0a1fc0573f1767ddfdc60c30c22058e5';
+String _$crashReporterHash() => r'b946d0d132d768a1185129e5475b757644376b1e';

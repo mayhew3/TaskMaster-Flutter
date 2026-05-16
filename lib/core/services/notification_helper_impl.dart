@@ -6,9 +6,24 @@ import '../../date_util.dart';
 import '../../models/sprint.dart';
 import '../../models/task_item.dart';
 
+/// Platform-agnostic notification surface (the methods app code calls
+/// via `notificationHelperProvider`). The native implementation
+/// ([NotificationHelperImpl]) schedules through flutter_local_
+/// notifications; the web build uses [NotificationHelperWebNoop]
+/// (no web notification support).
+abstract class NotificationHelper {
+  Future<void> cancelAllNotifications();
+  Future<void> cancelNotificationsForTaskId(String taskId);
+  Future<void> syncNotificationForSprint(Sprint sprint);
+  Future<void> syncNotificationForTasksAndSprint(
+      List<TaskItem> taskItems, Sprint? sprint);
+  Future<void> updateNotificationForTask(TaskItem taskItem);
+  Future<void> updateNotificationsForTasks(List<TaskItem> taskItems);
+}
+
 /// Notification scheduling implementation.
 /// Wired up via notificationSyncProvider in riverpod_app.dart (TM-314)
-class NotificationHelperImpl {
+class NotificationHelperImpl implements NotificationHelper {
   int nextId = 0;
   final FlutterLocalNotificationsPlugin plugin;
 
@@ -33,11 +48,13 @@ class NotificationHelperImpl {
     return plugin;
   }
 
+  @override
   Future<void> cancelAllNotifications() async {
     print('Canceling all existing notifications and rebuilding...');
     return plugin.cancelAll();
   }
 
+  @override
   Future<void> cancelNotificationsForTaskId(String taskId) async {
     var taskSearch = 'task:$taskId';
     var pendingNotificationRequests = await plugin.pendingNotificationRequests();
@@ -48,11 +65,13 @@ class NotificationHelperImpl {
     }
   }
 
+  @override
   Future<void> syncNotificationForSprint(Sprint sprint) async {
     List<PendingNotificationRequest> requests = await plugin.pendingNotificationRequests();
     await _syncNotificationForSprint(sprint, requests);
   }
 
+  @override
   Future<void> syncNotificationForTasksAndSprint(List<TaskItem> taskItems, Sprint? sprint) async {
     await cancelAllNotifications();
     List<PendingNotificationRequest> requests = await plugin.pendingNotificationRequests();
@@ -65,6 +84,7 @@ class NotificationHelperImpl {
     }
   }
 
+  @override
   Future<void> updateNotificationForTask(TaskItem taskItem) async {
     List<PendingNotificationRequest> requests = await plugin.pendingNotificationRequests();
 
@@ -78,6 +98,7 @@ class NotificationHelperImpl {
   /// Batch variant of [updateNotificationForTask] that fetches pending requests
   /// once and processes all tasks against that snapshot, reducing platform
   /// channel round trips from O(N) to 1.
+  @override
   Future<void> updateNotificationsForTasks(List<TaskItem> taskItems) async {
     if (taskItems.isEmpty) return;
     final requests = await plugin.pendingNotificationRequests();
