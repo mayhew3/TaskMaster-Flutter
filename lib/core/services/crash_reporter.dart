@@ -14,7 +14,7 @@ abstract class CrashReporterBase {
     Object error,
     StackTrace? stackTrace, {
     String? context,
-    bool fatal,
+    bool fatal = false,
   });
   Future<void> log(String message);
   Future<void> setUserIdentifier(String personDocId);

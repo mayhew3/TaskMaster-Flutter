@@ -535,20 +535,28 @@ class Auth extends _$Auth {
     if (state.user != null) {
       // We have a user, just need to verify person
       state = state.copyWith(status: AuthStatus.authenticating);
-      final personDocId = await _verifyPerson(state.user!.email!);
-
-      if (personDocId != null) {
-        state = AuthState(
-          status: AuthStatus.authenticated,
-          user: state.user,
-          personDocId: personDocId,
-        );
-      } else {
-        state = AuthState(
-          status: AuthStatus.connectionError,
-          user: state.user,
-          errorMessage: 'Still cannot connect. Please try again.',
-        );
+      try {
+        final personDocId = await _verifyPerson(state.user!.email!);
+        if (personDocId != null) {
+          state = AuthState(
+            status: AuthStatus.authenticated,
+            user: state.user,
+            personDocId: personDocId,
+          );
+        } else {
+          state = AuthState(
+            status: AuthStatus.connectionError,
+            user: state.user,
+            errorMessage: 'Still cannot connect. Please try again.',
+          );
+        }
+      } catch (e) {
+        // `_verifyPerson` is bounded by a 15s timeout; a timeout/throw
+        // here must NOT bubble out of the Retry handler and strand the
+        // UI in `authenticating`. Classify it and keep the user so the
+        // connection-error screen's Retry stays usable.
+        print('🔐 Auth: retry verify failed: $e');
+        state = classifyAuthError(e).copyWith(user: state.user);
       }
     } else {
       // No user, try silent sign-in again
