@@ -405,6 +405,11 @@ class Auth extends _$Auth {
     // pinning the UI on the splash forever. Yield once so everything
     // below runs as a proper post-build state update.
     await Future<void>.delayed(Duration.zero);
+    // The provider may have been disposed/invalidated during that gap
+    // (`_initialize` is fire-and-forget from build(); keepAlive
+    // providers are still disposed by ref.invalidate / container
+    // teardown). Touching ref/state after disposal throws.
+    if (!ref.mounted) return;
     try {
       print('🔐 Auth(web): Initializing...');
       final auth = ref.read(firebaseAuthProvider);
@@ -422,6 +427,7 @@ class Auth extends _$Auth {
       //             is in flight (covers async session restore AND a
       //             cross-tab account switch).
       final sub = auth.authStateChanges().listen((user) {
+        if (!ref.mounted) return;
         if (user == null) {
           if (state.status == AuthStatus.authenticated) {
             state = const AuthState(status: AuthStatus.unauthenticated);
@@ -450,6 +456,7 @@ class Auth extends _$Auth {
     } catch (e, stackTrace) {
       print('🔐 Auth(web): Fatal init error: $e');
       print('🔐 Auth(web): $stackTrace');
+      if (!ref.mounted) return;
       state = AuthState(
         status: AuthStatus.unauthenticated,
         errorMessage: 'Auth initialization failed: $e',
@@ -490,6 +497,7 @@ class Auth extends _$Auth {
         return;
       }
       final personDocId = await _verifyPerson(user.email!);
+      if (!ref.mounted) return; // disposed during the verify await
 
       // A sign-out / account-switch (null or different authStateChanges
       // tick) that lands DURING the Firestore verify await is ignored
@@ -499,9 +507,19 @@ class Auth extends _$Auth {
       // personNotFound — so a mid-verify session change resolves to
       // unauthenticated rather than stranding a stale screen.
       final live = ref.read(firebaseAuthProvider).currentUser;
-      if (live == null || live.email != user.email) {
-        print('🔐 Auth(web): session changed during verify — aborting');
+      if (live == null) {
+        print('🔐 Auth(web): signed out during verify — aborting');
         state = const AuthState(status: AuthStatus.unauthenticated);
+        return;
+      }
+      if (live.email != user.email) {
+        // A newer session for a *different* user is already active
+        // (its own completion has run / is running). This is a stale
+        // completion — discard it WITHOUT touching state, or it would
+        // clobber the newer user's authenticated/personNotFound state
+        // back to unauthenticated.
+        print('🔐 Auth(web): account switched during verify — '
+            'discarding stale completion for ${user.email}');
         return;
       }
       if (personDocId == null) {
@@ -516,6 +534,7 @@ class Auth extends _$Auth {
       }
       print('🔐 Auth(web): Fully authenticated - ${user.email}');
       await _associateUser(personDocId);
+      if (!ref.mounted) return; // disposed during telemetry association
       state = AuthState(
         status: AuthStatus.authenticated,
         user: user,
@@ -523,7 +542,7 @@ class Auth extends _$Auth {
       );
     } catch (e) {
       print('🔐 Auth(web): Error during sign-in completion: $e');
-      state = classifyAuthError(e);
+      if (ref.mounted) state = classifyAuthError(e);
     } finally {
       if (_webCompletingEmail == user.email) _webCompletingEmail = null;
     }

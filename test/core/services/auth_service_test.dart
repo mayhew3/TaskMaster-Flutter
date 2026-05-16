@@ -90,6 +90,23 @@ Future<AuthState> _awaitStatus(
       .whenComplete(sub.close);
 }
 
+/// `currentUser` is user A on the first read (fast path enters
+/// `_completeWebSignIn(A)`), then a *different* user B on every read
+/// after — models an account switch completing while A's slower verify
+/// is still in flight.
+class _SwitchesUserDuringVerifyAuth implements FirebaseAuth {
+  _SwitchesUserDuringVerifyAuth(this._a, this._b);
+  final User _a;
+  final User _b;
+  int _reads = 0;
+  @override
+  User? get currentUser => _reads++ == 0 ? _a : _b;
+  @override
+  Stream<User?> authStateChanges() => Stream<User?>.value(_a);
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 /// `authProvider` is a sync Notifier whose `_initialize()` runs async off
 /// `build()`. Resolve once it leaves the loading states (the post-build
 /// defer regression manifests as never leaving `initial` → this times
@@ -249,6 +266,35 @@ void main() {
 
       expect(settled.status, AuthStatus.authenticated);
       expect(settled.personDocId, isNotNull);
+    });
+
+    test(
+        'R5 regression: stale completion for a switched-away user does '
+        'NOT clobber state to unauthenticated', () async {
+      final firestore = FakeFirebaseFirestore();
+      await firestore.collection('persons').add({'email': 'a@example.com'});
+      final container = ProviderContainer(
+        overrides: [
+          targetIsWebProvider.overrideWithValue(true),
+          firebaseAuthProvider.overrideWithValue(
+              _SwitchesUserDuringVerifyAuth(
+                  _FakeUser('a@example.com'), _FakeUser('b@example.com'))),
+          firestoreProvider.overrideWithValue(firestore),
+          crashReporterProvider.overrideWithValue(CrashReporterWebNoop()),
+          analyticsServiceProvider.overrideWithValue(_NoopAnalytics()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      // Let A's completion run: it verifies A, then the live re-check
+      // sees B (different email) → stale completion must return WITHOUT
+      // writing unauthenticated (pre-fix it clobbered to unauthenticated).
+      for (var i = 0; i < 10; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      expect(container.read(authProvider).status,
+          isNot(AuthStatus.unauthenticated));
     });
 
     test('no persisted session → unauthenticated', () async {
