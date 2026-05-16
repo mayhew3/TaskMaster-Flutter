@@ -85,6 +85,10 @@ AuthState classifyAuthError(Object error) {
   );
 }
 
+/// Outcome of re-checking the live Firebase session against the user a
+/// web completion is committing for, across an `await` gap.
+enum _Session { current, signedOut, switched }
+
 /// Service class that handles authentication logic
 class AuthService {
   AuthService({
@@ -483,6 +487,38 @@ class Auth extends _$Auth {
     }
   }
 
+  /// Re-check the live Firebase session for a web completion that is
+  /// about to commit a terminal state after an `await` gap. Caller must
+  /// have confirmed `ref.mounted` first (this reads `ref`).
+  _Session _recheckSession(User user) {
+    final live = ref.read(firebaseAuthProvider).currentUser;
+    if (live == null) return _Session.signedOut;
+    if (live.email != user.email) return _Session.switched;
+    return _Session.current;
+  }
+
+  /// Applied at EVERY post-async commit point in `_completeWebSignIn`
+  /// (post-verify, post-telemetry, error path). Returns true if the
+  /// caller must stop because the session changed under it:
+  ///   - signedOut → commit `unauthenticated`.
+  ///   - switched  → a newer different session is active; this is a
+  ///     STALE completion → return WITHOUT touching state so it can't
+  ///     clobber the newer user's authenticated/personNotFound state.
+  bool _abortIfSessionChanged(User user) {
+    switch (_recheckSession(user)) {
+      case _Session.signedOut:
+        print('🔐 Auth(web): signed out during async gap — aborting');
+        state = const AuthState(status: AuthStatus.unauthenticated);
+        return true;
+      case _Session.switched:
+        print('🔐 Auth(web): account switched — discarding stale '
+            'completion for ${user.email}');
+        return true;
+      case _Session.current:
+        return false;
+    }
+  }
+
   /// Post-auth completion for web: the popup already signed the user
   /// into Firebase, so skip `signInToFirebase` and reuse the shared
   /// person-verification + state transitions.
@@ -498,30 +534,11 @@ class Auth extends _$Auth {
       }
       final personDocId = await _verifyPerson(user.email!);
       if (!ref.mounted) return; // disposed during the verify await
-
-      // A sign-out / account-switch (null or different authStateChanges
-      // tick) that lands DURING the Firestore verify await is ignored
-      // by the listener (its guard requires status==authenticated,
-      // which isn't true yet). Re-check the live Firebase user before
-      // committing ANY post-verify terminal state — including
-      // personNotFound — so a mid-verify session change resolves to
-      // unauthenticated rather than stranding a stale screen.
-      final live = ref.read(firebaseAuthProvider).currentUser;
-      if (live == null) {
-        print('🔐 Auth(web): signed out during verify — aborting');
-        state = const AuthState(status: AuthStatus.unauthenticated);
-        return;
-      }
-      if (live.email != user.email) {
-        // A newer session for a *different* user is already active
-        // (its own completion has run / is running). This is a stale
-        // completion — discard it WITHOUT touching state, or it would
-        // clobber the newer user's authenticated/personNotFound state
-        // back to unauthenticated.
-        print('🔐 Auth(web): account switched during verify — '
-            'discarding stale completion for ${user.email}');
-        return;
-      }
+      // A sign-out/account-switch during the verify await is ignored by
+      // the listener (its guard needs status==authenticated, not yet
+      // true); re-check before committing ANY post-verify terminal
+      // state (personNotFound or authenticated).
+      if (_abortIfSessionChanged(user)) return;
       if (personDocId == null) {
         print('🔐 Auth(web): Person not found for email ${user.email}');
         state = AuthState(
@@ -535,6 +552,9 @@ class Auth extends _$Auth {
       print('🔐 Auth(web): Fully authenticated - ${user.email}');
       await _associateUser(personDocId);
       if (!ref.mounted) return; // disposed during telemetry association
+      // Telemetry association is another async gap — re-check before
+      // finally committing `authenticated`.
+      if (_abortIfSessionChanged(user)) return;
       state = AuthState(
         status: AuthStatus.authenticated,
         user: user,
@@ -542,7 +562,11 @@ class Auth extends _$Auth {
       );
     } catch (e) {
       print('🔐 Auth(web): Error during sign-in completion: $e');
-      if (ref.mounted) state = classifyAuthError(e);
+      if (!ref.mounted) return;
+      // The verify threw after an async gap — don't let a stale
+      // failure clobber a newer session either.
+      if (_abortIfSessionChanged(user)) return;
+      state = classifyAuthError(e);
     } finally {
       if (_webCompletingEmail == user.email) _webCompletingEmail = null;
     }

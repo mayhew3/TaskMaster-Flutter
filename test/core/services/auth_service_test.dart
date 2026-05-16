@@ -107,6 +107,22 @@ class _SwitchesUserDuringVerifyAuth implements FirebaseAuth {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// `currentUser` is A for the first two reads (fast path + post-verify
+/// re-check) and B after — models a switch landing during the
+/// post-telemetry async gap, after the verify re-check already passed.
+class _SwitchesUserAfterVerifyAuth implements FirebaseAuth {
+  _SwitchesUserAfterVerifyAuth(this._a, this._b);
+  final User _a;
+  final User _b;
+  int _reads = 0;
+  @override
+  User? get currentUser => _reads++ < 2 ? _a : _b;
+  @override
+  Stream<User?> authStateChanges() => Stream<User?>.value(_a);
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 /// `authProvider` is a sync Notifier whose `_initialize()` runs async off
 /// `build()`. Resolve once it leaves the loading states (the post-build
 /// defer regression manifests as never leaving `initial` → this times
@@ -295,6 +311,36 @@ void main() {
 
       expect(container.read(authProvider).status,
           isNot(AuthStatus.unauthenticated));
+    });
+
+    test(
+        'R6 regression: account switch during the post-telemetry gap → '
+        'stale completion discarded (not committed authenticated)',
+        () async {
+      final firestore = FakeFirebaseFirestore();
+      await firestore.collection('persons').add({'email': 'a@example.com'});
+      final container = ProviderContainer(
+        overrides: [
+          targetIsWebProvider.overrideWithValue(true),
+          firebaseAuthProvider.overrideWithValue(
+              _SwitchesUserAfterVerifyAuth(
+                  _FakeUser('a@example.com'), _FakeUser('b@example.com'))),
+          firestoreProvider.overrideWithValue(firestore),
+          crashReporterProvider.overrideWithValue(CrashReporterWebNoop()),
+          analyticsServiceProvider.overrideWithValue(_NoopAnalytics()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      for (var i = 0; i < 10; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      // A's verify + post-verify re-check pass (still A), but the
+      // post-telemetry re-check sees B → A's completion must NOT commit
+      // `authenticated` for A.
+      expect(container.read(authProvider).status,
+          isNot(AuthStatus.authenticated));
     });
 
     test('no persisted session → unauthenticated', () async {
