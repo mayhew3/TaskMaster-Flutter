@@ -37,6 +37,21 @@ class _NoopAnalytics implements AnalyticsService {
   dynamic noSuchMethod(Invocation invocation) => Future<void>.value();
 }
 
+/// `currentUser` is non-null on the first read (so `_initializeWeb`
+/// enters `_completeWebSignIn`) and null thereafter — models a sign-out
+/// landing during the Firestore verify await.
+class _SignsOutDuringVerifyAuth implements FirebaseAuth {
+  _SignsOutDuringVerifyAuth(this._user);
+  final User? _user;
+  int _reads = 0;
+  @override
+  User? get currentUser => _reads++ == 0 ? _user : null;
+  @override
+  Stream<User?> authStateChanges() => Stream<User?>.value(_user);
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 /// `authProvider` is a sync Notifier whose `_initialize()` runs async off
 /// `build()`. Resolve once it leaves the loading states (the post-build
 /// defer regression manifests as never leaving `initial` → this times
@@ -125,6 +140,29 @@ void main() {
       final settled = await _awaitAuthSettled(container);
 
       expect(settled.status, AuthStatus.personNotFound);
+    });
+
+    test('R2 regression: sign-out during verify await → not authenticated',
+        () async {
+      final firestore = FakeFirebaseFirestore();
+      await firestore.collection('persons').add({'email': 'me@example.com'});
+      final container = ProviderContainer(
+        overrides: [
+          targetIsWebProvider.overrideWithValue(true),
+          firebaseAuthProvider.overrideWithValue(
+              _SignsOutDuringVerifyAuth(_FakeUser('me@example.com'))),
+          firestoreProvider.overrideWithValue(firestore),
+          crashReporterProvider.overrideWithValue(CrashReporterWebNoop()),
+          analyticsServiceProvider.overrideWithValue(_NoopAnalytics()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final settled = await _awaitAuthSettled(container);
+
+      // A matching person doc exists, but the live user is gone by the
+      // post-verify re-check, so we must NOT commit `authenticated`.
+      expect(settled.status, AuthStatus.unauthenticated);
     });
 
     test('no persisted session → unauthenticated', () async {
