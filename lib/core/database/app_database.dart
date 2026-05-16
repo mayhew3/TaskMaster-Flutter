@@ -136,6 +136,19 @@ class AppDatabase extends _$AppDatabase {
   );
 
   static QueryExecutor _openConnection() {
-    return driftDatabase(name: 'taskmaestro');
+    // TM-353: durable web persistence. On native, drift_flutter ignores
+    // `web:` and keeps the sqlite3_flutter_libs NativeDatabase path. On
+    // web it uses sqlite3 compiled to WASM with an IndexedDB-backed
+    // store via the drift worker — both served from web/ (so the URIs
+    // resolve at the app root). Schema v9 + the migration steps apply
+    // identically; the offline-first pending-write outbox stays durable
+    // across tab reloads, matching mobile behaviour.
+    return driftDatabase(
+      name: 'taskmaestro',
+      web: DriftWebOptions(
+        sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+        driftWorker: Uri.parse('drift_worker.js'),
+      ),
+    );
   }
 }
