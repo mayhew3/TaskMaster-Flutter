@@ -46,6 +46,26 @@ class _ThrowingFirestore implements FirebaseFirestore {
       throw Exception('unavailable');
 }
 
+/// First `.collection(...)` throws (initial completion → connectionError
+/// with user preserved); subsequent calls delegate to a real fake (so a
+/// retry that ISN'T guarded would actually succeed and expose the bug).
+class _ThrowsOnceFirestore implements FirebaseFirestore {
+  _ThrowsOnceFirestore(this._delegate);
+  final FakeFirebaseFirestore _delegate;
+  bool _thrown = false;
+  @override
+  CollectionReference<Map<String, dynamic>> collection(String path) {
+    if (!_thrown) {
+      _thrown = true;
+      throw Exception('unavailable');
+    }
+    return _delegate.collection(path);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 /// `currentUser` is the user until `signedOut` is flipped — models
 /// Firebase signing out AFTER a user-bearing terminal state was
 /// committed (e.g. connectionError preserving the user).
@@ -57,6 +77,22 @@ class _SignsOutAfterCompletionAuth implements FirebaseAuth {
   User? get currentUser => signedOut ? null : _user;
   @override
   Stream<User?> authStateChanges() => Stream<User?>.value(_user);
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// `currentUser` is A until `switched` is flipped, then a *different*
+/// user B — models Firebase switching accounts after a user-bearing
+/// terminal state was committed for A.
+class _SwitchesAfterCompletionAuth implements FirebaseAuth {
+  _SwitchesAfterCompletionAuth(this._a, this._b);
+  final User _a;
+  final User _b;
+  bool switched = false;
+  @override
+  User? get currentUser => switched ? _b : _a;
+  @override
+  Stream<User?> authStateChanges() => Stream<User?>.value(_a);
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -420,6 +456,44 @@ void main() {
           AuthStatus.unauthenticated,
           reason: 'stale cached user must not be re-verified into '
               'authenticated when Firebase is signed out');
+    });
+
+    test(
+        'R9 regression: Retry after account switch → clears stale user '
+        '(does NOT authenticate the wrong email)', () async {
+      final auth = _SwitchesAfterCompletionAuth(
+          _FakeUser('a@example.com'), _FakeUser('b@example.com'));
+      final delegate = FakeFirebaseFirestore();
+      // Seed A so an UNGUARDED retry would actually re-verify A and
+      // commit authenticated for the wrong email — the test passes only
+      // because the guard rejects the account switch first.
+      await delegate.collection('persons').add({'email': 'a@example.com'});
+      final container = ProviderContainer(
+        overrides: [
+          targetIsWebProvider.overrideWithValue(true),
+          firebaseAuthProvider.overrideWithValue(auth),
+          // First completion throws → connectionError with user A
+          // preserved; a later retry would otherwise succeed via the
+          // delegate (A seeded) — so only the guard prevents the bug.
+          firestoreProvider.overrideWithValue(_ThrowsOnceFirestore(delegate)),
+          crashReporterProvider.overrideWithValue(CrashReporterWebNoop()),
+          analyticsServiceProvider.overrideWithValue(_NoopAnalytics()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final ce = await _awaitAuthSettled(container);
+      expect(ce.status, AuthStatus.connectionError);
+      expect(ce.user?.email, 'a@example.com');
+
+      // Firebase switches to B, THEN Retry is pressed.
+      auth.switched = true;
+      await container.read(authProvider.notifier).retry();
+
+      final after = container.read(authProvider);
+      expect(after.status, AuthStatus.unauthenticated,
+          reason: 'must not re-verify stale user A while live user is B');
+      expect(after.user, isNull);
     });
 
     test('no persisted session → unauthenticated', () async {

@@ -639,13 +639,16 @@ class Auth extends _$Auth {
   Future<void> retry() async {
     if (state.user != null) {
       // Web: a preserved user-bearing state (connectionError /
-      // personNotFound) can outlive the Firebase session if sign-out
-      // raced ahead of the listener. Don't re-verify a stale cached
-      // user into `authenticated` when Firebase is actually signed out.
+      // personNotFound) can outlive or diverge from the live Firebase
+      // session if a sign-out OR account-switch raced ahead of the
+      // listener. Reuse the same session re-check used by completion:
+      // only re-verify when the cached user is still the live one —
+      // never sign-out (→ wrong: stale) and never a different account
+      // (→ wrong: would authenticate the wrong email).
       if (ref.read(targetIsWebProvider) &&
-          ref.read(firebaseAuthProvider).currentUser == null) {
-        print('🔐 Auth(web): retry — Firebase signed out, clearing stale '
-            'user');
+          _recheckSession(state.user!) != _Session.current) {
+        print('🔐 Auth(web): retry — live session changed, clearing '
+            'stale user');
         state = const AuthState(status: AuthStatus.unauthenticated);
         return;
       }
