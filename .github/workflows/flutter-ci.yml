@@ -23,3 +23,23 @@ jobs:
 
       - name: Test
         run: flutter test
+
+  build-web:
+    runs-on: ubuntu-latest
+    needs: analyze-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          cache: true
+
+      - run: flutter pub get
+
+      # Compile gate for the TM-353 web build: catches any web-incompatible
+      # import (dart:io, native-only plugins) that the VM test suite can't.
+      # The committed web/sqlite3.wasm + web/drift_worker.js must be present
+      # or this fails. No deploy here — deploy is an interactive step.
+      - name: Build web
+        run: flutter build web --release
