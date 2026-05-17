@@ -23,6 +23,7 @@
     }
   },
   "hosting": {
+    "site": "taskmaestro",
     "public": "build/web",
     "ignore": [
       "firebase.json",
