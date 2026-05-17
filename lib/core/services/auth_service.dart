@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -61,6 +62,33 @@ class AuthState {
   }
 }
 
+/// Maps a sign-in/verify error to the right terminal [AuthState].
+/// Shared by the native and web completion paths so the connection-vs-
+/// generic classification can't drift between them. A bounded-query
+/// `TimeoutException` stringifies with "timeout" → connectionError, so
+/// a stalled Firestore lookup degrades to the recoverable screen.
+@visibleForTesting
+AuthState classifyAuthError(Object error) {
+  final s = error.toString().toLowerCase();
+  if (s.contains('unavailable') ||
+      s.contains('timeout') ||
+      s.contains('econnrefused') ||
+      s.contains('failed to connect')) {
+    return const AuthState(
+      status: AuthStatus.connectionError,
+      errorMessage: 'Cannot connect to server. Please check your connection.',
+    );
+  }
+  return AuthState(
+    status: AuthStatus.unauthenticated,
+    errorMessage: 'Sign in failed: $error',
+  );
+}
+
+/// Outcome of re-checking the live Firebase session against the user a
+/// web completion is committing for, across an `await` gap.
+enum _Session { current, signedOut, switched }
+
 /// Service class that handles authentication logic
 class AuthService {
   AuthService({
@@ -107,6 +135,19 @@ class AuthService {
     }
   }
 
+  /// Web sign-in. google_sign_in 7.x has no programmatic
+  /// `authenticate()` on web, so go straight through Firebase Auth's
+  /// Google popup (the OAuth client is the one Firebase configures for
+  /// the project's web app — no google_sign_in client-id meta tag
+  /// needed). Returns the signed-in Firebase user.
+  Future<User?> signInWithFirebasePopup() async {
+    print('🔐 Web: starting Firebase Google popup sign-in...');
+    final provider = GoogleAuthProvider()..addScope('email');
+    final cred = await _firebaseAuth.signInWithPopup(provider);
+    print('🔐 Web: Firebase popup sign-in result: ${cred.user?.email}');
+    return cred.user;
+  }
+
   /// Sign in to Firebase with Google account
   Future<UserCredential> signInToFirebase(GoogleSignInAccount account) async {
     print('🔐 Signing in to Firebase...');
@@ -134,10 +175,14 @@ class AuthService {
     return userCredential;
   }
 
-  /// Sign out from both Google and Firebase
+  /// Sign out from both Google and Firebase. On web there is no
+  /// google_sign_in session to disconnect (auth goes through the
+  /// Firebase popup) — just sign out of Firebase.
   Future<void> signOut() async {
     print('🔐 Signing out...');
-    await _googleSignIn.disconnect();
+    if (!kIsWeb) {
+      await _googleSignIn.disconnect();
+    }
     await _firebaseAuth.signOut();
     print('🔐 Sign out complete');
   }
@@ -145,6 +190,12 @@ class AuthService {
   /// Get current Firebase user (synchronous check)
   User? get currentUser => _firebaseAuth.currentUser;
 }
+
+/// Platform gate for the auth path. Defaults to `kIsWeb` (compile-time
+/// false under `flutter test`); overridable in tests so the web auth
+/// flow can be exercised on the VM. Hand-written (not codegen) so it
+/// adds no build_runner surface.
+final targetIsWebProvider = Provider<bool>((ref) => kIsWeb);
 
 /// Provider for GoogleSignIn instance
 @Riverpod(keepAlive: true)
@@ -162,6 +213,12 @@ AuthService authService(Ref ref) {
 /// Main auth state notifier - manages authentication flow
 @Riverpod(keepAlive: true)
 class Auth extends _$Auth {
+  /// Email currently being processed by `_completeWebSignIn`, so the
+  /// `authStateChanges` listener doesn't double-process the same user
+  /// that the synchronous fast path (or a prior event) is already
+  /// completing. Web-only.
+  String? _webCompletingEmail;
+
   @override
   AuthState build() {
     // Start with initial state - will trigger initialization
@@ -170,6 +227,10 @@ class Auth extends _$Auth {
   }
 
   Future<void> _initialize() async {
+    if (ref.read(targetIsWebProvider)) {
+      await _initializeWeb();
+      return;
+    }
     try {
       print('🔐 Auth: Initializing...');
 
@@ -245,6 +306,14 @@ class Auth extends _$Auth {
 
   /// Manual sign-in (user clicked button)
   Future<void> signIn() async {
+    // Use the same overridable platform gate as `_initialize()` so both
+    // web auth entry points follow one seam (and the popup branch is
+    // VM-testable). Prod behavior is unchanged — the provider defaults
+    // to kIsWeb.
+    if (ref.read(targetIsWebProvider)) {
+      await _signInWeb();
+      return;
+    }
     final service = ref.read(authServiceProvider);
 
     state = state.copyWith(status: AuthStatus.authenticating);
@@ -305,9 +374,7 @@ class Auth extends _$Auth {
 
       // Success!
       print('🔐 Auth: Fully authenticated - user: ${user.email}, personDocId: $personDocId');
-      // Associate crashes and analytics with this user (anonymized — personDocId, not email)
-      await ref.read(crashReporterProvider).setUserIdentifier(personDocId);
-      await ref.read(analyticsServiceProvider).setUserIdentifier(personDocId);
+      await _associateUser(personDocId);
       state = AuthState(
         status: AuthStatus.authenticated,
         user: user,
@@ -315,23 +382,214 @@ class Auth extends _$Auth {
       );
     } catch (e) {
       print('🔐 Auth: Error during sign-in completion: $e');
+      state = classifyAuthError(e);
+    }
+  }
 
-      // Check if this is a connection error
-      final errorStr = e.toString().toLowerCase();
-      if (errorStr.contains('unavailable') ||
-          errorStr.contains('timeout') ||
-          errorStr.contains('econnrefused') ||
-          errorStr.contains('failed to connect')) {
-        state = AuthState(
-          status: AuthStatus.connectionError,
-          errorMessage: 'Cannot connect to server. Please check your connection.',
-        );
+  /// Best-effort: associate crashes/analytics with the user (anonymized
+  /// — personDocId, not email). Never fatal: a telemetry failure (e.g.
+  /// firebase_analytics misbehaving on web) must not get caught by the
+  /// completion handler and misreported as a failed sign-in.
+  Future<void> _associateUser(String personDocId) async {
+    try {
+      await ref.read(crashReporterProvider).setUserIdentifier(personDocId);
+      await ref.read(analyticsServiceProvider).setUserIdentifier(personDocId);
+    } catch (e) {
+      print('🔐 Auth: user-identifier association failed (non-fatal): $e');
+    }
+  }
+
+  // ── Web auth path (Firebase popup; google_sign_in is native-only) ──
+
+  /// Web init: Firebase Auth persists the session itself, so restore
+  /// from `currentUser` instead of google_sign_in silent sign-in.
+  Future<void> _initializeWeb() async {
+    // CRITICAL: `_initialize()` is called from the notifier's `build()`
+    // (not awaited). Unlike the native path — whose first `state =` is
+    // after `await googleSignIn.initialize()` — the web branches can
+    // reach a `state =` with no preceding await, which would run
+    // *synchronously during build()*; Riverpod then applies build()'s
+    // return value (AuthStatus.initial) afterwards, clobbering it and
+    // pinning the UI on the splash forever. Yield once so everything
+    // below runs as a proper post-build state update.
+    await Future<void>.delayed(Duration.zero);
+    // The provider may have been disposed/invalidated during that gap
+    // (`_initialize` is fire-and-forget from build(); keepAlive
+    // providers are still disposed by ref.invalidate / container
+    // teardown). Touching ref/state after disposal throws.
+    if (!ref.mounted) return;
+    try {
+      print('🔐 Auth(web): Initializing...');
+      final auth = ref.read(firebaseAuthProvider);
+
+      // `authStateChanges()` is the source of truth (web restores the
+      // session asynchronously — `currentUser` is frequently null at
+      // startup until the first stream emit). Registered once, BEFORE
+      // the fast-path read, cancelled on dispose (keepAlive providers
+      // are still disposed by `ref.invalidate` / container teardown).
+      //   - null  → only downgrade an established session (don't fight
+      //             an in-flight sign-in; mid-verify is handled by the
+      //             live re-check in `_completeWebSignIn`).
+      //   - user  → run completion unless it's already the
+      //             authenticated user or a completion for that email
+      //             is in flight (covers async session restore AND a
+      //             cross-tab account switch).
+      final sub = auth.authStateChanges().listen((user) {
+        if (!ref.mounted) return;
+        if (user == null) {
+          // Sign-out clears any user-bearing terminal state — not just
+          // `authenticated`. `connectionError` (preserves user so web
+          // retry can re-verify) and `personNotFound` (carries the
+          // rejected user) would otherwise leave a stale user that
+          // Retry could re-verify into `authenticated` despite Firebase
+          // being signed out. `authenticating`/`initial` are left alone
+          // so a null tick can't fight an in-flight sign-in (mid-verify
+          // is handled by the live re-check in `_completeWebSignIn`).
+          const downgradable = {
+            AuthStatus.authenticated,
+            AuthStatus.connectionError,
+            AuthStatus.personNotFound,
+          };
+          if (downgradable.contains(state.status)) {
+            state = const AuthState(status: AuthStatus.unauthenticated);
+          }
+          return;
+        }
+        if (user.email == _webCompletingEmail) return;
+        if (state.status == AuthStatus.authenticated &&
+            state.user?.email == user.email) {
+          return;
+        }
+        _completeWebSignIn(user);
+      });
+      ref.onDispose(sub.cancel);
+
+      // Fast path: if the session is already hydrated synchronously,
+      // complete immediately rather than waiting for the stream. If
+      // not, settle `unauthenticated` so the UI leaves the splash — a
+      // later non-null `authStateChanges` event re-runs completion.
+      final existing = auth.currentUser;
+      if (existing != null && existing.email != null) {
+        await _completeWebSignIn(existing);
       } else {
-        state = AuthState(
-          status: AuthStatus.unauthenticated,
-          errorMessage: 'Sign in failed: $e',
-        );
+        state = const AuthState(status: AuthStatus.unauthenticated);
       }
+    } catch (e, stackTrace) {
+      print('🔐 Auth(web): Fatal init error: $e');
+      print('🔐 Auth(web): $stackTrace');
+      if (!ref.mounted) return;
+      state = AuthState(
+        status: AuthStatus.unauthenticated,
+        errorMessage: 'Auth initialization failed: $e',
+      );
+    }
+  }
+
+  /// Web manual sign-in via the Firebase Google popup.
+  Future<void> _signInWeb() async {
+    state = state.copyWith(status: AuthStatus.authenticating);
+    try {
+      final service = ref.read(authServiceProvider);
+      final user = await service.signInWithFirebasePopup();
+      if (user == null) {
+        state = const AuthState(status: AuthStatus.unauthenticated);
+        return;
+      }
+      await _completeWebSignIn(user);
+    } catch (e) {
+      state = AuthState(
+        status: AuthStatus.unauthenticated,
+        errorMessage: 'Sign in failed: $e',
+      );
+    }
+  }
+
+  /// Re-check the live Firebase session for a web completion that is
+  /// about to commit a terminal state after an `await` gap. Caller must
+  /// have confirmed `ref.mounted` first (this reads `ref`).
+  _Session _recheckSession(User user) {
+    final live = ref.read(firebaseAuthProvider).currentUser;
+    if (live == null) return _Session.signedOut;
+    if (live.email != user.email) return _Session.switched;
+    return _Session.current;
+  }
+
+  /// Applied at EVERY post-async commit point in `_completeWebSignIn`
+  /// (post-verify, post-telemetry, error path). Returns true if the
+  /// caller must stop because the session changed under it:
+  ///   - signedOut → commit `unauthenticated`.
+  ///   - switched  → a newer different session is active; this is a
+  ///     STALE completion → return WITHOUT touching state so it can't
+  ///     clobber the newer user's authenticated/personNotFound state.
+  bool _abortIfSessionChanged(User user) {
+    switch (_recheckSession(user)) {
+      case _Session.signedOut:
+        print('🔐 Auth(web): signed out during async gap — aborting');
+        state = const AuthState(status: AuthStatus.unauthenticated);
+        return true;
+      case _Session.switched:
+        print('🔐 Auth(web): account switched — discarding stale '
+            'completion for ${user.email}');
+        return true;
+      case _Session.current:
+        return false;
+    }
+  }
+
+  /// Post-auth completion for web: the popup already signed the user
+  /// into Firebase, so skip `signInToFirebase` and reuse the shared
+  /// person-verification + state transitions.
+  Future<void> _completeWebSignIn(User user) async {
+    _webCompletingEmail = user.email;
+    try {
+      if (user.email == null) {
+        state = const AuthState(
+          status: AuthStatus.unauthenticated,
+          errorMessage: 'Firebase sign in returned no email',
+        );
+        return;
+      }
+      final personDocId = await _verifyPerson(user.email!);
+      if (!ref.mounted) return; // disposed during the verify await
+      // A sign-out/account-switch during the verify await is ignored by
+      // the listener (its guard needs status==authenticated, not yet
+      // true); re-check before committing ANY post-verify terminal
+      // state (personNotFound or authenticated).
+      if (_abortIfSessionChanged(user)) return;
+      if (personDocId == null) {
+        print('🔐 Auth(web): Person not found for email ${user.email}');
+        state = AuthState(
+          status: AuthStatus.personNotFound,
+          user: user,
+          errorMessage:
+              'No account found for ${user.email}. Contact administrator.',
+        );
+        return;
+      }
+      print('🔐 Auth(web): Fully authenticated - ${user.email}');
+      await _associateUser(personDocId);
+      if (!ref.mounted) return; // disposed during telemetry association
+      // Telemetry association is another async gap — re-check before
+      // finally committing `authenticated`.
+      if (_abortIfSessionChanged(user)) return;
+      state = AuthState(
+        status: AuthStatus.authenticated,
+        user: user,
+        personDocId: personDocId,
+      );
+    } catch (e) {
+      print('🔐 Auth(web): Error during sign-in completion: $e');
+      if (!ref.mounted) return;
+      // The verify threw after an async gap — don't let a stale
+      // failure clobber a newer session either.
+      if (_abortIfSessionChanged(user)) return;
+      // Preserve the (still live, per the re-check above) Firebase
+      // user: web `retry()` keys off `state.user != null` to re-run
+      // Firestore verification; without it Retry would fall into the
+      // native GoogleSignIn silent path, which is meaningless on web.
+      state = classifyAuthError(e).copyWith(user: user);
+    } finally {
+      if (_webCompletingEmail == user.email) _webCompletingEmail = null;
     }
   }
 
@@ -358,10 +616,14 @@ class Auth extends _$Auth {
       }
     }
 
+    // Bounded so a stalled Firestore connection (notably on web, where
+    // there's no native socket-level failure to surface) becomes a
+    // recoverable connectionError instead of an infinite "Signing In…".
     final snapshot = await firestore
         .collection('persons')
         .where('email', isEqualTo: email)
-        .get();
+        .get()
+        .timeout(const Duration(seconds: 15));
 
     return snapshot.docs.firstOrNull?.id;
   }
@@ -376,22 +638,45 @@ class Auth extends _$Auth {
   /// Retry after connection error
   Future<void> retry() async {
     if (state.user != null) {
+      // Web: a preserved user-bearing state (connectionError /
+      // personNotFound) can outlive or diverge from the live Firebase
+      // session if a sign-out OR account-switch raced ahead of the
+      // listener. Reuse the same session re-check used by completion:
+      // only re-verify when the cached user is still the live one —
+      // never sign-out (→ wrong: stale) and never a different account
+      // (→ wrong: would authenticate the wrong email).
+      if (ref.read(targetIsWebProvider) &&
+          _recheckSession(state.user!) != _Session.current) {
+        print('🔐 Auth(web): retry — live session changed, clearing '
+            'stale user');
+        state = const AuthState(status: AuthStatus.unauthenticated);
+        return;
+      }
       // We have a user, just need to verify person
       state = state.copyWith(status: AuthStatus.authenticating);
-      final personDocId = await _verifyPerson(state.user!.email!);
-
-      if (personDocId != null) {
-        state = AuthState(
-          status: AuthStatus.authenticated,
-          user: state.user,
-          personDocId: personDocId,
-        );
-      } else {
-        state = AuthState(
-          status: AuthStatus.connectionError,
-          user: state.user,
-          errorMessage: 'Still cannot connect. Please try again.',
-        );
+      try {
+        final personDocId = await _verifyPerson(state.user!.email!);
+        if (!ref.mounted) return;
+        if (personDocId != null) {
+          state = AuthState(
+            status: AuthStatus.authenticated,
+            user: state.user,
+            personDocId: personDocId,
+          );
+        } else {
+          state = AuthState(
+            status: AuthStatus.connectionError,
+            user: state.user,
+            errorMessage: 'Still cannot connect. Please try again.',
+          );
+        }
+      } catch (e) {
+        // `_verifyPerson` is bounded by a 15s timeout; a timeout/throw
+        // here must NOT bubble out of the Retry handler and strand the
+        // UI in `authenticating`. Classify it and keep the user so the
+        // connection-error screen's Retry stays usable.
+        print('🔐 Auth: retry verify failed: $e');
+        state = classifyAuthError(e).copyWith(user: state.user);
       }
     } else {
       // No user, try silent sign-in again

@@ -6,8 +6,10 @@ import 'package:taskmaestro/helpers/task_selectors.dart';
 import 'package:taskmaestro/models/sprint.dart';
 import 'package:built_collection/built_collection.dart';
 
-/// Provider for the notification helper singleton
-final notificationHelperProvider = Provider<NotificationHelperImpl>((ref) {
+/// Provider for the notification helper singleton. Typed as the
+/// [NotificationHelper] interface so main.dart can override it with a
+/// web no-op (flutter_local_notifications has no web support).
+final notificationHelperProvider = Provider<NotificationHelper>((ref) {
   final plugin = NotificationHelperImpl.initializeNotificationPlugin();
   return NotificationHelperImpl(plugin: plugin);
 });

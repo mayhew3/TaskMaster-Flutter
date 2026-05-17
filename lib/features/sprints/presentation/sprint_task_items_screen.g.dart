@@ -152,8 +152,14 @@ final class SprintAllTasksFamily extends $Family
   String toString() => r'sprintAllTasksProvider';
 }
 
-/// Sprint task list in sprint-assignment order (TM-339), with the user's
-/// TaskFilters applied via the shared pipeline.
+/// Sprint task set (membership-resolved), with the user's TaskFilters
+/// applied via the shared pipeline. Ordering is intentionally NOT
+/// preserved here — `sprintGroupedTasks` re-buckets + sorts by the
+/// surface's group/sort axes (default: due-status grouping, urgency
+/// sort) before anything renders, so any order this provider produced
+/// would be discarded. (Pre-TM-359 this walked
+/// `sprint.sprintAssignments` in order for the TM-339 stability
+/// contract; that contract no longer holds at the UI level.)
 ///
 /// TM-368: pure-derived family provider — auto-dispose for the same
 /// reason as `sprintAllTasks`.
@@ -161,8 +167,14 @@ final class SprintAllTasksFamily extends $Family
 @ProviderFor(sprintTaskItems)
 final sprintTaskItemsProvider = SprintTaskItemsFamily._();
 
-/// Sprint task list in sprint-assignment order (TM-339), with the user's
-/// TaskFilters applied via the shared pipeline.
+/// Sprint task set (membership-resolved), with the user's TaskFilters
+/// applied via the shared pipeline. Ordering is intentionally NOT
+/// preserved here — `sprintGroupedTasks` re-buckets + sorts by the
+/// surface's group/sort axes (default: due-status grouping, urgency
+/// sort) before anything renders, so any order this provider produced
+/// would be discarded. (Pre-TM-359 this walked
+/// `sprint.sprintAssignments` in order for the TM-339 stability
+/// contract; that contract no longer holds at the UI level.)
 ///
 /// TM-368: pure-derived family provider — auto-dispose for the same
 /// reason as `sprintAllTasks`.
@@ -175,8 +187,14 @@ final class SprintTaskItemsProvider
           FutureOr<List<TaskItem>>
         >
     with $FutureModifier<List<TaskItem>>, $FutureProvider<List<TaskItem>> {
-  /// Sprint task list in sprint-assignment order (TM-339), with the user's
-  /// TaskFilters applied via the shared pipeline.
+  /// Sprint task set (membership-resolved), with the user's TaskFilters
+  /// applied via the shared pipeline. Ordering is intentionally NOT
+  /// preserved here — `sprintGroupedTasks` re-buckets + sorts by the
+  /// surface's group/sort axes (default: due-status grouping, urgency
+  /// sort) before anything renders, so any order this provider produced
+  /// would be discarded. (Pre-TM-359 this walked
+  /// `sprint.sprintAssignments` in order for the TM-339 stability
+  /// contract; that contract no longer holds at the UI level.)
   ///
   /// TM-368: pure-derived family provider — auto-dispose for the same
   /// reason as `sprintAllTasks`.
@@ -224,10 +242,16 @@ final class SprintTaskItemsProvider
   }
 }
 
-String _$sprintTaskItemsHash() => r'80ff1d40375b3f51946fd33fc07067f5de87c655';
+String _$sprintTaskItemsHash() => r'ef9090162ef8bc1ed375f1bba781baf2adb1cd08';
 
-/// Sprint task list in sprint-assignment order (TM-339), with the user's
-/// TaskFilters applied via the shared pipeline.
+/// Sprint task set (membership-resolved), with the user's TaskFilters
+/// applied via the shared pipeline. Ordering is intentionally NOT
+/// preserved here — `sprintGroupedTasks` re-buckets + sorts by the
+/// surface's group/sort axes (default: due-status grouping, urgency
+/// sort) before anything renders, so any order this provider produced
+/// would be discarded. (Pre-TM-359 this walked
+/// `sprint.sprintAssignments` in order for the TM-339 stability
+/// contract; that contract no longer holds at the UI level.)
 ///
 /// TM-368: pure-derived family provider — auto-dispose for the same
 /// reason as `sprintAllTasks`.
@@ -243,8 +267,14 @@ final class SprintTaskItemsFamily extends $Family
         isAutoDispose: true,
       );
 
-  /// Sprint task list in sprint-assignment order (TM-339), with the user's
-  /// TaskFilters applied via the shared pipeline.
+  /// Sprint task set (membership-resolved), with the user's TaskFilters
+  /// applied via the shared pipeline. Ordering is intentionally NOT
+  /// preserved here — `sprintGroupedTasks` re-buckets + sorts by the
+  /// surface's group/sort axes (default: due-status grouping, urgency
+  /// sort) before anything renders, so any order this provider produced
+  /// would be discarded. (Pre-TM-359 this walked
+  /// `sprint.sprintAssignments` in order for the TM-339 stability
+  /// contract; that contract no longer holds at the UI level.)
   ///
   /// TM-368: pure-derived family provider — auto-dispose for the same
   /// reason as `sprintAllTasks`.
@@ -331,7 +361,7 @@ final class SprintGroupedTasksProvider
 }
 
 String _$sprintGroupedTasksHash() =>
-    r'5fdfdc0ea16c796aa9df25dfe16438e4fb7c93b8';
+    r'f9e4495564bd9903a83f168a8003c6ebb69684f0';
 
 /// Sprint tasks grouped + sorted via the shared pipeline. With the
 /// sprint surface's defaults (groupAxis=dueStatus, sortAxis=urgency) the

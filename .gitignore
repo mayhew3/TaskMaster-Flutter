@@ -49,6 +49,11 @@ settings.local.json
 .pub/
 /build/
 
+# TM-353: web/drift_worker.js is committed (the runtime worker), but the
+# dart-compile byproducts are regenerated and not needed in the tree.
+web/*.js.deps
+web/*.js.map
+
 # Android related
 **/android/**/gradle-wrapper.jar
 **/android/.gradle

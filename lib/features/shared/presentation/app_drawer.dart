@@ -6,7 +6,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/crash_reporter.dart';
-import '../../../core/services/log_storage_service.dart';
+import '../../../core/services/log_storage_base.dart';
 import '../../../models/task_colors.dart';
 import '../../areas/presentation/area_manage_screen.dart';
 import '../../contexts/presentation/context_manage_screen.dart';
@@ -162,14 +162,17 @@ class AppDrawer extends ConsumerWidget {
                       },
                       child: const Text('Unhandled throw'),
                     ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(ctx).pop();
-                        // Forces a native crash (Firebase recommended test)
-                        FirebaseCrashlytics.instance.crash();
-                      },
-                      child: const Text('Native crash'),
-                    ),
+                    if (!kIsWeb)
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                          // Forces a native crash (Firebase recommended
+                          // test). firebase_crashlytics has no web
+                          // support, so this debug action is native-only.
+                          FirebaseCrashlytics.instance.crash();
+                        },
+                        child: const Text('Native crash'),
+                      ),
                     TextButton(
                       onPressed: () => Navigator.of(ctx).pop(),
                       child: const Text('Cancel'),

@@ -1,16 +1,16 @@
 import 'dart:io';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'log_storage_service.g.dart';
+import 'log_storage_base.dart';
 
 /// Persistent log sink that writes log records to a rolling file.
 /// Used for retrieving logs from production iOS devices where console
-/// access is not available.
-class LogStorageService {
+/// access is not available. Native-only (`dart:io`): never import this
+/// file from the web graph — go through [LogStorageBase] /
+/// `createLogStorage()` instead.
+class LogStorageService implements LogStorageBase {
   static const String _logFileName = 'taskmaestro.log';
   static const int _maxFileSizeBytes = 5 * 1024 * 1024; // 5 MB
 
@@ -24,6 +24,7 @@ class LogStorageService {
   Future<void> _writeQueue = Future.value();
 
   /// Initializes the log file path. Must be called before writing.
+  @override
   Future<void> initialize() async {
     if (_initialized) return;
     final dir = await getApplicationDocumentsDirectory();
@@ -43,6 +44,7 @@ class LogStorageService {
   }
 
   /// Writes a single log record to the file. Rotates if file exceeds max size.
+  @override
   Future<void> writeRecord(LogRecord record) {
     return _enqueue(() async {
       if (!_initialized) await initialize();
@@ -97,6 +99,7 @@ class LogStorageService {
 
   /// Appends a raw line (e.g., captured print output) to the log file.
   /// Used by the print-capturing zone to preserve console output.
+  @override
   Future<void> writeRaw(String line) {
     return _enqueue(() async {
       if (!_initialized) await initialize();
@@ -117,6 +120,7 @@ class LogStorageService {
   }
 
   /// Returns the current contents of the log file.
+  @override
   Future<String> readLogs() async {
     if (!_initialized) await initialize();
     try {
@@ -127,6 +131,7 @@ class LogStorageService {
   }
 
   /// Clears the log file.
+  @override
   Future<void> clearLogs() async {
     if (!_initialized) await initialize();
     try {
@@ -137,8 +142,6 @@ class LogStorageService {
   }
 
   /// Returns the path to the log file (for sharing via share_plus).
+  @override
   String? getLogFilePath() => _logFile?.path;
 }
-
-@Riverpod(keepAlive: true)
-LogStorageService logStorageService(Ref ref) => LogStorageService();
