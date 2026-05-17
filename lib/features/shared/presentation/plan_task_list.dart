@@ -412,10 +412,15 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
       // Redacted breadcrumb only — the print-capturing zone persists to
       // a user-exportable log file, so don't echo $e/$stack (they can
       // carry task/sprint field values + personDocId). Full detail goes
-      // to the crash reporter (debug/web no-op; Crashlytics in prod).
+      // to the crash reporter: Crashlytics in release; in debug it only
+      // debugPrints to the dev console (NOT the persisted print zone),
+      // and debug builds don't produce user-exportable logs anyway.
+      // Fire-and-forget via .ignore() so a throwing reporter can't
+      // surface as a secondary unhandled async error after we've handled
+      // the failure.
       print('[TM-375] Submit failed: ${e.runtimeType}');
       ref.read(crashReporterProvider).logError(e, stack,
-          context: 'Create Sprint / Add to Sprint submit');
+          context: 'Create Sprint / Add to Sprint submit').ignore();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Could not save. Please try again.')),
