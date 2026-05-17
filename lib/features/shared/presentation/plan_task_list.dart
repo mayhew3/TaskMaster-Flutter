@@ -374,37 +374,52 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
 
     submitting = true;
 
-    if (addMode()) {
-      SprintBlueprint sprint = SprintBlueprint(
-          startDate: widget.startDate!,
-          endDate: endDate,
-          numUnits: widget.numUnits!,
-          unitName: widget.unitName!,
-          personDocId: personDocId
-      );
-      print('[TM-306] Submitting new sprint');
-      await ref.read(createSprintProvider.notifier).call(
-        sprintBlueprint: sprint,
-        taskItems: taskItemQueue,
-        taskItemRecurPreviews: taskItemRecurPreviewQueue,
-      );
-    } else {
-      print('[TM-306] Adding ${taskItemQueue.length} tasks to sprint ${activeSprint!.docId}');
-      await ref.read(addTasksToSprintProvider.notifier).call(
-        sprint: activeSprint!,
-        taskItems: taskItemQueue,
-        taskItemRecurPreviews: taskItemRecurPreviewQueue,
-      );
+    try {
+      if (addMode()) {
+        SprintBlueprint sprint = SprintBlueprint(
+            startDate: widget.startDate!,
+            endDate: endDate,
+            numUnits: widget.numUnits!,
+            unitName: widget.unitName!,
+            personDocId: personDocId
+        );
+        print('[TM-306] Submitting new sprint');
+        await ref.read(createSprintProvider.notifier).call(
+          sprintBlueprint: sprint,
+          taskItems: taskItemQueue,
+          taskItemRecurPreviews: taskItemRecurPreviewQueue,
+        );
+      } else {
+        print('[TM-306] Adding ${taskItemQueue.length} tasks to sprint ${activeSprint!.docId}');
+        await ref.read(addTasksToSprintProvider.notifier).call(
+          sprint: activeSprint!,
+          taskItems: taskItemQueue,
+          taskItemRecurPreviews: taskItemRecurPreviewQueue,
+        );
+      }
 
-      // Pop after successful submit
+      // TM-375: deterministically close the screen on a successful
+      // submit for BOTH modes. Previously only the add-to-existing
+      // branch popped; create-new-sprint relied on a racy
+      // sprintsProvider listener and usually never closed.
       print('[TM-306] Submit complete, popping navigation');
       if (context.mounted && !popped) {
         popped = true;
         Navigator.pop(context);
       }
+    } catch (e, stack) {
+      // Don't pop on failure — leave the screen up so the user can
+      // retry. submitting is reset in `finally` so a retry isn't
+      // blocked by the duplicate-call guard.
+      print('[TM-375] Submit failed: $e\n$stack');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not save. Please try again.')),
+        );
+      }
+    } finally {
+      submitting = false;
     }
-
-    submitting = false;
   }
 
   @override
@@ -446,24 +461,11 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
       createTemporaryIterations(allTasksBuilt);
       initialized = true;
 
-      // Set up listeners after initialization (so activeSprint is set)
-      // Auto-pop when sprint is created (matches Redux onWillChange behavior)
-      ref.listen(sprintsProvider, (previous, next) {
-        if (!popped && activeSprint == null) {
-          // In "add mode" - pop when a new active sprint appears
-          final prevSprints = previous?.value ?? [];
-          final nextSprints = next.value ?? [];
-          final prevActiveSprint = activeSprintSelector(BuiltList<Sprint>(prevSprints));
-          final nextActiveSprint = activeSprintSelector(BuiltList<Sprint>(nextSprints));
-
-          if (prevActiveSprint == null && nextActiveSprint != null) {
-            popped = true;
-            if (context.mounted) {
-              Navigator.pop(context);
-            }
-          }
-        }
-      });
+      // Set up listeners after initialization (so activeSprint is set).
+      // TM-375: the create-mode auto-pop listener was removed — it raced
+      // the awaited submit on the sprintsProvider Drift stream and often
+      // never fired, leaving the screen open. `submit()` now pops
+      // deterministically for both modes (guarded by `popped`).
 
       // Auto-pop when tasks are added to existing sprint
       if (activeSprint != null) {

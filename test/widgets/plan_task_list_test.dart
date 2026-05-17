@@ -1,12 +1,43 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaestro/features/shared/presentation/plan_task_list.dart';
 import 'package:taskmaestro/features/tasks/providers/task_providers.dart';
 import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
+import 'package:taskmaestro/features/sprints/services/sprint_service.dart';
 import 'package:taskmaestro/core/providers/auth_providers.dart';
 import 'package:taskmaestro/models/task_item.dart';
+import 'package:taskmaestro/models/task_item_recur_preview.dart';
 import 'package:taskmaestro/models/sprint.dart';
+import 'package:taskmaestro/models/sprint_blueprint.dart';
+
+/// TM-375: a fake CreateSprint that "succeeds" without touching Drift/
+/// Firestore — returns a minimal Sprint and does NOT push it into
+/// `sprintsProvider`, so the only thing that can close the screen is
+/// the deterministic post-await pop (not the fragile stream listener).
+class _FakeCreateSprint extends CreateSprint {
+  @override
+  FutureOr<void> build() {}
+
+  @override
+  Future<Sprint> call({
+    required SprintBlueprint sprintBlueprint,
+    required List<TaskItem> taskItems,
+    required List<TaskItemRecurPreview> taskItemRecurPreviews,
+  }) async {
+    return Sprint((b) => b
+      ..docId = 'sprint-test'
+      ..dateAdded = DateTime.now().toUtc()
+      ..startDate = DateTime.now().toUtc()
+      ..endDate = DateTime.now().toUtc().add(const Duration(days: 7))
+      ..numUnits = 1
+      ..unitName = 'Weeks'
+      ..personDocId = 'test_person_id'
+      ..sprintNumber = 1);
+  }
+}
 
 /// Widget Test: PlanTaskList
 ///
@@ -215,6 +246,62 @@ void main() {
 
       // Verify: Submit button is visible (FloatingActionButton)
       expect(find.widgetWithText(FloatingActionButton, 'Submit'), findsOneWidget);
+    });
+
+    testWidgets(
+        'TM-375: Create Sprint submit closes the screen', (tester) async {
+      final urgentTask = createTestTask(
+        docId: 'urgent_task',
+        name: 'Urgent Task',
+        urgentDate: DateTime.now().subtract(const Duration(days: 1)),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tasksProvider.overrideWith((ref) => Stream.value([urgentTask])),
+            tasksWithRecurrencesProvider
+                .overrideWith((ref) => Stream.value([urgentTask])),
+            taskRecurrencesProvider.overrideWith((ref) => Stream.value([])),
+            sprintsProvider.overrideWith((ref) => Stream.value(<Sprint>[])),
+            recentlyCompletedTasksProvider
+                .overrideWith(() => RecentlyCompletedTasks()),
+            personDocIdProvider.overrideWith((ref) => 'test_person_id'),
+            createSprintProvider.overrideWith(() => _FakeCreateSprint()),
+          ],
+          child: MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: Center(
+                  child: ElevatedButton(
+                    onPressed: () =>
+                        Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => PlanTaskList(
+                        numUnits: 1,
+                        unitName: 'Weeks',
+                        startDate: DateTime.now(),
+                      ),
+                    )),
+                    child: const Text('open'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Open the Create Sprint screen (addMode: no active sprint).
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      expect(find.byType(PlanTaskList), findsOneWidget);
+
+      // Submit → the screen must close (pre-fix it stays open forever).
+      await tester.tap(find.widgetWithText(FloatingActionButton, 'Submit'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PlanTaskList), findsNothing,
+          reason: 'Create Sprint submit must pop the screen (TM-375)');
     });
 
     testWidgets('Tasks are grouped by category', (tester) async {
