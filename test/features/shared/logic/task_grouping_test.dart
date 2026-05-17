@@ -757,6 +757,156 @@ void main() {
     });
   });
 
+  group(
+      'groupAndSortTasks — TM-376: completion holds position under urgency '
+      'sort', () {
+    final inOneDay = _now.add(const Duration(days: 1));
+    final inTwoDays = _now.add(const Duration(days: 2));
+    final inThreeDays = _now.add(const Duration(days: 3));
+
+    test(
+        'completing a mid-bucket task keeps its index (does not jump within '
+        'the urgency-sorted section)', () {
+      List<TaskItem> mk({DateTime? n2Completion}) => [
+            _t(docId: 'n1', targetDate: inThreeDays),
+            _t(
+                docId: 'n2',
+                targetDate: inTwoDays,
+                completionDate: n2Completion),
+            _t(docId: 'n3', targetDate: inOneDay),
+          ];
+
+      // Baseline: all normal-tier; urgency/descending → later targetDate
+      // first.
+      final baseline = groupAndSortTasks(
+        tasks: mk(),
+        now: _now,
+        view: _view(),
+      );
+      expect(baseline.single.key, 'due:normal');
+      expect(baseline.single.tasks.map((t) => t.docId), ['n1', 'n2', 'n3']);
+
+      // Complete n2 + mark it recently-completed: it must stay at index 1.
+      final after = groupAndSortTasks(
+        tasks: mk(n2Completion: _hourAgo),
+        now: _now,
+        view: _view(),
+        recentlyCompletedDocIds: {'n2'},
+      );
+      // Grouping bypass already keeps it in `normal` (passes pre-fix)...
+      expect(after.single.key, 'due:normal');
+      // ...but the within-section urgency SORT moved it pre-fix (TM-376).
+      expect(
+        after.single.tasks.map((t) => t.docId),
+        ['n1', 'n2', 'n3'],
+        reason: 'recently-completed task must hold its pre-completion '
+            'position under urgency sort (TM-376)',
+      );
+    });
+
+    test(
+        'completion does not reorder even when peers tie on all urgency keys',
+        () {
+      final ts = _now.subtract(const Duration(days: 10));
+      List<TaskItem> mk({DateTime? s2Completion}) => [
+            _t(docId: 's1', targetDate: inOneDay, dateAdded: ts),
+            _t(
+                docId: 's2',
+                targetDate: inOneDay,
+                dateAdded: ts,
+                completionDate: s2Completion),
+            _t(docId: 's3', targetDate: inOneDay, dateAdded: ts),
+          ];
+
+      final baseline =
+          groupAndSortTasks(tasks: mk(), now: _now, view: _view());
+      expect(baseline.single.tasks.map((t) => t.docId), ['s1', 's2', 's3']);
+
+      final after = groupAndSortTasks(
+        tasks: mk(s2Completion: _hourAgo),
+        now: _now,
+        view: _view(),
+        recentlyCompletedDocIds: {'s2'},
+      );
+      expect(
+        after.single.tasks.map((t) => t.docId),
+        ['s1', 's2', 's3'],
+        reason: 'all-tied peers + a completed one must preserve input order '
+            '(stability tiebreak, TM-376)',
+      );
+    });
+
+    test(
+        'holds position with groupAxis=none (the _noBuckets urgency path)',
+        () {
+      List<TaskItem> mk({DateTime? n2Completion}) => [
+            _t(docId: 'n1', targetDate: inThreeDays),
+            _t(
+                docId: 'n2',
+                targetDate: inTwoDays,
+                completionDate: n2Completion),
+            _t(docId: 'n3', targetDate: inOneDay),
+          ];
+
+      final baseline = groupAndSortTasks(
+        tasks: mk(),
+        now: _now,
+        view: _view(groupAxis: TaskGroupAxis.none),
+      );
+      expect(baseline.single.tasks.map((t) => t.docId), ['n1', 'n2', 'n3']);
+
+      final after = groupAndSortTasks(
+        tasks: mk(n2Completion: _hourAgo),
+        now: _now,
+        view: _view(groupAxis: TaskGroupAxis.none),
+        recentlyCompletedDocIds: {'n2'},
+      );
+      expect(
+        after.single.tasks.map((t) => t.docId),
+        ['n1', 'n2', 'n3'],
+        reason: 'recentlyCompletedDocIds must also thread through the '
+            'no-buckets urgency sort path (TM-376)',
+      );
+    });
+
+    test(
+        'tiebreak holds input order under ascending direction too '
+        '(direction-independent)', () {
+      final ts = _now.subtract(const Duration(days: 10));
+      List<TaskItem> mk({DateTime? s2Completion}) => [
+            _t(docId: 's1', targetDate: inOneDay, dateAdded: ts),
+            _t(
+                docId: 's2',
+                targetDate: inOneDay,
+                dateAdded: ts,
+                completionDate: s2Completion),
+            _t(docId: 's3', targetDate: inOneDay, dateAdded: ts),
+          ];
+
+      // Ascending: the index tiebreak is applied AFTER the `* dir` flip,
+      // so equal-key input order is preserved regardless of direction.
+      final baseline = groupAndSortTasks(
+        tasks: mk(),
+        now: _now,
+        view: _view(sortDirection: SortDirection.ascending),
+      );
+      expect(baseline.single.tasks.map((t) => t.docId), ['s1', 's2', 's3']);
+
+      final after = groupAndSortTasks(
+        tasks: mk(s2Completion: _hourAgo),
+        now: _now,
+        view: _view(sortDirection: SortDirection.ascending),
+        recentlyCompletedDocIds: {'s2'},
+      );
+      expect(
+        after.single.tasks.map((t) => t.docId),
+        ['s1', 's2', 's3'],
+        reason: 'ascending sort must also preserve equal-key input order '
+            '(tiebreak applied after * dir, TM-376)',
+      );
+    });
+  });
+
   group('groupAndSortTasks — group keys are stable across axis flips', () {
     test('a docId\'s collapsed-group key under dueStatus and area axes are '
         'distinct, so collapsing one doesn\'t collapse the other', () {

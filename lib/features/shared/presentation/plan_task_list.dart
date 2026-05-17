@@ -17,6 +17,7 @@ import '../../../models/task_item.dart';
 import '../../../models/task_item_recur_preview.dart';
 import '../../../models/task_list_view.dart';
 import '../../../core/providers/auth_providers.dart';
+import '../../../core/services/crash_reporter.dart';
 import '../../shared/logic/task_grouping.dart' show applyTaskFilters;
 import '../../shared/presentation/view_options_sheet.dart';
 import '../../shared/providers/task_list_view_providers.dart';
@@ -374,37 +375,71 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
 
     submitting = true;
 
-    if (addMode()) {
-      SprintBlueprint sprint = SprintBlueprint(
-          startDate: widget.startDate!,
-          endDate: endDate,
-          numUnits: widget.numUnits!,
-          unitName: widget.unitName!,
-          personDocId: personDocId
-      );
-      print('[TM-306] Submitting new sprint');
-      await ref.read(createSprintProvider.notifier).call(
-        sprintBlueprint: sprint,
-        taskItems: taskItemQueue,
-        taskItemRecurPreviews: taskItemRecurPreviewQueue,
-      );
-    } else {
-      print('[TM-306] Adding ${taskItemQueue.length} tasks to sprint ${activeSprint!.docId}');
-      await ref.read(addTasksToSprintProvider.notifier).call(
-        sprint: activeSprint!,
-        taskItems: taskItemQueue,
-        taskItemRecurPreviews: taskItemRecurPreviewQueue,
-      );
+    try {
+      if (addMode()) {
+        final sprint = SprintBlueprint(
+            startDate: widget.startDate!,
+            endDate: endDate,
+            numUnits: widget.numUnits!,
+            unitName: widget.unitName!,
+            personDocId: personDocId
+        );
+        print('[TM-306] Submitting new sprint');
+        await ref.read(createSprintProvider.notifier).call(
+          sprintBlueprint: sprint,
+          taskItems: taskItemQueue,
+          taskItemRecurPreviews: taskItemRecurPreviewQueue,
+        );
+      } else {
+        print('[TM-306] Adding ${taskItemQueue.length} tasks to sprint ${activeSprint!.docId}');
+        await ref.read(addTasksToSprintProvider.notifier).call(
+          sprint: activeSprint!,
+          taskItems: taskItemQueue,
+          taskItemRecurPreviews: taskItemRecurPreviewQueue,
+        );
+        // Unlike CreateSprint (which lets failures propagate),
+        // AddTasksToSprint.call() wraps its work in AsyncValue.guard, so a
+        // failure is captured in the provider's error state instead of
+        // thrown. Re-surface it so the shared catch below keeps the screen
+        // open on failure rather than popping as if it succeeded
+        // (TM-375; Copilot PR #34 round 1).
+        final addResult = ref.read(addTasksToSprintProvider);
+        if (addResult.hasError) {
+          Error.throwWithStackTrace(
+              addResult.error!, addResult.stackTrace ?? StackTrace.current);
+        }
+      }
 
-      // Pop after successful submit
+      // TM-375: pop deterministically for both modes (was: racy listener).
       print('[TM-306] Submit complete, popping navigation');
       if (context.mounted && !popped) {
         popped = true;
         Navigator.pop(context);
       }
+    } catch (e, stack) {
+      // Don't pop on failure — leave the screen up so the user can
+      // retry. submitting is reset in `finally` so a retry isn't
+      // blocked by the duplicate-call guard.
+      // Redacted breadcrumb only — the print-capturing zone persists to
+      // a user-exportable log file, so don't echo $e/$stack (they can
+      // carry task/sprint field values + personDocId). Full detail goes
+      // to the crash reporter: Crashlytics in release; in debug it only
+      // debugPrints to the dev console (NOT the persisted print zone),
+      // and debug builds don't produce user-exportable logs anyway.
+      // Fire-and-forget via .ignore() so a throwing reporter can't
+      // surface as a secondary unhandled async error after we've handled
+      // the failure.
+      print('[TM-375] Submit failed: ${e.runtimeType}');
+      ref.read(crashReporterProvider).logError(e, stack,
+          context: 'Create Sprint / Add to Sprint submit').ignore();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not save. Please try again.')),
+        );
+      }
+    } finally {
+      submitting = false;
     }
-
-    submitting = false;
   }
 
   @override
@@ -446,24 +481,11 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
       createTemporaryIterations(allTasksBuilt);
       initialized = true;
 
-      // Set up listeners after initialization (so activeSprint is set)
-      // Auto-pop when sprint is created (matches Redux onWillChange behavior)
-      ref.listen(sprintsProvider, (previous, next) {
-        if (!popped && activeSprint == null) {
-          // In "add mode" - pop when a new active sprint appears
-          final prevSprints = previous?.value ?? [];
-          final nextSprints = next.value ?? [];
-          final prevActiveSprint = activeSprintSelector(BuiltList<Sprint>(prevSprints));
-          final nextActiveSprint = activeSprintSelector(BuiltList<Sprint>(nextSprints));
-
-          if (prevActiveSprint == null && nextActiveSprint != null) {
-            popped = true;
-            if (context.mounted) {
-              Navigator.pop(context);
-            }
-          }
-        }
-      });
+      // Set up listeners after initialization (so activeSprint is set).
+      // TM-375: the create-mode auto-pop listener was removed — it raced
+      // the awaited submit on the sprintsProvider Drift stream and often
+      // never fired, leaving the screen open. `submit()` now pops
+      // deterministically for both modes (guarded by `popped`).
 
       // Auto-pop when tasks are added to existing sprint
       if (activeSprint != null) {
