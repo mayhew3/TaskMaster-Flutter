@@ -65,7 +65,7 @@ List<TaskGroupResult> groupAndSortTasks({
     case TaskGroupAxis.dueStatus:
       return _dueStatusBuckets(filtered, view, now, recentlyCompletedDocIds);
     case TaskGroupAxis.none:
-      return _noBuckets(filtered, view, now);
+      return _noBuckets(filtered, view, now, recentlyCompletedDocIds);
     case TaskGroupAxis.priority:
       return _priorityBuckets(filtered, view, now);
     case TaskGroupAxis.area:
@@ -197,6 +197,19 @@ DueStatusBucket _dueStatusBucketIgnoringCompletion(TaskItem t, DateTime now) {
   return DueStatusBucket.normal;
 }
 
+/// Bucket used by the SORT step. Mirrors the grouping bypass
+/// (`_dueStatusBuckets`): a recently-completed task sorts by its
+/// PRE-completion tier so it holds its position instead of dropping to
+/// the Completed tier (TM-376 — honors the TM-323 stay-in-place
+/// contract for the within-section sort, not just the grouping).
+DueStatusBucket _effectiveBucketForSort(
+    TaskItem t, DateTime now, Set<String> recentlyCompletedDocIds) {
+  if (t.completionDate != null && recentlyCompletedDocIds.contains(t.docId)) {
+    return _dueStatusBucketIgnoringCompletion(t, now);
+  }
+  return _dueStatusBucketOf(t, now);
+}
+
 // ── Bucket steps (one per TaskGroupAxis) ────────────────────────────────
 
 const _kDueStatusDisplayName = <DueStatusBucket, String>{
@@ -237,20 +250,21 @@ List<TaskGroupResult> _dueStatusBuckets(
             key: 'due:${e.key.name}',
             displayName: _kDueStatusDisplayName[e.key]!,
             displayOrder: e.value,
-            tasks: _sortBucket(buckets[e.key]!, view, e.key, now),
+            tasks: _sortBucket(
+                buckets[e.key]!, view, e.key, now, recentlyCompletedDocIds),
           ))
       .toList();
 }
 
-List<TaskGroupResult> _noBuckets(
-    Iterable<TaskItem> tasks, TaskListView view, DateTime now) {
+List<TaskGroupResult> _noBuckets(Iterable<TaskItem> tasks, TaskListView view,
+    DateTime now, Set<String> recentlyCompletedDocIds) {
   final list = tasks.toList();
   return [
     TaskGroupResult(
       key: 'all',
       displayName: '',
       displayOrder: 1,
-      tasks: _sortBucket(list, view, null, now),
+      tasks: _sortBucket(list, view, null, now, recentlyCompletedDocIds),
     ),
   ];
 }
@@ -453,15 +467,27 @@ List<TaskItem> _sortBucket(
   List<TaskItem> tasks,
   TaskListView view,
   DueStatusBucket? bucket,
-  DateTime now,
-) {
+  DateTime now, [
+  Set<String> recentlyCompletedDocIds = const {},
+]) {
   // Urgency: bucket-aware. Each task's bucket determines which dates
   // act as the primary/secondary sort key. The global ascending /
   // descending toggle flips the entire ordering (ascending = most
   // urgent first).
   if (view.sortAxis == TaskSortAxis.urgency) {
     final dir = view.sortDirection == SortDirection.ascending ? 1 : -1;
-    return [...tasks]..sort((a, b) => _cmpUrgency(a, b, now) * dir);
+    // Final input-index tiebreak, applied AFTER the direction flip so
+    // "hold input position" is direction-independent. Dart's List.sort
+    // is not stable, so without this a just-completed task (or any
+    // equal-key peer) can still swap slots (TM-376).
+    final originalIndex = <String, int>{
+      for (var i = 0; i < tasks.length; i++) tasks[i].docId: i,
+    };
+    return [...tasks]..sort((a, b) {
+        final c = _cmpUrgency(a, b, now, recentlyCompletedDocIds) * dir;
+        if (c != 0) return c;
+        return originalIndex[a.docId]!.compareTo(originalIndex[b.docId]!);
+      });
   }
 
   final keyOf = _sortKeyFor(view.sortAxis);
@@ -527,9 +553,10 @@ Comparable? Function(TaskItem) _sortKeyFor(TaskSortAxis axis) {
 /// - **completed**: completionDate descending (also matches the legacy
 ///   sentinel; the outer direction multiplier composes with this so
 ///   global descending still puts completed last)
-int _cmpUrgency(TaskItem a, TaskItem b, DateTime now) {
-  final bucketA = _dueStatusBucketOf(a, now);
-  final bucketB = _dueStatusBucketOf(b, now);
+int _cmpUrgency(TaskItem a, TaskItem b, DateTime now,
+    Set<String> recentlyCompletedDocIds) {
+  final bucketA = _effectiveBucketForSort(a, now, recentlyCompletedDocIds);
+  final bucketB = _effectiveBucketForSort(b, now, recentlyCompletedDocIds);
   // `_kDueStatusOrder` covers every `DueStatusBucket` value, so the
   // lookup is non-null; `!` makes the invariant explicit.
   final tierA = _kDueStatusOrder[bucketA]!;
