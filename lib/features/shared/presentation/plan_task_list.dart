@@ -397,6 +397,17 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
           taskItems: taskItemQueue,
           taskItemRecurPreviews: taskItemRecurPreviewQueue,
         );
+        // Unlike CreateSprint (which lets failures propagate),
+        // AddTasksToSprint.call() wraps its work in AsyncValue.guard, so a
+        // failure is captured in the provider's error state instead of
+        // thrown. Re-surface it so the shared catch below keeps the screen
+        // open on failure rather than popping as if it succeeded
+        // (TM-375; Copilot PR #34 round 1).
+        final addResult = ref.read(addTasksToSprintProvider);
+        if (addResult.hasError) {
+          Error.throwWithStackTrace(
+              addResult.error!, addResult.stackTrace ?? StackTrace.current);
+        }
       }
 
       // TM-375: pop deterministically for both modes (was: racy listener).

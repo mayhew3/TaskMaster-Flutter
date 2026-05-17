@@ -74,6 +74,25 @@ class _FakeAddTasksToSprint extends AddTasksToSprint {
   }) async {}
 }
 
+/// TM-375 (Copilot PR #34 R1): an AddTasksToSprint that fails the way the
+/// real one does — AsyncValue.guard captures the error into `state` and
+/// `call()` completes normally (no throw). Pre-fix this slipped past
+/// submit()'s catch and the screen popped as if it had succeeded.
+class _GuardSwallowingAddTasksToSprint extends AddTasksToSprint {
+  @override
+  FutureOr<void> build() {}
+
+  @override
+  Future<void> call({
+    required Sprint sprint,
+    required List<TaskItem> taskItems,
+    required List<TaskItemRecurPreview> taskItemRecurPreviews,
+  }) async {
+    state = await AsyncValue.guard(
+        () async => throw StateError('simulated add-to-sprint failure'));
+  }
+}
+
 /// Records errors handed to the crash reporter so the failure-path test
 /// can assert the full error is forwarded (Security-2: not echoed to the
 /// persisted print stream). Always disabled so it never touches Firebase.
@@ -512,6 +531,83 @@ void main() {
           reason:
               'Add-to-existing-sprint submit must also pop the screen '
               '(consolidated-pop regression guard, TM-375)');
+    });
+
+    testWidgets(
+        'TM-375: add-to-existing-sprint failure keeps the screen open '
+        '(AsyncValue.guard error is surfaced)', (tester) async {
+      final urgentTask = createTestTask(
+        docId: 'urgent_task',
+        name: 'Urgent Task',
+        urgentDate: DateTime.now().subtract(const Duration(days: 1)),
+      );
+      final activeSprint = Sprint((b) => b
+        ..docId = 'active-sprint'
+        ..dateAdded = DateTime.now().toUtc()
+        ..startDate =
+            DateTime.now().toUtc().subtract(const Duration(days: 1))
+        ..endDate = DateTime.now().toUtc().add(const Duration(days: 6))
+        ..numUnits = 1
+        ..unitName = 'Weeks'
+        ..personDocId = 'test_person_id'
+        ..sprintNumber = 1);
+      final crashReporter = _RecordingCrashReporter();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tasksProvider.overrideWith((ref) => Stream.value([urgentTask])),
+            tasksWithRecurrencesProvider
+                .overrideWith((ref) => Stream.value([urgentTask])),
+            taskRecurrencesProvider.overrideWith((ref) => Stream.value([])),
+            sprintsProvider
+                .overrideWith((ref) => Stream.value(<Sprint>[activeSprint])),
+            recentlyCompletedTasksProvider
+                .overrideWith(() => RecentlyCompletedTasks()),
+            personDocIdProvider.overrideWith((ref) => 'test_person_id'),
+            addTasksToSprintProvider
+                .overrideWith(() => _GuardSwallowingAddTasksToSprint()),
+            crashReporterProvider.overrideWith((ref) => crashReporter),
+          ],
+          child: MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: Center(
+                  child: ElevatedButton(
+                    onPressed: () =>
+                        Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => const PlanTaskList(),
+                    )),
+                    child: const Text('open'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      expect(find.byType(PlanTaskList), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(FloatingActionButton, 'Submit'));
+      await tester.pumpAndSettle();
+
+      // Pre-fix: submit() never saw the guarded error and popped as if
+      // the add had succeeded. Post-fix: the guarded error is re-surfaced
+      // so the shared catch keeps the screen up.
+      expect(find.byType(PlanTaskList), findsOneWidget,
+          reason: 'A failed add-to-existing-sprint submit must NOT pop the '
+              'screen — the AsyncValue.guard error must be surfaced '
+              '(TM-375, Copilot PR #34 R1)');
+      expect(find.text('Could not save. Please try again.'), findsOneWidget);
+      expect(crashReporter.errors, hasLength(1),
+          reason: 'The guarded failure must reach the crash reporter');
+
+      // Drain the SnackBar auto-dismiss timer so teardown sees no pending
+      // Timer.
+      await tester.pumpAndSettle(const Duration(seconds: 5));
     });
 
     testWidgets('Tasks are grouped by category', (tester) async {
