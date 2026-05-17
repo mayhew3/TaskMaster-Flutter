@@ -17,6 +17,7 @@ import '../../../models/task_item.dart';
 import '../../../models/task_item_recur_preview.dart';
 import '../../../models/task_list_view.dart';
 import '../../../core/providers/auth_providers.dart';
+import '../../../core/services/crash_reporter.dart';
 import '../../shared/logic/task_grouping.dart' show applyTaskFilters;
 import '../../shared/presentation/view_options_sheet.dart';
 import '../../shared/providers/task_list_view_providers.dart';
@@ -376,7 +377,7 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
 
     try {
       if (addMode()) {
-        SprintBlueprint sprint = SprintBlueprint(
+        final sprint = SprintBlueprint(
             startDate: widget.startDate!,
             endDate: endDate,
             numUnits: widget.numUnits!,
@@ -398,10 +399,7 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
         );
       }
 
-      // TM-375: deterministically close the screen on a successful
-      // submit for BOTH modes. Previously only the add-to-existing
-      // branch popped; create-new-sprint relied on a racy
-      // sprintsProvider listener and usually never closed.
+      // TM-375: pop deterministically for both modes (was: racy listener).
       print('[TM-306] Submit complete, popping navigation');
       if (context.mounted && !popped) {
         popped = true;
@@ -411,7 +409,13 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
       // Don't pop on failure — leave the screen up so the user can
       // retry. submitting is reset in `finally` so a retry isn't
       // blocked by the duplicate-call guard.
-      print('[TM-375] Submit failed: $e\n$stack');
+      // Redacted breadcrumb only — the print-capturing zone persists to
+      // a user-exportable log file, so don't echo $e/$stack (they can
+      // carry task/sprint field values + personDocId). Full detail goes
+      // to the crash reporter (debug/web no-op; Crashlytics in prod).
+      print('[TM-375] Submit failed: ${e.runtimeType}');
+      ref.read(crashReporterProvider).logError(e, stack,
+          context: 'Create Sprint / Add to Sprint submit');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Could not save. Please try again.')),

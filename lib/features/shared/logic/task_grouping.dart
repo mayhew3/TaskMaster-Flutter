@@ -197,11 +197,8 @@ DueStatusBucket _dueStatusBucketIgnoringCompletion(TaskItem t, DateTime now) {
   return DueStatusBucket.normal;
 }
 
-/// Bucket used by the SORT step. Mirrors the grouping bypass
-/// (`_dueStatusBuckets`): a recently-completed task sorts by its
-/// PRE-completion tier so it holds its position instead of dropping to
-/// the Completed tier (TM-376 — honors the TM-323 stay-in-place
-/// contract for the within-section sort, not just the grouping).
+/// Sort-step bucket: mirrors the grouping bypass so a recently-completed
+/// task sorts in its pre-completion tier and holds position (TM-376/TM-323).
 DueStatusBucket _effectiveBucketForSort(
     TaskItem t, DateTime now, Set<String> recentlyCompletedDocIds) {
   if (t.completionDate != null && recentlyCompletedDocIds.contains(t.docId)) {

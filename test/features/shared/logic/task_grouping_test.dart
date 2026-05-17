@@ -835,6 +835,76 @@ void main() {
             '(stability tiebreak, TM-376)',
       );
     });
+
+    test(
+        'holds position with groupAxis=none (the _noBuckets urgency path)',
+        () {
+      List<TaskItem> mk({DateTime? n2Completion}) => [
+            _t(docId: 'n1', targetDate: inThreeDays),
+            _t(
+                docId: 'n2',
+                targetDate: inTwoDays,
+                completionDate: n2Completion),
+            _t(docId: 'n3', targetDate: inOneDay),
+          ];
+
+      final baseline = groupAndSortTasks(
+        tasks: mk(),
+        now: _now,
+        view: _view(groupAxis: TaskGroupAxis.none),
+      );
+      expect(baseline.single.tasks.map((t) => t.docId), ['n1', 'n2', 'n3']);
+
+      final after = groupAndSortTasks(
+        tasks: mk(n2Completion: _hourAgo),
+        now: _now,
+        view: _view(groupAxis: TaskGroupAxis.none),
+        recentlyCompletedDocIds: {'n2'},
+      );
+      expect(
+        after.single.tasks.map((t) => t.docId),
+        ['n1', 'n2', 'n3'],
+        reason: 'recentlyCompletedDocIds must also thread through the '
+            'no-buckets urgency sort path (TM-376)',
+      );
+    });
+
+    test(
+        'tiebreak holds input order under ascending direction too '
+        '(direction-independent)', () {
+      final ts = _now.subtract(const Duration(days: 10));
+      List<TaskItem> mk({DateTime? s2Completion}) => [
+            _t(docId: 's1', targetDate: inOneDay, dateAdded: ts),
+            _t(
+                docId: 's2',
+                targetDate: inOneDay,
+                dateAdded: ts,
+                completionDate: s2Completion),
+            _t(docId: 's3', targetDate: inOneDay, dateAdded: ts),
+          ];
+
+      // Ascending: the index tiebreak is applied AFTER the `* dir` flip,
+      // so equal-key input order is preserved regardless of direction.
+      final baseline = groupAndSortTasks(
+        tasks: mk(),
+        now: _now,
+        view: _view(sortDirection: SortDirection.ascending),
+      );
+      expect(baseline.single.tasks.map((t) => t.docId), ['s1', 's2', 's3']);
+
+      final after = groupAndSortTasks(
+        tasks: mk(s2Completion: _hourAgo),
+        now: _now,
+        view: _view(sortDirection: SortDirection.ascending),
+        recentlyCompletedDocIds: {'s2'},
+      );
+      expect(
+        after.single.tasks.map((t) => t.docId),
+        ['s1', 's2', 's3'],
+        reason: 'ascending sort must also preserve equal-key input order '
+            '(tiebreak applied after * dir, TM-376)',
+      );
+    });
   });
 
   group('groupAndSortTasks — group keys are stable across axis flips', () {

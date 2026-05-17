@@ -8,6 +8,7 @@ import 'package:taskmaestro/features/tasks/providers/task_providers.dart';
 import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaestro/features/sprints/services/sprint_service.dart';
 import 'package:taskmaestro/core/providers/auth_providers.dart';
+import 'package:taskmaestro/core/services/crash_reporter.dart';
 import 'package:taskmaestro/models/task_item.dart';
 import 'package:taskmaestro/models/task_item_recur_preview.dart';
 import 'package:taskmaestro/models/sprint.dart';
@@ -37,6 +38,69 @@ class _FakeCreateSprint extends CreateSprint {
       ..personDocId = 'test_person_id'
       ..sprintNumber = 1);
   }
+}
+
+/// TM-375: a CreateSprint whose submit always throws — used to exercise
+/// the failure path (screen stays open, error surfaced, retry allowed).
+/// Counts invocations so the test can prove `submitting` was reset.
+class _ThrowingCreateSprint extends CreateSprint {
+  int callCount = 0;
+
+  @override
+  FutureOr<void> build() {}
+
+  @override
+  Future<Sprint> call({
+    required SprintBlueprint sprintBlueprint,
+    required List<TaskItem> taskItems,
+    required List<TaskItemRecurPreview> taskItemRecurPreviews,
+  }) async {
+    callCount++;
+    throw StateError('simulated submit failure');
+  }
+}
+
+/// TM-375: a fake AddTasksToSprint that "succeeds" without touching
+/// Drift/Firestore — for the add-to-existing-sprint pop regression test.
+class _FakeAddTasksToSprint extends AddTasksToSprint {
+  @override
+  FutureOr<void> build() {}
+
+  @override
+  Future<void> call({
+    required Sprint sprint,
+    required List<TaskItem> taskItems,
+    required List<TaskItemRecurPreview> taskItemRecurPreviews,
+  }) async {}
+}
+
+/// Records errors handed to the crash reporter so the failure-path test
+/// can assert the full error is forwarded (Security-2: not echoed to the
+/// persisted print stream). Always disabled so it never touches Firebase.
+class _RecordingCrashReporter implements CrashReporterBase {
+  final List<Object> errors = [];
+
+  @override
+  bool get isEnabled => false;
+
+  @override
+  Future<void> logError(
+    Object error,
+    StackTrace? stackTrace, {
+    String? context,
+    bool fatal = false,
+  }) async {
+    errors.add(error);
+  }
+
+  @override
+  Future<void> log(String message) async {}
+
+  @override
+  Future<void> setUserIdentifier(String personDocId) async {}
+
+  @override
+  Future<void> setCustomKey(String key, Object value) async {}
 }
 
 /// Widget Test: PlanTaskList
@@ -302,6 +366,152 @@ void main() {
 
       expect(find.byType(PlanTaskList), findsNothing,
           reason: 'Create Sprint submit must pop the screen (TM-375)');
+    });
+
+    testWidgets(
+        'TM-375: submit failure keeps the screen open, surfaces error, '
+        'and allows retry', (tester) async {
+      final urgentTask = createTestTask(
+        docId: 'urgent_task',
+        name: 'Urgent Task',
+        urgentDate: DateTime.now().subtract(const Duration(days: 1)),
+      );
+      final throwingCreate = _ThrowingCreateSprint();
+      final crashReporter = _RecordingCrashReporter();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tasksProvider.overrideWith((ref) => Stream.value([urgentTask])),
+            tasksWithRecurrencesProvider
+                .overrideWith((ref) => Stream.value([urgentTask])),
+            taskRecurrencesProvider.overrideWith((ref) => Stream.value([])),
+            sprintsProvider.overrideWith((ref) => Stream.value(<Sprint>[])),
+            recentlyCompletedTasksProvider
+                .overrideWith(() => RecentlyCompletedTasks()),
+            personDocIdProvider.overrideWith((ref) => 'test_person_id'),
+            createSprintProvider.overrideWith(() => throwingCreate),
+            crashReporterProvider.overrideWith((ref) => crashReporter),
+          ],
+          child: MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: Center(
+                  child: ElevatedButton(
+                    onPressed: () =>
+                        Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => PlanTaskList(
+                        numUnits: 1,
+                        unitName: 'Weeks',
+                        startDate: DateTime.now(),
+                      ),
+                    )),
+                    child: const Text('open'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      expect(find.byType(PlanTaskList), findsOneWidget);
+
+      // First submit → CreateSprint throws.
+      await tester.tap(find.widgetWithText(FloatingActionButton, 'Submit'));
+      await tester.pumpAndSettle();
+
+      // Screen stays up so the user can retry; error is surfaced to the
+      // user and the full detail is forwarded to the crash reporter.
+      expect(find.byType(PlanTaskList), findsOneWidget,
+          reason: 'A failed submit must NOT pop the screen (TM-375)');
+      expect(find.text('Could not save. Please try again.'), findsOneWidget);
+      expect(crashReporter.errors, hasLength(1),
+          reason: 'Full error must be forwarded to the crash reporter');
+      expect(throwingCreate.callCount, 1);
+
+      // Retry → `submitting` was reset in `finally`, so the duplicate-call
+      // guard does not strand the screen and the provider runs again.
+      await tester.tap(find.widgetWithText(FloatingActionButton, 'Submit'));
+      await tester.pumpAndSettle();
+      expect(throwingCreate.callCount, 2,
+          reason:
+              'submitting must reset in finally so a retry is not blocked');
+
+      // Drain the SnackBar auto-dismiss timers so teardown sees no
+      // pending Timer.
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
+    testWidgets(
+        'TM-375: add-to-existing-sprint submit also closes the screen',
+        (tester) async {
+      final urgentTask = createTestTask(
+        docId: 'urgent_task',
+        name: 'Urgent Task',
+        urgentDate: DateTime.now().subtract(const Duration(days: 1)),
+      );
+      // A sprint whose window straddles "now" so activeSprintSelector
+      // picks it up → addMode() is false (the else branch in submit()).
+      final activeSprint = Sprint((b) => b
+        ..docId = 'active-sprint'
+        ..dateAdded = DateTime.now().toUtc()
+        ..startDate =
+            DateTime.now().toUtc().subtract(const Duration(days: 1))
+        ..endDate = DateTime.now().toUtc().add(const Duration(days: 6))
+        ..numUnits = 1
+        ..unitName = 'Weeks'
+        ..personDocId = 'test_person_id'
+        ..sprintNumber = 1);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tasksProvider.overrideWith((ref) => Stream.value([urgentTask])),
+            tasksWithRecurrencesProvider
+                .overrideWith((ref) => Stream.value([urgentTask])),
+            taskRecurrencesProvider.overrideWith((ref) => Stream.value([])),
+            sprintsProvider
+                .overrideWith((ref) => Stream.value(<Sprint>[activeSprint])),
+            recentlyCompletedTasksProvider
+                .overrideWith(() => RecentlyCompletedTasks()),
+            personDocIdProvider.overrideWith((ref) => 'test_person_id'),
+            addTasksToSprintProvider
+                .overrideWith(() => _FakeAddTasksToSprint()),
+          ],
+          child: MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: Center(
+                  child: ElevatedButton(
+                    onPressed: () =>
+                        Navigator.of(context).push(MaterialPageRoute(
+                      // No numUnits/unitName/startDate: validateState()
+                      // requires them null when an active sprint exists.
+                      builder: (_) => const PlanTaskList(),
+                    )),
+                    child: const Text('open'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      expect(find.byType(PlanTaskList), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(FloatingActionButton, 'Submit'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PlanTaskList), findsNothing,
+          reason:
+              'Add-to-existing-sprint submit must also pop the screen '
+              '(consolidated-pop regression guard, TM-375)');
     });
 
     testWidgets('Tasks are grouped by category', (tester) async {
