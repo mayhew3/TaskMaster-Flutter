@@ -73,21 +73,24 @@ void main() {
     expect(counts.contexts, {'phone': 1, 'email': 1});
   });
 
-  test('Tasks surface: a non-facet filter (search) is still applied',
-      () async {
+  test(
+      'Tasks surface: a non-facet filter (search) is still applied while '
+      'faceting (TM-382)', () async {
     final base = [
       _task(docId: 'a', name: 'alpha', area: 'Work', contexts: ['Phone']),
-      _task(docId: 'b', name: 'beta', area: 'Home', contexts: ['Phone']),
+      _task(docId: 'b', name: 'beta', area: 'Work', contexts: ['Phone']),
     ];
     final container = ProviderContainer(overrides: [
       tasksBasePoolProvider.overrideWith((ref) => base),
     ]);
     addTearDown(container.dispose);
 
+    // Both facets narrowed (base-only path) + a search term.
     container
         .read(taskListViewStateProvider(TaskListSurface.tasks).notifier)
         .setFilters(TaskFilters((b) => b
           ..areas.add('Work')
+          ..contexts.add('Phone')
           ..search = 'alpha'));
 
     final counts = await readAsyncValue(
@@ -95,8 +98,32 @@ void main() {
       sidebarFacetCountsProvider(TaskListSurface.tasks),
     );
 
-    // Area axis cleared, but search='alpha' still excludes 'beta' (Home).
+    // Area axis cleared, but search='alpha' still excludes 'beta'.
     expect(counts.areas, {'work': 1});
+  });
+
+  test(
+      'Tasks surface: with no facet filter, counts reuse the body list — '
+      'no base-pool recompute (TM-382)', () async {
+    final visible = [
+      _task(docId: 'x', name: 'x', area: 'Work', contexts: ['Phone']),
+      _task(docId: 'y', name: 'y', area: 'Home', contexts: ['Email']),
+    ];
+    // tasksBasePool intentionally NOT overridden — the reuse path must
+    // not touch it; only the body's filtered list is consulted.
+    final container = ProviderContainer(overrides: [
+      filteredTasksProvider.overrideWith((ref) async => visible),
+    ]);
+    addTearDown(container.dispose);
+
+    // Default tasks filters have no area/context narrowed → reuse path.
+    final counts = await readAsyncValue(
+      container,
+      sidebarFacetCountsProvider(TaskListSurface.tasks),
+    );
+
+    expect(counts.areas, {'work': 1, 'home': 1});
+    expect(counts.contexts, {'phone': 1, 'email': 1});
   });
 
   test('plan surface yields empty counts (no app-level base pool)',
