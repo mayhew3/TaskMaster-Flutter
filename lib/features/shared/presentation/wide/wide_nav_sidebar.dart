@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -275,6 +277,12 @@ class _SidebarSearchField extends ConsumerStatefulWidget {
 class _SidebarSearchFieldState extends ConsumerState<_SidebarSearchField> {
   final TextEditingController _controller = TextEditingController();
 
+  /// Debounce so each keystroke doesn't re-run the whole filter/group/sort
+  /// pipeline (which made typing visibly stall). The text box stays
+  /// instant; the list applies a beat after the user pauses.
+  Timer? _debounce;
+  static const _debounceDelay = Duration(milliseconds: 250);
+
   @override
   void initState() {
     super.initState();
@@ -287,6 +295,7 @@ class _SidebarSearchFieldState extends ConsumerState<_SidebarSearchField> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -307,8 +316,15 @@ class _SidebarSearchFieldState extends ConsumerState<_SidebarSearchField> {
     );
     return _buildField(
       enabled: true,
-      onChanged: (v) =>
-          ref.read(taskListViewStateProvider(surface).notifier).setSearch(v),
+      onChanged: (v) {
+        _debounce?.cancel();
+        _debounce = Timer(_debounceDelay, () {
+          if (!mounted) return;
+          ref
+              .read(taskListViewStateProvider(surface).notifier)
+              .setSearch(v);
+        });
+      },
     );
   }
 

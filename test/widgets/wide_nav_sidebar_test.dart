@@ -169,7 +169,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), 'report');
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300)); // past debounce
 
     expect(
       c.read(taskListViewStateProvider(TaskListSurface.tasks)).filters.search,
@@ -187,7 +187,7 @@ void main() {
     final c = await pump(tester, logical: const Size(1280, 800));
 
     await tester.enterText(find.byType(TextField), 'groceries');
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300)); // past debounce
 
     expect(
       c.read(taskListViewStateProvider(TaskListSurface.plan)).filters.search,
