@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskmaestro/models/bad_schema_task.dart';
 import 'package:taskmaestro/models/task_item.dart';
+import '../../../core/platform/form_factor.dart';
 import '../../../core/services/task_completion_service.dart';
 import '../../../models/task_list_view.dart' show TaskListSurface;
 import '../providers/task_filter_providers.dart';
@@ -36,8 +39,13 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
   final _searchController = TextEditingController();
   bool _searchBarVisible = false;
 
+  /// TM-382: same 250ms debounce as the wide sidebar search so a fast
+  /// typist doesn't re-run the filter/group/sort pipeline per keystroke.
+  Timer? _searchDebounce;
+
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -46,9 +54,18 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
     setState(() {
       _searchBarVisible = !_searchBarVisible;
       if (!_searchBarVisible) {
+        _searchDebounce?.cancel();
         _searchController.clear();
         ref.read(searchQueryProvider.notifier).clear();
       }
+    });
+  }
+
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 250), () {
+      if (!mounted) return;
+      ref.read(searchQueryProvider.notifier).set(value);
     });
   }
 
@@ -74,15 +91,18 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
                   hintStyle: TextStyle(color: Colors.white70),
                 ),
                 style: const TextStyle(color: Colors.white),
-                onChanged: (value) => ref.read(searchQueryProvider.notifier).set(value),
+                onChanged: _onSearchChanged,
               )
             : const Text('Tasks'),
         actions: [
           const ConnectionStatusIndicator(),
-          IconButton(
-            icon: Icon(_searchBarVisible ? Icons.close : Icons.search),
-            onPressed: _toggleSearch,
-          ),
+          // TM-382: the wide sidebar hosts its own search field; hide the
+          // redundant in-AppBar search toggle when it's showing.
+          if (!isWideLayout(MediaQuery.sizeOf(context)))
+            IconButton(
+              icon: Icon(_searchBarVisible ? Icons.close : Icons.search),
+              onPressed: _toggleSearch,
+            ),
           const ViewOptionsButton(surface: TaskListSurface.tasks),
           const RefreshButton(),
         ],

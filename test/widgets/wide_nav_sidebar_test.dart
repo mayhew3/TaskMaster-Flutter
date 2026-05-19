@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taskmaestro/core/platform/form_factor.dart';
 import 'package:taskmaestro/core/services/auth_service.dart';
 import 'package:taskmaestro/features/areas/providers/area_providers.dart';
+import 'package:taskmaestro/features/contexts/providers/context_providers.dart';
 import 'package:taskmaestro/features/family/presentation/pending_invitation_banner.dart';
 import 'package:taskmaestro/features/family/providers/family_providers.dart';
 import 'package:taskmaestro/features/shared/presentation/app_drawer.dart';
@@ -18,6 +19,7 @@ import 'package:taskmaestro/features/sync/presentation/sync_conflict_banner.dart
 import 'package:taskmaestro/features/sync/providers/sync_conflict_providers.dart';
 import 'package:taskmaestro/features/tasks/providers/task_filter_providers.dart';
 import 'package:taskmaestro/models/area.dart';
+import 'package:taskmaestro/models/context.dart';
 import 'package:taskmaestro/models/task_list_view.dart';
 import 'package:taskmaestro/models/top_nav_item.dart';
 
@@ -38,11 +40,21 @@ void main() {
     ..personDocId = 'p1'
     ..dateAdded = DateTime.utc(2026, 1, 1));
 
+  Context ctx(String name, int order) => Context((b) => b
+    ..docId = name.toLowerCase()
+    ..name = name
+    ..sortOrder = order
+    ..iconName = 'phone'
+    ..personDocId = 'p1'
+    ..dateAdded = DateTime.utc(2026, 1, 1));
+
   Future<ProviderContainer> pump(
     WidgetTester tester, {
     required Size logical,
     List<Area> areas = const [],
     Map<String, int> counts = const {},
+    List<Context> contexts = const [],
+    Map<String, int> contextCounts = const {},
     int conflicts = 0,
   }) async {
     tester.view.devicePixelRatio = 1.0;
@@ -52,6 +64,9 @@ void main() {
     final container = ProviderContainer(overrides: [
       areasProvider.overrideWith((ref) => Stream.value(areas)),
       areaTaskCountsProvider.overrideWith((ref) => Stream.value(counts)),
+      contextsProvider.overrideWith((ref) => Stream.value(contexts)),
+      contextTaskCountsProvider
+          .overrideWith((ref) => Stream.value(contextCounts)),
       authProvider.overrideWith(_FakeAuth.new),
       currentFamilyDocIdProvider.overrideWith((ref) => null),
       pendingInvitationsForMeProvider
@@ -130,6 +145,46 @@ void main() {
           .read(taskListViewStateProvider(TaskListSurface.tasks))
           .filters
           .areas
+          .toSet(),
+      isEmpty,
+    );
+  });
+
+  testWidgets(
+      'tapping a Context scopes the Tasks filter + switches to Tasks',
+      (tester) async {
+    final c = await pump(
+      tester,
+      logical: const Size(1280, 800),
+      contexts: [ctx('Phone', 0), ctx('Computer', 1)],
+      contextCounts: {'phone': 2},
+    );
+    expect(find.text('Phone'), findsOneWidget);
+    expect(find.text('Computer'), findsOneWidget);
+
+    await tester.tap(find.text('Phone'));
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(c.read(activeTabIndexProvider), 1); // Tasks
+    expect(
+      c
+          .read(taskListViewStateProvider(TaskListSurface.tasks))
+          .filters
+          .contexts
+          .toSet(),
+      {'Phone'},
+    );
+
+    // Tapping the active scope again clears it back to "all contexts".
+    await tester.tap(find.text('Phone'));
+    await tester.pump();
+    await tester.pumpAndSettle();
+    expect(
+      c
+          .read(taskListViewStateProvider(TaskListSurface.tasks))
+          .filters
+          .contexts
           .toSet(),
       isEmpty,
     );

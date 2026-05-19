@@ -13,18 +13,23 @@ class SidebarRow extends StatelessWidget {
     super.key,
     this.icon,
     this.dotColor,
+    this.leading,
     required this.label,
     this.trailingText,
     this.selected = false,
     this.onTap,
-  }) : assert(icon != null || dotColor != null,
-            'SidebarRow needs either an icon or a dotColor');
+  }) : assert(icon != null || dotColor != null || leading != null,
+            'SidebarRow needs an icon, a dotColor, or a leading widget');
 
-  /// Leading glyph for Destination rows. Mutually exclusive with [dotColor].
+  /// Leading glyph for Destination rows.
   final IconData? icon;
 
-  /// Leading colour dot for Area rows. Mutually exclusive with [icon].
+  /// Leading colour dot for Area rows.
   final Color? dotColor;
+
+  /// Arbitrary leading widget (e.g. a ContextIcon for Context rows).
+  /// Takes priority over [dotColor] / [icon] when provided.
+  final Widget? leading;
 
   final String label;
 
@@ -36,16 +41,17 @@ class SidebarRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Widget leading = dotColor != null
-        ? Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              color: dotColor,
-              shape: BoxShape.circle,
-            ),
-          )
-        : Icon(icon, size: 20, color: TaskColors.textDim);
+    final Widget resolvedLeading = leading ??
+        (dotColor != null
+            ? Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: dotColor,
+                  shape: BoxShape.circle,
+                ),
+              )
+            : Icon(icon, size: 20, color: TaskColors.textDim));
 
     return Padding(
       // matches the prototype's 1px row gap / 10px gutter
@@ -66,7 +72,7 @@ class SidebarRow extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
             child: Row(
               children: [
-                SizedBox(width: 20, child: Center(child: leading)),
+                SizedBox(width: 20, child: Center(child: resolvedLeading)),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(

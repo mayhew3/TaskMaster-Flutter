@@ -66,6 +66,32 @@ void main() {
       expect(storage.loadSync(TaskListSurface.family), familyView);
     });
 
+    test('save strips the search term — it is session-only (TM-382)',
+        () async {
+      final searched = TaskListView.tasksDefault().rebuild((b) => b
+        ..groupAxis = TaskGroupAxis.area
+        ..filters.search = 'invoices');
+      await storage.save(TaskListSurface.tasks, searched);
+      final loaded = storage.loadSync(TaskListSurface.tasks);
+      expect(loaded.filters.search, isEmpty);
+      // Every other axis still round-trips.
+      expect(loaded, searched.rebuild((b) => b..filters.search = ''));
+    });
+
+    test('loadSync drops a search persisted by an older build (TM-382)',
+        () async {
+      await prefs.setString(
+        TaskListViewStorage.keyFor(TaskListSurface.tasks),
+        TaskListView.tasksDefault()
+            .rebuild((b) => b..filters.search = 'stale')
+            .toJsonString(),
+      );
+      expect(
+        storage.loadSync(TaskListSurface.tasks).filters.search,
+        isEmpty,
+      );
+    });
+
     test('keyFor matches the documented v1 namespace', () {
       expect(
         TaskListViewStorage.keyFor(TaskListSurface.tasks),

@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/platform/form_factor.dart';
 import '../../../core/providers/auth_providers.dart';
 import '../../../core/services/task_completion_service.dart';
 import '../../../models/check_state.dart';
@@ -35,8 +38,13 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
   final _searchController = TextEditingController();
   bool _searchBarVisible = false;
 
+  /// TM-382: same 250ms debounce as the wide sidebar search so a fast
+  /// typist doesn't re-run the filter/group/sort pipeline per keystroke.
+  Timer? _searchDebounce;
+
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -45,11 +53,22 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
     setState(() {
       _searchBarVisible = !_searchBarVisible;
       if (!_searchBarVisible) {
+        _searchDebounce?.cancel();
         _searchController.clear();
         ref
             .read(taskListViewStateProvider(TaskListSurface.family).notifier)
             .setSearch('');
       }
+    });
+  }
+
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 250), () {
+      if (!mounted) return;
+      ref
+          .read(taskListViewStateProvider(TaskListSurface.family).notifier)
+          .setSearch(value);
     });
   }
 
@@ -107,15 +126,18 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
                   hintStyle: TextStyle(color: Colors.white70),
                 ),
                 style: const TextStyle(color: Colors.white),
-                onChanged: viewNotifier.setSearch,
+                onChanged: _onSearchChanged,
               )
             : const Text('Family'),
         actions: [
           const ConnectionStatusIndicator(),
-          IconButton(
-            icon: Icon(_searchBarVisible ? Icons.close : Icons.search),
-            onPressed: _toggleSearch,
-          ),
+          // TM-382: the wide sidebar hosts its own search field; hide the
+          // redundant in-AppBar search toggle when it's showing.
+          if (!isWideLayout(MediaQuery.sizeOf(context)))
+            IconButton(
+              icon: Icon(_searchBarVisible ? Icons.close : Icons.search),
+              onPressed: _toggleSearch,
+            ),
           const ViewOptionsButton(surface: TaskListSurface.family),
           IconButton(
             tooltip: 'Manage family',

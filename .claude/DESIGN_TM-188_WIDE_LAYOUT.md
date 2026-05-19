@@ -67,7 +67,7 @@ Recompose the existing grouped list into the center column with a list app bar, 
 
 ### Story 3: Docked editor pane (~800–1100 LOC)
 
-Re-chrome `TaskAddEditScreen`'s content as the docked right pane: header strip (area/project + Delete/Close, no back chevron), sticky Cancel/Save bar, pickers overlay within the pane. On wide, selecting a row populates the editor inline (no route push); phone keeps the full-screen route. Editor and View Options mutually exclusive in the right region.
+Re-chrome `TaskAddEditScreen`'s content as the docked right pane: header strip (area/project + Delete/Close, no back chevron), sticky Cancel/Save bar, pickers overlay within the pane. On wide, selecting a row populates the editor inline (no route push); phone keeps the full-screen route. **The "+ Add task" action (sidebar / FAB) likewise opens the docked editor in *new-task* mode on wide — not a full-screen route; in Story 1 it intentionally still pushes the full-screen route as a placeholder.** Editor and View Options mutually exclusive in the right region.
 
 **Files to create/modify:**
 - `lib/features/tasks/presentation/task_add_edit_screen.dart` — factor the editor body into a shared widget consumed by both the full-screen route (phone) and the docked pane (wide)

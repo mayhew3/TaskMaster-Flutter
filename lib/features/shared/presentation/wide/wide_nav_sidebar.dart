@@ -6,13 +6,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../features/areas/presentation/area_manage_screen.dart';
 import '../../../../features/areas/providers/area_color_providers.dart';
 import '../../../../features/areas/providers/area_providers.dart';
+import '../../../../features/contexts/presentation/context_manage_screen.dart';
+import '../../../../features/contexts/providers/context_providers.dart';
 import '../../../../features/tasks/presentation/task_add_edit_screen.dart';
 import '../../../../features/sprints/providers/sprint_providers.dart';
 import '../../../../models/area.dart';
+import '../../../../models/context.dart';
 import '../../../../models/task_colors.dart';
 import '../../../../models/task_list_view.dart';
 import '../../../../models/top_nav_item.dart';
 import '../../providers/task_list_view_providers.dart';
+import '../widgets/context_icon.dart';
 import 'sidebar_locked_row.dart';
 import 'sidebar_profile_footer.dart';
 import 'sidebar_row.dart';
@@ -50,6 +54,25 @@ class WideNavSidebar extends ConsumerWidget {
     }
     notifier
         .setFilters(view.filters.rebuild((b) => b..areas.replace({areaName})));
+    final tasksIndex = navItems.indexWhere((n) => n.label == 'Tasks');
+    if (tasksIndex >= 0 && tasksIndex != selectedIndex) {
+      onSelectDestination(tasksIndex);
+    }
+  }
+
+  void _scopeToContext(
+      WidgetRef ref, String contextName, bool alreadyActive) {
+    final notifier =
+        ref.read(taskListViewStateProvider(TaskListSurface.tasks).notifier);
+    final view = ref.read(taskListViewStateProvider(TaskListSurface.tasks));
+    if (alreadyActive) {
+      // Tapping the active scope clears it back to "all contexts".
+      notifier
+          .setFilters(view.filters.rebuild((b) => b..contexts.clear()));
+      return;
+    }
+    notifier.setFilters(
+        view.filters.rebuild((b) => b..contexts.replace({contextName})));
     final tasksIndex = navItems.indexWhere((n) => n.label == 'Tasks');
     if (tasksIndex >= 0 && tasksIndex != selectedIndex) {
       onSelectDestination(tasksIndex);
@@ -106,6 +129,7 @@ class WideNavSidebar extends ConsumerWidget {
                   children: [
                     _destinationsSection(),
                     _areasSection(context, ref),
+                    _contextsSection(context, ref),
                     const _ComingSoonSection(),
                   ],
                 ),
@@ -166,6 +190,47 @@ class WideNavSidebar extends ConsumerWidget {
             selected: activeAreas.contains(area.name),
             onTap: () => _scopeToArea(
                 ref, area.name, activeAreas.contains(area.name)),
+          ),
+      ],
+    );
+  }
+
+  Widget _contextsSection(BuildContext context, WidgetRef ref) {
+    final contexts = ref.watch(contextsProvider).value ?? const <Context>[];
+    final counts =
+        ref.watch(contextTaskCountsProvider).value ?? const <String, int>{};
+    final activeContexts =
+        ref.watch(taskListViewStateProvider(TaskListSurface.tasks)
+            .select((v) => v.filters.contexts));
+
+    return SidebarSection(
+      title: 'Contexts',
+      trailing: IconButton(
+        icon: Icon(Icons.add, size: 17, color: TaskColors.textFaint),
+        tooltip: 'Manage Contexts',
+        visualDensity: VisualDensity.compact,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+              builder: (_) => const ContextManageScreen()),
+        ),
+      ),
+      children: [
+        for (final ctx in contexts)
+          SidebarRow(
+            leading: ContextIcon.hasIcon(ctx.iconName)
+                ? ContextIcon(
+                    name: ctx.iconName, size: 18, color: TaskColors.textDim)
+                : Icon(Icons.bookmark_outline,
+                    size: 18, color: TaskColors.textDim),
+            label: ctx.name,
+            trailingText: (counts[ctx.name.toLowerCase()] ?? 0) > 0
+                ? '${counts[ctx.name.toLowerCase()]}'
+                : null,
+            selected: activeContexts.contains(ctx.name),
+            onTap: () => _scopeToContext(
+                ref, ctx.name, activeContexts.contains(ctx.name)),
           ),
       ],
     );
