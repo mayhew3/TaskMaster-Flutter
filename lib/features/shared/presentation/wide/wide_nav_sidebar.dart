@@ -275,6 +275,12 @@ class _SidebarBrandStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Decode the 512px launcher PNG down to its on-screen pixel size so
+    // the image codec does proper area-averaged downsampling. Painting
+    // the full-res bitmap and letting the GPU bilinear-scale it ~17x
+    // down at paint time aliases badly (TM-382 visual fix).
+    final int side =
+        (30 * MediaQuery.devicePixelRatioOf(context)).ceil();
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 18, 18, 12),
       child: Row(
@@ -285,8 +291,10 @@ class _SidebarBrandStrip extends StatelessWidget {
               'assets/launcher/TaskMaestro_Logo.png',
               width: 30,
               height: 30,
+              cacheWidth: side,
+              cacheHeight: side,
               fit: BoxFit.cover,
-              filterQuality: FilterQuality.medium,
+              filterQuality: FilterQuality.high,
             ),
           ),
           const SizedBox(width: 10),
