@@ -56,4 +56,43 @@ void main() {
       );
     });
   });
+
+  group('isWideLayout (TM-382)', () {
+    test('flutter_test default 800x600 viewport stays compact', () {
+      // PRIME DIRECTIVE guard: a 600-width gate would flip every
+      // shell/integration test into the sidebar layout.
+      expect(isWideLayout(const Size(800, 600)), isFalse);
+    });
+
+    test('phone portrait is not wide', () {
+      expect(isWideLayout(const Size(599, 1200)), isFalse);
+    });
+
+    test('wide-but-short landscape phone is not wide (!isPhoneFormFactor)',
+        () {
+      // 844 width clears the 840 breakpoint, but shortest side 390 < 600
+      // keeps it a phone — must stay compact.
+      expect(isWideLayout(const Size(844, 390)), isFalse);
+    });
+
+    test('iPad portrait (768 wide) stays compact', () {
+      expect(isWideLayout(const Size(768, 1024)), isFalse);
+    });
+
+    test('iPad landscape (1024 wide) is wide', () {
+      expect(isWideLayout(const Size(1024, 768)), isTrue);
+    });
+
+    test('desktop / large web window is wide', () {
+      expect(isWideLayout(const Size(1280, 800)), isTrue);
+    });
+
+    test('just below the breakpoint is not wide', () {
+      expect(isWideLayout(const Size(839, 1200)), isFalse);
+    });
+
+    test('exactly at the breakpoint is wide (inclusive)', () {
+      expect(isWideLayout(const Size(840, 1200)), isTrue);
+    });
+  });
 }

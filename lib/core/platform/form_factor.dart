@@ -13,6 +13,23 @@ const double kPhoneShortestSideBreakpoint = 600.0;
 bool isPhoneFormFactor(Size logicalSize) =>
     logicalSize.shortestSide < kPhoneShortestSideBreakpoint;
 
+/// Logical-width breakpoint at/above which the wide adaptive shell (left
+/// navigation sidebar instead of the bottom NavigationBar) is used. Material
+/// 3's "expanded" window class starts at 840dp; we adopt 840 rather than the
+/// TM-188 design doc's loose "~600dp" because flutter_test's default viewport
+/// is 800x600 logical — a 600 gate would flip every wide-enough widget test
+/// into the sidebar layout. 840 keeps phones AND the default test viewport
+/// compact while giving web / desktop / large landscape tablets the sidebar.
+const double kWideLayoutWidthBreakpoint = 840.0;
+
+/// True when [logicalSize] should render the wide adaptive shell (TM-382).
+/// Both conditions are required: it is NOT a phone form factor (so a
+/// wide-but-short landscape phone stays on the compact path) AND the logical
+/// width is at least [kWideLayoutWidthBreakpoint].
+bool isWideLayout(Size logicalSize) =>
+    !isPhoneFormFactor(logicalSize) &&
+    logicalSize.width >= kWideLayoutWidthBreakpoint;
+
 /// Whether TM-371's portrait lock should apply: phones only, never on
 /// web (web landscape is a deliberate future feature, TM-354), never on
 /// tablets.

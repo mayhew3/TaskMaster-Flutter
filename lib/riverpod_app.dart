@@ -23,6 +23,9 @@ import 'package:taskmaestro/features/family/presentation/pending_invitation_bann
 import 'package:taskmaestro/features/family/providers/family_providers.dart';
 import 'package:taskmaestro/features/sync/presentation/sync_conflict_banner.dart';
 import 'package:taskmaestro/features/sync/providers/sync_conflict_providers.dart';
+import 'package:taskmaestro/core/platform/form_factor.dart';
+import 'package:taskmaestro/features/shared/presentation/app_drawer.dart';
+import 'package:taskmaestro/features/shared/presentation/wide/wide_nav_sidebar.dart';
 
 /// Riverpod-based main app widget
 /// This replaces the Redux-based TaskMaestroApp when useRiverpodForAuth is enabled
@@ -490,6 +493,37 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
           )
         : currentScreen;
 
+    // TM-382: branch only the chrome. The shared state above (nav items,
+    // clamped index, banners, tabBody) is computed once; the compact
+    // subtree below is byte-for-byte identical to the pre-TM-382 build.
+    if (isWideLayout(MediaQuery.sizeOf(context))) {
+      return _buildWideShell(
+        context: context,
+        liveNavItems: liveNavItems,
+        clampedIndex: clampedIndex,
+        hasPendingInvite: hasPendingInvite,
+        tabBody: tabBody,
+      );
+    }
+    return _buildCompactShell(
+      context: context,
+      liveNavItems: liveNavItems,
+      clampedIndex: clampedIndex,
+      hasPendingInvite: hasPendingInvite,
+      tabBody: tabBody,
+    );
+  }
+
+  /// Compact / phone shell — unchanged from before TM-382: a bottom
+  /// [NavigationBar] plus the banner Column. This widget subtree must
+  /// remain identical to the legacy build (regression guard).
+  Widget _buildCompactShell({
+    required BuildContext context,
+    required List<TopNavItem> liveNavItems,
+    required int clampedIndex,
+    required bool hasPendingInvite,
+    required Widget tabBody,
+  }) {
     return Scaffold(
       body: Column(
         children: [
@@ -519,6 +553,45 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
             label: item.label,
           );
         }).toList(),
+      ),
+    );
+  }
+
+  /// Wide adaptive shell (TM-382, Story 1 of Epic TM-188): the left
+  /// [WideNavSidebar] replaces the bottom nav; the banner Column + tab
+  /// body keep their existing structure and order to the right.
+  Widget _buildWideShell({
+    required BuildContext context,
+    required List<TopNavItem> liveNavItems,
+    required int clampedIndex,
+    required bool hasPendingInvite,
+    required Widget tabBody,
+  }) {
+    return Scaffold(
+      drawer: const AppDrawer(),
+      body: Row(
+        children: [
+          WideNavSidebar(
+            navItems: liveNavItems,
+            selectedIndex: clampedIndex,
+            onSelectDestination: (index) {
+              ref.read(activeTabIndexProvider.notifier).setTab(index);
+            },
+          ),
+          Expanded(
+            child: Column(
+              children: [
+                const PendingInvitationBanner(),
+                MediaQuery.removePadding(
+                  context: context,
+                  removeTop: hasPendingInvite,
+                  child: const SyncConflictBanner(),
+                ),
+                Expanded(child: tabBody),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
