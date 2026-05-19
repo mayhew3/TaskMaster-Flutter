@@ -15,6 +15,7 @@ import '../../../../models/context.dart';
 import '../../../../models/task_colors.dart';
 import '../../../../models/task_list_view.dart';
 import '../../../../models/top_nav_item.dart';
+import '../../providers/sidebar_facet_counts.dart';
 import '../../providers/task_list_view_providers.dart';
 import '../widgets/context_icon.dart';
 import 'sidebar_locked_row.dart';
@@ -151,9 +152,12 @@ class WideNavSidebar extends ConsumerWidget {
   Widget _areasSection(BuildContext context, WidgetRef ref) {
     final areas = ref.watch(areasProvider).value ?? const <Area>[];
     final colors = ref.watch(areaColorsProvider);
-    final counts =
-        ref.watch(areaTaskCountsProvider).value ?? const <String, int>{};
     final TaskListSurface? surface = _activeFilterSurface(ref);
+    final counts = (surface == null
+                ? null
+                : ref.watch(sidebarFacetCountsProvider(surface)).value)
+            ?.areas ??
+        const <String, int>{};
     final Set<String> activeAreas = surface == null
         ? const {}
         : ref
@@ -179,8 +183,8 @@ class WideNavSidebar extends ConsumerWidget {
             dotColor: colors[area.name.trim().toLowerCase()] ??
                 TaskColors.primaryLight,
             label: area.name,
-            trailingText: (counts[area.name.toLowerCase()] ?? 0) > 0
-                ? '${counts[area.name.toLowerCase()]}'
+            trailingText: (counts[area.name.trim().toLowerCase()] ?? 0) > 0
+                ? '${counts[area.name.trim().toLowerCase()]}'
                 : null,
             selected: surface != null && activeAreas.contains(area.name),
             onTap: surface == null
@@ -194,9 +198,12 @@ class WideNavSidebar extends ConsumerWidget {
 
   Widget _contextsSection(BuildContext context, WidgetRef ref) {
     final contexts = ref.watch(contextsProvider).value ?? const <Context>[];
-    final counts =
-        ref.watch(contextTaskCountsProvider).value ?? const <String, int>{};
     final TaskListSurface? surface = _activeFilterSurface(ref);
+    final counts = (surface == null
+                ? null
+                : ref.watch(sidebarFacetCountsProvider(surface)).value)
+            ?.contexts ??
+        const <String, int>{};
     final Set<String> activeContexts = surface == null
         ? const {}
         : ref
@@ -226,8 +233,8 @@ class WideNavSidebar extends ConsumerWidget {
                 : Icon(Icons.bookmark_outline,
                     size: 18, color: TaskColors.textDim),
             label: ctx.name,
-            trailingText: (counts[ctx.name.toLowerCase()] ?? 0) > 0
-                ? '${counts[ctx.name.toLowerCase()]}'
+            trailingText: (counts[ctx.name.trim().toLowerCase()] ?? 0) > 0
+                ? '${counts[ctx.name.trim().toLowerCase()]}'
                 : null,
             selected:
                 surface != null && activeContexts.contains(ctx.name),

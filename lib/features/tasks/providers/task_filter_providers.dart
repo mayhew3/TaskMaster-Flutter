@@ -145,11 +145,15 @@ class SearchQuery extends _$SearchQuery {
 
 // ─── Derived providers (rewritten on top of `groupAndSortTasks`) ─────────
 
-/// Tasks visible on the Tasks tab — surface-specific pre-filtering
-/// (hide-family-shared, hide-active-sprint, retired removal) PLUS the
-/// user's TaskFilters via the pipeline.
+/// Pre-filter Tasks-tab pool: surface-specific gates (hide family-shared,
+/// hide active-sprint, retired removal) + the TM-323 recently-completed
+/// merge + progressively-loaded older-completed batches — everything that
+/// assembles the candidate list *before* the user's TaskFilters. Split out
+/// (TM-382) so the sidebar can compute faceted counts by re-running
+/// `applyTaskFilters` over this same pool with one filter axis cleared,
+/// without duplicating this assembly.
 @Riverpod(keepAlive: true)
-Future<List<TaskItem>> filteredTasks(Ref ref) async {
+Future<List<TaskItem>> tasksBasePool(Ref ref) async {
   final view = ref.watch(taskListViewStateProvider(TaskListSurface.tasks));
   final activeSprint = ref.watch(activeSprintProvider);
   final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
@@ -201,7 +205,7 @@ Future<List<TaskItem>> filteredTasks(Ref ref) async {
     }
   }
 
-  final surfaceFiltered = allTasks.where((task) {
+  return allTasks.where((task) {
     if (task.retired != null) return false;
     // Tasks tab is the personal queue — family-shared rows live on the
     // Family tab only (TM-335).
@@ -213,13 +217,20 @@ Future<List<TaskItem>> filteredTasks(Ref ref) async {
       return false;
     }
     return true;
-  });
-  // Apply the user-selected TaskFilters via the shared pipeline. This is
-  // the canonical filter step that mirrors the pre-TM-359 inline logic
-  // (search / showCompleted / showScheduled / recurrence / age / etc.)
-  // plus the recently-completed bypass.
+  }).toList();
+}
+
+/// Tasks visible on the Tasks tab — [tasksBasePoolProvider] run through
+/// the user's TaskFilters via the shared pipeline (the canonical filter
+/// step mirroring the pre-TM-359 inline logic plus the recently-completed
+/// bypass).
+@Riverpod(keepAlive: true)
+Future<List<TaskItem>> filteredTasks(Ref ref) async {
+  final view = ref.watch(taskListViewStateProvider(TaskListSurface.tasks));
+  final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
+  final base = await ref.watch(tasksBasePoolProvider.future);
   return applyTaskFilters(
-    surfaceFiltered,
+    base,
     view.filters,
     now: DateTime.now(),
     recentlyCompletedDocIds: recentlyCompleted.map((t) => t.docId).toSet(),

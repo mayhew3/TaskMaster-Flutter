@@ -101,19 +101,15 @@ Stream<List<TaskItem>> sprintAllTasks(Ref ref, Sprint sprint) {
   );
 }
 
-/// Sprint task set (membership-resolved), with the user's TaskFilters
-/// applied via the shared pipeline. Ordering is intentionally NOT
-/// preserved here — `sprintGroupedTasks` re-buckets + sorts by the
-/// surface's group/sort axes (default: due-status grouping, urgency
-/// sort) before anything renders, so any order this provider produced
-/// would be discarded. (Pre-TM-359 this walked
-/// `sprint.sprintAssignments` in order for the TM-339 stability
-/// contract; that contract no longer holds at the UI level.)
-///
-/// TM-368: pure-derived family provider — auto-dispose for the same
-/// reason as `sprintAllTasks`.
+/// Pre-filter sprint pool: the membership-resolved task set
+/// (assignments + optimistic-pending overlay + recently-completed +
+/// older-completed / firestore-roster when completed is visible),
+/// retired rows dropped — everything *before* the user's TaskFilters.
+/// Split out (TM-382) so the sidebar can compute faceted counts by
+/// re-running `applyTaskFilters` over this pool with one filter axis
+/// cleared, without duplicating this assembly.
 @riverpod
-Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
+Future<List<TaskItem>> sprintBasePool(Ref ref, Sprint sprint) async {
   final view = ref.watch(taskListViewStateProvider(TaskListSurface.sprint));
   final allSprintTasks =
       await ref.watch(sprintAllTasksProvider(sprint).future);
@@ -156,8 +152,27 @@ Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
     }
   }
 
+  return taskMap.values.where((t) => t.retired == null).toList();
+}
+
+/// Sprint task set (membership-resolved), with the user's TaskFilters
+/// applied via the shared pipeline. Ordering is intentionally NOT
+/// preserved here — `sprintGroupedTasks` re-buckets + sorts by the
+/// surface's group/sort axes (default: due-status grouping, urgency
+/// sort) before anything renders, so any order this provider produced
+/// would be discarded. (Pre-TM-359 this walked
+/// `sprint.sprintAssignments` in order for the TM-339 stability
+/// contract; that contract no longer holds at the UI level.)
+///
+/// TM-368: pure-derived family provider — auto-dispose for the same
+/// reason as `sprintAllTasks`.
+@riverpod
+Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
+  final view = ref.watch(taskListViewStateProvider(TaskListSurface.sprint));
+  final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
+  final base = await ref.watch(sprintBasePoolProvider(sprint).future);
   return applyTaskFilters(
-    taskMap.values.where((t) => t.retired == null),
+    base,
     view.filters,
     now: DateTime.now(),
     recentlyCompletedDocIds:

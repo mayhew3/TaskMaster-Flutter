@@ -152,6 +152,120 @@ final class SprintAllTasksFamily extends $Family
   String toString() => r'sprintAllTasksProvider';
 }
 
+/// Pre-filter sprint pool: the membership-resolved task set
+/// (assignments + optimistic-pending overlay + recently-completed +
+/// older-completed / firestore-roster when completed is visible),
+/// retired rows dropped — everything *before* the user's TaskFilters.
+/// Split out (TM-382) so the sidebar can compute faceted counts by
+/// re-running `applyTaskFilters` over this pool with one filter axis
+/// cleared, without duplicating this assembly.
+
+@ProviderFor(sprintBasePool)
+final sprintBasePoolProvider = SprintBasePoolFamily._();
+
+/// Pre-filter sprint pool: the membership-resolved task set
+/// (assignments + optimistic-pending overlay + recently-completed +
+/// older-completed / firestore-roster when completed is visible),
+/// retired rows dropped — everything *before* the user's TaskFilters.
+/// Split out (TM-382) so the sidebar can compute faceted counts by
+/// re-running `applyTaskFilters` over this pool with one filter axis
+/// cleared, without duplicating this assembly.
+
+final class SprintBasePoolProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<TaskItem>>,
+          List<TaskItem>,
+          FutureOr<List<TaskItem>>
+        >
+    with $FutureModifier<List<TaskItem>>, $FutureProvider<List<TaskItem>> {
+  /// Pre-filter sprint pool: the membership-resolved task set
+  /// (assignments + optimistic-pending overlay + recently-completed +
+  /// older-completed / firestore-roster when completed is visible),
+  /// retired rows dropped — everything *before* the user's TaskFilters.
+  /// Split out (TM-382) so the sidebar can compute faceted counts by
+  /// re-running `applyTaskFilters` over this pool with one filter axis
+  /// cleared, without duplicating this assembly.
+  SprintBasePoolProvider._({
+    required SprintBasePoolFamily super.from,
+    required Sprint super.argument,
+  }) : super(
+         retry: null,
+         name: r'sprintBasePoolProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$sprintBasePoolHash();
+
+  @override
+  String toString() {
+    return r'sprintBasePoolProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<TaskItem>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<TaskItem>> create(Ref ref) {
+    final argument = this.argument as Sprint;
+    return sprintBasePool(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SprintBasePoolProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$sprintBasePoolHash() => r'a2823e8717b3bece161cd46ab32cf549e3461e82';
+
+/// Pre-filter sprint pool: the membership-resolved task set
+/// (assignments + optimistic-pending overlay + recently-completed +
+/// older-completed / firestore-roster when completed is visible),
+/// retired rows dropped — everything *before* the user's TaskFilters.
+/// Split out (TM-382) so the sidebar can compute faceted counts by
+/// re-running `applyTaskFilters` over this pool with one filter axis
+/// cleared, without duplicating this assembly.
+
+final class SprintBasePoolFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<List<TaskItem>>, Sprint> {
+  SprintBasePoolFamily._()
+    : super(
+        retry: null,
+        name: r'sprintBasePoolProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Pre-filter sprint pool: the membership-resolved task set
+  /// (assignments + optimistic-pending overlay + recently-completed +
+  /// older-completed / firestore-roster when completed is visible),
+  /// retired rows dropped — everything *before* the user's TaskFilters.
+  /// Split out (TM-382) so the sidebar can compute faceted counts by
+  /// re-running `applyTaskFilters` over this pool with one filter axis
+  /// cleared, without duplicating this assembly.
+
+  SprintBasePoolProvider call(Sprint sprint) =>
+      SprintBasePoolProvider._(argument: sprint, from: this);
+
+  @override
+  String toString() => r'sprintBasePoolProvider';
+}
+
 /// Sprint task set (membership-resolved), with the user's TaskFilters
 /// applied via the shared pipeline. Ordering is intentionally NOT
 /// preserved here — `sprintGroupedTasks` re-buckets + sorts by the
@@ -242,7 +356,7 @@ final class SprintTaskItemsProvider
   }
 }
 
-String _$sprintTaskItemsHash() => r'ef9090162ef8bc1ed375f1bba781baf2adb1cd08';
+String _$sprintTaskItemsHash() => r'40ab4f3567eb592316ba6c1d3a285a2403495640';
 
 /// Sprint task set (membership-resolved), with the user's TaskFilters
 /// applied via the shared pipeline. Ordering is intentionally NOT

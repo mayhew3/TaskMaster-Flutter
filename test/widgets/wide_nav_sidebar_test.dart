@@ -10,6 +10,7 @@ import 'package:taskmaestro/features/contexts/providers/context_providers.dart';
 import 'package:taskmaestro/features/family/presentation/pending_invitation_banner.dart';
 import 'package:taskmaestro/features/family/providers/family_providers.dart';
 import 'package:taskmaestro/features/shared/presentation/app_drawer.dart';
+import 'package:taskmaestro/features/shared/providers/sidebar_facet_counts.dart';
 import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/sidebar_locked_row.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/wide_nav_sidebar.dart';
@@ -67,6 +68,10 @@ void main() {
       contextsProvider.overrideWith((ref) => Stream.value(contexts)),
       contextTaskCountsProvider
           .overrideWith((ref) => Stream.value(contextCounts)),
+      // Keep the widget tests off the real per-surface base pipeline;
+      // faceting correctness is covered by sidebar_facet_counts_test.
+      sidebarFacetCountsProvider.overrideWith((ref, surface) async =>
+          SidebarFacetCounts(areas: counts, contexts: contextCounts)),
       authProvider.overrideWith(_FakeAuth.new),
       currentFamilyDocIdProvider.overrideWith((ref) => null),
       pendingInvitationsForMeProvider
@@ -208,6 +213,19 @@ void main() {
           .toSet(),
       isEmpty,
     );
+  });
+
+  testWidgets('Area row shows the active-surface faceted count',
+      (tester) async {
+    await pump(
+      tester,
+      logical: const Size(1280, 800),
+      areas: [area('Work', 0)],
+      counts: {'work': 3},
+    );
+    await tester.pumpAndSettle(); // let the async facet provider resolve
+    expect(find.text('Work'), findsOneWidget);
+    expect(find.text('3'), findsOneWidget);
   });
 
   testWidgets('Coming Soon rows render locked and are non-interactive',
