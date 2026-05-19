@@ -172,8 +172,10 @@ class WideNavSidebar extends ConsumerWidget {
   }
 }
 
-/// Brand strip: a small drawn mark + the "TaskMaestro" wordmark. Drawn
-/// (not an asset) so Story 1 has no asset dependency.
+/// Brand strip: the app icon + the "TaskMaestro" wordmark. The icon is
+/// the same `TaskMaestro_Logo.png` source `flutter_launcher_icons` builds
+/// the installed launcher icon from, so the sidebar matches the device
+/// icon. It is a full-bleed square, so a rounded clip is sufficient.
 class _SidebarBrandStrip extends StatelessWidget {
   const _SidebarBrandStrip();
 
@@ -183,20 +185,15 @@ class _SidebarBrandStrip extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 18, 18, 12),
       child: Row(
         children: [
-          Container(
-            width: 30,
-            height: 30,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              gradient: const LinearGradient(
-                colors: [
-                  TaskColors.brandMagenta,
-                  TaskColors.brandMagentaMuted,
-                ],
-              ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.asset(
+              'assets/launcher/TaskMaestro_Logo.png',
+              width: 30,
+              height: 30,
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.medium,
             ),
-            child: const Icon(Icons.check_rounded,
-                size: 18, color: Colors.white),
           ),
           const SizedBox(width: 10),
           Text(

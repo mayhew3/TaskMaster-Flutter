@@ -156,6 +156,7 @@ flutter:
   assets:
     - assets/config/
     - assets/launcher/TaskMaestro_Splash.png
+    - assets/launcher/TaskMaestro_Logo.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
