@@ -72,12 +72,21 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
   @override
   Widget build(BuildContext context) {
     final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
-    // Sync search bar visibility with provider (e.g., cleared by tab navigation)
-    final searchQuery = ref.watch(searchQueryProvider);
-    if (searchQuery.isEmpty && _searchBarVisible && _searchController.text.isNotEmpty) {
-      // Provider was cleared externally — sync the controller
-      _searchController.clear();
-    }
+    // TM-382: react to *transitions* of the provider, not a build-time
+    // read. With the in-AppBar search debounced (250ms), a build
+    // triggered by some unrelated provider tick while the user is mid-
+    // typing — provider still empty, controller already 'fo' — would
+    // have wiped the typed text under the old build-time if-check.
+    // `ref.listen` fires only on actual changes; an external clear
+    // (e.g. tab nav) lands here as prev!='' → next=='' and syncs the
+    // controller as intended.
+    ref.listen<String>(searchQueryProvider, (prev, next) {
+      if (next.isEmpty &&
+          _searchBarVisible &&
+          _searchController.text.isNotEmpty) {
+        _searchController.clear();
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
