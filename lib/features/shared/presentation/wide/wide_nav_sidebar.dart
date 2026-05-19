@@ -5,7 +5,7 @@ import '../../../../features/areas/presentation/area_manage_screen.dart';
 import '../../../../features/areas/providers/area_color_providers.dart';
 import '../../../../features/areas/providers/area_providers.dart';
 import '../../../../features/tasks/presentation/task_add_edit_screen.dart';
-import '../../../../features/tasks/providers/task_filter_providers.dart';
+import '../../../../features/sprints/providers/sprint_providers.dart';
 import '../../../../models/area.dart';
 import '../../../../models/task_colors.dart';
 import '../../../../models/task_list_view.dart';
@@ -54,8 +54,30 @@ class WideNavSidebar extends ConsumerWidget {
     }
   }
 
+  /// The surface the sidebar search should drive, derived from the active
+  /// destination so search scopes whatever list is on screen. Plan maps to
+  /// the active-sprint list (`sprint`) or the create/add list (`plan`),
+  /// mirroring `PlanningHome`. Stats (and any unknown destination) has no
+  /// text-searchable list → null disables the field.
+  TaskListSurface? _activeSearchSurface(WidgetRef ref) {
+    if (selectedIndex < 0 || selectedIndex >= navItems.length) return null;
+    switch (navItems[selectedIndex].label) {
+      case 'Tasks':
+        return TaskListSurface.tasks;
+      case 'Family':
+        return TaskListSurface.family;
+      case 'Plan':
+        return ref.watch(activeSprintProvider) != null
+            ? TaskListSurface.sprint
+            : TaskListSurface.plan;
+      default:
+        return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final searchSurface = _activeSearchSurface(ref);
     return Container(
       width: _kSidebarWidth,
       color: TaskColors.brandBlue,
@@ -68,9 +90,12 @@ class WideNavSidebar extends ConsumerWidget {
               padding: EdgeInsets.fromLTRB(14, 4, 14, 8),
               child: _SidebarAddTaskButton(),
             ),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(14, 0, 14, 6),
-              child: _SidebarSearchField(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 6),
+              child: _SidebarSearchField(
+                key: ValueKey(searchSurface),
+                surface: searchSurface,
+              ),
             ),
             Expanded(
               child: SingleChildScrollView(
@@ -227,11 +252,20 @@ class _SidebarAddTaskButton extends StatelessWidget {
   }
 }
 
-/// Functional search field bound to the existing [searchQueryProvider]
-/// (the source the Tasks list already filters on). The `/`-to-focus
-/// shortcut + focus management are explicitly Story 4 (TM-385).
+/// Context-aware search field. Reads/writes the *active destination's*
+/// surface (Tasks / Family / the Plan destination's active-sprint or
+/// create-sprint list) so it scopes whatever list is on screen. Disabled
+/// on destinations with no text-searchable list (Stats). The enclosing
+/// [WideNavSidebar] keys this widget by surface, so switching destination
+/// rebuilds it seeded with the new surface's current query. The
+/// `/`-to-focus shortcut + focus management are explicitly Story 4
+/// (TM-385).
 class _SidebarSearchField extends ConsumerStatefulWidget {
-  const _SidebarSearchField();
+  const _SidebarSearchField({super.key, required this.surface});
+
+  /// Surface whose `filters.search` this field drives; null = the active
+  /// destination has no searchable list (the field renders disabled).
+  final TaskListSurface? surface;
 
   @override
   ConsumerState<_SidebarSearchField> createState() =>
@@ -244,7 +278,11 @@ class _SidebarSearchFieldState extends ConsumerState<_SidebarSearchField> {
   @override
   void initState() {
     super.initState();
-    _controller.text = ref.read(searchQueryProvider);
+    final surface = widget.surface;
+    if (surface != null) {
+      _controller.text =
+          ref.read(taskListViewStateProvider(surface)).filters.search;
+    }
   }
 
   @override
@@ -255,13 +293,33 @@ class _SidebarSearchFieldState extends ConsumerState<_SidebarSearchField> {
 
   @override
   Widget build(BuildContext context) {
-    // Reflect external changes (e.g. setTab clears the query) into the box.
-    ref.listen<String>(searchQueryProvider, (_, next) {
-      if (_controller.text != next) _controller.text = next;
-    });
+    final surface = widget.surface;
+    if (surface == null) {
+      return _buildField(enabled: false, onChanged: null);
+    }
+    // Reflect external changes for this surface (the screen's own app-bar
+    // search, or a tab-switch clear) into the box.
+    ref.listen<String>(
+      taskListViewStateProvider(surface).select((v) => v.filters.search),
+      (_, next) {
+        if (_controller.text != next) _controller.text = next;
+      },
+    );
+    return _buildField(
+      enabled: true,
+      onChanged: (v) =>
+          ref.read(taskListViewStateProvider(surface).notifier).setSearch(v),
+    );
+  }
+
+  Widget _buildField({
+    required bool enabled,
+    required ValueChanged<String>? onChanged,
+  }) {
     return TextField(
       controller: _controller,
-      onChanged: (v) => ref.read(searchQueryProvider.notifier).set(v),
+      enabled: enabled,
+      onChanged: onChanged,
       style: TextStyle(color: TaskColors.textPrimary, fontSize: 13),
       cursorColor: TaskColors.textPrimary,
       decoration: InputDecoration(
@@ -270,7 +328,7 @@ class _SidebarSearchFieldState extends ConsumerState<_SidebarSearchField> {
         // Intentional literal: prototype's translucent-black search well
         // on brand-blue; no TaskColors token (sidebar tokens are Story 4).
         fillColor: Colors.black.withValues(alpha: 0.20),
-        hintText: 'Search tasks...',
+        hintText: enabled ? 'Search tasks...' : 'Search unavailable here',
         hintStyle: TextStyle(color: TaskColors.textFaint, fontSize: 13),
         prefixIcon:
             Icon(Icons.search, size: 16, color: TaskColors.textFaint),

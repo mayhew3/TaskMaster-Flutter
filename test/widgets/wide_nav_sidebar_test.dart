@@ -9,6 +9,7 @@ import 'package:taskmaestro/features/areas/providers/area_providers.dart';
 import 'package:taskmaestro/features/family/presentation/pending_invitation_banner.dart';
 import 'package:taskmaestro/features/family/providers/family_providers.dart';
 import 'package:taskmaestro/features/shared/presentation/app_drawer.dart';
+import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/sidebar_locked_row.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/wide_nav_sidebar.dart';
 import 'package:taskmaestro/features/shared/providers/navigation_provider.dart';
@@ -56,6 +57,7 @@ void main() {
       pendingInvitationsForMeProvider
           .overrideWith((ref) => const Stream.empty()),
       allConflictsCountProvider.overrideWith((ref) => conflicts),
+      activeSprintProvider.overrideWith((ref) => null),
     ]);
     addTearDown(container.dispose);
 
@@ -159,16 +161,55 @@ void main() {
     expect(find.text('Resolve'), findsOneWidget);
   });
 
-  testWidgets('typing in the sidebar search updates searchQueryProvider',
+  testWidgets('search on the Tasks destination scopes the Tasks surface',
       (tester) async {
     final c = await pump(tester, logical: const Size(1280, 800));
-    final field = find.byType(TextField);
-    expect(field, findsOneWidget);
+    await tester.tap(find.text('Tasks'));
+    await tester.pump(); // drain setTab microtask
+    await tester.pumpAndSettle();
 
-    await tester.enterText(field, 'report');
+    await tester.enterText(find.byType(TextField), 'report');
     await tester.pump();
 
+    expect(
+      c.read(taskListViewStateProvider(TaskListSurface.tasks)).filters.search,
+      'report',
+    );
+    // The tasks-only searchQueryProvider facade stays in sync.
     expect(c.read(searchQueryProvider), 'report');
+  });
+
+  testWidgets(
+      'search on the Plan destination scopes the plan surface, not tasks',
+      (tester) async {
+    // Default destination is Plan (index 0); activeSprint overridden null
+    // → the plan surface.
+    final c = await pump(tester, logical: const Size(1280, 800));
+
+    await tester.enterText(find.byType(TextField), 'groceries');
+    await tester.pump();
+
+    expect(
+      c.read(taskListViewStateProvider(TaskListSurface.plan)).filters.search,
+      'groceries',
+    );
+    expect(
+      c.read(taskListViewStateProvider(TaskListSurface.tasks)).filters.search,
+      isEmpty,
+    );
+  });
+
+  testWidgets('search field is disabled on the Stats destination',
+      (tester) async {
+    await pump(tester, logical: const Size(1280, 800));
+    await tester.tap(find.text('Stats'));
+    await tester.pump(); // drain setTab microtask
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).enabled,
+      isFalse,
+    );
   });
 
   testWidgets('tapping the profile footer opens the AppDrawer',
