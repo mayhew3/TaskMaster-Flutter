@@ -228,6 +228,29 @@ void main() {
     expect(find.text('3'), findsOneWidget);
   });
 
+  testWidgets(
+      'zero-count areas are hidden on a real surface, shown where counts '
+      'do not apply', (tester) async {
+    final c = await pump(
+      tester,
+      logical: const Size(1280, 800),
+      areas: [area('Work', 0), area('Home', 1)],
+      counts: {'work': 2}, // Home absent → count 0
+    );
+    await tester.pumpAndSettle();
+    // Default destination is Plan → counts not meaningful → both show.
+    expect(find.text('Work'), findsOneWidget);
+    expect(find.text('Home'), findsOneWidget);
+
+    // Switch to Tasks (a real filterable surface) → zero-count hidden.
+    await tester.tap(find.text('Tasks'));
+    await tester.pump(); // setTab microtask
+    await tester.pumpAndSettle(); // facet provider resolves
+    expect(c.read(activeTabIndexProvider), 1);
+    expect(find.text('Work'), findsOneWidget); // count 2 → shown
+    expect(find.text('Home'), findsNothing); // count 0 → hidden
+  });
+
   testWidgets('Coming Soon rows render locked and are non-interactive',
       (tester) async {
     final c = await pump(tester, logical: const Size(1280, 800));

@@ -153,11 +153,17 @@ class WideNavSidebar extends ConsumerWidget {
     final areas = ref.watch(areasProvider).value ?? const <Area>[];
     final colors = ref.watch(areaColorsProvider);
     final TaskListSurface? surface = _activeFilterSurface(ref);
-    final counts = (surface == null
-                ? null
-                : ref.watch(sidebarFacetCountsProvider(surface)).value)
-            ?.areas ??
-        const <String, int>{};
+    final facet = surface == null
+        ? null
+        : ref.watch(sidebarFacetCountsProvider(surface));
+    final counts = facet?.value?.areas ?? const <String, int>{};
+    // Hide zero-count rows only where the count is meaningful: a real
+    // filterable surface (not the plan/create-sprint flow, not Stats)
+    // with the count actually computed. While loading / where counts
+    // don't apply, show every row so the list never flashes empty.
+    final hideZero = facet != null &&
+        facet.hasValue &&
+        surface != TaskListSurface.plan;
     final Set<String> activeAreas = surface == null
         ? const {}
         : ref
@@ -179,19 +185,23 @@ class WideNavSidebar extends ConsumerWidget {
       ),
       children: [
         for (final area in areas)
-          SidebarRow(
-            dotColor: colors[area.name.trim().toLowerCase()] ??
-                TaskColors.primaryLight,
-            label: area.name,
-            trailingText: (counts[area.name.trim().toLowerCase()] ?? 0) > 0
-                ? '${counts[area.name.trim().toLowerCase()]}'
-                : null,
-            selected: surface != null && activeAreas.contains(area.name),
-            onTap: surface == null
-                ? null
-                : () => _scopeToArea(ref, surface, area.name,
-                    activeAreas.contains(area.name)),
-          ),
+          if (!hideZero ||
+              (counts[area.name.trim().toLowerCase()] ?? 0) > 0 ||
+              activeAreas.contains(area.name))
+            SidebarRow(
+              dotColor: colors[area.name.trim().toLowerCase()] ??
+                  TaskColors.primaryLight,
+              label: area.name,
+              trailingText:
+                  (counts[area.name.trim().toLowerCase()] ?? 0) > 0
+                      ? '${counts[area.name.trim().toLowerCase()]}'
+                      : null,
+              selected: surface != null && activeAreas.contains(area.name),
+              onTap: surface == null
+                  ? null
+                  : () => _scopeToArea(ref, surface, area.name,
+                      activeAreas.contains(area.name)),
+            ),
       ],
     );
   }
@@ -199,11 +209,13 @@ class WideNavSidebar extends ConsumerWidget {
   Widget _contextsSection(BuildContext context, WidgetRef ref) {
     final contexts = ref.watch(contextsProvider).value ?? const <Context>[];
     final TaskListSurface? surface = _activeFilterSurface(ref);
-    final counts = (surface == null
-                ? null
-                : ref.watch(sidebarFacetCountsProvider(surface)).value)
-            ?.contexts ??
-        const <String, int>{};
+    final facet = surface == null
+        ? null
+        : ref.watch(sidebarFacetCountsProvider(surface));
+    final counts = facet?.value?.contexts ?? const <String, int>{};
+    final hideZero = facet != null &&
+        facet.hasValue &&
+        surface != TaskListSurface.plan;
     final Set<String> activeContexts = surface == null
         ? const {}
         : ref
@@ -226,23 +238,29 @@ class WideNavSidebar extends ConsumerWidget {
       ),
       children: [
         for (final ctx in contexts)
-          SidebarRow(
-            leading: ContextIcon.hasIcon(ctx.iconName)
-                ? ContextIcon(
-                    name: ctx.iconName, size: 18, color: TaskColors.textDim)
-                : Icon(Icons.bookmark_outline,
-                    size: 18, color: TaskColors.textDim),
-            label: ctx.name,
-            trailingText: (counts[ctx.name.trim().toLowerCase()] ?? 0) > 0
-                ? '${counts[ctx.name.trim().toLowerCase()]}'
-                : null,
-            selected:
-                surface != null && activeContexts.contains(ctx.name),
-            onTap: surface == null
-                ? null
-                : () => _scopeToContext(ref, surface, ctx.name,
-                    activeContexts.contains(ctx.name)),
-          ),
+          if (!hideZero ||
+              (counts[ctx.name.trim().toLowerCase()] ?? 0) > 0 ||
+              activeContexts.contains(ctx.name))
+            SidebarRow(
+              leading: ContextIcon.hasIcon(ctx.iconName)
+                  ? ContextIcon(
+                      name: ctx.iconName,
+                      size: 18,
+                      color: TaskColors.textDim)
+                  : Icon(Icons.bookmark_outline,
+                      size: 18, color: TaskColors.textDim),
+              label: ctx.name,
+              trailingText:
+                  (counts[ctx.name.trim().toLowerCase()] ?? 0) > 0
+                      ? '${counts[ctx.name.trim().toLowerCase()]}'
+                      : null,
+              selected:
+                  surface != null && activeContexts.contains(ctx.name),
+              onTap: surface == null
+                  ? null
+                  : () => _scopeToContext(ref, surface, ctx.name,
+                      activeContexts.contains(ctx.name)),
+            ),
       ],
     );
   }
