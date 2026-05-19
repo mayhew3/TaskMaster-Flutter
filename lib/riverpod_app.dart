@@ -471,7 +471,19 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
         }
       });
     }
-    final currentScreen = liveNavItems[clampedIndex].widgetGetter();
+    // TM-382 perf: keep all tab bodies mounted in an IndexedStack so
+    // switching destinations toggles which child paints, instead of an
+    // unmount/remount + provider re-watch + full list rebuild on every
+    // nav click. Steady-state cost: each tab's providers stay
+    // subscribed continuously — acceptable since they're keepAlive and
+    // the design preserves "recently-completed clears on tab switch"
+    // via setTab regardless of mount lifecycle.
+    final currentScreen = IndexedStack(
+      index: clampedIndex,
+      children: [
+        for (final item in liveNavItems) item.widgetGetter(),
+      ],
+    );
 
     // Status-bar inset handling depends on whether any banner is visible:
     // - When showing, the banner self-wraps in SafeArea(top: true) so it
