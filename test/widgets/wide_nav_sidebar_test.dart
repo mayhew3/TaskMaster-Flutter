@@ -111,14 +111,18 @@ void main() {
     expect(find.text('BODY:Stats'), findsOneWidget);
   });
 
-  testWidgets('tapping an Area scopes the Tasks filter + switches to Tasks',
+  testWidgets('tapping an Area scopes the active destination, no tab jump',
       (tester) async {
+    // Default destination is Plan (index 0); activeSprint overridden null
+    // → the plan surface. The Area tap must scope *that* list, not jump
+    // to Tasks.
     final c = await pump(
       tester,
       logical: const Size(1280, 800),
       areas: [area('Work', 0), area('Home', 1)],
       counts: {'work': 3},
     );
+    expect(c.read(activeTabIndexProvider), 0); // Plan
     expect(find.text('Work'), findsOneWidget);
     expect(find.text('Home'), findsOneWidget);
 
@@ -126,20 +130,15 @@ void main() {
     await tester.pump();
     await tester.pumpAndSettle();
 
-    expect(c.read(activeTabIndexProvider), 1); // Tasks
+    expect(c.read(activeTabIndexProvider), 0); // still Plan — no jump
     expect(
       c
-          .read(taskListViewStateProvider(TaskListSurface.tasks))
+          .read(taskListViewStateProvider(TaskListSurface.plan))
           .filters
           .areas
           .toSet(),
       {'Work'},
     );
-
-    // Tapping the active scope again clears it back to "all areas".
-    await tester.tap(find.text('Work'));
-    await tester.pump();
-    await tester.pumpAndSettle();
     expect(
       c
           .read(taskListViewStateProvider(TaskListSurface.tasks))
@@ -148,10 +147,22 @@ void main() {
           .toSet(),
       isEmpty,
     );
+
+    // Tapping the active scope again clears it on the active surface.
+    await tester.tap(find.text('Work'));
+    await tester.pump();
+    await tester.pumpAndSettle();
+    expect(
+      c
+          .read(taskListViewStateProvider(TaskListSurface.plan))
+          .filters
+          .areas
+          .toSet(),
+      isEmpty,
+    );
   });
 
-  testWidgets(
-      'tapping a Context scopes the Tasks filter + switches to Tasks',
+  testWidgets('tapping a Context scopes the active destination, no tab jump',
       (tester) async {
     final c = await pump(
       tester,
@@ -159,6 +170,7 @@ void main() {
       contexts: [ctx('Phone', 0), ctx('Computer', 1)],
       contextCounts: {'phone': 2},
     );
+    expect(c.read(activeTabIndexProvider), 0); // Plan
     expect(find.text('Phone'), findsOneWidget);
     expect(find.text('Computer'), findsOneWidget);
 
@@ -166,23 +178,31 @@ void main() {
     await tester.pump();
     await tester.pumpAndSettle();
 
-    expect(c.read(activeTabIndexProvider), 1); // Tasks
+    expect(c.read(activeTabIndexProvider), 0); // still Plan — no jump
+    expect(
+      c
+          .read(taskListViewStateProvider(TaskListSurface.plan))
+          .filters
+          .contexts
+          .toSet(),
+      {'Phone'},
+    );
     expect(
       c
           .read(taskListViewStateProvider(TaskListSurface.tasks))
           .filters
           .contexts
           .toSet(),
-      {'Phone'},
+      isEmpty,
     );
 
-    // Tapping the active scope again clears it back to "all contexts".
+    // Tapping the active scope again clears it on the active surface.
     await tester.tap(find.text('Phone'));
     await tester.pump();
     await tester.pumpAndSettle();
     expect(
       c
-          .read(taskListViewStateProvider(TaskListSurface.tasks))
+          .read(taskListViewStateProvider(TaskListSurface.plan))
           .filters
           .contexts
           .toSet(),

@@ -43,48 +43,39 @@ class WideNavSidebar extends ConsumerWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelectDestination;
 
-  void _scopeToArea(WidgetRef ref, String areaName, bool alreadyActive) {
-    final notifier =
-        ref.read(taskListViewStateProvider(TaskListSurface.tasks).notifier);
-    final view = ref.read(taskListViewStateProvider(TaskListSurface.tasks));
+  void _scopeToArea(WidgetRef ref, TaskListSurface surface, String areaName,
+      bool alreadyActive) {
+    final notifier = ref.read(taskListViewStateProvider(surface).notifier);
+    final view = ref.read(taskListViewStateProvider(surface));
+    // Scope the active destination's list in place — no tab switch.
     if (alreadyActive) {
-      // Tapping the active scope clears it back to "all areas".
       notifier.setFilters(view.filters.rebuild((b) => b..areas.clear()));
       return;
     }
-    notifier
-        .setFilters(view.filters.rebuild((b) => b..areas.replace({areaName})));
-    final tasksIndex = navItems.indexWhere((n) => n.label == 'Tasks');
-    if (tasksIndex >= 0 && tasksIndex != selectedIndex) {
-      onSelectDestination(tasksIndex);
-    }
+    notifier.setFilters(
+        view.filters.rebuild((b) => b..areas.replace({areaName})));
   }
 
-  void _scopeToContext(
-      WidgetRef ref, String contextName, bool alreadyActive) {
-    final notifier =
-        ref.read(taskListViewStateProvider(TaskListSurface.tasks).notifier);
-    final view = ref.read(taskListViewStateProvider(TaskListSurface.tasks));
+  void _scopeToContext(WidgetRef ref, TaskListSurface surface,
+      String contextName, bool alreadyActive) {
+    final notifier = ref.read(taskListViewStateProvider(surface).notifier);
+    final view = ref.read(taskListViewStateProvider(surface));
+    // Scope the active destination's list in place — no tab switch.
     if (alreadyActive) {
-      // Tapping the active scope clears it back to "all contexts".
-      notifier
-          .setFilters(view.filters.rebuild((b) => b..contexts.clear()));
+      notifier.setFilters(view.filters.rebuild((b) => b..contexts.clear()));
       return;
     }
     notifier.setFilters(
         view.filters.rebuild((b) => b..contexts.replace({contextName})));
-    final tasksIndex = navItems.indexWhere((n) => n.label == 'Tasks');
-    if (tasksIndex >= 0 && tasksIndex != selectedIndex) {
-      onSelectDestination(tasksIndex);
-    }
   }
 
-  /// The surface the sidebar search should drive, derived from the active
-  /// destination so search scopes whatever list is on screen. Plan maps to
-  /// the active-sprint list (`sprint`) or the create/add list (`plan`),
+  /// The surface whose list the sidebar filters/searches, derived from the
+  /// active destination so Areas / Contexts / search all scope whatever
+  /// list is on screen (no forced jump to Tasks). Plan maps to the
+  /// active-sprint list (`sprint`) or the create/add list (`plan`),
   /// mirroring `PlanningHome`. Stats (and any unknown destination) has no
-  /// text-searchable list → null disables the field.
-  TaskListSurface? _activeSearchSurface(WidgetRef ref) {
+  /// filterable list → null (search disabled; area/context rows inert).
+  TaskListSurface? _activeFilterSurface(WidgetRef ref) {
     if (selectedIndex < 0 || selectedIndex >= navItems.length) return null;
     switch (navItems[selectedIndex].label) {
       case 'Tasks':
@@ -102,7 +93,7 @@ class WideNavSidebar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final searchSurface = _activeSearchSurface(ref);
+    final filterSurface = _activeFilterSurface(ref);
     return Container(
       width: _kSidebarWidth,
       color: TaskColors.brandBlue,
@@ -118,8 +109,8 @@ class WideNavSidebar extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 0, 14, 6),
               child: _SidebarSearchField(
-                key: ValueKey(searchSurface),
-                surface: searchSurface,
+                key: ValueKey(filterSurface),
+                surface: filterSurface,
               ),
             ),
             Expanded(
@@ -162,9 +153,13 @@ class WideNavSidebar extends ConsumerWidget {
     final colors = ref.watch(areaColorsProvider);
     final counts =
         ref.watch(areaTaskCountsProvider).value ?? const <String, int>{};
-    final activeAreas =
-        ref.watch(taskListViewStateProvider(TaskListSurface.tasks)
-            .select((v) => v.filters.areas));
+    final TaskListSurface? surface = _activeFilterSurface(ref);
+    final Set<String> activeAreas = surface == null
+        ? const {}
+        : ref
+            .watch(taskListViewStateProvider(surface)
+                .select((v) => v.filters.areas))
+            .toSet();
 
     return SidebarSection(
       title: 'Areas',
@@ -187,9 +182,11 @@ class WideNavSidebar extends ConsumerWidget {
             trailingText: (counts[area.name.toLowerCase()] ?? 0) > 0
                 ? '${counts[area.name.toLowerCase()]}'
                 : null,
-            selected: activeAreas.contains(area.name),
-            onTap: () => _scopeToArea(
-                ref, area.name, activeAreas.contains(area.name)),
+            selected: surface != null && activeAreas.contains(area.name),
+            onTap: surface == null
+                ? null
+                : () => _scopeToArea(ref, surface, area.name,
+                    activeAreas.contains(area.name)),
           ),
       ],
     );
@@ -199,9 +196,13 @@ class WideNavSidebar extends ConsumerWidget {
     final contexts = ref.watch(contextsProvider).value ?? const <Context>[];
     final counts =
         ref.watch(contextTaskCountsProvider).value ?? const <String, int>{};
-    final activeContexts =
-        ref.watch(taskListViewStateProvider(TaskListSurface.tasks)
-            .select((v) => v.filters.contexts));
+    final TaskListSurface? surface = _activeFilterSurface(ref);
+    final Set<String> activeContexts = surface == null
+        ? const {}
+        : ref
+            .watch(taskListViewStateProvider(surface)
+                .select((v) => v.filters.contexts))
+            .toSet();
 
     return SidebarSection(
       title: 'Contexts',
@@ -228,9 +229,12 @@ class WideNavSidebar extends ConsumerWidget {
             trailingText: (counts[ctx.name.toLowerCase()] ?? 0) > 0
                 ? '${counts[ctx.name.toLowerCase()]}'
                 : null,
-            selected: activeContexts.contains(ctx.name),
-            onTap: () => _scopeToContext(
-                ref, ctx.name, activeContexts.contains(ctx.name)),
+            selected:
+                surface != null && activeContexts.contains(ctx.name),
+            onTap: surface == null
+                ? null
+                : () => _scopeToContext(ref, surface, ctx.name,
+                    activeContexts.contains(ctx.name)),
           ),
       ],
     );
