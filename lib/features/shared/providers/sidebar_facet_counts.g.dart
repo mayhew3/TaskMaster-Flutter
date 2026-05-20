@@ -22,8 +22,9 @@ part of 'sidebar_facet_counts.dart';
 ///
 /// `plan` (the create-sprint flow) has no app-level base pool — it's
 /// built from in-screen sprint-creation form state — so it yields
-/// [SidebarFacetCounts.empty]; a faithful plan count is a tracked
-/// follow-up.
+/// [SidebarFacetCounts.empty]. Faithful plan counts are tracked as
+/// TM-388 (paired with restructuring the create-sprint flow to render
+/// inside the wide shell).
 
 @ProviderFor(sidebarFacetCounts)
 final sidebarFacetCountsProvider = SidebarFacetCountsFamily._();
@@ -42,8 +43,9 @@ final sidebarFacetCountsProvider = SidebarFacetCountsFamily._();
 ///
 /// `plan` (the create-sprint flow) has no app-level base pool — it's
 /// built from in-screen sprint-creation form state — so it yields
-/// [SidebarFacetCounts.empty]; a faithful plan count is a tracked
-/// follow-up.
+/// [SidebarFacetCounts.empty]. Faithful plan counts are tracked as
+/// TM-388 (paired with restructuring the create-sprint flow to render
+/// inside the wide shell).
 
 final class SidebarFacetCountsProvider
     extends
@@ -69,8 +71,9 @@ final class SidebarFacetCountsProvider
   ///
   /// `plan` (the create-sprint flow) has no app-level base pool — it's
   /// built from in-screen sprint-creation form state — so it yields
-  /// [SidebarFacetCounts.empty]; a faithful plan count is a tracked
-  /// follow-up.
+  /// [SidebarFacetCounts.empty]. Faithful plan counts are tracked as
+  /// TM-388 (paired with restructuring the create-sprint flow to render
+  /// inside the wide shell).
   SidebarFacetCountsProvider._({
     required SidebarFacetCountsFamily super.from,
     required TaskListSurface super.argument,
@@ -116,7 +119,7 @@ final class SidebarFacetCountsProvider
 }
 
 String _$sidebarFacetCountsHash() =>
-    r'9ab553e75540e19bd1a79ddb2a5112d06d2f32c0';
+    r'3b385f29909b1407d1b01a1190824ebd300e789c';
 
 /// Active-surface faceted counts.
 ///
@@ -132,8 +135,9 @@ String _$sidebarFacetCountsHash() =>
 ///
 /// `plan` (the create-sprint flow) has no app-level base pool — it's
 /// built from in-screen sprint-creation form state — so it yields
-/// [SidebarFacetCounts.empty]; a faithful plan count is a tracked
-/// follow-up.
+/// [SidebarFacetCounts.empty]. Faithful plan counts are tracked as
+/// TM-388 (paired with restructuring the create-sprint flow to render
+/// inside the wide shell).
 
 final class SidebarFacetCountsFamily extends $Family
     with
@@ -164,8 +168,9 @@ final class SidebarFacetCountsFamily extends $Family
   ///
   /// `plan` (the create-sprint flow) has no app-level base pool — it's
   /// built from in-screen sprint-creation form state — so it yields
-  /// [SidebarFacetCounts.empty]; a faithful plan count is a tracked
-  /// follow-up.
+  /// [SidebarFacetCounts.empty]. Faithful plan counts are tracked as
+  /// TM-388 (paired with restructuring the create-sprint flow to render
+  /// inside the wide shell).
 
   SidebarFacetCountsProvider call(TaskListSurface surface) =>
       SidebarFacetCountsProvider._(argument: surface, from: this);

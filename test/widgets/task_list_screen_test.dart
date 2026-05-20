@@ -167,6 +167,46 @@ void main() {
     // overwrite the just-cleared provider with 'inv'.
     expect(c.read(searchQueryProvider), '');
   });
+
+  testWidgets(
+      'opening the search bar seeds the controller from the current '
+      'provider value (TM-382)', (tester) async {
+    final c = await pump(tester, logical: const Size(800, 600));
+    // Search set externally (e.g. via the wide sidebar before the user
+    // resized back to compact).
+    c.read(searchQueryProvider.notifier).set('externalFoo');
+    await tester.pump();
+
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.controller!.text, 'externalFoo');
+    expect(
+      field.controller!.selection,
+      const TextSelection.collapsed(offset: 'externalFoo'.length),
+    );
+  });
+
+  testWidgets(
+      'compact→wide resize keeps the close icon reachable when the '
+      'search bar is open (TM-382 regression)', (tester) async {
+    // Start on compact, open the search bar.
+    await pump(tester, logical: const Size(800, 600));
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.close), findsOneWidget);
+
+    // Resize to wide — before the fix, the IconButton's collection-if
+    // unconditionally hid on wide, orphaning the TextField with no way
+    // to close it. The fix keeps the close icon as long as the bar is
+    // open.
+    tester.view.physicalSize = const Size(1280, 800);
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.close), findsOneWidget);
+    expect(find.byType(TextField), findsOneWidget);
+  });
 }
 
 /// Unauthenticated stand-in so `AppDrawer`'s `authProvider` read never

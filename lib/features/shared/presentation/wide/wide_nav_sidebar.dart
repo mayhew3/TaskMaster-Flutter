@@ -70,23 +70,24 @@ class WideNavSidebar extends ConsumerWidget {
   }
 
   /// The surface whose list the sidebar filters/searches, derived from the
-  /// active destination so Areas / Contexts / search all scope whatever
-  /// list is on screen. Plan maps to the active-sprint list (`sprint`) or
-  /// the create/add list (`plan`), mirroring `PlanningHome`. Stats (and
-  /// any unknown destination) has no filterable list → null (search
+  /// active destination (via [TopNavItem.destination], which is a stable
+  /// enum — not the user-facing label, which would silently break under
+  /// a rename / future localization). Plan maps to the active-sprint
+  /// list (`sprint`) or the create/add list (`plan`), mirroring
+  /// `PlanningHome`. Stats has no filterable list → null (search
   /// disabled; area/context rows inert).
   TaskListSurface? _activeFilterSurface(WidgetRef ref) {
     if (selectedIndex < 0 || selectedIndex >= navItems.length) return null;
-    switch (navItems[selectedIndex].label) {
-      case 'Tasks':
+    switch (navItems[selectedIndex].destination) {
+      case NavDestination.tasks:
         return TaskListSurface.tasks;
-      case 'Family':
+      case NavDestination.family:
         return TaskListSurface.family;
-      case 'Plan':
+      case NavDestination.plan:
         return ref.watch(activeSprintProvider) != null
             ? TaskListSurface.sprint
             : TaskListSurface.plan;
-      default:
+      case NavDestination.stats:
         return null;
     }
   }

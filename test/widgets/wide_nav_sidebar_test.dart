@@ -484,15 +484,18 @@ class _ShellHarness extends ConsumerWidget {
       TopNavItem.init(
           label: 'Plan',
           icon: Icons.assignment,
-          widgetGetter: () => const _Body('Plan')),
+          widgetGetter: () => const _Body('Plan'),
+          destination: NavDestination.plan),
       TopNavItem.init(
           label: 'Tasks',
           icon: Icons.list,
-          widgetGetter: () => const _Body('Tasks')),
+          widgetGetter: () => const _Body('Tasks'),
+          destination: NavDestination.tasks),
       TopNavItem.init(
           label: 'Stats',
           icon: Icons.show_chart,
-          widgetGetter: () => const _Body('Stats')),
+          widgetGetter: () => const _Body('Stats'),
+          destination: NavDestination.stats),
     ];
     final idx =
         ref.watch(activeTabIndexProvider).clamp(0, navItems.length - 1);

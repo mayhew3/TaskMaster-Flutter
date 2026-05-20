@@ -52,7 +52,18 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
   void _toggleSearch() {
     setState(() {
       _searchBarVisible = !_searchBarVisible;
-      if (!_searchBarVisible) {
+      if (_searchBarVisible) {
+        // Seed from the family surface's current search — it may have
+        // been set externally (e.g. via the wide sidebar) while the
+        // AppBar bar was hidden.
+        final current = ref
+            .read(taskListViewStateProvider(TaskListSurface.family))
+            .filters
+            .search;
+        _searchController.text = current;
+        _searchController.selection =
+            TextSelection.collapsed(offset: current.length);
+      } else {
         _searchDebounce?.cancel();
         _searchController.clear();
         ref
@@ -131,9 +142,11 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
             : const Text('Family'),
         actions: [
           const ConnectionStatusIndicator(),
-          // TM-382: the wide sidebar hosts its own search field; hide the
-          // redundant in-AppBar search toggle when it's showing.
-          if (!isWideLayout(MediaQuery.sizeOf(context)))
+          // TM-382: the wide sidebar hosts its own search field, so the
+          // redundant in-AppBar search toggle hides on wide — unless the
+          // bar is already open (compact→wide resize), in which case
+          // the close icon must stay reachable.
+          if (!isWideLayout(MediaQuery.sizeOf(context)) || _searchBarVisible)
             IconButton(
               icon: Icon(_searchBarVisible ? Icons.close : Icons.search),
               onPressed: _toggleSearch,

@@ -53,7 +53,16 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
   void _toggleSearch() {
     setState(() {
       _searchBarVisible = !_searchBarVisible;
-      if (!_searchBarVisible) {
+      if (_searchBarVisible) {
+        // Seed from the current provider value — the search may have
+        // been set externally (e.g. via the wide sidebar) while the
+        // AppBar bar was hidden, in which case opening the bar with an
+        // empty field would misrepresent the active filter.
+        final current = ref.read(searchQueryProvider);
+        _searchController.text = current;
+        _searchController.selection =
+            TextSelection.collapsed(offset: current.length);
+      } else {
         _searchDebounce?.cancel();
         _searchController.clear();
         ref.read(searchQueryProvider.notifier).clear();
@@ -100,9 +109,11 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
             : const Text('Tasks'),
         actions: [
           const ConnectionStatusIndicator(),
-          // TM-382: the wide sidebar hosts its own search field; hide the
-          // redundant in-AppBar search toggle when it's showing.
-          if (!isWideLayout(MediaQuery.sizeOf(context)))
+          // TM-382: the wide sidebar hosts its own search field, so the
+          // redundant in-AppBar search toggle hides on wide — unless the
+          // bar is already open (compact→wide resize), in which case
+          // the close icon must stay reachable.
+          if (!isWideLayout(MediaQuery.sizeOf(context)) || _searchBarVisible)
             IconButton(
               icon: Icon(_searchBarVisible ? Icons.close : Icons.search),
               onPressed: _toggleSearch,

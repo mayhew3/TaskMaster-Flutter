@@ -13,6 +13,8 @@ class _$TopNavItem extends TopNavItem {
   final IconData icon;
   @override
   final WidgetGetter widgetGetter;
+  @override
+  final NavDestination destination;
 
   factory _$TopNavItem([void Function(TopNavItemBuilder)? updates]) =>
       (TopNavItemBuilder()..update(updates))._build();
@@ -21,6 +23,7 @@ class _$TopNavItem extends TopNavItem {
     required this.label,
     required this.icon,
     required this.widgetGetter,
+    required this.destination,
   }) : super._();
   @override
   TopNavItem rebuild(void Function(TopNavItemBuilder) updates) =>
@@ -36,7 +39,8 @@ class _$TopNavItem extends TopNavItem {
     return other is TopNavItem &&
         label == other.label &&
         icon == other.icon &&
-        widgetGetter == _$dynamicOther.widgetGetter;
+        widgetGetter == _$dynamicOther.widgetGetter &&
+        destination == other.destination;
   }
 
   @override
@@ -45,6 +49,7 @@ class _$TopNavItem extends TopNavItem {
     _$hash = $jc(_$hash, label.hashCode);
     _$hash = $jc(_$hash, icon.hashCode);
     _$hash = $jc(_$hash, widgetGetter.hashCode);
+    _$hash = $jc(_$hash, destination.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -54,7 +59,8 @@ class _$TopNavItem extends TopNavItem {
     return (newBuiltValueToStringHelper(r'TopNavItem')
           ..add('label', label)
           ..add('icon', icon)
-          ..add('widgetGetter', widgetGetter))
+          ..add('widgetGetter', widgetGetter)
+          ..add('destination', destination))
         .toString();
   }
 }
@@ -75,6 +81,11 @@ class TopNavItemBuilder implements Builder<TopNavItem, TopNavItemBuilder> {
   set widgetGetter(WidgetGetter? widgetGetter) =>
       _$this._widgetGetter = widgetGetter;
 
+  NavDestination? _destination;
+  NavDestination? get destination => _$this._destination;
+  set destination(NavDestination? destination) =>
+      _$this._destination = destination;
+
   TopNavItemBuilder();
 
   TopNavItemBuilder get _$this {
@@ -83,6 +94,7 @@ class TopNavItemBuilder implements Builder<TopNavItem, TopNavItemBuilder> {
       _label = $v.label;
       _icon = $v.icon;
       _widgetGetter = $v.widgetGetter;
+      _destination = $v.destination;
       _$v = null;
     }
     return this;
@@ -119,6 +131,11 @@ class TopNavItemBuilder implements Builder<TopNavItem, TopNavItemBuilder> {
             widgetGetter,
             r'TopNavItem',
             'widgetGetter',
+          ),
+          destination: BuiltValueNullFieldError.checkNotNull(
+            destination,
+            r'TopNavItem',
+            'destination',
           ),
         );
     replace(_$result);

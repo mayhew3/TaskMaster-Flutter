@@ -149,6 +149,41 @@ void main() {
       '',
     );
   });
+
+  testWidgets(
+      'opening the search bar seeds the controller from the family '
+      "surface's current filters.search (TM-382)", (tester) async {
+    final c = await pump(tester, logical: const Size(800, 600));
+    c
+        .read(taskListViewStateProvider(TaskListSurface.family).notifier)
+        .setSearch('externalFam');
+    await tester.pump();
+
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.controller!.text, 'externalFam');
+    expect(
+      field.controller!.selection,
+      const TextSelection.collapsed(offset: 'externalFam'.length),
+    );
+  });
+
+  testWidgets(
+      'compact→wide resize keeps the close icon reachable when the '
+      'search bar is open (TM-382 regression)', (tester) async {
+    await pump(tester, logical: const Size(800, 600));
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.close), findsOneWidget);
+
+    tester.view.physicalSize = const Size(1280, 800);
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.close), findsOneWidget);
+    expect(find.byType(TextField), findsOneWidget);
+  });
 }
 
 class _FakeAuth extends Auth {

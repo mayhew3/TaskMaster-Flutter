@@ -361,16 +361,19 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
         label: 'Plan',
         icon: Icons.assignment,
         widgetGetter: () => PlanningHome(),
+        destination: NavDestination.plan,
       ),
       TopNavItem.init(
         label: 'Tasks',
         icon: Icons.list,
         widgetGetter: () => const TaskListScreen(),
+        destination: NavDestination.tasks,
       ),
       TopNavItem.init(
         label: 'Stats',
         icon: Icons.show_chart,
         widgetGetter: () => const StatsScreen(),
+        destination: NavDestination.stats,
       ),
     ];
 
@@ -457,6 +460,7 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
           label: 'Family',
           icon: Icons.family_restroom,
           widgetGetter: () => const FamilyTabScreen(),
+          destination: NavDestination.family,
         ),
       _navItems[2], // Stats
     ];
