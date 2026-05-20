@@ -110,7 +110,12 @@ Stream<List<TaskItem>> sprintAllTasks(Ref ref, Sprint sprint) {
 /// cleared, without duplicating this assembly.
 @riverpod
 Future<List<TaskItem>> sprintBasePool(Ref ref, Sprint sprint) async {
-  final view = ref.watch(taskListViewStateProvider(TaskListSurface.sprint));
+  // Narrow watch: the base pool's only view dependency is `dueStatus`
+  // (the completedVisible gate below). Watching the full TaskListView
+  // would force a rebuild on any group/sort/collapse change.
+  final dueStatusFilter =
+      ref.watch(taskListViewStateProvider(TaskListSurface.sprint)
+          .select((v) => v.filters.dueStatus));
   final allSprintTasks =
       await ref.watch(sprintAllTasksProvider(sprint).future);
   final pendingTasks = ref.watch(pendingTasksProvider);
@@ -137,8 +142,8 @@ Future<List<TaskItem>> sprintBasePool(Ref ref, Sprint sprint) async {
       }
     }
   }
-  final sprintCompletedVisible = view.filters.dueStatus.isEmpty ||
-      view.filters.dueStatus.contains(DueStatusBucket.completed);
+  final sprintCompletedVisible = dueStatusFilter.isEmpty ||
+      dueStatusFilter.contains(DueStatusBucket.completed);
   if (sprintCompletedVisible) {
     for (final task in olderState.loadedTasks) {
       if (sprintDocIds.contains(task.docId)) {
@@ -168,12 +173,15 @@ Future<List<TaskItem>> sprintBasePool(Ref ref, Sprint sprint) async {
 /// reason as `sprintAllTasks`.
 @riverpod
 Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
-  final view = ref.watch(taskListViewStateProvider(TaskListSurface.sprint));
+  // Narrow watch: only `filters` drive this stage; group/sort/collapse
+  // changes flow through `sprintGroupedTasks` instead.
+  final filters = ref.watch(taskListViewStateProvider(TaskListSurface.sprint)
+      .select((v) => v.filters));
   final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
   final base = await ref.watch(sprintBasePoolProvider(sprint).future);
   return applyTaskFilters(
     base,
-    view.filters,
+    filters,
     now: DateTime.now(),
     recentlyCompletedDocIds:
         recentlyCompleted.map((t) => t.docId).toSet(),

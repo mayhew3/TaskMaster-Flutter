@@ -154,7 +154,12 @@ class SearchQuery extends _$SearchQuery {
 /// without duplicating this assembly.
 @Riverpod(keepAlive: true)
 Future<List<TaskItem>> tasksBasePool(Ref ref) async {
-  final view = ref.watch(taskListViewStateProvider(TaskListSurface.tasks));
+  // Narrow watch: the base pool's only view dependency is `dueStatus`
+  // (the completedVisible gate below). Watching the full TaskListView
+  // would force a rebuild on any group/sort/collapse change.
+  final dueStatusFilter =
+      ref.watch(taskListViewStateProvider(TaskListSurface.tasks)
+          .select((v) => v.filters.dueStatus));
   final activeSprint = ref.watch(activeSprintProvider);
   final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
 
@@ -193,8 +198,8 @@ Future<List<TaskItem>> tasksBasePool(Ref ref) async {
   // Merge progressively-loaded older completed tasks when the Completed
   // bucket is visible (empty `dueStatus` = no filter = show all = include
   // completed; or explicit whitelist contains the completed bucket).
-  final completedVisible = view.filters.dueStatus.isEmpty ||
-      view.filters.dueStatus.contains(DueStatusBucket.completed);
+  final completedVisible = dueStatusFilter.isEmpty ||
+      dueStatusFilter.contains(DueStatusBucket.completed);
   if (completedVisible) {
     final olderState = ref.watch(olderCompletedTasksBatchesProvider);
     if (olderState.loadedTasks.isNotEmpty) {
@@ -226,12 +231,15 @@ Future<List<TaskItem>> tasksBasePool(Ref ref) async {
 /// bypass).
 @Riverpod(keepAlive: true)
 Future<List<TaskItem>> filteredTasks(Ref ref) async {
-  final view = ref.watch(taskListViewStateProvider(TaskListSurface.tasks));
+  // Narrow watch: the filtered list only depends on `filters`; unrelated
+  // view changes (group/sort/collapse) must not invalidate the pipeline.
+  final filters = ref.watch(taskListViewStateProvider(TaskListSurface.tasks)
+      .select((v) => v.filters));
   final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
   final base = await ref.watch(tasksBasePoolProvider.future);
   return applyTaskFilters(
     base,
-    view.filters,
+    filters,
     now: DateTime.now(),
     recentlyCompletedDocIds: recentlyCompleted.map((t) => t.docId).toSet(),
   ).toList();

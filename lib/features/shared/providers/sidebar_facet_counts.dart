@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../models/task_item.dart';
@@ -62,8 +63,10 @@ Future<SidebarFacetCounts> sidebarFacetCounts(
 }
 
 Future<SidebarFacetCounts> _computeForTasks(Ref ref) async {
-  final view = ref.watch(taskListViewStateProvider(TaskListSurface.tasks));
-  final filters = view.filters;
+  // Narrow watch: facet counts depend only on filters; unrelated view
+  // changes (group axis, sort axis, collapse state) must not invalidate.
+  final filters = ref.watch(taskListViewStateProvider(TaskListSurface.tasks)
+      .select((v) => v.filters));
   final needNormal = filters.areas.isEmpty || filters.contexts.isEmpty;
   final needBase = filters.areas.isNotEmpty || filters.contexts.isNotEmpty;
   final normal = needNormal
@@ -76,8 +79,8 @@ Future<SidebarFacetCounts> _computeForTasks(Ref ref) async {
 }
 
 Future<SidebarFacetCounts> _computeForFamily(Ref ref) async {
-  final view = ref.watch(taskListViewStateProvider(TaskListSurface.family));
-  final filters = view.filters;
+  final filters = ref.watch(taskListViewStateProvider(TaskListSurface.family)
+      .select((v) => v.filters));
   final needNormal = filters.areas.isEmpty || filters.contexts.isEmpty;
   final needBase = filters.areas.isNotEmpty || filters.contexts.isNotEmpty;
   final normal = needNormal
@@ -92,8 +95,8 @@ Future<SidebarFacetCounts> _computeForFamily(Ref ref) async {
 Future<SidebarFacetCounts> _computeForSprint(Ref ref) async {
   final sprint = ref.watch(activeSprintProvider);
   if (sprint == null) return SidebarFacetCounts.empty;
-  final view = ref.watch(taskListViewStateProvider(TaskListSurface.sprint));
-  final filters = view.filters;
+  final filters = ref.watch(taskListViewStateProvider(TaskListSurface.sprint)
+      .select((v) => v.filters));
   final needNormal = filters.areas.isEmpty || filters.contexts.isEmpty;
   final needBase = filters.areas.isNotEmpty || filters.contexts.isNotEmpty;
   final normal = needNormal

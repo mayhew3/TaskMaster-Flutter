@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/providers/auth_providers.dart';
@@ -17,7 +18,12 @@ part 'family_task_filter_providers.g.dart';
 /// TM-368: pure-derived. Cheap to recompute on consumer remount.
 @riverpod
 List<TaskItem> familyBasePool(Ref ref) {
-  final view = ref.watch(taskListViewStateProvider(TaskListSurface.family));
+  // Narrow watch: the base pool only consults the family-specific
+  // ownership toggle; unrelated view changes (group/sort/collapse/other
+  // filter axes) must not invalidate this stage.
+  final ownedByMeOnly =
+      ref.watch(taskListViewStateProvider(TaskListSurface.family)
+          .select((v) => v.filters.ownedByMeOnly));
   final tasksAsync = ref.watch(familyTasksProvider);
   final myPersonDocId = ref.watch(personDocIdProvider);
 
@@ -25,7 +31,7 @@ List<TaskItem> familyBasePool(Ref ref) {
 
   return tasks.where((task) {
     if (task.retired != null) return false;
-    if (view.filters.ownedByMeOnly &&
+    if (ownedByMeOnly &&
         myPersonDocId != null &&
         task.personDocId != myPersonDocId) {
       return false;
@@ -41,12 +47,15 @@ List<TaskItem> familyBasePool(Ref ref) {
 /// and the Tasks tab share a single filtering code path.
 @riverpod
 List<TaskItem> familyFilteredTasks(Ref ref) {
-  final view = ref.watch(taskListViewStateProvider(TaskListSurface.family));
+  // Narrow watch: only `filters` drive this stage; group/sort/collapse
+  // changes go through `familyGroupedTasks` instead.
+  final filters = ref.watch(taskListViewStateProvider(TaskListSurface.family)
+      .select((v) => v.filters));
   final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
   final base = ref.watch(familyBasePoolProvider);
   return applyTaskFilters(
     base,
-    view.filters,
+    filters,
     now: DateTime.now(),
     recentlyCompletedDocIds:
         recentlyCompleted.map((t) => t.docId).toSet(),
