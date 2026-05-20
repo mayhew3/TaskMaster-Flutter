@@ -57,6 +57,7 @@ void main() {
     List<Context> contexts = const [],
     Map<String, int> contextCounts = const {},
     int conflicts = 0,
+    NavigatorObserver? observer,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = logical;
@@ -83,7 +84,11 @@ void main() {
 
     await tester.pumpWidget(UncontrolledProviderScope(
       container: container,
-      child: const MaterialApp(home: _ShellHarness()),
+      child: MaterialApp(
+        navigatorObservers:
+            observer != null ? [observer] : const <NavigatorObserver>[],
+        home: const _ShellHarness(),
+      ),
     ));
     await tester.pump(); // drain the overridden stream emissions
     return container;
@@ -338,6 +343,118 @@ void main() {
 
     expect(find.byType(AppDrawer), findsOneWidget);
   });
+
+  testWidgets('tapping "Add task" pushes a route (TM-382)', (tester) async {
+    final observer = _NavObserver();
+    await pump(tester,
+        logical: const Size(1280, 800), observer: observer);
+    expect(observer.pushed, hasLength(1)); // initial MaterialApp home
+
+    await tester.tap(find.text('Add task'));
+    await tester.pump();
+
+    expect(observer.pushed, hasLength(2));
+    expect(observer.pushed.last, isA<MaterialPageRoute<void>>());
+
+    // Pop the pushed TaskAddEditScreen subtree so its controllers
+    // (TextField cursor-blink Timer etc.) dispose before the
+    // post-test pending-timer invariant check runs.
+    tester.state<NavigatorState>(find.byType(Navigator)).pop();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('tapping the Areas "+" trailing pushes Manage Areas (TM-382)',
+      (tester) async {
+    final observer = _NavObserver();
+    await pump(
+      tester,
+      logical: const Size(1280, 800),
+      areas: [area('Work', 0)],
+      observer: observer,
+    );
+    expect(observer.pushed, hasLength(1));
+
+    // The Areas trailing IconButton has tooltip 'Manage Areas' — unique.
+    await tester.tap(find.byTooltip('Manage Areas'));
+    await tester.pump();
+
+    expect(observer.pushed, hasLength(2));
+    expect(observer.pushed.last, isA<MaterialPageRoute<void>>());
+  });
+
+  testWidgets(
+      'tapping the Contexts "+" trailing pushes Manage Contexts (TM-382)',
+      (tester) async {
+    final observer = _NavObserver();
+    await pump(
+      tester,
+      logical: const Size(1280, 800),
+      contexts: [ctx('Phone', 0)],
+      observer: observer,
+    );
+    expect(observer.pushed, hasLength(1));
+
+    await tester.tap(find.byTooltip('Manage Contexts'));
+    await tester.pump();
+
+    expect(observer.pushed, hasLength(2));
+    expect(observer.pushed.last, isA<MaterialPageRoute<void>>());
+  });
+
+  testWidgets('SidebarSection collapses + re-expands on header tap (TM-382)',
+      (tester) async {
+    await pump(
+      tester,
+      logical: const Size(1280, 800),
+      areas: [area('Work', 0), area('Home', 1)],
+    );
+    // Rows visible initially.
+    expect(find.text('Work'), findsOneWidget);
+    expect(find.text('Home'), findsOneWidget);
+
+    // Tap the Areas section header — case-sensitive uppercase per the
+    // SidebarSection style.
+    await tester.tap(find.text('AREAS'));
+    await tester.pumpAndSettle();
+    expect(find.text('Work'), findsNothing);
+    expect(find.text('Home'), findsNothing);
+
+    // Tap again → expanded.
+    await tester.tap(find.text('AREAS'));
+    await tester.pumpAndSettle();
+    expect(find.text('Work'), findsOneWidget);
+    expect(find.text('Home'), findsOneWidget);
+  });
+
+  testWidgets(
+      'sidebar search syncs from external provider changes — cursor lands '
+      'at end (TM-382)', (tester) async {
+    final c = await pump(tester, logical: const Size(1280, 800));
+    // Default surface is plan (Plan dest + no active sprint). The search
+    // field is keyed by surface, so we mutate the plan surface here.
+    c
+        .read(taskListViewStateProvider(TaskListSurface.plan).notifier)
+        .setSearch('externalFoo');
+    await tester.pumpAndSettle();
+
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.controller!.text, 'externalFoo');
+    // Cursor at end so a follow-up keystroke appends, not prepends.
+    expect(
+      field.controller!.selection,
+      const TextSelection.collapsed(offset: 'externalFoo'.length),
+    );
+  });
+}
+
+class _NavObserver extends NavigatorObserver {
+  final pushed = <Route<dynamic>>[];
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    pushed.add(route);
+    super.didPush(route, previousRoute);
+  }
 }
 
 /// Unauthenticated stand-in so the footer/AppDrawer `authProvider` read

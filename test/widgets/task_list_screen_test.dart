@@ -128,6 +128,45 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
     expect(c.read(searchQueryProvider), 'inv');
   });
+
+  testWidgets(
+      'external clear of searchQueryProvider syncs the AppBar controller '
+      '(TM-382)', (tester) async {
+    final c = await pump(tester, logical: const Size(800, 600));
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'inv');
+    await tester.pump(const Duration(milliseconds: 300)); // past debounce
+    expect(c.read(searchQueryProvider), 'inv');
+
+    // External clear (e.g. tab nav fires this via setTab).
+    c.read(searchQueryProvider.notifier).clear();
+    await tester.pumpAndSettle();
+
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.controller!.text, '');
+  });
+
+  testWidgets(
+      'closing the search bar cancels a pending debounce (TM-382)',
+      (tester) async {
+    final c = await pump(tester, logical: const Size(800, 600));
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'inv');
+    await tester.pump(const Duration(milliseconds: 100)); // timer pending
+    expect(c.read(searchQueryProvider), ''); // not yet committed
+
+    // Tap the close icon (search toggle is now showing Icons.close).
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+    // Way past the original debounce window.
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // The pending timer must have been cancelled — otherwise it would
+    // overwrite the just-cleared provider with 'inv'.
+    expect(c.read(searchQueryProvider), '');
+  });
 }
 
 /// Unauthenticated stand-in so `AppDrawer`'s `authProvider` read never

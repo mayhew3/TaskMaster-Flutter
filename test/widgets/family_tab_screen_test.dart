@@ -94,6 +94,61 @@ void main() {
       'gifts',
     );
   });
+
+  testWidgets(
+      'external clear of the family surface search syncs the AppBar '
+      'controller (TM-382)', (tester) async {
+    final c = await pump(tester, logical: const Size(800, 600));
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'gifts');
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(
+      c
+          .read(taskListViewStateProvider(TaskListSurface.family))
+          .filters
+          .search,
+      'gifts',
+    );
+
+    // External clear via the notifier (e.g. tab nav).
+    c
+        .read(taskListViewStateProvider(TaskListSurface.family).notifier)
+        .setSearch('');
+    await tester.pumpAndSettle();
+
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.controller!.text, '');
+  });
+
+  testWidgets(
+      'closing the search bar cancels a pending debounce (TM-382)',
+      (tester) async {
+    final c = await pump(tester, logical: const Size(800, 600));
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'gifts');
+    await tester.pump(const Duration(milliseconds: 100)); // timer pending
+    expect(
+      c
+          .read(taskListViewStateProvider(TaskListSurface.family))
+          .filters
+          .search,
+      '',
+    );
+
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(
+      c
+          .read(taskListViewStateProvider(TaskListSurface.family))
+          .filters
+          .search,
+      '',
+    );
+  });
 }
 
 class _FakeAuth extends Auth {
