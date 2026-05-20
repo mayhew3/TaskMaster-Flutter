@@ -38,8 +38,8 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
   final _searchController = TextEditingController();
   bool _searchBarVisible = false;
 
-  /// TM-382: same 250ms debounce as the wide sidebar search so a fast
-  /// typist doesn't re-run the filter/group/sort pipeline per keystroke.
+  /// TM-382: 250ms debounce so a fast typist doesn't re-run the
+  /// filter/group/sort pipeline per keystroke.
   Timer? _searchDebounce;
 
   @override
@@ -64,8 +64,8 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
 
   void _onSearchChanged(String value) {
     _searchDebounce?.cancel();
+    // Timer.cancel() in dispose guarantees no callback after unmount.
     _searchDebounce = Timer(const Duration(milliseconds: 250), () {
-      if (!mounted) return;
       ref
           .read(taskListViewStateProvider(TaskListSurface.family).notifier)
           .setSearch(value);

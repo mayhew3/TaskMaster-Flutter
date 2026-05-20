@@ -23,8 +23,10 @@ class SidebarFacetCounts {
   final Map<String, int> areas;
   final Map<String, int> contexts;
 
-  static const SidebarFacetCounts empty =
-      SidebarFacetCounts(areas: {}, contexts: {});
+  static const SidebarFacetCounts empty = SidebarFacetCounts(
+    areas: <String, int>{},
+    contexts: <String, int>{},
+  );
 }
 
 /// Active-surface faceted counts.
@@ -41,88 +43,110 @@ class SidebarFacetCounts {
 ///
 /// `plan` (the create-sprint flow) has no app-level base pool — it's
 /// built from in-screen sprint-creation form state — so it yields
-/// [SidebarFacetCounts.empty]; a faithful plan count is a tracked
-/// follow-up.
+/// [SidebarFacetCounts.empty]. Faithful plan counts are tracked as
+/// TM-388 (paired with restructuring the create-sprint flow to render
+/// inside the wide shell).
 @Riverpod(keepAlive: true)
 Future<SidebarFacetCounts> sidebarFacetCounts(
     Ref ref, TaskListSurface surface) async {
-  final TaskListView view;
-  // Only depend on / trigger the body's filtered list when a facet axis
-  // is un-narrowed (its source == that list), and only the pre-filter
-  // base pool when an axis IS narrowed.
-  Future<List<TaskItem>>? normalF;
-  Future<List<TaskItem>>? baseF;
   switch (surface) {
-    case TaskListSurface.tasks:
-      view = ref.watch(taskListViewStateProvider(TaskListSurface.tasks));
-      final f = view.filters;
-      normalF = (f.areas.isEmpty || f.contexts.isEmpty)
-          ? ref.watch(filteredTasksProvider.future)
-          : null;
-      baseF = (f.areas.isNotEmpty || f.contexts.isNotEmpty)
-          ? ref.watch(tasksBasePoolProvider.future)
-          : null;
-    case TaskListSurface.family:
-      view = ref.watch(taskListViewStateProvider(TaskListSurface.family));
-      final f = view.filters;
-      normalF = (f.areas.isEmpty || f.contexts.isEmpty)
-          ? Future.value(ref.watch(familyFilteredTasksProvider))
-          : null;
-      baseF = (f.areas.isNotEmpty || f.contexts.isNotEmpty)
-          ? Future.value(ref.watch(familyBasePoolProvider))
-          : null;
-    case TaskListSurface.sprint:
-      final sprint = ref.watch(activeSprintProvider);
-      if (sprint == null) return SidebarFacetCounts.empty;
-      view = ref.watch(taskListViewStateProvider(TaskListSurface.sprint));
-      final f = view.filters;
-      normalF = (f.areas.isEmpty || f.contexts.isEmpty)
-          ? ref.watch(sprintTaskItemsProvider(sprint).future)
-          : null;
-      baseF = (f.areas.isNotEmpty || f.contexts.isNotEmpty)
-          ? ref.watch(sprintBasePoolProvider(sprint).future)
-          : null;
     case TaskListSurface.plan:
       return SidebarFacetCounts.empty;
+    case TaskListSurface.tasks:
+      return _computeForTasks(ref);
+    case TaskListSurface.family:
+      return _computeForFamily(ref);
+    case TaskListSurface.sprint:
+      return _computeForSprint(ref);
   }
+}
 
-  final rc =
+Future<SidebarFacetCounts> _computeForTasks(Ref ref) async {
+  final view = ref.watch(taskListViewStateProvider(TaskListSurface.tasks));
+  final filters = view.filters;
+  final needNormal = filters.areas.isEmpty || filters.contexts.isEmpty;
+  final needBase = filters.areas.isNotEmpty || filters.contexts.isNotEmpty;
+  final normal = needNormal
+      ? await ref.watch(filteredTasksProvider.future)
+      : const <TaskItem>[];
+  final base = needBase
+      ? await ref.watch(tasksBasePoolProvider.future)
+      : const <TaskItem>[];
+  return _tally(ref, filters, normal: normal, base: base);
+}
+
+Future<SidebarFacetCounts> _computeForFamily(Ref ref) async {
+  final view = ref.watch(taskListViewStateProvider(TaskListSurface.family));
+  final filters = view.filters;
+  final needNormal = filters.areas.isEmpty || filters.contexts.isEmpty;
+  final needBase = filters.areas.isNotEmpty || filters.contexts.isNotEmpty;
+  final normal = needNormal
+      ? ref.watch(familyFilteredTasksProvider)
+      : const <TaskItem>[];
+  final base = needBase
+      ? ref.watch(familyBasePoolProvider)
+      : const <TaskItem>[];
+  return _tally(ref, filters, normal: normal, base: base);
+}
+
+Future<SidebarFacetCounts> _computeForSprint(Ref ref) async {
+  final sprint = ref.watch(activeSprintProvider);
+  if (sprint == null) return SidebarFacetCounts.empty;
+  final view = ref.watch(taskListViewStateProvider(TaskListSurface.sprint));
+  final filters = view.filters;
+  final needNormal = filters.areas.isEmpty || filters.contexts.isEmpty;
+  final needBase = filters.areas.isNotEmpty || filters.contexts.isNotEmpty;
+  final normal = needNormal
+      ? await ref.watch(sprintTaskItemsProvider(sprint).future)
+      : const <TaskItem>[];
+  final base = needBase
+      ? await ref.watch(sprintBasePoolProvider(sprint).future)
+      : const <TaskItem>[];
+  return _tally(ref, filters, normal: normal, base: base);
+}
+
+/// Run the facet passes and tally. Re-uses [normal] (the body's already-
+/// computed visible list) when an axis is un-narrowed; uses [base] to
+/// re-filter with the narrowed axis cleared otherwise.
+SidebarFacetCounts _tally(
+  Ref ref,
+  TaskFilters filters, {
+  required List<TaskItem> normal,
+  required List<TaskItem> base,
+}) {
+  final recentlyCompletedIds =
       ref.watch(recentlyCompletedTasksProvider).map((t) => t.docId).toSet();
   final now = DateTime.now();
-  final nf = normalF;
-  final bf = baseF;
-  final normal = nf == null ? const <TaskItem>[] : await nf;
-  final base = bf == null ? const <TaskItem>[] : await bf;
 
   // Areas count: every current filter EXCEPT the areas axis.
-  final areaSource = view.filters.areas.isEmpty
+  final areaSource = filters.areas.isEmpty
       ? normal
       : applyTaskFilters(
           base,
-          view.filters.rebuild((b) => b..areas.clear()),
+          filters.rebuild((b) => b..areas.clear()),
           now: now,
-          recentlyCompletedDocIds: rc,
+          recentlyCompletedDocIds: recentlyCompletedIds,
         );
   final areaCounts = <String, int>{};
-  for (final t in areaSource) {
-    final key = (t.area ?? '').trim().toLowerCase();
+  for (final task in areaSource) {
+    final key = (task.area ?? '').trim().toLowerCase();
     if (key.isEmpty) continue;
     areaCounts[key] = (areaCounts[key] ?? 0) + 1;
   }
 
   // Contexts count: every current filter EXCEPT the contexts axis.
-  final contextSource = view.filters.contexts.isEmpty
+  final contextSource = filters.contexts.isEmpty
       ? normal
       : applyTaskFilters(
           base,
-          view.filters.rebuild((b) => b..contexts.clear()),
+          filters.rebuild((b) => b..contexts.clear()),
           now: now,
-          recentlyCompletedDocIds: rc,
+          recentlyCompletedDocIds: recentlyCompletedIds,
         );
   final contextCounts = <String, int>{};
-  for (final t in contextSource) {
-    for (final c in t.contexts) {
-      final key = c.name.trim().toLowerCase();
+  for (final task in contextSource) {
+    for (final context in task.contexts) {
+      final key = context.name.trim().toLowerCase();
       if (key.isEmpty) continue;
       contextCounts[key] = (contextCounts[key] ?? 0) + 1;
     }

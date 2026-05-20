@@ -25,13 +25,17 @@ import 'sidebar_section.dart';
 
 const double _kSidebarWidth = 264.0;
 
+/// Which axis a `_scopeToFilter` call targets.
+enum _SidebarFacetAxis { areas, contexts }
+
 /// Left navigation sidebar for the wide adaptive shell (TM-382, Story 1 of
 /// Epic TM-188 — Direction A). Rendered only above the wide breakpoint; the
 /// phone/compact bottom-nav path is untouched. Destinations share the same
 /// [activeTabIndexProvider] selection as the bottom nav (driven via the
-/// [onSelectDestination] callback). Areas reuse the existing Areas filter
-/// (`taskListViewStateProvider(TaskListSurface.tasks).filters.areas`) — the
-/// same state the View Options sheet mutates — so the two stay consistent.
+/// [onSelectDestination] callback). Areas / Contexts / search read & write
+/// the *active destination's* `TaskListSurface` (tasks / family / sprint /
+/// plan) — the same state the View Options sheet mutates — so they scope
+/// whichever list is on screen.
 class WideNavSidebar extends ConsumerWidget {
   const WideNavSidebar({
     super.key,
@@ -44,38 +48,33 @@ class WideNavSidebar extends ConsumerWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelectDestination;
 
-  void _scopeToArea(WidgetRef ref, TaskListSurface surface, String areaName,
-      bool alreadyActive) {
+  /// Scope the active destination's list to [value] on [axis] (or clear
+  /// the axis if [alreadyActive]). No tab switch — by design.
+  void _scopeToFilter(
+    WidgetRef ref,
+    TaskListSurface surface,
+    _SidebarFacetAxis axis,
+    String value, {
+    required bool alreadyActive,
+  }) {
     final notifier = ref.read(taskListViewStateProvider(surface).notifier);
     final view = ref.read(taskListViewStateProvider(surface));
-    // Scope the active destination's list in place — no tab switch.
-    if (alreadyActive) {
-      notifier.setFilters(view.filters.rebuild((b) => b..areas.clear()));
-      return;
-    }
-    notifier.setFilters(
-        view.filters.rebuild((b) => b..areas.replace({areaName})));
-  }
-
-  void _scopeToContext(WidgetRef ref, TaskListSurface surface,
-      String contextName, bool alreadyActive) {
-    final notifier = ref.read(taskListViewStateProvider(surface).notifier);
-    final view = ref.read(taskListViewStateProvider(surface));
-    // Scope the active destination's list in place — no tab switch.
-    if (alreadyActive) {
-      notifier.setFilters(view.filters.rebuild((b) => b..contexts.clear()));
-      return;
-    }
-    notifier.setFilters(
-        view.filters.rebuild((b) => b..contexts.replace({contextName})));
+    notifier.setFilters(view.filters.rebuild((b) {
+      final set = axis == _SidebarFacetAxis.areas ? b.areas : b.contexts;
+      if (alreadyActive) {
+        set.clear();
+      } else {
+        set.replace({value});
+      }
+    }));
   }
 
   /// The surface whose list the sidebar filters/searches, derived from the
   /// active destination so Areas / Contexts / search all scope whatever
-  /// list is on screen (no forced jump to Tasks). Plan maps to the
-  /// active-sprint list (`sprint`) or the create/add list (`plan`),
-  /// mirroring `PlanningHome`. Stats (and any unknown destination) has no
-  /// filterable list → null (search disabled; area/context rows inert).
+  /// list is on screen. Plan maps to the active-sprint list (`sprint`) or
+  /// the create/add list (`plan`), mirroring `PlanningHome`. Stats (and
+  /// any unknown destination) has no filterable list → null (search
+  /// disabled; area/context rows inert).
   TaskListSurface? _activeFilterSurface(WidgetRef ref) {
     if (selectedIndex < 0 || selectedIndex >= navItems.length) return null;
     switch (navItems[selectedIndex].label) {
@@ -120,8 +119,8 @@ class WideNavSidebar extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _destinationsSection(),
-                    _areasSection(context, ref),
-                    _contextsSection(context, ref),
+                    _areasSection(context, ref, filterSurface),
+                    _contextsSection(context, ref, filterSurface),
                     const _ComingSoonSection(),
                   ],
                 ),
@@ -138,10 +137,10 @@ class WideNavSidebar extends ConsumerWidget {
     return SidebarSection(
       title: 'Destinations',
       children: [
-        for (var i = 0; i < navItems.length; i++)
+        for (final (i, item) in navItems.indexed)
           SidebarRow(
-            icon: navItems[i].icon,
-            label: navItems[i].label,
+            icon: item.icon,
+            label: item.label,
             selected: i == selectedIndex,
             onTap: () => onSelectDestination(i),
           ),
@@ -149,27 +148,46 @@ class WideNavSidebar extends ConsumerWidget {
     );
   }
 
-  Widget _areasSection(BuildContext context, WidgetRef ref) {
+  Widget _areasSection(
+      BuildContext context, WidgetRef ref, TaskListSurface? surface) {
     final areas = ref.watch(areasProvider).value ?? const <Area>[];
     final colors = ref.watch(areaColorsProvider);
-    final TaskListSurface? surface = _activeFilterSurface(ref);
     final facet = surface == null
         ? null
         : ref.watch(sidebarFacetCountsProvider(surface));
     final counts = facet?.value?.areas ?? const <String, int>{};
     // Hide zero-count rows only where the count is meaningful: a real
-    // filterable surface (not the plan/create-sprint flow, not Stats)
-    // with the count actually computed. While loading / where counts
-    // don't apply, show every row so the list never flashes empty.
+    // filterable surface (not plan/create-sprint, not Stats) with the
+    // count actually computed. While loading / where counts don't apply,
+    // show every row so the list never flashes empty.
     final hideZero = facet != null &&
         facet.hasValue &&
         surface != TaskListSurface.plan;
-    final Set<String> activeAreas = surface == null
-        ? const {}
+    final activeAreas = surface == null
+        ? const <String>{}
         : ref
             .watch(taskListViewStateProvider(surface)
                 .select((v) => v.filters.areas))
             .toSet();
+
+    final rows = <Widget>[];
+    for (final area in areas) {
+      final key = area.name.trim().toLowerCase();
+      final count = counts[key] ?? 0;
+      final isActive = activeAreas.contains(area.name);
+      if (hideZero && count == 0 && !isActive) continue;
+      rows.add(SidebarRow(
+        dotColor: colors[key] ?? TaskColors.primaryLight,
+        label: area.name,
+        trailingText: count > 0 ? '$count' : null,
+        selected: surface != null && isActive,
+        onTap: surface == null
+            ? null
+            : () => _scopeToFilter(
+                ref, surface, _SidebarFacetAxis.areas, area.name,
+                alreadyActive: isActive),
+      ));
+    }
 
     return SidebarSection(
       title: 'Areas',
@@ -183,32 +201,13 @@ class WideNavSidebar extends ConsumerWidget {
           MaterialPageRoute<void>(builder: (_) => const AreaManageScreen()),
         ),
       ),
-      children: [
-        for (final area in areas)
-          if (!hideZero ||
-              (counts[area.name.trim().toLowerCase()] ?? 0) > 0 ||
-              activeAreas.contains(area.name))
-            SidebarRow(
-              dotColor: colors[area.name.trim().toLowerCase()] ??
-                  TaskColors.primaryLight,
-              label: area.name,
-              trailingText:
-                  (counts[area.name.trim().toLowerCase()] ?? 0) > 0
-                      ? '${counts[area.name.trim().toLowerCase()]}'
-                      : null,
-              selected: surface != null && activeAreas.contains(area.name),
-              onTap: surface == null
-                  ? null
-                  : () => _scopeToArea(ref, surface, area.name,
-                      activeAreas.contains(area.name)),
-            ),
-      ],
+      children: rows,
     );
   }
 
-  Widget _contextsSection(BuildContext context, WidgetRef ref) {
+  Widget _contextsSection(
+      BuildContext context, WidgetRef ref, TaskListSurface? surface) {
     final contexts = ref.watch(contextsProvider).value ?? const <Context>[];
-    final TaskListSurface? surface = _activeFilterSurface(ref);
     final facet = surface == null
         ? null
         : ref.watch(sidebarFacetCountsProvider(surface));
@@ -216,12 +215,35 @@ class WideNavSidebar extends ConsumerWidget {
     final hideZero = facet != null &&
         facet.hasValue &&
         surface != TaskListSurface.plan;
-    final Set<String> activeContexts = surface == null
-        ? const {}
+    final activeContexts = surface == null
+        ? const <String>{}
         : ref
             .watch(taskListViewStateProvider(surface)
                 .select((v) => v.filters.contexts))
             .toSet();
+
+    final rows = <Widget>[];
+    for (final ctx in contexts) {
+      final key = ctx.name.trim().toLowerCase();
+      final count = counts[key] ?? 0;
+      final isActive = activeContexts.contains(ctx.name);
+      if (hideZero && count == 0 && !isActive) continue;
+      rows.add(SidebarRow(
+        leading: ContextIcon.hasIcon(ctx.iconName)
+            ? ContextIcon(
+                name: ctx.iconName, size: 18, color: TaskColors.textDim)
+            : Icon(Icons.bookmark_outline,
+                size: 18, color: TaskColors.textDim),
+        label: ctx.name,
+        trailingText: count > 0 ? '$count' : null,
+        selected: surface != null && isActive,
+        onTap: surface == null
+            ? null
+            : () => _scopeToFilter(
+                ref, surface, _SidebarFacetAxis.contexts, ctx.name,
+                alreadyActive: isActive),
+      ));
+    }
 
     return SidebarSection(
       title: 'Contexts',
@@ -236,32 +258,7 @@ class WideNavSidebar extends ConsumerWidget {
               builder: (_) => const ContextManageScreen()),
         ),
       ),
-      children: [
-        for (final ctx in contexts)
-          if (!hideZero ||
-              (counts[ctx.name.trim().toLowerCase()] ?? 0) > 0 ||
-              activeContexts.contains(ctx.name))
-            SidebarRow(
-              leading: ContextIcon.hasIcon(ctx.iconName)
-                  ? ContextIcon(
-                      name: ctx.iconName,
-                      size: 18,
-                      color: TaskColors.textDim)
-                  : Icon(Icons.bookmark_outline,
-                      size: 18, color: TaskColors.textDim),
-              label: ctx.name,
-              trailingText:
-                  (counts[ctx.name.trim().toLowerCase()] ?? 0) > 0
-                      ? '${counts[ctx.name.trim().toLowerCase()]}'
-                      : null,
-              selected:
-                  surface != null && activeContexts.contains(ctx.name),
-              onTap: surface == null
-                  ? null
-                  : () => _scopeToContext(ref, surface, ctx.name,
-                      activeContexts.contains(ctx.name)),
-            ),
-      ],
+      children: rows,
     );
   }
 }
@@ -401,20 +398,28 @@ class _SidebarSearchFieldState extends ConsumerState<_SidebarSearchField> {
     if (surface == null) {
       return _buildField(enabled: false, onChanged: null);
     }
-    // Reflect external changes for this surface (the screen's own app-bar
-    // search, or a tab-switch clear) into the box.
+    // Sync controller when the surface's search is changed externally
+    // (the screen's own app-bar search, or a tab-switch clear). Use
+    // `value` rather than `text` so the cursor lands at the end —
+    // otherwise a follow-up keystroke would prepend instead of append.
     ref.listen<String>(
       taskListViewStateProvider(surface).select((v) => v.filters.search),
       (_, next) {
-        if (_controller.text != next) _controller.text = next;
+        if (_controller.text != next) {
+          _controller.value = TextEditingValue(
+            text: next,
+            selection: TextSelection.collapsed(offset: next.length),
+          );
+        }
       },
     );
     return _buildField(
       enabled: true,
       onChanged: (v) {
         _debounce?.cancel();
+        // `Timer.cancel()` in dispose guarantees no callback after
+        // unmount, so a `mounted` check here would be dead-defensive.
         _debounce = Timer(_debounceDelay, () {
-          if (!mounted) return;
           ref
               .read(taskListViewStateProvider(surface).notifier)
               .setSearch(v);

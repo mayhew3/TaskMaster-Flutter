@@ -471,13 +471,14 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
         }
       });
     }
-    // TM-382 perf: keep all tab bodies mounted in an IndexedStack so
-    // switching destinations toggles which child paints, instead of an
-    // unmount/remount + provider re-watch + full list rebuild on every
-    // nav click. Steady-state cost: each tab's providers stay
-    // subscribed continuously — acceptable since they're keepAlive and
-    // the design preserves "recently-completed clears on tab switch"
-    // via setTab regardless of mount lifecycle.
+    // TM-382 perf: nav clicks used to re-watch the destination's
+    // providers and rebuild its full grouped list on every swap.
+    // IndexedStack keeps all tab bodies mounted so switching destinations
+    // toggles which child paints — no unmount/remount, no provider
+    // re-watch, no list rebuild on swap. Steady-state cost: each tab's
+    // providers stay subscribed; acceptable since they're keepAlive and
+    // the "recently-completed clears on tab switch" contract is driven
+    // by setTab, not mount lifecycle.
     final currentScreen = IndexedStack(
       index: clampedIndex,
       children: [

@@ -39,8 +39,8 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
   final _searchController = TextEditingController();
   bool _searchBarVisible = false;
 
-  /// TM-382: same 250ms debounce as the wide sidebar search so a fast
-  /// typist doesn't re-run the filter/group/sort pipeline per keystroke.
+  /// TM-382: 250ms debounce so a fast typist doesn't re-run the
+  /// filter/group/sort pipeline per keystroke.
   Timer? _searchDebounce;
 
   @override
@@ -63,8 +63,8 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
 
   void _onSearchChanged(String value) {
     _searchDebounce?.cancel();
+    // Timer.cancel() in dispose guarantees no callback after unmount.
     _searchDebounce = Timer(const Duration(milliseconds: 250), () {
-      if (!mounted) return;
       ref.read(searchQueryProvider.notifier).set(value);
     });
   }
@@ -72,14 +72,9 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
   @override
   Widget build(BuildContext context) {
     final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
-    // TM-382: react to *transitions* of the provider, not a build-time
-    // read. With the in-AppBar search debounced (250ms), a build
-    // triggered by some unrelated provider tick while the user is mid-
-    // typing — provider still empty, controller already 'fo' — would
-    // have wiped the typed text under the old build-time if-check.
-    // `ref.listen` fires only on actual changes; an external clear
-    // (e.g. tab nav) lands here as prev!='' → next=='' and syncs the
-    // controller as intended.
+    // Sync the controller when the search is cleared externally (e.g.
+    // tab nav). `ref.listen` (vs a build-time read) so the 250ms
+    // debounce window can't be mistaken for an external clear.
     ref.listen<String>(searchQueryProvider, (prev, next) {
       if (next.isEmpty &&
           _searchBarVisible &&
