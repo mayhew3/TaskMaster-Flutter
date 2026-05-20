@@ -23,6 +23,9 @@ import 'package:taskmaestro/features/family/presentation/pending_invitation_bann
 import 'package:taskmaestro/features/family/providers/family_providers.dart';
 import 'package:taskmaestro/features/sync/presentation/sync_conflict_banner.dart';
 import 'package:taskmaestro/features/sync/providers/sync_conflict_providers.dart';
+import 'package:taskmaestro/core/platform/form_factor.dart';
+import 'package:taskmaestro/features/shared/presentation/app_drawer.dart';
+import 'package:taskmaestro/features/shared/presentation/wide/wide_nav_sidebar.dart';
 
 /// Riverpod-based main app widget
 /// This replaces the Redux-based TaskMaestroApp when useRiverpodForAuth is enabled
@@ -358,16 +361,19 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
         label: 'Plan',
         icon: Icons.assignment,
         widgetGetter: () => PlanningHome(),
+        destination: NavDestination.plan,
       ),
       TopNavItem.init(
         label: 'Tasks',
         icon: Icons.list,
         widgetGetter: () => const TaskListScreen(),
+        destination: NavDestination.tasks,
       ),
       TopNavItem.init(
         label: 'Stats',
         icon: Icons.show_chart,
         widgetGetter: () => const StatsScreen(),
+        destination: NavDestination.stats,
       ),
     ];
 
@@ -454,6 +460,7 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
           label: 'Family',
           icon: Icons.family_restroom,
           widgetGetter: () => const FamilyTabScreen(),
+          destination: NavDestination.family,
         ),
       _navItems[2], // Stats
     ];
@@ -468,7 +475,20 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
         }
       });
     }
-    final currentScreen = liveNavItems[clampedIndex].widgetGetter();
+    // TM-382 perf: nav clicks used to re-watch the destination's
+    // providers and rebuild its full grouped list on every swap.
+    // IndexedStack keeps all tab bodies mounted so switching destinations
+    // toggles which child paints — no unmount/remount, no provider
+    // re-watch, no list rebuild on swap. Steady-state cost: each tab's
+    // providers stay subscribed; acceptable since they're keepAlive and
+    // the "recently-completed clears on tab switch" contract is driven
+    // by setTab, not mount lifecycle.
+    final currentScreen = IndexedStack(
+      index: clampedIndex,
+      children: [
+        for (final item in liveNavItems) item.widgetGetter(),
+      ],
+    );
 
     // Status-bar inset handling depends on whether any banner is visible:
     // - When showing, the banner self-wraps in SafeArea(top: true) so it
@@ -490,6 +510,37 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
           )
         : currentScreen;
 
+    // TM-382: branch only the chrome. The shared state above (nav items,
+    // clamped index, banners, tabBody) is computed once; the compact
+    // subtree below is byte-for-byte identical to the pre-TM-382 build.
+    if (isWideLayout(MediaQuery.sizeOf(context))) {
+      return _buildWideShell(
+        context: context,
+        liveNavItems: liveNavItems,
+        clampedIndex: clampedIndex,
+        hasPendingInvite: hasPendingInvite,
+        tabBody: tabBody,
+      );
+    }
+    return _buildCompactShell(
+      context: context,
+      liveNavItems: liveNavItems,
+      clampedIndex: clampedIndex,
+      hasPendingInvite: hasPendingInvite,
+      tabBody: tabBody,
+    );
+  }
+
+  /// Compact / phone shell — unchanged from before TM-382: a bottom
+  /// [NavigationBar] plus the banner Column. This widget subtree must
+  /// remain identical to the legacy build (regression guard).
+  Widget _buildCompactShell({
+    required BuildContext context,
+    required List<TopNavItem> liveNavItems,
+    required int clampedIndex,
+    required bool hasPendingInvite,
+    required Widget tabBody,
+  }) {
     return Scaffold(
       body: Column(
         children: [
@@ -519,6 +570,45 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
             label: item.label,
           );
         }).toList(),
+      ),
+    );
+  }
+
+  /// Wide adaptive shell (TM-382, Story 1 of Epic TM-188): the left
+  /// [WideNavSidebar] replaces the bottom nav; the banner Column + tab
+  /// body keep their existing structure and order to the right.
+  Widget _buildWideShell({
+    required BuildContext context,
+    required List<TopNavItem> liveNavItems,
+    required int clampedIndex,
+    required bool hasPendingInvite,
+    required Widget tabBody,
+  }) {
+    return Scaffold(
+      drawer: const AppDrawer(),
+      body: Row(
+        children: [
+          WideNavSidebar(
+            navItems: liveNavItems,
+            selectedIndex: clampedIndex,
+            onSelectDestination: (index) {
+              ref.read(activeTabIndexProvider.notifier).setTab(index);
+            },
+          ),
+          Expanded(
+            child: Column(
+              children: [
+                const PendingInvitationBanner(),
+                MediaQuery.removePadding(
+                  context: context,
+                  removeTop: hasPendingInvite,
+                  child: const SyncConflictBanner(),
+                ),
+                Expanded(child: tabBody),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

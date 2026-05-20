@@ -8,50 +8,90 @@ part of 'family_task_filter_providers.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Family tab tasks after surface-specific gates + the user's `TaskFilters`.
-///
-/// Surface gates applied here (not part of the shared pipeline):
-/// - drop retired rows.
-/// - `ownedByMeOnly` filters to tasks created by the current user.
-///
-/// Everything else (search / showCompleted / showScheduled / recurrence /
-/// age / priority / points / due-status / context / area) is delegated to
-/// `applyTaskFilters` so the Family tab and the Tasks tab share a single
-/// filtering code path.
+/// Pre-filter Family-tab pool: the surface-specific gates only (drop
+/// retired rows; `ownedByMeOnly` → tasks created by the current user).
+/// Split out (TM-382) so the sidebar can compute faceted counts by
+/// re-running `applyTaskFilters` over this pool with one axis cleared.
 ///
 /// TM-368: pure-derived. Cheap to recompute on consumer remount.
+
+@ProviderFor(familyBasePool)
+final familyBasePoolProvider = FamilyBasePoolProvider._();
+
+/// Pre-filter Family-tab pool: the surface-specific gates only (drop
+/// retired rows; `ownedByMeOnly` → tasks created by the current user).
+/// Split out (TM-382) so the sidebar can compute faceted counts by
+/// re-running `applyTaskFilters` over this pool with one axis cleared.
+///
+/// TM-368: pure-derived. Cheap to recompute on consumer remount.
+
+final class FamilyBasePoolProvider
+    extends $FunctionalProvider<List<TaskItem>, List<TaskItem>, List<TaskItem>>
+    with $Provider<List<TaskItem>> {
+  /// Pre-filter Family-tab pool: the surface-specific gates only (drop
+  /// retired rows; `ownedByMeOnly` → tasks created by the current user).
+  /// Split out (TM-382) so the sidebar can compute faceted counts by
+  /// re-running `applyTaskFilters` over this pool with one axis cleared.
+  ///
+  /// TM-368: pure-derived. Cheap to recompute on consumer remount.
+  FamilyBasePoolProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'familyBasePoolProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$familyBasePoolHash();
+
+  @$internal
+  @override
+  $ProviderElement<List<TaskItem>> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  List<TaskItem> create(Ref ref) {
+    return familyBasePool(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<TaskItem> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<TaskItem>>(value),
+    );
+  }
+}
+
+String _$familyBasePoolHash() => r'6ce4d7127abfa4dadc3d4dbd06bcf1cd4b00f774';
+
+/// Family tab tasks after surface gates + the user's `TaskFilters`.
+/// Everything except the two surface gates above (search / showCompleted
+/// / showScheduled / recurrence / age / priority / points / due-status /
+/// context / area) is delegated to `applyTaskFilters` so the Family tab
+/// and the Tasks tab share a single filtering code path.
 
 @ProviderFor(familyFilteredTasks)
 final familyFilteredTasksProvider = FamilyFilteredTasksProvider._();
 
-/// Family tab tasks after surface-specific gates + the user's `TaskFilters`.
-///
-/// Surface gates applied here (not part of the shared pipeline):
-/// - drop retired rows.
-/// - `ownedByMeOnly` filters to tasks created by the current user.
-///
-/// Everything else (search / showCompleted / showScheduled / recurrence /
-/// age / priority / points / due-status / context / area) is delegated to
-/// `applyTaskFilters` so the Family tab and the Tasks tab share a single
-/// filtering code path.
-///
-/// TM-368: pure-derived. Cheap to recompute on consumer remount.
+/// Family tab tasks after surface gates + the user's `TaskFilters`.
+/// Everything except the two surface gates above (search / showCompleted
+/// / showScheduled / recurrence / age / priority / points / due-status /
+/// context / area) is delegated to `applyTaskFilters` so the Family tab
+/// and the Tasks tab share a single filtering code path.
 
 final class FamilyFilteredTasksProvider
     extends $FunctionalProvider<List<TaskItem>, List<TaskItem>, List<TaskItem>>
     with $Provider<List<TaskItem>> {
-  /// Family tab tasks after surface-specific gates + the user's `TaskFilters`.
-  ///
-  /// Surface gates applied here (not part of the shared pipeline):
-  /// - drop retired rows.
-  /// - `ownedByMeOnly` filters to tasks created by the current user.
-  ///
-  /// Everything else (search / showCompleted / showScheduled / recurrence /
-  /// age / priority / points / due-status / context / area) is delegated to
-  /// `applyTaskFilters` so the Family tab and the Tasks tab share a single
-  /// filtering code path.
-  ///
-  /// TM-368: pure-derived. Cheap to recompute on consumer remount.
+  /// Family tab tasks after surface gates + the user's `TaskFilters`.
+  /// Everything except the two surface gates above (search / showCompleted
+  /// / showScheduled / recurrence / age / priority / points / due-status /
+  /// context / area) is delegated to `applyTaskFilters` so the Family tab
+  /// and the Tasks tab share a single filtering code path.
   FamilyFilteredTasksProvider._()
     : super(
         from: null,
@@ -86,7 +126,7 @@ final class FamilyFilteredTasksProvider
 }
 
 String _$familyFilteredTasksHash() =>
-    r'96e1b954249b20aff439dc0fe1e016256eec60cf';
+    r'4f7366887aa067c9b382b697900e6cb02d0ff934';
 
 /// Grouped + sorted Family tab tasks, routed through `groupAndSortTasks`.
 ///

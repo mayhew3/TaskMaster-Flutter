@@ -101,20 +101,21 @@ Stream<List<TaskItem>> sprintAllTasks(Ref ref, Sprint sprint) {
   );
 }
 
-/// Sprint task set (membership-resolved), with the user's TaskFilters
-/// applied via the shared pipeline. Ordering is intentionally NOT
-/// preserved here — `sprintGroupedTasks` re-buckets + sorts by the
-/// surface's group/sort axes (default: due-status grouping, urgency
-/// sort) before anything renders, so any order this provider produced
-/// would be discarded. (Pre-TM-359 this walked
-/// `sprint.sprintAssignments` in order for the TM-339 stability
-/// contract; that contract no longer holds at the UI level.)
-///
-/// TM-368: pure-derived family provider — auto-dispose for the same
-/// reason as `sprintAllTasks`.
+/// Pre-filter sprint pool: the membership-resolved task set
+/// (assignments + optimistic-pending overlay + recently-completed +
+/// older-completed / firestore-roster when completed is visible),
+/// retired rows dropped — everything *before* the user's TaskFilters.
+/// Split out (TM-382) so the sidebar can compute faceted counts by
+/// re-running `applyTaskFilters` over this pool with one filter axis
+/// cleared, without duplicating this assembly.
 @riverpod
-Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
-  final view = ref.watch(taskListViewStateProvider(TaskListSurface.sprint));
+Future<List<TaskItem>> sprintBasePool(Ref ref, Sprint sprint) async {
+  // Narrow watch: the base pool's only view dependency is `dueStatus`
+  // (the completedVisible gate below). Watching the full TaskListView
+  // would force a rebuild on any group/sort/collapse change.
+  final dueStatusFilter =
+      ref.watch(taskListViewStateProvider(TaskListSurface.sprint)
+          .select((v) => v.filters.dueStatus));
   final allSprintTasks =
       await ref.watch(sprintAllTasksProvider(sprint).future);
   final pendingTasks = ref.watch(pendingTasksProvider);
@@ -141,8 +142,8 @@ Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
       }
     }
   }
-  final sprintCompletedVisible = view.filters.dueStatus.isEmpty ||
-      view.filters.dueStatus.contains(DueStatusBucket.completed);
+  final sprintCompletedVisible = dueStatusFilter.isEmpty ||
+      dueStatusFilter.contains(DueStatusBucket.completed);
   if (sprintCompletedVisible) {
     for (final task in olderState.loadedTasks) {
       if (sprintDocIds.contains(task.docId)) {
@@ -156,9 +157,31 @@ Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
     }
   }
 
+  return taskMap.values.where((t) => t.retired == null).toList();
+}
+
+/// Sprint task set (membership-resolved), with the user's TaskFilters
+/// applied via the shared pipeline. Ordering is intentionally NOT
+/// preserved here — `sprintGroupedTasks` re-buckets + sorts by the
+/// surface's group/sort axes (default: due-status grouping, urgency
+/// sort) before anything renders, so any order this provider produced
+/// would be discarded. (Pre-TM-359 this walked
+/// `sprint.sprintAssignments` in order for the TM-339 stability
+/// contract; that contract no longer holds at the UI level.)
+///
+/// TM-368: pure-derived family provider — auto-dispose for the same
+/// reason as `sprintAllTasks`.
+@riverpod
+Future<List<TaskItem>> sprintTaskItems(Ref ref, Sprint sprint) async {
+  // Narrow watch: only `filters` drive this stage; group/sort/collapse
+  // changes flow through `sprintGroupedTasks` instead.
+  final filters = ref.watch(taskListViewStateProvider(TaskListSurface.sprint)
+      .select((v) => v.filters));
+  final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
+  final base = await ref.watch(sprintBasePoolProvider(sprint).future);
   return applyTaskFilters(
-    taskMap.values.where((t) => t.retired == null),
-    view.filters,
+    base,
+    filters,
     now: DateTime.now(),
     recentlyCompletedDocIds:
         recentlyCompleted.map((t) => t.docId).toSet(),

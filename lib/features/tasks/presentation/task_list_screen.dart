@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskmaestro/models/bad_schema_task.dart';
 import 'package:taskmaestro/models/task_item.dart';
+import '../../../core/platform/form_factor.dart';
 import '../../../core/services/task_completion_service.dart';
 import '../../../models/task_list_view.dart' show TaskListSurface;
 import '../providers/task_filter_providers.dart';
@@ -36,8 +39,13 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
   final _searchController = TextEditingController();
   bool _searchBarVisible = false;
 
+  /// TM-382: 250ms debounce so a fast typist doesn't re-run the
+  /// filter/group/sort pipeline per keystroke.
+  Timer? _searchDebounce;
+
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -45,22 +53,44 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
   void _toggleSearch() {
     setState(() {
       _searchBarVisible = !_searchBarVisible;
-      if (!_searchBarVisible) {
+      if (_searchBarVisible) {
+        // Seed from the current provider value — the search may have
+        // been set externally (e.g. via the wide sidebar) while the
+        // AppBar bar was hidden, in which case opening the bar with an
+        // empty field would misrepresent the active filter.
+        final current = ref.read(searchQueryProvider);
+        _searchController.text = current;
+        _searchController.selection =
+            TextSelection.collapsed(offset: current.length);
+      } else {
+        _searchDebounce?.cancel();
         _searchController.clear();
         ref.read(searchQueryProvider.notifier).clear();
       }
     });
   }
 
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    // Timer.cancel() in dispose guarantees no callback after unmount.
+    _searchDebounce = Timer(const Duration(milliseconds: 250), () {
+      ref.read(searchQueryProvider.notifier).set(value);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final tasksAsync = ref.watch(tasksWithRecurrencesProvider);
-    // Sync search bar visibility with provider (e.g., cleared by tab navigation)
-    final searchQuery = ref.watch(searchQueryProvider);
-    if (searchQuery.isEmpty && _searchBarVisible && _searchController.text.isNotEmpty) {
-      // Provider was cleared externally — sync the controller
-      _searchController.clear();
-    }
+    // Sync the controller when the search is cleared externally (e.g.
+    // tab nav). `ref.listen` (vs a build-time read) so the 250ms
+    // debounce window can't be mistaken for an external clear.
+    ref.listen<String>(searchQueryProvider, (prev, next) {
+      if (next.isEmpty &&
+          _searchBarVisible &&
+          _searchController.text.isNotEmpty) {
+        _searchController.clear();
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -74,15 +104,20 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
                   hintStyle: TextStyle(color: Colors.white70),
                 ),
                 style: const TextStyle(color: Colors.white),
-                onChanged: (value) => ref.read(searchQueryProvider.notifier).set(value),
+                onChanged: _onSearchChanged,
               )
             : const Text('Tasks'),
         actions: [
           const ConnectionStatusIndicator(),
-          IconButton(
-            icon: Icon(_searchBarVisible ? Icons.close : Icons.search),
-            onPressed: _toggleSearch,
-          ),
+          // TM-382: the wide sidebar hosts its own search field, so the
+          // redundant in-AppBar search toggle hides on wide — unless the
+          // bar is already open (compact→wide resize), in which case
+          // the close icon must stay reachable.
+          if (!isWideLayout(MediaQuery.sizeOf(context)) || _searchBarVisible)
+            IconButton(
+              icon: Icon(_searchBarVisible ? Icons.close : Icons.search),
+              onPressed: _toggleSearch,
+            ),
           const ViewOptionsButton(surface: TaskListSurface.tasks),
           const RefreshButton(),
         ],

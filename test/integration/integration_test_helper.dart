@@ -489,16 +489,19 @@ class _TestAuthenticatedHomeState extends State<_TestAuthenticatedHome> {
         label: 'Plan',
         icon: Icons.assignment,
         widgetGetter: () => PlanningHome(),
+        destination: NavDestination.plan,
       ),
       TopNavItem.init(
         label: 'Tasks',
         icon: Icons.list,
         widgetGetter: () => const TaskListScreen(),
+        destination: NavDestination.tasks,
       ),
       TopNavItem.init(
         label: 'Stats',
         icon: Icons.show_chart,
         widgetGetter: () => const StatsScreen(),
+        destination: NavDestination.stats,
       ),
     ];
   }

@@ -164,16 +164,80 @@ abstract class _$SearchQuery extends $Notifier<String> {
   }
 }
 
-/// Tasks visible on the Tasks tab — surface-specific pre-filtering
-/// (hide-family-shared, hide-active-sprint, retired removal) PLUS the
-/// user's TaskFilters via the pipeline.
+/// Pre-filter Tasks-tab pool: surface-specific gates (hide family-shared,
+/// hide active-sprint, retired removal) + the TM-323 recently-completed
+/// merge + progressively-loaded older-completed batches — everything that
+/// assembles the candidate list *before* the user's TaskFilters. Split out
+/// (TM-382) so the sidebar can compute faceted counts by re-running
+/// `applyTaskFilters` over this same pool with one filter axis cleared,
+/// without duplicating this assembly.
+
+@ProviderFor(tasksBasePool)
+final tasksBasePoolProvider = TasksBasePoolProvider._();
+
+/// Pre-filter Tasks-tab pool: surface-specific gates (hide family-shared,
+/// hide active-sprint, retired removal) + the TM-323 recently-completed
+/// merge + progressively-loaded older-completed batches — everything that
+/// assembles the candidate list *before* the user's TaskFilters. Split out
+/// (TM-382) so the sidebar can compute faceted counts by re-running
+/// `applyTaskFilters` over this same pool with one filter axis cleared,
+/// without duplicating this assembly.
+
+final class TasksBasePoolProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<TaskItem>>,
+          List<TaskItem>,
+          FutureOr<List<TaskItem>>
+        >
+    with $FutureModifier<List<TaskItem>>, $FutureProvider<List<TaskItem>> {
+  /// Pre-filter Tasks-tab pool: surface-specific gates (hide family-shared,
+  /// hide active-sprint, retired removal) + the TM-323 recently-completed
+  /// merge + progressively-loaded older-completed batches — everything that
+  /// assembles the candidate list *before* the user's TaskFilters. Split out
+  /// (TM-382) so the sidebar can compute faceted counts by re-running
+  /// `applyTaskFilters` over this same pool with one filter axis cleared,
+  /// without duplicating this assembly.
+  TasksBasePoolProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'tasksBasePoolProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$tasksBasePoolHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<TaskItem>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<TaskItem>> create(Ref ref) {
+    return tasksBasePool(ref);
+  }
+}
+
+String _$tasksBasePoolHash() => r'035d530bab98ad50aeddef24a2f4eacd39a336f0';
+
+/// Tasks visible on the Tasks tab — [tasksBasePoolProvider] run through
+/// the user's TaskFilters via the shared pipeline (the canonical filter
+/// step mirroring the pre-TM-359 inline logic plus the recently-completed
+/// bypass).
 
 @ProviderFor(filteredTasks)
 final filteredTasksProvider = FilteredTasksProvider._();
 
-/// Tasks visible on the Tasks tab — surface-specific pre-filtering
-/// (hide-family-shared, hide-active-sprint, retired removal) PLUS the
-/// user's TaskFilters via the pipeline.
+/// Tasks visible on the Tasks tab — [tasksBasePoolProvider] run through
+/// the user's TaskFilters via the shared pipeline (the canonical filter
+/// step mirroring the pre-TM-359 inline logic plus the recently-completed
+/// bypass).
 
 final class FilteredTasksProvider
     extends
@@ -183,9 +247,10 @@ final class FilteredTasksProvider
           FutureOr<List<TaskItem>>
         >
     with $FutureModifier<List<TaskItem>>, $FutureProvider<List<TaskItem>> {
-  /// Tasks visible on the Tasks tab — surface-specific pre-filtering
-  /// (hide-family-shared, hide-active-sprint, retired removal) PLUS the
-  /// user's TaskFilters via the pipeline.
+  /// Tasks visible on the Tasks tab — [tasksBasePoolProvider] run through
+  /// the user's TaskFilters via the shared pipeline (the canonical filter
+  /// step mirroring the pre-TM-359 inline logic plus the recently-completed
+  /// bypass).
   FilteredTasksProvider._()
     : super(
         from: null,
@@ -212,7 +277,7 @@ final class FilteredTasksProvider
   }
 }
 
-String _$filteredTasksHash() => r'7e378bb531620578b89e9e7ab4a0fe9b2f430c9c';
+String _$filteredTasksHash() => r'37ada142c3ad13b06e54a5a7fe392625741d8f35';
 
 /// Count of active (non-completed, non-retired) tasks.
 /// TM-368: pure-derived from `tasksProvider` (keepAlive). Cheap to

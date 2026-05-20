@@ -10,40 +10,52 @@ import '../../tasks/providers/task_providers.dart';
 
 part 'family_task_filter_providers.g.dart';
 
-/// Family tab tasks after surface-specific gates + the user's `TaskFilters`.
-///
-/// Surface gates applied here (not part of the shared pipeline):
-/// - drop retired rows.
-/// - `ownedByMeOnly` filters to tasks created by the current user.
-///
-/// Everything else (search / showCompleted / showScheduled / recurrence /
-/// age / priority / points / due-status / context / area) is delegated to
-/// `applyTaskFilters` so the Family tab and the Tasks tab share a single
-/// filtering code path.
+/// Pre-filter Family-tab pool: the surface-specific gates only (drop
+/// retired rows; `ownedByMeOnly` → tasks created by the current user).
+/// Split out (TM-382) so the sidebar can compute faceted counts by
+/// re-running `applyTaskFilters` over this pool with one axis cleared.
 ///
 /// TM-368: pure-derived. Cheap to recompute on consumer remount.
 @riverpod
-List<TaskItem> familyFilteredTasks(Ref ref) {
-  final view = ref.watch(taskListViewStateProvider(TaskListSurface.family));
+List<TaskItem> familyBasePool(Ref ref) {
+  // Narrow watch: the base pool only consults the family-specific
+  // ownership toggle; unrelated view changes (group/sort/collapse/other
+  // filter axes) must not invalidate this stage.
+  final ownedByMeOnly =
+      ref.watch(taskListViewStateProvider(TaskListSurface.family)
+          .select((v) => v.filters.ownedByMeOnly));
   final tasksAsync = ref.watch(familyTasksProvider);
-  final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
   final myPersonDocId = ref.watch(personDocIdProvider);
 
   final tasks = tasksAsync.value ?? const <TaskItem>[];
 
-  final surfaceFiltered = tasks.where((task) {
+  return tasks.where((task) {
     if (task.retired != null) return false;
-    if (view.filters.ownedByMeOnly &&
+    if (ownedByMeOnly &&
         myPersonDocId != null &&
         task.personDocId != myPersonDocId) {
       return false;
     }
     return true;
-  });
+  }).toList();
+}
 
+/// Family tab tasks after surface gates + the user's `TaskFilters`.
+/// Everything except the two surface gates above (search / showCompleted
+/// / showScheduled / recurrence / age / priority / points / due-status /
+/// context / area) is delegated to `applyTaskFilters` so the Family tab
+/// and the Tasks tab share a single filtering code path.
+@riverpod
+List<TaskItem> familyFilteredTasks(Ref ref) {
+  // Narrow watch: only `filters` drive this stage; group/sort/collapse
+  // changes go through `familyGroupedTasks` instead.
+  final filters = ref.watch(taskListViewStateProvider(TaskListSurface.family)
+      .select((v) => v.filters));
+  final recentlyCompleted = ref.watch(recentlyCompletedTasksProvider);
+  final base = ref.watch(familyBasePoolProvider);
   return applyTaskFilters(
-    surfaceFiltered,
-    view.filters,
+    base,
+    filters,
     now: DateTime.now(),
     recentlyCompletedDocIds:
         recentlyCompleted.map((t) => t.docId).toSet(),

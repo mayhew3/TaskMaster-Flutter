@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/platform/form_factor.dart';
 import '../../../core/providers/auth_providers.dart';
 import '../../../core/services/task_completion_service.dart';
 import '../../../models/check_state.dart';
@@ -35,8 +38,13 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
   final _searchController = TextEditingController();
   bool _searchBarVisible = false;
 
+  /// TM-382: 250ms debounce so a fast typist doesn't re-run the
+  /// filter/group/sort pipeline per keystroke.
+  Timer? _searchDebounce;
+
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -44,12 +52,34 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
   void _toggleSearch() {
     setState(() {
       _searchBarVisible = !_searchBarVisible;
-      if (!_searchBarVisible) {
+      if (_searchBarVisible) {
+        // Seed from the family surface's current search — it may have
+        // been set externally (e.g. via the wide sidebar) while the
+        // AppBar bar was hidden.
+        final current = ref
+            .read(taskListViewStateProvider(TaskListSurface.family))
+            .filters
+            .search;
+        _searchController.text = current;
+        _searchController.selection =
+            TextSelection.collapsed(offset: current.length);
+      } else {
+        _searchDebounce?.cancel();
         _searchController.clear();
         ref
             .read(taskListViewStateProvider(TaskListSurface.family).notifier)
             .setSearch('');
       }
+    });
+  }
+
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    // Timer.cancel() in dispose guarantees no callback after unmount.
+    _searchDebounce = Timer(const Duration(milliseconds: 250), () {
+      ref
+          .read(taskListViewStateProvider(TaskListSurface.family).notifier)
+          .setSearch(value);
     });
   }
 
@@ -107,15 +137,20 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
                   hintStyle: TextStyle(color: Colors.white70),
                 ),
                 style: const TextStyle(color: Colors.white),
-                onChanged: viewNotifier.setSearch,
+                onChanged: _onSearchChanged,
               )
             : const Text('Family'),
         actions: [
           const ConnectionStatusIndicator(),
-          IconButton(
-            icon: Icon(_searchBarVisible ? Icons.close : Icons.search),
-            onPressed: _toggleSearch,
-          ),
+          // TM-382: the wide sidebar hosts its own search field, so the
+          // redundant in-AppBar search toggle hides on wide — unless the
+          // bar is already open (compact→wide resize), in which case
+          // the close icon must stay reachable.
+          if (!isWideLayout(MediaQuery.sizeOf(context)) || _searchBarVisible)
+            IconButton(
+              icon: Icon(_searchBarVisible ? Icons.close : Icons.search),
+              onPressed: _toggleSearch,
+            ),
           const ViewOptionsButton(surface: TaskListSurface.family),
           IconButton(
             tooltip: 'Manage family',

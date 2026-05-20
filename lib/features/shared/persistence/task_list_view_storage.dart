@@ -42,13 +42,18 @@ class TaskListViewStorage {
         name: 'TaskListViewStorage',
       );
     }
-    return parsed;
+    // TM-382: the search term is session-only. Drop any persisted query
+    // (from a payload written before this rule, or a not-yet-stripped
+    // write) so a search never survives an app restart.
+    return parsed.rebuild((b) => b..filters.search = '');
   }
 
   /// Persist [view] for [surface]. Returns the SharedPreferences write
   /// Future so callers can `.ignore()` or `.await` as appropriate.
   Future<void> save(TaskListSurface surface, TaskListView view) {
-    return _prefs.setString(keyFor(surface), view.toJsonString());
+    // TM-382: never persist the search term — it is session-only.
+    final persisted = view.rebuild((b) => b..filters.search = '');
+    return _prefs.setString(keyFor(surface), persisted.toJsonString());
   }
 
   /// Remove the persisted entry for [surface] (next load returns the
