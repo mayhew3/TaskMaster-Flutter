@@ -1,0 +1,173 @@
+/* Maestro Design System — design tokens
+ * Dark, brand-blue + magenta-accent system.
+ */
+
+:root {
+  /* ---------- brand anchors ---------- */
+  --brand-blue:      #2C74C5;
+  --brand-magenta:   #D83AFF;
+
+  /* ---------- surfaces (final values) ---------- */
+  --bg:              #15345A;
+  --bg-elevated:     #1A3D67;
+  --card:            #296BB5;   /* brand blue darkened 8% */
+  --card-hi:         #2C74C5;
+
+  /* ---------- text on dark blue ---------- */
+  --fg-1:            rgba(255, 255, 255, 0.95);
+  --fg-2:            rgba(255, 255, 255, 0.70);
+  --fg-3:            rgba(255, 255, 255, 0.50);
+  --fg-disabled:     rgba(255, 255, 255, 0.30);
+
+  /* ---------- date semantic palette ---------- */
+  --date-start-fg:       #B3B5DD;
+  --date-start-bg:       rgba(120, 130, 200, 0.22);
+  --date-start-border:   rgba(179, 181, 221, 0.4);
+
+  --date-target-fg:      #EFE0A0;
+  --date-target-bg:      rgba(140, 130, 50, 0.28);
+  --date-target-border:  rgba(239, 224, 160, 0.4);
+
+  --date-urgent-fg:      #F4C8A8;
+  --date-urgent-bg:      rgba(180, 110, 50, 0.28);
+  --date-urgent-border:  rgba(244, 200, 168, 0.4);
+
+  --date-due-fg:         #F4B0B0;
+  --date-due-bg:         rgba(180, 60, 80, 0.28);
+  --date-due-border:     rgba(244, 176, 176, 0.4);
+
+  /* ---------- area palette (small dots) ---------- */
+  --area-family:         #E2A6F0;
+  --area-maintenance:    #F0B97A;
+  --area-shopping:       #A6D8B0;
+  --area-hobby:          #9FB8FF;
+  --area-work:           #FFC97A;
+  --area-friends:        #F09FB0;
+
+  /* ---------- borders + lines ---------- */
+  --hairline:        rgba(255, 255, 255, 0.06);
+  --line:            rgba(255, 255, 255, 0.10);
+  --line-strong:     rgba(255, 255, 255, 0.18);
+  --bevel-top:       rgba(255, 255, 255, 0.06);
+
+  /* ---------- radii ---------- */
+  --r-sm:  6px;
+  --r-md:  10px;
+  --r-lg:  12px;
+  --r-xl:  16px;
+  --r-pill: 999px;
+
+  /* ---------- spacing ---------- */
+  --sp-1:  3px;
+  --sp-2:  6px;
+  --sp-3:  10px;
+  --sp-4:  14px;
+  --sp-5:  18px;
+  --sp-6:  22px;
+  --sp-7:  30px;
+
+  /* ---------- shadows ---------- */
+  --shadow-cta:      0 4px 14px rgba(216, 58, 255, 0.4);
+  --shadow-marker:   0 4px 14px rgba(157, 196, 255, 0.35);
+
+  /* ---------- type stack ---------- */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+               'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* ---------- type scale ---------- */
+  --t-display:  24px;     /* page titles, task names */
+  --t-h1:       18px;     /* card titles */
+  --t-h2:       15px;     /* row titles */
+  --t-body:     13.5px;   /* general body */
+  --t-meta:     12px;     /* metadata row */
+  --t-label:    11px;     /* caps labels */
+  --t-micro:    10.5px;   /* tick marks, hints */
+
+  --w-regular:  400;
+  --w-medium:   500;
+  --w-semi:     600;
+  --w-bold:     700;
+
+  --ls-tight:   -0.2px;
+  --ls-caps:    0.5px;
+
+  --tabular:    "tnum" 1, "lnum" 1;
+}
+
+/* ---------- semantic helpers ---------- */
+.fg-1 { color: var(--fg-1); }
+.fg-2 { color: var(--fg-2); }
+.fg-3 { color: var(--fg-3); }
+
+.h-display {
+  font: var(--w-medium) var(--t-display)/1.15 var(--font-sans);
+  letter-spacing: var(--ls-tight);
+  color: var(--fg-1);
+}
+.h-1 {
+  font: var(--w-semi) var(--t-h1)/1.25 var(--font-sans);
+  color: var(--fg-1);
+}
+.h-2 {
+  font: var(--w-medium) var(--t-h2)/1.3 var(--font-sans);
+  color: var(--fg-1);
+}
+.t-body {
+  font: var(--w-medium) var(--t-body)/1.4 var(--font-sans);
+  color: var(--fg-1);
+}
+.t-meta {
+  font: var(--w-medium) var(--t-meta)/1.3 var(--font-sans);
+  color: var(--fg-2);
+  font-feature-settings: var(--tabular);
+}
+.t-label {
+  font: var(--w-bold) var(--t-label)/1 var(--font-sans);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+/* ---------- surfaces ---------- */
+.surface-bg {
+  background: var(--bg);
+  color: var(--fg-1);
+}
+.surface-card {
+  background: var(--card);
+  border-radius: var(--r-lg);
+  box-shadow: inset 0 1px 0 0 var(--bevel-top);
+}
+
+/* ---------- buttons / pills ---------- */
+.btn-primary {
+  background: var(--brand-magenta);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-lg);
+  padding: 13px 18px;
+  font: var(--w-bold) 14px var(--font-sans);
+  box-shadow: var(--shadow-cta);
+  cursor: pointer;
+}
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--fg-1);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--r-lg);
+  padding: 13px 24px;
+  font: var(--w-semi) 14px var(--font-sans);
+  cursor: pointer;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--fg-1);
+  font: var(--w-medium) var(--t-meta) var(--font-sans);
+}

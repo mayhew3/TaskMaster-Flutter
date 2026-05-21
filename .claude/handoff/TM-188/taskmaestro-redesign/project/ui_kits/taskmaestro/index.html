@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>TaskMaestro — UI Kit</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  html, body { margin:0; padding:0; background:#1a1a1a; min-height:100vh; font-family:var(--font-sans); color:var(--fg-1); }
+  body { display:flex; align-items:center; justify-content:center; padding:24px; gap:32px; flex-wrap:wrap; }
+  .stage { display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .stage-label { font:600 11px var(--font-sans); letter-spacing:0.5px; text-transform:uppercase; color:rgba(255,255,255,0.4); }
+  .surface-shell { background:var(--bg); height:100%; overflow:hidden; }
+  .nav { display:flex; align-items:center; justify-content:space-between; padding:60px 18px 8px; }
+  .nav-title { font:500 24px var(--font-sans); letter-spacing:-0.3px; color:var(--fg-1); }
+  .nav-add { width:32px; height:32px; border-radius:50%; background:var(--brand-magenta); border:none; color:#fff; font-size:20px; cursor:pointer; box-shadow:var(--shadow-cta); }
+  .filter-row { display:flex; gap:6px; padding:0 14px 8px; overflow-x:auto; }
+  .filter-pill { padding:6px 12px; border-radius:999px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:var(--fg-2); font:600 12px var(--font-sans); cursor:pointer; flex-shrink:0; }
+  .filter-pill.active { background:rgba(216,58,255,0.15); border-color:rgba(216,58,255,0.4); color:#fff; }
+  .task-list { padding:6px 12px 100px; display:flex; flex-direction:column; gap:8px; }
+  .section-head { font:700 10.5px var(--font-sans); letter-spacing:0.5px; text-transform:uppercase; color:rgba(255,255,255,0.4); padding:10px 4px 4px; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="cards.jsx"></script>
+<script type="text/babel" src="edit.jsx"></script>
+
+<script type="text/babel">
+const { useState } = React;
+const { CardV9 } = window.TMCards;
+const { EditorFullScreen } = window.TMEditors;
+const { IOSDevice } = window;
+
+// Theme: derive surfaces from brand blue + darkness knobs
+function applyTheme() {
+  const blue = [44,116,197];
+  const dark = (rgb,d) => [Math.round(rgb[0]*(1-d)),Math.round(rgb[1]*(1-d)),Math.round(rgb[2]*(1-d))];
+  const rgb = a => `rgb(${a.join(',')})`;
+  const root = document.documentElement;
+  root.style.setProperty('--bg', rgb(dark(blue, 0.45)));
+  root.style.setProperty('--bg-elevated', rgb(dark(blue, 0.38)));
+  root.style.setProperty('--card', rgb(dark(blue, 0.08)));
+  root.style.setProperty('--card-hi', rgb(dark(blue, 0.04)));
+}
+applyTheme();
+
+const TASKS = [
+  { id:'a', name:"Review August Travel Dates", area:"Family",
+    points:3, minutes:30, energy:2, contexts:['email','phone'],
+    priority:3,
+    dateLabel:'May 6', dateKind:'target', dateRel:'in 2d',
+    repeat:null, dates:{ start:'Apr 28', target:'May 6', due:'May 12' }, notes:'Confirm with Sarah and book flights before they jump.' },
+  { id:'b', name:"Visit 905 Haddon Drive", area:"Maintenance",
+    points:5, minutes:120, energy:3, contexts:['car'],
+    priority:5,
+    dateLabel:'May 4', dateKind:'urgent', dateRel:'tomorrow',
+    repeat:null, dates:{ urgent:'May 4' }, notes:'Check the basement drain — last visit it was leaking near the boiler.', defaultExpanded:true },
+  { id:'c', name:"Clean Air Purifiers", area:"Maintenance",
+    points:2, minutes:15, energy:1, contexts:['home'],
+    priority:1, completed:true,
+    dateLabel:'Apr 30', dateKind:'start', dateRel:'5d ago' },
+  { id:'d', name:"Finish Q2 OKR draft", area:"Work",
+    points:8, minutes:240, energy:3, contexts:['computer','reading','writing'],
+    priority:4,
+    dateLabel:'May 9', dateKind:'due', dateRel:'in 5d',
+    repeat:null, dates:{ start:'Apr 22', target:'May 5', due:'May 9' } },
+  { id:'e', name:"Reply to Maya", area:"Friends",
+    points:1, minutes:5, energy:1, contexts:['phone'],
+    priority:2, dateLabel:'today', dateKind:'urgent', dateRel:'today' },
+  { id:'f', name:"Water plants", area:"Maintenance",
+    points:1, minutes:10, energy:1, contexts:['home'],
+    priority:1, repeat:{ unit:'days', n:3, anchor:'completed' },
+    dateLabel:'May 7', dateKind:'target', dateRel:'in 3d' },
+];
+
+function TasksList({ onEdit, onTap }) {
+  const [filter, setFilter] = useState('All');
+  const filters = ['All','Today','This week','Family','Work'];
+  const tasks = TASKS;
+  return (
+    <div className="surface-shell" style={{ height:'100%' }}>
+      <div className="nav">
+        <div className="nav-title">Tasks</div>
+        <button className="nav-add" aria-label="Add task">+</button>
+      </div>
+      <div className="filter-row">
+        {filters.map(f => (
+          <div key={f} className={'filter-pill' + (filter===f?' active':'')} onClick={()=>setFilter(f)}>{f}</div>
+        ))}
+      </div>
+      <div className="task-list">
+        <div className="section-head">Up next</div>
+        {tasks.map(t => (
+          <div key={t.id} onDoubleClick={()=>onEdit(t)}>
+            <CardV9 task={t} onEdit={()=>onEdit(t)}/>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [editing, setEditing] = useState(null);
+
+  const phone = (
+    <IOSDevice>
+      {editing
+        ? <EditorFullScreen task={editing} onClose={()=>setEditing(null)}/>
+        : <TasksList onEdit={setEditing}/>
+      }
+    </IOSDevice>
+  );
+
+  return (
+    <>
+      <div className="stage">
+        <div className="stage-label">{editing ? 'Edit task' : 'Tasks list — double-tap any card to edit'}</div>
+        {phone}
+      </div>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

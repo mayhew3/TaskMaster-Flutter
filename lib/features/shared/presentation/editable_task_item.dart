@@ -2,9 +2,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:taskmaestro/core/platform/form_factor.dart';
 import 'package:taskmaestro/date_util.dart';
 import 'package:taskmaestro/features/areas/providers/area_color_providers.dart';
 import 'package:taskmaestro/features/contexts/providers/context_providers.dart';
+import 'package:taskmaestro/features/shared/providers/selected_task_providers.dart';
 import 'package:taskmaestro/features/tasks/providers/expanded_task_provider.dart';
 import 'package:taskmaestro/helpers/area_color_helper.dart';
 import 'package:taskmaestro/helpers/recurrence_formatter.dart';
@@ -293,7 +295,25 @@ class EditableTaskItemWidget extends ConsumerWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: canExpand
-          ? () => ref.read(expandedTaskProvider.notifier).toggle(_docId())
+          ? () {
+              // Existing phone path — toggle the inline accordion.
+              ref.read(expandedTaskProvider.notifier).toggle(_docId());
+              // TM-383: on the wide adaptive shell, mirror the toggle
+              // into `selectedTaskProvider` so the magenta selection ring
+              // co-fires with the accordion. Tap-same → clear both;
+              // tap-different → swap both. Phone path skips this entirely.
+              if (isWideLayout(MediaQuery.sizeOf(context))) {
+                final docId = _docId();
+                final selectedNotifier =
+                    ref.read(selectedTaskProvider.notifier);
+                final selected = ref.read(selectedTaskProvider);
+                if (selected == docId) {
+                  selectedNotifier.clear();
+                } else {
+                  selectedNotifier.select(docId);
+                }
+              }
+            }
           : null,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

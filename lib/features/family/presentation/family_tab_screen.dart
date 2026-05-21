@@ -17,6 +17,9 @@ import '../../shared/presentation/refresh_button.dart';
 import '../../shared/presentation/snooze_dialog.dart';
 import '../../shared/presentation/task_action_error_helper.dart';
 import '../../shared/presentation/view_options_sheet.dart';
+import '../../shared/presentation/wide/aura_stack.dart';
+import '../../shared/presentation/wide/selectable_task_item.dart';
+import '../../shared/presentation/wide/wide_centered_column.dart';
 import '../../shared/presentation/widgets/collapsible_group_header.dart';
 import '../../shared/providers/task_list_view_providers.dart';
 import '../../tasks/presentation/task_add_edit_screen.dart';
@@ -173,13 +176,17 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
                 ),
               ),
             )
-          : ListView.builder(
-              padding: const EdgeInsets.only(
-                top: 7.0,
-                bottom: kFloatingActionButtonMargin + 54,
+          : WideCenteredColumn(
+              child: AuraStack(
+                child: ListView.builder(
+                  padding: const EdgeInsets.only(
+                    top: 7.0,
+                    bottom: kFloatingActionButtonMargin + 54,
+                  ),
+                  itemCount: tiles.length,
+                  itemBuilder: (_, i) => tiles[i],
+                ),
               ),
-              itemCount: tiles.length,
-              itemBuilder: (_, i) => tiles[i],
             ),
       drawer: const AppDrawer(),
       floatingActionButton: FloatingActionButton(
@@ -204,9 +211,15 @@ class _FamilyTaskTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final myPersonDocId = ref.watch(personDocIdProvider);
     final isMine = task.personDocId == myPersonDocId;
-    return EditableTaskItemWidget(
-      taskItem: task,
-      highlightSprint: false,
+    // TM-383: wrap with SelectableTaskItem so the magenta selection aura
+    // renders on the wide adaptive shell. EditableTaskItemWidget's tap
+    // handler already fires selectedTaskProvider on wide, so all we need
+    // here is the visual.
+    return SelectableTaskItem(
+      taskDocId: task.docId,
+      child: EditableTaskItemWidget(
+        taskItem: task,
+        highlightSprint: false,
       // Hide Edit on tasks the current user doesn't own — viewing a
       // teammate's task should be read-only from this tab.
       onEdit: isMine
@@ -265,6 +278,7 @@ class _FamilyTaskTile extends ConsumerWidget {
               }
               return false;
             },
+      ),
     );
   }
 }

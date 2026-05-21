@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Surfaces</title><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg-1);font:500 14px var(--font-sans);}
+  .frame{padding:18px 20px;}
+  .row{display:flex;align-items:center;gap:12px;}
+  .col{display:flex;flex-direction:column;gap:8px;}
+  .swatch{width:64px;height:64px;border-radius:10px;box-shadow:inset 0 1px 0 0 var(--bevel-top);}
+  .dot{width:14px;height:14px;border-radius:50%;display:inline-block;}
+  .hex{font:600 11px var(--font-mono);color:var(--fg-3);letter-spacing:0.3px;}
+  .lbl{font:700 10.5px var(--font-sans);letter-spacing:0.5px;text-transform:uppercase;color:var(--fg-3);}
+  .name{font:600 13px var(--font-sans);color:var(--fg-1);}
+</style></head><body><div class="frame">
+    <div class="col" style="gap:14px">
+      <div class="row" style="gap:10px">
+        
+          <div class="col" style="align-items:flex-start;gap:6px">
+            <div class="swatch" style="background:oklch(25.000000000000007% 0.08 255)"></div>
+            <div class="hex">darkness 0.30</div>
+          </div>
+          <div class="col" style="align-items:flex-start;gap:6px">
+            <div class="swatch" style="background:oklch(17.000000000000004% 0.08 255)"></div>
+            <div class="hex">darkness 0.38</div>
+          </div>
+          <div class="col" style="align-items:flex-start;gap:6px">
+            <div class="swatch" style="background:oklch(10.000000000000004% 0.08 255)"></div>
+            <div class="hex">darkness 0.45</div>
+          </div>
+          <div class="col" style="align-items:flex-start;gap:6px">
+            <div class="swatch" style="background:oklch(3.0000000000000027% 0.08 255)"></div>
+            <div class="hex">darkness 0.52</div>
+          </div>
+      </div>
+      <div class="lbl">background — derived from brand blue + --bg-darkness</div>
+    </div>
+    <div style="height:14px"></div>
+    <div class="col" style="gap:8px">
+      <div class="row" style="gap:10px">
+        <div class="swatch" style="background:var(--bg)"></div>
+        <div class="swatch" style="background:var(--card)"></div>
+        <div class="swatch" style="background:var(--card-hi)"></div>
+      </div>
+      <div class="lbl">bg · card · card-hi (hover)</div>
+    </div></div></body></html>

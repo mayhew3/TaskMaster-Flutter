@@ -21,6 +21,9 @@ import '../../shared/presentation/refresh_button.dart';
 import '../../shared/presentation/snooze_dialog.dart';
 import '../../shared/presentation/task_action_error_helper.dart';
 import '../../shared/presentation/view_options_sheet.dart';
+import '../../shared/presentation/wide/aura_stack.dart';
+import '../../shared/presentation/wide/selectable_task_item.dart';
+import '../../shared/presentation/wide/wide_centered_column.dart';
 import '../../shared/presentation/widgets/collapsible_group_header.dart';
 import '../../shared/providers/task_list_view_providers.dart';
 import '../../tasks/presentation/task_add_edit_screen.dart';
@@ -327,13 +330,17 @@ class _SprintBody extends ConsumerWidget {
     // always appears below any tiles / empty-state card.
     tiles.add(_AddMoreButton(sprint: sprint));
 
-    return ListView.builder(
-      padding: const EdgeInsets.only(
-        top: 7.0,
-        bottom: kFloatingActionButtonMargin + 54,
+    return WideCenteredColumn(
+      child: AuraStack(
+        child: ListView.builder(
+          padding: const EdgeInsets.only(
+            top: 7.0,
+            bottom: kFloatingActionButtonMargin + 54,
+          ),
+          itemCount: tiles.length,
+          itemBuilder: (_, i) => tiles[i],
+        ),
       ),
-      itemCount: tiles.length,
-      itemBuilder: (_, i) => tiles[i],
     );
   }
 }
@@ -346,47 +353,53 @@ class _SprintTaskTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final pendingTasks = ref.watch(pendingTasksProvider);
     final displayTask = pendingTasks[task.docId] ?? task;
-    return EditableTaskItemWidget(
-      taskItem: displayTask,
-      highlightSprint: false,
-      onEdit: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => TaskAddEditScreen(taskItemId: task.docId),
+    // TM-383: wrap with SelectableTaskItem so the magenta selection aura
+    // renders on the wide adaptive shell. EditableTaskItemWidget's tap
+    // handler already fires selectedTaskProvider on wide.
+    return SelectableTaskItem(
+      taskDocId: task.docId,
+      child: EditableTaskItemWidget(
+        taskItem: displayTask,
+        highlightSprint: false,
+        onEdit: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => TaskAddEditScreen(taskItemId: task.docId),
+          ),
         ),
-      ),
-      onLongPress: () {
-        HapticFeedback.mediumImpact();
-        showDialog<void>(
-          context: context,
-          builder: (context) => SnoozeDialog(taskItem: task),
-        );
-      },
-      onTaskCompleteToggle: (checkState) {
-        if (checkState == CheckState.pending) return null;
-        if (checkState == CheckState.skipped) {
-          ref.read(skipTaskProvider.notifier).unskip(task).catchError(
-              (Object e, StackTrace st) =>
+        onLongPress: () {
+          HapticFeedback.mediumImpact();
+          showDialog<void>(
+            context: context,
+            builder: (context) => SnoozeDialog(taskItem: task),
+          );
+        },
+        onTaskCompleteToggle: (checkState) {
+          if (checkState == CheckState.pending) return null;
+          if (checkState == CheckState.skipped) {
+            ref.read(skipTaskProvider.notifier).unskip(task).catchError(
+                (Object e, StackTrace st) =>
+                    showTaskActionError(context, e, st));
+            return null;
+          }
+          ref
+              .read(completeTaskProvider.notifier)
+              .call(task, complete: checkState == CheckState.inactive)
+              .catchError((Object e, StackTrace st) =>
                   showTaskActionError(context, e, st));
           return null;
-        }
-        ref
-            .read(completeTaskProvider.notifier)
-            .call(task, complete: checkState == CheckState.inactive)
-            .catchError((Object e, StackTrace st) =>
-                showTaskActionError(context, e, st));
-        return null;
-      },
-      confirmDismiss: (direction) async {
-        if (direction == DismissDirection.endToStart) {
-          try {
-            await ref.read(deleteTaskProvider.notifier).call(task);
-            return true;
-          } catch (_) {
-            return false;
+        },
+        confirmDismiss: (direction) async {
+          if (direction == DismissDirection.endToStart) {
+            try {
+              await ref.read(deleteTaskProvider.notifier).call(task);
+              return true;
+            } catch (_) {
+              return false;
+            }
           }
-        }
-        return false;
-      },
+          return false;
+        },
+      ),
     );
   }
 }

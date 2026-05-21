@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Checkbox states</title><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg-1);font:500 14px var(--font-sans);}
+  .frame{padding:18px 20px;}
+  .row{display:flex;align-items:center;gap:12px;}
+  .col{display:flex;flex-direction:column;gap:8px;}
+  .swatch{width:64px;height:64px;border-radius:10px;box-shadow:inset 0 1px 0 0 var(--bevel-top);}
+  .dot{width:14px;height:14px;border-radius:50%;display:inline-block;}
+  .hex{font:600 11px var(--font-mono);color:var(--fg-3);letter-spacing:0.3px;}
+  .lbl{font:700 10.5px var(--font-sans);letter-spacing:0.5px;text-transform:uppercase;color:var(--fg-3);}
+  .name{font:600 13px var(--font-sans);color:var(--fg-1);}
+</style></head><body><div class="frame">
+    <div class="row" style="gap:30px">
+      <div class="col" style="align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border:2px solid rgba(255,255,255,0.4);border-radius:50%"></div>
+        <div class="lbl">empty</div>
+      </div>
+      <div class="col" style="align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border:2px solid rgba(255,255,255,0.4);border-radius:50%;display:flex;align-items:center;justify-content:center">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"><path d="M3 8a5 5 0 1 1 1.5 3.5M3 12V8h4"/></svg>
+        </div>
+        <div class="lbl">recurring</div>
+      </div>
+      <div class="col" style="align-items:center;gap:8px">
+        <div style="width:28px;height:28px;background:var(--brand-magenta);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px rgba(216,58,255,0.25)">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,8.5 6.5,12 13,4"/></svg>
+        </div>
+        <div class="lbl">checked</div>
+      </div>
+    </div></div></body></html>

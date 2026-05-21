@@ -25,6 +25,7 @@ import 'package:taskmaestro/features/sync/presentation/sync_conflict_banner.dart
 import 'package:taskmaestro/features/sync/providers/sync_conflict_providers.dart';
 import 'package:taskmaestro/core/platform/form_factor.dart';
 import 'package:taskmaestro/features/shared/presentation/app_drawer.dart';
+import 'package:taskmaestro/features/shared/presentation/wide/right_pane_container.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/wide_nav_sidebar.dart';
 
 /// Riverpod-based main app widget
@@ -577,6 +578,12 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
   /// Wide adaptive shell (TM-382, Story 1 of Epic TM-188): the left
   /// [WideNavSidebar] replaces the bottom nav; the banner Column + tab
   /// body keep their existing structure and order to the right.
+  ///
+  /// TM-383 (Story 2) adds an optional third Row cell — the
+  /// [RightPaneContainer] — at logical widths ≥1200dp
+  /// ([isTwoPaneWideLayout]). The right pane sits OUTSIDE the center
+  /// Column so that banners only span the center region, matching the
+  /// prototype's "right pane is its own surface" treatment.
   Widget _buildWideShell({
     required BuildContext context,
     required List<TopNavItem> liveNavItems,
@@ -584,6 +591,7 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
     required bool hasPendingInvite,
     required Widget tabBody,
   }) {
+    final isTwoPane = isTwoPaneWideLayout(MediaQuery.sizeOf(context));
     return Scaffold(
       drawer: const AppDrawer(),
       body: Row(
@@ -608,6 +616,11 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
               ],
             ),
           ),
+          if (isTwoPane)
+            const SizedBox(
+              width: 380,
+              child: RightPaneContainer(),
+            ),
         ],
       ),
     );

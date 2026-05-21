@@ -30,6 +30,23 @@ bool isWideLayout(Size logicalSize) =>
     !isPhoneFormFactor(logicalSize) &&
     logicalSize.width >= kWideLayoutWidthBreakpoint;
 
+/// Logical-width breakpoint at/above which the wide adaptive shell adds a
+/// third Row cell on the right for the contextual right pane (TM-383
+/// Story 2 scaffold; TM-384 editor and TM-385 View-Options panel populate
+/// it). Set to 1200dp so that at the minimum two-pane width we still have
+/// 1200 − 264 sidebar − 380 right pane = 556dp for the center column;
+/// the column hits its 720dp prototype max comfortably at ~1364dp+. Below
+/// this width, the layout stays Story-1 shape (sidebar + center column
+/// only), even though [isWideLayout] is true.
+const double kTwoPaneWideLayoutWidthBreakpoint = 1200.0;
+
+/// True when [logicalSize] should render the two-pane wide shell (sidebar
+/// + center column + right pane). Requires [isWideLayout] AND a logical
+/// width of at least [kTwoPaneWideLayoutWidthBreakpoint] (TM-383).
+bool isTwoPaneWideLayout(Size logicalSize) =>
+    isWideLayout(logicalSize) &&
+    logicalSize.width >= kTwoPaneWideLayoutWidthBreakpoint;
+
 /// Whether TM-371's portrait lock should apply: phones only, never on
 /// web (web landscape is a deliberate future feature, TM-354), never on
 /// tablets.

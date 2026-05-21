@@ -11,6 +11,20 @@ Give TaskMaestro a polished large-screen (web / tablet / large Android) layout. 
 
 **Design source of truth:** Claude Design handoff bundle `TaskMaestro Redesign-handoff(1)` — `TaskMaestro Wide.html` + `wide-chrome.jsx` / `wide-screens.jsx` / `wide-editor.jsx` / `wide-view-options.jsx`. Recreate those visuals pixel-faithfully in Flutter; reuse existing widgets/tokens, do not re-derive a new look.
 
+## Prototype / Reference
+
+**Handoff bundle**: [`.claude/handoff/TM-188/taskmaestro-redesign/`](.claude/handoff/TM-188/taskmaestro-redesign/) — captured 2026-05-20 (retroactively, per the new `/epic-start` Step 6b convention). Tracked in git so every `/task-start` under this Epic reads the visual source of truth directly, not just this doc.
+
+**Files (per story):**
+- `project/wide-chrome.jsx` — Story 1 (TM-382): sidebar, `RightPaneEmpty`, `ListAppBar`, `SprintBanner`, brand strip, locked Coming Soon rows.
+- `project/wide-screens.jsx` — Story 2 (TM-383): `TaskListPane`, `SelectableCard` (the magenta selection ring), `ListSectionHeader`, `FrameLabel`.
+- `project/wide-editor.jsx` — Story 3 (TM-384): docked editor pane content + chrome.
+- `project/wide-view-options.jsx` — Story 4 (TM-385): View Options side panel, `ViewOptionsHandle`, `ViewOptionsSummaryBar` (the chip bar deferred from Story 2 — see Story 2 scope note).
+- `project/TaskMaestro Wide.html` — composed canvas; useful to see all four panels together at once.
+- `project/preview/*.html` + `project/uploads/*` — design system reference (colors, type, spacing, brand mark, screenshots).
+
+Per-story plans should open the listed `.jsx` file FIRST, then fall back to the prose here.
+
 ## Architecture
 
 ### Current State
@@ -54,16 +68,21 @@ Introduce the width-breakpoint shell and the left navigation sidebar; phone path
 
 ### Story 2: Center list pane + selection state + right-pane scaffold (~700–1000 LOC)
 
-Recompose the existing grouped list into the center column with a list app bar, a View-Options summary chip bar, the active-sprint banner, and a selection ring — **grouping and the View-Options group axis are unchanged** (prototype section headers were illustrative only). Add the selected-task provider and the contextual right-pane container with the on-brand empty state; selection resets on destination switch; ~720dp max column at expanded width.
+Recompose the existing grouped list into the center column with the existing list app bar, the active-sprint banner, and a selection ring — **grouping and the View-Options group axis are unchanged** (prototype section headers were illustrative only). Add the selected-task provider and the contextual right-pane container with the on-brand empty state; selection resets on destination switch; ~720dp max column at expanded width. **Right pane appears only at ≥1200dp logical width** (new `isTwoPaneWideLayout` predicate, additive to TM-382's `isWideLayout`); below that, the layout stays Story-1 shape (sidebar + center column only). **On wide, tapping a row fires both `expandedTaskProvider.toggle()` AND `selectedTaskProvider.select()/clear()`** — the inline accordion and the right pane coexist. Phone path unchanged.
+
+**Scope note (2026-05-20):** The View-Options summary chip bar that the original Story 2 sketch included is **deferred to Story 4** (`wide-view-options.jsx ViewOptionsSummaryBar`) — Story 4 already owns it per its description + AC; building it twice would be redundant and Story 4's side-panel context is where the prototype puts it visually.
 
 **Files to create/modify:**
-- `lib/features/tasks/presentation/task_list_screen.dart` — `_TaskListBody`: extract/compose into the center pane; selection ring on rows; max-width column in wide mode (phone rendering unchanged)
-- New: selected-task provider + right-pane mode provider (`lib/features/shared/providers/`)
-- New: right-pane container + empty-state widget (`lib/features/shared/presentation/`)
-- `lib/features/tasks/providers/expanded_task_provider.dart` — reconcile inline-accordion (phone) vs. selection (wide); accordion stays the phone behavior
-- `lib/features/shared/presentation/widgets/collapsible_group_header.dart` — reused as-is
+- `lib/features/tasks/presentation/task_list_screen.dart` — `_TaskListBody`: `Center + ConstrainedBox(maxWidth: 720)` wrap on wide; `_TaskListItem` wrapped with `SelectableTaskItem` for the ring (phone rendering unchanged)
+- New: `lib/features/shared/providers/selected_task_providers.dart` — `SelectedTask` notifier (`String?` docId) + `RightPane` notifier (`RightPaneMode { empty, editor, viewOptions }`)
+- New: `lib/features/shared/presentation/wide/right_pane_container.dart` + `right_pane_empty_state.dart` + `selectable_task_item.dart`
+- `lib/core/platform/form_factor.dart` — add `isTwoPaneWideLayout(Size)` + `kTwoPaneWideLayoutWidthBreakpoint = 1200.0` (additive to TM-382's 4 symbols)
+- `lib/riverpod_app.dart` `_buildWideShell` — 3rd Row cell (right pane) when two-pane; outside the center Column so banners only span the center
+- `lib/features/shared/providers/navigation_provider.dart` `setTab` — clear `selectedTaskProvider` + reset `rightPaneProvider` to `.empty` alongside the existing three clears
+- `lib/features/shared/presentation/editable_task_item.dart` — tap handler also writes selection on wide (phone path unchanged)
+- `lib/features/tasks/providers/expanded_task_provider.dart` — reused as-is; the accordion stays the phone behavior AND co-fires with selection on wide
 
-**Significant UI addition?** No — native-mobile responsive layout. Widget tests: selection sets provider + ring; selection resets on destination switch; empty state renders; grouping unchanged.
+**Significant UI addition?** No — native-mobile responsive layout. Widget tests: selection sets provider + ring on wide; selection stays null on phone; selection resets on destination switch; empty state renders; right pane appears only at ≥1200dp; grouping unchanged; phone untouched.
 
 ### Story 3: Docked editor pane (~800–1100 LOC)
 

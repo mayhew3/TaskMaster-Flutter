@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../tasks/providers/expanded_task_provider.dart';
 import '../../tasks/providers/task_filter_providers.dart';
 import '../../tasks/providers/task_providers.dart';
+import 'selected_task_providers.dart';
 
 part 'navigation_provider.g.dart';
 
@@ -81,6 +83,19 @@ class ActiveTabIndex extends _$ActiveTabIndex {
       ref.read(recentlyCompletedTasksProvider.notifier).clear();
       ref.read(recentlyCompletedIndicesProvider.notifier).clear();
       ref.read(searchQueryProvider.notifier).clear();
+      // TM-383: clear the wide-layout selection + reset the right pane to
+      // its empty state on every destination switch so a stale selection
+      // from another tab never outlives the swap. Phone never writes the
+      // selection providers, so this is effectively wide-only behavior.
+      ref.read(selectedTaskProvider.notifier).clear();
+      ref.read(rightPaneProvider.notifier).setMode(RightPaneMode.empty);
+      // Also collapse the inline accordion so it stays in sync with the
+      // selection (the wide-layout tap fires both, so they must reset
+      // together — otherwise a tap on a still-expanded card after the
+      // round-trip flips them out of phase: expanded→null + selected→docId
+      // simultaneously). On phone this matches the existing reset shape
+      // for search / recently-completed: per-tab state resets on switch.
+      ref.read(expandedTaskProvider.notifier).collapse();
       state = clamped;
     });
   }

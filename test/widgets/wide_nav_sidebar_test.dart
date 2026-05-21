@@ -333,6 +333,56 @@ void main() {
     );
   });
 
+  testWidgets(
+      'X clear button appears once the user types, hidden when empty '
+      '(TM-383)', (tester) async {
+    await pump(tester, logical: const Size(1280, 800));
+
+    // Empty field: no close icon (only the search prefix icon).
+    expect(find.byIcon(Icons.close), findsNothing);
+
+    await tester.enterText(find.byType(TextField), 'report');
+    await tester.pump();
+
+    expect(find.byIcon(Icons.close), findsOneWidget,
+        reason: 'X clear icon should appear once the field has text');
+  });
+
+  testWidgets(
+      'tapping the X immediately clears the field AND the search '
+      'provider (no debounce wait) (TM-383)', (tester) async {
+    final c = await pump(tester, logical: const Size(1280, 800));
+    await tester.tap(find.text('Tasks'));
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'report');
+    await tester.pump(const Duration(milliseconds: 300)); // past debounce
+    expect(c.read(searchQueryProvider), 'report');
+
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pump();
+
+    // No 250ms wait — clear commits immediately.
+    expect(c.read(searchQueryProvider), '');
+    expect(tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        '');
+    // And the X disappears now that the field is empty.
+    expect(find.byIcon(Icons.close), findsNothing);
+  });
+
+  testWidgets(
+      'X is hidden when the field is disabled (Stats destination) even '
+      'if there was prior text — defensive (TM-383)', (tester) async {
+    await pump(tester, logical: const Size(1280, 800));
+    await tester.tap(find.text('Stats'));
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    // Disabled fields can't be typed into; double-check no X regardless.
+    expect(find.byIcon(Icons.close), findsNothing);
+  });
+
   testWidgets('tapping the profile footer opens the AppDrawer',
       (tester) async {
     await pump(tester, logical: const Size(1280, 800));

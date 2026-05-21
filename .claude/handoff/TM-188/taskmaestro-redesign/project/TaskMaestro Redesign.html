@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1600"/>
+<title>TaskMaestro · Redesign Exploration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* base brand */
+    --brand-blue: #2C74C5;       /* logo background */
+    --brand-magenta: #D83AFF;    /* logo checkmark */
+    --brand-magenta-muted: #C45EE0;
+
+    /* defaults — overridden via Tweaks */
+    --bg-darkness: 0.55;         /* 0 = card blue, 1 = near-black */
+    --card-saturation: 1;         /* multiplier on card saturation */
+
+    /* derived (script also writes these) */
+    --card: #2C74C5;
+    --bg:   #16345A;
+    --bg-deep: #0E2342;          /* even darker for app shell behind */
+
+    --text: #F2F4FA;
+    --text-dim: rgba(255,255,255,0.72);
+    --text-faint: rgba(255,255,255,0.55);
+    --hairline: rgba(255,255,255,0.08);
+  }
+
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
+    background: #0a0a12;
+    color: #fff;
+  }
+
+  /* ============== iOS screen styles ============== */
+  .tm-screen {
+    width: 393px;
+    height: 852px;
+    background: var(--bg);
+    color: var(--text);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+  .tm-appbar {
+    background: var(--brand-blue);
+    padding: 14px 16px 12px 16px;
+    display: flex; align-items: center; gap: 14px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .tm-appbar .title { font-size: 20px; font-weight: 500; flex: 1; }
+  .tm-appbar .icon-btn {
+    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.9);
+  }
+  .tm-section-header {
+    padding: 14px 16px 6px 16px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .tm-list {
+    flex: 1; overflow-y: auto; padding-bottom: 90px;
+    background: var(--bg);
+  }
+  .tm-bottom-nav {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: var(--brand-blue);
+    padding: 8px 0 30px 0;
+    display: flex; justify-content: space-around;
+    border-top: 1px solid rgba(0,0,0,0.2);
+  }
+  .tm-bottom-nav .nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    color: rgba(255,255,255,0.85);
+    font-size: 10.5px;
+  }
+  .tm-bottom-nav .nav-item.active .pill {
+    background: rgba(0,0,0,0.25); border-radius: 16px; padding: 4px 18px;
+  }
+  .tm-bottom-nav .nav-item .pill { padding: 4px 18px; }
+  .tm-fab {
+    position: absolute; right: 18px; bottom: 95px;
+    width: 56px; height: 56px; border-radius: 16px;
+    background: var(--brand-magenta-muted);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 26px; font-weight: 300;
+    box-shadow: 0 4px 12px rgba(216,58,255,0.35);
+  }
+
+  /* canvas chrome we don't fight */
+  .legend-card {
+    background: #181822; border: 1px solid #2a2a36; border-radius: 10px;
+    padding: 16px 20px; color: #cfd0db; font-size: 13px; line-height: 1.55;
+    width: 380px;
+  }
+  .legend-card h3 { margin: 0 0 8px 0; font-size: 14px; color: #fff; letter-spacing: 0.4px; }
+  .legend-card .swatch-row { display: flex; gap: 8px; margin-top: 10px; }
+  .legend-card .swatch { flex: 1; border-radius: 6px; padding: 6px 8px; font-size: 10.5px; font-weight: 600; }
+  .legend-card .annot { color: #8a8a99; font-size: 12px; margin-top: 8px; }
+
+  .surface-shell {
+    background: var(--bg);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.05);
+  }
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="cards.jsx"></script>
+<script type="text/babel" src="edit.jsx"></script>
+
+<script type="text/babel">
+const { useEffect, useState } = React;
+const { CardV1, CardV2, CardV3, CardV4, CardV5, CardV6, CardV7, CardV8, CardV9 } = window.TMCards;
+const { EditorFullScreen } = window.TMEditors;
+
+// ----------- sample data -----------
+const SAMPLE_TASKS = [
+  { id: 'a', name: "Review August Travel Dates", area: "Family",
+    points: 3, minutes: 30, energy: 2, priority: 3, contexts: ['email','people','phone','reading'],
+    dateKind: 'due', dateLabel: 'Due', dateTime: 'in 4d',
+    project: null, projectStep: 0, projectTotal: 0, recurring: false,
+    dates: { start: { date: 'Apr 28th', relative: '6 days ago' }, target: { date: 'May 2nd', relative: '2 days ago' }, due: { date: 'May 8th', relative: 'in 4 days' } },
+    notes: "Need to lock in flights before fares jump." },
+  { id: 'b', name: "Visit 905 Haddon Drive", area: "Family",
+    points: 5, minutes: 180, energy: 2, priority: 4, contexts: ['car'],
+    dateKind: 'due', dateLabel: 'Due', dateTime: 'in 26m',
+    project: 'House Hunt', projectStep: 4, projectTotal: 6, recurring: false,
+    dates: { start: { date: 'May 4th', relative: 'today' }, due: { date: 'May 4th', relative: 'in 26 minutes' } },
+    notes: "Realtor: Janet. Bring measuring tape + flashlight.",
+    defaultExpanded: true },
+  { id: 'c', name: "Choose Insurance", area: "Maintenance",
+    points: 8, minutes: 90, energy: 3, priority: 5, contexts: ['phone','email'],
+    dateKind: 'urgent', dateLabel: 'Urgent', dateTime: '1d ago',
+    project: null, projectStep: 0, projectTotal: 0, recurring: false,
+    dates: { start: { date: 'Apr 20th', relative: '2 weeks ago' }, target: { date: 'May 1st', relative: '3 days ago' }, urgent: { date: 'May 3rd', relative: '1 day ago' }, due: { date: 'May 15th', relative: 'in 11 days' } },
+    notes: "Compare Aetna vs BCBS; check vision rider." },
+  { id: 'd', name: "Buy New Coffee Maker", area: "Shopping",
+    points: 2, minutes: 45, energy: 1, priority: 2, contexts: ['errand'],
+    dateKind: 'target', dateLabel: 'Target', dateTime: '2d ago',
+    project: null, projectStep: 0, projectTotal: 0, recurring: false,
+    dates: { target: { date: 'May 2nd', relative: '2 days ago' } } },
+  { id: 'e', name: "Find Pediatrician", area: "Family",
+    points: 5, minutes: 120, energy: 3, priority: 4, contexts: ['phone','people'],
+    dateKind: 'target', dateLabel: 'Target', dateTime: '24h ago',
+    project: 'New Baby Setup', projectStep: 2, projectTotal: 8, recurring: false,
+    dates: { start: { date: 'Apr 25th', relative: '9 days ago' }, target: { date: 'May 3rd', relative: '1 day ago' }, due: { date: 'May 30th', relative: 'in 26 days' } },
+    notes: "Get refs from Sarah & Marie. In-network only." },
+  { id: 'f', name: "Clean Air Purifiers", area: "Maintenance",
+    points: 1, minutes: 20, energy: 1, priority: 1, contexts: ['home'],
+    dateKind: 'target', dateLabel: 'Target', dateTime: '12m ago',
+    project: null, projectStep: 0, projectTotal: 0, recurring: true,
+    completed: true,
+    repeat: "Every 3 weeks (after completion)" },
+  { id: 'g', name: "Order Anniversary Cake", area: "Family",
+    points: 2, minutes: 15, energy: 1, priority: 3, contexts: ['phone','errand','shopping'],
+    dateKind: 'urgent', dateLabel: 'Urgent', dateTime: '26d ago',
+    project: null, projectStep: 0, projectTotal: 0, recurring: true,
+    repeat: "Every 1 year (after completion)",
+    notes: "Vanilla bean buttercream, write 'Happy 7th' on top.",
+    dates: { target: { date: 'Apr 8th', relative: '26 days ago' }, urgent: { date: 'Apr 14th', relative: '20 days ago' }, due: { date: 'Apr 18th', relative: '16 days ago' } },
+    defaultExpanded: true },
+  { id: 'h', name: "Renew Monarch Access for Lily", area: "Maintenance",
+    points: 1, minutes: 10, energy: 1, priority: 2, contexts: ['computer'],
+    dateKind: 'urgent', dateLabel: 'Urgent', dateTime: '3h ago',
+    project: null, projectStep: 0, projectTotal: 0, recurring: false,
+    skipped: true },
+  { id: 'i', name: "Install iCue Hub", area: "Hobby",
+    points: 3, minutes: 60, energy: 2, priority: 1, contexts: ['home','computer'],
+    dateKind: null, dateLabel: '', dateTime: '',
+    project: 'Battlestation Build', projectStep: 5, projectTotal: 7, recurring: false,
+    notes: "Comes with the new lighting kit. Watch tutorial first." },
+  { id: 'j', name: "Nursery Plan", area: "Family",
+    points: 5, minutes: 240, energy: 3, priority: 3, contexts: ['home','people'],
+    dateKind: null, dateLabel: '', dateTime: '',
+    project: 'New Baby Setup', projectStep: 1, projectTotal: 8, recurring: false,
+    notes: "Discuss color palette with partner." },
+];
+
+// short list per artboard (each artboard fixed height)
+const SHORT = SAMPLE_TASKS.slice(0, 5);
+
+// ----------- color helper -----------
+function applyTheme(bgDarkness, cardSaturation, cardDarkness) {
+  // Card = brand blue, optionally desaturated, optionally darkened
+  const cardR = 44, cardG = 116, cardB = 197;
+  // mix toward neutral by (1 - saturation)
+  const lum = 0.299*cardR + 0.587*cardG + 0.114*cardB;
+  let sR = Math.round(lum + (cardR - lum) * cardSaturation);
+  let sG = Math.round(lum + (cardG - lum) * cardSaturation);
+  let sB = Math.round(lum + (cardB - lum) * cardSaturation);
+  // Apply card darkness (mix toward black)
+  const cd = cardDarkness ?? 0;
+  sR = Math.round(sR * (1 - cd));
+  sG = Math.round(sG * (1 - cd));
+  sB = Math.round(sB * (1 - cd));
+
+  // Background = card mixed toward black by bgDarkness
+  const t = bgDarkness; // 0 .. 1
+  const bgR = Math.round(sR * (1-t) + 0 * t);
+  const bgG = Math.round(sG * (1-t) + 0 * t);
+  const bgB = Math.round(sB * (1-t) + 0 * t);
+
+  // Even deeper shell behind
+  const t2 = Math.min(1, t + 0.18);
+  const dR = Math.round(sR * (1-t2));
+  const dG = Math.round(sG * (1-t2));
+  const dB = Math.round(sB * (1-t2));
+
+  document.documentElement.style.setProperty('--card', `rgb(${sR},${sG},${sB})`);
+  document.documentElement.style.setProperty('--bg', `rgb(${bgR},${bgG},${bgB})`);
+  document.documentElement.style.setProperty('--bg-deep', `rgb(${dR},${dG},${dB})`);
+}
+
+// ----------- shared screen building blocks -----------
+const SectionHeader = ({label}) => (
+  <div className="tm-section-header">{label}</div>
+);
+
+const TaskListView = ({ tasks, CardComp, showProjectStep = true }) => (
+  <div className="surface-shell" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div className="tm-appbar">
+      <div className="icon-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </div>
+      <div className="title">Tasks</div>
+      <div className="icon-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+      </div>
+      <div className="icon-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22,3 2,3 10,12.5 10,19 14,21 14,12.5"/></svg>
+      </div>
+    </div>
+    <div className="tm-list">
+      <SectionHeader label="Urgent"/>
+      {tasks.filter(t => t.dateKind === 'urgent' || t.dateKind === 'due').map(t => {
+        const tt = showProjectStep ? t : { ...t, project: null };
+        return <CardComp key={t.id} task={tt}/>;
+      })}
+      <SectionHeader label="Target"/>
+      {tasks.filter(t => t.dateKind === 'target').map(t => {
+        const tt = showProjectStep ? t : { ...t, project: null };
+        return <CardComp key={t.id} task={tt}/>;
+      })}
+      <SectionHeader label="Tasks"/>
+      {tasks.filter(t => !t.dateKind).map(t => {
+        const tt = showProjectStep ? t : { ...t, project: null };
+        return <CardComp key={t.id} task={tt}/>;
+      })}
+    </div>
+  </div>
+);
+
+// ----------- single-card spotlight (for detailed comparison) -----------
+const CardSpotlight = ({ tasks, CardComp, showProjectStep = true, label }) => (
+  <div className="surface-shell" style={{ padding: '14px 0 14px 0', minHeight: 200 }}>
+    {tasks.map(t => {
+      const tt = showProjectStep ? t : { ...t, project: null };
+      return <CardComp key={t.id} task={tt}/>;
+    })}
+  </div>
+);
+
+// ----------- legend artboards -----------
+const PaletteCard = () => (
+  <div className="legend-card">
+    <h3>Brand palette</h3>
+    <div>Pulled from the new logo. The medium-dark blue background reads as the same hue family as the cards. Pink is reserved for FAB and project accents — slightly more muted than the logo.</div>
+    <div className="swatch-row">
+      <div className="swatch" style={{ background: '#2C74C5', color: '#fff' }}>Card<br/>#2C74C5</div>
+      <div className="swatch" style={{ background: 'var(--bg)', color: '#fff', border: '1px solid #ffffff15' }}>BG<br/>tweakable</div>
+      <div className="swatch" style={{ background: '#C45EE0', color: '#fff' }}>Pink<br/>#C45EE0</div>
+    </div>
+    <div className="annot">A muted version of the logo magenta is used for the FAB; the brighter brand magenta only on project accents.</div>
+  </div>
+);
+
+const NotesCard = ({ children, title }) => (
+  <div className="legend-card">
+    <h3>{title}</h3>
+    <div>{children}</div>
+  </div>
+);
+
+// ----------- Tweaks integration -----------
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "bgDarkness": 0.35,
+  "cardSaturation": 1,
+  "cardDarkness": 0.08,
+  "showProjectStep": true
+}/*EDITMODE-END*/;
+
+const App = () => {
+  const { TweaksPanel, useTweaks, TweakSection, TweakSlider, TweakToggle } = window;
+  const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+  useEffect(() => {
+    applyTheme(tweaks.bgDarkness, tweaks.cardSaturation, tweaks.cardDarkness);
+  }, [tweaks.bgDarkness, tweaks.cardSaturation, tweaks.cardDarkness]);
+
+  const showStep = tweaks.showProjectStep;
+
+  // Build artboards — V9 first since it's the latest converged direction
+  const variants = [
+    { id: 'v9', label: 'V9 — Refined++ ★', Comp: CardV9, note: "Latest: checkbox back on the right, points moved to row 2 (plain white, no star) so the title can breathe, priority 1–5 segmented bar on the far right. Right cluster is fixed-width so time bars line up vertically across cards." },
+    { id: 'v8', label: 'V8 — Refined+', Comp: CardV8, note: "Fixes V7's top-heaviness: checkbox moved to the LEFT and vertically centered, points become an inline pill next to the title, effort returns as a muscle-arm icon + intensity dots. Right-aligned time bar." },
+    { id: 'v7', label: 'V7 — Refined', Comp: CardV7, note: "Combines V1's airy layout, V3's area color dot, V4's project header strip with dashes, and a small right-aligned time bar so it lines up across cards." },
+    { id: 'v1', label: 'V1 — Compact balanced', Comp: CardV1, note: "Title + area + small context icons inline; date pill top-right; thin log-scale time bar at the bottom; points circle to the right above the checkbox." },
+    { id: 'v2', label: 'V2 — Dense informative', Comp: CardV2, note: "Adds effort dots and an inline project line. The most info per pixel — best for power users." },
+    { id: 'v3', label: 'V3 — Two-line airy', Comp: CardV3, note: "Bigger title, single metadata row underneath, time bar inline. Calmer, more whitespace; good for casual / mobile-first feel." },
+    { id: 'v4', label: 'V4 — Project header strip', Comp: CardV4, note: "When a task is part of a project, show it as a thin top strip with a segmented bar — separates project context from the task itself." },
+    { id: 'v5', label: 'V5 — Vertical time visualizer', Comp: CardV5, note: "Left edge becomes a tall time bar with tick marks at 30m / 1h / 4h / 1d. Replaces the area stripe — area still shows as a dot." },
+    { id: 'v6', label: 'V6 — Rich kitchen-sink', Comp: CardV6, note: "Every field on display: pill, area dot, contexts, effort, time + bar, project pill. The 'show me everything' baseline." },
+  ];
+
+  return (
+    <>
+    <DesignCanvas
+      title="TaskMaestro · New Look + Task Card Explorations"
+      subtitle="Brand palette pulled from the new TaskMaestro logo. Six task-card layouts exploring info density, context icons, project/step, time, and energy. Open Tweaks (top-right) for live theme controls."
+    >
+      <DCSection id="palette" title="01. Brand palette + new look in context">
+        <DCArtboard id="palette-card" label="Palette" width={420} height={260}>
+          <div style={{ padding: 20 }}>
+            <PaletteCard/>
+          </div>
+        </DCArtboard>
+        <DCArtboard id="screen-context" label="Tasks screen — V9 (refined++) in context" width={393} height={852}>
+          <TaskListView tasks={SAMPLE_TASKS} CardComp={CardV9} showProjectStep={showStep}/>
+        </DCArtboard>
+        <DCArtboard id="logo-card" label="Logo" width={393} height={500}>
+          <div style={{
+            width: '100%', height: '100%', background: 'var(--brand-blue)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <img src="assets/TaskMaestro_Logo.jpg" style={{ width: 280, height: 280, borderRadius: 56, boxShadow: '0 12px 36px rgba(0,0,0,0.4)' }}/>
+          </div>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="card-variations" title="02. Task card variations — three each, side by side">
+        {variants.map(v => (
+          <DCArtboard
+            key={v.id} id={v.id} label={v.label}
+            width={393} height={460}
+          >
+            <div style={{ background: 'var(--bg)', height: '100%', padding: '14px 0' }}>
+              {SHORT.map(t => {
+                const tt = showStep ? t : { ...t, project: null };
+                return <v.Comp key={t.id} task={tt}/>;
+              })}
+              <div style={{
+                position: 'absolute', left: 16, right: 16, bottom: 12,
+                fontSize: 11, color: 'rgba(255,255,255,0.55)', lineHeight: 1.4,
+              }}>{v.note}</div>
+            </div>
+          </DCArtboard>
+        ))}
+      </DCSection>
+
+      <DCSection id="full-screens" title="03. Each variation in a full Sprint Tasks screen">
+        {variants.map(v => (
+          <DCArtboard
+            key={'full-' + v.id} id={'full-' + v.id} label={v.label.replace(/—/, '·')}
+            width={393} height={852}
+          >
+            <TaskListView tasks={SAMPLE_TASKS} CardComp={v.Comp} showProjectStep={showStep}/>
+          </DCArtboard>
+        ))}
+      </DCSection>
+
+      <DCSection id="edit-explorations" title="04. Edit task — full-screen">
+        <DCArtboard id="edit-C" label="Edit task screen" width={393} height={1180}>
+          <EditorFullScreen task={SAMPLE_TASKS[1]}/>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="legend" title="05. Notes">
+        <DCArtboard id="legend-cards" label="What changed" width={420} height={400}>
+          <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <NotesCard title="Color">
+              Cards now use the exact brand blue from the logo (#2C74C5). The screen background is a darker version of the same hue — by default ~55% blended toward black. The pink FAB is a slightly muted version of the logo magenta (#C45EE0).
+            </NotesCard>
+          </div>
+        </DCArtboard>
+        <DCArtboard id="legend-cards-2" label="Date treatment + new fields" width={420} height={400}>
+          <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <NotesCard title="Date as a pill, not full-card tint">
+              The warm tints (urgent / target / due) now live in a small pill in the top-right of each card. The card surface stays brand blue so the screen has a calm, unified base — the colored pill draws the eye to the few cards that need attention.
+            </NotesCard>
+          </div>
+        </DCArtboard>
+        <DCArtboard id="legend-cards-3" label="Time bar scale" width={420} height={400}>
+          <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <NotesCard title="Time bar — log scale">
+              Estimated time uses a log scale: 5m → ~5%, 30m → ~30%, 1h → ~40%, 4h → ~65%, 1d → ~85%, 1 week → 100%. Keeps very small and very large estimates legible without one dominating.
+            </NotesCard>
+          </div>
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+    <TweaksPanel title="Tweaks">
+      <TweakSection label="Color">
+        <TweakSlider
+          label="Background darkness"
+          value={Math.round(tweaks.bgDarkness * 100)}
+          min={15} max={85} step={1} unit="%"
+          onChange={(v) => setTweak('bgDarkness', v / 100)}
+        />
+        <TweakSlider
+          label="Card saturation"
+          value={Math.round(tweaks.cardSaturation * 100)}
+          min={40} max={120} step={1} unit="%"
+          onChange={(v) => setTweak('cardSaturation', v / 100)}
+        />
+        <TweakSlider
+          label="Card darkness"
+          value={Math.round((tweaks.cardDarkness || 0) * 100)}
+          min={0} max={50} step={1} unit="%"
+          onChange={(v) => setTweak('cardDarkness', v / 100)}
+        />
+      </TweakSection>
+      <TweakSection label="Card content">
+        <TweakToggle
+          label="Show project + step"
+          value={tweaks.showProjectStep}
+          onChange={(v) => setTweak('showProjectStep', v)}
+        />
+      </TweakSection>
+    </TweaksPanel>
+    </>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
