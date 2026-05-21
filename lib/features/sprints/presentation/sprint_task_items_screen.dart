@@ -332,6 +332,7 @@ class _SprintBody extends ConsumerWidget {
 
     return WideCenteredColumn(
       child: AuraStack(
+        surface: TaskListSurface.sprint,
         child: ListView.builder(
           padding: const EdgeInsets.only(
             top: 7.0,
@@ -357,6 +358,7 @@ class _SprintTaskTile extends ConsumerWidget {
     // renders on the wide adaptive shell. EditableTaskItemWidget's tap
     // handler already fires selectedTaskProvider on wide.
     return SelectableTaskItem(
+      surface: TaskListSurface.sprint,
       taskDocId: task.docId,
       child: EditableTaskItemWidget(
         taskItem: displayTask,

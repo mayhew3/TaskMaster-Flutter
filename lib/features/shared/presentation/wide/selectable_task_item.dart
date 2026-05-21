@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/platform/form_factor.dart';
+import '../../../../models/task_list_view.dart' show TaskListSurface;
 import '../../providers/selected_task_providers.dart';
 import 'aura_stack.dart';
 
@@ -17,20 +18,42 @@ import 'aura_stack.dart';
 ///
 /// All this widget does:
 ///   - On wide AND selected: wraps [child] in a [KeyedSubtree] with a
-///     [GlobalObjectKey] keyed by [taskDocId] so [AuraStack]'s aura
-///     layer can `findRenderObject()` and read the row's bounds.
+///     [GlobalObjectKey] keyed by ([surface], [taskDocId]) so
+///     [AuraStack]'s aura layer can `findRenderObject()` and read the
+///     row's bounds.
 ///   - On compact OR unselected: returns [child] unchanged (no
 ///     wrapper, no key, no rebuild surface).
+///
+/// ## Why the key includes [surface]
+///
+/// The wide shell uses `IndexedStack` to keep all destination bodies
+/// mounted simultaneously (so destination switches are instant). A
+/// family-shared task that's also in the active sprint appears in BOTH
+/// the Family tab AND the Plan tab's sprint view at the same time. If
+/// the user selects that task, both `SelectableTaskItem` instances
+/// would try to attach the same `GlobalObjectKey(_AuraRowKey(docId))` —
+/// and Flutter throws a "Duplicate GlobalKey" error at runtime.
+///
+/// Scoping the key by surface guarantees each `AuraStack` (Tasks /
+/// Family / Sprint) finds only its own surface's row, even when the
+/// same docId is rendered in multiple lists at once.
 ///
 /// The rebuild surface is narrowed by `select`ing only the membership
 /// boolean for this row's docId — flipping selection between two rows A
 /// and B rebuilds only those two rows, not the whole list.
 class SelectableTaskItem extends ConsumerWidget {
+  /// Which list surface this row belongs to. The wide shell renders
+  /// multiple surfaces simultaneously via `IndexedStack`, so the same
+  /// task docId can appear in more than one place at once — the
+  /// surface scope keeps each surface's selection aura on its own key
+  /// namespace.
+  final TaskListSurface surface;
   final String taskDocId;
   final Widget child;
 
   const SelectableTaskItem({
     super.key,
+    required this.surface,
     required this.taskDocId,
     required this.child,
   });
@@ -44,11 +67,11 @@ class SelectableTaskItem extends ConsumerWidget {
         ref.watch(selectedTaskProvider.select((id) => id == taskDocId));
     if (!selected) return child;
 
-    // Only the SELECTED row gets the GlobalObjectKey, so there's never
-    // more than one row in the tree carrying it — Flutter would throw
-    // "duplicate GlobalKey" otherwise.
+    // Only the SELECTED row WITHIN THIS SURFACE gets the GlobalObjectKey,
+    // so there's never more than one row in the tree carrying it —
+    // Flutter would throw "Duplicate GlobalKey" otherwise.
     return KeyedSubtree(
-      key: SelectableTaskItemKey.of(taskDocId),
+      key: SelectableTaskItemKey.of(surface, taskDocId),
       child: child,
     );
   }

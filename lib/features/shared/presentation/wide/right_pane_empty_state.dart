@@ -70,8 +70,11 @@ class _EmptyStateIllustration extends StatelessWidget {
     return SizedBox(
       width: 98,
       height: 98,
-      // Clip overhangs (the badge sits at bottom: -6, right: -6, so the
-      // 92×92 inner square needs a 98×98 host to host the overflow).
+      // Reserve 98×98 (3dp on each side beyond the 92×92 inner square)
+      // so the badge's `-6` overhang has a host to live in. The Stack
+      // uses `Clip.none` so the badge can still extend past the host's
+      // own bounds when needed (consistent with the prototype's
+      // tucked-corner overhang).
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.center,

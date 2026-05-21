@@ -10,6 +10,7 @@ import 'package:taskmaestro/features/shared/providers/selected_task_providers.da
 import 'package:taskmaestro/features/tasks/providers/expanded_task_provider.dart';
 import 'package:taskmaestro/models/context.dart';
 import 'package:taskmaestro/models/task_item.dart';
+import 'package:taskmaestro/models/task_list_view.dart';
 
 /// TM-383 row-level selection tests:
 ///   (1) the magenta `SelectableTaskItem` ring overlay renders on wide
@@ -93,6 +94,7 @@ void main() {
 
       await tester.pumpWidget(_wrap(
         const SelectableTaskItem(
+          surface: TaskListSurface.tasks,
           taskDocId: 'docA',
           child: SizedBox(width: 200, height: 60),
         ),
@@ -101,7 +103,7 @@ void main() {
       await tester.pump();
 
       // The selected row's child is reachable via the shared key.
-      final key = SelectableTaskItemKey.of('docA');
+      final key = SelectableTaskItemKey.of(TaskListSurface.tasks, 'docA');
       expect(key.currentContext, isNotNull,
           reason: 'selected row should be findable via the shared key');
     });
@@ -116,6 +118,7 @@ void main() {
 
       await tester.pumpWidget(_wrap(
         const SelectableTaskItem(
+          surface: TaskListSurface.tasks,
           taskDocId: 'docA',
           child: SizedBox(width: 200, height: 60),
         ),
@@ -123,7 +126,9 @@ void main() {
       ));
       await tester.pump();
 
-      expect(SelectableTaskItemKey.of('docA').currentContext, isNull,
+      expect(
+          SelectableTaskItemKey.of(TaskListSurface.tasks, 'docA').currentContext,
+          isNull,
           reason: 'unselected row must not carry the key');
     });
 
@@ -136,6 +141,7 @@ void main() {
 
       await tester.pumpWidget(_wrap(
         const SelectableTaskItem(
+          surface: TaskListSurface.tasks,
           taskDocId: 'docA',
           child: SizedBox(width: 200, height: 60),
         ),
@@ -143,7 +149,9 @@ void main() {
       ));
       await tester.pump();
 
-      expect(SelectableTaskItemKey.of('docA').currentContext, isNull,
+      expect(
+          SelectableTaskItemKey.of(TaskListSurface.tasks, 'docA').currentContext,
+          isNull,
           reason: 'compact path must not attach the aura key');
     });
   });

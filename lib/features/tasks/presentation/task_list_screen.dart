@@ -228,6 +228,7 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
       tiles.add(_buildEmptyStateWidget());
       return WideCenteredColumn(
         child: AuraStack(
+          surface: TaskListSurface.tasks,
           child: ListView.builder(
             padding: const EdgeInsets.only(
               top: 7.0,
@@ -299,6 +300,7 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
 
     return WideCenteredColumn(
       child: AuraStack(
+        surface: TaskListSurface.tasks,
         child: ListView.builder(
           padding: const EdgeInsets.only(
             top: 7.0,
@@ -497,6 +499,7 @@ class _TaskListItem extends ConsumerWidget {
     // ring on the wide adaptive shell; on phone it returns its child
     // unchanged (no ring, no extra rebuild surface).
     return SelectableTaskItem(
+      surface: TaskListSurface.tasks,
       taskDocId: task.docId,
       child: EditableTaskItemWidget(
         taskItem: displayTask,

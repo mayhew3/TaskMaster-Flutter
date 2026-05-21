@@ -15,6 +15,7 @@ import 'package:taskmaestro/features/family/providers/family_task_filter_provide
 import 'package:taskmaestro/features/shared/logic/task_grouping.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/aura_stack.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/selectable_task_item.dart';
+import 'package:taskmaestro/features/shared/presentation/wide/wide_centered_column.dart';
 import 'package:taskmaestro/features/shared/providers/task_list_view_providers.dart';
 import 'package:taskmaestro/models/context.dart' as ctx;
 import 'package:taskmaestro/models/task_item.dart';
@@ -260,7 +261,9 @@ void main() {
   // contract is whether the chain produces a `ConstrainedBox(maxWidth:
   // 720)` — that's the actual visual cap.
   Finder findCenteredWrap() => find.byWidgetPredicate(
-    (w) => w is ConstrainedBox && w.constraints.maxWidth == 720,
+    (w) =>
+        w is ConstrainedBox &&
+        w.constraints.maxWidth == WideCenteredColumn.maxWidth,
   );
 
   testWidgets('on wide + non-empty, the body is wrapped in WideCenteredColumn '

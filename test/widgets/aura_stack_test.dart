@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/aura_stack.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/selectable_task_item.dart';
 import 'package:taskmaestro/features/shared/providers/selected_task_providers.dart';
+import 'package:taskmaestro/models/task_list_view.dart';
 
 /// TM-383: the [AuraStack] paints the selection aura at the list-body
 /// level, BELOW the rows in z-order, so the row above never has the
@@ -31,9 +32,11 @@ void main() {
         child: MaterialApp(
           home: Scaffold(
             body: AuraStack(
+              surface: TaskListSurface.tasks,
               child: ListView(
                 children: const [
                   SelectableTaskItem(
+                    surface: TaskListSurface.tasks,
                     taskDocId: 'rowA',
                     child: SizedBox(
                       height: 60,
@@ -41,6 +44,7 @@ void main() {
                     ),
                   ),
                   SelectableTaskItem(
+                    surface: TaskListSurface.tasks,
                     taskDocId: 'rowB',
                     child: SizedBox(
                       height: 60,
@@ -48,6 +52,7 @@ void main() {
                     ),
                   ),
                   SelectableTaskItem(
+                    surface: TaskListSurface.tasks,
                     taskDocId: 'rowC',
                     child: SizedBox(
                       height: 60,
@@ -163,10 +168,12 @@ void main() {
         child: MaterialApp(
           home: Scaffold(
             body: AuraStack(
+              surface: TaskListSurface.tasks,
               child: ListView(
                 children: [
                   for (var i = 0; i < 30; i++)
                     SelectableTaskItem(
+                      surface: TaskListSurface.tasks,
                       taskDocId: 'row-$i',
                       child: SizedBox(
                         height: 60,

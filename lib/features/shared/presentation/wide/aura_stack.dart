@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/platform/form_factor.dart';
 import '../../../../models/task_colors.dart';
+import '../../../../models/task_list_view.dart' show TaskListSurface;
 import '../../providers/selected_task_providers.dart';
 import '../editable_task_item.dart' show kV9CardOuterMargin;
 
@@ -29,17 +30,34 @@ import '../editable_task_item.dart' show kV9CardOuterMargin;
 /// ## Wiring
 ///
 /// Each row's [SelectableTaskItem] attaches a [GlobalObjectKey] keyed by
-/// its docId WHEN selected, so this widget's aura layer can look up its
-/// [RenderBox] via that key and paint the aura at the row's current
-/// screen position. A [NotificationListener] catches
+/// ([surface], docId) WHEN selected, so this widget's aura layer can
+/// look up its [RenderBox] via that key and paint the aura at the row's
+/// current screen position. A [NotificationListener] catches
 /// [ScrollUpdateNotification]s from the descendant ListView and
 /// triggers a rebuild so the aura tracks the row through scroll.
+///
+/// ## Surface scoping
+///
+/// The wide shell uses `IndexedStack` to keep all destination bodies
+/// mounted simultaneously. A family-shared task that's also in the
+/// active sprint appears in BOTH the Family list AND the Plan tab's
+/// sprint view at the same time. Without surface scoping, both
+/// [SelectableTaskItem] instances would attach the same global key →
+/// "Duplicate GlobalKey" runtime throw. Each [AuraStack] passes its own
+/// [surface] into the key namespace so the lookups stay independent.
 ///
 /// On compact layouts this widget returns its child unchanged — phones
 /// never render a selection aura.
 class AuraStack extends ConsumerStatefulWidget {
+  /// Which list surface this aura layer is for. Must match the surface
+  /// passed to the [SelectableTaskItem]s rendered inside [child].
+  final TaskListSurface surface;
   final Widget child;
-  const AuraStack({super.key, required this.child});
+  const AuraStack({
+    super.key,
+    required this.surface,
+    required this.child,
+  });
 
   @override
   ConsumerState<AuraStack> createState() => _AuraStackState();
@@ -77,7 +95,7 @@ class _AuraStackState extends ConsumerState<AuraStack> {
           // Positioned) because the layer itself returns Positioned
           // .fromRect when it has a rect — nesting two Positioneds
           // would conflict on the same StackParentData.
-          _AuraLayer(scrollTick: _scrollTick),
+          _AuraLayer(surface: widget.surface, scrollTick: _scrollTick),
           widget.child,
         ],
       ),
@@ -86,8 +104,8 @@ class _AuraStackState extends ConsumerState<AuraStack> {
 }
 
 /// Internal: finds the selected row's [RenderBox] via [GlobalObjectKey]
-/// and paints the aura at its bounds. [scrollTick] is bumped by the
-/// parent on every scroll event to force a re-position.
+/// (scoped by [surface]) and paints the aura at its bounds. [scrollTick]
+/// is bumped by the parent on every scroll event to force a re-position.
 ///
 /// **Why stateful + post-frame:** parents build before children in a
 /// frame, so on the build that follows a selection change, the
@@ -96,8 +114,9 @@ class _AuraStackState extends ConsumerState<AuraStack> {
 /// post-frame callback defers it past the child build pass, then a
 /// `setState` rebuilds this layer with the now-attached RenderBox.
 class _AuraLayer extends ConsumerStatefulWidget {
+  final TaskListSurface surface;
   final int scrollTick;
-  const _AuraLayer({required this.scrollTick});
+  const _AuraLayer({required this.surface, required this.scrollTick});
 
   @override
   ConsumerState<_AuraLayer> createState() => _AuraLayerState();
@@ -155,13 +174,11 @@ class _AuraLayerState extends ConsumerState<_AuraLayer> {
     final docId = ref.read(selectedTaskProvider);
     Rect? newRect;
     if (docId != null) {
-      final rb = SelectableTaskItemKey.of(docId).currentContext
+      final rb = SelectableTaskItemKey.of(widget.surface, docId)
+          .currentContext
           ?.findRenderObject() as RenderBox?;
       final myRb = context.findRenderObject() as RenderBox?;
-      if (rb != null &&
-          rb.attached &&
-          myRb != null &&
-          myRb.attached) {
+      if (rb != null && rb.attached && myRb != null && myRb.attached) {
         final rowGlobal = rb.localToGlobal(Offset.zero);
         final rowLocal = myRb.globalToLocal(rowGlobal);
         newRect = Rect.fromLTWH(
@@ -219,20 +236,24 @@ class _AuraDecoration extends StatelessWidget {
   }
 }
 
-/// Marker type for the row's [GlobalObjectKey]. Using a typed marker
-/// (not a raw String) keeps the key namespace distinct from any other
-/// code that might create `GlobalObjectKey(someString)` for an
-/// unrelated purpose.
+/// Marker type for the row's [GlobalObjectKey]. Includes the surface so
+/// the same docId rendered on multiple surfaces (e.g. a family-shared
+/// task that's also in the active sprint, visible on both the Family
+/// tab and the Plan tab's sprint view simultaneously) gets distinct
+/// keys per surface.
 class _AuraRowKey {
+  final TaskListSurface surface;
   final String docId;
-  const _AuraRowKey(this.docId);
+  const _AuraRowKey(this.surface, this.docId);
 
   @override
   bool operator ==(Object other) =>
-      other is _AuraRowKey && other.docId == docId;
+      other is _AuraRowKey &&
+      other.surface == surface &&
+      other.docId == docId;
 
   @override
-  int get hashCode => docId.hashCode;
+  int get hashCode => Object.hash(surface, docId);
 }
 
 /// Shared key namespace between [SelectableTaskItem] (which attaches the
@@ -240,38 +261,50 @@ class _AuraRowKey {
 /// row's RenderBox).
 ///
 /// **Why a marker:** [GlobalObjectKey] compares `value` by `identical()`
-/// (NOT `==`), so two `GlobalObjectKey(_AuraRowKey('docA'))` calls
-/// produce NON-EQUAL keys because each call allocates a fresh
+/// (NOT `==`), so two `GlobalObjectKey(_AuraRowKey(surface, 'docA'))`
+/// calls produce NON-EQUAL keys because each call allocates a fresh
 /// `_AuraRowKey` instance. The cache below guarantees
-/// `SelectableTaskItemKey.of('docA')` returns the SAME logical key
-/// across the SelectableTaskItem (which attaches it) and the
+/// `SelectableTaskItemKey.of(surface, 'docA')` returns the SAME logical
+/// key across the SelectableTaskItem (which attaches it) and the
 /// `_AuraLayer` (which looks it up).
 ///
-/// **Why bounded to the current selection:** only one row is ever
-/// selected at a time, so only one marker needs to be alive. Bounding
-/// the cache to a single entry (the current docId) avoids the unbounded
-/// growth a naive `Map<String, _AuraRowKey>` would suffer from over a
-/// long session with many task selections. Switching selection from A
-/// to B evicts A and caches B; both call sites (`SelectableTaskItem`
-/// and `_AuraLayer._recomputeRect`) only ever ask for the current
-/// selection's docId, so they always get the same key instance.
+/// **Why per-surface scope:** see [SelectableTaskItem]'s docstring —
+/// the wide shell's `IndexedStack` keeps multiple surfaces mounted, and
+/// a single docId can appear on more than one surface at once (e.g.
+/// family-shared sprint tasks). Without surface scoping, both surfaces
+/// would attach the same global key → duplicate-key throw.
+///
+/// **Why bounded to the current selection per surface:** only one row
+/// per surface is ever selected at a time, so each surface needs at
+/// most one marker alive. Bounding the cache to one entry per surface
+/// avoids the unbounded growth a naive `Map<(surface, docId), _AuraRowKey>`
+/// would suffer over a long session.
 class SelectableTaskItemKey {
   const SelectableTaskItemKey._();
 
-  static String? _cachedDocId;
-  static _AuraRowKey? _cachedMarker;
+  static final Map<TaskListSurface, _CachedMarker> _cache = {};
 
-  /// Returns the [GlobalObjectKey] for [docId]'s row. Stable across
-  /// calls for the SAME docId — multiple invocations return keys that
-  /// compare equal via [GlobalObjectKey]'s identity-based `==`.
+  /// Returns the [GlobalObjectKey] for the row in [surface] with
+  /// [docId]. Stable across calls for the SAME (surface, docId) pair —
+  /// multiple invocations return keys that compare equal via
+  /// [GlobalObjectKey]'s identity-based `==`.
   ///
-  /// Switching to a different docId evicts the previous cache entry
-  /// (only one marker alive at a time; see class doc).
-  static GlobalObjectKey of(String docId) {
-    if (_cachedDocId != docId) {
-      _cachedDocId = docId;
-      _cachedMarker = _AuraRowKey(docId);
+  /// Switching the surface's selection to a different docId evicts the
+  /// previous cache entry for that surface (one marker per surface).
+  static GlobalObjectKey of(TaskListSurface surface, String docId) {
+    final cached = _cache[surface];
+    if (cached?.docId != docId) {
+      _cache[surface] = _CachedMarker(docId, _AuraRowKey(surface, docId));
     }
-    return GlobalObjectKey(_cachedMarker!);
+    return GlobalObjectKey(_cache[surface]!.marker);
   }
+}
+
+/// Internal: one cached `(docId, marker)` pair per surface in
+/// [SelectableTaskItemKey._cache]. Top-level so the cache entries are
+/// strongly typed without exposing the marker.
+class _CachedMarker {
+  final String docId;
+  final _AuraRowKey marker;
+  const _CachedMarker(this.docId, this.marker);
 }

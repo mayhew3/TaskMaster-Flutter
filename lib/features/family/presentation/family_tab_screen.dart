@@ -178,6 +178,7 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
             )
           : WideCenteredColumn(
               child: AuraStack(
+                surface: TaskListSurface.family,
                 child: ListView.builder(
                   padding: const EdgeInsets.only(
                     top: 7.0,
@@ -216,6 +217,7 @@ class _FamilyTaskTile extends ConsumerWidget {
     // handler already fires selectedTaskProvider on wide, so all we need
     // here is the visual.
     return SelectableTaskItem(
+      surface: TaskListSurface.family,
       taskDocId: task.docId,
       child: EditableTaskItemWidget(
         taskItem: task,
