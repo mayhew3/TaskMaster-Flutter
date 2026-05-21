@@ -91,10 +91,24 @@ class ActiveTabIndex extends _$ActiveTabIndex {
     // Phone never writes the selection providers; this is wide-only.
     ref.read(selectedTaskProvider.notifier).clear();
     ref.read(rightPaneProvider.notifier).setMode(RightPaneMode.empty);
-    // TM-383: collapse the inline accordion so it stays in sync with
-    // selection on destination switch (wide tap fires both; they must
-    // reset together — otherwise a tap on a still-expanded card after
-    // the round-trip flips them out of phase).
+    // TM-383: collapse the inline accordion on destination switch. This
+    // is INTENTIONALLY a behavior change for BOTH compact and wide:
+    //
+    // - Wide: keeps the accordion in sync with `selectedTaskProvider`
+    //   (the wide tap fires both, so they must reset together —
+    //   otherwise a tap on a still-expanded card after a tab round-trip
+    //   would flip them out of phase).
+    // - Compact: previously the accordion survived tab switches (per
+    //   ExpandedTask's keepAlive). The change makes it reset in line
+    //   with the existing TM-312 / TM-359 reset pattern (search,
+    //   recently-completed lists are already cleared here) so per-tab
+    //   transient UI state is uniformly cleared on switch.
+    //
+    // The compact-behavior change was explicitly user-approved during
+    // the TM-383 implementation iteration (the alternative was a
+    // wide-only gate, which requires coupling this notifier to layout
+    // state — rejected as too much plumbing for the marginal benefit
+    // of preserving the prior phone behavior).
     ref.read(expandedTaskProvider.notifier).collapse();
   }
 
