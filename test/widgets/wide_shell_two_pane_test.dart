@@ -107,7 +107,10 @@ class _TwoPaneHarness extends StatelessWidget {
           ),
           const Expanded(child: Center(child: Text('wide body'))),
           if (twoPane)
-            const SizedBox(width: 380, child: RightPaneContainer()),
+            // Reference the production constant so this harness stays
+            // aligned with the real shell if the right-pane width
+            // changes in `form_factor.dart`.
+            const SizedBox(width: kRightPaneWidth, child: RightPaneContainer()),
         ],
       ),
     );

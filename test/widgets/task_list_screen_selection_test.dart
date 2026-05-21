@@ -12,6 +12,7 @@ import 'package:taskmaestro/features/areas/providers/area_color_providers.dart';
 import 'package:taskmaestro/features/contexts/providers/context_providers.dart';
 import 'package:taskmaestro/features/family/providers/family_providers.dart';
 import 'package:taskmaestro/features/shared/logic/task_grouping.dart';
+import 'package:taskmaestro/features/shared/presentation/wide/wide_centered_column.dart';
 import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaestro/features/tasks/presentation/task_list_screen.dart';
 import 'package:taskmaestro/features/tasks/providers/task_filter_providers.dart';
@@ -88,28 +89,29 @@ void main() {
   }
 
   testWidgets(
-      'on wide, the list is wrapped in Center + ConstrainedBox(maxWidth: 720)'
-      ' (TM-383)', (tester) async {
+      'on wide, the list is wrapped in Center + ConstrainedBox at '
+      'WideCenteredColumn.maxWidth (TM-383)', (tester) async {
     final taskA = _task('docA', 'Task A');
     await pump(tester, logical: const Size(1280, 800), tasks: [taskA]);
 
     final wrap = find.byWidgetPredicate((w) {
       if (w is! ConstrainedBox) return false;
-      return w.constraints.maxWidth == 720;
+      return w.constraints.maxWidth == WideCenteredColumn.maxWidth;
     });
     expect(wrap, findsAtLeastNWidgets(1),
-        reason: 'expected the wide-only ConstrainedBox(maxWidth: 720) wrap');
+        reason: 'expected the wide-only ConstrainedBox(maxWidth: '
+            'WideCenteredColumn.maxWidth) wrap');
   });
 
   testWidgets(
-      'on compact, NO ConstrainedBox(maxWidth: 720) wrap (TM-383)',
+      'on compact, NO WideCenteredColumn.maxWidth wrap (TM-383)',
       (tester) async {
     final taskA = _task('docA', 'Task A');
     await pump(tester, logical: const Size(800, 600), tasks: [taskA]);
 
     final wrap = find.byWidgetPredicate((w) {
       if (w is! ConstrainedBox) return false;
-      return w.constraints.maxWidth == 720;
+      return w.constraints.maxWidth == WideCenteredColumn.maxWidth;
     });
     expect(wrap, findsNothing,
         reason: 'phone path must not wrap the list in a max-width column');

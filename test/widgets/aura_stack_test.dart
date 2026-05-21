@@ -75,15 +75,11 @@ void main() {
       if (dec is! BoxDecoration) return false;
       final shadows = dec.boxShadow;
       if (shadows == null || shadows.isEmpty) return false;
-      return shadows.any(
-        (s) =>
-            // ignore: deprecated_member_use
-            s.color.red == 0xD8 &&
-            // ignore: deprecated_member_use
-            s.color.green == 0x3A &&
-            // ignore: deprecated_member_use
-            s.color.blue == 0xFF,
-      );
+      // Modern Flutter color-channel API: `toARGB32()` returns the
+      // packed 32-bit ARGB int; the lower 24 bits are RGB. Comparing
+      // them to `0xD83AFF` matches the brandMagenta hue regardless of
+      // alpha.
+      return shadows.any((s) => (s.color.toARGB32() & 0xFFFFFF) == 0xD83AFF);
     });
   }
 

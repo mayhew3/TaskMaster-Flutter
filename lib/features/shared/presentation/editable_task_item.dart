@@ -24,6 +24,14 @@ import 'delayed_checkbox.dart';
 import 'widgets/context_icon.dart';
 import 'widgets/pill.dart';
 
+/// V9 card outer margin — the gutter between consecutive task rows.
+/// Exposed so the wide-shell selection aura ([SelectableTaskItem] /
+/// [AuraStack]) can inset its halo source to match the card silhouette
+/// without duplicating the literal (a drift would silently misalign
+/// the aura with the card edge).
+const EdgeInsets kV9CardOuterMargin =
+    EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0);
+
 /// Pure presentational task card with an inline expand-for-detail panel.
 ///
 /// Tapping the card body toggles the global `expandedTaskProvider` so only
@@ -199,7 +207,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
         key: TaskMaestroKeys.editableTaskItemCard(_docId()),
         color: _cardSurfaceColor(),
         shape: _cardShape(),
-        margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
+        margin: kV9CardOuterMargin,
         child: Stack(
           children: [
             AreaStripe(
@@ -288,21 +296,29 @@ class EditableTaskItemWidget extends ConsumerWidget {
     Color areaColor,
     List<String> contextIcons,
   ) {
-    // Avoid making a card tappable when expanding it would render nothing —
-    // tapping such a card would silently collapse another open card without
-    // any visible affordance, which feels broken.
+    // On phone, suppress taps when expanding would render nothing — a
+    // tappable-but-collapses-others row feels broken with no affordance.
+    // On wide, taps ALWAYS fire because they drive the right-pane
+    // selection (and Story 3's editor will let the user fill in an
+    // empty card), independent of whether there's any current content
+    // worth expanding.
     final canExpand = hasExpandableContent(taskItem, hasOnEdit: onEdit != null);
+    final wide = isWideLayout(MediaQuery.sizeOf(context));
+    final shouldHandleTap = canExpand || wide;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: canExpand
+      onTap: shouldHandleTap
           ? () {
-              // Existing phone path — toggle the inline accordion.
-              ref.read(expandedTaskProvider.notifier).toggle(_docId());
-              // TM-383: on the wide adaptive shell, mirror the toggle
-              // into `selectedTaskProvider` so the magenta selection ring
-              // co-fires with the accordion. Tap-same → clear both;
-              // tap-different → swap both. Phone path skips this entirely.
-              if (isWideLayout(MediaQuery.sizeOf(context))) {
+              // Phone-and-wide: toggle the inline accordion if there's
+              // any content to expand.
+              if (canExpand) {
+                ref.read(expandedTaskProvider.notifier).toggle(_docId());
+              }
+              // TM-383 wide-only: mirror the tap into `selectedTaskProvider`
+              // so the magenta selection ring co-fires with the accordion
+              // (or fires alone, when the row has no expandable content).
+              // Tap-same → clear; tap-different → swap.
+              if (wide) {
                 final docId = _docId();
                 final selectedNotifier =
                     ref.read(selectedTaskProvider.notifier);

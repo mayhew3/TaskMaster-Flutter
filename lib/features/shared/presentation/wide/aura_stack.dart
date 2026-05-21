@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/platform/form_factor.dart';
 import '../../../../models/task_colors.dart';
 import '../../providers/selected_task_providers.dart';
+import '../editable_task_item.dart' show kV9CardOuterMargin;
 
 /// Wraps a list-bearing body in a Stack with a **parent-level** aura
 /// underlay (TM-383 Story 2 of Epic TM-188).
@@ -56,9 +57,14 @@ class _AuraStackState extends ConsumerState<AuraStack> {
 
     return NotificationListener<ScrollUpdateNotification>(
       onNotification: (_) {
+        // No selection = nothing to reposition. Skip the setState (and
+        // the AuraLayer rebuild it triggers) on every scroll frame
+        // during the common no-selection case.
         // Don't consume — let any other listeners (e.g. the framework's
         // own scroll machinery) keep seeing the notification.
-        if (mounted) setState(() => _scrollTick++);
+        if (mounted && ref.read(selectedTaskProvider) != null) {
+          setState(() => _scrollTick++);
+        }
         return false;
       },
       child: Stack(
@@ -189,17 +195,13 @@ class _AuraLayerState extends ConsumerState<_AuraLayer> {
 class _AuraDecoration extends StatelessWidget {
   const _AuraDecoration();
 
-  /// Must match the `Card.margin` on the V9 card body in
-  /// `editable_task_item.dart` (currently line 202) so the aura's
-  /// silhouette lines up with the card's silhouette.
-  static const EdgeInsets _kCardOuterMargin =
-      EdgeInsets.symmetric(horizontal: 8, vertical: 3);
+  /// Corner radius of the aura's RRect.
   static const double _kAuraRadius = 7;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: _kCardOuterMargin,
+      padding: kV9CardOuterMargin,
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(_kAuraRadius),
