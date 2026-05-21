@@ -8,9 +8,9 @@ import 'package:taskmaestro/features/shared/presentation/wide/right_pane_empty_s
 /// per prototype.
 void main() {
   Future<void> pump(WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: Scaffold(body: RightPaneEmptyState()),
-    ));
+    await tester.pumpWidget(
+      const MaterialApp(home: Scaffold(body: RightPaneEmptyState())),
+    );
   }
 
   testWidgets('renders the title text (TM-383)', (tester) async {
@@ -26,9 +26,7 @@ void main() {
     );
   });
 
-  testWidgets(
-      'renders all four keyboard hint pills (TM-383)',
-      (tester) async {
+  testWidgets('renders all four keyboard hint pills (TM-383)', (tester) async {
     await pump(tester);
     expect(find.text('N'), findsOneWidget);
     expect(find.text('/'), findsOneWidget);
@@ -39,9 +37,9 @@ void main() {
     expect(find.text('next/prev'), findsOneWidget);
   });
 
-  testWidgets(
-      'renders the magenta check-badge (#D83AFF) (TM-383)',
-      (tester) async {
+  testWidgets('renders the magenta check-badge (#D83AFF) (TM-383)', (
+    tester,
+  ) async {
     await pump(tester);
     // Find the badge Container by its brand-magenta fill color.
     final badge = find.byWidgetPredicate((w) {
@@ -50,16 +48,55 @@ void main() {
       if (dec is! BoxDecoration) return false;
       return dec.color == const Color(0xFFD83AFF);
     });
-    expect(badge, findsOneWidget,
-        reason: 'expected the 22dp magenta check badge to be present');
+    expect(
+      badge,
+      findsOneWidget,
+      reason: 'expected the 22dp magenta check badge to be present',
+    );
     // And the check glyph inside it.
     expect(find.byIcon(Icons.check), findsOneWidget);
   });
 
-  testWidgets(
-      'renders the faint task-card glyph (Icons.checklist_outlined)',
-      (tester) async {
+  testWidgets('renders the faint task-card glyph (Icons.checklist_outlined)', (
+    tester,
+  ) async {
     await pump(tester);
     expect(find.byIcon(Icons.checklist_outlined), findsOneWidget);
+  });
+
+  testWidgets('at the minimum two-pane interior width (~320dp), the keyboard '
+      'hint pills wrap cleanly without RenderFlex overflow (TM-383 '
+      'regression — defends the Row→Wrap fix)', (tester) async {
+    // 320dp ≈ the right-pane interior width at the minimum two-pane
+    // viewport (1200 sidebar/380right and the empty-state's 30dp
+    // padding on each side leaves ~320dp for the hint row).
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 320,
+              height: 400,
+              child: RightPaneEmptyState(),
+            ),
+          ),
+        ),
+      ),
+    );
+    // If `_KeyboardHintRow` regressed back to a single `Row` (instead
+    // of `Wrap`), this pump would emit a "RenderFlex overflowed by N
+    // pixels" FlutterError captured by tester.takeException().
+    expect(
+      tester.takeException(),
+      isNull,
+      reason:
+          'expected Wrap to absorb the narrow width without '
+          'RenderFlex overflow',
+    );
+    // And the hint row should still render every keycap.
+    expect(find.text('N'), findsOneWidget);
+    expect(find.text('/'), findsOneWidget);
+    expect(find.text('J'), findsOneWidget);
+    expect(find.text('K'), findsOneWidget);
   });
 }

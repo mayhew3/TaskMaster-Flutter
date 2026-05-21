@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/right_pane_container.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/right_pane_empty_state.dart';
 import 'package:taskmaestro/features/shared/providers/selected_task_providers.dart';
+import 'package:taskmaestro/models/task_colors.dart';
 
 /// TM-383: the right-pane container switches on `rightPaneProvider`.
 /// Story 2 only ever lands `.empty`, but the `.editor` / `.viewOptions`
@@ -19,39 +20,41 @@ void main() {
     // Seed the provider before pumping so the build sees the override.
     container.read(rightPaneProvider.notifier).setMode(initialMode);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: container,
-      child: const MaterialApp(
-        home: Scaffold(body: RightPaneContainer()),
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(home: Scaffold(body: RightPaneContainer())),
       ),
-    ));
+    );
     return container;
   }
 
-  testWidgets('renders RightPaneEmptyState when mode is .empty (TM-383)',
-      (tester) async {
+  testWidgets('renders RightPaneEmptyState when mode is .empty (TM-383)', (
+    tester,
+  ) async {
     await pump(tester, initialMode: RightPaneMode.empty);
     expect(find.byType(RightPaneEmptyState), findsOneWidget);
     expect(find.text('Select a task'), findsOneWidget);
   });
 
-  testWidgets('renders editor placeholder when mode is .editor (TM-384 stub)',
-      (tester) async {
+  testWidgets('renders editor placeholder when mode is .editor (TM-384 stub)', (
+    tester,
+  ) async {
     await pump(tester, initialMode: RightPaneMode.editor);
     expect(find.byType(RightPaneEmptyState), findsNothing);
     expect(find.textContaining('TM-384'), findsOneWidget);
   });
 
-  testWidgets(
-      'renders view-options placeholder when mode is .viewOptions '
+  testWidgets('renders view-options placeholder when mode is .viewOptions '
       '(TM-385 stub)', (tester) async {
     await pump(tester, initialMode: RightPaneMode.viewOptions);
     expect(find.byType(RightPaneEmptyState), findsNothing);
     expect(find.textContaining('TM-385'), findsOneWidget);
   });
 
-  testWidgets('switching mode at runtime updates the pane (TM-383)',
-      (tester) async {
+  testWidgets('switching mode at runtime updates the pane (TM-383)', (
+    tester,
+  ) async {
     final c = await pump(tester, initialMode: RightPaneMode.empty);
     expect(find.byType(RightPaneEmptyState), findsOneWidget);
 
@@ -60,5 +63,23 @@ void main() {
 
     expect(find.byType(RightPaneEmptyState), findsNothing);
     expect(find.textContaining('TM-384'), findsOneWidget);
+  });
+
+  testWidgets('paints TaskColors.bgDeep as the pane background — distinct from '
+      'the sidebar (brand blue) and the center column (background) '
+      '(TM-383)', (tester) async {
+    await pump(tester, initialMode: RightPaneMode.empty);
+
+    // The RightPaneContainer wraps its child in a Material whose color
+    // is the deliberate `bgDeep` token. Match by widget predicate so a
+    // ColoredBox replacement would also pass; tighten if needed.
+    final material = find.byWidgetPredicate(
+      (w) => w is Material && w.color == TaskColors.bgDeep,
+    );
+    expect(
+      material,
+      findsOneWidget,
+      reason: 'expected the deeper background for visual distinction',
+    );
   });
 }

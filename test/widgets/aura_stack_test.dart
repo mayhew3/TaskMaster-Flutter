@@ -25,31 +25,42 @@ void main() {
       container.read(selectedTaskProvider.notifier).select(selectDocId);
     }
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: container,
-      child: MaterialApp(
-        home: Scaffold(
-          body: AuraStack(
-            child: ListView(
-              children: const [
-                SelectableTaskItem(
-                  taskDocId: 'rowA',
-                  child: SizedBox(height: 60, child: ColoredBox(color: Colors.blue)),
-                ),
-                SelectableTaskItem(
-                  taskDocId: 'rowB',
-                  child: SizedBox(height: 60, child: ColoredBox(color: Colors.blue)),
-                ),
-                SelectableTaskItem(
-                  taskDocId: 'rowC',
-                  child: SizedBox(height: 60, child: ColoredBox(color: Colors.blue)),
-                ),
-              ],
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          home: Scaffold(
+            body: AuraStack(
+              child: ListView(
+                children: const [
+                  SelectableTaskItem(
+                    taskDocId: 'rowA',
+                    child: SizedBox(
+                      height: 60,
+                      child: ColoredBox(color: Colors.blue),
+                    ),
+                  ),
+                  SelectableTaskItem(
+                    taskDocId: 'rowB',
+                    child: SizedBox(
+                      height: 60,
+                      child: ColoredBox(color: Colors.blue),
+                    ),
+                  ),
+                  SelectableTaskItem(
+                    taskDocId: 'rowC',
+                    child: SizedBox(
+                      height: 60,
+                      child: ColoredBox(color: Colors.blue),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ));
+    );
     await tester.pumpAndSettle();
     return container;
   }
@@ -64,58 +75,144 @@ void main() {
       if (dec is! BoxDecoration) return false;
       final shadows = dec.boxShadow;
       if (shadows == null || shadows.isEmpty) return false;
-      return shadows.any((s) =>
-          // ignore: deprecated_member_use
-          s.color.red == 0xD8 &&
-          // ignore: deprecated_member_use
-          s.color.green == 0x3A &&
-          // ignore: deprecated_member_use
-          s.color.blue == 0xFF);
+      return shadows.any(
+        (s) =>
+            // ignore: deprecated_member_use
+            s.color.red == 0xD8 &&
+            // ignore: deprecated_member_use
+            s.color.green == 0x3A &&
+            // ignore: deprecated_member_use
+            s.color.blue == 0xFF,
+      );
     });
   }
 
-  testWidgets('on wide, paints the aura when a row is selected (TM-383)',
-      (tester) async {
+  testWidgets('on wide, paints the aura when a row is selected (TM-383)', (
+    tester,
+  ) async {
     await pump(tester, logical: const Size(1280, 800), selectDocId: 'rowB');
-    expect(findAura(), findsOneWidget,
-        reason: 'expected the magenta aura painted at the selected row');
+    expect(
+      findAura(),
+      findsOneWidget,
+      reason: 'expected the magenta aura painted at the selected row',
+    );
   });
 
-  testWidgets('on wide, no aura when nothing is selected (TM-383)',
-      (tester) async {
+  testWidgets('on wide, no aura when nothing is selected (TM-383)', (
+    tester,
+  ) async {
     await pump(tester, logical: const Size(1280, 800));
     expect(findAura(), findsNothing);
   });
 
-  testWidgets(
-      'on compact, AuraStack returns child unchanged — no aura painted '
+  testWidgets('on compact, AuraStack returns child unchanged — no aura painted '
       '(TM-383)', (tester) async {
     await pump(tester, logical: const Size(800, 600), selectDocId: 'rowB');
-    expect(findAura(), findsNothing,
-        reason: 'compact path bypasses AuraStack entirely');
+    expect(
+      findAura(),
+      findsNothing,
+      reason: 'compact path bypasses AuraStack entirely',
+    );
   });
 
-  testWidgets(
-      'switching selection from rowA → rowB moves the aura (TM-383)',
-      (tester) async {
-    final c =
-        await pump(tester, logical: const Size(1280, 800), selectDocId: 'rowA');
+  testWidgets('switching selection from rowA → rowB moves the aura (TM-383)', (
+    tester,
+  ) async {
+    final c = await pump(
+      tester,
+      logical: const Size(1280, 800),
+      selectDocId: 'rowA',
+    );
     expect(findAura(), findsOneWidget);
 
     c.read(selectedTaskProvider.notifier).select('rowB');
     await tester.pumpAndSettle();
-    expect(findAura(), findsOneWidget,
-        reason: 'still exactly one aura — just at the new row');
+    expect(
+      findAura(),
+      findsOneWidget,
+      reason: 'still exactly one aura — just at the new row',
+    );
   });
 
-  testWidgets(
-      'clearing selection removes the aura (TM-383)', (tester) async {
-    final c =
-        await pump(tester, logical: const Size(1280, 800), selectDocId: 'rowA');
+  testWidgets('clearing selection removes the aura (TM-383)', (tester) async {
+    final c = await pump(
+      tester,
+      logical: const Size(1280, 800),
+      selectDocId: 'rowA',
+    );
     expect(findAura(), findsOneWidget);
 
     c.read(selectedTaskProvider.notifier).clear();
     await tester.pumpAndSettle();
     expect(findAura(), findsNothing);
+  });
+
+  testWidgets('aura repositions when the ListView scrolls (TM-383 — the whole '
+      'point of the parent-level architecture over per-row painting)', (
+    tester,
+  ) async {
+    // Pump a tall list so there's actually room to scroll. Override the
+    // default pump's 3-row helper.
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(1280, 800);
+    addTearDown(tester.view.reset);
+
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    container.read(selectedTaskProvider.notifier).select('row-0');
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          home: Scaffold(
+            body: AuraStack(
+              child: ListView(
+                children: [
+                  for (var i = 0; i < 30; i++)
+                    SelectableTaskItem(
+                      taskDocId: 'row-$i',
+                      child: SizedBox(
+                        height: 60,
+                        child: ColoredBox(color: Colors.blue.shade700),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Aura is present and at the top of the list.
+    final auraBefore = findAura();
+    expect(auraBefore, findsOneWidget);
+    final yBefore = tester.getTopLeft(auraBefore).dy;
+
+    // Scroll the list up by 200dp — row-0 moves up with it.
+    await tester.drag(find.byType(ListView), const Offset(0, -200));
+    await tester.pumpAndSettle();
+
+    // Aura must still be one widget AND its Y must have shifted
+    // upward by roughly the same amount. (Exact equality would be
+    // fragile to floating-point + scroll physics; ±5dp tolerance.)
+    final auraAfter = findAura();
+    expect(
+      auraAfter,
+      findsOneWidget,
+      reason: 'aura still attached to row-0 even after scroll',
+    );
+    final yAfter = tester.getTopLeft(auraAfter).dy;
+    expect(
+      yAfter,
+      lessThan(yBefore - 100),
+      reason:
+          'aura should have moved up by ~200dp with the scrolled '
+          'row, not stayed glued to screen-space (which would mean '
+          'the NotificationListener / scrollTick / didUpdateWidget '
+          'reposition path regressed)',
+    );
   });
 }

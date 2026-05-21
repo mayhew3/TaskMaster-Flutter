@@ -25,7 +25,7 @@ class RightPaneEmptyState extends StatelessWidget {
           children: [
             const _EmptyStateIllustration(),
             const SizedBox(height: 18),
-            Text(
+            const Text(
               'Select a task',
               style: TextStyle(
                 fontSize: 15,
@@ -94,9 +94,13 @@ class _EmptyStateIllustration extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.45),
             ),
           ),
+          // -6 overhang on bottom/right tucks the badge into the inner
+          // square's corner with a real overhang into the host's 3dp
+          // gutter — matches the prototype's tucked-corner placement.
+          // Requires the Stack's `clipBehavior: Clip.none` (set above).
           Positioned(
-            bottom: 0,
-            right: 0,
+            bottom: -6,
+            right: -6,
             child: Container(
               width: 22,
               height: 22,
@@ -105,11 +109,7 @@ class _EmptyStateIllustration extends StatelessWidget {
                 color: TaskColors.brandMagenta,
               ),
               alignment: Alignment.center,
-              child: const Icon(
-                Icons.check,
-                size: 13,
-                color: Colors.white,
-              ),
+              child: const Icon(Icons.check, size: 13, color: Colors.white),
             ),
           ),
         ],
@@ -142,23 +142,29 @@ class _KeyboardHintRow extends StatelessWidget {
       spacing: 10,
       runSpacing: 6,
       children: [
-        _HintGroup(children: [
-          const _Kbd('N'),
-          const SizedBox(width: 4),
-          Text('new task', style: muted),
-        ]),
-        _HintGroup(children: [
-          const _Kbd('/'),
-          const SizedBox(width: 4),
-          Text('search', style: muted),
-        ]),
-        _HintGroup(children: [
-          const _Kbd('J'),
-          const SizedBox(width: 3),
-          const _Kbd('K'),
-          const SizedBox(width: 4),
-          Text('next/prev', style: muted),
-        ]),
+        _HintGroup(
+          children: [
+            const _Kbd('N'),
+            const SizedBox(width: 4),
+            Text('new task', style: muted),
+          ],
+        ),
+        _HintGroup(
+          children: [
+            const _Kbd('/'),
+            const SizedBox(width: 4),
+            Text('search', style: muted),
+          ],
+        ),
+        _HintGroup(
+          children: [
+            const _Kbd('J'),
+            const SizedBox(width: 3),
+            const _Kbd('K'),
+            const SizedBox(width: 4),
+            Text('next/prev', style: muted),
+          ],
+        ),
       ],
     );
   }

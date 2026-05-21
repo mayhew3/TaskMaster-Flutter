@@ -33,12 +33,20 @@ bool isWideLayout(Size logicalSize) =>
 /// Logical-width breakpoint at/above which the wide adaptive shell adds a
 /// third Row cell on the right for the contextual right pane (TM-383
 /// Story 2 scaffold; TM-384 editor and TM-385 View-Options panel populate
-/// it). Set to 1200dp so that at the minimum two-pane width we still have
-/// 1200 − 264 sidebar − 380 right pane = 556dp for the center column;
-/// the column hits its 720dp prototype max comfortably at ~1364dp+. Below
-/// this width, the layout stays Story-1 shape (sidebar + center column
-/// only), even though [isWideLayout] is true.
+/// it). Below this width, the layout stays Story-1 shape (sidebar +
+/// center column only), even though [isWideLayout] is true.
+///
+/// Chosen so the center column retains usable width at the minimum
+/// two-pane viewport. With the sidebar at TM-382's fixed width and the
+/// right pane at [kRightPaneWidth], the center has room left over;
+/// it hits its 720dp prototype max comfortably at ~1364dp+.
 const double kTwoPaneWideLayoutWidthBreakpoint = 1200.0;
+
+/// Fixed width of the right pane on the wide two-pane shell (TM-383).
+/// Lives here so [kTwoPaneWideLayoutWidthBreakpoint]'s rationale stays
+/// in sync with the actual layout literal in `riverpod_app.dart`'s
+/// `_buildWideShell`.
+const double kRightPaneWidth = 380.0;
 
 /// True when [logicalSize] should render the two-pane wide shell (sidebar
 /// + center column + right pane). Requires [isWideLayout] AND a logical
@@ -50,8 +58,5 @@ bool isTwoPaneWideLayout(Size logicalSize) =>
 /// Whether TM-371's portrait lock should apply: phones only, never on
 /// web (web landscape is a deliberate future feature, TM-354), never on
 /// tablets.
-bool shouldLockPortrait({
-  required bool isWeb,
-  required Size logicalSize,
-}) =>
+bool shouldLockPortrait({required bool isWeb, required Size logicalSize}) =>
     !isWeb && isPhoneFormFactor(logicalSize);

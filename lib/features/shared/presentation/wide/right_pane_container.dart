@@ -27,19 +27,26 @@ class RightPaneContainer extends ConsumerWidget {
       color: TaskColors.bgDeep,
       child: switch (mode) {
         RightPaneMode.empty => const RightPaneEmptyState(),
-        RightPaneMode.editor => const _RightPaneEditorPlaceholder(),
-        RightPaneMode.viewOptions => const _RightPaneViewOptionsPlaceholder(),
+        // TODO(TM-384): replace with the docked editor pane.
+        RightPaneMode.editor => const _RightPanePlaceholder(
+          'Editor pane lands in TM-384 (Story 3).',
+        ),
+        // TODO(TM-385): replace with the View-Options side panel.
+        RightPaneMode.viewOptions => const _RightPanePlaceholder(
+          'View Options panel lands in TM-385 (Story 4).',
+        ),
       },
     );
   }
 }
 
-/// Stand-in for the docked editor pane — landed by TM-384 (Story 3).
-/// Visible only if someone manually flips [rightPaneProvider] to
-/// [RightPaneMode.editor]; Story 2 never sets it.
-// TODO(TM-384): replace with the docked editor pane.
-class _RightPaneEditorPlaceholder extends StatelessWidget {
-  const _RightPaneEditorPlaceholder();
+/// Stand-in for the not-yet-built right-pane surfaces ([RightPaneMode
+/// .editor] / [RightPaneMode.viewOptions]). Story 2 never lands either
+/// of those modes; the placeholder only shows if a future caller flips
+/// the mode before Stories 3 / 4 ship.
+class _RightPanePlaceholder extends StatelessWidget {
+  final String message;
+  const _RightPanePlaceholder(this.message);
 
   @override
   Widget build(BuildContext context) {
@@ -47,35 +54,9 @@ class _RightPaneEditorPlaceholder extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(30),
         child: Text(
-          'Editor pane lands in TM-384 (Story 3).',
+          message,
           textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 13,
-            color: TaskColors.textFaint,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Stand-in for the View-Options side panel — landed by TM-385 (Story 4).
-// TODO(TM-385): replace with the View-Options side panel.
-class _RightPaneViewOptionsPlaceholder extends StatelessWidget {
-  const _RightPaneViewOptionsPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(30),
-        child: Text(
-          'View Options panel lands in TM-385 (Story 4).',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 13,
-            color: TaskColors.textFaint,
-          ),
+          style: TextStyle(fontSize: 13, color: TaskColors.textFaint),
         ),
       ),
     );

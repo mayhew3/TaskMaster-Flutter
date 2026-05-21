@@ -15,10 +15,7 @@ part 'navigation_provider.g.dart';
 /// `riverpod_app.dart`, which splices in the Family tab when in a family);
 /// individual `NavTab` instances do not carry their own index.
 class NavTab {
-  const NavTab({
-    required this.label,
-    required this.icon,
-  });
+  const NavTab({required this.label, required this.icon});
 
   final String label;
   final IconData icon;
@@ -28,8 +25,7 @@ class NavTab {
 class NavTabs {
   static const plan = NavTab(label: 'Plan', icon: Icons.assignment);
   static const tasks = NavTab(label: 'Tasks', icon: Icons.list);
-  static const family =
-      NavTab(label: 'Family', icon: Icons.family_restroom);
+  static const family = NavTab(label: 'Family', icon: Icons.family_restroom);
   static const stats = NavTab(label: 'Stats', icon: Icons.show_chart);
 
   static const List<NavTab> all = [plan, tasks, stats];
@@ -77,27 +73,29 @@ class ActiveTabIndex extends _$ActiveTabIndex {
       // `ref.read` or `state =` on a disposed notifier throws. Bail out
       // cleanly — the new scope will rebuild from defaults anyway.
       if (!ref.mounted) return;
-      // Clear recently completed tasks when navigating between tabs
-      // This allows completed tasks to move from their original section
-      // to the "Completed" section after navigation (TM-312)
-      ref.read(recentlyCompletedTasksProvider.notifier).clear();
-      ref.read(recentlyCompletedIndicesProvider.notifier).clear();
-      ref.read(searchQueryProvider.notifier).clear();
-      // TM-383: clear the wide-layout selection + reset the right pane to
-      // its empty state on every destination switch so a stale selection
-      // from another tab never outlives the swap. Phone never writes the
-      // selection providers, so this is effectively wide-only behavior.
-      ref.read(selectedTaskProvider.notifier).clear();
-      ref.read(rightPaneProvider.notifier).setMode(RightPaneMode.empty);
-      // Also collapse the inline accordion so it stays in sync with the
-      // selection (the wide-layout tap fires both, so they must reset
-      // together — otherwise a tap on a still-expanded card after the
-      // round-trip flips them out of phase: expanded→null + selected→docId
-      // simultaneously). On phone this matches the existing reset shape
-      // for search / recently-completed: per-tab state resets on switch.
-      ref.read(expandedTaskProvider.notifier).collapse();
+      _resetPerTabState();
       state = clamped;
     });
+  }
+
+  /// Resets transient per-tab UI state on every destination switch.
+  /// Each clear is annotated with the ticket that added it so the
+  /// rationale doesn't drift when the list grows.
+  void _resetPerTabState() {
+    // TM-312: completed tasks move from their original section to the
+    // "Completed" section after navigation.
+    ref.read(recentlyCompletedTasksProvider.notifier).clear();
+    ref.read(recentlyCompletedIndicesProvider.notifier).clear();
+    ref.read(searchQueryProvider.notifier).clear();
+    // TM-383: clear the wide-layout selection + reset the right pane.
+    // Phone never writes the selection providers; this is wide-only.
+    ref.read(selectedTaskProvider.notifier).clear();
+    ref.read(rightPaneProvider.notifier).setMode(RightPaneMode.empty);
+    // TM-383: collapse the inline accordion so it stays in sync with
+    // selection on destination switch (wide tap fires both; they must
+    // reset together — otherwise a tap on a still-expanded card after
+    // the round-trip flips them out of phase).
+    ref.read(expandedTaskProvider.notifier).collapse();
   }
 
   /// Silently adjusts the stored index when a layout change makes it
