@@ -100,6 +100,12 @@ class _AuraLayer extends ConsumerStatefulWidget {
 class _AuraLayerState extends ConsumerState<_AuraLayer> {
   Rect? _auraRect;
   bool _updateScheduled = false;
+  // Held so dispose() can close it explicitly. Riverpod's ConsumerState
+  // ref-disposal should auto-clean listenManual subscriptions, but the
+  // explicit close removes any doubt + keeps the listener-lifetime
+  // story local to this widget rather than relying on the framework's
+  // implicit cleanup semantics.
+  ProviderSubscription<String?>? _selectionSub;
 
   @override
   void initState() {
@@ -110,7 +116,17 @@ class _AuraLayerState extends ConsumerState<_AuraLayer> {
     // Reschedule on every selection change for the lifetime of this
     // widget. Using listenManual (not ref.listen in build) keeps the
     // listener wired exactly once and avoids re-arming on every build.
-    ref.listenManual(selectedTaskProvider, (_, __) => _scheduleUpdate());
+    _selectionSub = ref.listenManual(
+      selectedTaskProvider,
+      (_, __) => _scheduleUpdate(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _selectionSub?.close();
+    _selectionSub = null;
+    super.dispose();
   }
 
   @override
@@ -221,23 +237,39 @@ class _AuraRowKey {
 /// key when selected) and [_AuraLayer] (which looks it up to find the
 /// row's RenderBox).
 ///
-/// **Why the marker cache:** [GlobalObjectKey] compares `value` by
-/// `identical()` (NOT `==`), so two `GlobalObjectKey(_AuraRowKey('docA'))`
-/// calls produce NON-EQUAL keys because each call allocates a fresh
-/// `_AuraRowKey` instance. Caching the marker per docId guarantees
+/// **Why a marker:** [GlobalObjectKey] compares `value` by `identical()`
+/// (NOT `==`), so two `GlobalObjectKey(_AuraRowKey('docA'))` calls
+/// produce NON-EQUAL keys because each call allocates a fresh
+/// `_AuraRowKey` instance. The cache below guarantees
 /// `SelectableTaskItemKey.of('docA')` returns the SAME logical key
 /// across the SelectableTaskItem (which attaches it) and the
 /// `_AuraLayer` (which looks it up).
+///
+/// **Why bounded to the current selection:** only one row is ever
+/// selected at a time, so only one marker needs to be alive. Bounding
+/// the cache to a single entry (the current docId) avoids the unbounded
+/// growth a naive `Map<String, _AuraRowKey>` would suffer from over a
+/// long session with many task selections. Switching selection from A
+/// to B evicts A and caches B; both call sites (`SelectableTaskItem`
+/// and `_AuraLayer._recomputeRect`) only ever ask for the current
+/// selection's docId, so they always get the same key instance.
 class SelectableTaskItemKey {
   const SelectableTaskItemKey._();
 
-  static final Map<String, _AuraRowKey> _markers = {};
+  static String? _cachedDocId;
+  static _AuraRowKey? _cachedMarker;
 
   /// Returns the [GlobalObjectKey] for [docId]'s row. Stable across
-  /// calls — multiple invocations return keys that compare equal via
-  /// [GlobalObjectKey]'s identity-based `==`.
+  /// calls for the SAME docId — multiple invocations return keys that
+  /// compare equal via [GlobalObjectKey]'s identity-based `==`.
+  ///
+  /// Switching to a different docId evicts the previous cache entry
+  /// (only one marker alive at a time; see class doc).
   static GlobalObjectKey of(String docId) {
-    final marker = _markers.putIfAbsent(docId, () => _AuraRowKey(docId));
-    return GlobalObjectKey(marker);
+    if (_cachedDocId != docId) {
+      _cachedDocId = docId;
+      _cachedMarker = _AuraRowKey(docId);
+    }
+    return GlobalObjectKey(_cachedMarker!);
   }
 }
