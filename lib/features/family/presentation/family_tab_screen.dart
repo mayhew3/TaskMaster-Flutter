@@ -216,6 +216,12 @@ class _FamilyTaskTile extends ConsumerWidget {
     // renders on the wide adaptive shell. EditableTaskItemWidget's tap
     // handler already fires selectedTaskProvider on wide, so all we need
     // here is the visual.
+    //
+    // TODO(TM-394): the EditableTaskItemWidget named-arg block below
+    // (onEdit / onLongPress / onTaskCompleteToggle / confirmDismiss) is
+    // mis-indented relative to current `dart_style`. Format pass was
+    // deferred from TM-383 to stay under Copilot's 300-file PR review
+    // limit; TM-394 will apply `dart format` repo-wide.
     return SelectableTaskItem(
       surface: TaskListSurface.family,
       taskDocId: task.docId,
