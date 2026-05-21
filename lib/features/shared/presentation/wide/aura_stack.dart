@@ -1,3 +1,4 @@
+import 'package:flutter/rendering.dart' show RenderStack;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -177,10 +178,22 @@ class _AuraLayerState extends ConsumerState<_AuraLayer> {
       final rb = SelectableTaskItemKey.of(widget.surface, docId)
           .currentContext
           ?.findRenderObject() as RenderBox?;
-      final myRb = context.findRenderObject() as RenderBox?;
-      if (rb != null && rb.attached && myRb != null && myRb.attached) {
+      // Anchor to the ancestor Stack's coordinate space, NOT this
+      // widget's own RenderObject. `context.findRenderObject()` here
+      // would resolve to the Positioned child's RenderObject (the
+      // previously-painted aura's position) — using `globalToLocal` on
+      // that yields offsets relative to where the aura WAS, not where
+      // the Stack IS. Result: each recompute would drift by the
+      // previous aura's local offset (visible when switching selection
+      // between two rows at different vertical positions, or when the
+      // list scrolls).
+      final stackBox = context.findAncestorRenderObjectOfType<RenderStack>();
+      if (rb != null &&
+          rb.attached &&
+          stackBox != null &&
+          stackBox.attached) {
         final rowGlobal = rb.localToGlobal(Offset.zero);
-        final rowLocal = myRb.globalToLocal(rowGlobal);
+        final rowLocal = stackBox.globalToLocal(rowGlobal);
         newRect = Rect.fromLTWH(
           rowLocal.dx,
           rowLocal.dy,

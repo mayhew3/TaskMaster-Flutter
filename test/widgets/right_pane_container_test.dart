@@ -71,8 +71,11 @@ void main() {
     await pump(tester, initialMode: RightPaneMode.empty);
 
     // The RightPaneContainer wraps its child in a Material whose color
-    // is the deliberate `bgDeep` token. Match by widget predicate so a
-    // ColoredBox replacement would also pass; tighten if needed.
+    // is the deliberate `bgDeep` token. The predicate matches exactly
+    // `Material(color: bgDeep)`; an alternate background-painting
+    // widget (`ColoredBox(color: bgDeep)`, `DecoratedBox(...)`, …)
+    // would NOT pass. If the production implementation switches off of
+    // Material, broaden the predicate accordingly.
     final material = find.byWidgetPredicate(
       (w) => w is Material && w.color == TaskColors.bgDeep,
     );
