@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/right_pane_empty_state.dart';
+import 'package:taskmaestro/models/task_colors.dart';
 
 /// TM-383: the right-pane "Select a task" empty state. Pins the
 /// visible-text + presence-of-magenta-badge + the static keyboard hint
@@ -37,16 +38,18 @@ void main() {
     expect(find.text('next/prev'), findsOneWidget);
   });
 
-  testWidgets('renders the magenta check-badge (#D83AFF) (TM-383)', (
+  testWidgets('renders the magenta check-badge (TM-383)', (
     tester,
   ) async {
     await pump(tester);
     // Find the badge Container by its brand-magenta fill color.
+    // Match against the canonical design token, not a hex literal, so
+    // the test follows the brand color if it's ever retuned.
     final badge = find.byWidgetPredicate((w) {
       if (w is! Container) return false;
       final dec = w.decoration;
       if (dec is! BoxDecoration) return false;
-      return dec.color == const Color(0xFFD83AFF);
+      return dec.color == TaskColors.brandMagenta;
     });
     expect(
       badge,
