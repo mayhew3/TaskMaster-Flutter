@@ -154,9 +154,17 @@ class DateTimelinePopup extends StatefulWidget {
   final Map<TaskDateType, DateTime?> dates;
   final void Function(TaskDateType type, DateTime? value) onChanged;
 
+  /// Whether the popup and its nested pickers target the root navigator.
+  /// `true` (default) preserves the full-screen editor behavior. The
+  /// docked editor pane (TM-384) passes `false` so the popup, its
+  /// month/year sub-sheet, and the "Other…" time picker all render
+  /// scoped to the pane's nested navigator instead of the whole window.
+  final bool useRootNavigator;
+
   const DateTimelinePopup({
     required this.dates,
     required this.onChanged,
+    this.useRootNavigator = true,
     super.key,
   });
 
@@ -169,9 +177,11 @@ class DateTimelinePopup extends StatefulWidget {
     required BuildContext context,
     required Map<TaskDateType, DateTime?> dates,
     required void Function(TaskDateType type, DateTime? value) onChanged,
+    bool useRootNavigator = true,
   }) {
     return showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: useRootNavigator,
       // Lets the sheet take more than the default 50% of the screen for
       // tall stacks of markers + the inline calendar. The sheet sizes
       // itself to content via the popup's outer `mainAxisSize: min` and
@@ -184,6 +194,7 @@ class DateTimelinePopup extends StatefulWidget {
       builder: (ctx) => DateTimelinePopup(
         dates: dates,
         onChanged: onChanged,
+        useRootNavigator: useRootNavigator,
       ),
     );
   }
@@ -305,6 +316,7 @@ class _DateTimelinePopupState extends State<DateTimelinePopup> {
                       dates: _dates,
                       onChange: (v) => _setDate(_selected!, v),
                       onRemove: () => _setDate(_selected!, null),
+                      useRootNavigator: widget.useRootNavigator,
                     ),
                   ],
                 ],
@@ -798,12 +810,18 @@ class _SelectedDateDetail extends StatelessWidget {
   final ValueChanged<DateTime> onChange;
   final VoidCallback onRemove;
 
+  /// Threaded through to [_TimeBucketPicker] so the "Other…" time picker
+  /// stays scoped to the docked editor pane (TM-384). See
+  /// [DateTimelinePopup.useRootNavigator].
+  final bool useRootNavigator;
+
   const _SelectedDateDetail({
     required this.type,
     required this.date,
     required this.dates,
     required this.onChange,
     required this.onRemove,
+    this.useRootNavigator = true,
   });
 
   /// Lower bound for the selected date (inclusive). Computed as the latest
@@ -941,6 +959,7 @@ class _SelectedDateDetail extends StatelessWidget {
         const SizedBox(height: 12),
         _TimeBucketPicker(
           date: date,
+          useRootNavigator: useRootNavigator,
           // Time restriction only applies on the boundary day itself.
           // Past the boundary day, the date constraint already covers
           // the chronological order. Full hour+minute precision so a
@@ -1693,11 +1712,17 @@ class _TimeBucketPicker extends StatelessWidget {
   /// Inclusive upper bound. Same rules as [minTime] but for the high end.
   final TimeOfDay? maxTime;
 
+  /// Whether the "Other…" `showTimePicker` dialog targets the root
+  /// navigator. `false` (from the docked editor pane, TM-384) keeps it
+  /// scoped to the pane's nested navigator.
+  final bool useRootNavigator;
+
   const _TimeBucketPicker({
     required this.date,
     required this.onChange,
     this.minTime,
     this.maxTime,
+    this.useRootNavigator = true,
   });
 
   static const _buckets = [9, 12, 14, 17];
@@ -1731,6 +1756,7 @@ class _TimeBucketPicker extends StatelessWidget {
   Future<void> _openOtherPicker(BuildContext context) async {
     final picked = await showTimePicker(
       context: context,
+      useRootNavigator: useRootNavigator,
       initialTime: TimeOfDay(hour: date.hour, minute: date.minute),
     );
     if (picked == null) return;

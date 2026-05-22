@@ -153,18 +153,25 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
         },
       ),
       drawer: const AppDrawer(),
-      floatingActionButton: FloatingActionButton(
-        heroTag: null,
-        onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const TaskAddEditScreen(),
+      // Hide the add-task FAB on wide layouts — the sidebar already
+      // hosts an "+ Add task" affordance (which opens the docked
+      // editor on two-pane wide, or pushes the route below that), so
+      // keeping the FAB visible would just be a duplicate entry point
+      // sitting next to it.
+      floatingActionButton: isWideLayout(MediaQuery.sizeOf(context))
+          ? null
+          : FloatingActionButton(
+              heroTag: null,
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const TaskAddEditScreen(),
+                  ),
+                );
+              },
+              child: const Icon(Icons.add),
             ),
-          );
-        },
-        child: const Icon(Icons.add),
-      ),
     );
   }
 

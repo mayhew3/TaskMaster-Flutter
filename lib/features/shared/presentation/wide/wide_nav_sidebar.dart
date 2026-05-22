@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/platform/form_factor.dart';
 import '../../../../features/areas/presentation/area_manage_screen.dart';
 import '../../../../features/areas/providers/area_color_providers.dart';
 import '../../../../features/areas/providers/area_providers.dart';
@@ -15,6 +16,7 @@ import '../../../../models/context.dart';
 import '../../../../models/task_colors.dart';
 import '../../../../models/task_list_view.dart';
 import '../../../../models/top_nav_item.dart';
+import '../../providers/selected_task_providers.dart';
 import '../../providers/sidebar_facet_counts.dart';
 import '../../providers/task_list_view_providers.dart';
 import '../widgets/context_icon.dart';
@@ -306,24 +308,49 @@ class _SidebarBrandStrip extends StatelessWidget {
   }
 }
 
-/// "+ Add task" — the FAB relocated into the sidebar. Same destination as
-/// the phone FABs: a pushed [TaskAddEditScreen] route (the docked-editor
-/// behaviour is Story 3, TM-384).
-class _SidebarAddTaskButton extends StatelessWidget {
+/// "+ Add task" — the FAB relocated into the sidebar.
+///
+/// On the two-pane wide layout (≥1200dp), opens the docked editor in
+/// add-mode in the right pane — clears any existing selection and sets
+/// `rightPaneProvider` to [RightPaneMode.addingNewTask]. The mode is
+/// distinct from `.editor` so the `RightPaneSelectionSync` listener
+/// doesn't downgrade it when selection goes null. Below two-pane width
+/// (no right pane) it pushes the full-screen [TaskAddEditScreen] route,
+/// same as the phone FABs.
+class _SidebarAddTaskButton extends ConsumerWidget {
   const _SidebarAddTaskButton();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Material(
       color: TaskColors.brandMagentaMuted,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => const TaskAddEditScreen(),
-          ),
-        ),
+        onTap: () {
+          if (isTwoPaneWideLayout(MediaQuery.sizeOf(context))) {
+            // Docked add-mode: clear selection (so a previously-
+            // selected task's aura/accordion collapse) then flip the
+            // pane to `.addingNewTask`. Order matters: clearing first
+            // lets the selection-sync listener fire its
+            // editor → empty downgrade (only fires when current mode
+            // is .editor), then our setMode writes the final state.
+            // If a previous Add Task tap already left the pane in
+            // .addingNewTask, the listener never fires (selection
+            // stayed null) and the setMode is a no-op due to the
+            // provider's identity guard.
+            ref.read(selectedTaskProvider.notifier).clear();
+            ref
+                .read(rightPaneProvider.notifier)
+                .setMode(RightPaneMode.addingNewTask);
+          } else {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const TaskAddEditScreen(),
+              ),
+            );
+          }
+        },
         child: const Padding(
           padding: EdgeInsets.symmetric(horizontal: 14, vertical: 11),
           child: Row(

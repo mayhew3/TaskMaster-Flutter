@@ -190,16 +190,21 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
               ),
             ),
       drawer: const AppDrawer(),
-      floatingActionButton: FloatingActionButton(
-        heroTag: null,
-        tooltip: 'Add task',
-        child: const Icon(Icons.add),
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute(
-              builder: (_) =>
-                  const TaskAddEditScreen(defaultFamilyShared: true)),
-        ),
-      ),
+      // Hide the add-task FAB on wide layouts — same rationale as
+      // `task_list_screen.dart`: the sidebar's "+ Add task" button is
+      // the canonical entry point on wide.
+      floatingActionButton: isWideLayout(MediaQuery.sizeOf(context))
+          ? null
+          : FloatingActionButton(
+              heroTag: null,
+              tooltip: 'Add task',
+              child: const Icon(Icons.add),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                    builder: (_) =>
+                        const TaskAddEditScreen(defaultFamilyShared: true)),
+              ),
+            ),
     );
   }
 }

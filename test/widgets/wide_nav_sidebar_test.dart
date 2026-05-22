@@ -15,6 +15,7 @@ import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/sidebar_locked_row.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/wide_nav_sidebar.dart';
 import 'package:taskmaestro/features/shared/providers/navigation_provider.dart';
+import 'package:taskmaestro/features/shared/providers/selected_task_providers.dart';
 import 'package:taskmaestro/features/shared/providers/task_list_view_providers.dart';
 import 'package:taskmaestro/features/sync/presentation/sync_conflict_banner.dart';
 import 'package:taskmaestro/features/sync/providers/sync_conflict_providers.dart';
@@ -394,11 +395,35 @@ void main() {
     expect(find.byType(AppDrawer), findsOneWidget);
   });
 
-  testWidgets('tapping "Add task" pushes a route (TM-382)', (tester) async {
+  testWidgets('tapping "Add task" at two-pane width opens the docked editor '
+      'in add-mode (no route push) (TM-384)', (tester) async {
     final observer = _NavObserver();
-    await pump(tester,
+    // 1280×800 → two-pane wide (≥1200dp).
+    final c = await pump(tester,
         logical: const Size(1280, 800), observer: observer);
     expect(observer.pushed, hasLength(1)); // initial MaterialApp home
+
+    await tester.tap(find.text('Add task'));
+    await tester.pump();
+
+    // No route pushed — the docked editor handles add-mode in the pane.
+    expect(observer.pushed, hasLength(1));
+    // Selection is cleared (was already null, defensively) and the
+    // pane flips to `.addingNewTask` — distinct from `.editor` so the
+    // selection-sync listener doesn't immediately downgrade it.
+    expect(c.read(selectedTaskProvider), isNull);
+    expect(c.read(rightPaneProvider), RightPaneMode.addingNewTask);
+  });
+
+  testWidgets('tapping "Add task" below two-pane width pushes the full-screen '
+      'route (no right pane to host the editor) (TM-384)', (tester) async {
+    final observer = _NavObserver();
+    // 1100×800 → wide enough for the sidebar but below the two-pane
+    // threshold (<1200dp); the right pane isn't rendered, so add still
+    // uses the dedicated full-screen route (same as the phone FABs).
+    await pump(tester,
+        logical: const Size(1100, 800), observer: observer);
+    expect(observer.pushed, hasLength(1));
 
     await tester.tap(find.text('Add task'));
     await tester.pump();

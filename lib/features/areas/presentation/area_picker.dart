@@ -24,11 +24,18 @@ class AreaPicker extends ConsumerStatefulWidget {
     required this.initialValue,
     required this.valueSetter,
     this.labelText = 'Area',
+    this.useRootNavigatorForSheet = true,
   });
 
   final String? initialValue;
   final ValueSetter<String?> valueSetter;
   final String labelText;
+
+  /// Whether the picker's modal bottom sheet targets the root navigator.
+  /// `true` (default) preserves the full-screen editor behavior. The
+  /// docked editor pane (TM-384) passes `false` so the sheet renders
+  /// scoped to the pane's nested navigator instead of the whole window.
+  final bool useRootNavigatorForSheet;
 
   @override
   ConsumerState<AreaPicker> createState() => _AreaPickerState();
@@ -123,6 +130,7 @@ class _AreaPickerState extends ConsumerState<AreaPicker> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
+      useRootNavigator: widget.useRootNavigatorForSheet,
       builder: (sheetCtx) {
         // Watch within the sheet builder so additions reflect immediately.
         return Consumer(builder: (ctx, ref, _) {

@@ -158,7 +158,21 @@ class _AuraLayerState extends ConsumerState<_AuraLayer> {
   @override
   void didUpdateWidget(_AuraLayer oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.scrollTick != widget.scrollTick) _scheduleUpdate();
+    // Re-compute on EVERY parent rebuild, not just scroll. A list
+    // re-sort (e.g. after Save Changes that adds a Due date and bumps
+    // the row from URGENT to PAST DUE) doesn't bump `scrollTick`, but
+    // it DOES rebuild the parent `AuraStack` with a fresh `_AuraLayer`
+    // instance. Without this, the aura stays pinned to the old pixel
+    // coordinates after the row moved — visually leaving a magenta-
+    // halo ghost (and the opaque card-color underlay paints a fake
+    // duplicate card background) at the old position.
+    //
+    // The `_updateScheduled` flag batches multiple `didUpdateWidget`s
+    // in a single frame into one post-frame `_recomputeRect`; the
+    // re-compute is a cheap RenderBox.localToGlobal + rect compare and
+    // setState only fires when the rect actually changed, so an
+    // unchanged-list rebuild is a no-op.
+    _scheduleUpdate();
   }
 
   void _scheduleUpdate() {

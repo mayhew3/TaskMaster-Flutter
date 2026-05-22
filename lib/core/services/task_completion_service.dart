@@ -349,7 +349,10 @@ class AddTask extends _$AddTask {
   @override
   FutureOr<void> build() {}
 
-  Future<void> call(TaskItemBlueprint blueprint) async {
+  /// Persists [blueprint] as a new task and returns the generated task
+  /// docId. The docId is needed by the docked editor (TM-384) so it can
+  /// transition from add-mode to edit-mode for the just-created task.
+  Future<String> call(TaskItemBlueprint blueprint) async {
     final db = ref.read(databaseProvider);
     final firestore = ref.read(firestoreProvider);
     final personDocId = ref.read(personDocIdProvider);
@@ -418,6 +421,8 @@ class AddTask extends _$AddTask {
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ [AddTask] notification refresh skipped: $e');
     }
+
+    return taskDocId;
   }
 }
 

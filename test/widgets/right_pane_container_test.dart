@@ -6,10 +6,13 @@ import 'package:taskmaestro/features/shared/presentation/wide/right_pane_empty_s
 import 'package:taskmaestro/features/shared/providers/selected_task_providers.dart';
 import 'package:taskmaestro/models/task_colors.dart';
 
-/// TM-383: the right-pane container switches on `rightPaneProvider`.
-/// Story 2 only ever lands `.empty`, but the `.editor` / `.viewOptions`
-/// branches are scaffolded for TM-384 / TM-385 — pin both placeholders
-/// so the next implementer sees the contract.
+/// The right-pane container switches on `rightPaneProvider`.
+///
+/// `.empty` and `.viewOptions` are exercised here with a lightweight
+/// container. `.editor` now renders the real `DockedTaskEditorPane`
+/// (TM-384), which needs the full Firestore/Drift provider graph — its
+/// routing is covered by `docked_task_editor_pane_test.dart` instead.
+/// `.viewOptions` remains a placeholder until TM-385.
 void main() {
   Future<ProviderContainer> pump(
     WidgetTester tester, {
@@ -37,13 +40,9 @@ void main() {
     expect(find.text('Select a task'), findsOneWidget);
   });
 
-  testWidgets('renders editor placeholder when mode is .editor (TM-384 stub)', (
-    tester,
-  ) async {
-    await pump(tester, initialMode: RightPaneMode.editor);
-    expect(find.byType(RightPaneEmptyState), findsNothing);
-    expect(find.textContaining('TM-384'), findsOneWidget);
-  });
+  // `.editor` mode renders `DockedTaskEditorPane` (TM-384). That path
+  // needs the live-Firestore harness, so its routing assertion lives in
+  // `docked_task_editor_pane_test.dart` ("RightPaneContainer routing").
 
   testWidgets('renders view-options placeholder when mode is .viewOptions '
       '(TM-385 stub)', (tester) async {
@@ -58,11 +57,13 @@ void main() {
     final c = await pump(tester, initialMode: RightPaneMode.empty);
     expect(find.byType(RightPaneEmptyState), findsOneWidget);
 
-    c.read(rightPaneProvider.notifier).setMode(RightPaneMode.editor);
+    // Switch to `.viewOptions` — the runtime-switch contract without
+    // needing the editor's provider graph (see `.editor` note above).
+    c.read(rightPaneProvider.notifier).setMode(RightPaneMode.viewOptions);
     await tester.pumpAndSettle();
 
     expect(find.byType(RightPaneEmptyState), findsNothing);
-    expect(find.textContaining('TM-384'), findsOneWidget);
+    expect(find.textContaining('TM-385'), findsOneWidget);
   });
 
   testWidgets('paints TaskColors.bgDeep as the pane background — distinct from '
