@@ -25,6 +25,7 @@ import 'package:taskmaestro/features/sync/presentation/sync_conflict_banner.dart
 import 'package:taskmaestro/features/sync/providers/sync_conflict_providers.dart';
 import 'package:taskmaestro/core/platform/form_factor.dart';
 import 'package:taskmaestro/features/shared/presentation/app_drawer.dart';
+import 'package:taskmaestro/features/shared/presentation/wide/right_pane_container.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/wide_nav_sidebar.dart';
 
 /// Riverpod-based main app widget
@@ -35,11 +36,16 @@ class RiverpodTaskMaestroApp extends ConsumerStatefulWidget {
   const RiverpodTaskMaestroApp({super.key, required this.emulatorHost});
 
   @override
-  ConsumerState<RiverpodTaskMaestroApp> createState() => _RiverpodTaskMaestroAppState();
+  ConsumerState<RiverpodTaskMaestroApp> createState() =>
+      _RiverpodTaskMaestroAppState();
 }
 
-class _RiverpodTaskMaestroAppState extends ConsumerState<RiverpodTaskMaestroApp> {
-  static const serverEnv = String.fromEnvironment('SERVER', defaultValue: 'heroku');
+class _RiverpodTaskMaestroAppState
+    extends ConsumerState<RiverpodTaskMaestroApp> {
+  static const serverEnv = String.fromEnvironment(
+    'SERVER',
+    defaultValue: 'heroku',
+  );
 
   @override
   void initState() {
@@ -54,11 +60,11 @@ class _RiverpodTaskMaestroAppState extends ConsumerState<RiverpodTaskMaestroApp>
       final emulatorHost = widget.emulatorHost;
       print('🔧 USING LOCAL FIRESTORE EMULATOR');
       print('📡 Connecting to: $emulatorHost:8085');
-      print('⚠️  Make sure Firebase emulator is running: firebase emulators:start');
-      firestore.useFirestoreEmulator(emulatorHost, 8085);
-      firestore.settings = const Settings(
-        persistenceEnabled: false,
+      print(
+        '⚠️  Make sure Firebase emulator is running: firebase emulators:start',
       );
+      firestore.useFirestoreEmulator(emulatorHost, 8085);
+      firestore.settings = const Settings(persistenceEnabled: false);
     } else if (kIsWeb) {
       // TM-353: do NOT enable Firestore IndexedDB persistence on web.
       // Drift (IndexedDB-backed on web) is the durable UI source of
@@ -67,11 +73,12 @@ class _RiverpodTaskMaestroAppState extends ConsumerState<RiverpodTaskMaestroApp>
       // IndexedDB-persistence init, which hung app startup at
       // "Signing In…". In-memory cache is the right choice here.
       print('☁️  USING PRODUCTION FIRESTORE (web, serverEnv: $serverEnv)');
-      firestore.settings =
-          const Settings(persistenceEnabled: false);
+      firestore.settings = const Settings(persistenceEnabled: false);
     } else {
       print('☁️  USING PRODUCTION FIRESTORE (serverEnv: $serverEnv)');
-      firestore.settings = const Settings(cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED);
+      firestore.settings = const Settings(
+        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+      );
     }
   }
 
@@ -202,9 +209,7 @@ class _SignInScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('TaskMaestro'),
-      ),
+      appBar: AppBar(title: const Text('TaskMaestro')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -218,10 +223,7 @@ class _SignInScreen extends StatelessWidget {
             ),
             Column(
               children: [
-                FilledButton(
-                  onPressed: onSignIn,
-                  child: const Text('SIGN IN'),
-                ),
+                FilledButton(onPressed: onSignIn, child: const Text('SIGN IN')),
                 if (showSignOutOption && onSignOut != null) ...[
                   const SizedBox(height: 16),
                   TextButton(
@@ -240,15 +242,15 @@ class _SignInScreen extends StatelessWidget {
 
 /// Connection error screen (e.g., Firestore emulator not running)
 class _ConnectionErrorScreen extends StatelessWidget {
-  const _ConnectionErrorScreen({
-    required this.message,
-    required this.onRetry,
-  });
+  const _ConnectionErrorScreen({required this.message, required this.onRetry});
 
   final String message;
   final VoidCallback onRetry;
 
-  static const serverEnv = String.fromEnvironment('SERVER', defaultValue: 'heroku');
+  static const serverEnv = String.fromEnvironment(
+    'SERVER',
+    defaultValue: 'heroku',
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -261,11 +263,7 @@ class _ConnectionErrorScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.error_outline,
-                size: 80,
-                color: Colors.white,
-              ),
+              const Icon(Icons.error_outline, size: 80, color: Colors.white),
               const SizedBox(height: 24),
               Text(
                 serverEnv == 'local'
@@ -281,10 +279,7 @@ class _ConnectionErrorScreen extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 message,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.white,
-                ),
+                style: const TextStyle(fontSize: 16, color: Colors.white),
                 textAlign: TextAlign.center,
               ),
               if (serverEnv == 'local') ...[
@@ -330,7 +325,10 @@ class _ConnectionErrorScreen extends StatelessWidget {
                 style: FilledButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: Colors.red.shade900,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
                 ),
               ),
             ],
@@ -388,8 +386,10 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
         final syncService = ref.read(syncServiceProvider);
         final email = ref.read(currentUserProvider)?.email;
         await syncService.start(personDocId, email: email);
-        await syncService.initialPullComplete
-            .timeout(const Duration(seconds: 8), onTimeout: () {});
+        await syncService.initialPullComplete.timeout(
+          const Duration(seconds: 8),
+          onTimeout: () {},
+        );
       }
       if (mounted) {
         setState(() => _initialSyncDone = true);
@@ -431,7 +431,9 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
         activeSprint,
       );
 
-      print('⏱️ _syncNotificationsInBackground: Completed in ${stopwatch.elapsedMilliseconds}ms');
+      print(
+        '⏱️ _syncNotificationsInBackground: Completed in ${stopwatch.elapsedMilliseconds}ms',
+      );
     } catch (e) {
       print('⚠️ _syncNotificationsInBackground: Error (non-blocking): $e');
     }
@@ -464,14 +466,18 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
         ),
       _navItems[2], // Stats
     ];
-    final clampedIndex = selectedIndex.clamp(0, liveNavItems.length - 1).toInt();
+    final clampedIndex = selectedIndex
+        .clamp(0, liveNavItems.length - 1)
+        .toInt();
     // Write the clamped value back to the provider when a layout change (e.g.
     // leaving the family) makes the stored index out of range. Done in a
     // post-frame callback to avoid mutating provider state during build.
     if (clampedIndex != selectedIndex) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          ref.read(activeTabIndexProvider.notifier).clampToLayout(liveNavItems.length);
+          ref
+              .read(activeTabIndexProvider.notifier)
+              .clampToLayout(liveNavItems.length);
         }
       });
     }
@@ -485,9 +491,7 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
     // by setTab, not mount lifecycle.
     final currentScreen = IndexedStack(
       index: clampedIndex,
-      children: [
-        for (final item in liveNavItems) item.widgetGetter(),
-      ],
+      children: [for (final item in liveNavItems) item.widgetGetter()],
     );
 
     // Status-bar inset handling depends on whether any banner is visible:
@@ -577,6 +581,12 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
   /// Wide adaptive shell (TM-382, Story 1 of Epic TM-188): the left
   /// [WideNavSidebar] replaces the bottom nav; the banner Column + tab
   /// body keep their existing structure and order to the right.
+  ///
+  /// TM-383 (Story 2) adds an optional third Row cell — the
+  /// [RightPaneContainer] — at logical widths ≥1200dp
+  /// ([isTwoPaneWideLayout]). The right pane sits OUTSIDE the center
+  /// Column so that banners only span the center region, matching the
+  /// prototype's "right pane is its own surface" treatment.
   Widget _buildWideShell({
     required BuildContext context,
     required List<TopNavItem> liveNavItems,
@@ -584,6 +594,7 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
     required bool hasPendingInvite,
     required Widget tabBody,
   }) {
+    final isTwoPane = isTwoPaneWideLayout(MediaQuery.sizeOf(context));
     return Scaffold(
       drawer: const AppDrawer(),
       body: Row(
@@ -608,6 +619,8 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
               ],
             ),
           ),
+          if (isTwoPane)
+            const SizedBox(width: kRightPaneWidth, child: RightPaneContainer()),
         ],
       ),
     );

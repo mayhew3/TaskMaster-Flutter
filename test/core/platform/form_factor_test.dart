@@ -95,4 +95,46 @@ void main() {
       expect(isWideLayout(const Size(840, 1200)), isTrue);
     });
   });
+
+  group('isTwoPaneWideLayout (TM-383)', () {
+    test('flutter_test default 800x600 viewport is not two-pane', () {
+      // PRIME DIRECTIVE guard: the default test viewport must never
+      // accidentally land in the two-pane shape.
+      expect(isTwoPaneWideLayout(const Size(800, 600)), isFalse);
+    });
+
+    test('wide-but-short landscape phone is not two-pane', () {
+      // 1300 width clears both wide AND two-pane thresholds, but shortest
+      // side 390 < 600 keeps it a phone — must stay compact entirely.
+      expect(isTwoPaneWideLayout(const Size(1300, 390)), isFalse);
+    });
+
+    test('iPad portrait stays single-pane', () {
+      expect(isTwoPaneWideLayout(const Size(768, 1024)), isFalse);
+    });
+
+    test('iPad landscape (1024 wide) is wide but not two-pane', () {
+      // Below the 1200dp two-pane gate, so even though isWideLayout is
+      // true, no right pane should render.
+      expect(isWideLayout(const Size(1024, 768)), isTrue);
+      expect(isTwoPaneWideLayout(const Size(1024, 768)), isFalse);
+    });
+
+    test('1199 wide is wide but not two-pane (boundary − 1)', () {
+      expect(isWideLayout(const Size(1199, 800)), isTrue);
+      expect(isTwoPaneWideLayout(const Size(1199, 800)), isFalse);
+    });
+
+    test('exactly 1200 wide IS two-pane (boundary inclusive)', () {
+      expect(isTwoPaneWideLayout(const Size(1200, 800)), isTrue);
+    });
+
+    test('typical laptop viewport (1280) is two-pane', () {
+      expect(isTwoPaneWideLayout(const Size(1280, 800)), isTrue);
+    });
+
+    test('large desktop (1920) is two-pane', () {
+      expect(isTwoPaneWideLayout(const Size(1920, 1080)), isTrue);
+    });
+  });
 }

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Inputs</title><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg-1);font:500 14px var(--font-sans);}
+  .frame{padding:18px 20px;}
+  .row{display:flex;align-items:center;gap:12px;}
+  .col{display:flex;flex-direction:column;gap:8px;}
+  .swatch{width:64px;height:64px;border-radius:10px;box-shadow:inset 0 1px 0 0 var(--bevel-top);}
+  .dot{width:14px;height:14px;border-radius:50%;display:inline-block;}
+  .hex{font:600 11px var(--font-mono);color:var(--fg-3);letter-spacing:0.3px;}
+  .lbl{font:700 10.5px var(--font-sans);letter-spacing:0.5px;text-transform:uppercase;color:var(--fg-3);}
+  .name{font:600 13px var(--font-sans);color:var(--fg-1);}
+</style></head><body><div class="frame">
+    <div class="col" style="gap:12px;max-width:320px">
+      <div>
+        <div class="lbl" style="margin-bottom:6px">text field</div>
+        <input value="Visit 905 Haddon Drive" style="width:100%;background:rgba(0,0,0,0.18);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:11px 12px;color:var(--fg-1);font:500 14px var(--font-sans);box-sizing:border-box">
+      </div>
+      <div>
+        <div class="lbl" style="margin-bottom:6px">picker row</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:12px 14px">
+          <div class="row" style="gap:10px"><div class="dot" style="background:var(--area-family)"></div><span style="font:500 14px var(--font-sans);color:var(--fg-1)">Family</span></div>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"><polyline points="6,4 10,8 6,12"/></svg>
+        </div>
+      </div>
+    </div></div></body></html>

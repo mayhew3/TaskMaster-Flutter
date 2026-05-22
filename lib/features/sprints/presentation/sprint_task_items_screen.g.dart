@@ -230,7 +230,7 @@ final class SprintBasePoolProvider
   }
 }
 
-String _$sprintBasePoolHash() => r'a2823e8717b3bece161cd46ab32cf549e3461e82';
+String _$sprintBasePoolHash() => r'51e7c15872b20cdee5dedfb376d8792ba2929709';
 
 /// Pre-filter sprint pool: the membership-resolved task set
 /// (assignments + optimistic-pending overlay + recently-completed +
@@ -356,7 +356,7 @@ final class SprintTaskItemsProvider
   }
 }
 
-String _$sprintTaskItemsHash() => r'40ab4f3567eb592316ba6c1d3a285a2403495640';
+String _$sprintTaskItemsHash() => r'e00562e4f3c0f4f01efc91f3bbbca53f39f782cf';
 
 /// Sprint task set (membership-resolved), with the user's TaskFilters
 /// applied via the shared pipeline. Ordering is intentionally NOT

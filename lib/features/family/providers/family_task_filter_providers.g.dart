@@ -67,7 +67,7 @@ final class FamilyBasePoolProvider
   }
 }
 
-String _$familyBasePoolHash() => r'6ce4d7127abfa4dadc3d4dbd06bcf1cd4b00f774';
+String _$familyBasePoolHash() => r'f2178d1e083a69038c9be6fcbefbe96890d15556';
 
 /// Family tab tasks after surface gates + the user's `TaskFilters`.
 /// Everything except the two surface gates above (search / showCompleted
@@ -126,7 +126,7 @@ final class FamilyFilteredTasksProvider
 }
 
 String _$familyFilteredTasksHash() =>
-    r'4f7366887aa067c9b382b697900e6cb02d0ff934';
+    r'c2171b232612005cf0556af1b2fa70ed52df3912';
 
 /// Grouped + sorted Family tab tasks, routed through `groupAndSortTasks`.
 ///

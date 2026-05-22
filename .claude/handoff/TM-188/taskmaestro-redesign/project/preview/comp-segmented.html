@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Segmented bar</title><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg-1);font:500 14px var(--font-sans);}
+  .frame{padding:18px 20px;}
+  .row{display:flex;align-items:center;gap:12px;}
+  .col{display:flex;flex-direction:column;gap:8px;}
+  .swatch{width:64px;height:64px;border-radius:10px;box-shadow:inset 0 1px 0 0 var(--bevel-top);}
+  .dot{width:14px;height:14px;border-radius:50%;display:inline-block;}
+  .hex{font:600 11px var(--font-mono);color:var(--fg-3);letter-spacing:0.3px;}
+  .lbl{font:700 10.5px var(--font-sans);letter-spacing:0.5px;text-transform:uppercase;color:var(--fg-3);}
+  .name{font:600 13px var(--font-sans);color:var(--fg-1);}
+</style></head><body><div class="frame">
+    <div class="col" style="gap:16px;max-width:320px">
+      <div>
+        <div class="lbl" style="margin-bottom:6px">priority — 5 segments</div>
+        <div style="display:flex;gap:4px">
+          <div style="flex:1;height:32px;border-radius:6px;background:rgba(166,227,184,0.85);border:1px solid transparent;display:flex;align-items:center;justify-content:center;font:700 12px var(--font-sans);color:rgba(20,30,60,0.9);font-feature-settings:'tnum'">1</div><div style="flex:1;height:32px;border-radius:6px;background:rgba(166,227,184,0.85);border:1px solid transparent;display:flex;align-items:center;justify-content:center;font:700 12px var(--font-sans);color:rgba(20,30,60,0.9);font-feature-settings:'tnum'">2</div><div style="flex:1;height:32px;border-radius:6px;background:rgba(157,196,255,0.85);border:1px solid transparent;display:flex;align-items:center;justify-content:center;font:700 12px var(--font-sans);color:rgba(20,30,60,0.9);font-feature-settings:'tnum'">3</div><div style="flex:1;height:32px;border-radius:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;font:700 12px var(--font-sans);color:rgba(255,255,255,0.55);font-feature-settings:'tnum'">4</div><div style="flex:1;height:32px;border-radius:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;font:700 12px var(--font-sans);color:rgba(255,255,255,0.55);font-feature-settings:'tnum'">5</div>
+        </div>
+      </div>
+      <div style="color:var(--fg-3);font-size:11.5px;line-height:1.5">Filled cells use a value-derived accent; unfilled cells show the value number dimmed, so the scale stays legible at all states.</div>
+    </div></div></body></html>

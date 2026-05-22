@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Date semantic palette</title><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg-1);font:500 14px var(--font-sans);}
+  .frame{padding:18px 20px;}
+  .row{display:flex;align-items:center;gap:12px;}
+  .col{display:flex;flex-direction:column;gap:8px;}
+  .swatch{width:64px;height:64px;border-radius:10px;box-shadow:inset 0 1px 0 0 var(--bevel-top);}
+  .dot{width:14px;height:14px;border-radius:50%;display:inline-block;}
+  .hex{font:600 11px var(--font-mono);color:var(--fg-3);letter-spacing:0.3px;}
+  .lbl{font:700 10.5px var(--font-sans);letter-spacing:0.5px;text-transform:uppercase;color:var(--fg-3);}
+  .name{font:600 13px var(--font-sans);color:var(--fg-1);}
+</style></head><body><div class="frame">
+    <div class="col" style="gap:10px">
+      
+        <div class="row" style="gap:14px">
+          <div style="width:14px;height:14px;border-radius:50%;background:var(--date-start-fg)"></div>
+          <div style="font:600 13px var(--font-sans);color:var(--fg-1);width:60px">Start</div>
+          <div style="padding:5px 10px;border-radius:999px;background:var(--date-start-bg);border:1px solid var(--date-start-border);color:var(--date-start-fg);font:600 11px var(--font-sans);font-feature-settings:'tnum';">May 6 · in 2d</div>
+          <div class="hex">#B3B5DD</div>
+        </div>
+        <div class="row" style="gap:14px">
+          <div style="width:14px;height:14px;border-radius:50%;background:var(--date-target-fg)"></div>
+          <div style="font:600 13px var(--font-sans);color:var(--fg-1);width:60px">Target</div>
+          <div style="padding:5px 10px;border-radius:999px;background:var(--date-target-bg);border:1px solid var(--date-target-border);color:var(--date-target-fg);font:600 11px var(--font-sans);font-feature-settings:'tnum';">May 6 · in 2d</div>
+          <div class="hex">#EFE0A0</div>
+        </div>
+        <div class="row" style="gap:14px">
+          <div style="width:14px;height:14px;border-radius:50%;background:var(--date-urgent-fg)"></div>
+          <div style="font:600 13px var(--font-sans);color:var(--fg-1);width:60px">Urgent</div>
+          <div style="padding:5px 10px;border-radius:999px;background:var(--date-urgent-bg);border:1px solid var(--date-urgent-border);color:var(--date-urgent-fg);font:600 11px var(--font-sans);font-feature-settings:'tnum';">May 6 · in 2d</div>
+          <div class="hex">#F4C8A8</div>
+        </div>
+        <div class="row" style="gap:14px">
+          <div style="width:14px;height:14px;border-radius:50%;background:var(--date-due-fg)"></div>
+          <div style="font:600 13px var(--font-sans);color:var(--fg-1);width:60px">Due</div>
+          <div style="padding:5px 10px;border-radius:999px;background:var(--date-due-bg);border:1px solid var(--date-due-border);color:var(--date-due-fg);font:600 11px var(--font-sans);font-feature-settings:'tnum';">May 6 · in 2d</div>
+          <div class="hex">#F4B0B0</div>
+        </div>
+    </div></div></body></html>

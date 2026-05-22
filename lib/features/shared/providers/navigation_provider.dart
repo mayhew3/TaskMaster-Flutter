@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../tasks/providers/expanded_task_provider.dart';
 import '../../tasks/providers/task_filter_providers.dart';
 import '../../tasks/providers/task_providers.dart';
+import 'selected_task_providers.dart';
 
 part 'navigation_provider.g.dart';
 
@@ -13,10 +15,7 @@ part 'navigation_provider.g.dart';
 /// `riverpod_app.dart`, which splices in the Family tab when in a family);
 /// individual `NavTab` instances do not carry their own index.
 class NavTab {
-  const NavTab({
-    required this.label,
-    required this.icon,
-  });
+  const NavTab({required this.label, required this.icon});
 
   final String label;
   final IconData icon;
@@ -26,8 +25,7 @@ class NavTab {
 class NavTabs {
   static const plan = NavTab(label: 'Plan', icon: Icons.assignment);
   static const tasks = NavTab(label: 'Tasks', icon: Icons.list);
-  static const family =
-      NavTab(label: 'Family', icon: Icons.family_restroom);
+  static const family = NavTab(label: 'Family', icon: Icons.family_restroom);
   static const stats = NavTab(label: 'Stats', icon: Icons.show_chart);
 
   static const List<NavTab> all = [plan, tasks, stats];
@@ -75,14 +73,43 @@ class ActiveTabIndex extends _$ActiveTabIndex {
       // `ref.read` or `state =` on a disposed notifier throws. Bail out
       // cleanly — the new scope will rebuild from defaults anyway.
       if (!ref.mounted) return;
-      // Clear recently completed tasks when navigating between tabs
-      // This allows completed tasks to move from their original section
-      // to the "Completed" section after navigation (TM-312)
-      ref.read(recentlyCompletedTasksProvider.notifier).clear();
-      ref.read(recentlyCompletedIndicesProvider.notifier).clear();
-      ref.read(searchQueryProvider.notifier).clear();
+      _resetPerTabState();
       state = clamped;
     });
+  }
+
+  /// Resets transient per-tab UI state on every destination switch.
+  /// Each clear is annotated with the ticket that added it so the
+  /// rationale doesn't drift when the list grows.
+  void _resetPerTabState() {
+    // TM-312: completed tasks move from their original section to the
+    // "Completed" section after navigation.
+    ref.read(recentlyCompletedTasksProvider.notifier).clear();
+    ref.read(recentlyCompletedIndicesProvider.notifier).clear();
+    ref.read(searchQueryProvider.notifier).clear();
+    // TM-383: clear the wide-layout selection + reset the right pane.
+    // Phone never writes the selection providers; this is wide-only.
+    ref.read(selectedTaskProvider.notifier).clear();
+    ref.read(rightPaneProvider.notifier).setMode(RightPaneMode.empty);
+    // TM-383: collapse the inline accordion on destination switch. This
+    // is INTENTIONALLY a behavior change for BOTH compact and wide:
+    //
+    // - Wide: keeps the accordion in sync with `selectedTaskProvider`
+    //   (the wide tap fires both, so they must reset together —
+    //   otherwise a tap on a still-expanded card after a tab round-trip
+    //   would flip them out of phase).
+    // - Compact: previously the accordion survived tab switches (per
+    //   ExpandedTask's keepAlive). The change makes it reset in line
+    //   with the existing TM-312 / TM-359 reset pattern (search,
+    //   recently-completed lists are already cleared here) so per-tab
+    //   transient UI state is uniformly cleared on switch.
+    //
+    // The compact-behavior change was explicitly user-approved during
+    // the TM-383 implementation iteration (the alternative was a
+    // wide-only gate, which requires coupling this notifier to layout
+    // state — rejected as too much plumbing for the marginal benefit
+    // of preserving the prior phone behavior).
+    ref.read(expandedTaskProvider.notifier).collapse();
   }
 
   /// Silently adjusts the stored index when a layout change makes it

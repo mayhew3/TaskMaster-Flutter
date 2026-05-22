@@ -24,6 +24,9 @@ import '../../shared/presentation/app_drawer.dart';
 import '../../shared/presentation/connection_status_indicator.dart';
 import '../../shared/presentation/refresh_button.dart';
 import '../../shared/presentation/task_action_error_helper.dart';
+import '../../shared/presentation/wide/aura_stack.dart';
+import '../../shared/presentation/wide/selectable_task_item.dart';
+import '../../shared/presentation/wide/wide_centered_column.dart';
 import '../../shared/providers/task_list_view_providers.dart';
 
 /// Riverpod version of the Task List screen
@@ -223,13 +226,18 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
       }
       // Sprint banner exists but no other tasks - add empty message below banner
       tiles.add(_buildEmptyStateWidget());
-      return ListView.builder(
-        padding: const EdgeInsets.only(
-          top: 7.0,
-          bottom: kFloatingActionButtonMargin + 54,
+      return WideCenteredColumn(
+        child: AuraStack(
+          surface: TaskListSurface.tasks,
+          child: ListView.builder(
+            padding: const EdgeInsets.only(
+              top: 7.0,
+              bottom: kFloatingActionButtonMargin + 54,
+            ),
+            itemCount: tiles.length,
+            itemBuilder: (context, index) => tiles[index],
+          ),
         ),
-        itemCount: tiles.length,
-        itemBuilder: (context, index) => tiles[index],
       );
     }
 
@@ -290,13 +298,18 @@ class _TaskListBodyState extends ConsumerState<_TaskListBody> {
       }
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.only(
-        top: 7.0,
-        bottom: kFloatingActionButtonMargin + 54,
+    return WideCenteredColumn(
+      child: AuraStack(
+        surface: TaskListSurface.tasks,
+        child: ListView.builder(
+          padding: const EdgeInsets.only(
+            top: 7.0,
+            bottom: kFloatingActionButtonMargin + 54,
+          ),
+          itemCount: tiles.length,
+          itemBuilder: (context, index) => tiles[index],
+        ),
       ),
-      itemCount: tiles.length,
-      itemBuilder: (context, index) => tiles[index],
     );
   }
 
@@ -482,47 +495,54 @@ class _TaskListItem extends ConsumerWidget {
     final pendingTasks = ref.watch(pendingTasksProvider);
     final displayTask = pendingTasks[task.docId] ?? task;
 
-    return EditableTaskItemWidget(
-      taskItem: displayTask,
-      highlightSprint: highlightSprint,
-      onEdit: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => TaskAddEditScreen(taskItemId: task.docId),
+    // TM-383: SelectableTaskItem wraps the row with the magenta selection
+    // ring on the wide adaptive shell; on phone it returns its child
+    // unchanged (no ring, no extra rebuild surface).
+    return SelectableTaskItem(
+      surface: TaskListSurface.tasks,
+      taskDocId: task.docId,
+      child: EditableTaskItemWidget(
+        taskItem: displayTask,
+        highlightSprint: highlightSprint,
+        onEdit: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => TaskAddEditScreen(taskItemId: task.docId),
+          ),
         ),
-      ),
-      onLongPress: () {
-        HapticFeedback.mediumImpact();
-        showDialog<void>(
-          context: context,
-          builder: (context) => SnoozeDialog(taskItem: task),
-        );
-      },
-      onTaskCompleteToggle: (checkState) {
-        if (checkState == CheckState.pending) return null;
-        if (checkState == CheckState.skipped) {
-          ref.read(skipTaskProvider.notifier).unskip(task).catchError(
-              (Object e, StackTrace st) =>
+        onLongPress: () {
+          HapticFeedback.mediumImpact();
+          showDialog<void>(
+            context: context,
+            builder: (context) => SnoozeDialog(taskItem: task),
+          );
+        },
+        onTaskCompleteToggle: (checkState) {
+          if (checkState == CheckState.pending) return null;
+          if (checkState == CheckState.skipped) {
+            ref.read(skipTaskProvider.notifier).unskip(task).catchError(
+                (Object e, StackTrace st) =>
+                    showTaskActionError(context, e, st));
+            return null;
+          }
+          ref
+              .read(completeTaskProvider.notifier)
+              .call(task, complete: checkState == CheckState.inactive)
+              .catchError((Object e, StackTrace st) =>
                   showTaskActionError(context, e, st));
           return null;
-        }
-        ref
-            .read(completeTaskProvider.notifier)
-            .call(task, complete: checkState == CheckState.inactive)
-            .catchError((Object e, StackTrace st) =>
-                showTaskActionError(context, e, st));
-        return null;
-      },
-      confirmDismiss: (direction) async {
-        if (direction == DismissDirection.endToStart) {
-          try {
-            await ref.read(deleteTaskProvider.notifier).call(task);
-            return true;
-          } catch (err) {
-            return false;
+        },
+        confirmDismiss: (direction) async {
+          if (direction == DismissDirection.endToStart) {
+            try {
+              await ref.read(deleteTaskProvider.notifier).call(task);
+              return true;
+            } catch (err) {
+              return false;
+            }
           }
-        }
-        return false;
-      },
+          return false;
+        },
+      ),
     );
   }
 }

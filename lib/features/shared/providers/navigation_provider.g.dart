@@ -47,7 +47,7 @@ final class ActiveTabIndexProvider
   }
 }
 
-String _$activeTabIndexHash() => r'94f3631b97317ec533d0a4f8cc521cc23d1dfeeb';
+String _$activeTabIndexHash() => r'20becce992058bd671a0c53ba6ce3bb51bc4986f';
 
 /// Provider for the currently active tab index
 /// Using keepAlive to persist across widget rebuilds

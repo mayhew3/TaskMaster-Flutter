@@ -384,13 +384,31 @@ class _SidebarSearchFieldState extends ConsumerState<_SidebarSearchField> {
       _controller.text =
           ref.read(taskListViewStateProvider(surface)).filters.search;
     }
+    // Listen so the clear-X suffix appears/disappears as text is
+    // typed/erased. Cheap — only this widget rebuilds, not the surface.
+    _controller.addListener(_handleControllerChange);
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
+    _controller.removeListener(_handleControllerChange);
     _controller.dispose();
     super.dispose();
+  }
+
+  void _handleControllerChange() {
+    if (mounted) setState(() {});
+  }
+
+  void _clearSearch() {
+    final surface = widget.surface;
+    if (surface == null) return;
+    _debounce?.cancel();
+    _controller.clear();
+    // Commit immediately (no debounce) — the user's intent is to clear
+    // RIGHT NOW, not 250ms from now.
+    ref.read(taskListViewStateProvider(surface).notifier).setSearch('');
   }
 
   @override
@@ -433,6 +451,7 @@ class _SidebarSearchFieldState extends ConsumerState<_SidebarSearchField> {
     required bool enabled,
     required ValueChanged<String>? onChanged,
   }) {
+    final hasText = _controller.text.isNotEmpty;
     return TextField(
       controller: _controller,
       enabled: enabled,
@@ -450,6 +469,17 @@ class _SidebarSearchFieldState extends ConsumerState<_SidebarSearchField> {
         prefixIcon:
             Icon(Icons.search, size: 16, color: TaskColors.textFaint),
         prefixIconConstraints:
+            const BoxConstraints(minWidth: 34, minHeight: 34),
+        suffixIcon: (enabled && hasText)
+            ? IconButton(
+                icon:
+                    Icon(Icons.close, size: 16, color: TaskColors.textFaint),
+                tooltip: 'Clear search',
+                onPressed: _clearSearch,
+                splashRadius: 16,
+              )
+            : null,
+        suffixIconConstraints:
             const BoxConstraints(minWidth: 34, minHeight: 34),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

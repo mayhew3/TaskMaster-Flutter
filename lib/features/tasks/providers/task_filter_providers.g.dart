@@ -224,7 +224,7 @@ final class TasksBasePoolProvider
   }
 }
 
-String _$tasksBasePoolHash() => r'035d530bab98ad50aeddef24a2f4eacd39a336f0';
+String _$tasksBasePoolHash() => r'45976e158fc8452252acfed79f333d90a3708323';
 
 /// Tasks visible on the Tasks tab — [tasksBasePoolProvider] run through
 /// the user's TaskFilters via the shared pipeline (the canonical filter
@@ -277,7 +277,7 @@ final class FilteredTasksProvider
   }
 }
 
-String _$filteredTasksHash() => r'37ada142c3ad13b06e54a5a7fe392625741d8f35';
+String _$filteredTasksHash() => r'd573c8ac8a66d6ea4e48c8ee2ae405217574b6bc';
 
 /// Count of active (non-completed, non-retired) tasks.
 /// TM-368: pure-derived from `tasksProvider` (keepAlive). Cheap to

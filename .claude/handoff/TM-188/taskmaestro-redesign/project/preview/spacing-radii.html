@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Corner radii</title><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg-1);font:500 14px var(--font-sans);}
+  .frame{padding:18px 20px;}
+  .row{display:flex;align-items:center;gap:12px;}
+  .col{display:flex;flex-direction:column;gap:8px;}
+  .swatch{width:64px;height:64px;border-radius:10px;box-shadow:inset 0 1px 0 0 var(--bevel-top);}
+  .dot{width:14px;height:14px;border-radius:50%;display:inline-block;}
+  .hex{font:600 11px var(--font-mono);color:var(--fg-3);letter-spacing:0.3px;}
+  .lbl{font:700 10.5px var(--font-sans);letter-spacing:0.5px;text-transform:uppercase;color:var(--fg-3);}
+  .name{font:600 13px var(--font-sans);color:var(--fg-1);}
+</style></head><body><div class="frame">
+    <div class="row" style="gap:18px">
+      
+        <div class="col" style="align-items:center;gap:8px">
+          <div style="width:64px;height:64px;background:var(--card);border-radius:6px;box-shadow:inset 0 1px 0 0 var(--bevel-top)"></div>
+          <div class="lbl">sm</div>
+          <div class="hex">6px</div>
+        </div>
+        <div class="col" style="align-items:center;gap:8px">
+          <div style="width:64px;height:64px;background:var(--card);border-radius:10px;box-shadow:inset 0 1px 0 0 var(--bevel-top)"></div>
+          <div class="lbl">md</div>
+          <div class="hex">10px</div>
+        </div>
+        <div class="col" style="align-items:center;gap:8px">
+          <div style="width:64px;height:64px;background:var(--card);border-radius:12px;box-shadow:inset 0 1px 0 0 var(--bevel-top)"></div>
+          <div class="lbl">lg</div>
+          <div class="hex">12px</div>
+        </div>
+        <div class="col" style="align-items:center;gap:8px">
+          <div style="width:64px;height:64px;background:var(--card);border-radius:16px;box-shadow:inset 0 1px 0 0 var(--bevel-top)"></div>
+          <div class="lbl">xl</div>
+          <div class="hex">16px</div>
+        </div>
+        <div class="col" style="align-items:center;gap:8px">
+          <div style="width:64px;height:64px;background:var(--card);border-radius:999px;box-shadow:inset 0 1px 0 0 var(--bevel-top)"></div>
+          <div class="lbl">pill</div>
+          <div class="hex">pill</div>
+        </div>
+    </div></div></body></html>
