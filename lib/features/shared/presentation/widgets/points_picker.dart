@@ -21,14 +21,14 @@ class PointsPicker extends StatelessWidget {
   /// `true` (default) preserves the full-screen editor behavior. The
   /// docked editor pane (TM-384) passes `false` so the dialog renders
   /// scoped to the pane's nested navigator instead of the whole window.
-  final bool useRootNavigatorForDialog;
+  final bool useRootNavigator;
 
   static const List<int> fibBuckets = [1, 2, 3, 5, 8];
 
   const PointsPicker({
     required this.value,
     required this.onChanged,
-    this.useRootNavigatorForDialog = true,
+    this.useRootNavigator = true,
     super.key,
   });
 
@@ -107,7 +107,7 @@ class PointsPicker extends StatelessWidget {
   Future<_PointsDialogResult?> _promptForCustomPoints(BuildContext context) {
     return showDialog<_PointsDialogResult>(
       context: context,
-      useRootNavigator: useRootNavigatorForDialog,
+      useRootNavigator: useRootNavigator,
       builder: (ctx) => const _CustomPointsDialog(),
     );
   }

@@ -1,7 +1,6 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:taskmaestro/models/models.dart';
 import 'package:taskmaestro/models/task_colors.dart';
@@ -303,10 +302,6 @@ class _TaskEditorBodyState extends ConsumerState<TaskEditorBody> {
     return recurWait ? 'Completed Date' : 'Schedule Dates';
   }
 
-  void _clearRepeatOn() {
-    _repeatOn = false;
-  }
-
   // ---- Per-field change detection (TM-358 "what's changed" indicator) ----
   // For new tasks (`taskItem == null`) every field is "fresh" — there is
   // nothing to compare against — so all of these getters return false and
@@ -466,30 +461,47 @@ class _TaskEditorBodyState extends ConsumerState<TaskEditorBody> {
   void _scheduleAutoClose({TaskItem? savedTask}) {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      final String savedDocId;
-      TaskItem? effectiveSavedTask = savedTask;
-      if (editMode()) {
-        savedDocId = taskItem!.docId;
-      } else {
-        savedDocId = await (_pendingAddFuture ?? Future<String>.value(''));
+      try {
+        final String savedDocId;
+        TaskItem? effectiveSavedTask = savedTask;
+        if (editMode()) {
+          savedDocId = taskItem!.docId;
+        } else {
+          savedDocId = await (_pendingAddFuture ?? Future<String>.value(''));
+          if (!mounted) return;
+          // Add-mode: `_checkForAutoClose`'s add-branch fires from a
+          // bare count-growth signal and doesn't carry the new task;
+          // look it up from the provider now so `onSaveSucceeded` can
+          // pass it to the host as an `initialTaskOverride` seed — the
+          // docked editor's add→edit re-key uses it to avoid reading
+          // a stale `taskProvider(savedDocId)`.
+          if (effectiveSavedTask == null) {
+            final tasksAsync = ref.read(tasksWithRecurrencesProvider);
+            effectiveSavedTask = tasksAsync.maybeWhen(
+              data: (tasks) =>
+                  tasks.where((t) => t.docId == savedDocId).firstOrNull,
+              orElse: () => null,
+            );
+          }
+        }
         if (!mounted) return;
-        // Add-mode: `_checkForAutoClose`'s add-branch fires from a
-        // bare count-growth signal and doesn't carry the new task;
-        // look it up from the provider now so `onSaveSucceeded` can
-        // pass it to the host as an `initialTaskOverride` seed — the
-        // docked editor's add→edit re-key uses it to avoid reading
-        // a stale `taskProvider(savedDocId)`.
-        if (effectiveSavedTask == null) {
-          final tasksAsync = ref.read(tasksWithRecurrencesProvider);
-          effectiveSavedTask = tasksAsync.maybeWhen(
-            data: (tasks) =>
-                tasks.where((t) => t.docId == savedDocId).firstOrNull,
-            orElse: () => null,
-          );
+        widget.onSaveSucceeded(savedDocId, effectiveSavedTask);
+      } catch (e, st) {
+        // AddTask.call failures (auth-state race, Drift errors) surface
+        // here. Reset _submitting / popped so the user can retry; without
+        // this the Save button stays disabled (popped=true gates the
+        // auto-close listener) and any in-progress add looks stuck.
+        if (kDebugMode) {
+          debugPrint('[TaskEditorBody] _scheduleAutoClose error: $e\n$st');
+        }
+        if (mounted) {
+          setState(() {
+            _submitting = false;
+            popped = false;
+            _pendingAddFuture = null;
+          });
         }
       }
-      if (!mounted) return;
-      widget.onSaveSucceeded(savedDocId, effectiveSavedTask);
     });
   }
 
@@ -660,7 +672,11 @@ class _TaskEditorBodyState extends ConsumerState<TaskEditorBody> {
                 child: TmBottomActionBar(
                   saveLabel: editMode() ? 'Save changes' : 'Add task',
                   cancelLabel: 'Cancel',
-                  saveEnabled: !isEditing || _hasChanges(),
+                  // Disable Save while a submission is in flight so a
+                  // rapid double-tap in add-mode can't overwrite the
+                  // pending AddTask future and create duplicate tasks.
+                  saveEnabled:
+                      !_submitting && (!isEditing || _hasChanges()),
                   onCancel: widget.onCancel,
                   onSave: _onSavePressed,
                 ),
@@ -697,7 +713,7 @@ class _TaskEditorBodyState extends ConsumerState<TaskEditorBody> {
           borderRadius: fieldRadius,
           child: AreaPicker(
             initialValue: taskItemBlueprint.area,
-            useRootNavigatorForSheet: widget.useRootNavigatorForPickers,
+            useRootNavigator: widget.useRootNavigatorForPickers,
             // Wrap the setter in setState so the green changed-border and
             // the bottom Save bar update immediately. AreaPicker is no
             // longer a FormField (it's a custom chevron-button + sheet
@@ -720,7 +736,7 @@ class _TaskEditorBodyState extends ConsumerState<TaskEditorBody> {
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
             child: ContextPicker(
               selected: taskItemBlueprint.contexts,
-              useRootNavigatorForSheet: widget.useRootNavigatorForPickers,
+              useRootNavigator: widget.useRootNavigatorForPickers,
               onChanged: (next) {
                 setState(() {
                   taskItemBlueprint.contexts = next;
@@ -765,7 +781,7 @@ class _TaskEditorBodyState extends ConsumerState<TaskEditorBody> {
           borderRadius: fieldRadius,
           child: PointsPicker(
             value: taskItemBlueprint.gamePoints,
-            useRootNavigatorForDialog: widget.useRootNavigatorForPickers,
+            useRootNavigator: widget.useRootNavigatorForPickers,
             onChanged: (v) {
               setState(() {
                 taskItemBlueprint.gamePoints = v;
@@ -858,7 +874,7 @@ class _TaskEditorBodyState extends ConsumerState<TaskEditorBody> {
         // to the setter as-is — the storage layer converts to UTC on save.
         setState(() {
           type.dateFieldSetter(taskItemBlueprint, value);
-          if (!hasDate()) _clearRepeatOn();
+          if (!hasDate()) _repeatOn = false;
         });
       },
     );
@@ -1102,8 +1118,3 @@ class _DisabledRepeatHint extends StatelessWidget {
   }
 }
 
-// Suppress an unused-import warning for SystemChannels — keeps the import
-// path stable in case future iterations need keyboard control on the
-// number input.
-// ignore: unused_element
-void _silenceUnusedSystemChannels() => SystemChannels.textInput;

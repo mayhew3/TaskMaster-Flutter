@@ -65,11 +65,6 @@ class AuraStack extends ConsumerStatefulWidget {
 }
 
 class _AuraStackState extends ConsumerState<AuraStack> {
-  // Bump on each scroll event so AuraLayer rebuilds and recomputes the
-  // selected row's position. Keep on the State so the rebuild is local
-  // to this subtree, not the whole screen.
-  int _scrollTick = 0;
-
   @override
   Widget build(BuildContext context) {
     if (!isWideLayout(MediaQuery.sizeOf(context))) return widget.child;
@@ -82,7 +77,9 @@ class _AuraStackState extends ConsumerState<AuraStack> {
         // Don't consume — let any other listeners (e.g. the framework's
         // own scroll machinery) keep seeing the notification.
         if (mounted && ref.read(selectedTaskProvider) != null) {
-          setState(() => _scrollTick++);
+          // setState with no payload — the rebuild itself triggers
+          // _AuraLayer's didUpdateWidget, which recomputes the rect.
+          setState(() {});
         }
         return false;
       },
@@ -96,7 +93,7 @@ class _AuraStackState extends ConsumerState<AuraStack> {
           // Positioned) because the layer itself returns Positioned
           // .fromRect when it has a rect — nesting two Positioneds
           // would conflict on the same StackParentData.
-          _AuraLayer(surface: widget.surface, scrollTick: _scrollTick),
+          _AuraLayer(surface: widget.surface),
           widget.child,
         ],
       ),
@@ -105,8 +102,9 @@ class _AuraStackState extends ConsumerState<AuraStack> {
 }
 
 /// Internal: finds the selected row's [RenderBox] via [GlobalObjectKey]
-/// (scoped by [surface]) and paints the aura at its bounds. [scrollTick]
-/// is bumped by the parent on every scroll event to force a re-position.
+/// (scoped by [surface]) and paints the aura at its bounds. Re-runs the
+/// lookup on every parent rebuild (scroll, list re-sort, selection
+/// change) via [didUpdateWidget].
 ///
 /// **Why stateful + post-frame:** parents build before children in a
 /// frame, so on the build that follows a selection change, the
@@ -116,8 +114,7 @@ class _AuraStackState extends ConsumerState<AuraStack> {
 /// `setState` rebuilds this layer with the now-attached RenderBox.
 class _AuraLayer extends ConsumerStatefulWidget {
   final TaskListSurface surface;
-  final int scrollTick;
-  const _AuraLayer({required this.surface, required this.scrollTick});
+  const _AuraLayer({required this.surface});
 
   @override
   ConsumerState<_AuraLayer> createState() => _AuraLayerState();
@@ -158,20 +155,20 @@ class _AuraLayerState extends ConsumerState<_AuraLayer> {
   @override
   void didUpdateWidget(_AuraLayer oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Re-compute on EVERY parent rebuild, not just scroll. A list
-    // re-sort (e.g. after Save Changes that adds a Due date and bumps
-    // the row from URGENT to PAST DUE) doesn't bump `scrollTick`, but
-    // it DOES rebuild the parent `AuraStack` with a fresh `_AuraLayer`
-    // instance. Without this, the aura stays pinned to the old pixel
-    // coordinates after the row moved — visually leaving a magenta-
-    // halo ghost (and the opaque card-color underlay paints a fake
-    // duplicate card background) at the old position.
+    // Re-compute on EVERY parent rebuild. Two trigger paths:
+    //   1. Scroll — `_AuraStackState`'s NotificationListener fires
+    //      setState, parent rebuilds, this layer's didUpdateWidget runs.
+    //   2. List re-sort (e.g. after Save Changes that bumps a row from
+    //      URGENT to PAST DUE) — the parent rebuilds with the rows in
+    //      a new order; without this re-compute, the aura would stay
+    //      pinned to the OLD pixel coordinates and leave a magenta
+    //      ghost (plus the opaque underlay as a fake duplicate card).
     //
-    // The `_updateScheduled` flag batches multiple `didUpdateWidget`s
-    // in a single frame into one post-frame `_recomputeRect`; the
-    // re-compute is a cheap RenderBox.localToGlobal + rect compare and
-    // setState only fires when the rect actually changed, so an
-    // unchanged-list rebuild is a no-op.
+    // `_updateScheduled` batches multiple `didUpdateWidget`s in a
+    // single frame into one post-frame `_recomputeRect`; the re-compute
+    // is a cheap RenderBox.localToGlobal + rect compare and setState
+    // only fires when the rect actually changed, so an unchanged-list
+    // rebuild is a no-op.
     _scheduleUpdate();
   }
 

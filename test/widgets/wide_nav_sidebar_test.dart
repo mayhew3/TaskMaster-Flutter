@@ -403,15 +403,24 @@ void main() {
         logical: const Size(1280, 800), observer: observer);
     expect(observer.pushed, hasLength(1)); // initial MaterialApp home
 
+    // Seed a non-null selection so the post-tap isNull assertion
+    // actually proves the sidebar's `clear()` call ran (asserting
+    // isNull on a never-set provider would pass trivially).
+    c.read(selectedTaskProvider.notifier).select('seeded-selection');
+    expect(c.read(selectedTaskProvider), 'seeded-selection');
+
     await tester.tap(find.text('Add task'));
     await tester.pump();
 
     // No route pushed — the docked editor handles add-mode in the pane.
     expect(observer.pushed, hasLength(1));
-    // Selection is cleared (was already null, defensively) and the
-    // pane flips to `.addingNewTask` — distinct from `.editor` so the
-    // selection-sync listener doesn't immediately downgrade it.
-    expect(c.read(selectedTaskProvider), isNull);
+    // Selection cleared by the sidebar handler before flipping mode,
+    // and the pane flips to `.addingNewTask` — distinct from `.editor`
+    // so the selection-sync listener doesn't immediately downgrade it.
+    expect(c.read(selectedTaskProvider), isNull,
+        reason: 'sidebar handler must clear() any prior selection so '
+            'the add-mode body keys to "__add__", not to the prior '
+            'task\'s docId');
     expect(c.read(rightPaneProvider), RightPaneMode.addingNewTask);
   });
 

@@ -926,6 +926,7 @@ class _SelectedDateDetail extends StatelessWidget {
           markedDates: _markedDates,
           firstDate: firstDate,
           lastDate: lastDate,
+          useRootNavigator: useRootNavigator,
           onDateChanged: (newDate) {
             // Preserve the previous time-of-day, but if the new date
             // lands on a boundary day where the existing time would
@@ -1007,6 +1008,10 @@ class _MiniCalendar extends StatefulWidget {
   final DateTime? lastDate;
   final ValueChanged<DateTime> onDateChanged;
 
+  /// Threaded through to the month/year sub-sheet so it stays scoped to
+  /// the docked editor pane (TM-384). See [DateTimelinePopup.useRootNavigator].
+  final bool useRootNavigator;
+
   const _MiniCalendar({
     super.key,
     required this.selectedDate,
@@ -1015,6 +1020,7 @@ class _MiniCalendar extends StatefulWidget {
     required this.firstDate,
     required this.lastDate,
     required this.onDateChanged,
+    this.useRootNavigator = true,
   });
 
   @override
@@ -1086,6 +1092,7 @@ class _MiniCalendarState extends State<_MiniCalendar> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
+      useRootNavigator: widget.useRootNavigator,
       builder: (ctx) => _MonthYearPickerSheet(
         firstYear: now.year - 100,
         lastYear: now.year + 100,

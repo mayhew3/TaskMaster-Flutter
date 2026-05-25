@@ -125,6 +125,34 @@ void main() {
       final state = container.read(addTaskProvider);
       expect(state.isLoading, false);
     });
+
+    test('returns the new task\'s docId, matching the persisted row '
+        '(TM-384 — the docked editor relies on this docId for the '
+        'add-mode → edit-mode transition)', () async {
+      final blueprint = TaskItemBlueprint()
+        ..name = 'Returns DocId'
+        ..personDocId = 'person123';
+
+      final notifier = container.read(addTaskProvider.notifier);
+      final returnedDocId = await notifier.call(blueprint);
+
+      // Return value contract: non-empty docId that matches the
+      // persisted row's docId. A regression returning '' or some
+      // unrelated id would silently break the docked editor's
+      // add→edit transition (the empty-string defence in
+      // `DockedTaskEditorPane.shouldSelectSavedDocId` would no-op,
+      // leaving the editor stranded in add-mode after a successful
+      // save, with the new task only visible via the list).
+      expect(returnedDocId, isNotEmpty,
+          reason: 'AddTask must return the generated task docId');
+      final pending = await db.taskDao.pendingWrites();
+      expect(pending, hasLength(1));
+      expect(pending.first.docId, returnedDocId,
+          reason: 'returned docId must match the row actually written '
+              'to Drift — otherwise the editor would re-key to a '
+              'non-existent task and the next provider read would '
+              'return null');
+    });
   });
 
   // ── UpdateTask Provider ─────────────────────────────────────────────────────

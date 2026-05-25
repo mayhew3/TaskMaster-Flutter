@@ -1,5 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/providers/auth_providers.dart';
+
 part 'selected_task_providers.g.dart';
 
 /// Currently-selected task on the wide layout, by `docId`. `null` means
@@ -27,7 +29,14 @@ part 'selected_task_providers.g.dart';
 @Riverpod(keepAlive: true)
 class SelectedTask extends _$SelectedTask {
   @override
-  String? build() => null;
+  String? build() {
+    // Watch personDocId so a sign-out / user-switch resets selection.
+    // keepAlive means this notifier survives provider-graph rebuilds;
+    // without this watch, a stale docId from a previous user could
+    // outlive the sign-out and render in the next user's wide pane.
+    ref.watch(personDocIdProvider);
+    return null;
+  }
 
   void select(String docId) {
     if (state == docId) return;
@@ -68,7 +77,12 @@ enum RightPaneMode { empty, editor, addingNewTask, viewOptions }
 @Riverpod(keepAlive: true)
 class RightPane extends _$RightPane {
   @override
-  RightPaneMode build() => RightPaneMode.empty;
+  RightPaneMode build() {
+    // Same rationale as [SelectedTask.build]: reset on user switch so
+    // a stale `.editor` from the previous user doesn't outlive sign-out.
+    ref.watch(personDocIdProvider);
+    return RightPaneMode.empty;
+  }
 
   void setMode(RightPaneMode mode) {
     if (state == mode) return;

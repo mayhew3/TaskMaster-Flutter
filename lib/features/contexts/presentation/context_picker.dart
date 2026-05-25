@@ -31,13 +31,13 @@ class ContextPicker extends ConsumerWidget {
   /// `true` (default) preserves the full-screen editor behavior. The
   /// docked editor pane (TM-384) passes `false` so the sheet renders
   /// scoped to the pane's nested navigator instead of the whole window.
-  final bool useRootNavigatorForSheet;
+  final bool useRootNavigator;
 
   const ContextPicker({
     super.key,
     required this.selected,
     required this.onChanged,
-    this.useRootNavigatorForSheet = true,
+    this.useRootNavigator = true,
   });
 
   @override
@@ -93,7 +93,7 @@ class ContextPicker extends ConsumerWidget {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      useRootNavigator: useRootNavigatorForSheet,
+      useRootNavigator: useRootNavigator,
       builder: (sheetContext) {
         return _ContextPickerSheet(
           remaining: remaining,

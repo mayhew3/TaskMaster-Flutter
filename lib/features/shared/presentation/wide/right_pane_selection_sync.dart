@@ -6,8 +6,12 @@ import '../../providers/selected_task_providers.dart';
 /// Bridges [selectedTaskProvider] → [rightPaneProvider] in the wide shell
 /// (TM-384).
 ///
-/// - Non-null selection → [RightPaneMode.editor] (docked editor takes
-///   over the right pane in edit-mode for the selected task).
+/// - Non-null selection AND current mode is [RightPaneMode.empty] or
+///   [RightPaneMode.editor] → [RightPaneMode.editor] (docked editor
+///   takes over for the selected task). Gated on `current` so a row
+///   tap while the user is mid-typing in [RightPaneMode.addingNewTask]
+///   (or viewing [RightPaneMode.viewOptions]) doesn't silently
+///   discard that explicit mode — the user must Cancel out first.
 /// - Null selection AND current mode is [RightPaneMode.editor] (i.e.
 ///   the editor was previously opened by selecting a task and the
 ///   user re-tapped to deselect) → [RightPaneMode.empty] ("Select a
@@ -45,14 +49,21 @@ class _RightPaneSelectionSyncState
       selectedTaskProvider,
       (prev, next) {
         final paneNotifier = ref.read(rightPaneProvider.notifier);
+        final current = ref.read(rightPaneProvider);
         if (next != null) {
-          paneNotifier.setMode(RightPaneMode.editor);
+          // Only upgrade to `.editor` from selection-neutral modes.
+          // Leave `.addingNewTask` / `.viewOptions` alone — those were
+          // set by explicit user intent and shouldn't be silently
+          // discarded by a coincident row tap.
+          if (current == RightPaneMode.empty ||
+              current == RightPaneMode.editor) {
+            paneNotifier.setMode(RightPaneMode.editor);
+          }
         } else {
-          // Only downgrade if the editor was selection-driven. Leave
-          // `.addingNewTask` / `.viewOptions` / `.empty` alone — those
-          // were set by explicit user intent and shouldn't be clobbered
-          // by a selection-clear that happens to coincide.
-          final current = ref.read(rightPaneProvider);
+          // Only downgrade if the editor was selection-driven. Same
+          // rationale: `.addingNewTask` / `.viewOptions` / `.empty`
+          // were set explicitly and survive a selection-clear that
+          // happens to coincide.
           if (current == RightPaneMode.editor) {
             paneNotifier.setMode(RightPaneMode.empty);
           }

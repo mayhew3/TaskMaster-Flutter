@@ -266,14 +266,25 @@ void main() {
       reason: 'aura should still be present after re-sort',
     );
     final yAfter = tester.getTopLeft(auraAfter).dy;
+    // cpap moved from index 5 → index 0; at row height 60 it now sits
+    // at the top of the list. Allow a small slack for the outer card
+    // margin / list padding (well under one row's worth of height).
     expect(
       yAfter,
-      lessThan(yInitial - 100),
+      lessThan(60),
       reason:
-          'aura should follow cpap to its new top-of-list position. '
-          'Pre-fix the aura stayed at its OLD coordinates because '
-          'didUpdateWidget only recomputed on scrollTick changes; '
-          'list re-sort triggers a parent rebuild but no scroll.',
+          'aura should follow cpap to its new top-of-list position '
+          '(index 0 → ~0dp + outer-margin slack, not somewhere in the '
+          'middle of the list). Pre-fix the aura stayed at its OLD '
+          'coordinates because didUpdateWidget only recomputed on '
+          'scrollTick changes; list re-sort triggers a parent rebuild '
+          'but no scroll.',
+    );
+    expect(
+      yAfter,
+      lessThan(yInitial - 200),
+      reason: 'sanity: the aura must have moved at least 200dp upward '
+          '(cpap moved 5 row-heights = 300dp)',
     );
   });
 }

@@ -629,7 +629,9 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
             ),
             if (isTwoPane)
               const SizedBox(
-                  width: kRightPaneWidth, child: RightPaneContainer()),
+                width: kRightPaneWidth,
+                child: RightPaneContainer(),
+              ),
           ],
         ),
       ),

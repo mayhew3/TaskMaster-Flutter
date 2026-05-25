@@ -76,7 +76,9 @@ void main() {
       // Edit-mode header + the task's fields populated in the pane.
       expect(find.text('TASK DETAILS'), findsOneWidget);
       // "Home" shows in BOTH the header strip and the Area picker field.
-      expect(find.text('Home'), findsAtLeastNWidgets(1));
+      expect(find.text('Home'), findsNWidgets(2),
+          reason: 'area appears once in the header strip and once in '
+              'the Area picker chevron-button');
       expect(find.text('Buy groceries'), findsOneWidget);
       // The docked editor never pushes the full-screen route.
       expect(find.byType(TaskAddEditScreen), findsNothing);
@@ -197,9 +199,7 @@ void main() {
         tester,
         initialTasks: [seedTask(name: 'P-task', priority: 2)],
         initialSprints: [],
-        homeOverride: paneHost(const RightPaneSelectionSync(
-          child: DockedTaskEditorPane(),
-        )),
+        homeOverride: paneHost(const DockedTaskEditorPane()),
       );
       container.read(selectedTaskProvider.notifier).select('task-1');
       await tester.pumpAndSettle();
@@ -234,13 +234,14 @@ void main() {
           reason: 'priority must NOT revert to 2');
     });
 
-    testWidgets('editing BOTH a recurrence field AND a non-recurrence task '
-        'field in one save does NOT revert the editor (TM-384 — race with '
-        'recurrence-write-first ordering)', (tester) async {
-      // Repros the user-reported intermittent (~50%) bug:
+    testWidgets('multi-field save (recurrence + non-recurrence) end-to-end: '
+        'editor pane shows the NEW values for both after save (TM-384)',
+        (tester) async {
+      // The user-reported intermittent (~50%) regression that motivated
+      // the `_checkForAutoClose` gate change:
       // `UpdateTask.call` writes the recurrence row BEFORE the task
-      // row, so the recurrence Drift/Firestore stream emits first. The
-      // pre-fix `_checkForAutoClose` listener fired on that recurrence
+      // row, so in production the recurrence Drift/Firestore stream
+      // emits first. The pre-fix listener fired on that recurrence
       // emit with `latestTask` still stale (task write hadn't happened
       // yet), captured the pre-edit task as `savedTask`, and the
       // re-keyed body initialised from the pre-edit values — visually
@@ -251,6 +252,20 @@ void main() {
       // (recurUnit / recurNumber / recurWait / anchor) AND a non-
       // recurrence task field (priority / duration / name / etc.) in
       // the same save.
+      //
+      // HARNESS CAVEAT: this test does NOT deterministically reproduce
+      // the recurrence-first-emit ordering — fakeFirestore's write
+      // ordering doesn't match production's exactly, so the race may
+      // or may not exercise the gate fix in any given run. What it
+      // DOES verify end-to-end is that a multi-field save (recurrence
+      // + non-recurrence) leaves both fields showing their new values
+      // in the docked editor, which is the user-visible contract the
+      // fix protects. A regression of the gate (back to
+      // `hasTaskChanges || hasRecurrenceChanges`) should fail this
+      // test in production-like conditions; if it stops failing in
+      // the harness, the gate's contract is unit-tested via
+      // `shouldSelectSavedDocId` etc. (the listener half) but the
+      // race itself ultimately needs manual smoke verification.
       final anchorDate = AnchorDate((b) => b
         ..dateValue = DateTime.utc(2026, 5, 6)
         ..dateType = TaskDateTypes.start);
@@ -287,9 +302,7 @@ void main() {
         initialTasks: [task],
         initialRecurrences: [recurrence],
         initialSprints: [],
-        homeOverride: paneHost(const RightPaneSelectionSync(
-          child: DockedTaskEditorPane(),
-        )),
+        homeOverride: paneHost(const DockedTaskEditorPane()),
       );
       container.read(selectedTaskProvider.notifier).select('task-1');
       await tester.pumpAndSettle();
@@ -398,19 +411,22 @@ void main() {
           reason: 'docked add-mode must not push the full-screen route');
     });
 
-    testWidgets('the add→edit listener transition: selecting the just-saved '
-        'task flips the pane out of .addingNewTask into .editor (TM-384 '
-        '— what `_handleSaved` does in add-mode)', (tester) async {
-      // This tests the listener-driven half of the add-mode save flow
-      // (the half our code owns). The Drift-write → SyncService-push
-      // → fakeFirestore-emit chain that actually triggers the
-      // `_checkForAutoClose` success detection in tests is flaky in
-      // the harness (the `.ignore()`d push doesn't reliably complete
-      // under `pumpAndSettle`), but in production it's deterministic.
-      // The post-success step that wires our editor's add→edit
-      // transition is `_handleSaved` calling
-      // `selectedTaskProvider.notifier.select(savedDocId)`; this test
-      // simulates exactly that and asserts the resulting state.
+    testWidgets('the add→edit transition: _handleSaved\'s mode+selection '
+        'writes flip the pane out of .addingNewTask into .editor for the '
+        'newly-created task (TM-384)', (tester) async {
+      // This tests the production transition that `_handleSaved`
+      // performs after a successful add-mode save. The Drift-write
+      // → SyncService-push → fakeFirestore-emit chain that triggers
+      // `_checkForAutoClose` is flaky under pumpAndSettle (the
+      // `.ignore()`d push doesn't reliably complete), so this test
+      // drives the EXIT side of `_handleSaved` directly:
+      //   1. setMode(.editor) — explicit so the SelectionSync gate
+      //      doesn't no-op us (the gate exists so that a row tap
+      //      during add-mode doesn't clobber the user's typing; it
+      //      would also no-op this post-save transition unless we
+      //      set the mode explicitly).
+      //   2. select(savedDocId) — re-keys the body from `__add__`
+      //      to the saved docId.
       final task = seedTask(docId: 'new-task', name: 'Newly-added task');
       final container = await IntegrationTestHelper.pumpAppWithLiveFirestore(
         tester,
@@ -425,12 +441,13 @@ void main() {
       expect(find.text('NEW TASK'), findsOneWidget);
       expect(container.read(rightPaneProvider), RightPaneMode.addingNewTask);
 
-      // Simulate the post-save selection bump.
+      // Simulate the production transition (matches `_handleSaved`).
+      container.read(rightPaneProvider.notifier).setMode(RightPaneMode.editor);
       container.read(selectedTaskProvider.notifier).select('new-task');
       await tester.pumpAndSettle();
 
-      // Listener flips mode → .editor; pane re-keys body to the new
-      // task's docId; header now shows TASK DETAILS.
+      // Pane re-keys body to the new task's docId; header now shows
+      // TASK DETAILS instead of NEW TASK.
       expect(container.read(rightPaneProvider), RightPaneMode.editor);
       expect(container.read(selectedTaskProvider), 'new-task');
       expect(find.text('TASK DETAILS'), findsOneWidget);
@@ -490,6 +507,39 @@ void main() {
     });
   });
 
+  group('DockedTaskEditorPane.shouldSelectSavedDocId — _handleSaved gate', () {
+    test('bumps selection only when add-mode AND docId non-empty (TM-384)',
+        () {
+      // Add-mode + valid docId → bump.
+      expect(
+        DockedTaskEditorPane.shouldSelectSavedDocId(
+            savedDocId: 'new-task', wasAddMode: true),
+        isTrue,
+      );
+      // Edit-mode → never bump (the user is already on the right task).
+      expect(
+        DockedTaskEditorPane.shouldSelectSavedDocId(
+            savedDocId: 'existing', wasAddMode: false),
+        isFalse,
+      );
+      // Add-mode with EMPTY docId → never bump. Defends against an
+      // AddTask.call failure where _pendingAddFuture resolved to '';
+      // selecting an empty docId would route the next build to .editor
+      // with a non-null but invalid selection, breaking the pane.
+      expect(
+        DockedTaskEditorPane.shouldSelectSavedDocId(
+            savedDocId: '', wasAddMode: true),
+        isFalse,
+      );
+      // Defence-in-depth: edit-mode + empty → still no-op.
+      expect(
+        DockedTaskEditorPane.shouldSelectSavedDocId(
+            savedDocId: '', wasAddMode: false),
+        isFalse,
+      );
+    });
+  });
+
   group('RightPaneContainer routing', () {
     testWidgets('renders the docked editor for RightPaneMode.editor and the '
         'empty state for .empty (TM-384)', (tester) async {
@@ -509,6 +559,31 @@ void main() {
 
       expect(find.byType(DockedTaskEditorPane), findsOneWidget);
       expect(find.byType(RightPaneEmptyState), findsNothing);
+    });
+
+    testWidgets('routes RightPaneMode.addingNewTask to the docked editor in '
+        'add-mode (TM-384)', (tester) async {
+      // The container's switch arm for .addingNewTask was previously
+      // not asserted — a regression that routed the new enum value to
+      // the .viewOptions placeholder (or anywhere else) would not fail
+      // any test even though the sidebar Add Task button's whole flow
+      // depends on this arm.
+      final container = await IntegrationTestHelper.pumpAppWithLiveFirestore(
+        tester,
+        initialTasks: [],
+        initialSprints: [],
+        homeOverride: paneHost(const RightPaneContainer()),
+      );
+
+      container.read(rightPaneProvider.notifier).setMode(
+            RightPaneMode.addingNewTask,
+          );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DockedTaskEditorPane), findsOneWidget);
+      expect(find.byType(RightPaneEmptyState), findsNothing);
+      expect(find.text('NEW TASK'), findsOneWidget,
+          reason: 'editor body in add-mode renders the NEW TASK header');
     });
   });
 }

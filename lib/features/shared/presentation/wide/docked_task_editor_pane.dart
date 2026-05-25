@@ -50,6 +50,30 @@ class DockedTaskEditorPane extends ConsumerStatefulWidget {
   @override
   ConsumerState<DockedTaskEditorPane> createState() =>
       _DockedTaskEditorPaneState();
+
+  /// Test seam for the post-save selection-bump gate that lives inside
+  /// `_handleSaved`. The gate has two predicates that are easy to
+  /// silently regress (a refactor that drops the empty-string check
+  /// would still pass every integration test that exercises the
+  /// happy path), so the contract is extracted as a pure function and
+  /// tested directly. Returns `true` when the editor should call
+  /// `selectedTaskProvider.notifier.select(savedDocId)` to transition
+  /// add-mode → edit-mode for the newly-created task.
+  ///
+  /// - `wasAddMode` is `selectedTaskProvider == null` at save time.
+  ///   In edit-mode we never re-select.
+  /// - `savedDocId.isNotEmpty` defends against an `AddTask.call`
+  ///   failure path where `_pendingAddFuture` resolved to `''`
+  ///   (the fallback in `_scheduleAutoClose`). Selecting an empty
+  ///   docId would route the next build to `RightPaneMode.editor`
+  ///   with a non-null but invalid selection.
+  @visibleForTesting
+  static bool shouldSelectSavedDocId({
+    required String savedDocId,
+    required bool wasAddMode,
+  }) {
+    return wasAddMode && savedDocId.isNotEmpty;
+  }
 }
 
 class _DockedTaskEditorPaneState extends ConsumerState<DockedTaskEditorPane> {
@@ -76,6 +100,7 @@ class _DockedTaskEditorPaneState extends ConsumerState<DockedTaskEditorPane> {
     // editor (per D7) — explicitly closing the editor must close the
     // accordion too, otherwise the row stays expanded in the list
     // with no editor to match it.
+    _pendingSavedTask = null;
     ref.read(selectedTaskProvider.notifier).clear();
     ref.read(rightPaneProvider.notifier).setMode(RightPaneMode.empty);
     ref.read(expandedTaskProvider.notifier).collapse();
@@ -96,7 +121,14 @@ class _DockedTaskEditorPaneState extends ConsumerState<DockedTaskEditorPane> {
     // green change-highlights clear. The user closes the inspector
     // explicitly via the header's Close (X) icon (or by selecting a
     // different row, re-tapping to deselect, switching tabs, etc.).
-    setState(() => _generation++);
+    //
+    // Drop any stashed post-save snapshot — Cancel discards edits,
+    // so the next mount must initialise from the live `taskProvider`
+    // read, not a stale snapshot from a previous save.
+    setState(() {
+      _pendingSavedTask = null;
+      _generation++;
+    });
   }
 
   void _handleSaved(String savedDocId, TaskItem? savedTask) {
@@ -108,7 +140,7 @@ class _DockedTaskEditorPaneState extends ConsumerState<DockedTaskEditorPane> {
     if (kDebugMode) {
       debugPrint(
         '[DockedTaskEditorPane] _handleSaved docId=$savedDocId '
-        'gen ${_generation} → ${_generation + 1} '
+        'gen $_generation → ${_generation + 1} '
         'savedTask=${savedTask?.docId} priority=${savedTask?.priority}',
       );
     }
@@ -117,13 +149,20 @@ class _DockedTaskEditorPaneState extends ConsumerState<DockedTaskEditorPane> {
       _pendingSavedTask = savedTask;
       _generation++;
     });
-    if (wasAddMode && savedDocId.isNotEmpty) {
+    if (DockedTaskEditorPane.shouldSelectSavedDocId(
+      savedDocId: savedDocId,
+      wasAddMode: wasAddMode,
+    )) {
       // Transition add-mode → edit-mode for the freshly-created task.
-      // Setting selection triggers `RightPaneSelectionSync` to flip
-      // mode `.addingNewTask` → `.editor`; the next build sees the
-      // new selection and re-keys the body from `'__add__'` to the
-      // saved docId. `initialTaskOverride = _pendingSavedTask` (set
-      // above) seeds the fresh body without a `taskProvider` read.
+      // The `setMode(.editor)` call is EXPLICIT here (not relegated to
+      // `RightPaneSelectionSync`'s listener): the listener gates
+      // non-null selections so that a row tap during add-mode doesn't
+      // silently clobber the user's in-progress new task. The same
+      // gate would no-op the post-save transition unless we make it
+      // explicit. Order matters slightly: set mode FIRST so the
+      // listener (which fires on the subsequent `select`) sees us
+      // already in `.editor` and is a true no-op.
+      ref.read(rightPaneProvider.notifier).setMode(RightPaneMode.editor);
       ref.read(selectedTaskProvider.notifier).select(savedDocId);
     }
   }
@@ -170,7 +209,10 @@ class _DockedTaskEditorPaneState extends ConsumerState<DockedTaskEditorPane> {
               size: Size(constraints.maxWidth, constraints.maxHeight),
             ),
             child: Navigator(
-              onDidRemovePage: (page) {},
+              // The pages list never shrinks (we only swap the child of a
+              // single MaterialPage), so onDidRemovePage is a no-op — but
+              // declaring it satisfies the Navigator-with-pages contract.
+              onDidRemovePage: (_) {},
               pages: [
                 MaterialPage<void>(
                   // Constant key: the route never swaps. Re-keying happens
