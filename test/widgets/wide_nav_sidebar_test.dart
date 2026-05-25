@@ -19,6 +19,7 @@ import 'package:taskmaestro/features/shared/providers/selected_task_providers.da
 import 'package:taskmaestro/features/shared/providers/task_list_view_providers.dart';
 import 'package:taskmaestro/features/sync/presentation/sync_conflict_banner.dart';
 import 'package:taskmaestro/features/sync/providers/sync_conflict_providers.dart';
+import 'package:taskmaestro/features/tasks/providers/expanded_task_provider.dart';
 import 'package:taskmaestro/features/tasks/providers/task_filter_providers.dart';
 import 'package:taskmaestro/models/area.dart';
 import 'package:taskmaestro/models/context.dart';
@@ -403,11 +404,14 @@ void main() {
         logical: const Size(1280, 800), observer: observer);
     expect(observer.pushed, hasLength(1)); // initial MaterialApp home
 
-    // Seed a non-null selection so the post-tap isNull assertion
-    // actually proves the sidebar's `clear()` call ran (asserting
-    // isNull on a never-set provider would pass trivially).
+    // Seed a non-null selection AND an expanded accordion so the
+    // post-tap assertions actually prove the sidebar's `clear()` +
+    // `collapse()` calls ran (asserting isNull on a never-set provider
+    // would pass trivially).
     c.read(selectedTaskProvider.notifier).select('seeded-selection');
+    c.read(expandedTaskProvider.notifier).toggle('seeded-selection');
     expect(c.read(selectedTaskProvider), 'seeded-selection');
+    expect(c.read(expandedTaskProvider), 'seeded-selection');
 
     await tester.tap(find.text('Add task'));
     await tester.pump();
@@ -421,6 +425,12 @@ void main() {
         reason: 'sidebar handler must clear() any prior selection so '
             'the add-mode body keys to "__add__", not to the prior '
             'task\'s docId');
+    // Accordion collapsed alongside selection so the row's expanded
+    // body doesn't linger while the pane is in add-mode (Copilot R1
+    // pre-push review feedback).
+    expect(c.read(expandedTaskProvider), isNull,
+        reason: 'sidebar handler must also collapse() expandedTask so '
+            'an open accordion does not desync from the add-mode pane');
     expect(c.read(rightPaneProvider), RightPaneMode.addingNewTask);
   });
 

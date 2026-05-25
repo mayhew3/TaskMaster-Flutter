@@ -7,9 +7,11 @@ import 'package:taskmaestro/features/areas/presentation/area_picker.dart';
 import 'package:taskmaestro/features/areas/providers/area_providers.dart';
 import 'package:taskmaestro/features/contexts/presentation/context_picker.dart';
 import 'package:taskmaestro/features/contexts/providers/context_providers.dart';
+import 'package:taskmaestro/features/shared/presentation/widgets/date_timeline_popup.dart';
 import 'package:taskmaestro/features/shared/presentation/widgets/points_picker.dart';
 import 'package:taskmaestro/models/area.dart';
 import 'package:taskmaestro/models/context.dart' as ctx_model;
+import 'package:taskmaestro/models/task_date_type.dart';
 
 /// Sync AsyncValue.data stub for the picker tests so the production
 /// Drift stream doesn't open and trip flutter_test's `!timersPending`
@@ -272,6 +274,86 @@ void main() {
       expect(titleCenter.dx, greaterThan(paneWidth),
           reason: 'with useRootNavigator: true the dialog centers '
               'against the full window, not the 380dp pane');
+    });
+  });
+
+  // ── DateTimelinePopup ─────────────────────────────────────────────────────
+  //
+  // The outer sheet is the most-visible part of the popup. Its
+  // `_MiniCalendar._openMonthYearPicker` sub-sheet and
+  // `_TimeBucketPicker`'s `showTimePicker` ALSO take the flag (a missed
+  // thread in `_MiniCalendar` was the pre-push CRITICAL finding for this
+  // PR); reaching them requires interacting with date markers + bucket
+  // picker, which adds setup complexity disproportionate to the coverage
+  // gained over the outer-sheet assertion below. The outer-sheet test
+  // verifies the flag is threaded through `DateTimelinePopup.show`'s
+  // `showModalBottomSheet` call; the sub-sheet threading is covered
+  // implicitly by the production code's `useRootNavigator: widget
+  // .useRootNavigator` writes (the `[CRITICAL]` thread is now in the
+  // production code's `_openMonthYearPicker`).
+
+  group('DateTimelinePopup useRootNavigator', () {
+    Widget triggerButton({required bool useRootNavigator}) {
+      return Builder(
+        builder: (ctx) => TextButton(
+          onPressed: () => DateTimelinePopup.show(
+            context: ctx,
+            dates: <TaskDateType, DateTime?>{
+              for (final t in TaskDateTypes.allTypes) t: null,
+            },
+            useRootNavigator: useRootNavigator,
+            onChanged: (_, __) {},
+          ),
+          child: const Text('Open dates'),
+        ),
+      );
+    }
+
+    testWidgets('useRootNavigator: false keeps the popup inside the pane '
+        '(TM-384)', (tester) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      await pumpPickerInPane(
+        tester,
+        container: container,
+        picker: triggerButton(useRootNavigator: false),
+      );
+
+      await tester.tap(find.text('Open dates'));
+      await tester.pumpAndSettle();
+
+      // Outer popup renders a unique 'Dates' or 'Save' affordance; we
+      // anchor on 'Save' which the header's right-side button uses.
+      // Whatever label is present, its center X must be ≤ paneWidth
+      // (left-aligned pane).
+      expect(find.byType(DateTimelinePopup), findsOneWidget);
+      final popupCenter =
+          tester.getCenter(find.byType(DateTimelinePopup));
+      expect(popupCenter.dx, lessThanOrEqualTo(paneWidth),
+          reason: 'date popup must stay within the 380dp nested pane');
+    });
+
+    testWidgets('useRootNavigator: true escapes to the root navigator '
+        '(TM-384)', (tester) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      await pumpPickerInPane(
+        tester,
+        container: container,
+        picker: triggerButton(useRootNavigator: true),
+      );
+
+      await tester.tap(find.text('Open dates'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DateTimelinePopup), findsOneWidget);
+      final popupCenter =
+          tester.getCenter(find.byType(DateTimelinePopup));
+      expect(popupCenter.dx, greaterThan(paneWidth),
+          reason: 'with useRootNavigator: true the popup escapes the '
+              'pane and centers against the full window');
     });
   });
 }

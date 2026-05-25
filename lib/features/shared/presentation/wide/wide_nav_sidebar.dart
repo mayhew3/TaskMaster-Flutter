@@ -11,6 +11,7 @@ import '../../../../features/contexts/presentation/context_manage_screen.dart';
 import '../../../../features/contexts/providers/context_providers.dart';
 import '../../../../features/tasks/presentation/task_add_edit_screen.dart';
 import '../../../../features/sprints/providers/sprint_providers.dart';
+import '../../../../features/tasks/providers/expanded_task_provider.dart';
 import '../../../../models/area.dart';
 import '../../../../models/context.dart';
 import '../../../../models/task_colors.dart';
@@ -339,7 +340,17 @@ class _SidebarAddTaskButton extends ConsumerWidget {
             // .addingNewTask, the listener never fires (selection
             // stayed null) and the setMode is a no-op due to the
             // provider's identity guard.
+            //
+            // Collapse `expandedTaskProvider` too: leaving an
+            // accordion expanded while the pane is in add-mode looks
+            // desynced (the row's body is visible but the pane is
+            // editing a new task, not that row), and the next row-tap
+            // would set selection but TOGGLE the accordion CLOSED
+            // because it was already expanded — breaking the wide
+            // row-tap contract that opens BOTH. Same rationale as
+            // `_resetPerTabState` in `navigation_provider.dart`.
             ref.read(selectedTaskProvider.notifier).clear();
+            ref.read(expandedTaskProvider.notifier).collapse();
             ref
                 .read(rightPaneProvider.notifier)
                 .setMode(RightPaneMode.addingNewTask);
