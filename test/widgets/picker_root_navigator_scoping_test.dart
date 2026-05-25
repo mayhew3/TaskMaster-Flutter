@@ -144,10 +144,17 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Select area'), findsOneWidget);
-      final sheetSize = tester.getSize(find.text('Select area').hitTestable());
-      expect(sheetSize.width, lessThanOrEqualTo(paneWidth),
+      // Position-based assertion (Copilot R2 feedback): measuring
+      // `find.text(...)` width returns the Text widget's intrinsic
+      // size — almost always ≤ paneWidth even when the sheet spans
+      // the full window. Compare the header's CENTER X against
+      // paneWidth instead; a pane-scoped sheet centers at paneWidth/2
+      // (~190), a root-scoped sheet centers at rootWidth/2 (~640).
+      final headerCenter = tester.getCenter(find.text('Select area'));
+      expect(headerCenter.dx, lessThanOrEqualTo(paneWidth),
           reason: 'with useRootNavigator: false the sheet must stay '
-              'within the nested navigator\'s 380dp pane');
+              'within the nested navigator\'s 380dp pane (header '
+              'should center at ~paneWidth/2, not at ~rootWidth/2)');
     });
 
     testWidgets('useRootNavigator: true escapes to the root navigator '
