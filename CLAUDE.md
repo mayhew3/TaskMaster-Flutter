@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+CI workflow: flutter-ci.yml
+
 ## General Behaviors
 
 This file will live in the project root, but all supplemental helper files should go in the @.claude directory. Scan these files at startup along with this one.

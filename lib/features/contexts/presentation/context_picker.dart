@@ -27,10 +27,17 @@ class ContextPicker extends ConsumerWidget {
   final List<TaskContext> selected;
   final ValueChanged<List<TaskContext>> onChanged;
 
+  /// Whether the picker's modal bottom sheet targets the root navigator.
+  /// `true` (default) preserves the full-screen editor behavior. The
+  /// docked editor pane (TM-384) passes `false` so the sheet renders
+  /// scoped to the pane's nested navigator instead of the whole window.
+  final bool useRootNavigator;
+
   const ContextPicker({
     super.key,
     required this.selected,
     required this.onChanged,
+    this.useRootNavigator = true,
   });
 
   @override
@@ -86,6 +93,7 @@ class ContextPicker extends ConsumerWidget {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
+      useRootNavigator: useRootNavigator,
       builder: (sheetContext) {
         return _ContextPickerSheet(
           remaining: remaining,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:taskmaestro/core/providers/auth_providers.dart';
 import 'package:taskmaestro/features/areas/providers/area_color_providers.dart';
 import 'package:taskmaestro/features/contexts/providers/context_providers.dart';
 import 'package:taskmaestro/features/shared/presentation/editable_task_item.dart';
@@ -56,6 +57,11 @@ ProviderContainer _container() {
     // open — stub both as empty so the widget tree drains cleanly.
     areaColorsProvider.overrideWith((ref) => const <String, Color>{}),
     contextsProvider.overrideWith((ref) => Stream.value(const <Context>[])),
+    // SelectedTask / RightPane watch personDocIdProvider for the
+    // cross-user reset (TM-384 pre-push review). Stub to a stable
+    // value so the auth chain doesn't try to wire up Firebase Auth
+    // in this widget-test environment.
+    personDocIdProvider.overrideWith((ref) => 'test-person'),
   ]);
   addTearDown(container.dispose);
   return container;

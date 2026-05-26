@@ -218,4 +218,112 @@ void main() {
           'reposition path regressed)',
     );
   });
+
+  testWidgets('aura repositions when the list re-sorts and the selected row '
+      'moves to a new index (TM-384 — Save Changes that promotes/demotes a '
+      'row to a different sort bucket)', (tester) async {
+    // Repros the user-reported bug: editing a Due date and saving moves
+    // the row from URGENT → PAST DUE; the parent rebuilds with the rows
+    // in a new order, but `scrollTick` doesn't change, so the pre-fix
+    // `didUpdateWidget` recompute gate (scrollTick-only) skipped — and
+    // the aura stayed pinned to the OLD pixel coordinates, leaving the
+    // opaque card-color underlay as a "ghost card" at the old position.
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(1280, 800);
+    addTearDown(tester.view.reset);
+
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    container.read(selectedTaskProvider.notifier).select('cpap');
+
+    // A tiny harness whose State holds the row order so the test can
+    // mutate it (simulating the list re-sort after Save).
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(home: Scaffold(body: _ReorderableHarness())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Aura present, pinned to cpap's INITIAL position (index 5 — near
+    // the bottom of the visible list).
+    final auraInitial = findAura();
+    expect(auraInitial, findsOneWidget);
+    final yInitial = tester.getTopLeft(auraInitial).dy;
+
+    // Trigger the re-sort: cpap moves from index 5 → index 0.
+    final harnessState = tester.state<_ReorderableHarnessState>(
+      find.byType(_ReorderableHarness),
+    );
+    harnessState.moveCpapToTop();
+    await tester.pumpAndSettle();
+
+    final auraAfter = findAura();
+    expect(
+      auraAfter,
+      findsOneWidget,
+      reason: 'aura should still be present after re-sort',
+    );
+    final yAfter = tester.getTopLeft(auraAfter).dy;
+    // cpap moved from index 5 → index 0; at row height 60 it now sits
+    // at the top of the list. Allow a small slack for the outer card
+    // margin / list padding (well under one row's worth of height).
+    expect(
+      yAfter,
+      lessThan(60),
+      reason:
+          'aura should follow cpap to its new top-of-list position '
+          '(index 0 → ~0dp + outer-margin slack, not somewhere in the '
+          'middle of the list). Pre-fix the aura stayed at its OLD '
+          'coordinates because didUpdateWidget only recomputed on '
+          'scrollTick changes; list re-sort triggers a parent rebuild '
+          'but no scroll.',
+    );
+    expect(
+      yAfter,
+      lessThan(yInitial - 200),
+      reason: 'sanity: the aura must have moved at least 200dp upward '
+          '(cpap moved 5 row-heights = 300dp)',
+    );
+  });
+}
+
+/// Test harness whose State holds the row order so the test can trigger
+/// a re-sort by calling [moveCpapToTop].
+class _ReorderableHarness extends StatefulWidget {
+  const _ReorderableHarness();
+
+  @override
+  State<_ReorderableHarness> createState() => _ReorderableHarnessState();
+}
+
+class _ReorderableHarnessState extends State<_ReorderableHarness> {
+  List<String> _docIds = const ['a', 'b', 'c', 'd', 'e', 'cpap', 'g', 'h'];
+
+  void moveCpapToTop() {
+    setState(() {
+      _docIds = const ['cpap', 'a', 'b', 'c', 'd', 'e', 'g', 'h'];
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AuraStack(
+      surface: TaskListSurface.tasks,
+      child: ListView(
+        children: [
+          for (final id in _docIds)
+            SelectableTaskItem(
+              surface: TaskListSurface.tasks,
+              taskDocId: id,
+              child: const SizedBox(
+                height: 60,
+                child: ColoredBox(color: Color(0xFF1976D2)),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }

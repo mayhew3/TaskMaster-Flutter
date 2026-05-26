@@ -15,9 +15,12 @@ import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/sidebar_locked_row.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/wide_nav_sidebar.dart';
 import 'package:taskmaestro/features/shared/providers/navigation_provider.dart';
+import 'package:taskmaestro/features/shared/providers/selected_task_providers.dart';
 import 'package:taskmaestro/features/shared/providers/task_list_view_providers.dart';
 import 'package:taskmaestro/features/sync/presentation/sync_conflict_banner.dart';
 import 'package:taskmaestro/features/sync/providers/sync_conflict_providers.dart';
+import 'package:taskmaestro/features/tasks/presentation/task_add_edit_screen.dart';
+import 'package:taskmaestro/features/tasks/providers/expanded_task_provider.dart';
 import 'package:taskmaestro/features/tasks/providers/task_filter_providers.dart';
 import 'package:taskmaestro/models/area.dart';
 import 'package:taskmaestro/models/context.dart';
@@ -394,21 +397,153 @@ void main() {
     expect(find.byType(AppDrawer), findsOneWidget);
   });
 
-  testWidgets('tapping "Add task" pushes a route (TM-382)', (tester) async {
+  testWidgets('tapping "Add task" at two-pane width opens the docked editor '
+      'in add-mode (no route push) (TM-384)', (tester) async {
     final observer = _NavObserver();
-    await pump(tester,
+    // 1280×800 → two-pane wide (≥1200dp).
+    final c = await pump(tester,
         logical: const Size(1280, 800), observer: observer);
     expect(observer.pushed, hasLength(1)); // initial MaterialApp home
+
+    // Seed a non-null selection AND an expanded accordion so the
+    // post-tap assertions actually prove the sidebar's `clear()` +
+    // `collapse()` calls ran (asserting isNull on a never-set provider
+    // would pass trivially).
+    c.read(selectedTaskProvider.notifier).select('seeded-selection');
+    c.read(expandedTaskProvider.notifier).toggle('seeded-selection');
+    expect(c.read(selectedTaskProvider), 'seeded-selection');
+    expect(c.read(expandedTaskProvider), 'seeded-selection');
+
+    await tester.tap(find.text('Add task'));
+    await tester.pump();
+
+    // No route pushed — the docked editor handles add-mode in the pane.
+    expect(observer.pushed, hasLength(1));
+    // Selection cleared by the sidebar handler before flipping mode,
+    // and the pane flips to `.addingNewTask` — distinct from `.editor`
+    // so the selection-sync listener doesn't immediately downgrade it.
+    expect(c.read(selectedTaskProvider), isNull,
+        reason: 'sidebar handler must clear() any prior selection so '
+            'the add-mode body keys to "__add__", not to the prior '
+            'task\'s docId');
+    // Accordion collapsed alongside selection so the row's expanded
+    // body doesn't linger while the pane is in add-mode (Copilot R1
+    // pre-push review feedback).
+    expect(c.read(expandedTaskProvider), isNull,
+        reason: 'sidebar handler must also collapse() expandedTask so '
+            'an open accordion does not desync from the add-mode pane');
+    expect(c.read(rightPaneProvider), RightPaneMode.addingNewTask);
+  });
+
+  testWidgets('tapping "Add task" below two-pane width pushes the full-screen '
+      'route (no right pane to host the editor) (TM-384)', (tester) async {
+    final observer = _NavObserver();
+    // 1100×800 → wide enough for the sidebar but below the two-pane
+    // threshold (<1200dp); the right pane isn't rendered, so add still
+    // uses the dedicated full-screen route (same as the phone FABs).
+    await pump(tester,
+        logical: const Size(1100, 800), observer: observer);
+    expect(observer.pushed, hasLength(1));
 
     await tester.tap(find.text('Add task'));
     await tester.pump();
 
     expect(observer.pushed, hasLength(2));
     expect(observer.pushed.last, isA<MaterialPageRoute<void>>());
+    // Default destination is Plan → defaultFamilyShared is false.
+    // Extract from the pushed route's builder rather than via
+    // `find.byType(TaskAddEditScreen)` — the latter is racy when
+    // Drift-stream watchers aren't overridden in this harness.
+    final pushedRoute = observer.pushed.last as MaterialPageRoute<void>;
+    final pushedWidget = pushedRoute.builder(
+      tester.element(find.byType(WideNavSidebar)),
+    );
+    expect(pushedWidget, isA<TaskAddEditScreen>());
+    final screen = pushedWidget as TaskAddEditScreen;
+    expect(screen.defaultFamilyShared, isFalse,
+        reason: 'add-task from Plan destination must default to '
+            'personal (not family-shared)');
 
     // Pop the pushed TaskAddEditScreen subtree so its controllers
     // (TextField cursor-blink Timer etc.) dispose before the
     // post-test pending-timer invariant check runs.
+    tester.state<NavigatorState>(find.byType(Navigator)).pop();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('on the Family destination, sub-two-pane "Add task" pushes the '
+      'full-screen route with defaultFamilyShared: true — matches the '
+      'compact Family-tab FAB behavior, which is hidden on wide (TM-384 '
+      '— Copilot R3 review feedback)', (tester) async {
+    final observer = _NavObserver();
+    // Family destination requires being in a family + tab index 2.
+    final container = ProviderContainer(overrides: [
+      areasProvider.overrideWith((ref) => Stream.value(const <Area>[])),
+      areaTaskCountsProvider
+          .overrideWith((ref) => Stream.value(const <String, int>{})),
+      contextsProvider.overrideWith((ref) => Stream.value(const <Context>[])),
+      contextTaskCountsProvider
+          .overrideWith((ref) => Stream.value(const <String, int>{})),
+      sidebarFacetCountsProvider.overrideWith((ref, surface) async =>
+          const SidebarFacetCounts(areas: {}, contexts: {})),
+      authProvider.overrideWith(_FakeAuth.new),
+      currentFamilyDocIdProvider.overrideWith((ref) => 'fam-1'),
+      pendingInvitationsForMeProvider
+          .overrideWith((ref) => const Stream.empty()),
+      allConflictsCountProvider.overrideWith((ref) => 0),
+      activeSprintProvider.overrideWith((ref) => null),
+    ]);
+    addTearDown(container.dispose);
+
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(1100, 800);
+    addTearDown(tester.view.reset);
+
+    // Switch to Family destination BEFORE pumping so the sidebar
+    // sees it on first build (activeTabIndex=2 maps to Family when
+    // currentFamilyDocId != null, per `activeNavDestinationProvider`).
+    container.read(activeTabIndexProvider.notifier).setTab(2);
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: container,
+      child: MaterialApp(
+        navigatorObservers: [observer],
+        home: const _ShellHarness(),
+      ),
+    ));
+    await tester.pump(); // drain setTab microtask + initial stream
+    await tester.pumpAndSettle();
+
+    expect(observer.pushed, hasLength(1));
+
+    await tester.tap(find.text('Add task'));
+    // Multiple pumps to settle the route push + the body's first
+    // build pass. Don't pumpAndSettle — TaskAddEditScreen's Drift-
+    // stream watchers aren't overridden in this harness and would
+    // never settle. 300ms of frame ticks is enough to land the route
+    // transition without entering the unsettled Drift wait.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(observer.pushed, hasLength(2),
+        reason: 'sidebar Add Task in sub-two-pane wide should push '
+            'the full-screen route');
+    // Extract defaultFamilyShared from the pushed route's settings —
+    // more reliable than `find.byType(TaskAddEditScreen)` since the
+    // unsettled Drift watchers make the widget tree's mount status
+    // racy in this harness.
+    final pushedRoute = observer.pushed.last as MaterialPageRoute<void>;
+    final pushedWidget = pushedRoute.builder(
+      tester.element(find.byType(WideNavSidebar)),
+    );
+    expect(pushedWidget, isA<TaskAddEditScreen>());
+    final screen = pushedWidget as TaskAddEditScreen;
+    expect(screen.defaultFamilyShared, isTrue,
+        reason: 'add-task from Family destination must default to '
+            'family-shared — pre-fix this silently created personal '
+            'tasks because the Family-tab FAB (which set this flag) '
+            'was hidden on wide and the sidebar didn\'t derive it.');
+
     tester.state<NavigatorState>(find.byType(Navigator)).pop();
     await tester.pumpAndSettle();
   });

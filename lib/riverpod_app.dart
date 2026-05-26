@@ -26,6 +26,7 @@ import 'package:taskmaestro/features/sync/providers/sync_conflict_providers.dart
 import 'package:taskmaestro/core/platform/form_factor.dart';
 import 'package:taskmaestro/features/shared/presentation/app_drawer.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/right_pane_container.dart';
+import 'package:taskmaestro/features/shared/presentation/wide/right_pane_selection_sync.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/wide_nav_sidebar.dart';
 
 /// Riverpod-based main app widget
@@ -595,33 +596,44 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
     required Widget tabBody,
   }) {
     final isTwoPane = isTwoPaneWideLayout(MediaQuery.sizeOf(context));
+
     return Scaffold(
       drawer: const AppDrawer(),
-      body: Row(
-        children: [
-          WideNavSidebar(
-            navItems: liveNavItems,
-            selectedIndex: clampedIndex,
-            onSelectDestination: (index) {
-              ref.read(activeTabIndexProvider.notifier).setTab(index);
-            },
-          ),
-          Expanded(
-            child: Column(
-              children: [
-                const PendingInvitationBanner(),
-                MediaQuery.removePadding(
-                  context: context,
-                  removeTop: hasPendingInvite,
-                  child: const SyncConflictBanner(),
-                ),
-                Expanded(child: tabBody),
-              ],
+      // TM-384: wrap the wide shell in RightPaneSelectionSync — flips
+      // `rightPaneProvider` to `.editor` on a non-null selection and
+      // back to `.empty` when the user re-taps a row to deselect (so
+      // the right pane returns to the "Select a task" empty state
+      // rather than a blank pane).
+      body: RightPaneSelectionSync(
+        child: Row(
+          children: [
+            WideNavSidebar(
+              navItems: liveNavItems,
+              selectedIndex: clampedIndex,
+              onSelectDestination: (index) {
+                ref.read(activeTabIndexProvider.notifier).setTab(index);
+              },
             ),
-          ),
-          if (isTwoPane)
-            const SizedBox(width: kRightPaneWidth, child: RightPaneContainer()),
-        ],
+            Expanded(
+              child: Column(
+                children: [
+                  const PendingInvitationBanner(),
+                  MediaQuery.removePadding(
+                    context: context,
+                    removeTop: hasPendingInvite,
+                    child: const SyncConflictBanner(),
+                  ),
+                  Expanded(child: tabBody),
+                ],
+              ),
+            ),
+            if (isTwoPane)
+              const SizedBox(
+                width: kRightPaneWidth,
+                child: RightPaneContainer(),
+              ),
+          ],
+        ),
       ),
     );
   }

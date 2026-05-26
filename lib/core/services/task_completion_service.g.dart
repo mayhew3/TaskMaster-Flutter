@@ -247,7 +247,7 @@ final class AddTaskProvider extends $AsyncNotifierProvider<AddTask, void> {
   AddTask create() => AddTask();
 }
 
-String _$addTaskHash() => r'50ae61da56cfc6746bbd628a749f31948809b8cf';
+String _$addTaskHash() => r'e2890b2bb1dc833fb40661964bdb7ade21271175';
 
 /// Controller for adding new tasks.
 /// TM-368 + Copilot R8: kept `keepAlive: true` — see `CompleteTask` above.

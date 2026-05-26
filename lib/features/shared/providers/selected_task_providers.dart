@@ -1,5 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/providers/auth_providers.dart';
+
 part 'selected_task_providers.g.dart';
 
 /// Currently-selected task on the wide layout, by `docId`. `null` means
@@ -27,7 +29,14 @@ part 'selected_task_providers.g.dart';
 @Riverpod(keepAlive: true)
 class SelectedTask extends _$SelectedTask {
   @override
-  String? build() => null;
+  String? build() {
+    // Watch personDocId so a sign-out / user-switch resets selection.
+    // keepAlive means this notifier survives provider-graph rebuilds;
+    // without this watch, a stale docId from a previous user could
+    // outlive the sign-out and render in the next user's wide pane.
+    ref.watch(personDocIdProvider);
+    return null;
+  }
 
   void select(String docId) {
     if (state == docId) return;
@@ -42,12 +51,22 @@ class SelectedTask extends _$SelectedTask {
 
 /// What the contextual right pane is showing right now (TM-383 scaffold).
 ///
-/// Story 2 only ever sets [empty]; [editor] and [viewOptions] are the
-/// scaffolded states that TM-384 (docked editor) and TM-385 (View-Options
-/// side panel) will switch into. They're declared now so the container
-/// switch is exhaustive and Story 3 / Story 4 don't have to widen the
-/// enum.
-enum RightPaneMode { empty, editor, viewOptions }
+/// - [empty] — no selection, no add-in-progress; shows
+///   `RightPaneEmptyState` with the "Select a task" prompt.
+/// - [editor] — docked editor in **edit-mode** for the currently
+///   selected task (selection-driven; the `RightPaneSelectionSync`
+///   listener flips between this and [empty] as `selectedTaskProvider`
+///   becomes non-null / null).
+/// - [addingNewTask] — docked editor in **add-mode**, opened
+///   explicitly by the sidebar "+ Add task" button on the wide
+///   two-pane layout. Distinguished from [editor] so the selection
+///   listener doesn't downgrade it to [empty] when the user clears
+///   selection to start a new task (add-mode also has no selection,
+///   but its mode was set by explicit user intent — not by selection
+///   going null — so it must persist past the listener's null-
+///   selection check).
+/// - [viewOptions] — TM-385 (scaffolded; not yet implemented).
+enum RightPaneMode { empty, editor, addingNewTask, viewOptions }
 
 /// Current right-pane mode for the wide adaptive shell (TM-383).
 ///
@@ -58,7 +77,12 @@ enum RightPaneMode { empty, editor, viewOptions }
 @Riverpod(keepAlive: true)
 class RightPane extends _$RightPane {
   @override
-  RightPaneMode build() => RightPaneMode.empty;
+  RightPaneMode build() {
+    // Same rationale as [SelectedTask.build]: reset on user switch so
+    // a stale `.editor` from the previous user doesn't outlive sign-out.
+    ref.watch(personDocIdProvider);
+    return RightPaneMode.empty;
+  }
 
   void setMode(RightPaneMode mode) {
     if (state == mode) return;

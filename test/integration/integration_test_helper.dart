@@ -171,13 +171,21 @@ class IntegrationTestHelper {
   /// The explicit `ProviderContainer` lets us pre-warm `connectivityProvider`
   /// before any widget renders, so `SyncService.pushPendingWrites` sees
   /// `online == true` and doesn't short-circuit its offline-check.
-  static Future<void> pumpAppWithLiveFirestore(
+  /// [homeOverride], when supplied, replaces `_TestAuthenticatedHome` as the
+  /// `MaterialApp.home`. Used by widget tests (e.g. the TM-384 docked
+  /// editor) that need the full live-Firestore provider graph but render a
+  /// specific widget instead of the tabbed test home.
+  ///
+  /// Returns the [ProviderContainer] so tests can drive UI-state providers
+  /// (e.g. `selectedTaskProvider`) that aren't part of the override set.
+  static Future<ProviderContainer> pumpAppWithLiveFirestore(
     WidgetTester tester, {
     List<TaskItem>? initialTasks,
     List<Sprint>? initialSprints,
     List<TaskRecurrence>? initialRecurrences,
     String? personDocId,
     FirebaseFirestore? firestore,
+    Widget? homeOverride,
   }) async {
     // Use provided Firestore or create a fake one
     final testFirestore = firestore ?? FakeFirebaseFirestore();
@@ -199,8 +207,10 @@ class IntegrationTestHelper {
           'personDocId': task.personDocId,
           'offCycle': task.offCycle,
           'pendingCompletion': task.pendingCompletion,
+          'priorityScaleVersion': task.priorityScaleVersion,
           if (task.description != null) 'description': task.description,
           if (task.area != null) 'area': task.area,
+          if (task.familyDocId != null) 'familyDocId': task.familyDocId,
           if (task.contexts.isNotEmpty)
             'contexts': task.contexts
                 .map((c) => {
@@ -208,6 +218,14 @@ class IntegrationTestHelper {
                       if (c.value != null) 'value': c.value,
                     })
                 .toList(),
+          // Editable numeric fields. Without these the live-Firestore
+          // read side (which streams from fakeFirestore, not Drift)
+          // hydrated tasks with these fields null, so widget tests for
+          // picker round-trips silently saw the wrong starting values.
+          if (task.urgency != null) 'urgency': task.urgency,
+          if (task.priority != null) 'priority': task.priority,
+          if (task.duration != null) 'duration': task.duration,
+          if (task.gamePoints != null) 'gamePoints': task.gamePoints,
           if (task.completionDate != null) 'completionDate': task.completionDate,
           if (task.retired != null) 'retired': task.retired,
           if (task.startDate != null) 'startDate': task.startDate,
@@ -424,13 +442,15 @@ class IntegrationTestHelper {
               fillColor: WidgetStateProperty.all(Colors.blue),
             ),
           ),
-          home: _TestAuthenticatedHome(),
+          home: homeOverride ?? _TestAuthenticatedHome(),
         ),
       ),
     );
 
     // Wait for initial render and Firestore streams to emit their first values
     await tester.pumpAndSettle();
+
+    return container;
   }
 
   /// Find text that contains the given substring (useful for dynamic text)

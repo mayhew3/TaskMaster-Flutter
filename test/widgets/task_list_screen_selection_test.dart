@@ -116,6 +116,23 @@ void main() {
     expect(wrap, findsNothing,
         reason: 'phone path must not wrap the list in a max-width column');
   });
+
+  testWidgets('on wide, the Tasks tab add-task FAB is hidden — the sidebar '
+      '"+ Add task" is the canonical add affordance there (TM-384)',
+      (tester) async {
+    final taskA = _task('docA', 'Task A');
+    await pump(tester, logical: const Size(1280, 800), tasks: [taskA]);
+    expect(find.byType(FloatingActionButton), findsNothing,
+        reason: 'wide layouts must not show a duplicate add-task FAB '
+            'next to the sidebar\'s "+ Add task" button');
+  });
+
+  testWidgets('on compact, the Tasks tab add-task FAB is present — '
+      '(TM-384 / behavior-preserving for phone)', (tester) async {
+    final taskA = _task('docA', 'Task A');
+    await pump(tester, logical: const Size(800, 600), tasks: [taskA]);
+    expect(find.byType(FloatingActionButton), findsOneWidget);
+  });
 }
 
 class _FakeAuth extends Auth {
