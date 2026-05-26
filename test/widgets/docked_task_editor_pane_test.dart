@@ -486,6 +486,45 @@ void main() {
     });
   });
 
+  group('DockedTaskEditorPane — loading / error chrome', () {
+    testWidgets('renders the header chrome (with Close icon) for an '
+        'edit-mode task that hasn\'t loaded yet — user must always have '
+        'an exit affordance even while the provider graph hydrates '
+        '(TM-384 — Copilot R5 feedback)', (tester) async {
+      // No `initialTasks` for the requested docId → taskProvider
+      // returns null on first build → TaskEditorBody hits the
+      // loading branch. Pre-fix it returned a bare
+      // CircularProgressIndicator that bypassed headerBuilder
+      // entirely, stranding the user in the docked pane with no
+      // Close (X) until the load completed.
+      final container = await IntegrationTestHelper.pumpAppWithLiveFirestore(
+        tester,
+        initialTasks: [],
+        initialSprints: [],
+        homeOverride: paneHost(const DockedTaskEditorPane()),
+      );
+      container.read(selectedTaskProvider.notifier).select('not-yet-loaded');
+      // Single pump — no pumpAndSettle, the load NEVER resolves in
+      // this harness (the task isn't seeded) which is exactly the
+      // condition we're testing.
+      await tester.pump();
+
+      // Header chrome present even though body is loading.
+      expect(find.text('TASK DETAILS'), findsOneWidget,
+          reason: 'edit-mode header label must render while task '
+              'is loading so the docked pane has a Close affordance');
+      expect(find.byIcon(Icons.close), findsOneWidget,
+          reason: 'Close (X) icon must be reachable during the load');
+      // Delete is hidden during loading — we don't have a confirmed
+      // task to delete yet.
+      expect(find.byIcon(Icons.delete_outline), findsNothing,
+          reason: 'Delete must NOT render before the task materializes '
+              '(would dereference null taskItem on tap)');
+      // The body's CircularProgressIndicator is rendered.
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+  });
+
   group('DockedTaskEditorPane — no selection', () {
     testWidgets('with no selection the pane renders nothing (defensive — '
         'the editor is edit-mode only; add-task uses the full-screen '

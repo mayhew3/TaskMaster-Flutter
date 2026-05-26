@@ -604,7 +604,10 @@ class _TaskEditorBodyState extends ConsumerState<TaskEditorBody> {
     if (widget.taskItemId != null && !_initialized) {
       final task = ref.watch(taskProvider(widget.taskItemId!));
       if (task == null) {
-        return const Center(child: CircularProgressIndicator());
+        return _withChrome(
+          context,
+          body: const Center(child: CircularProgressIndicator()),
+        );
       }
       _initializeTask(task);
       _initialized = true;
@@ -629,14 +632,53 @@ class _TaskEditorBodyState extends ConsumerState<TaskEditorBody> {
         final timezoneHelperAsync = ref.watch(timezoneHelperProvider);
         final timezoneHelper = timezoneHelperAsync.value;
         if (timezoneHelper == null) {
-          return const Center(child: CircularProgressIndicator());
+          return _withChrome(
+            context,
+            body: const Center(child: CircularProgressIndicator()),
+          );
         }
 
         return _buildEditor(context, timezoneHelper);
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) =>
-          Center(child: Text('Error loading tasks: $err')),
+      loading: () => _withChrome(
+        context,
+        body: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (err, stack) => _withChrome(
+        context,
+        body: Center(child: Text('Error loading tasks: $err')),
+      ),
+    );
+  }
+
+  /// Wraps a loading/error placeholder body in the editor's chrome
+  /// (header + filler so the action bar would slot in if rendered)
+  /// so the user always has an exit affordance — the docked pane's
+  /// Close (X) and the full-screen route's back chevron both live in
+  /// `widget.headerBuilder` output. Without this, a slow Drift /
+  /// timezone hydration would leave the editor with NO way out
+  /// (Copilot R5 feedback).
+  Widget _withChrome(BuildContext context, {required Widget body}) {
+    return Column(
+      children: [
+        widget.headerBuilder(
+          context,
+          TaskEditorHeaderInfo(
+            // `isEditing` derives from the widget param, not the
+            // populated `taskItem`, so the title is correct even
+            // while the task is still loading.
+            title: isEditing ? 'Edit task' : 'New task',
+            isEditMode: isEditing,
+            // No Delete during loading — the task hasn't been
+            // confirmed to exist yet, and the delete handler would
+            // dereference a null `taskItem`.
+            onDelete: null,
+            onClose: widget.onClose,
+            taskItem: taskItem,
+          ),
+        ),
+        Expanded(child: body),
+      ],
     );
   }
 
