@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../helpers/area_color_helper.dart';
 import '../../../../models/task_colors.dart';
 import '../../../../models/task_item.dart';
+import '../../../../models/top_nav_item.dart';
 import '../../../tasks/presentation/task_editor_body.dart';
 import '../../../tasks/providers/expanded_task_provider.dart';
+import '../../providers/navigation_provider.dart';
 import '../../providers/selected_task_providers.dart';
 
 /// The wide-layout docked editor (TM-384 Story 3 of Epic TM-188).
@@ -182,6 +184,7 @@ class _DockedTaskEditorPaneState extends ConsumerState<DockedTaskEditorPane> {
     final String? taskItemIdForBody;
     final String keyPrefix;
     final TaskItem? overrideTask;
+    bool defaultFamilyShared = false;
     if (mode == RightPaneMode.editor && selectedDocId != null) {
       taskItemIdForBody = selectedDocId;
       keyPrefix = selectedDocId;
@@ -192,6 +195,15 @@ class _DockedTaskEditorPaneState extends ConsumerState<DockedTaskEditorPane> {
       taskItemIdForBody = null;
       keyPrefix = '__add__';
       overrideTask = null;
+      // Match the compact Family-tab FAB behavior: tasks added while
+      // the user is on the Family destination default to family-
+      // shared. The Family-tab FAB is hidden on wide (TM-384), so
+      // without this read the sidebar's "+ Add task" entry-point
+      // would silently land Family-tab adds as personal tasks.
+      // Only checked in add-mode — edit-mode reads its task's own
+      // `familyDocId` from the existing row.
+      defaultFamilyShared =
+          ref.watch(activeNavDestinationProvider) == NavDestination.family;
     } else {
       return const SizedBox.shrink();
     }
@@ -223,6 +235,7 @@ class _DockedTaskEditorPaneState extends ConsumerState<DockedTaskEditorPane> {
                   child: TaskEditorBody(
                     key: ValueKey('$keyPrefix-$_generation'),
                     taskItemId: taskItemIdForBody,
+                    defaultFamilyShared: defaultFamilyShared,
                     initialTaskOverride: overrideTask,
                     useRootNavigatorForPickers: false,
                     onClose: _handleClose,

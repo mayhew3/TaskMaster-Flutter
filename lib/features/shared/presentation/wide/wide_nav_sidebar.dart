@@ -17,6 +17,7 @@ import '../../../../models/context.dart';
 import '../../../../models/task_colors.dart';
 import '../../../../models/task_list_view.dart';
 import '../../../../models/top_nav_item.dart';
+import '../../providers/navigation_provider.dart';
 import '../../providers/selected_task_providers.dart';
 import '../../providers/sidebar_facet_counts.dart';
 import '../../providers/task_list_view_providers.dart';
@@ -323,6 +324,13 @@ class _SidebarAddTaskButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Match the compact Family-tab FAB's behavior: tasks added while
+    // the user is on the Family destination default to family-shared.
+    // The Family-tab FAB is hidden on wide (TM-384) so the sidebar's
+    // "+ Add task" is the canonical add affordance — without this
+    // read, family-context adds would silently land as personal tasks.
+    final isFamilyTab =
+        ref.watch(activeNavDestinationProvider) == NavDestination.family;
     return Material(
       color: TaskColors.brandMagentaMuted,
       borderRadius: BorderRadius.circular(14),
@@ -349,6 +357,12 @@ class _SidebarAddTaskButton extends ConsumerWidget {
             // because it was already expanded — breaking the wide
             // row-tap contract that opens BOTH. Same rationale as
             // `_resetPerTabState` in `navigation_provider.dart`.
+            //
+            // The family-shared default is read by
+            // `DockedTaskEditorPane`'s build via the same
+            // `activeNavDestinationProvider`, so no extra state is
+            // needed here — the pane will see Family at its next
+            // build and pass `defaultFamilyShared: true` to the body.
             ref.read(selectedTaskProvider.notifier).clear();
             ref.read(expandedTaskProvider.notifier).collapse();
             ref
@@ -357,7 +371,8 @@ class _SidebarAddTaskButton extends ConsumerWidget {
           } else {
             Navigator.of(context).push(
               MaterialPageRoute<void>(
-                builder: (_) => const TaskAddEditScreen(),
+                builder: (_) =>
+                    TaskAddEditScreen(defaultFamilyShared: isFamilyTab),
               ),
             );
           }

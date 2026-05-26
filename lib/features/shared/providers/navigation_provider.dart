@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../models/top_nav_item.dart';
+import '../../family/providers/family_providers.dart';
 import '../../tasks/providers/expanded_task_provider.dart';
 import '../../tasks/providers/task_filter_providers.dart';
 import '../../tasks/providers/task_providers.dart';
@@ -122,4 +124,30 @@ class ActiveTabIndex extends _$ActiveTabIndex {
       state = maxIndex;
     }
   }
+}
+
+/// Derived [NavDestination] for the currently-active tab.
+///
+/// Mirrors the `liveNavItems` layout built inline in `riverpod_app.dart`:
+///
+///   - inFamily   : [Plan(0), Tasks(1), Family(2), Stats(3)]
+///   - !inFamily  : [Plan(0), Tasks(1), Stats(2)]
+///
+/// Out-of-range indices fall through to [NavDestination.stats] —
+/// `ActiveTabIndex.clampToLayout` should keep the index in range, so
+/// this branch is defensive.
+///
+/// Centralises the index → destination mapping so layout-aware callers
+/// outside the sidebar (TM-384's sidebar Add Task button + the docked
+/// editor pane, which need to know if the Family tab is active so new
+/// tasks default to family-shared) don't each re-derive it and silently
+/// drift if the layout changes.
+@riverpod
+NavDestination activeNavDestination(Ref ref) {
+  final tabIndex = ref.watch(activeTabIndexProvider);
+  final inFamily = ref.watch(currentFamilyDocIdProvider) != null;
+  if (tabIndex == 0) return NavDestination.plan;
+  if (tabIndex == 1) return NavDestination.tasks;
+  if (inFamily && tabIndex == 2) return NavDestination.family;
+  return NavDestination.stats;
 }

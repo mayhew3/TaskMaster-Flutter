@@ -47,7 +47,7 @@ final class ActiveTabIndexProvider
   }
 }
 
-String _$activeTabIndexHash() => r'20becce992058bd671a0c53ba6ce3bb51bc4986f';
+String _$activeTabIndexHash() => r'c5c99c3e9dad00fb523a9b8db945d386af82d51f';
 
 /// Provider for the currently active tab index
 /// Using keepAlive to persist across widget rebuilds
@@ -69,3 +69,95 @@ abstract class _$ActiveTabIndex extends $Notifier<int> {
     element.handleCreate(ref, build);
   }
 }
+
+/// Derived [NavDestination] for the currently-active tab.
+///
+/// Mirrors the `liveNavItems` layout built inline in `riverpod_app.dart`:
+///
+///   - inFamily   : [Plan(0), Tasks(1), Family(2), Stats(3)]
+///   - !inFamily  : [Plan(0), Tasks(1), Stats(2)]
+///
+/// Out-of-range indices fall through to [NavDestination.stats] —
+/// `ActiveTabIndex.clampToLayout` should keep the index in range, so
+/// this branch is defensive.
+///
+/// Centralises the index → destination mapping so layout-aware callers
+/// outside the sidebar (TM-384's sidebar Add Task button + the docked
+/// editor pane, which need to know if the Family tab is active so new
+/// tasks default to family-shared) don't each re-derive it and silently
+/// drift if the layout changes.
+
+@ProviderFor(activeNavDestination)
+final activeNavDestinationProvider = ActiveNavDestinationProvider._();
+
+/// Derived [NavDestination] for the currently-active tab.
+///
+/// Mirrors the `liveNavItems` layout built inline in `riverpod_app.dart`:
+///
+///   - inFamily   : [Plan(0), Tasks(1), Family(2), Stats(3)]
+///   - !inFamily  : [Plan(0), Tasks(1), Stats(2)]
+///
+/// Out-of-range indices fall through to [NavDestination.stats] —
+/// `ActiveTabIndex.clampToLayout` should keep the index in range, so
+/// this branch is defensive.
+///
+/// Centralises the index → destination mapping so layout-aware callers
+/// outside the sidebar (TM-384's sidebar Add Task button + the docked
+/// editor pane, which need to know if the Family tab is active so new
+/// tasks default to family-shared) don't each re-derive it and silently
+/// drift if the layout changes.
+
+final class ActiveNavDestinationProvider
+    extends $FunctionalProvider<NavDestination, NavDestination, NavDestination>
+    with $Provider<NavDestination> {
+  /// Derived [NavDestination] for the currently-active tab.
+  ///
+  /// Mirrors the `liveNavItems` layout built inline in `riverpod_app.dart`:
+  ///
+  ///   - inFamily   : [Plan(0), Tasks(1), Family(2), Stats(3)]
+  ///   - !inFamily  : [Plan(0), Tasks(1), Stats(2)]
+  ///
+  /// Out-of-range indices fall through to [NavDestination.stats] —
+  /// `ActiveTabIndex.clampToLayout` should keep the index in range, so
+  /// this branch is defensive.
+  ///
+  /// Centralises the index → destination mapping so layout-aware callers
+  /// outside the sidebar (TM-384's sidebar Add Task button + the docked
+  /// editor pane, which need to know if the Family tab is active so new
+  /// tasks default to family-shared) don't each re-derive it and silently
+  /// drift if the layout changes.
+  ActiveNavDestinationProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'activeNavDestinationProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$activeNavDestinationHash();
+
+  @$internal
+  @override
+  $ProviderElement<NavDestination> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  NavDestination create(Ref ref) {
+    return activeNavDestination(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(NavDestination value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<NavDestination>(value),
+    );
+  }
+}
+
+String _$activeNavDestinationHash() =>
+    r'fea0eb413e287b50237a8b208ef25f4ffa18de20';
