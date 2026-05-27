@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taskmaestro/features/family/providers/family_task_filter_providers.dart';
 import 'package:taskmaestro/features/shared/providers/sidebar_facet_counts.dart';
 import 'package:taskmaestro/features/shared/providers/task_list_view_providers.dart';
-import 'package:taskmaestro/features/sprints/presentation/sprint_task_items_screen.dart';
+import 'package:taskmaestro/features/sprints/providers/sprint_grouped_tasks_providers.dart';
 import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaestro/features/tasks/providers/task_filter_providers.dart';
 import 'package:taskmaestro/models/sprint.dart';

@@ -53,7 +53,7 @@ import 'selection_tap_policy.dart';
 /// The rebuild surface is narrowed by `select`ing only the membership
 /// boolean for this row's docId — flipping selection between two rows A
 /// and B rebuilds only those two rows, not the whole list.
-class SelectableTaskItem extends ConsumerWidget {
+class SelectableTaskItem extends ConsumerStatefulWidget {
   /// Which list surface this row belongs to. The wide shell renders
   /// multiple surfaces simultaneously via `IndexedStack`, so the same
   /// task docId can appear in more than one place at once — the
@@ -71,29 +71,43 @@ class SelectableTaskItem extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SelectableTaskItem> createState() => _SelectableTaskItemState();
+}
+
+class _SelectableTaskItemState extends ConsumerState<SelectableTaskItem> {
+  /// Stable tap callback for the row's lifetime. Captured into
+  /// [SelectionTapPolicy] so `updateShouldNotify` (which compares
+  /// callback identity) only notifies when the policy actually changes
+  /// — not on every build. Without this, every `SelectableTaskItem`
+  /// rebuild would propagate through the policy and rebuild the leaf
+  /// row beneath it, multiplying work in long lists.
+  late final VoidCallback _onShellTap;
+
+  @override
+  void initState() {
+    super.initState();
+    _onShellTap = () {
+      final notifier = ref.read(selectedTaskProvider.notifier);
+      final current = ref.read(selectedTaskProvider);
+      if (current == widget.taskDocId) {
+        notifier.clear();
+      } else {
+        notifier.select(widget.taskDocId);
+      }
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final wide = isWideLayout(MediaQuery.sizeOf(context));
-    if (!wide) return child;
+    if (!wide) return widget.child;
 
-    final selected =
-        ref.watch(selectedTaskProvider.select((id) => id == taskDocId));
+    final selected = ref
+        .watch(selectedTaskProvider.select((id) => id == widget.taskDocId));
 
-    // Tap policy: a fresh closure every build so identity stays in
-    // sync with the latest WidgetRef + taskDocId — InheritedWidget's
-    // updateShouldNotify gates downstream rebuilds on closure
-    // inequality, but since the captured taskDocId is constant per
-    // instance the policy is effectively stable for a given row.
-    Widget policyWrapped = SelectionTapPolicy(
-      onShellTap: () {
-        final notifier = ref.read(selectedTaskProvider.notifier);
-        final current = ref.read(selectedTaskProvider);
-        if (current == taskDocId) {
-          notifier.clear();
-        } else {
-          notifier.select(taskDocId);
-        }
-      },
-      child: child,
+    final Widget policyWrapped = SelectionTapPolicy(
+      onShellTap: _onShellTap,
+      child: widget.child,
     );
 
     if (!selected) return policyWrapped;
@@ -102,7 +116,7 @@ class SelectableTaskItem extends ConsumerWidget {
     // so there's never more than one row in the tree carrying it —
     // Flutter would throw "Duplicate GlobalKey" otherwise.
     return KeyedSubtree(
-      key: SelectableTaskItemKey.of(surface, taskDocId),
+      key: SelectableTaskItemKey.of(widget.surface, widget.taskDocId),
       child: policyWrapped,
     );
   }

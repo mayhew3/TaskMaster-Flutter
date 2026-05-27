@@ -14,6 +14,7 @@ import 'package:taskmaestro/features/contexts/providers/context_providers.dart';
 import 'package:taskmaestro/features/family/providers/family_providers.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/docked_view_options_pane.dart';
 import 'package:taskmaestro/features/shared/providers/navigation_provider.dart';
+import 'package:taskmaestro/features/shared/providers/right_pane_width_provider.dart';
 import 'package:taskmaestro/features/shared/providers/selected_task_providers.dart';
 import 'package:taskmaestro/features/shared/providers/task_list_view_providers.dart';
 import 'package:taskmaestro/models/top_nav_item.dart';

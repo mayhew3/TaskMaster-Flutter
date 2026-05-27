@@ -4,7 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../models/task_item.dart';
 import '../../../models/task_list_view.dart';
 import '../../family/providers/family_task_filter_providers.dart';
-import '../../sprints/presentation/sprint_task_items_screen.dart';
+import '../../sprints/providers/sprint_grouped_tasks_providers.dart';
 import '../../sprints/providers/sprint_providers.dart';
 import '../../tasks/providers/task_filter_providers.dart';
 import '../../tasks/providers/task_providers.dart';

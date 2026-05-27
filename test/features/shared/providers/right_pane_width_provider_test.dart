@@ -6,6 +6,7 @@ import 'package:taskmaestro/core/platform/form_factor.dart';
 import 'package:taskmaestro/core/providers/auth_providers.dart';
 import 'package:taskmaestro/features/family/providers/family_providers.dart';
 import 'package:taskmaestro/features/shared/providers/navigation_provider.dart';
+import 'package:taskmaestro/features/shared/providers/right_pane_width_provider.dart';
 import 'package:taskmaestro/features/shared/providers/selected_task_providers.dart';
 import 'package:taskmaestro/features/shared/providers/task_list_view_providers.dart';
 import 'package:taskmaestro/models/task_list_view.dart';

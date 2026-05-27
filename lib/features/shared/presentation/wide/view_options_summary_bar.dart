@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../models/task_list_view.dart';
 import '../../../family/providers/family_task_filter_providers.dart';
-import '../../../sprints/presentation/sprint_task_items_screen.dart'
-    show sprintGroupedTasksProvider;
+import '../../../sprints/providers/sprint_grouped_tasks_providers.dart';
 import '../../../sprints/providers/sprint_providers.dart';
 import '../../../tasks/providers/task_filter_providers.dart';
 import '../../providers/selected_task_providers.dart';

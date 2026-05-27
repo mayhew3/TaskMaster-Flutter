@@ -29,7 +29,7 @@ import 'package:taskmaestro/features/shared/presentation/wide/right_pane_contain
 import 'package:taskmaestro/features/shared/presentation/wide/right_pane_selection_sync.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/wide_nav_sidebar.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/wide_shortcuts.dart';
-import 'package:taskmaestro/features/shared/providers/selected_task_providers.dart';
+import 'package:taskmaestro/features/shared/providers/right_pane_width_provider.dart';
 
 /// Riverpod-based main app widget
 /// This replaces the Redux-based TaskMaestroApp when useRiverpodForAuth is enabled

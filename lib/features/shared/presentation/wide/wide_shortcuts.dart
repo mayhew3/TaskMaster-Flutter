@@ -10,6 +10,7 @@ import '../../../../features/tasks/providers/task_filter_providers.dart';
 import '../../../../models/task_list_view.dart';
 import '../../../family/providers/family_task_filter_providers.dart';
 import '../../providers/navigation_provider.dart';
+import '../../providers/right_pane_width_provider.dart';
 import '../../providers/selected_task_providers.dart';
 
 part 'wide_shortcuts.g.dart';
@@ -227,16 +228,20 @@ class _WideShortcutsState extends ConsumerState<WideShortcuts> {
 /// True when an editable text widget (TextField / TextFormField /
 /// any descendant of `EditableText`) currently has focus.
 ///
-/// Flutter's bare `Shortcuts` widget fires even when a TextField is
-/// focused, because TextField's `EditableText` only consumes the
-/// keys it cares about (Backspace, arrow keys, Enter…) — ordinary
-/// character keys pass through to Shortcuts. Without this guard,
-/// pressing `e` to type in a TextField would ALSO fire
-/// `EditSelectedIntent` and move the user's editor around.
+/// `HardwareKeyboard.instance.addHandler` dispatch is focus-tree
+/// independent — when a TextField is focused, ordinary character keys
+/// reach both `EditableText` (which inserts them into the field) AND
+/// our handler (which would otherwise fire `n`/`/`/`e` shortcuts).
+/// Returning `true` here short-circuits the handler before any shortcut
+/// fires, leaving the keystroke for the field. Without this guard,
+/// typing `e` into a search field would ALSO open the docked editor.
 ///
-/// All character-key Actions (j/k/e/c/slash) consult this; the
-/// modifier-key shortcut (Cmd/Ctrl+N) doesn't need it because
-/// modifier combos don't conflict with text entry.
+/// Every bare-key shortcut consults this (j/k/e/c/slash/n). The TM-385
+/// implementation uses bare `n` (not Cmd/Ctrl+N) because the browser
+/// intercepts the modifier combo on web; the separate
+/// `HardwareKeyboard.isControlPressed / isMetaPressed / isAltPressed /
+/// isShiftPressed` guard in `_handleKeyEvent` keeps modifier presses
+/// (Cmd+J, Shift+N, …) from accidentally triggering bare-key actions.
 bool _isTextFieldFocused() {
   final focus = FocusManager.instance.primaryFocus;
   if (focus == null) return false;

@@ -5,7 +5,7 @@ import '../../../../core/platform/form_factor.dart';
 import '../../../../models/task_colors.dart';
 import '../../../../models/task_list_view.dart';
 import '../../providers/navigation_provider.dart';
-import '../../providers/selected_task_providers.dart';
+import '../../providers/right_pane_width_provider.dart';
 import '../../providers/task_list_view_providers.dart';
 import '../view_options_sheet.dart' show ViewOptionsPanelContent;
 
