@@ -254,21 +254,29 @@ class _FamilyTaskTile extends ConsumerWidget {
           builder: (context) => SnoozeDialog(taskItem: task),
         );
       },
-      onTaskCompleteToggle: (checkState) {
-        if (checkState == CheckState.pending) return null;
-        if (checkState == CheckState.skipped) {
-          ref.read(skipTaskProvider.notifier).unskip(task).catchError(
-              (Object e, StackTrace st) =>
-                  showTaskActionError(context, e, st));
-          return null;
-        }
-        ref
-            .read(completeTaskProvider.notifier)
-            .call(task, complete: checkState == CheckState.inactive)
-            .catchError((Object e, StackTrace st) =>
-                showTaskActionError(context, e, st));
-        return null;
-      },
+      // Ownership guard: complete/skip toggles only fire on the
+      // current user's own tasks. Without this, tapping the checkbox
+      // on a teammate's row would optimistically write completion
+      // locally and queue a Firestore write the rules should reject
+      // — mirrors the read-only Edit gate above and the keyboard `c`
+      // shortcut guard in `WideShortcuts._completeSelected`.
+      onTaskCompleteToggle: isMine
+          ? (checkState) {
+              if (checkState == CheckState.pending) return null;
+              if (checkState == CheckState.skipped) {
+                ref.read(skipTaskProvider.notifier).unskip(task).catchError(
+                    (Object e, StackTrace st) =>
+                        showTaskActionError(context, e, st));
+                return null;
+              }
+              ref
+                  .read(completeTaskProvider.notifier)
+                  .call(task, complete: checkState == CheckState.inactive)
+                  .catchError((Object e, StackTrace st) =>
+                      showTaskActionError(context, e, st));
+              return null;
+            }
+          : null,
       // Swipe-to-delete is only allowed for tasks the current user owns; the
       // Family tab's MVP scope doesn't include deleting another member's
       // task. Surface a toast on attempt so the user understands why the

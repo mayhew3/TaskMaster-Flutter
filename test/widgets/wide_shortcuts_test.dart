@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,10 +10,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taskmaestro/core/database/app_database.dart' hide Area, Context;
 import 'package:taskmaestro/core/providers/auth_providers.dart';
 import 'package:taskmaestro/core/providers/database_provider.dart';
+import 'package:taskmaestro/core/services/task_completion_service.dart';
 import 'package:taskmaestro/features/family/providers/family_providers.dart';
+import 'package:taskmaestro/features/family/providers/family_task_filter_providers.dart';
+import 'package:taskmaestro/features/shared/logic/task_grouping.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/wide_shortcuts.dart';
+import 'package:taskmaestro/features/shared/providers/navigation_provider.dart';
 import 'package:taskmaestro/features/shared/providers/selected_task_providers.dart';
 import 'package:taskmaestro/features/tasks/providers/expanded_task_provider.dart';
+import 'package:taskmaestro/features/tasks/providers/task_filter_providers.dart';
+import 'package:taskmaestro/models/task_item.dart';
+import 'package:taskmaestro/models/top_nav_item.dart';
+
+import '../helpers/async_provider_helpers.dart';
 
 /// TM-385 — WideShortcuts wraps the wide-shell row in `Shortcuts`
 /// + `Actions`. These tests pin the binding → Intent → provider
@@ -122,9 +133,13 @@ void main() {
   });
 
   testWidgets('shortcuts still fire AFTER a TextField was focused and '
-      'then unfocused — FocusManager listener re-grabs focus from '
-      'the root scope (TM-385 — regression for "search broke `n`/`/` '
-      'until app restart")', (tester) async {
+      'then unfocused (TM-385 — regression for "search broke `n`/`/` '
+      'until app restart"). Pins HardwareKeyboard.addHandler '
+      'focus-independence: the handler runs regardless of where '
+      'primaryFocus lives (including the root scope after unfocus), '
+      'so prior Shortcuts-tree behavior — where focus collapse to '
+      'root silenced every binding — does not regress.',
+      (tester) async {
     final c = await pumpHarness(tester);
 
     // Step 1: focus the sidebar search via the / shortcut.
@@ -134,23 +149,20 @@ void main() {
         reason: 'sanity: slash focuses the search node');
 
     // Step 2: simulate the user clicking away. unfocus() drops focus
-    // to the root scope — the exact bug scenario where Shortcuts
-    // stops dispatching.
+    // to the root scope — the exact bug scenario where the prior
+    // Shortcuts-tree dispatch went silent.
     c.read(sidebarSearchFocusNodeProvider).unfocus();
     await tester.pump();
-    // The FocusManager listener defers via microtask; drain it.
-    await tester.pump();
-    expect(FocusManager.instance.primaryFocus, isNotNull,
-        reason: 'shell focus listener should have re-grabbed focus '
-            'rather than leaving primary focus null');
 
-    // Step 3: `n` must STILL fire after the focus round-trip.
+    // Step 3: `n` must STILL fire — the HardwareKeyboard handler runs
+    // even when no widget currently holds primary focus.
     expect(c.read(rightPaneProvider), RightPaneMode.empty);
     await tester.sendKeyEvent(LogicalKeyboardKey.keyN);
     await tester.pump();
     expect(c.read(rightPaneProvider), RightPaneMode.addingNewTask,
-        reason: 'after the search field releases focus, the shell '
-            'should re-grab it so subsequent shortcuts dispatch');
+        reason: 'HardwareKeyboard.addHandler dispatch is focus-tree '
+            'independent — `n` should still flip the pane after the '
+            'search field released focus');
   });
 
   testWidgets('shortcuts do NOT fire while a TextField has focus '
@@ -200,6 +212,343 @@ void main() {
             "into a text field would silently move the user's editor "
             'around');
   });
+
+  // ─── j/k navigation + c completion (TM-385) ──────────────────────
+  //
+  // These tests pump the same WideShortcuts harness as above but with
+  // a populated Tasks/Family surface (grouped tasks override) so the
+  // `_moveSelection` / `_completeSelected` paths have a real list to
+  // walk. Destination is overridden directly via
+  // `activeNavDestinationProvider` rather than driving the tab index,
+  // so the test stays decoupled from `riverpod_app.dart`'s tab layout.
+
+  TaskItem _task(String docId, String name,
+      {String personDocId = 'test-person', DateTime? completionDate}) {
+    return TaskItem(
+      (b) => b
+        ..docId = docId
+        ..name = name
+        ..personDocId = personDocId
+        ..completionDate = completionDate
+        ..offCycle = false
+        ..dateAdded = DateTime.now().toUtc(),
+    );
+  }
+
+  Future<ProviderContainer> pumpHarnessWith(
+    WidgetTester tester, {
+    required NavDestination destination,
+    List<TaskItem> tasksOnTasks = const [],
+    List<TaskItem> tasksOnFamily = const [],
+    _RecordingCompleteTask? completeRecorder,
+  }) async {
+    final db = AppDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+
+    TaskGroupResult _wrap(List<TaskItem> ts) => TaskGroupResult(
+          key: 'g',
+          displayName: '',
+          displayOrder: 1,
+          tasks: ts,
+        );
+
+    final overrides = [
+      databaseProvider.overrideWithValue(db),
+      personDocIdProvider.overrideWith((ref) => 'test-person'),
+      currentFamilyDocIdProvider.overrideWith((ref) => null),
+      activeNavDestinationProvider.overrideWith((ref) => destination),
+      groupedTasksProvider.overrideWith((ref) async => [_wrap(tasksOnTasks)]),
+      familyGroupedTasksProvider.overrideWith((ref) => [_wrap(tasksOnFamily)]),
+      if (completeRecorder != null)
+        completeTaskProvider.overrideWith(() => completeRecorder),
+    ];
+
+    final container = ProviderContainer(overrides: overrides);
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(
+          home: WideShortcuts(
+            child: Scaffold(
+              body: Column(children: [
+                _SearchFocusAttacher(),
+                Expanded(child: Center(child: _AutoFocusedSink())),
+              ]),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    // Materialize the async grouped-tasks provider so
+    // `_flatDocIdsForActiveSurface` sees `.value` populated rather
+    // than the initial AsyncLoading state. `readAsyncValue` avoids the
+    // `.future` hang documented in `async_provider_helpers.dart` /
+    // memory `project_riverpod4_future_hang`.
+    await readAsyncValue(container, groupedTasksProvider);
+    await tester.pump();
+    return container;
+  }
+
+  testWidgets('j with no selection selects the first row AND expands it '
+      '(TM-385 — j/k co-fires accordion alongside selection so the '
+      'focused card stays in sync)', (tester) async {
+    final c = await pumpHarnessWith(
+      tester,
+      destination: NavDestination.tasks,
+      tasksOnTasks: [_task('a', 'A'), _task('b', 'B'), _task('c', 'C')],
+    );
+    expect(c.read(selectedTaskProvider), isNull);
+    expect(c.read(expandedTaskProvider), isNull);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyJ);
+    await tester.pump();
+
+    expect(c.read(selectedTaskProvider), 'a');
+    expect(c.read(expandedTaskProvider), 'a',
+        reason: 'j must co-fire expandedTaskProvider.toggle on the '
+            'newly-selected docId so the accordion follows selection');
+  });
+
+  testWidgets('k with no selection selects the LAST row (TM-385)',
+      (tester) async {
+    final c = await pumpHarnessWith(
+      tester,
+      destination: NavDestination.tasks,
+      tasksOnTasks: [_task('a', 'A'), _task('b', 'B'), _task('c', 'C')],
+    );
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyK);
+    await tester.pump();
+
+    expect(c.read(selectedTaskProvider), 'c');
+    expect(c.read(expandedTaskProvider), 'c');
+  });
+
+  testWidgets('j past the end of the list is a no-op — selection AND '
+      'accordion both stay (TM-385 — clamp guard)', (tester) async {
+    final c = await pumpHarnessWith(
+      tester,
+      destination: NavDestination.tasks,
+      tasksOnTasks: [_task('a', 'A'), _task('b', 'B')],
+    );
+    c.read(selectedTaskProvider.notifier).select('b');
+    c.read(expandedTaskProvider.notifier).toggle('b');
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyJ);
+    await tester.pump();
+
+    expect(c.read(selectedTaskProvider), 'b');
+    expect(c.read(expandedTaskProvider), 'b');
+  });
+
+  testWidgets('j mid-list advances selection AND accordion in lockstep '
+      '(TM-385)', (tester) async {
+    final c = await pumpHarnessWith(
+      tester,
+      destination: NavDestination.tasks,
+      tasksOnTasks: [_task('a', 'A'), _task('b', 'B'), _task('c', 'C')],
+    );
+    c.read(selectedTaskProvider.notifier).select('a');
+    c.read(expandedTaskProvider.notifier).toggle('a');
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyJ);
+    await tester.pump();
+
+    expect(c.read(selectedTaskProvider), 'b');
+    expect(c.read(expandedTaskProvider), 'b');
+  });
+
+  testWidgets('c with no selection is a no-op (TM-385)', (tester) async {
+    final recorder = _RecordingCompleteTask();
+    await pumpHarnessWith(
+      tester,
+      destination: NavDestination.tasks,
+      tasksOnTasks: [_task('a', 'A')],
+      completeRecorder: recorder,
+    );
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyC);
+    await tester.pump();
+
+    expect(recorder.calls, isEmpty,
+        reason: 'no selection → no completeTask dispatch');
+  });
+
+  testWidgets('c on Tasks fires completeTaskProvider with the selected '
+      'task (TM-385)', (tester) async {
+    final recorder = _RecordingCompleteTask();
+    final c = await pumpHarnessWith(
+      tester,
+      destination: NavDestination.tasks,
+      tasksOnTasks: [_task('a', 'Apple'), _task('b', 'Bear')],
+      completeRecorder: recorder,
+    );
+    c.read(selectedTaskProvider.notifier).select('b');
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyC);
+    await tester.pump();
+
+    expect(recorder.calls.length, 1);
+    expect(recorder.calls.single.task.docId, 'b');
+    expect(recorder.calls.single.complete, isTrue,
+        reason: 'task was incomplete → toggle should mark complete=true');
+  });
+
+  testWidgets('c on Stats is a no-op (no list surface) (TM-385)',
+      (tester) async {
+    final recorder = _RecordingCompleteTask();
+    final c = await pumpHarnessWith(
+      tester,
+      destination: NavDestination.stats,
+      tasksOnTasks: [_task('a', 'A')],
+      completeRecorder: recorder,
+    );
+    c.read(selectedTaskProvider.notifier).select('a');
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyC);
+    await tester.pump();
+
+    expect(recorder.calls, isEmpty,
+        reason: 'Stats has no list surface → completeTask must not fire');
+  });
+
+  testWidgets('c on Family with a teammate-owned task is a no-op '
+      '(TM-385 — ownership guard mirrors RightPaneSelectionSync)',
+      (tester) async {
+    final recorder = _RecordingCompleteTask();
+    final c = await pumpHarnessWith(
+      tester,
+      destination: NavDestination.family,
+      tasksOnFamily: [
+        _task('mine', 'Mine'),
+        _task('theirs', 'Theirs', personDocId: 'other-person'),
+      ],
+      completeRecorder: recorder,
+    );
+    c.read(selectedTaskProvider.notifier).select('theirs');
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyC);
+    await tester.pump();
+
+    expect(recorder.calls, isEmpty,
+        reason: 'teammate-owned task → guard bails before completeTask');
+  });
+
+  // ─── Modifier guard (TM-385) ──────────────────────────────────────
+  //
+  // Bare-character shortcuts must NOT fire when a modifier is held —
+  // Cmd+J / Ctrl+N etc. belong to the OS / browser, and treating
+  // capital Shift+N as a "new task" trigger would also surprise users.
+
+  testWidgets('Ctrl+N does NOT fire AddNewTaskIntent (TM-385 modifier '
+      'guard)', (tester) async {
+    final c = await pumpHarnessWith(
+      tester,
+      destination: NavDestination.tasks,
+      tasksOnTasks: [_task('a', 'A')],
+    );
+    expect(c.read(rightPaneProvider), RightPaneMode.empty);
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyN);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    await tester.pump();
+
+    expect(c.read(rightPaneProvider), RightPaneMode.empty,
+        reason: 'modifier combos belong to the OS; bare-key shortcut '
+            'handler must skip when Ctrl is held');
+  });
+
+  testWidgets('Shift+N does NOT fire AddNewTaskIntent (TM-385 modifier '
+      'guard — capital N is a typed character, not a shortcut)',
+      (tester) async {
+    final c = await pumpHarnessWith(
+      tester,
+      destination: NavDestination.tasks,
+      tasksOnTasks: [_task('a', 'A')],
+    );
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyN);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.pump();
+
+    expect(c.read(rightPaneProvider), RightPaneMode.empty);
+  });
+
+  // ─── _resetPerTabState preserves .viewOptions (TM-385) ─────────────
+  //
+  // The TM-385 change to navigation_provider.dart's `_resetPerTabState`
+  // gates the right-pane reset on `mode != .viewOptions`. Switching
+  // tabs while the View Options panel is open must:
+  //   (a) preserve the .viewOptions mode (panel re-renders for the new
+  //       surface),
+  //   (b) still clear the selection (a task selected on one surface
+  //       may not exist on the new one).
+
+  testWidgets('_resetPerTabState preserves .viewOptions across tab '
+      'switch but clears selection (TM-385)', (tester) async {
+    final c = await pumpHarnessWith(
+      tester,
+      destination: NavDestination.tasks,
+      tasksOnTasks: [_task('a', 'A')],
+    );
+    // Seed: in View Options mode + a selection.
+    c.read(rightPaneProvider.notifier).setMode(RightPaneMode.viewOptions);
+    c.read(selectedTaskProvider.notifier).select('a');
+
+    // Switch tab (which triggers the per-tab reset path).
+    c.read(activeTabIndexProvider.notifier).setTab(1);
+    // setTab defers state writes via scheduleMicrotask; drain the
+    // microtask queue before asserting.
+    await tester.pump();
+
+    expect(c.read(rightPaneProvider), RightPaneMode.viewOptions,
+        reason: '.viewOptions must survive tab switches so the panel '
+            're-renders for the new surface');
+    expect(c.read(selectedTaskProvider), isNull,
+        reason: 'selection clears because a docId from one surface may '
+            'not exist on the new one');
+  });
+
+  testWidgets('_resetPerTabState resets non-viewOptions modes back to '
+      '.empty on tab switch (TM-385 control case for the preservation '
+      'gate above)', (tester) async {
+    final c = await pumpHarnessWith(
+      tester,
+      destination: NavDestination.tasks,
+      tasksOnTasks: [_task('a', 'A')],
+    );
+    c.read(rightPaneProvider.notifier).setMode(RightPaneMode.editor);
+
+    c.read(activeTabIndexProvider.notifier).setTab(1);
+    await tester.pump();
+
+    expect(c.read(rightPaneProvider), RightPaneMode.empty);
+  });
+}
+
+class _CompleteCall {
+  final TaskItem task;
+  final bool complete;
+  _CompleteCall(this.task, {required this.complete});
+}
+
+/// Records every `call()` invocation so tests can assert what the
+/// shortcut handler dispatched without spinning up Drift + Firestore.
+class _RecordingCompleteTask extends CompleteTask {
+  final calls = <_CompleteCall>[];
+
+  @override
+  FutureOr<void> build() {}
+
+  @override
+  Future<void> call(TaskItem task, {required bool complete}) async {
+    calls.add(_CompleteCall(task, complete: complete));
+  }
 }
 
 /// Pumps a hidden Focus widget that adopts the sidebar search

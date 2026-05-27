@@ -105,8 +105,6 @@ class ViewOptionsSummaryBar extends ConsumerWidget
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
-          if (count == null)
-            const SizedBox.shrink(),
         ],
       ),
     );
@@ -151,10 +149,6 @@ class ViewOptionsSummaryBar extends ConsumerWidget
     }
   }
 }
-
-// `_surfaceForDestination` helper removed — the bar now takes its
-// surface as a constructor parameter (no need to read
-// `activeNavDestinationProvider`).
 
 class _SummaryChip extends StatelessWidget {
   final String label;

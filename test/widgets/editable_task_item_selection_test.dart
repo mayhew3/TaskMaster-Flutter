@@ -76,11 +76,13 @@ ProviderContainer _container() {
 TaskItem _task({
   String docId = 'docA',
   String name = 'Task A',
+  String? description,
 }) {
   return TaskItem((b) => b
     ..docId = docId
     ..dateAdded = DateTime.now().toUtc()
     ..name = name
+    ..description = description
     ..personDocId = 'person-123'
     ..retired = null
     ..offCycle = false
@@ -180,9 +182,12 @@ void main() {
             taskItem: task,
             highlightSprint: false,
             onTaskCompleteToggle: (_) => null,
-            // hasExpandableContent gates the tap handler; supplying
-            // onEdit is the cheapest way to make a no-dates card
-            // tappable (matches the production list compositions).
+            // Production lists pass onEdit. TM-385 gates `onEdit` to
+            // null on wide (inline Edit button is hidden when the
+            // docked editor is the editor), so on-wide tests that
+            // assert accordion behavior must seed the task with
+            // intrinsic expandable content (a description, dates,
+            // recurrence, or contexts) — see `hasExpandableContent`.
             onEdit: () {},
           ),
         );
@@ -284,7 +289,10 @@ void main() {
         (tester) async {
       _setSize(tester, const Size(1280, 800));
       final c = _container();
-      final task = _task(docId: 'docA', name: 'Task A');
+      // Description seeds intrinsic expandable content so the
+      // accordion fires on wide (where TM-385's effectiveOnEdit gate
+      // strips the Edit-button-only path).
+      final task = _task(docId: 'docA', name: 'Task A', description: 'Notes');
 
       await tester.pumpWidget(_wrap(_wrappedRow(task), container: c));
       await tester.pumpAndSettle();
@@ -311,7 +319,12 @@ void main() {
         'is shell-state-decoupled after TM-385', (tester) async {
       _setSize(tester, const Size(1280, 800));
       final c = _container();
-      final task = _task(docId: 'docA', name: 'Task A');
+      // Description gives the row intrinsic expandable content; on
+      // wide, TM-385's effectiveOnEdit gate strips the onEdit path,
+      // so the accordion would otherwise stay collapsed and the
+      // assertion below couldn't distinguish "didn't fire selection"
+      // from "didn't fire anything."
+      final task = _task(docId: 'docA', name: 'Task A', description: 'Notes');
 
       // Bare EditableTaskItemWidget — no SelectableTaskItem wrap, so
       // no SelectionTapPolicy in the tree.

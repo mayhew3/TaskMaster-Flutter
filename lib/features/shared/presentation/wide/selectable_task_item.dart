@@ -83,7 +83,7 @@ class SelectableTaskItem extends ConsumerWidget {
     // updateShouldNotify gates downstream rebuilds on closure
     // inequality, but since the captured taskDocId is constant per
     // instance the policy is effectively stable for a given row.
-    Widget wrapped = SelectionTapPolicy(
+    Widget policyWrapped = SelectionTapPolicy(
       onShellTap: () {
         final notifier = ref.read(selectedTaskProvider.notifier);
         final current = ref.read(selectedTaskProvider);
@@ -96,14 +96,14 @@ class SelectableTaskItem extends ConsumerWidget {
       child: child,
     );
 
-    if (!selected) return wrapped;
+    if (!selected) return policyWrapped;
 
     // Only the SELECTED row WITHIN THIS SURFACE gets the GlobalObjectKey,
     // so there's never more than one row in the tree carrying it —
     // Flutter would throw "Duplicate GlobalKey" otherwise.
     return KeyedSubtree(
       key: SelectableTaskItemKey.of(surface, taskDocId),
-      child: wrapped,
+      child: policyWrapped,
     );
   }
 }

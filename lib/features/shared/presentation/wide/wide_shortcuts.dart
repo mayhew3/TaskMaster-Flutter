@@ -1,13 +1,13 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../core/providers/auth_providers.dart';
 import '../../../../core/services/task_completion_service.dart';
 import '../../../../features/tasks/providers/expanded_task_provider.dart';
 import '../../../../features/tasks/providers/task_filter_providers.dart';
 import '../../../../models/task_list_view.dart';
-import '../../../../models/top_nav_item.dart';
 import '../../../family/providers/family_task_filter_providers.dart';
 import '../../providers/navigation_provider.dart';
 import '../../providers/selected_task_providers.dart';
@@ -94,6 +94,20 @@ class _WideShortcutsState extends ConsumerState<WideShortcuts> {
     // TextField focus always wins: typing into a search/edit field
     // never fires a shortcut, regardless of what key it is.
     if (_isTextFieldFocused()) return false;
+    // Modifier combos belong to the OS / browser (Cmd+N = new window,
+    // Ctrl+E = address bar focus on Linux Firefox, etc.). Letting bare
+    // shortcuts also fire on Cmd+J / Ctrl+J / Alt+E would silently
+    // hijack platform bindings the user expects to do something else,
+    // and Shift+N would treat capital `N` as a "new task" trigger
+    // instead of a typed character if a non-field surface ever
+    // accepted text in the future. Ignore any non-bare keypress.
+    final kb = HardwareKeyboard.instance;
+    if (kb.isControlPressed ||
+        kb.isMetaPressed ||
+        kb.isAltPressed ||
+        kb.isShiftPressed) {
+      return false;
+    }
 
     final key = event.logicalKey;
     if (key == LogicalKeyboardKey.keyJ) {
@@ -161,7 +175,7 @@ class _WideShortcutsState extends ConsumerState<WideShortcuts> {
     final docId = ref.read(selectedTaskProvider);
     if (docId == null) return;
     final dest = ref.read(activeNavDestinationProvider);
-    final surface = _surfaceForDestination(dest);
+    final surface = surfaceForDestination(dest);
     if (surface == null) return;
     final task = switch (surface) {
       TaskListSurface.tasks => ref
@@ -178,6 +192,18 @@ class _WideShortcutsState extends ConsumerState<WideShortcuts> {
       _ => null,
     };
     if (task == null) return;
+    // Ownership guard: don't complete a teammate's task. Mirrors the
+    // `RightPaneSelectionSync` editor guard. Without this, on the
+    // Family surface a selected teammate-owned task + `c` would
+    // optimistically write completion locally and queue a Firestore
+    // write that the rules should reject — surfacing as a
+    // confusing-looking visual flicker. Bail unless the task belongs
+    // to the current person (unknown ownership treated as editable
+    // for the same hot-path reason as the editor guard).
+    final myPersonDocId = ref.read(personDocIdProvider);
+    if (myPersonDocId != null && task.personDocId != myPersonDocId) {
+      return;
+    }
     final wasComplete = task.completionDate != null;
     ref.read(completeTaskProvider.notifier).call(task, complete: !wasComplete);
   }
@@ -197,19 +223,6 @@ class _WideShortcutsState extends ConsumerState<WideShortcuts> {
 }
 
 // ── Actions ──────────────────────────────────────────────────────────────
-
-TaskListSurface? _surfaceForDestination(NavDestination dest) {
-  switch (dest) {
-    case NavDestination.tasks:
-      return TaskListSurface.tasks;
-    case NavDestination.family:
-      return TaskListSurface.family;
-    case NavDestination.plan:
-      return TaskListSurface.sprint;
-    case NavDestination.stats:
-      return null;
-  }
-}
 
 /// True when an editable text widget (TextField / TextFormField /
 /// any descendant of `EditableText`) currently has focus.
@@ -241,7 +254,7 @@ bool _isTextFieldFocused() {
 /// (Stats), is loading, or has no tasks.
 List<String> _flatDocIdsForActiveSurface(WidgetRef ref) {
   final dest = ref.read(activeNavDestinationProvider);
-  final surface = _surfaceForDestination(dest);
+  final surface = surfaceForDestination(dest);
   if (surface == null) return const [];
   switch (surface) {
     case TaskListSurface.tasks:

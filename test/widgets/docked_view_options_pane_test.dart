@@ -69,7 +69,7 @@ void main() {
     // pane renders its initial layout at a size that fits paneWidth
     // (otherwise the expanded panel overflows a 44dp container).
     final dest = _destForIndex(activeTabIndex, inFamily: inFamily);
-    final surface = _surfaceForDestination(dest);
+    final surface = surfaceForDestination(dest);
     if (surface != null) {
       final notifier =
           container.read(taskListViewStateProvider(surface).notifier);
@@ -252,20 +252,6 @@ NavDestination _destForIndex(int idx, {required bool inFamily}) {
   if (idx == 1) return NavDestination.tasks;
   if (inFamily && idx == 2) return NavDestination.family;
   return NavDestination.stats;
-}
-
-// Local mirror of selected_task_providers' private helper.
-TaskListSurface? _surfaceForDestination(NavDestination dest) {
-  switch (dest) {
-    case NavDestination.tasks:
-      return TaskListSurface.tasks;
-    case NavDestination.family:
-      return TaskListSurface.family;
-    case NavDestination.plan:
-      return TaskListSurface.sprint;
-    case NavDestination.stats:
-      return null;
-  }
 }
 
 /// Sync AsyncValue.data stubs so the Drift stream backing the dropdowns

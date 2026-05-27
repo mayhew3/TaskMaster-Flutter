@@ -99,21 +99,17 @@ class RightPane extends _$RightPane {
 
 /// Maps a top-nav [NavDestination] to its corresponding
 /// [TaskListSurface], or returns null when the destination has no list
-/// surface (Stats). Used by [rightPaneWidthProvider] to find the
-/// per-surface View Options state for the active tab. Lives here
-/// alongside the right-pane providers because that's the only
-/// consumer; not promoted to a top-level utility until a second
-/// caller needs it.
-TaskListSurface? _surfaceForDestination(NavDestination dest) {
+/// surface (Stats). Shared across the wide-shell helpers
+/// ([rightPaneWidthProvider], `DockedViewOptionsPane`,
+/// `WideShortcuts`) since multiple call sites now resolve the same
+/// mapping.
+TaskListSurface? surfaceForDestination(NavDestination dest) {
   switch (dest) {
     case NavDestination.tasks:
       return TaskListSurface.tasks;
     case NavDestination.family:
       return TaskListSurface.family;
     case NavDestination.plan:
-      // Plan tab hosts the sprint-list view (and the create-sprint
-      // flow). The View Options surface there is the sprint list's
-      // own surface; the create-sprint pane has its own state.
       return TaskListSurface.sprint;
     case NavDestination.stats:
       return null;
@@ -150,7 +146,7 @@ TaskListSurface? _surfaceForDestination(NavDestination dest) {
 double rightPaneWidth(Ref ref) {
   final mode = ref.watch(rightPaneProvider);
   if (mode != RightPaneMode.viewOptions) return kRightPaneWidth;
-  final surface = _surfaceForDestination(ref.watch(activeNavDestinationProvider));
+  final surface = surfaceForDestination(ref.watch(activeNavDestinationProvider));
   if (surface == null) return kRightPaneWidth;
   final view = ref.watch(taskListViewStateProvider(surface));
   if (view.viewOptionsCollapsed) return kViewOptionsHandleWidth;

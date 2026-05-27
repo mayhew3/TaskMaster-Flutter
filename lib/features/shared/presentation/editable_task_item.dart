@@ -159,6 +159,17 @@ class EditableTaskItemWidget extends ConsumerWidget {
     // the meta-row glyph drops.
     final contextIcons = _resolveContextIcons(ref);
 
+    // TM-385: the inline Edit button is hidden on wide (the docked
+    // editor IS the editor there). Compute the gated value ONCE so it's
+    // identical between the expandability check in `_summaryRow`
+    // (`hasExpandableContent(..., hasOnEdit: ...)`) and the
+    // `ExpandedPanel(onEdit: ...)` below — otherwise a wide-layout task
+    // with no date/recurrence content reports `canExpand: true` (because
+    // the unwrapped `onEdit` is non-null) and the row expands into an
+    // empty panel.
+    final effectiveOnEdit =
+        isWideLayout(MediaQuery.sizeOf(context)) ? null : onEdit;
+
     // Scroll the card fully into view when it expands, but ONLY if the
     // expanded bottom would otherwise be off-screen. AnimatedSize plays
     // for 100ms (see below); we wait ~80ms past that so the render
@@ -238,7 +249,8 @@ class EditableTaskItemWidget extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _summaryRow(context, ref, isExpanded, areaColor, contextIcons),
+                  _summaryRow(context, ref, isExpanded, areaColor,
+                      contextIcons, effectiveOnEdit),
                   AnimatedSize(
                     // Tighter expand/collapse cadence — the original
                     // 200ms felt sluggish once we started chaining a
@@ -249,17 +261,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
                     child: isExpanded
                         ? ExpandedPanel(
                             taskItem: taskItem,
-                            // TM-385: hide the inline Edit button on
-                            // wide — the docked editor pane IS the
-                            // editor on that layout, so a button
-                            // that pushes a full-screen route is
-                            // confusing redundancy. Pass null for
-                            // onEdit so ExpandedPanel's gate
-                            // (`if (onEdit != null) ...`) skips the
-                            // whole button row.
-                            onEdit: isWideLayout(MediaQuery.sizeOf(context))
-                                ? null
-                                : onEdit,
+                            onEdit: effectiveOnEdit,
                             onCollapse: () => ref
                                 .read(expandedTaskProvider.notifier)
                                 .toggle(_docId()),
@@ -305,6 +307,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
     bool isExpanded,
     Color areaColor,
     List<String> contextIcons,
+    VoidCallback? effectiveOnEdit,
   ) {
     // On phone, suppress taps when expanding would render nothing — a
     // tappable-but-collapses-others row feels broken with no affordance.
@@ -315,7 +318,8 @@ class EditableTaskItemWidget extends ConsumerWidget {
     // here keeps the leaf row decoupled from the wide-layout / shell
     // selection providers — see SelectionTapPolicy's docstring for
     // the TM-385 refactor rationale.
-    final canExpand = hasExpandableContent(taskItem, hasOnEdit: onEdit != null);
+    final canExpand =
+        hasExpandableContent(taskItem, hasOnEdit: effectiveOnEdit != null);
     final shellTap = SelectionTapPolicy.maybeOf(context);
     final shouldHandleTap = canExpand || shellTap != null;
     return GestureDetector(

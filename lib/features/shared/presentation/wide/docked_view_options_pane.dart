@@ -4,29 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/platform/form_factor.dart';
 import '../../../../models/task_colors.dart';
 import '../../../../models/task_list_view.dart';
-import '../../../../models/top_nav_item.dart';
 import '../../providers/navigation_provider.dart';
 import '../../providers/selected_task_providers.dart';
 import '../../providers/task_list_view_providers.dart';
 import '../view_options_sheet.dart' show ViewOptionsPanelContent;
-
-/// Maps the active top-nav destination to the [TaskListSurface] whose
-/// View Options state should drive this pane. Stats has no surface
-/// → returns null (the pane hides itself, defensive — production
-/// shouldn't enter `.viewOptions` mode on Stats since the button
-/// isn't rendered there).
-TaskListSurface? _surfaceForDestination(NavDestination dest) {
-  switch (dest) {
-    case NavDestination.tasks:
-      return TaskListSurface.tasks;
-    case NavDestination.family:
-      return TaskListSurface.family;
-    case NavDestination.plan:
-      return TaskListSurface.sprint;
-    case NavDestination.stats:
-      return null;
-  }
-}
 
 /// The wide-layout View Options side panel (TM-385 Story 4 of Epic
 /// TM-188). Hosts the same [ViewOptionsPanelContent] body the phone
@@ -52,7 +33,7 @@ class DockedViewOptionsPane extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final surface = _surfaceForDestination(
+    final surface = surfaceForDestination(
       ref.watch(activeNavDestinationProvider),
     );
     if (surface == null) {
@@ -128,7 +109,6 @@ class _ViewOptionsHandle extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 14),
-          // Rotated label — read top-to-bottom alongside the handle.
           RotatedBox(
             quarterTurns: 3,
             child: Text(
@@ -220,8 +200,6 @@ class _ResizeDividerState extends ConsumerState<_ResizeDivider> {
         child: Container(
           width: 6,
           color: Colors.transparent,
-          // A faint vertical hairline in the middle of the hit area
-          // surfaces the affordance without dominating the layout.
           alignment: Alignment.center,
           child: SizedBox(
             width: 1,
