@@ -6,7 +6,7 @@ import 'package:taskmaestro/core/platform/form_factor.dart';
 import 'package:taskmaestro/date_util.dart';
 import 'package:taskmaestro/features/areas/providers/area_color_providers.dart';
 import 'package:taskmaestro/features/contexts/providers/context_providers.dart';
-import 'package:taskmaestro/features/shared/providers/selected_task_providers.dart';
+import 'package:taskmaestro/features/shared/presentation/wide/selection_tap_policy.dart';
 import 'package:taskmaestro/features/tasks/providers/expanded_task_provider.dart';
 import 'package:taskmaestro/helpers/area_color_helper.dart';
 import 'package:taskmaestro/helpers/recurrence_formatter.dart';
@@ -249,7 +249,17 @@ class EditableTaskItemWidget extends ConsumerWidget {
                     child: isExpanded
                         ? ExpandedPanel(
                             taskItem: taskItem,
-                            onEdit: onEdit,
+                            // TM-385: hide the inline Edit button on
+                            // wide — the docked editor pane IS the
+                            // editor on that layout, so a button
+                            // that pushes a full-screen route is
+                            // confusing redundancy. Pass null for
+                            // onEdit so ExpandedPanel's gate
+                            // (`if (onEdit != null) ...`) skips the
+                            // whole button row.
+                            onEdit: isWideLayout(MediaQuery.sizeOf(context))
+                                ? null
+                                : onEdit,
                             onCollapse: () => ref
                                 .read(expandedTaskProvider.notifier)
                                 .toggle(_docId()),
@@ -298,36 +308,26 @@ class EditableTaskItemWidget extends ConsumerWidget {
   ) {
     // On phone, suppress taps when expanding would render nothing — a
     // tappable-but-collapses-others row feels broken with no affordance.
-    // On wide, taps ALWAYS fire because they drive the right-pane
-    // selection (and Story 3's editor will let the user fill in an
-    // empty card), independent of whether there's any current content
-    // worth expanding.
+    // On wide, the SelectionTapPolicy installed by SelectableTaskItem
+    // gives us a non-null `onShellTap`, which means taps ALWAYS need
+    // to fire (selection write co-fires with accordion, or fires alone
+    // when the row has no expandable content). Reading the policy
+    // here keeps the leaf row decoupled from the wide-layout / shell
+    // selection providers — see SelectionTapPolicy's docstring for
+    // the TM-385 refactor rationale.
     final canExpand = hasExpandableContent(taskItem, hasOnEdit: onEdit != null);
-    final wide = isWideLayout(MediaQuery.sizeOf(context));
-    final shouldHandleTap = canExpand || wide;
+    final shellTap = SelectionTapPolicy.maybeOf(context);
+    final shouldHandleTap = canExpand || shellTap != null;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: shouldHandleTap
           ? () {
-              // Phone-and-wide: toggle the inline accordion if there's
-              // any content to expand.
+              // Tap-same → clear / tap-different → swap is owned by
+              // the policy on wide; on compact the call is a no-op
+              // (policy is null).
+              shellTap?.onShellTap();
               if (canExpand) {
                 ref.read(expandedTaskProvider.notifier).toggle(_docId());
-              }
-              // TM-383 wide-only: mirror the tap into `selectedTaskProvider`
-              // so the magenta selection ring co-fires with the accordion
-              // (or fires alone, when the row has no expandable content).
-              // Tap-same → clear; tap-different → swap.
-              if (wide) {
-                final docId = _docId();
-                final selectedNotifier =
-                    ref.read(selectedTaskProvider.notifier);
-                final selected = ref.read(selectedTaskProvider);
-                if (selected == docId) {
-                  selectedNotifier.clear();
-                } else {
-                  selectedNotifier.select(docId);
-                }
               }
             }
           : null,

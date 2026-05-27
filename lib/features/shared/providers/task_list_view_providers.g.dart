@@ -85,7 +85,7 @@ final class TaskListViewStateProvider
   }
 }
 
-String _$taskListViewStateHash() => r'4d2447b37631ef60e6a75c67234ae19c905d9189';
+String _$taskListViewStateHash() => r'5a3130bba7ecbc77a4f905209d040af5bacb947a';
 
 /// Per-surface Group/Sort/Filter state. Family-keyed by [TaskListSurface]
 /// so Tasks / Family / Sprint / Plan each remember independent

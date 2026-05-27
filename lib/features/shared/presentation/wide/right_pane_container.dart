@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../models/task_colors.dart';
 import '../../providers/selected_task_providers.dart';
 import 'docked_task_editor_pane.dart';
+import 'docked_view_options_pane.dart';
 import 'right_pane_empty_state.dart';
 
 /// Wide-layout right-pane container (TM-383 Story 2 of Epic TM-188).
@@ -35,10 +36,10 @@ class RightPaneContainer extends ConsumerWidget {
         // The pane reads `selectedTaskProvider` internally to pick which.
         RightPaneMode.editor => const DockedTaskEditorPane(),
         RightPaneMode.addingNewTask => const DockedTaskEditorPane(),
-        // TODO(TM-385): replace with the View-Options side panel.
-        RightPaneMode.viewOptions => const _RightPanePlaceholder(
-          'View Options panel lands in TM-385 (Story 4).',
-        ),
+        // TM-385: View Options side panel (handle when collapsed,
+        // panel + resize divider when expanded — DockedViewOptionsPane
+        // reads the per-surface state itself).
+        RightPaneMode.viewOptions => const DockedViewOptionsPane(),
       },
     );
   }

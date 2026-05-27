@@ -5,10 +5,17 @@ import '../../../../core/platform/form_factor.dart';
 import '../../../../models/task_list_view.dart' show TaskListSurface;
 import '../../providers/selected_task_providers.dart';
 import 'aura_stack.dart';
+import 'selection_tap_policy.dart';
 
 /// Marks a task row as the **selected row** so the parent-level
 /// [AuraStack] can locate it and paint the magenta selection aura at its
 /// bounds (TM-383 Story 2 of Epic TM-188).
+///
+/// TM-385: also installs a [SelectionTapPolicy] over the child so the
+/// leaf [EditableTaskItemWidget._summaryRow.onTap] can drive the
+/// wide-shell selection write WITHOUT reading form-factor or shell
+/// providers itself. The policy's `onShellTap` does the tap-same-to-
+/// clear / tap-different-to-swap logic against `selectedTaskProvider`.
 ///
 /// This widget no longer paints the aura itself; that responsibility
 /// moved to [AuraStack] at the list-body level so the aura paints BELOW
@@ -16,13 +23,18 @@ import 'aura_stack.dart';
 /// above because of `ListView`'s sequential paint order — see
 /// `AuraStack`'s docstring for the geometry).
 ///
-/// All this widget does:
-///   - On wide AND selected: wraps [child] in a [KeyedSubtree] with a
-///     [GlobalObjectKey] keyed by ([surface], [taskDocId]) so
-///     [AuraStack]'s aura layer can `findRenderObject()` and read the
-///     row's bounds.
-///   - On compact OR unselected: returns [child] unchanged (no
-///     wrapper, no key, no rebuild surface).
+/// On wide:
+///   - Wraps [child] in a [SelectionTapPolicy] so the leaf row's tap
+///     handler can fire the selection write via `maybeOf(context)`.
+///   - When this row is the selected row, additionally wraps in a
+///     [KeyedSubtree] with a [GlobalObjectKey] keyed by ([surface],
+///     [taskDocId]) so [AuraStack]'s aura layer can `findRenderObject()`
+///     and read the row's bounds.
+///
+/// On compact: returns [child] unchanged (no policy, no key, no
+/// rebuild surface). The leaf row's `SelectionTapPolicy.maybeOf` will
+/// return null and the row defaults to accordion-only behavior —
+/// matching pre-TM-383 phone semantics.
 ///
 /// ## Why the key includes [surface]
 ///
@@ -65,14 +77,33 @@ class SelectableTaskItem extends ConsumerWidget {
 
     final selected =
         ref.watch(selectedTaskProvider.select((id) => id == taskDocId));
-    if (!selected) return child;
+
+    // Tap policy: a fresh closure every build so identity stays in
+    // sync with the latest WidgetRef + taskDocId — InheritedWidget's
+    // updateShouldNotify gates downstream rebuilds on closure
+    // inequality, but since the captured taskDocId is constant per
+    // instance the policy is effectively stable for a given row.
+    Widget wrapped = SelectionTapPolicy(
+      onShellTap: () {
+        final notifier = ref.read(selectedTaskProvider.notifier);
+        final current = ref.read(selectedTaskProvider);
+        if (current == taskDocId) {
+          notifier.clear();
+        } else {
+          notifier.select(taskDocId);
+        }
+      },
+      child: child,
+    );
+
+    if (!selected) return wrapped;
 
     // Only the SELECTED row WITHIN THIS SURFACE gets the GlobalObjectKey,
     // so there's never more than one row in the tree carrying it —
     // Flutter would throw "Duplicate GlobalKey" otherwise.
     return KeyedSubtree(
       key: SelectableTaskItemKey.of(surface, taskDocId),
-      child: child,
+      child: wrapped,
     );
   }
 }

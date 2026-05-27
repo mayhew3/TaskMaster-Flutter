@@ -8,19 +8,23 @@ import '../../providers/selected_task_providers.dart';
 /// Bridges [selectedTaskProvider] → [rightPaneProvider] in the wide shell
 /// (TM-384).
 ///
-/// - Non-null selection AND current mode is [RightPaneMode.empty] or
-///   [RightPaneMode.editor] AND the selected task is editable by the
-///   current user → [RightPaneMode.editor] (docked editor takes over
-///   for the selected task). Gated on `current` so a row tap while
-///   the user is mid-typing in [RightPaneMode.addingNewTask] (or
-///   viewing [RightPaneMode.viewOptions]) doesn't silently discard
-///   that explicit mode — the user must Cancel out first. Gated on
-///   ownership so the Family-tab's read-only-for-teammate-tasks
-///   constraint (`_FamilyTaskTile.onEdit = null` for tasks not owned
-///   by the current user) extends to the docked-editor surface:
-///   tapping a teammate's row selects it (aura + accordion expand)
-///   but doesn't open an editor where saved edits would either
-///   clobber the personDocId or be rejected by Firestore rules.
+/// - Non-null selection (with one exception, see below) AND the
+///   selected task is editable by the current user →
+///   [RightPaneMode.editor] (docked editor takes over for the
+///   selected task). The exception: [RightPaneMode.addingNewTask] is
+///   PRESERVED — the user is mid-typing a new task, and a coincident
+///   row tap shouldn't silently discard their in-progress work.
+///   Other modes ([RightPaneMode.empty], [RightPaneMode.editor],
+///   [RightPaneMode.viewOptions]) all swap to the editor on a row
+///   tap; this is the editor ⟺ View-Options structural exclusivity
+///   per TM-385 D8 — selecting a task is the canonical "close View
+///   Options" gesture.
+///
+///   Ownership guard: tapping a teammate's row (e.g. on the Family
+///   tab where `_FamilyTaskTile` sets `onEdit: null` for tasks not
+///   owned by the current user) selects the row (aura + accordion
+///   expand) but doesn't open the editor — saved edits would either
+///   clobber the `personDocId` or be rejected by Firestore rules.
 /// - Null selection AND current mode is [RightPaneMode.editor] (i.e.
 ///   the editor was previously opened by selecting a task and the
 ///   user re-tapped to deselect) → [RightPaneMode.empty] ("Select a
@@ -60,12 +64,15 @@ class _RightPaneSelectionSyncState
         final paneNotifier = ref.read(rightPaneProvider.notifier);
         final current = ref.read(rightPaneProvider);
         if (next != null) {
-          // Only upgrade to `.editor` from selection-neutral modes.
-          // Leave `.addingNewTask` / `.viewOptions` alone — those were
-          // set by explicit user intent and shouldn't be silently
-          // discarded by a coincident row tap.
-          if (current != RightPaneMode.empty &&
-              current != RightPaneMode.editor) {
+          // Protect ONLY `.addingNewTask` — the user has in-progress
+          // typed content that a coincident row tap shouldn't discard.
+          // Other modes (`.empty`, `.editor`, `.viewOptions`) all
+          // swap to the editor on a row tap; this is the editor ⟺
+          // View-Options structural exclusivity (TM-385 D8) —
+          // selecting a task is the canonical "close View Options"
+          // gesture, and the user would otherwise be stuck in
+          // `.viewOptions` with no way to surface the editor.
+          if (current == RightPaneMode.addingNewTask) {
             return;
           }
           // Read-only guard: don't open the docked editor on a task

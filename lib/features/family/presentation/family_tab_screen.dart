@@ -19,6 +19,7 @@ import '../../shared/presentation/task_action_error_helper.dart';
 import '../../shared/presentation/view_options_sheet.dart';
 import '../../shared/presentation/wide/aura_stack.dart';
 import '../../shared/presentation/wide/selectable_task_item.dart';
+import '../../shared/presentation/wide/view_options_summary_bar.dart';
 import '../../shared/presentation/wide/wide_centered_column.dart';
 import '../../shared/presentation/widgets/collapsible_group_header.dart';
 import '../../shared/providers/task_list_view_providers.dart';
@@ -164,6 +165,10 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
           ),
           const RefreshButton(),
         ],
+        // TM-385: wide-only summary chip bar under the AppBar.
+        bottom: isWideLayout(MediaQuery.sizeOf(context))
+            ? const ViewOptionsSummaryBar(surface: TaskListSurface.family)
+            : null,
       ),
       body: tiles.isEmpty
           ? const Center(

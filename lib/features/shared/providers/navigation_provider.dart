@@ -91,8 +91,21 @@ class ActiveTabIndex extends _$ActiveTabIndex {
     ref.read(searchQueryProvider.notifier).clear();
     // TM-383: clear the wide-layout selection + reset the right pane.
     // Phone never writes the selection providers; this is wide-only.
+    //
+    // TM-385: preserve `.viewOptions` across tab switches — the View
+    // Options panel is per-surface (each surface remembers its own
+    // collapsed flag + expanded ratio), so switching tabs while the
+    // panel is open should follow the user to the new surface (the
+    // panel re-renders with the new surface's persisted state, no
+    // mode flip needed). Selection is still cleared because a
+    // task selected on one surface may not exist on the new one;
+    // `.editor` / `.addingNewTask` are mode states tied to the
+    // (now-cleared) selection / in-progress add and reset alongside.
+    final paneNotifier = ref.read(rightPaneProvider.notifier);
     ref.read(selectedTaskProvider.notifier).clear();
-    ref.read(rightPaneProvider.notifier).setMode(RightPaneMode.empty);
+    if (ref.read(rightPaneProvider) != RightPaneMode.viewOptions) {
+      paneNotifier.setMode(RightPaneMode.empty);
+    }
     // TM-383: collapse the inline accordion on destination switch. This
     // is INTENTIONALLY a behavior change for BOTH compact and wide:
     //

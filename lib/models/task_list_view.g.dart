@@ -281,6 +281,10 @@ class _$TaskListView extends TaskListView {
   final TaskFilters filters;
   @override
   final BuiltSet<String> collapsedGroups;
+  @override
+  final bool viewOptionsCollapsed;
+  @override
+  final double viewOptionsExpandedRatio;
 
   factory _$TaskListView([void Function(TaskListViewBuilder)? updates]) =>
       (TaskListViewBuilder()..update(updates))._build();
@@ -291,6 +295,8 @@ class _$TaskListView extends TaskListView {
     required this.sortDirection,
     required this.filters,
     required this.collapsedGroups,
+    required this.viewOptionsCollapsed,
+    required this.viewOptionsExpandedRatio,
   }) : super._();
   @override
   TaskListView rebuild(void Function(TaskListViewBuilder) updates) =>
@@ -307,7 +313,9 @@ class _$TaskListView extends TaskListView {
         sortAxis == other.sortAxis &&
         sortDirection == other.sortDirection &&
         filters == other.filters &&
-        collapsedGroups == other.collapsedGroups;
+        collapsedGroups == other.collapsedGroups &&
+        viewOptionsCollapsed == other.viewOptionsCollapsed &&
+        viewOptionsExpandedRatio == other.viewOptionsExpandedRatio;
   }
 
   @override
@@ -318,6 +326,8 @@ class _$TaskListView extends TaskListView {
     _$hash = $jc(_$hash, sortDirection.hashCode);
     _$hash = $jc(_$hash, filters.hashCode);
     _$hash = $jc(_$hash, collapsedGroups.hashCode);
+    _$hash = $jc(_$hash, viewOptionsCollapsed.hashCode);
+    _$hash = $jc(_$hash, viewOptionsExpandedRatio.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -329,7 +339,9 @@ class _$TaskListView extends TaskListView {
           ..add('sortAxis', sortAxis)
           ..add('sortDirection', sortDirection)
           ..add('filters', filters)
-          ..add('collapsedGroups', collapsedGroups))
+          ..add('collapsedGroups', collapsedGroups)
+          ..add('viewOptionsCollapsed', viewOptionsCollapsed)
+          ..add('viewOptionsExpandedRatio', viewOptionsExpandedRatio))
         .toString();
   }
 }
@@ -361,7 +373,19 @@ class TaskListViewBuilder
   set collapsedGroups(SetBuilder<String>? collapsedGroups) =>
       _$this._collapsedGroups = collapsedGroups;
 
-  TaskListViewBuilder();
+  bool? _viewOptionsCollapsed;
+  bool? get viewOptionsCollapsed => _$this._viewOptionsCollapsed;
+  set viewOptionsCollapsed(bool? viewOptionsCollapsed) =>
+      _$this._viewOptionsCollapsed = viewOptionsCollapsed;
+
+  double? _viewOptionsExpandedRatio;
+  double? get viewOptionsExpandedRatio => _$this._viewOptionsExpandedRatio;
+  set viewOptionsExpandedRatio(double? viewOptionsExpandedRatio) =>
+      _$this._viewOptionsExpandedRatio = viewOptionsExpandedRatio;
+
+  TaskListViewBuilder() {
+    TaskListView._setDefaults(this);
+  }
 
   TaskListViewBuilder get _$this {
     final $v = _$v;
@@ -371,6 +395,8 @@ class TaskListViewBuilder
       _sortDirection = $v.sortDirection;
       _filters = $v.filters.toBuilder();
       _collapsedGroups = $v.collapsedGroups.toBuilder();
+      _viewOptionsCollapsed = $v.viewOptionsCollapsed;
+      _viewOptionsExpandedRatio = $v.viewOptionsExpandedRatio;
       _$v = null;
     }
     return this;
@@ -412,6 +438,16 @@ class TaskListViewBuilder
             ),
             filters: filters.build(),
             collapsedGroups: collapsedGroups.build(),
+            viewOptionsCollapsed: BuiltValueNullFieldError.checkNotNull(
+              viewOptionsCollapsed,
+              r'TaskListView',
+              'viewOptionsCollapsed',
+            ),
+            viewOptionsExpandedRatio: BuiltValueNullFieldError.checkNotNull(
+              viewOptionsExpandedRatio,
+              r'TaskListView',
+              'viewOptionsExpandedRatio',
+            ),
           );
     } catch (_) {
       late String _$failedField;

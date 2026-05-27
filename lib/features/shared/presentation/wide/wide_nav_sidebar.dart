@@ -21,6 +21,7 @@ import '../../providers/navigation_provider.dart';
 import '../../providers/selected_task_providers.dart';
 import '../../providers/sidebar_facet_counts.dart';
 import '../../providers/task_list_view_providers.dart';
+import 'wide_shortcuts.dart' show sidebarSearchFocusNodeProvider;
 import '../widgets/context_icon.dart';
 import 'sidebar_locked_row.dart';
 import 'sidebar_profile_footer.dart';
@@ -507,6 +508,9 @@ class _SidebarSearchFieldState extends ConsumerState<_SidebarSearchField> {
     final hasText = _controller.text.isNotEmpty;
     return TextField(
       controller: _controller,
+      // TM-385: shared FocusNode wired into the keyboard `/` shortcut
+      // (WideShortcuts → FocusSearchIntent → node.requestFocus()).
+      focusNode: ref.watch(sidebarSearchFocusNodeProvider),
       enabled: enabled,
       onChanged: onChanged,
       style: TextStyle(color: TaskColors.textPrimary, fontSize: 13),

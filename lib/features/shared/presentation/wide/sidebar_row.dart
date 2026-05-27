@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../models/task_colors.dart';
+import '../widgets/hoverable.dart';
 
 /// A single tappable row in the wide-layout navigation sidebar (TM-382).
 ///
@@ -18,8 +19,10 @@ class SidebarRow extends StatelessWidget {
     this.trailingText,
     this.selected = false,
     this.onTap,
-  }) : assert(icon != null || dotColor != null || leading != null,
-            'SidebarRow needs an icon, a dotColor, or a leading widget');
+  }) : assert(
+         icon != null || dotColor != null || leading != null,
+         'SidebarRow needs an icon, a dotColor, or a leading widget',
+       );
 
   /// Leading glyph for Destination rows.
   final IconData? icon;
@@ -41,7 +44,8 @@ class SidebarRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Widget resolvedLeading = leading ??
+    final Widget resolvedLeading =
+        leading ??
         (dotColor != null
             ? Container(
                 width: 10,
@@ -56,50 +60,59 @@ class SidebarRow extends StatelessWidget {
     return Padding(
       // matches the prototype's 1px row gap / 10px gutter
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
-      child: Material(
-        color: selected
-            // Intentional literal: the prototype's active "pill" is a
-            // translucent-black overlay on brand-blue. No existing
-            // TaskColors token expresses this; a sidebar token is a
-            // Story-4 cleanup (TM-385).
-            ? Colors.black.withValues(alpha: 0.28)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
-        child: InkWell(
-          onTap: onTap,
+      // TM-385: hover overlay on top of the selected/transparent
+      // base — additive so the selected pill stays visible under
+      // hover. Touch / pen interactions don't trigger hover; this
+      // is purely a wide-platform mouse affordance.
+      child: Hoverable(
+        builder: (context, hovered) => Material(
+          color: selected
+              // Intentional literal: the prototype's active "pill" is a
+              // translucent-black overlay on brand-blue. No existing
+              // TaskColors token expresses this; a sidebar token is a
+              // Story-4 cleanup (TM-385).
+              ? Colors.black.withValues(alpha: 0.28)
+              : hovered
+              ? Colors.white.withValues(alpha: 0.04)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-            child: Row(
-              children: [
-                SizedBox(width: 20, child: Center(child: resolvedLeading)),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    label,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: selected
-                          ? TaskColors.textPrimary
-                          : TaskColors.textDim,
-                      fontSize: 13.5,
-                      fontWeight:
-                          selected ? FontWeight.w600 : FontWeight.w500,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(10),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+              child: Row(
+                children: [
+                  SizedBox(width: 20, child: Center(child: resolvedLeading)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      label,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: selected
+                            ? TaskColors.textPrimary
+                            : TaskColors.textDim,
+                        fontSize: 13.5,
+                        fontWeight: selected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                      ),
                     ),
                   ),
-                ),
-                if (trailingText != null) ...[
-                  const SizedBox(width: 8),
-                  Text(
-                    trailingText!,
-                    style: TextStyle(
-                      color: TaskColors.textFaint,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
+                  if (trailingText != null) ...[
+                    const SizedBox(width: 8),
+                    Text(
+                      trailingText!,
+                      style: TextStyle(
+                        color: TaskColors.textFaint,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ),

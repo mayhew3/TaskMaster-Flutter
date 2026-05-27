@@ -42,11 +42,36 @@ bool isWideLayout(Size logicalSize) =>
 /// it hits its 720dp prototype max comfortably at ~1364dp+.
 const double kTwoPaneWideLayoutWidthBreakpoint = 1200.0;
 
-/// Fixed width of the right pane on the wide two-pane shell (TM-383).
+/// Fixed width of the right pane on the wide two-pane shell (TM-383)
+/// when no per-mode override applies. The View Options panel (TM-385)
+/// computes its own width via `rightPaneWidthProvider` based on the
+/// per-surface collapsed flag + expanded ratio.
 /// Lives here so [kTwoPaneWideLayoutWidthBreakpoint]'s rationale stays
 /// in sync with the actual layout literal in `riverpod_app.dart`'s
 /// `_buildWideShell`.
 const double kRightPaneWidth = 380.0;
+
+/// Width of the View Options vertical handle (TM-385). When the panel
+/// is collapsed, the right pane shrinks to this strip — a sliders
+/// icon + rotated "VIEW OPTIONS" label, per the prototype's
+/// `ViewOptionsHandle`.
+const double kViewOptionsHandleWidth = 44.0;
+
+/// Minimum width of the View Options side panel when expanded
+/// (TM-385). Dragged below this point, the panel snaps to the handle.
+const double kViewOptionsExpandedMin = 340.0;
+
+/// Maximum width of the View Options side panel when expanded
+/// (TM-385). The persisted ratio (0.0–1.0) lerps between
+/// [kViewOptionsExpandedMin] and this value.
+const double kViewOptionsExpandedMax = 600.0;
+
+/// Drag-below-min snap threshold for the View Options resize divider
+/// (TM-385). A drag that takes the pane below this width collapses
+/// the panel rather than clamping to the min — gives the user an
+/// intuitive "drag to close" gesture.
+const double kViewOptionsCollapseSnapThreshold =
+    kViewOptionsExpandedMin - 20.0;
 
 /// True when [logicalSize] should render the two-pane wide shell (sidebar
 /// + center column + right pane). Requires [isWideLayout] AND a logical

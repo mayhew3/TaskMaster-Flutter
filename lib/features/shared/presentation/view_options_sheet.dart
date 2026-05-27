@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/platform/form_factor.dart';
 import '../../../models/task_colors.dart';
 import '../../../models/task_list_view.dart';
 import '../../areas/providers/area_providers.dart';
 import '../../contexts/providers/context_providers.dart';
+import '../../shared/providers/selected_task_providers.dart';
 import '../../shared/providers/task_list_view_providers.dart';
 import 'widgets/length_bucket_picker.dart';
 import 'widgets/points_picker.dart';
@@ -81,7 +83,7 @@ class ViewOptionsButton extends ConsumerWidget {
     final button = IconButton(
       icon: const Icon(Icons.tune),
       tooltip: tooltip,
-      onPressed: () => ViewOptionsSheet.show(context, surface: surface),
+      onPressed: () => _open(context, ref),
     );
     if (!hasNonDefaults) return button;
     return Stack(
@@ -105,13 +107,37 @@ class ViewOptionsButton extends ConsumerWidget {
       ],
     );
   }
+
+  /// Wide two-pane path (TM-385): flip the right pane into the View
+  /// Options mode and force-expand the panel for this surface (so a
+  /// user who previously collapsed the panel sees the full UI on
+  /// re-open). Otherwise (phone / sub-two-pane wide): keep the
+  /// existing bottom-sheet behavior.
+  ///
+  /// Editor ⟺ View Options mutual exclusivity is **structural** —
+  /// `RightPane` holds one `RightPaneMode`; setting `.viewOptions`
+  /// automatically displaces `.editor`. Selection isn't cleared (the
+  /// editor was just hidden); switching back via a row tap restores
+  /// `.editor` for the existing selection through the
+  /// `RightPaneSelectionSync` listener.
+  void _open(BuildContext context, WidgetRef ref) {
+    if (isTwoPaneWideLayout(MediaQuery.sizeOf(context))) {
+      ref
+          .read(taskListViewStateProvider(surface).notifier)
+          .setViewOptionsCollapsed(false);
+      ref.read(rightPaneProvider.notifier).setMode(RightPaneMode.viewOptions);
+    } else {
+      ViewOptionsSheet.show(context, surface: surface);
+    }
+  }
 }
 
-/// View options bottom sheet (TM-359). Edits a *working copy* of the
-/// per-surface `TaskListView` and only commits via "Apply Changes." A
-/// sticky bottom row keeps Cancel / Apply visible without competing
-/// with the phone's status bar.
-class ViewOptionsSheet extends ConsumerStatefulWidget {
+/// View options bottom sheet (TM-359). Thin chrome wrapper around
+/// [ViewOptionsPanelContent] for the phone path: rounded-top container,
+/// SafeArea, keyboard inset padding. The body itself (header + scroll
+/// + sticky action bar) is shared with the wide-layout side panel
+/// (TM-385) via [ViewOptionsPanelContent].
+class ViewOptionsSheet extends StatelessWidget {
   final TaskListSurface surface;
 
   const ViewOptionsSheet({super.key, required this.surface});
@@ -131,10 +157,59 @@ class ViewOptionsSheet extends ConsumerStatefulWidget {
   }
 
   @override
-  ConsumerState<ViewOptionsSheet> createState() => _ViewOptionsSheetState();
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: TaskColors.backgroundColor,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: ViewOptionsPanelContent(
+            surface: surface,
+            // Phone bottom sheet: Cancel + post-Apply both pop the
+            // sheet (matches the pre-TM-385 contract). The wide
+            // side panel (Story 5) passes a different callback that
+            // collapses the panel rather than dismissing.
+            onClose: () => Navigator.of(context).pop(),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
+/// Shared View Options body — header + scrollable Group/Sort/Filter
+/// controls + sticky Cancel/Apply action bar. Hosted by:
+///   - [ViewOptionsSheet] on phone (bottom sheet chrome)
+///   - `DockedViewOptionsPane` on wide (right pane chrome — TM-385
+///     Story 5)
+///
+/// Owns the working-copy edit state: every mutator writes a fresh
+/// `_working: TaskListView`; Apply commits the diff to
+/// `taskListViewStateProvider(surface).notifier`. Cancel + post-Apply
+/// invoke [onClose].
+class ViewOptionsPanelContent extends ConsumerStatefulWidget {
+  final TaskListSurface surface;
+  final VoidCallback onClose;
+
+  const ViewOptionsPanelContent({
+    super.key,
+    required this.surface,
+    required this.onClose,
+  });
+
+  @override
+  ConsumerState<ViewOptionsPanelContent> createState() =>
+      _ViewOptionsPanelContentState();
+}
+
+class _ViewOptionsPanelContentState
+    extends ConsumerState<ViewOptionsPanelContent> {
   late TaskListView _working;
 
   /// Per-axis transient "all-deselected" flag — distinct from the saved
@@ -164,8 +239,9 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
   void _mutateFilters(void Function(TaskFiltersBuilder) update) {
     setState(() {
       _touched = true;
-      _working = _working
-          .rebuild((b) => b..filters.replace(_working.filters.rebuild(update)));
+      _working = _working.rebuild(
+        (b) => b..filters.replace(_working.filters.rebuild(update)),
+      );
     });
   }
 
@@ -201,43 +277,43 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
   // closures so call sites can pass these directly via tear-off.
 
   void _setMinPriority(int? v) => _mutateFilters((b) {
-        b.minPriority = v;
-        if (v != null && b.maxPriority != null && b.maxPriority! < v) {
-          b.maxPriority = v;
-        }
-      });
+    b.minPriority = v;
+    if (v != null && b.maxPriority != null && b.maxPriority! < v) {
+      b.maxPriority = v;
+    }
+  });
   void _setMaxPriority(int? v) => _mutateFilters((b) {
-        b.maxPriority = v;
-        if (v != null && b.minPriority != null && b.minPriority! > v) {
-          b.minPriority = v;
-        }
-      });
+    b.maxPriority = v;
+    if (v != null && b.minPriority != null && b.minPriority! > v) {
+      b.minPriority = v;
+    }
+  });
 
   void _setMinPoints(int? v) => _mutateFilters((b) {
-        b.minPoints = v;
-        if (v != null && b.maxPoints != null && b.maxPoints! < v) {
-          b.maxPoints = v;
-        }
-      });
+    b.minPoints = v;
+    if (v != null && b.maxPoints != null && b.maxPoints! < v) {
+      b.maxPoints = v;
+    }
+  });
   void _setMaxPoints(int? v) => _mutateFilters((b) {
-        b.maxPoints = v;
-        if (v != null && b.minPoints != null && b.minPoints! > v) {
-          b.minPoints = v;
-        }
-      });
+    b.maxPoints = v;
+    if (v != null && b.minPoints != null && b.minPoints! > v) {
+      b.minPoints = v;
+    }
+  });
 
   void _setMinDuration(int? v) => _mutateFilters((b) {
-        b.minDuration = v;
-        if (v != null && b.maxDuration != null && b.maxDuration! < v) {
-          b.maxDuration = v;
-        }
-      });
+    b.minDuration = v;
+    if (v != null && b.maxDuration != null && b.maxDuration! < v) {
+      b.maxDuration = v;
+    }
+  });
   void _setMaxDuration(int? v) => _mutateFilters((b) {
-        b.maxDuration = v;
-        if (v != null && b.minDuration != null && b.minDuration! > v) {
-          b.minDuration = v;
-        }
-      });
+    b.maxDuration = v;
+    if (v != null && b.minDuration != null && b.minDuration! > v) {
+      b.minDuration = v;
+    }
+  });
 
   /// Per-axis validation: a multi-select is in "accidentally empty"
   /// state when the working set is empty, the user has not explicitly
@@ -271,7 +347,7 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
     return errors;
   }
 
-  void _onCancel() => Navigator.of(context).pop();
+  void _onCancel() => widget.onClose();
 
   void _onResetToDefaults() {
     setState(() {
@@ -284,8 +360,9 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
   }
 
   void _onApply() {
-    final notifier =
-        ref.read(taskListViewStateProvider(widget.surface).notifier);
+    final notifier = ref.read(
+      taskListViewStateProvider(widget.surface).notifier,
+    );
     final current = ref.read(taskListViewStateProvider(widget.surface));
     if (current.groupAxis != _working.groupAxis) {
       notifier.setGroupAxis(_working.groupAxis);
@@ -300,7 +377,7 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
       notifier.setFilters(_working.filters);
     }
     if (!mounted) return;
-    Navigator.of(context).pop();
+    widget.onClose();
   }
 
   @override
@@ -326,187 +403,172 @@ class _ViewOptionsSheetState extends ConsumerState<ViewOptionsSheet> {
     final wf = _working.filters;
     final errors = _validationErrors();
     final canApply = dirty && errors.isEmpty;
-    return Container(
-      decoration: const BoxDecoration(
-        color: TaskColors.backgroundColor,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _SheetHeader(onResetToDefaults: _onResetToDefaults),
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _GroupSortRow(
-                        groupAxis: _working.groupAxis,
-                        sortAxis: _working.sortAxis,
-                        sortDirection: _working.sortDirection,
-                        groupChanged:
-                            _working.groupAxis != defaults.groupAxis,
-                        sortChanged: _working.sortAxis != defaults.sortAxis,
-                        directionChanged: _working.sortDirection !=
-                            defaults.sortDirection,
-                        onGroupChanged: _setGroupAxis,
-                        onSortChanged: _setSortAxis,
-                        onDirectionToggle: _toggleSortDirection,
-                      ),
-                      const SizedBox(height: 12),
-                      _SectionDivider('Filter by'),
-                      _ChangedFieldHighlight(
-                        changed: wf.dueStatus != df.dueStatus,
-                        child: _DueStatusDropdown(
-                          selected: _working.filters.dueStatus.toSet(),
-                          deselectedAll: _dueStatusDeselectedAll,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _SheetHeader(onResetToDefaults: _onResetToDefaults),
+        Flexible(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _GroupSortRow(
+                  groupAxis: _working.groupAxis,
+                  sortAxis: _working.sortAxis,
+                  sortDirection: _working.sortDirection,
+                  groupChanged: _working.groupAxis != defaults.groupAxis,
+                  sortChanged: _working.sortAxis != defaults.sortAxis,
+                  directionChanged:
+                      _working.sortDirection != defaults.sortDirection,
+                  onGroupChanged: _setGroupAxis,
+                  onSortChanged: _setSortAxis,
+                  onDirectionToggle: _toggleSortDirection,
+                ),
+                const SizedBox(height: 12),
+                _SectionDivider('Filter by'),
+                _ChangedFieldHighlight(
+                  changed: wf.dueStatus != df.dueStatus,
+                  child: _DueStatusDropdown(
+                    selected: _working.filters.dueStatus.toSet(),
+                    deselectedAll: _dueStatusDeselectedAll,
+                    onChanged: (set, deselectedAll) {
+                      setState(() {
+                        _dueStatusDeselectedAll = deselectedAll;
+                      });
+                      _mutateFilters((b) => b..dueStatus.replace(set));
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const _FieldLabel('Estimated time'),
+                _ChangedFieldHighlight(
+                  changed:
+                      wf.minDuration != df.minDuration ||
+                      wf.maxDuration != df.maxDuration,
+                  child: _DurationBoundsRow(
+                    minValue: _working.filters.minDuration,
+                    maxValue: _working.filters.maxDuration,
+                    onMinChanged: _setMinDuration,
+                    onMaxChanged: _setMaxDuration,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const _FieldLabel('Points'),
+                _ChangedFieldHighlight(
+                  changed:
+                      wf.minPoints != df.minPoints ||
+                      wf.maxPoints != df.maxPoints,
+                  child: _PointsBoundsRow(
+                    minValue: _working.filters.minPoints,
+                    maxValue: _working.filters.maxPoints,
+                    onMinChanged: _setMinPoints,
+                    onMaxChanged: _setMaxPoints,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const _FieldLabel('Priority'),
+                _ChangedFieldHighlight(
+                  changed:
+                      wf.minPriority != df.minPriority ||
+                      wf.maxPriority != df.maxPriority,
+                  child: _BoundsRow(
+                    minValue: _working.filters.minPriority,
+                    maxValue: _working.filters.maxPriority,
+                    segments: 5,
+                    labels: const ['1', '2', '3', '4', '5'],
+                    accent: SegmentedBarAccent.priority,
+                    onMinChanged: _setMinPriority,
+                    onMaxChanged: _setMaxPriority,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: _ChangedFieldHighlight(
+                        changed: wf.areas != df.areas,
+                        child: _AreasDropdown(
+                          selected: _working.filters.areas.toSet(),
+                          deselectedAll: _areasDeselectedAll,
                           onChanged: (set, deselectedAll) {
                             setState(() {
-                              _dueStatusDeselectedAll = deselectedAll;
+                              _areasDeselectedAll = deselectedAll;
                             });
-                            _mutateFilters(
-                                (b) => b..dueStatus.replace(set));
+                            _mutateFilters((b) => b..areas.replace(set));
                           },
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      const _FieldLabel('Estimated time'),
-                      _ChangedFieldHighlight(
-                        changed: wf.minDuration != df.minDuration ||
-                            wf.maxDuration != df.maxDuration,
-                        child: _DurationBoundsRow(
-                          minValue: _working.filters.minDuration,
-                          maxValue: _working.filters.maxDuration,
-                          onMinChanged: _setMinDuration,
-                          onMaxChanged: _setMaxDuration,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _ChangedFieldHighlight(
+                        changed: wf.contexts != df.contexts,
+                        child: _ContextsDropdown(
+                          selected: _working.filters.contexts.toSet(),
+                          deselectedAll: _contextsDeselectedAll,
+                          onChanged: (set, deselectedAll) {
+                            setState(() {
+                              _contextsDeselectedAll = deselectedAll;
+                            });
+                            _mutateFilters((b) => b..contexts.replace(set));
+                          },
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      const _FieldLabel('Points'),
-                      _ChangedFieldHighlight(
-                        changed: wf.minPoints != df.minPoints ||
-                            wf.maxPoints != df.maxPoints,
-                        child: _PointsBoundsRow(
-                          minValue: _working.filters.minPoints,
-                          maxValue: _working.filters.maxPoints,
-                          onMinChanged: _setMinPoints,
-                          onMaxChanged: _setMaxPoints,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      const _FieldLabel('Priority'),
-                      _ChangedFieldHighlight(
-                        changed: wf.minPriority != df.minPriority ||
-                            wf.maxPriority != df.maxPriority,
-                        child: _BoundsRow(
-                          minValue: _working.filters.minPriority,
-                          maxValue: _working.filters.maxPriority,
-                          segments: 5,
-                          labels: const ['1', '2', '3', '4', '5'],
-                          accent: SegmentedBarAccent.priority,
-                          onMinChanged: _setMinPriority,
-                          onMaxChanged: _setMaxPriority,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: _ChangedFieldHighlight(
-                              changed: wf.areas != df.areas,
-                              child: _AreasDropdown(
-                                selected: _working.filters.areas.toSet(),
-                                deselectedAll: _areasDeselectedAll,
-                                onChanged: (set, deselectedAll) {
-                                  setState(() {
-                                    _areasDeselectedAll = deselectedAll;
-                                  });
-                                  _mutateFilters(
-                                      (b) => b..areas.replace(set));
-                                },
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _ChangedFieldHighlight(
-                              changed: wf.contexts != df.contexts,
-                              child: _ContextsDropdown(
-                                selected: _working.filters.contexts.toSet(),
-                                deselectedAll: _contextsDeselectedAll,
-                                onChanged: (set, deselectedAll) {
-                                  setState(() {
-                                    _contextsDeselectedAll = deselectedAll;
-                                  });
-                                  _mutateFilters(
-                                      (b) => b..contexts.replace(set));
-                                },
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: _ChangedFieldHighlight(
-                              changed: wf.recurrence != df.recurrence,
-                              child: _RecurrenceDropdown(
-                                value: _working.filters.recurrence,
-                                onChanged: (r) => _mutateFilters(
-                                    (b) => b..recurrence = r),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _ChangedFieldHighlight(
-                              changed: wf.maxAgeDays != df.maxAgeDays,
-                              child: _AgeDropdown(
-                                value: _working.filters.maxAgeDays,
-                                onChanged: (d) => _mutateFilters(
-                                    (b) => b..maxAgeDays = d),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (widget.surface == TaskListSurface.family) ...[
-                        const SizedBox(height: 12),
-                        _SectionDivider('Family'),
-                        _ChangedFieldHighlight(
-                          changed: wf.ownedByMeOnly != df.ownedByMeOnly,
-                          child: _OwnedByMeRow(
-                            value: _working.filters.ownedByMeOnly,
-                            onChanged: (v) => _mutateFilters(
-                                (b) => b..ownedByMeOnly = v),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ),
-              if (errors.isNotEmpty) _ValidationBanner(fieldNames: errors),
-              _StickyBottomBar(
-                onCancel: _onCancel,
-                onApply: canApply ? _onApply : null,
-              ),
-            ],
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: _ChangedFieldHighlight(
+                        changed: wf.recurrence != df.recurrence,
+                        child: _RecurrenceDropdown(
+                          value: _working.filters.recurrence,
+                          onChanged: (r) =>
+                              _mutateFilters((b) => b..recurrence = r),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _ChangedFieldHighlight(
+                        changed: wf.maxAgeDays != df.maxAgeDays,
+                        child: _AgeDropdown(
+                          value: _working.filters.maxAgeDays,
+                          onChanged: (d) =>
+                              _mutateFilters((b) => b..maxAgeDays = d),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (widget.surface == TaskListSurface.family) ...[
+                  const SizedBox(height: 12),
+                  _SectionDivider('Family'),
+                  _ChangedFieldHighlight(
+                    changed: wf.ownedByMeOnly != df.ownedByMeOnly,
+                    child: _OwnedByMeRow(
+                      value: _working.filters.ownedByMeOnly,
+                      onChanged: (v) =>
+                          _mutateFilters((b) => b..ownedByMeOnly = v),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
-      ),
+        if (errors.isNotEmpty) _ValidationBanner(fieldNames: errors),
+        _StickyBottomBar(
+          onCancel: _onCancel,
+          onApply: canApply ? _onApply : null,
+        ),
+      ],
     );
   }
 }
@@ -587,16 +649,14 @@ class _SheetHeader extends StatelessWidget {
           ),
           TextButton.icon(
             onPressed: onResetToDefaults,
-            icon:
-                const Icon(Icons.refresh, size: 16, color: Colors.white70),
+            icon: const Icon(Icons.refresh, size: 16, color: Colors.white70),
             label: const Text(
               'Reset to defaults',
               style: TextStyle(color: Colors.white70, fontSize: 12),
             ),
             style: TextButton.styleFrom(
               side: BorderSide.none,
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 10, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
@@ -633,8 +693,7 @@ class _ValidationBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline,
-              size: 18, color: Color(0xFFE85D5D)),
+          const Icon(Icons.error_outline, size: 18, color: Color(0xFFE85D5D)),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -681,8 +740,7 @@ class _StickyBottomBar extends StatelessWidget {
               onPressed: onCancel,
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white,
-                side: BorderSide(
-                    color: Colors.white.withValues(alpha: 0.35)),
+                side: BorderSide(color: Colors.white.withValues(alpha: 0.35)),
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
               child: const Text('Cancel'),
@@ -768,9 +826,11 @@ class _GroupSortRow extends StatelessWidget {
             child: IconButton(
               iconSize: 18,
               onPressed: onDirectionToggle,
-              icon: Icon(sortDirection == SortDirection.ascending
-                  ? Icons.arrow_upward
-                  : Icons.arrow_downward),
+              icon: Icon(
+                sortDirection == SortDirection.ascending
+                    ? Icons.arrow_upward
+                    : Icons.arrow_downward,
+              ),
               color: Colors.white,
               tooltip: sortDirection == SortDirection.ascending
                   ? 'Ascending'
@@ -821,10 +881,7 @@ class _LabeledDropdown<T> extends StatelessWidget {
               style: const TextStyle(color: Colors.white, fontSize: 14),
               items: [
                 for (final item in items)
-                  DropdownMenuItem<T>(
-                    value: item,
-                    child: Text(labelOf(item)),
-                  ),
+                  DropdownMenuItem<T>(value: item, child: Text(labelOf(item))),
               ],
               onChanged: (v) {
                 if (v != null) onChanged(v);
@@ -843,23 +900,23 @@ class _FieldLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(left: 2, bottom: 4),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.75),
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      );
+    padding: const EdgeInsets.only(left: 2, bottom: 4),
+    child: Text(
+      label,
+      style: TextStyle(
+        color: Colors.white.withValues(alpha: 0.75),
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+      ),
+    ),
+  );
 }
 
 // ─── Multi-select dropdowns ──────────────────────────────────────────────
 
 /// Callback signature: (newSelection, isDeselectAllTransient).
-typedef _MultiSelectChanged<T> = void Function(Set<T> selection,
-    bool isDeselectAllTransient);
+typedef _MultiSelectChanged<T> =
+    void Function(Set<T> selection, bool isDeselectAllTransient);
 
 /// Shared "dropdown button → modal multi-select" widget. The dropdown
 /// displays a summary ("All" / "N selected" / "None"); tapping opens a
@@ -898,8 +955,8 @@ class _MultiSelectDropdown<T> extends StatelessWidget {
     final initiallyChecked = deselectedAll
         ? <T>{}
         : (selected.isEmpty
-            ? items.toSet()
-            : selected.where(items.contains).toSet());
+              ? items.toSet()
+              : selected.where(items.contains).toSet());
     var working = {...initiallyChecked};
     var transientDeselectAll = deselectedAll;
 
@@ -946,8 +1003,7 @@ class _MultiSelectDropdown<T> extends StatelessWidget {
                 Navigator.of(sheetContext).pop();
                 return;
               }
-              final (toSave, savedDeselectAll) =
-                  _resolveMultiSelectSave<T>(
+              final (toSave, savedDeselectAll) = _resolveMultiSelectSave<T>(
                 working: working,
                 itemsCount: items.length,
                 transientDeselectAll: transientDeselectAll,
@@ -959,8 +1015,7 @@ class _MultiSelectDropdown<T> extends StatelessWidget {
             return Container(
               decoration: const BoxDecoration(
                 color: TaskColors.backgroundColor,
-                borderRadius:
-                    BorderRadius.vertical(top: Radius.circular(18)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
               ),
               child: SafeArea(
                 top: false,
@@ -973,8 +1028,7 @@ class _MultiSelectDropdown<T> extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(18, 14, 12, 12),
+                        padding: const EdgeInsets.fromLTRB(18, 14, 12, 12),
                         child: Row(
                           children: [
                             Text(
@@ -991,13 +1045,14 @@ class _MultiSelectDropdown<T> extends StatelessWidget {
                               style: TextButton.styleFrom(
                                 side: BorderSide.none,
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                               ),
                               child: Text(
                                 'Done',
                                 style: TextStyle(
-                                  color: Colors.white
-                                      .withValues(alpha: 0.70),
+                                  color: Colors.white.withValues(alpha: 0.70),
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -1030,8 +1085,9 @@ class _MultiSelectDropdown<T> extends StatelessWidget {
                                 child: Text(
                                   emptyItemsHint ?? 'Nothing to filter by.',
                                   style: TextStyle(
-                                    color: Colors.white60
-                                        .withValues(alpha: 0.7),
+                                    color: Colors.white60.withValues(
+                                      alpha: 0.7,
+                                    ),
                                     fontStyle: FontStyle.italic,
                                     fontSize: 13,
                                   ),
@@ -1039,7 +1095,11 @@ class _MultiSelectDropdown<T> extends StatelessWidget {
                               )
                             : SingleChildScrollView(
                                 padding: const EdgeInsets.fromLTRB(
-                                    14, 10, 14, 16),
+                                  14,
+                                  10,
+                                  14,
+                                  16,
+                                ),
                                 child: Wrap(
                                   spacing: 8,
                                   runSpacing: 8,
@@ -1077,25 +1137,22 @@ class _MultiSelectDropdown<T> extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               color: TaskColors.cardColor,
-              border:
-                  Border.all(color: Colors.white.withValues(alpha: 0.12)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
               borderRadius: BorderRadius.circular(8),
             ),
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             child: Row(
               children: [
                 Expanded(
                   child: Text(
                     _summary(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
                   ),
                 ),
-                Icon(Icons.arrow_drop_down,
-                    color: Colors.white.withValues(alpha: 0.65)),
+                Icon(
+                  Icons.arrow_drop_down,
+                  color: Colors.white.withValues(alpha: 0.65),
+                ),
               ],
             ),
           ),
@@ -1226,10 +1283,7 @@ class _AgeDropdown extends StatelessWidget {
               style: const TextStyle(color: Colors.white, fontSize: 14),
               items: [
                 for (final e in entries)
-                  DropdownMenuItem<int?>(
-                    value: e.key,
-                    child: Text(e.value),
-                  ),
+                  DropdownMenuItem<int?>(value: e.key, child: Text(e.value)),
               ],
               onChanged: onChanged,
             ),
@@ -1351,13 +1405,17 @@ class _DurationBoundsRow extends StatelessWidget {
           children: [
             const SizedBox(
               width: 32,
-              child: Text('Min',
-                  style: TextStyle(color: Colors.white70, fontSize: 12)),
+              child: Text(
+                'Min',
+                style: TextStyle(color: Colors.white70, fontSize: 12),
+              ),
             ),
             const SizedBox(width: 8),
             Expanded(
               child: LengthBucketPicker(
-                  minutes: minValue, onChanged: onMinChanged),
+                minutes: minValue,
+                onChanged: onMinChanged,
+              ),
             ),
           ],
         ),
@@ -1366,13 +1424,17 @@ class _DurationBoundsRow extends StatelessWidget {
           children: [
             const SizedBox(
               width: 32,
-              child: Text('Max',
-                  style: TextStyle(color: Colors.white70, fontSize: 12)),
+              child: Text(
+                'Max',
+                style: TextStyle(color: Colors.white70, fontSize: 12),
+              ),
             ),
             const SizedBox(width: 8),
             Expanded(
               child: LengthBucketPicker(
-                  minutes: maxValue, onChanged: onMaxChanged),
+                minutes: maxValue,
+                onChanged: onMaxChanged,
+              ),
             ),
           ],
         ),
@@ -1405,8 +1467,10 @@ class _PointsBoundsRow extends StatelessWidget {
           children: [
             const SizedBox(
               width: 32,
-              child: Text('Min',
-                  style: TextStyle(color: Colors.white70, fontSize: 12)),
+              child: Text(
+                'Min',
+                style: TextStyle(color: Colors.white70, fontSize: 12),
+              ),
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -1419,8 +1483,10 @@ class _PointsBoundsRow extends StatelessWidget {
           children: [
             const SizedBox(
               width: 32,
-              child: Text('Max',
-                  style: TextStyle(color: Colors.white70, fontSize: 12)),
+              child: Text(
+                'Max',
+                style: TextStyle(color: Colors.white70, fontSize: 12),
+              ),
             ),
             const SizedBox(width: 8),
             Expanded(

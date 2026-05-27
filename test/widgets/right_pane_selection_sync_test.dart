@@ -7,11 +7,14 @@ import 'package:taskmaestro/features/shared/providers/selected_task_providers.da
 import 'package:taskmaestro/features/tasks/providers/task_providers.dart';
 import 'package:taskmaestro/models/task_item.dart';
 
-/// TM-384: the wide-shell listener that bridges `selectedTaskProvider`
-/// → `rightPaneProvider`. Verifies both directions:
-///   - non-null selection ⇒ `.editor` (only when current mode is
-///     `.empty` or `.editor` — `.addingNewTask` / `.viewOptions` are
-///     explicit modes that survive a coincident row tap)
+/// TM-384 / TM-385: the wide-shell listener that bridges
+/// `selectedTaskProvider` → `rightPaneProvider`. Verifies both
+/// directions:
+///   - non-null selection ⇒ `.editor` — UNLESS current mode is
+///     `.addingNewTask` (in-progress new task is preserved). All
+///     other modes (`.empty`, `.editor`, `.viewOptions`) swap to
+///     editor; selecting a task is the canonical "close View
+///     Options" gesture per the editor ⟺ view-options exclusivity.
 ///   - null selection ⇒ `.empty` (re-tap a row to deselect, or any
 ///     code path that clears the selection without explicitly setting
 ///     the right pane back to empty) — only when current is `.editor`
@@ -20,10 +23,10 @@ import 'package:taskmaestro/models/task_item.dart';
 /// right pane" bug — pre-fix the listener only upgraded on non-null and
 /// the pane was left in `.editor` with no selection to render.
 ///
-/// The MODE-PROTECTING gates are the fix for the `.addingNewTask`
-/// clobber bug — pre-fix, a row tap while the user was mid-typing in
-/// add-mode would silently switch the pane to `.editor` and discard
-/// the in-progress new task. Same risk for `.viewOptions` (TM-385).
+/// The `.addingNewTask`-protecting gate fixes the clobber bug — pre-
+/// fix, a row tap while the user was mid-typing in add-mode would
+/// silently switch the pane to `.editor` and discard the in-progress
+/// new task.
 void main() {
   TaskItem _ownedTask(String docId) => TaskItem((b) => b
     ..docId = docId
@@ -154,8 +157,9 @@ void main() {
             'explicit .addingNewTask mode');
   });
 
-  testWidgets('non-null selection does NOT clobber .viewOptions either — '
-      'same defensive gate (TM-384 / TM-385)', (tester) async {
+  testWidgets('non-null selection DOES swap .viewOptions → .editor — '
+      'selecting a task is the canonical "close View Options" gesture '
+      '(TM-385 D8 editor ⟺ view-options exclusivity)', (tester) async {
     final c = await pump(tester);
     c.read(rightPaneProvider.notifier).setMode(RightPaneMode.viewOptions);
     await tester.pump();
@@ -163,9 +167,12 @@ void main() {
     c.read(selectedTaskProvider.notifier).select('task-1');
     await tester.pump();
 
-    expect(c.read(rightPaneProvider), RightPaneMode.viewOptions,
-        reason: '.viewOptions is explicit user intent — a coincident '
-            'row tap must not silently switch panes');
+    expect(c.read(rightPaneProvider), RightPaneMode.editor,
+        reason: 'tapping a task while View Options is open must flip '
+            'the pane to the editor — otherwise the user is stranded '
+            'in .viewOptions with no way to see the task they just '
+            'selected. Editor ⟺ View Options is structural mutual '
+            'exclusivity; selection drives the swap.');
   });
 
   testWidgets('selecting a task NOT owned by the current user does NOT '
