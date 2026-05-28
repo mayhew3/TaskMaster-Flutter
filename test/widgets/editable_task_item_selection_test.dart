@@ -193,6 +193,42 @@ void main() {
         );
 
     testWidgets(
+        'tap writes the CURRENT docId after the State is recycled for a '
+        'different task — no stale-capture (TM-385 R4 regression: '
+        'SelectableTaskItem is stateful and list rows carry no Key, so '
+        'Flutter reuses the State for a new task on reorder/rebuild; '
+        '`onShellTap` must read `widget.taskDocId` at call time, not a '
+        'value captured in initState)', (tester) async {
+      _setSize(tester, const Size(1280, 800));
+      final c = _container();
+
+      // First config: docA at this position.
+      await tester.pumpWidget(
+          _wrap(_wrappedRow(_task(docId: 'docA', name: 'Task A')),
+              container: c));
+      await tester.pumpAndSettle();
+
+      // Re-pump the SAME widget structure (same type, no Key) at the
+      // same position but for docB — Flutter reuses the State and just
+      // updates `widget`. This is exactly what a list reorder does.
+      await tester.pumpWidget(
+          _wrap(_wrappedRow(_task(docId: 'docB', name: 'Task B')),
+              container: c));
+      await tester.pumpAndSettle();
+      expect(find.text('Task B'), findsOneWidget,
+          reason: 'sanity: the recycled row now shows docB');
+
+      await tester.tap(find.text('Task B'));
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pumpAndSettle();
+
+      expect(c.read(selectedTaskProvider), 'docB',
+          reason: 'after the State is recycled for docB, the tap must '
+              'select docB — not the docA captured when the State was '
+              'first created');
+    });
+
+    testWidgets(
         'on wide + wrapped in SelectableTaskItem, tap writes '
         'selectedTaskProvider (TM-385 — policy-driven path)',
         (tester) async {
