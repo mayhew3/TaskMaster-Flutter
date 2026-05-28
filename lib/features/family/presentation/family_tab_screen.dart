@@ -165,8 +165,12 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
           ),
           const RefreshButton(),
         ],
-        // TM-385: wide-only summary chip bar under the AppBar.
-        bottom: isWideLayout(MediaQuery.sizeOf(context))
+        // TM-385: summary chip bar under the AppBar — only on the
+        // two-pane wide layout (≥1200dp), where the docked View Options
+        // pane its chips drive is actually mounted. On 840–1199dp the
+        // bar would strand (no right pane); View Options stays reachable
+        // via the AppBar button's bottom-sheet fallback there.
+        bottom: isTwoPaneWideLayout(MediaQuery.sizeOf(context))
             ? const ViewOptionsSummaryBar(surface: TaskListSurface.family)
             : null,
       ),

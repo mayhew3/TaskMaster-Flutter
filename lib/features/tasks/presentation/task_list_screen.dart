@@ -125,8 +125,14 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
           const ViewOptionsButton(surface: TaskListSurface.tasks),
           const RefreshButton(),
         ],
-        // TM-385: wide-only summary chip bar under the AppBar.
-        bottom: isWideLayout(MediaQuery.sizeOf(context))
+        // TM-385: summary chip bar under the AppBar — only on the
+        // two-pane wide layout (≥1200dp). Its chips open the docked
+        // View Options pane via `rightPaneProvider`, and that pane is
+        // only mounted when `isTwoPaneWideLayout` (see
+        // `_buildWideShell`). On the 840–1199dp band there's no right
+        // pane, so the chips would strand; View Options stays reachable
+        // there via the AppBar button's bottom-sheet fallback.
+        bottom: isTwoPaneWideLayout(MediaQuery.sizeOf(context))
             ? const ViewOptionsSummaryBar(surface: TaskListSurface.tasks)
             : null,
       ),
