@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/platform/form_factor.dart';
 import '../../../../models/task_colors.dart';
 import '../../../../models/task_list_view.dart';
-import '../../providers/navigation_provider.dart';
 import '../../providers/right_pane_width_provider.dart';
 import '../../providers/task_list_view_providers.dart';
 import '../view_options_sheet.dart' show ViewOptionsPanelContent;
@@ -33,9 +32,7 @@ class DockedViewOptionsPane extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final surface = surfaceForDestination(
-      ref.watch(activeNavDestinationProvider),
-    );
+    final surface = ref.watch(activeSurfaceProvider);
     if (surface == null) {
       // Defensive: Stats has no list surface. The pane shouldn't be
       // routed here from `.viewOptions` mode on Stats (the button

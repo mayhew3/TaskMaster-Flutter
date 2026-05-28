@@ -8,6 +8,114 @@ part of 'right_pane_width_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// Currently-active [TaskListSurface] for the wide shell, or `null`
+/// when the active destination has no list surface (Stats).
+///
+/// One canonical mapping shared across:
+///   - [rightPaneWidthProvider] — which surface's persisted View
+///     Options width to apply
+///   - `DockedViewOptionsPane` — which surface's panel content to render
+///   - `WideShortcuts` — which surface's grouped tasks j/k/c walk
+///   - `WideNavSidebar._activeFilterSurface` — which surface's filters
+///     the sidebar's area/context active-state pulls from
+///
+/// The Plan tab is the only branch that conditions on more than the
+/// destination: with an active sprint it maps to
+/// [TaskListSurface.sprint] (the sprint list's filters / group / sort
+/// drive everything visible on the tab); without one, it maps to
+/// [TaskListSurface.plan] (the sprint-creation / planning surface has
+/// its own filter pipeline). `ViewOptionsButton(surface: ...)` already
+/// makes this distinction at the call site in `plan_task_list.dart`;
+/// this provider is the read-side counterpart so the sidebar and right
+/// pane resolve the same surface for the same tab state.
+
+@ProviderFor(activeSurface)
+final activeSurfaceProvider = ActiveSurfaceProvider._();
+
+/// Currently-active [TaskListSurface] for the wide shell, or `null`
+/// when the active destination has no list surface (Stats).
+///
+/// One canonical mapping shared across:
+///   - [rightPaneWidthProvider] — which surface's persisted View
+///     Options width to apply
+///   - `DockedViewOptionsPane` — which surface's panel content to render
+///   - `WideShortcuts` — which surface's grouped tasks j/k/c walk
+///   - `WideNavSidebar._activeFilterSurface` — which surface's filters
+///     the sidebar's area/context active-state pulls from
+///
+/// The Plan tab is the only branch that conditions on more than the
+/// destination: with an active sprint it maps to
+/// [TaskListSurface.sprint] (the sprint list's filters / group / sort
+/// drive everything visible on the tab); without one, it maps to
+/// [TaskListSurface.plan] (the sprint-creation / planning surface has
+/// its own filter pipeline). `ViewOptionsButton(surface: ...)` already
+/// makes this distinction at the call site in `plan_task_list.dart`;
+/// this provider is the read-side counterpart so the sidebar and right
+/// pane resolve the same surface for the same tab state.
+
+final class ActiveSurfaceProvider
+    extends
+        $FunctionalProvider<
+          TaskListSurface?,
+          TaskListSurface?,
+          TaskListSurface?
+        >
+    with $Provider<TaskListSurface?> {
+  /// Currently-active [TaskListSurface] for the wide shell, or `null`
+  /// when the active destination has no list surface (Stats).
+  ///
+  /// One canonical mapping shared across:
+  ///   - [rightPaneWidthProvider] — which surface's persisted View
+  ///     Options width to apply
+  ///   - `DockedViewOptionsPane` — which surface's panel content to render
+  ///   - `WideShortcuts` — which surface's grouped tasks j/k/c walk
+  ///   - `WideNavSidebar._activeFilterSurface` — which surface's filters
+  ///     the sidebar's area/context active-state pulls from
+  ///
+  /// The Plan tab is the only branch that conditions on more than the
+  /// destination: with an active sprint it maps to
+  /// [TaskListSurface.sprint] (the sprint list's filters / group / sort
+  /// drive everything visible on the tab); without one, it maps to
+  /// [TaskListSurface.plan] (the sprint-creation / planning surface has
+  /// its own filter pipeline). `ViewOptionsButton(surface: ...)` already
+  /// makes this distinction at the call site in `plan_task_list.dart`;
+  /// this provider is the read-side counterpart so the sidebar and right
+  /// pane resolve the same surface for the same tab state.
+  ActiveSurfaceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'activeSurfaceProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$activeSurfaceHash();
+
+  @$internal
+  @override
+  $ProviderElement<TaskListSurface?> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  TaskListSurface? create(Ref ref) {
+    return activeSurface(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(TaskListSurface? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<TaskListSurface?>(value),
+    );
+  }
+}
+
+String _$activeSurfaceHash() => r'498d2179ca7caa05a2241552ad3d465cc9a2fafc';
+
 /// Pixel width the right pane should occupy in the current frame
 /// (TM-385). Used by `_buildWideShell`'s `SizedBox(width: ...)`
 /// wrapping `RightPaneContainer`.
@@ -160,4 +268,4 @@ final class RightPaneWidthProvider
   }
 }
 
-String _$rightPaneWidthHash() => r'1d6736a38c4d01ce3e09f01fddce45fec7b45a12';
+String _$rightPaneWidthHash() => r'0b70c49dc6e3f8b08fa52867ab8b29fd474a17cc';

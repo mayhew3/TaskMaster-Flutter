@@ -9,24 +9,32 @@ import 'package:taskmaestro/features/shared/providers/navigation_provider.dart';
 import 'package:taskmaestro/features/shared/providers/right_pane_width_provider.dart';
 import 'package:taskmaestro/features/shared/providers/selected_task_providers.dart';
 import 'package:taskmaestro/features/shared/providers/task_list_view_providers.dart';
+import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
+import 'package:taskmaestro/models/sprint.dart';
 import 'package:taskmaestro/models/task_list_view.dart';
+import 'package:taskmaestro/models/top_nav_item.dart';
 
 /// TM-385 — `rightPaneWidthProvider` returns the pixel width the
 /// right pane should occupy. Width is dynamic only for
 /// `RightPaneMode.viewOptions`; other modes resolve to the fixed
 /// `kRightPaneWidth` baseline.
+///
+/// Tests override [activeSurfaceProvider] directly so the width
+/// behavior is exercised independent of the active-tab + active-sprint
+/// resolution chain (which has its own tests in `wide_shortcuts_test`
+/// and via the sidebar / docked-pane tests).
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  ProviderContainer makeContainer({bool inFamily = false}) {
+  ProviderContainer makeContainer({
+    TaskListSurface? surface = TaskListSurface.sprint,
+  }) {
     final container = ProviderContainer(overrides: [
-      // SelectedTask / RightPane watch personDocIdProvider; activeNav
-      // reads currentFamilyDocId. Stub both so the auth chain doesn't
-      // try to wire up Firebase Auth in this unit-test environment.
       personDocIdProvider.overrideWith((ref) => 'test-person'),
-      currentFamilyDocIdProvider.overrideWith((ref) => inFamily ? 'fam-1' : null),
+      currentFamilyDocIdProvider.overrideWith((ref) => null),
+      activeSurfaceProvider.overrideWith((ref) => surface),
     ]);
     addTearDown(container.dispose);
     return container;
@@ -53,9 +61,6 @@ void main() {
   group('RightPaneMode.viewOptions', () {
     test('expanded + default ratio 1.0 → kViewOptionsExpandedMax', () {
       final c = makeContainer();
-      // Default active tab is Plan (index 0); active destination maps
-      // to Plan → TaskListSurface.sprint, which has a default ratio
-      // of 1.0 (per TM-385 _setDefaults hook).
       c.read(rightPaneProvider.notifier).setMode(RightPaneMode.viewOptions);
       expect(c.read(rightPaneWidthProvider), kViewOptionsExpandedMax);
     });
@@ -63,7 +68,6 @@ void main() {
     test('expanded + ratio 0.0 → kViewOptionsExpandedMin', () {
       final c = makeContainer();
       c.read(rightPaneProvider.notifier).setMode(RightPaneMode.viewOptions);
-      // Plan tab is the default active destination → sprint surface.
       c
           .read(taskListViewStateProvider(TaskListSurface.sprint).notifier)
           .setViewOptionsExpandedRatio(0.0);
@@ -93,41 +97,107 @@ void main() {
       expect(c.read(rightPaneWidthProvider), kViewOptionsHandleWidth);
     });
 
-    test('width is per-surface — switching tab while in .viewOptions '
-        'flips to the new surface\'s ratio', () {
-      // Make sure Family destination is available — the active-nav
-      // mapping for tab index 2 requires inFamily=true.
-      final c = makeContainer(inFamily: true);
+    test('width is per-surface — different active surfaces resolve to '
+        'their own persisted ratios', () {
+      // Surface: tasks, expanded ratio default 1.0 → max.
+      final c = makeContainer(surface: TaskListSurface.tasks);
       c.read(rightPaneProvider.notifier).setMode(RightPaneMode.viewOptions);
+      expect(c.read(rightPaneWidthProvider), kViewOptionsExpandedMax);
 
-      // Plan (default tab=0) → sprint surface: set narrow.
-      c.read(taskListViewStateProvider(TaskListSurface.sprint).notifier)
+      // Override the active surface to family with a narrower ratio.
+      c
+          .read(taskListViewStateProvider(TaskListSurface.family).notifier)
           .setViewOptionsExpandedRatio(0.0);
-      expect(c.read(rightPaneWidthProvider), kViewOptionsExpandedMin);
-
-      // Switch to Tasks (tab=1) → tasks surface (uses default ratio=1.0).
-      c.read(activeTabIndexProvider.notifier).setTab(1);
-      // setTab uses scheduleMicrotask; drain it.
-      return Future<void>.delayed(Duration.zero).then((_) {
-        expect(c.read(rightPaneWidthProvider), kViewOptionsExpandedMax,
-            reason: 'switching to Tasks tab should expose the tasks '
-                'surface\'s independent persisted ratio (default 1.0)');
-      });
+      // Flip the active surface override; we'd dispose+rebuild in production
+      // when activeTabIndex changes — here we directly tear down + remake.
+      // (The test pins per-surface width semantics, not the source of the
+      // surface change.)
+      final c2 = ProviderContainer(overrides: [
+        personDocIdProvider.overrideWith((ref) => 'test-person'),
+        currentFamilyDocIdProvider.overrideWith((ref) => null),
+        activeSurfaceProvider.overrideWith((ref) => TaskListSurface.family),
+      ]);
+      addTearDown(c2.dispose);
+      c2.read(rightPaneProvider.notifier).setMode(RightPaneMode.viewOptions);
+      c2
+          .read(taskListViewStateProvider(TaskListSurface.family).notifier)
+          .setViewOptionsExpandedRatio(0.0);
+      expect(c2.read(rightPaneWidthProvider), kViewOptionsExpandedMin,
+          reason: 'family surface reads its own persisted ratio, not '
+              'the tasks-surface ratio from the previous container');
     });
 
-    test('Stats destination has no list surface → falls back to '
-        'kRightPaneWidth (defensive — View Options button isn\'t '
-        'rendered on Stats)', () {
-      // Without Family, tabs are [Plan(0), Tasks(1), Stats(2)].
-      final c = makeContainer();
+    test('null active surface (Stats) → kRightPaneWidth fallback '
+        "(defensive — View Options button isn't rendered on Stats)", () {
+      final c = makeContainer(surface: null);
       c.read(rightPaneProvider.notifier).setMode(RightPaneMode.viewOptions);
-      c.read(activeTabIndexProvider.notifier).setTab(2);
-      return Future<void>.delayed(Duration.zero).then((_) {
-        expect(c.read(rightPaneWidthProvider), kRightPaneWidth,
-            reason: 'Stats destination → no TaskListSurface → no '
-                'per-surface view state to read; defensive fallback '
-                'is the baseline kRightPaneWidth');
-      });
+      expect(c.read(rightPaneWidthProvider), kRightPaneWidth);
+    });
+  });
+
+  /// TM-385 — `activeSurfaceProvider` is the one canonical mapping
+  /// shared by the sidebar, right pane width, docked View Options
+  /// pane, and keyboard shortcuts. Every consumer should observe the
+  /// same surface for the same tab state, including the Plan-tab
+  /// branch that conditions on `activeSprintProvider` (the source of
+  /// truth `WideNavSidebar._activeFilterSurface` previously held
+  /// privately).
+  group('activeSurfaceProvider canonical mapping', () {
+    ProviderContainer makeContainerFor({
+      required NavDestination dest,
+      Sprint? activeSprint,
+    }) {
+      final container = ProviderContainer(overrides: [
+        personDocIdProvider.overrideWith((ref) => 'test-person'),
+        currentFamilyDocIdProvider.overrideWith((ref) => null),
+        activeNavDestinationProvider.overrideWith((ref) => dest),
+        activeSprintProvider.overrideWith((ref) => activeSprint),
+      ]);
+      addTearDown(container.dispose);
+      return container;
+    }
+
+    test('Tasks → TaskListSurface.tasks', () {
+      final c = makeContainerFor(dest: NavDestination.tasks);
+      expect(c.read(activeSurfaceProvider), TaskListSurface.tasks);
+    });
+
+    test('Family → TaskListSurface.family', () {
+      final c = makeContainerFor(dest: NavDestination.family);
+      expect(c.read(activeSurfaceProvider), TaskListSurface.family);
+    });
+
+    test('Plan WITH active sprint → TaskListSurface.sprint', () {
+      final sprint = Sprint((b) => b
+        ..docId = 'sprint-1'
+        ..personDocId = 'test-person'
+        ..sprintNumber = 1
+        ..numUnits = 2
+        ..unitName = 'weeks'
+        ..startDate = DateTime.utc(2026, 1, 1)
+        ..endDate = DateTime.utc(2026, 1, 14)
+        ..dateAdded = DateTime.now().toUtc());
+      final c = makeContainerFor(
+        dest: NavDestination.plan,
+        activeSprint: sprint,
+      );
+      expect(c.read(activeSurfaceProvider), TaskListSurface.sprint);
+    });
+
+    test('Plan WITHOUT active sprint → TaskListSurface.plan '
+        '(regression for R2 bug — pre-fix, this returned .sprint '
+        'unconditionally, mismatching the ViewOptionsButton(surface: '
+        'TaskListSurface.plan) call site in plan_task_list.dart)', () {
+      final c = makeContainerFor(
+        dest: NavDestination.plan,
+        activeSprint: null,
+      );
+      expect(c.read(activeSurfaceProvider), TaskListSurface.plan);
+    });
+
+    test('Stats → null', () {
+      final c = makeContainerFor(dest: NavDestination.stats);
+      expect(c.read(activeSurfaceProvider), isNull);
     });
   });
 }

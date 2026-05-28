@@ -9,7 +9,6 @@ import '../../../../features/tasks/providers/expanded_task_provider.dart';
 import '../../../../features/tasks/providers/task_filter_providers.dart';
 import '../../../../models/task_list_view.dart';
 import '../../../family/providers/family_task_filter_providers.dart';
-import '../../providers/navigation_provider.dart';
 import '../../providers/right_pane_width_provider.dart';
 import '../../providers/selected_task_providers.dart';
 
@@ -175,8 +174,7 @@ class _WideShortcutsState extends ConsumerState<WideShortcuts> {
   void _completeSelected() {
     final docId = ref.read(selectedTaskProvider);
     if (docId == null) return;
-    final dest = ref.read(activeNavDestinationProvider);
-    final surface = surfaceForDestination(dest);
+    final surface = ref.read(activeSurfaceProvider);
     if (surface == null) return;
     final task = switch (surface) {
       TaskListSurface.tasks => ref
@@ -258,8 +256,7 @@ bool _isTextFieldFocused() {
 /// navigates through. Returns empty when the surface has no list
 /// (Stats), is loading, or has no tasks.
 List<String> _flatDocIdsForActiveSurface(WidgetRef ref) {
-  final dest = ref.read(activeNavDestinationProvider);
-  final surface = surfaceForDestination(dest);
+  final surface = ref.read(activeSurfaceProvider);
   if (surface == null) return const [];
   switch (surface) {
     case TaskListSurface.tasks:

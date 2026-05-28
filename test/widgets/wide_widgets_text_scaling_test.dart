@@ -71,9 +71,21 @@ void main() {
       UncontrolledProviderScope(
         container: container,
         child: MaterialApp(
-          home: MediaQuery(
-            data: const MediaQueryData(textScaler: TextScaler.linear(1.5)),
-            child: Scaffold(body: child),
+          // Wrap inside Builder so MediaQuery.of(context) can pick up
+          // the ambient view-driven MediaQueryData (size /
+          // devicePixelRatio / padding from `tester.view.physicalSize`
+          // etc.), and then layer ONLY the textScaler override on
+          // top via `.copyWith`. A bare `const MediaQueryData(
+          // textScaler: ...)` would reset size to Size.zero and
+          // defeat every overflow assertion (R2 — text-scaling
+          // tests would pass trivially against a 0×0 viewport).
+          home: Builder(
+            builder: (context) => MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: const TextScaler.linear(1.5),
+              ),
+              child: Scaffold(body: child),
+            ),
           ),
         ),
       ),
