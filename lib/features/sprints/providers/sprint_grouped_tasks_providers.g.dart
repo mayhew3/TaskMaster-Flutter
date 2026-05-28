@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'sprint_task_items_screen.dart';
+part of 'sprint_grouped_tasks_providers.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -405,6 +405,11 @@ final class SprintTaskItemsFamily extends $Family
 /// result is the bucketed view with most-pressing tasks first within
 /// each bucket. The user can pick any other group/sort axis via the
 /// View Options sheet.
+///
+/// Lives in a separate providers file (not in the screen file) so the
+/// `ViewOptionsSummaryBar` — which renders inside the same screen's
+/// AppBar — can read it without forming a Dart import cycle
+/// (screen ↔ summary bar would close one otherwise).
 
 @ProviderFor(sprintGroupedTasks)
 final sprintGroupedTasksProvider = SprintGroupedTasksFamily._();
@@ -414,6 +419,11 @@ final sprintGroupedTasksProvider = SprintGroupedTasksFamily._();
 /// result is the bucketed view with most-pressing tasks first within
 /// each bucket. The user can pick any other group/sort axis via the
 /// View Options sheet.
+///
+/// Lives in a separate providers file (not in the screen file) so the
+/// `ViewOptionsSummaryBar` — which renders inside the same screen's
+/// AppBar — can read it without forming a Dart import cycle
+/// (screen ↔ summary bar would close one otherwise).
 
 final class SprintGroupedTasksProvider
     extends
@@ -430,6 +440,11 @@ final class SprintGroupedTasksProvider
   /// result is the bucketed view with most-pressing tasks first within
   /// each bucket. The user can pick any other group/sort axis via the
   /// View Options sheet.
+  ///
+  /// Lives in a separate providers file (not in the screen file) so the
+  /// `ViewOptionsSummaryBar` — which renders inside the same screen's
+  /// AppBar — can read it without forming a Dart import cycle
+  /// (screen ↔ summary bar would close one otherwise).
   SprintGroupedTasksProvider._({
     required SprintGroupedTasksFamily super.from,
     required Sprint super.argument,
@@ -482,6 +497,11 @@ String _$sprintGroupedTasksHash() =>
 /// result is the bucketed view with most-pressing tasks first within
 /// each bucket. The user can pick any other group/sort axis via the
 /// View Options sheet.
+///
+/// Lives in a separate providers file (not in the screen file) so the
+/// `ViewOptionsSummaryBar` — which renders inside the same screen's
+/// AppBar — can read it without forming a Dart import cycle
+/// (screen ↔ summary bar would close one otherwise).
 
 final class SprintGroupedTasksFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<TaskGroupResult>>, Sprint> {
@@ -499,6 +519,11 @@ final class SprintGroupedTasksFamily extends $Family
   /// result is the bucketed view with most-pressing tasks first within
   /// each bucket. The user can pick any other group/sort axis via the
   /// View Options sheet.
+  ///
+  /// Lives in a separate providers file (not in the screen file) so the
+  /// `ViewOptionsSummaryBar` — which renders inside the same screen's
+  /// AppBar — can read it without forming a Dart import cycle
+  /// (screen ↔ summary bar would close one otherwise).
 
   SprintGroupedTasksProvider call(Sprint sprint) =>
       SprintGroupedTasksProvider._(argument: sprint, from: this);

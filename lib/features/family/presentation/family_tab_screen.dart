@@ -19,6 +19,7 @@ import '../../shared/presentation/task_action_error_helper.dart';
 import '../../shared/presentation/view_options_sheet.dart';
 import '../../shared/presentation/wide/aura_stack.dart';
 import '../../shared/presentation/wide/selectable_task_item.dart';
+import '../../shared/presentation/wide/view_options_summary_bar.dart';
 import '../../shared/presentation/wide/wide_centered_column.dart';
 import '../../shared/presentation/widgets/collapsible_group_header.dart';
 import '../../shared/providers/task_list_view_providers.dart';
@@ -164,6 +165,14 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
           ),
           const RefreshButton(),
         ],
+        // TM-385: summary chip bar under the AppBar — only on the
+        // two-pane wide layout (≥1200dp), where the docked View Options
+        // pane its chips drive is actually mounted. On 840–1199dp the
+        // bar would strand (no right pane); View Options stays reachable
+        // via the AppBar button's bottom-sheet fallback there.
+        bottom: isTwoPaneWideLayout(MediaQuery.sizeOf(context))
+            ? const ViewOptionsSummaryBar(surface: TaskListSurface.family)
+            : null,
       ),
       body: tiles.isEmpty
           ? const Center(
@@ -249,21 +258,29 @@ class _FamilyTaskTile extends ConsumerWidget {
           builder: (context) => SnoozeDialog(taskItem: task),
         );
       },
-      onTaskCompleteToggle: (checkState) {
-        if (checkState == CheckState.pending) return null;
-        if (checkState == CheckState.skipped) {
-          ref.read(skipTaskProvider.notifier).unskip(task).catchError(
-              (Object e, StackTrace st) =>
-                  showTaskActionError(context, e, st));
-          return null;
-        }
-        ref
-            .read(completeTaskProvider.notifier)
-            .call(task, complete: checkState == CheckState.inactive)
-            .catchError((Object e, StackTrace st) =>
-                showTaskActionError(context, e, st));
-        return null;
-      },
+      // Ownership guard: complete/skip toggles only fire on the
+      // current user's own tasks. Without this, tapping the checkbox
+      // on a teammate's row would optimistically write completion
+      // locally and queue a Firestore write the rules should reject
+      // — mirrors the read-only Edit gate above and the keyboard `c`
+      // shortcut guard in `WideShortcuts._completeSelected`.
+      onTaskCompleteToggle: isMine
+          ? (checkState) {
+              if (checkState == CheckState.pending) return null;
+              if (checkState == CheckState.skipped) {
+                ref.read(skipTaskProvider.notifier).unskip(task).catchError(
+                    (Object e, StackTrace st) =>
+                        showTaskActionError(context, e, st));
+                return null;
+              }
+              ref
+                  .read(completeTaskProvider.notifier)
+                  .call(task, complete: checkState == CheckState.inactive)
+                  .catchError((Object e, StackTrace st) =>
+                      showTaskActionError(context, e, st));
+              return null;
+            }
+          : null,
       // Swipe-to-delete is only allowed for tasks the current user owns; the
       // Family tab's MVP scope doesn't include deleting another member's
       // task. Surface a toast on attempt so the user understands why the

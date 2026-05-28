@@ -123,6 +123,31 @@ class TaskListViewState extends _$TaskListViewState {
     _emit(state.rebuild((b) => b..collapsedGroups.clear()));
   }
 
+  /// Wide-layout (TM-385): toggle the View Options panel's
+  /// collapsed-vs-expanded state for this surface.
+  void toggleViewOptionsCollapsed() {
+    _emit(state.rebuild((b) =>
+        b..viewOptionsCollapsed = !state.viewOptionsCollapsed));
+  }
+
+  /// Wide-layout (TM-385): explicitly set the collapsed flag (used by
+  /// the sidebar's View Options button to force-expand on open even
+  /// if the user previously collapsed the panel for this surface).
+  void setViewOptionsCollapsed(bool collapsed) {
+    if (state.viewOptionsCollapsed == collapsed) return;
+    _emit(state.rebuild((b) => b..viewOptionsCollapsed = collapsed));
+  }
+
+  /// Wide-layout (TM-385): update the View Options panel's expanded
+  /// width ratio for this surface. Clamped to `[0.0, 1.0]`; the
+  /// width-computing provider lerps between `kViewOptionsExpandedMin`
+  /// and `kViewOptionsExpandedMax`.
+  void setViewOptionsExpandedRatio(double ratio) {
+    final clamped = ratio.clamp(0.0, 1.0);
+    if (state.viewOptionsExpandedRatio == clamped) return;
+    _emit(state.rebuild((b) => b..viewOptionsExpandedRatio = clamped));
+  }
+
   /// Restore the surface's factory default (clears the persisted entry).
   void reset() {
     final fresh = TaskListView.defaultForSurface(_surface);

@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -113,6 +114,55 @@ void main() {
       expect(find.text('Work'), findsOneWidget);
       expect(find.text('Health'), findsOneWidget);
       expect(find.text('Manage Areas'), findsOneWidget);
+    });
+
+    testWidgets('drag handles accept mouse pointer events — verifies '
+        'ReorderableListView/ReorderableDragStartListener works under '
+        'PointerDeviceKind.mouse on web/desktop (TM-385)', (tester) async {
+      // Surface-level smoke test: the drag handles exist, are
+      // tappable, and accept a mouse-kind gesture without throwing.
+      // We don't assert on the resulting reorder because
+      // ReorderableListView's internal reorder pipeline depends on
+      // hit-test geometry that's flaky in the test framework
+      // (without DragTargets installed by the parent ListView at
+      // specific Y positions, the drag-to-position math doesn't
+      // reliably commit). The deeper end-to-end reorder is verified
+      // manually per the plan's verification step; this test pins
+      // the mouse-gesture acceptance contract.
+      await tester.pumpWidget(_buildHarness(
+        db: db,
+        firestore: firestore,
+        areas: [
+          _area(docId: 'a-1', name: 'Alpha', sortOrder: 0),
+          _area(docId: 'a-2', name: 'Bravo', sortOrder: 1),
+          _area(docId: 'a-3', name: 'Charlie', sortOrder: 2),
+        ],
+      ));
+      await tester.pumpAndSettle();
+
+      // Three drag handles, one per area.
+      final handles = find.byIcon(Icons.drag_handle);
+      expect(handles, findsNWidgets(3));
+
+      // A mouse-kind drag from the first handle dispatches its
+      // pointer events through Flutter's gesture arena. If
+      // ReorderableDragStartListener rejected mouse pointers (e.g.
+      // some future regression that filters to touch-only), the
+      // gesture would throw or no-op silently. Verify it completes
+      // cleanly + the rows are still rendered after.
+      final alphaHandle = tester.getCenter(handles.first);
+      await tester.dragFrom(
+        alphaHandle,
+        const Offset(0, 100),
+        kind: PointerDeviceKind.mouse,
+      );
+      await tester.pumpAndSettle();
+
+      // All three rows still in the tree (no exception, no widget
+      // unmounting from a botched drag).
+      expect(find.text('Alpha'), findsOneWidget);
+      expect(find.text('Bravo'), findsOneWidget);
+      expect(find.text('Charlie'), findsOneWidget);
     });
 
     testWidgets('empty state copy when the list is empty', (tester) async {

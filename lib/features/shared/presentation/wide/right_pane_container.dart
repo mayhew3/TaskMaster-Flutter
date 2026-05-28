@@ -4,14 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../models/task_colors.dart';
 import '../../providers/selected_task_providers.dart';
 import 'docked_task_editor_pane.dart';
+import 'docked_view_options_pane.dart';
 import 'right_pane_empty_state.dart';
 
 /// Wide-layout right-pane container (TM-383 Story 2 of Epic TM-188).
 ///
-/// Switches on [rightPaneProvider] to decide which surface to render.
-/// [RightPaneMode.editor] lands the docked editor (TM-384); the
-/// [viewOptions] branch is still scaffolded with a placeholder that
-/// references its follow-up Jira story.
+/// Switches on [rightPaneProvider] to decide which surface to render:
+/// [RightPaneMode.editor] / `.addingNewTask` land the docked editor
+/// (TM-384); [RightPaneMode.viewOptions] lands the View Options side
+/// panel (TM-385); `.empty` shows the idle background.
 ///
 /// Editor ⟺ View Options exclusivity is structural: [rightPaneProvider]
 /// holds a single [RightPaneMode], so only one surface is ever active.
@@ -35,32 +36,11 @@ class RightPaneContainer extends ConsumerWidget {
         // The pane reads `selectedTaskProvider` internally to pick which.
         RightPaneMode.editor => const DockedTaskEditorPane(),
         RightPaneMode.addingNewTask => const DockedTaskEditorPane(),
-        // TODO(TM-385): replace with the View-Options side panel.
-        RightPaneMode.viewOptions => const _RightPanePlaceholder(
-          'View Options panel lands in TM-385 (Story 4).',
-        ),
+        // TM-385: View Options side panel (handle when collapsed,
+        // panel + resize divider when expanded — DockedViewOptionsPane
+        // reads the per-surface state itself).
+        RightPaneMode.viewOptions => const DockedViewOptionsPane(),
       },
-    );
-  }
-}
-
-/// Stand-in for the not-yet-built [RightPaneMode.viewOptions] surface.
-/// TM-385 (Story 4) replaces it with the real View-Options side panel.
-class _RightPanePlaceholder extends StatelessWidget {
-  final String message;
-  const _RightPanePlaceholder(this.message);
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(30),
-        child: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13, color: TaskColors.textFaint),
-        ),
-      ),
     );
   }
 }

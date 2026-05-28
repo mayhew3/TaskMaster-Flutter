@@ -28,6 +28,8 @@ import 'package:taskmaestro/features/shared/presentation/app_drawer.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/right_pane_container.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/right_pane_selection_sync.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/wide_nav_sidebar.dart';
+import 'package:taskmaestro/features/shared/presentation/wide/wide_shortcuts.dart';
+import 'package:taskmaestro/features/shared/providers/right_pane_width_provider.dart';
 
 /// Riverpod-based main app widget
 /// This replaces the Redux-based TaskMaestroApp when useRiverpodForAuth is enabled
@@ -604,35 +606,64 @@ class _AuthenticatedHomeState extends ConsumerState<_AuthenticatedHome> {
       // back to `.empty` when the user re-taps a row to deselect (so
       // the right pane returns to the "Select a task" empty state
       // rather than a blank pane).
+      //
+      // TM-385: WideShortcuts wraps the row so keyboard bindings
+      // (j/k navigate, e edit, c complete, / focus search,
+      // Cmd/Ctrl+N add) drive the same providers a mouse user would.
+      // Mounted only on wide; phone path stays unchanged.
       body: RightPaneSelectionSync(
-        child: Row(
-          children: [
-            WideNavSidebar(
-              navItems: liveNavItems,
-              selectedIndex: clampedIndex,
-              onSelectDestination: (index) {
-                ref.read(activeTabIndexProvider.notifier).setTab(index);
-              },
-            ),
-            Expanded(
-              child: Column(
-                children: [
-                  const PendingInvitationBanner(),
-                  MediaQuery.removePadding(
-                    context: context,
-                    removeTop: hasPendingInvite,
-                    child: const SyncConflictBanner(),
+        child: WideShortcuts(
+          // TM-385: explicit focus-traversal order across the wide
+          // shell's three regions (sidebar → center → right pane).
+          // Without this, Flutter's default source-tree traversal
+          // would still get them in order, but the explicit policy
+          // documents intent and lets future region additions
+          // (e.g. a top app bar) slot into the numeric order.
+          child: FocusTraversalGroup(
+            policy: OrderedTraversalPolicy(),
+            child: Row(
+              children: [
+                FocusTraversalOrder(
+                  order: const NumericFocusOrder(1),
+                  child: WideNavSidebar(
+                    navItems: liveNavItems,
+                    selectedIndex: clampedIndex,
+                    onSelectDestination: (index) {
+                      ref.read(activeTabIndexProvider.notifier).setTab(index);
+                    },
                   ),
-                  Expanded(child: tabBody),
-                ],
-              ),
+                ),
+                Expanded(
+                  child: FocusTraversalOrder(
+                    order: const NumericFocusOrder(2),
+                    child: Column(
+                      children: [
+                        const PendingInvitationBanner(),
+                        MediaQuery.removePadding(
+                          context: context,
+                          removeTop: hasPendingInvite,
+                          child: const SyncConflictBanner(),
+                        ),
+                        Expanded(child: tabBody),
+                      ],
+                    ),
+                  ),
+                ),
+                // TM-385: right-pane width is dynamic for
+                // `RightPaneMode.viewOptions` (handle when collapsed,
+                // user-persisted ratio when expanded). All other
+                // modes resolve to the fixed kRightPaneWidth.
+                if (isTwoPane)
+                  FocusTraversalOrder(
+                    order: const NumericFocusOrder(3),
+                    child: SizedBox(
+                      width: ref.watch(rightPaneWidthProvider),
+                      child: const RightPaneContainer(),
+                    ),
+                  ),
+              ],
             ),
-            if (isTwoPane)
-              const SizedBox(
-                width: kRightPaneWidth,
-                child: RightPaneContainer(),
-              ),
-          ],
+          ),
         ),
       ),
     );

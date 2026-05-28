@@ -10,7 +10,6 @@ import '../../../../features/areas/providers/area_providers.dart';
 import '../../../../features/contexts/presentation/context_manage_screen.dart';
 import '../../../../features/contexts/providers/context_providers.dart';
 import '../../../../features/tasks/presentation/task_add_edit_screen.dart';
-import '../../../../features/sprints/providers/sprint_providers.dart';
 import '../../../../features/tasks/providers/expanded_task_provider.dart';
 import '../../../../models/area.dart';
 import '../../../../models/context.dart';
@@ -18,9 +17,11 @@ import '../../../../models/task_colors.dart';
 import '../../../../models/task_list_view.dart';
 import '../../../../models/top_nav_item.dart';
 import '../../providers/navigation_provider.dart';
+import '../../providers/right_pane_width_provider.dart';
 import '../../providers/selected_task_providers.dart';
 import '../../providers/sidebar_facet_counts.dart';
 import '../../providers/task_list_view_providers.dart';
+import 'wide_shortcuts.dart' show sidebarSearchFocusNodeProvider;
 import '../widgets/context_icon.dart';
 import 'sidebar_locked_row.dart';
 import 'sidebar_profile_footer.dart';
@@ -73,32 +74,13 @@ class WideNavSidebar extends ConsumerWidget {
     }));
   }
 
-  /// The surface whose list the sidebar filters/searches, derived from the
-  /// active destination (via [TopNavItem.destination], which is a stable
-  /// enum — not the user-facing label, which would silently break under
-  /// a rename / future localization). Plan maps to the active-sprint
-  /// list (`sprint`) or the create/add list (`plan`), mirroring
-  /// `PlanningHome`. Stats has no filterable list → null (search
-  /// disabled; area/context rows inert).
-  TaskListSurface? _activeFilterSurface(WidgetRef ref) {
-    if (selectedIndex < 0 || selectedIndex >= navItems.length) return null;
-    switch (navItems[selectedIndex].destination) {
-      case NavDestination.tasks:
-        return TaskListSurface.tasks;
-      case NavDestination.family:
-        return TaskListSurface.family;
-      case NavDestination.plan:
-        return ref.watch(activeSprintProvider) != null
-            ? TaskListSurface.sprint
-            : TaskListSurface.plan;
-      case NavDestination.stats:
-        return null;
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final filterSurface = _activeFilterSurface(ref);
+    // TM-385: `activeSurfaceProvider` is the shared mapping — same
+    // surface the right pane width + docked View Options + keyboard
+    // shortcuts read. The legacy `_activeFilterSurface` did this
+    // inline (Plan → sprint when activeSprint != null, else plan).
+    final filterSurface = ref.watch(activeSurfaceProvider);
     return Container(
       width: _kSidebarWidth,
       color: TaskColors.brandBlue,
@@ -507,6 +489,9 @@ class _SidebarSearchFieldState extends ConsumerState<_SidebarSearchField> {
     final hasText = _controller.text.isNotEmpty;
     return TextField(
       controller: _controller,
+      // TM-385: shared FocusNode wired into the keyboard `/` shortcut
+      // (WideShortcuts → FocusSearchIntent → node.requestFocus()).
+      focusNode: ref.watch(sidebarSearchFocusNodeProvider),
       enabled: enabled,
       onChanged: onChanged,
       style: TextStyle(color: TaskColors.textPrimary, fontSize: 13),

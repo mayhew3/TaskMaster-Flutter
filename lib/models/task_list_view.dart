@@ -170,10 +170,37 @@ abstract class TaskListView implements Built<TaskListView, TaskListViewBuilder> 
   /// the user returns to group-by-due-status later.
   BuiltSet<String> get collapsedGroups;
 
+  /// Wide-layout only (TM-385): whether the View Options side panel is
+  /// in its collapsed-to-handle state for this surface. False = the
+  /// full panel renders; true = the 44dp vertical handle renders in
+  /// the right pane. Per-surface (`taskListViewStateProvider` is
+  /// family-keyed) so each list keeps its own preference. Persisted
+  /// via SharedPreferences alongside the other view fields.
+  bool get viewOptionsCollapsed;
+
+  /// Wide-layout only (TM-385): user-persisted width ratio for the View
+  /// Options side panel when expanded, in `[0.0, 1.0]`. 0 = pane is at
+  /// `kViewOptionsExpandedMin`; 1 = pane is at `kViewOptionsExpandedMax`.
+  /// Default 1.0 lands at the wider end so the panel is comfortably
+  /// readable on first open. Per-surface, persisted. Ignored when
+  /// [viewOptionsCollapsed] is true.
+  double get viewOptionsExpandedRatio;
+
   TaskListView._();
 
   factory TaskListView([void Function(TaskListViewBuilder) updates]) =
       _$TaskListView;
+
+  /// Default values for the wide-layout UI-state fields added in
+  /// TM-385. Applied to every TaskListView build via built_value's
+  /// initialize hook so the surface-default factories don't have to
+  /// repeat them. Old JSON payloads that don't carry these fields
+  /// inherit these defaults on fromJson, keeping persistence
+  /// backwards-compatible.
+  @BuiltValueHook(initializeBuilder: true)
+  static void _setDefaults(TaskListViewBuilder b) => b
+    ..viewOptionsCollapsed = false
+    ..viewOptionsExpandedRatio = 1.0;
 
   /// Default state for Tasks tab. `dueStatus` is pre-populated with the
   /// four "actionable" buckets so scheduled and completed tasks are
@@ -247,13 +274,16 @@ abstract class TaskListView implements Built<TaskListView, TaskListViewBuilder> 
     }
   }
 
-  /// JSON shape used by SharedPreferences.
+  /// JSON shape used by SharedPreferences. Stable across releases:
+  /// only add new keys with defaults so old payloads round-trip.
   Map<String, dynamic> toJson() => {
         'groupAxis': groupAxis.name,
         'sortAxis': sortAxis.name,
         'sortDirection': sortDirection.name,
         'filters': filters.toJson(),
         'collapsedGroups': collapsedGroups.toList(),
+        'viewOptionsCollapsed': viewOptionsCollapsed,
+        'viewOptionsExpandedRatio': viewOptionsExpandedRatio,
       };
 
   /// Serialize to a single string for SharedPreferences write.
@@ -277,7 +307,12 @@ abstract class TaskListView implements Built<TaskListView, TaskListViewBuilder> 
           ? TaskFilters.fromJson(json['filters'] as Map<String, dynamic>)
           : defaultView.filters)
       ..collapsedGroups = SetBuilder<String>(
-          _asStringList(json['collapsedGroups'])));
+          _asStringList(json['collapsedGroups']))
+      ..viewOptionsCollapsed = _asBool(
+          json['viewOptionsCollapsed'], defaultView.viewOptionsCollapsed)
+      ..viewOptionsExpandedRatio = _asDoubleOr(
+          json['viewOptionsExpandedRatio'],
+          defaultView.viewOptionsExpandedRatio));
   }
 
   /// Inverse of [toJsonString]. Falls back to [defaultView] on parse errors.
@@ -324,3 +359,8 @@ bool _asBool(dynamic raw, bool fallback) => raw is bool ? raw : fallback;
 
 String _asString(dynamic raw, String fallback) =>
     raw is String ? raw : fallback;
+
+double _asDoubleOr(dynamic raw, double fallback) {
+  if (raw is num) return raw.toDouble();
+  return fallback;
+}

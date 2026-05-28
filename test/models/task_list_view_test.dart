@@ -195,4 +195,83 @@ void main() {
       expect(a == c, true);
     });
   });
+
+  group('TaskListView — wide-layout UI-state fields (TM-385)', () {
+    test('defaults: viewOptionsCollapsed=false, viewOptionsExpandedRatio=1.0',
+        () {
+      // Defaults apply across every factory via the
+      // _setDefaults(initializeBuilder) hook.
+      for (final v in [
+        TaskListView.tasksDefault(),
+        TaskListView.familyDefault(),
+        TaskListView.sprintDefault(),
+        TaskListView.planDefault(),
+      ]) {
+        expect(v.viewOptionsCollapsed, isFalse,
+            reason: 'panel should open expanded by default for ${v.groupAxis}');
+        expect(v.viewOptionsExpandedRatio, 1.0,
+            reason: 'default ratio = 1.0 lands at the wider end of the '
+                '[min, max] band so the panel is comfortable on open');
+      }
+    });
+
+    test('toJson → fromJson round-trip preserves the new fields', () {
+      final original = TaskListView.tasksDefault().rebuild((b) => b
+        ..viewOptionsCollapsed = true
+        ..viewOptionsExpandedRatio = 0.3);
+      final roundTripped = TaskListView.fromJson(
+        original.toJson(),
+        defaultView: TaskListView.tasksDefault(),
+      );
+      expect(roundTripped, original);
+      expect(roundTripped.viewOptionsCollapsed, isTrue);
+      expect(roundTripped.viewOptionsExpandedRatio, 0.3);
+    });
+
+    test('fromJson with missing wide-layout fields applies defaults', () {
+      // Simulates a payload persisted by an older app version.
+      final def = TaskListView.sprintDefault();
+      final v = TaskListView.fromJson(
+        {
+          'groupAxis': 'dueStatus',
+          'sortAxis': 'urgency',
+          'sortDirection': 'ascending',
+          // viewOptionsCollapsed and viewOptionsExpandedRatio are absent
+        },
+        defaultView: def,
+      );
+      expect(v.viewOptionsCollapsed, def.viewOptionsCollapsed);
+      expect(v.viewOptionsExpandedRatio, def.viewOptionsExpandedRatio);
+    });
+
+    test('fromJson tolerates wrong types for the new fields', () {
+      final def = TaskListView.tasksDefault();
+      final v = TaskListView.fromJson(
+        {
+          'viewOptionsCollapsed': 'yes', // String, not bool
+          'viewOptionsExpandedRatio': 'huge', // String, not num
+        },
+        defaultView: def,
+      );
+      expect(v.viewOptionsCollapsed, def.viewOptionsCollapsed);
+      expect(v.viewOptionsExpandedRatio, def.viewOptionsExpandedRatio);
+    });
+
+    test('fromJson accepts both int and double for the ratio (num-tolerant)',
+        () {
+      final def = TaskListView.tasksDefault();
+      // Persisted as int 0 (edge case for "fully min width").
+      final intCase = TaskListView.fromJson(
+        {'viewOptionsExpandedRatio': 0},
+        defaultView: def,
+      );
+      expect(intCase.viewOptionsExpandedRatio, 0.0);
+      // Persisted as double 0.5.
+      final dblCase = TaskListView.fromJson(
+        {'viewOptionsExpandedRatio': 0.5},
+        defaultView: def,
+      );
+      expect(dblCase.viewOptionsExpandedRatio, 0.5);
+    });
+  });
 }

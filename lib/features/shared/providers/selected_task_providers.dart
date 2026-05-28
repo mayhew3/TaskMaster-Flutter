@@ -89,3 +89,4 @@ class RightPane extends _$RightPane {
     state = mode;
   }
 }
+

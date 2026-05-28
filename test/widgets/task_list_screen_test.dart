@@ -10,6 +10,7 @@ import 'package:taskmaestro/core/providers/sync_status_provider.dart';
 import 'package:taskmaestro/core/services/auth_service.dart';
 import 'package:taskmaestro/features/family/providers/family_providers.dart';
 import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
+import 'package:taskmaestro/features/shared/presentation/wide/view_options_summary_bar.dart';
 import 'package:taskmaestro/features/tasks/presentation/task_list_screen.dart';
 import 'package:taskmaestro/features/tasks/providers/task_filter_providers.dart';
 import 'package:taskmaestro/features/tasks/providers/task_providers.dart';
@@ -186,6 +187,24 @@ void main() {
       field.controller!.selection,
       const TextSelection.collapsed(offset: 'externalFoo'.length),
     );
+  });
+
+  testWidgets(
+      'summary bar is ABSENT on the wide-but-NOT-two-pane band '
+      '(840–1199dp) — its chips drive the docked View Options pane, '
+      'which is only mounted ≥1200dp (TM-385 R6)', (tester) async {
+    await pump(tester, logical: const Size(1000, 800));
+    expect(find.byType(ViewOptionsSummaryBar), findsNothing,
+        reason: '840–1199dp has no right pane to host the docked '
+            'panel; the summary bar must not render here or its chips '
+            'would strand');
+  });
+
+  testWidgets(
+      'summary bar IS present on the two-pane wide layout (≥1200dp) '
+      '(TM-385 R6)', (tester) async {
+    await pump(tester, logical: const Size(1280, 800));
+    expect(find.byType(ViewOptionsSummaryBar), findsOneWidget);
   });
 
   testWidgets(

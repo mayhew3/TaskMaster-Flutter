@@ -351,5 +351,112 @@ void main() {
         findsNothing,
       );
     });
+
+    testWidgets(
+        'Edit button is hidden on TWO-PANE WIDE (≥1200dp) even when '
+        'onEdit IS provided (TM-385 — docked editor pane replaces the '
+        'inline Edit affordance; rendering both would push a '
+        'full-screen route on top of the docked editor)',
+        (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1280, 800);
+      addTearDown(tester.view.reset);
+      final task = _task(
+        docId: 'task-wide',
+        name: 'Wide-mode Task',
+        description: 'Has notes so panel renders',
+      );
+      await tester.pumpWidget(_wrap(EditableTaskItemWidget(
+        taskItem: task,
+        highlightSprint: false,
+        onTaskCompleteToggle: (_) => null,
+        // Provide a non-null onEdit — on phone this would render the
+        // Edit button. Two-pane wide must suppress it via the
+        // `effectiveOnEdit` gate in `EditableTaskItemWidget.build`.
+        onEdit: () {},
+      )));
+
+      await tester.tap(find.text('Wide-mode Task'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(TaskMaestroKeys.editableTaskItemEditButton('task-wide')),
+        findsNothing,
+        reason: 'two-pane wide layout must hide the inline Edit '
+            'button even when onEdit is provided',
+      );
+    });
+
+    testWidgets(
+        'Edit button IS shown on the wide-but-NOT-two-pane band '
+        '(840–1199dp) even though `isWideLayout` is true — there is '
+        'no docked editor pane in that band, so nulling onEdit would '
+        'leave the task with no edit affordance at all (TM-385 R3 '
+        'regression: the gate must be `isTwoPaneWideLayout`, not '
+        '`isWideLayout`)', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      // 1000dp: comfortably inside the wide band (≥840) but BELOW
+      // the two-pane threshold (1200).
+      tester.view.physicalSize = const Size(1000, 800);
+      addTearDown(tester.view.reset);
+      final task = _task(
+        docId: 'task-mid-wide',
+        name: 'Mid-Wide Task',
+        description: 'Has notes so panel renders',
+      );
+      await tester.pumpWidget(_wrap(EditableTaskItemWidget(
+        taskItem: task,
+        highlightSprint: false,
+        onTaskCompleteToggle: (_) => null,
+        onEdit: () {},
+      )));
+
+      await tester.tap(find.text('Mid-Wide Task'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(TaskMaestroKeys.editableTaskItemEditButton('task-mid-wide')),
+        findsOneWidget,
+        reason: '840–1199dp has no right pane; the inline Edit '
+            'button must remain so users can still edit the task',
+      );
+    });
+
+    testWidgets(
+        'Empty task (no dates / recurrence / notes / contexts) on '
+        'TWO-PANE WIDE does NOT expand to an empty panel even though '
+        'onEdit is provided (TM-385 — `effectiveOnEdit` is gated to '
+        'null on two-pane wide so `hasExpandableContent` returns '
+        'false, and the shell-tap path fires selection only without '
+        'toggling the accordion)', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1280, 800);
+      addTearDown(tester.view.reset);
+      final task = _task(
+        docId: 'task-empty-wide',
+        name: 'Empty Wide Task',
+        // No description / dates / recurrence / contexts.
+      );
+      await tester.pumpWidget(_wrap(EditableTaskItemWidget(
+        taskItem: task,
+        highlightSprint: false,
+        onTaskCompleteToggle: (_) => null,
+        onEdit: () {},
+      )));
+
+      await tester.tap(find.text('Empty Wide Task'));
+      await tester.pumpAndSettle();
+
+      // Panel must not render: no expandable content, and on two-pane
+      // wide the Edit button doesn't count toward "expandable
+      // content" anymore.
+      expect(
+        find.byKey(TaskMaestroKeys.editableTaskItemExpandedPanel(
+            'task-empty-wide')),
+        findsNothing,
+        reason: 'empty task on two-pane wide must not expand into an '
+            'empty panel',
+      );
+    });
   });
 }

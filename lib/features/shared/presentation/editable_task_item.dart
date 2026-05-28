@@ -6,7 +6,7 @@ import 'package:taskmaestro/core/platform/form_factor.dart';
 import 'package:taskmaestro/date_util.dart';
 import 'package:taskmaestro/features/areas/providers/area_color_providers.dart';
 import 'package:taskmaestro/features/contexts/providers/context_providers.dart';
-import 'package:taskmaestro/features/shared/providers/selected_task_providers.dart';
+import 'package:taskmaestro/features/shared/presentation/wide/selection_tap_policy.dart';
 import 'package:taskmaestro/features/tasks/providers/expanded_task_provider.dart';
 import 'package:taskmaestro/helpers/area_color_helper.dart';
 import 'package:taskmaestro/helpers/recurrence_formatter.dart';
@@ -159,6 +159,24 @@ class EditableTaskItemWidget extends ConsumerWidget {
     // the meta-row glyph drops.
     final contextIcons = _resolveContextIcons(ref);
 
+    // TM-385: the inline Edit button is hidden ONLY on the two-pane
+    // wide layout (≥1200dp), where the docked editor pane IS the
+    // editor and the inline button would push a confusing duplicate
+    // full-screen route. The 840–1199dp "wide-but-not-two-pane" band
+    // has no right pane mounted (`RightPaneContainer` isn't in the
+    // tree); nulling `onEdit` there would hide the only edit
+    // affordance and make tasks effectively non-editable. Use
+    // `isTwoPaneWideLayout`, not `isWideLayout`, as the gate.
+    //
+    // Computed once so the expandability check in `_summaryRow`
+    // (`hasExpandableContent(..., hasOnEdit: ...)`) and the
+    // `ExpandedPanel(onEdit: ...)` below see the same value —
+    // otherwise an empty task on two-pane would report
+    // `canExpand: true` (un-gated onEdit non-null) and expand into
+    // an empty panel.
+    final effectiveOnEdit =
+        isTwoPaneWideLayout(MediaQuery.sizeOf(context)) ? null : onEdit;
+
     // Scroll the card fully into view when it expands, but ONLY if the
     // expanded bottom would otherwise be off-screen. AnimatedSize plays
     // for 100ms (see below); we wait ~80ms past that so the render
@@ -238,7 +256,8 @@ class EditableTaskItemWidget extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _summaryRow(context, ref, isExpanded, areaColor, contextIcons),
+                  _summaryRow(context, ref, isExpanded, areaColor,
+                      contextIcons, effectiveOnEdit),
                   AnimatedSize(
                     // Tighter expand/collapse cadence — the original
                     // 200ms felt sluggish once we started chaining a
@@ -249,7 +268,7 @@ class EditableTaskItemWidget extends ConsumerWidget {
                     child: isExpanded
                         ? ExpandedPanel(
                             taskItem: taskItem,
-                            onEdit: onEdit,
+                            onEdit: effectiveOnEdit,
                             onCollapse: () => ref
                                 .read(expandedTaskProvider.notifier)
                                 .toggle(_docId()),
@@ -295,39 +314,31 @@ class EditableTaskItemWidget extends ConsumerWidget {
     bool isExpanded,
     Color areaColor,
     List<String> contextIcons,
+    VoidCallback? effectiveOnEdit,
   ) {
     // On phone, suppress taps when expanding would render nothing — a
     // tappable-but-collapses-others row feels broken with no affordance.
-    // On wide, taps ALWAYS fire because they drive the right-pane
-    // selection (and Story 3's editor will let the user fill in an
-    // empty card), independent of whether there's any current content
-    // worth expanding.
-    final canExpand = hasExpandableContent(taskItem, hasOnEdit: onEdit != null);
-    final wide = isWideLayout(MediaQuery.sizeOf(context));
-    final shouldHandleTap = canExpand || wide;
+    // On wide, the SelectionTapPolicy installed by SelectableTaskItem
+    // gives us a non-null `onShellTap`, which means taps ALWAYS need
+    // to fire (selection write co-fires with accordion, or fires alone
+    // when the row has no expandable content). Reading the policy
+    // here keeps the leaf row decoupled from the wide-layout / shell
+    // selection providers — see SelectionTapPolicy's docstring for
+    // the TM-385 refactor rationale.
+    final canExpand =
+        hasExpandableContent(taskItem, hasOnEdit: effectiveOnEdit != null);
+    final shellTap = SelectionTapPolicy.maybeOf(context);
+    final shouldHandleTap = canExpand || shellTap != null;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: shouldHandleTap
           ? () {
-              // Phone-and-wide: toggle the inline accordion if there's
-              // any content to expand.
+              // Tap-same → clear / tap-different → swap is owned by
+              // the policy on wide; on compact the call is a no-op
+              // (policy is null).
+              shellTap?.onShellTap();
               if (canExpand) {
                 ref.read(expandedTaskProvider.notifier).toggle(_docId());
-              }
-              // TM-383 wide-only: mirror the tap into `selectedTaskProvider`
-              // so the magenta selection ring co-fires with the accordion
-              // (or fires alone, when the row has no expandable content).
-              // Tap-same → clear; tap-different → swap.
-              if (wide) {
-                final docId = _docId();
-                final selectedNotifier =
-                    ref.read(selectedTaskProvider.notifier);
-                final selected = ref.read(selectedTaskProvider);
-                if (selected == docId) {
-                  selectedNotifier.clear();
-                } else {
-                  selectedNotifier.select(docId);
-                }
               }
             }
           : null,
