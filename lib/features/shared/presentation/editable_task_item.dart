@@ -159,16 +159,23 @@ class EditableTaskItemWidget extends ConsumerWidget {
     // the meta-row glyph drops.
     final contextIcons = _resolveContextIcons(ref);
 
-    // TM-385: the inline Edit button is hidden on wide (the docked
-    // editor IS the editor there). Compute the gated value ONCE so it's
-    // identical between the expandability check in `_summaryRow`
+    // TM-385: the inline Edit button is hidden ONLY on the two-pane
+    // wide layout (≥1200dp), where the docked editor pane IS the
+    // editor and the inline button would push a confusing duplicate
+    // full-screen route. The 840–1199dp "wide-but-not-two-pane" band
+    // has no right pane mounted (`RightPaneContainer` isn't in the
+    // tree); nulling `onEdit` there would hide the only edit
+    // affordance and make tasks effectively non-editable. Use
+    // `isTwoPaneWideLayout`, not `isWideLayout`, as the gate.
+    //
+    // Computed once so the expandability check in `_summaryRow`
     // (`hasExpandableContent(..., hasOnEdit: ...)`) and the
-    // `ExpandedPanel(onEdit: ...)` below — otherwise a wide-layout task
-    // with no date/recurrence content reports `canExpand: true` (because
-    // the unwrapped `onEdit` is non-null) and the row expands into an
-    // empty panel.
+    // `ExpandedPanel(onEdit: ...)` below see the same value —
+    // otherwise an empty task on two-pane would report
+    // `canExpand: true` (un-gated onEdit non-null) and expand into
+    // an empty panel.
     final effectiveOnEdit =
-        isWideLayout(MediaQuery.sizeOf(context)) ? null : onEdit;
+        isTwoPaneWideLayout(MediaQuery.sizeOf(context)) ? null : onEdit;
 
     // Scroll the card fully into view when it expands, but ONLY if the
     // expanded bottom would otherwise be off-screen. AnimatedSize plays
