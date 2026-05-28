@@ -8,28 +8,10 @@ import '../../areas/providers/area_providers.dart';
 import '../../contexts/providers/context_providers.dart';
 import '../../shared/providers/selected_task_providers.dart';
 import '../../shared/providers/task_list_view_providers.dart';
+import 'task_axis_labels.dart';
 import 'widgets/length_bucket_picker.dart';
 import 'widgets/points_picker.dart';
 import 'widgets/segmented_bar.dart';
-
-const _kGroupAxisLabels = <TaskGroupAxis, String>{
-  TaskGroupAxis.dueStatus: 'Due Status',
-  TaskGroupAxis.none: 'None',
-  TaskGroupAxis.priority: 'Priority',
-  TaskGroupAxis.area: 'Area',
-  TaskGroupAxis.points: 'Points',
-  TaskGroupAxis.duration: 'Estimated Time',
-};
-
-const _kSortAxisLabels = <TaskSortAxis, String>{
-  TaskSortAxis.urgency: 'Urgency',
-  TaskSortAxis.dateAdded: 'Date Added',
-  TaskSortAxis.points: 'Points',
-  TaskSortAxis.area: 'Area',
-  TaskSortAxis.duration: 'Estimated Time',
-  TaskSortAxis.priority: 'Priority',
-  TaskSortAxis.efficiency: 'Efficiency',
-};
 
 const _kDueStatusLabels = <DueStatusBucket, String>{
   DueStatusBucket.pastDue: 'Past Due',
@@ -799,7 +781,7 @@ class _GroupSortRow extends StatelessWidget {
               label: 'Group',
               value: groupAxis,
               items: TaskGroupAxis.values,
-              labelOf: (a) => _kGroupAxisLabels[a]!,
+              labelOf: (a) => kGroupAxisLabels[a]!,
               onChanged: onGroupChanged,
             ),
           ),
@@ -812,7 +794,7 @@ class _GroupSortRow extends StatelessWidget {
               label: 'Sort',
               value: sortAxis,
               items: TaskSortAxis.values,
-              labelOf: (a) => _kSortAxisLabels[a]!,
+              labelOf: (a) => kSortAxisLabels[a]!,
               onChanged: onSortChanged,
             ),
           ),

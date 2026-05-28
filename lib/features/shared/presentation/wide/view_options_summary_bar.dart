@@ -8,25 +8,7 @@ import '../../../sprints/providers/sprint_providers.dart';
 import '../../../tasks/providers/task_filter_providers.dart';
 import '../../providers/selected_task_providers.dart';
 import '../../providers/task_list_view_providers.dart';
-
-const _kGroupAxisLabels = <TaskGroupAxis, String>{
-  TaskGroupAxis.dueStatus: 'Due Status',
-  TaskGroupAxis.none: 'None',
-  TaskGroupAxis.priority: 'Priority',
-  TaskGroupAxis.area: 'Area',
-  TaskGroupAxis.points: 'Points',
-  TaskGroupAxis.duration: 'Estimated Time',
-};
-
-const _kSortAxisLabels = <TaskSortAxis, String>{
-  TaskSortAxis.urgency: 'Urgency',
-  TaskSortAxis.dateAdded: 'Date Added',
-  TaskSortAxis.points: 'Points',
-  TaskSortAxis.area: 'Area',
-  TaskSortAxis.duration: 'Estimated Time',
-  TaskSortAxis.priority: 'Priority',
-  TaskSortAxis.efficiency: 'Efficiency',
-};
+import '../task_axis_labels.dart';
 
 /// Wide-layout chip bar that surfaces the active list's group / sort
 /// / total-count at a glance, regardless of whether the View Options
@@ -65,8 +47,8 @@ class ViewOptionsSummaryBar extends ConsumerWidget
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final view = ref.watch(taskListViewStateProvider(surface));
-    final groupLabel = _kGroupAxisLabels[view.groupAxis] ?? view.groupAxis.name;
-    final sortLabel = _kSortAxisLabels[view.sortAxis] ?? view.sortAxis.name;
+    final groupLabel = kGroupAxisLabels[view.groupAxis] ?? view.groupAxis.name;
+    final sortLabel = kSortAxisLabels[view.sortAxis] ?? view.sortAxis.name;
     final sortArrow = view.sortDirection == SortDirection.ascending ? '↑' : '↓';
     final count = _taskCount(ref);
 
@@ -97,7 +79,7 @@ class ViewOptionsSummaryBar extends ConsumerWidget
           const Spacer(),
           if (count != null)
             Text(
-              '$count tasks',
+              count == 1 ? '1 task' : '$count tasks',
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.55),
                 fontSize: 11.5,

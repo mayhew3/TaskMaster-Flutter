@@ -8,10 +8,13 @@ import 'package:taskmaestro/core/database/app_database.dart' hide Area, Context;
 import 'package:taskmaestro/core/providers/auth_providers.dart';
 import 'package:taskmaestro/core/providers/database_provider.dart';
 import 'package:taskmaestro/features/family/providers/family_providers.dart';
+import 'package:taskmaestro/features/shared/logic/task_grouping.dart';
 import 'package:taskmaestro/features/shared/presentation/wide/view_options_summary_bar.dart';
 import 'package:taskmaestro/features/shared/providers/navigation_provider.dart';
 import 'package:taskmaestro/features/shared/providers/selected_task_providers.dart';
 import 'package:taskmaestro/features/shared/providers/task_list_view_providers.dart';
+import 'package:taskmaestro/features/tasks/providers/task_filter_providers.dart';
+import 'package:taskmaestro/models/task_item.dart';
 import 'package:taskmaestro/models/task_list_view.dart';
 
 /// TM-385 — ViewOptionsSummaryBar: chip row under the wide-shell app
@@ -101,5 +104,65 @@ void main() {
       isFalse,
       reason: 'tap must force-expand the panel for the active surface',
     );
+  });
+
+  // ─── Task-count pluralization (TM-385 R5) ─────────────────────────
+
+  TaskItem _task(String docId) => TaskItem(
+        (b) => b
+          ..docId = docId
+          ..name = docId
+          ..personDocId = 'test-person'
+          ..offCycle = false
+          ..dateAdded = DateTime.now().toUtc(),
+      );
+
+  Future<void> pumpBarWithCount(WidgetTester tester, int count) async {
+    final db = AppDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final group = TaskGroupResult(
+      key: 'g',
+      displayName: '',
+      displayOrder: 1,
+      tasks: [for (var i = 0; i < count; i++) _task('t$i')],
+    );
+    final container = ProviderContainer(overrides: [
+      databaseProvider.overrideWithValue(db),
+      personDocIdProvider.overrideWith((ref) => 'test-person'),
+      currentFamilyDocIdProvider.overrideWith((ref) => null),
+      groupedTasksProvider.overrideWith((ref) async => [group]),
+    ]);
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(
+          home: Scaffold(
+              body: ViewOptionsSummaryBar(surface: TaskListSurface.tasks)),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+  }
+
+  testWidgets('count of 1 reads "1 task" (singular) (TM-385 R5)',
+      (tester) async {
+    await pumpBarWithCount(tester, 1);
+    expect(find.text('1 task'), findsOneWidget);
+    expect(find.text('1 tasks'), findsNothing);
+  });
+
+  testWidgets('count > 1 reads "N tasks" (plural) (TM-385 R5)',
+      (tester) async {
+    await pumpBarWithCount(tester, 3);
+    expect(find.text('3 tasks'), findsOneWidget);
+  });
+
+  testWidgets('count of 0 reads "0 tasks" (plural) (TM-385 R5)',
+      (tester) async {
+    await pumpBarWithCount(tester, 0);
+    expect(find.text('0 tasks'), findsOneWidget);
   });
 }
