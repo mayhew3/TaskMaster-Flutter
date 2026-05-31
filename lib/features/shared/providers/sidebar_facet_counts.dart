@@ -2,8 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../models/task_item.dart';
+import '../../../models/task_item_recur_preview.dart';
 import '../../../models/task_list_view.dart';
 import '../../family/providers/family_task_filter_providers.dart';
+import '../../sprints/providers/plan_filter_providers.dart';
 import '../../sprints/providers/sprint_grouped_tasks_providers.dart';
 import '../../sprints/providers/sprint_providers.dart';
 import '../../tasks/providers/task_filter_providers.dart';
@@ -42,17 +44,15 @@ class SidebarFacetCounts {
 /// recompute — just an O(n) tally. `keepAlive` so switching back to a
 /// surface reuses the cached counts.
 ///
-/// `plan` (the create-sprint flow) has no app-level base pool — it's
-/// built from in-screen sprint-creation form state — so it yields
-/// [SidebarFacetCounts.empty]. Faithful plan counts are tracked as
-/// TM-388 (paired with restructuring the create-sprint flow to render
-/// inside the wide shell).
+/// `plan` (the create-sprint flow) draws from [planBasePoolProvider] —
+/// the create-sprint cadence draft lifted into Riverpod (TM-388) — so it
+/// computes faithful counts like the other three surfaces.
 @Riverpod(keepAlive: true)
 Future<SidebarFacetCounts> sidebarFacetCounts(
     Ref ref, TaskListSurface surface) async {
   switch (surface) {
     case TaskListSurface.plan:
-      return SidebarFacetCounts.empty;
+      return _computeForPlan(ref);
     case TaskListSurface.tasks:
       return _computeForTasks(ref);
     case TaskListSurface.family:
@@ -106,6 +106,67 @@ Future<SidebarFacetCounts> _computeForSprint(Ref ref) async {
       ? await ref.watch(sprintBasePoolProvider(sprint).future)
       : const <TaskItem>[];
   return _tally(ref, filters, normal: normal, base: base);
+}
+
+Future<SidebarFacetCounts> _computeForPlan(Ref ref) async {
+  final filters = ref.watch(taskListViewStateProvider(TaskListSurface.plan)
+      .select((v) => v.filters));
+  final needNormal = filters.areas.isEmpty || filters.contexts.isEmpty;
+  final needBase = filters.areas.isNotEmpty || filters.contexts.isNotEmpty;
+  final normal = needNormal
+      ? await ref.watch(planFilteredTasksProvider.future)
+      : const <TaskItem>[];
+  final base = needBase
+      ? await ref.watch(planBasePoolProvider.future)
+      : const <TaskItem>[];
+  // TM-388: plan-mode also displays synthesized recurrence-preview
+  // rows; count them too so the sidebar tally matches what's actually
+  // shown in the picker.
+  final previews = await ref.watch(planRecurrencePreviewsProvider.future);
+  return _tallyPlan(ref, filters,
+      normal: normal, base: base, previews: previews);
+}
+
+/// Plan-surface tally: base TaskItems via the shared [_tally] semantics,
+/// PLUS recurrence-preview rows (TM-388). For each facet axis we add
+/// previews that pass the OTHER axis's filter (the same "ignore own
+/// axis, respect others" contract) — areas of preview inherits from
+/// the source task, so it's a direct field lookup.
+SidebarFacetCounts _tallyPlan(
+  Ref ref,
+  TaskFilters filters, {
+  required List<TaskItem> normal,
+  required List<TaskItem> base,
+  required List<TaskItemRecurPreview> previews,
+}) {
+  final taskCounts = _tally(ref, filters, normal: normal, base: base);
+  final areaCounts = Map<String, int>.from(taskCounts.areas);
+  final contextCounts = Map<String, int>.from(taskCounts.contexts);
+
+  // Areas: ignore the areas axis, respect contexts narrowing.
+  final areaPreviews = filters.contexts.isEmpty
+      ? previews
+      : previews.where(
+          (p) => p.contexts.any((c) => filters.contexts.contains(c.name)));
+  for (final p in areaPreviews) {
+    final key = (p.area ?? '').trim().toLowerCase();
+    if (key.isEmpty) continue;
+    areaCounts[key] = (areaCounts[key] ?? 0) + 1;
+  }
+
+  // Contexts: ignore the contexts axis, respect areas narrowing.
+  final contextPreviews = filters.areas.isEmpty
+      ? previews
+      : previews.where((p) => filters.areas.contains(p.area ?? ''));
+  for (final p in contextPreviews) {
+    for (final context in p.contexts) {
+      final key = context.name.trim().toLowerCase();
+      if (key.isEmpty) continue;
+      contextCounts[key] = (contextCounts[key] ?? 0) + 1;
+    }
+  }
+
+  return SidebarFacetCounts(areas: areaCounts, contexts: contextCounts);
 }
 
 /// Run the facet passes and tally. Re-uses [normal] (the body's already-

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/platform/form_factor.dart';
 import '../../shared/presentation/app_drawer.dart';
 import '../../shared/presentation/connection_status_indicator.dart';
 import '../providers/task_filter_providers.dart';
@@ -68,7 +69,15 @@ class StatsScreen extends ConsumerWidget {
           ],
         ),
       ),
-      drawer: const AppDrawer(),
+      // TM-388: on wide the canonical menu trigger is the sidebar's
+      // profile footer, which opens the wide shell's outer drawer via
+      // `Scaffold.of(context).openDrawer()`. Suppress this inner-screen
+      // drawer (and its auto-burger) on wide so the menu isn't
+      // duplicated and opening from the burger doesn't slide in from
+      // the center pane (right of the sidebar).
+      drawer: isWideLayout(MediaQuery.sizeOf(context))
+          ? null
+          : const AppDrawer(),
     );
   }
 }

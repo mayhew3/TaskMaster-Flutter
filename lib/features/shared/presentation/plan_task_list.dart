@@ -1,10 +1,8 @@
-import 'dart:collection';
-
 import 'package:built_collection/built_collection.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:taskmaestro/helpers/recurrence_helper.dart';
+import 'package:taskmaestro/features/sprints/logic/plan_preview_generation.dart';
 import 'package:taskmaestro/models/sprint_blueprint.dart';
 import 'package:taskmaestro/models/sprint_display_task.dart';
 import 'package:taskmaestro/helpers/task_selectors.dart';
@@ -21,6 +19,7 @@ import '../../../core/services/crash_reporter.dart';
 import '../../shared/logic/task_grouping.dart' show applyTaskFilters;
 import '../../shared/presentation/view_options_sheet.dart';
 import '../../shared/providers/task_list_view_providers.dart';
+import '../../sprints/providers/create_sprint_draft_provider.dart';
 import '../../sprints/providers/sprint_providers.dart';
 import '../../sprints/services/sprint_service.dart';
 import '../../tasks/providers/task_providers.dart';
@@ -36,11 +35,19 @@ class PlanTaskList extends ConsumerStatefulWidget {
   final String? unitName;
   final DateTime? startDate;
 
+  /// TM-388: true when rendered inside the wide shell content area
+  /// (PlanningHome swaps it in) rather than as a pushed full-screen
+  /// route. In-shell there is NO route to pop — submit/back drive
+  /// `createSprintStepProvider` instead (popping would tear down the
+  /// whole wide shell). Compact launches leave this false.
+  final bool inShell;
+
   const PlanTaskList({
     super.key,
     this.numUnits,
     this.unitName,
     this.startDate,
+    this.inShell = false,
   });
 
   @override
@@ -153,76 +160,27 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
   }
 
   void createTemporaryIterations(BuiltList<TaskItem> allTaskItems) {
-    // TM-348: routed through eligibleItemsForPlanningPicker so the base set
-    // and recurrence-preview seed set always flow through the same
-    // family-exclusion filters. Do NOT split this back into two addAll
-    // calls — the aggregator is the single point that guarantees both
-    // sources are family-filtered.
-    final eligibleItems = eligibleItemsForPlanningPicker(
-      allTaskItems: allTaskItems,
+    // TM-388: preview generation lifted into the pure
+    // `generatePlanPreviews` helper so the sidebar facet-count provider
+    // (`planRecurrencePreviewsProvider`) and the picker tally the exact
+    // same set. Initial queue preselection (the original
+    // `willBeUrgentOrDue` rule from `addNextIterations`) stays here —
+    // it's user-selection state that belongs to the widget, not the
+    // pure generator.
+    final allRecurrences = ref.read(taskRecurrencesProvider).value ?? [];
+    final previews = generatePlanPreviews(
+      allTasks: allTaskItems,
       activeSprint: activeSprint,
       endDate: endDate,
+      allRecurrences: allRecurrences,
+      now: DateTime.now(),
     );
-    Set<String> recurIDs = HashSet();
-
-    for (var taskItem in eligibleItems) {
-      if (taskItem.recurrenceDocId != null) {
-        recurIDs.add(taskItem.recurrenceDocId!);
+    for (final preview in previews) {
+      tempIterations.add(preview);
+      if (previewShouldPreselect(preview, endDate)) {
+        taskItemRecurPreviewQueue.add(preview);
+        sprintDisplayTaskQueue.add(preview);
       }
-    }
-
-    // Get all recurrences to populate tasks
-    final allRecurrences = ref.read(taskRecurrencesProvider).value ?? [];
-
-    for (var recurID in recurIDs) {
-      Iterable<TaskItem> recurItems = eligibleItems.where((var taskItem) => taskItem.recurrenceDocId == recurID);
-      List<TaskItem> sortedItems = recurItems.sorted((TaskItem t1, TaskItem t2) => t1.recurIteration!.compareTo(t2.recurIteration!));
-      TaskItem newest = sortedItems.last;
-
-      // Populate recurrence on the task if not already populated
-      if (newest.recurrence == null && newest.recurrenceDocId != null) {
-        final recurrence = allRecurrences.firstWhereOrNull((r) => r.docId == newest.recurrenceDocId);
-        if (recurrence != null) {
-          newest = newest.rebuild((b) => b..recurrence = recurrence.toBuilder());
-        } else {
-          // Skip this task if recurrence not found
-          print('[TM-304] Skipping task ${newest.docId} - recurrence ${newest.recurrenceDocId} not found');
-          continue;
-        }
-      }
-
-      List<TaskItemRecurPreview> futureIterations = [];
-      if (newest.startDate != null && !newest.startDate!.isUtc) {
-        print("[createTemporaryIterations]: Task '${newest.name}' has non-UTC start date! ID: ${newest.docId}");
-      }
-      if (newest.recurWait == false) {
-        addNextIterations(newest, endDate, futureIterations);
-      }
-    }
-
-  }
-
-
-  void addNextIterations(SprintDisplayTask newest, DateTime endDate, List<TaskItemRecurPreview> collector, [int depth = 0]) {
-    if (depth >= 365) {
-      print('[Safety] Warning: Exceeded max iteration depth for task ${newest.name} (depth: $depth, recurIteration: ${newest.recurIteration})');
-      return;
-    }
-    if (newest.startDate != null && !newest.startDate!.isUtc) {
-      print("[addNextIterations]: Task '${newest.name}' has non-UTC start date! Iteration: ${newest.recurIteration}");
-    }
-    TaskItemRecurPreview nextIteration = RecurrenceHelper.createNextIteration(newest, DateTime.now());
-    var willBeUrgentOrDue = nextIteration.isDueBefore(endDate) || nextIteration.isUrgentBefore(endDate);
-    var willBeTargetOrStart = nextIteration.isTargetBefore(endDate) || nextIteration.isScheduledBefore(endDate);
-
-    if (willBeUrgentOrDue || willBeTargetOrStart) {
-      if (willBeUrgentOrDue) {
-        taskItemRecurPreviewQueue.add(nextIteration);
-        sprintDisplayTaskQueue.add(nextIteration);
-      }
-      tempIterations.add(nextIteration);
-      collector.add(nextIteration);
-      addNextIterations(nextIteration, endDate, collector, depth + 1);
     }
   }
 
@@ -262,8 +220,28 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
       now: DateTime.now(),
       recentlyCompletedDocIds: recentlyCompletedDocIds,
     );
+    // TM-388 follow-up: the synthesized recurrence-preview rows
+    // (`tempIterations`) inherit `area` / `contexts` from their source
+    // task, so apply the user's area + context narrowing here too —
+    // otherwise on wide the sidebar visibly narrows by area, the user
+    // sees preview rows from non-selected areas in this list, and
+    // wonders why the picker ignored their filter. Mirrors
+    // `applyTaskFilters`'s exact-match + any-of context semantics.
+    // (Other filter axes — search, priority, points, duration, due
+    // status, age — remain pre-existing TM-359 behavior on previews.)
+    final filteredPreviews = tempIterations.where((p) {
+      if (view.filters.areas.isNotEmpty &&
+          !view.filters.areas.contains(p.area ?? '')) {
+        return false;
+      }
+      if (view.filters.contexts.isNotEmpty &&
+          !p.contexts.any((c) => view.filters.contexts.contains(c.name))) {
+        return false;
+      }
+      return true;
+    });
     otherTasks.addAll(filteredBase);
-    otherTasks.addAll(tempIterations);
+    otherTasks.addAll(filteredPreviews);
 
     startDateSort(SprintDisplayTask a, SprintDisplayTask b) => a.startDate!.compareTo(b.startDate!);
     completionDateSort(SprintDisplayTask a, SprintDisplayTask b) => a.completionDate!.compareTo(b.completionDate!);
@@ -357,10 +335,17 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
     );
   }
 
+  /// TM-388: wide in-shell NEW-sprint path — rendered in-shell, no active
+  /// sprint. Its cadence comes from `createSprintDraftProvider`.
+  bool get _isInShellNewSprint => widget.inShell && activeSprint == null;
+
   DateTime getEndDate() {
-    return activeSprint == null ?
-    DateUtil.adjustToDate(widget.startDate!, widget.numUnits!, widget.unitName!) :
-    activeSprint!.endDate;
+    if (activeSprint != null) return activeSprint!.endDate;
+    // New-sprint mode: draft formula on the wide in-shell path, else the
+    // constructor params from the compact full-screen push.
+    if (_isInShellNewSprint) return ref.read(createSprintEndDateProvider);
+    return DateUtil.adjustToDate(
+        widget.startDate!, widget.numUnits!, widget.unitName!);
   }
 
   bool addMode() {
@@ -377,11 +362,17 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
 
     try {
       if (addMode()) {
+        // TM-388: in the wide in-shell path the cadence lives in the
+        // draft (constructor params are null); compact passes them
+        // directly. `??` resolves to whichever channel is populated.
+        final draft = _isInShellNewSprint
+            ? ref.read(createSprintDraftProvider)
+            : null;
         final sprint = SprintBlueprint(
-            startDate: widget.startDate!,
+            startDate: widget.startDate ?? draft!.sprintStart,
             endDate: endDate,
-            numUnits: widget.numUnits!,
-            unitName: widget.unitName!,
+            numUnits: widget.numUnits ?? draft!.numUnits,
+            unitName: widget.unitName ?? draft!.unitName,
             personDocId: personDocId
         );
         print('[TM-306] Submitting new sprint');
@@ -410,11 +401,25 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
         }
       }
 
-      // TM-375: pop deterministically for both modes (was: racy listener).
-      print('[TM-306] Submit complete, popping navigation');
+      // TM-375: leave the screen deterministically on success for both
+      // modes (was: racy listener).
+      print('[TM-306] Submit complete, leaving picker');
       if (context.mounted && !popped) {
         popped = true;
-        Navigator.pop(context);
+        if (widget.inShell) {
+          // TM-388: no pushed route to pop. Show a transient spinner
+          // (`creating`) covering the gap between submit-success and
+          // the Drift sprints stream emitting the change — for BOTH
+          // new-sprint AND add-to-existing. Without it, add-to-existing
+          // would flash the OLD sprint list (cached
+          // sprintGroupedTasks(oldSprint)) before the new sprint
+          // instance arrives. `PlanningHome` clears the spinner on the
+          // next sprints emission and renders the (now-updated)
+          // SprintTaskItemsScreen / cadence form / new sprint view.
+          ref.read(createSprintStepProvider.notifier).toCreating();
+        } else {
+          Navigator.pop(context);
+        }
       }
     } catch (e, stack) {
       // Don't pop on failure — leave the screen up so the user can
@@ -487,8 +492,11 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
       // never fired, leaving the screen open. `submit()` now pops
       // deterministically for both modes (guarded by `popped`).
 
-      // Auto-pop when tasks are added to existing sprint
-      if (activeSprint != null) {
+      // Auto-pop when tasks are added to existing sprint (pushed route
+      // only). TM-388: the in-shell path has no route to pop — submit()
+      // returns to the sprint list via `createSprintStepProvider`, so
+      // this listener must NOT run there (it would pop the wide shell).
+      if (activeSprint != null && !widget.inShell) {
         print('[TM-306] Setting up listener for sprint ${activeSprint!.docId}');
         ref.listen(sprintsProvider, (previous, next) {
           print('[TM-306] Sprints provider changed!');
@@ -521,6 +529,20 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
 
     return Scaffold(
       appBar: AppBar(
+        // TM-388: in-shell wide path has no pushed route, so it gets no
+        // automatic back button — supply one that returns to the prior
+        // in-shell view (cadence form for new-sprint, sprint list for
+        // add-to-existing; both are the default `form` step). Compact
+        // (pushed) keeps the framework's default leading.
+        leading: widget.inShell
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                tooltip:
+                    activeSprint == null ? 'Back to cadence' : 'Back to sprint',
+                onPressed: () =>
+                    ref.read(createSprintStepProvider.notifier).toForm(),
+              )
+            : null,
         title: const Text('Select Tasks'),
         actions: [
           const ViewOptionsButton(surface: TaskListSurface.plan),

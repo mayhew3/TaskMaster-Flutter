@@ -9,6 +9,7 @@ import 'package:taskmaestro/features/shared/providers/navigation_provider.dart';
 import 'package:taskmaestro/features/shared/providers/right_pane_width_provider.dart';
 import 'package:taskmaestro/features/shared/providers/selected_task_providers.dart';
 import 'package:taskmaestro/features/shared/providers/task_list_view_providers.dart';
+import 'package:taskmaestro/features/sprints/providers/create_sprint_draft_provider.dart';
 import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaestro/models/sprint.dart';
 import 'package:taskmaestro/models/task_list_view.dart';
@@ -198,6 +199,37 @@ void main() {
     test('Stats → null', () {
       final c = makeContainerFor(dest: NavDestination.stats);
       expect(c.read(activeSurfaceProvider), isNull);
+    });
+
+    test('Plan + active sprint + step=addingToSprint → .plan '
+        '(TM-388 — in-shell picker reads plan-mode filters; sidebar + '
+        'docked View Options must follow the picker, not the sprint)',
+        () {
+      final sprint = Sprint((b) => b
+        ..docId = 'sprint-1'
+        ..personDocId = 'test-person'
+        ..sprintNumber = 1
+        ..numUnits = 2
+        ..unitName = 'weeks'
+        ..startDate = DateTime.utc(2026, 1, 1)
+        ..endDate = DateTime.utc(2026, 1, 14)
+        ..dateAdded = DateTime.now().toUtc());
+      final c = makeContainerFor(
+        dest: NavDestination.plan,
+        activeSprint: sprint,
+      );
+      c.read(createSprintStepProvider.notifier).toAddingToSprint();
+      expect(c.read(activeSurfaceProvider), TaskListSurface.plan);
+    });
+
+    test('Plan + no active sprint + step=picking → .plan '
+        '(TM-388 — same picker contract for the new-sprint flow)', () {
+      final c = makeContainerFor(
+        dest: NavDestination.plan,
+        activeSprint: null,
+      );
+      c.read(createSprintStepProvider.notifier).toPicker();
+      expect(c.read(activeSurfaceProvider), TaskListSurface.plan);
     });
   });
 }

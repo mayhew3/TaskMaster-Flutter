@@ -20,11 +20,9 @@ part of 'sidebar_facet_counts.dart';
 /// recompute — just an O(n) tally. `keepAlive` so switching back to a
 /// surface reuses the cached counts.
 ///
-/// `plan` (the create-sprint flow) has no app-level base pool — it's
-/// built from in-screen sprint-creation form state — so it yields
-/// [SidebarFacetCounts.empty]. Faithful plan counts are tracked as
-/// TM-388 (paired with restructuring the create-sprint flow to render
-/// inside the wide shell).
+/// `plan` (the create-sprint flow) draws from [planBasePoolProvider] —
+/// the create-sprint cadence draft lifted into Riverpod (TM-388) — so it
+/// computes faithful counts like the other three surfaces.
 
 @ProviderFor(sidebarFacetCounts)
 final sidebarFacetCountsProvider = SidebarFacetCountsFamily._();
@@ -41,11 +39,9 @@ final sidebarFacetCountsProvider = SidebarFacetCountsFamily._();
 /// recompute — just an O(n) tally. `keepAlive` so switching back to a
 /// surface reuses the cached counts.
 ///
-/// `plan` (the create-sprint flow) has no app-level base pool — it's
-/// built from in-screen sprint-creation form state — so it yields
-/// [SidebarFacetCounts.empty]. Faithful plan counts are tracked as
-/// TM-388 (paired with restructuring the create-sprint flow to render
-/// inside the wide shell).
+/// `plan` (the create-sprint flow) draws from [planBasePoolProvider] —
+/// the create-sprint cadence draft lifted into Riverpod (TM-388) — so it
+/// computes faithful counts like the other three surfaces.
 
 final class SidebarFacetCountsProvider
     extends
@@ -69,11 +65,9 @@ final class SidebarFacetCountsProvider
   /// recompute — just an O(n) tally. `keepAlive` so switching back to a
   /// surface reuses the cached counts.
   ///
-  /// `plan` (the create-sprint flow) has no app-level base pool — it's
-  /// built from in-screen sprint-creation form state — so it yields
-  /// [SidebarFacetCounts.empty]. Faithful plan counts are tracked as
-  /// TM-388 (paired with restructuring the create-sprint flow to render
-  /// inside the wide shell).
+  /// `plan` (the create-sprint flow) draws from [planBasePoolProvider] —
+  /// the create-sprint cadence draft lifted into Riverpod (TM-388) — so it
+  /// computes faithful counts like the other three surfaces.
   SidebarFacetCountsProvider._({
     required SidebarFacetCountsFamily super.from,
     required TaskListSurface super.argument,
@@ -119,7 +113,7 @@ final class SidebarFacetCountsProvider
 }
 
 String _$sidebarFacetCountsHash() =>
-    r'3b385f29909b1407d1b01a1190824ebd300e789c';
+    r'455b5d68ef117f225f9ad6474e9cc41886db7d29';
 
 /// Active-surface faceted counts.
 ///
@@ -133,11 +127,9 @@ String _$sidebarFacetCountsHash() =>
 /// recompute — just an O(n) tally. `keepAlive` so switching back to a
 /// surface reuses the cached counts.
 ///
-/// `plan` (the create-sprint flow) has no app-level base pool — it's
-/// built from in-screen sprint-creation form state — so it yields
-/// [SidebarFacetCounts.empty]. Faithful plan counts are tracked as
-/// TM-388 (paired with restructuring the create-sprint flow to render
-/// inside the wide shell).
+/// `plan` (the create-sprint flow) draws from [planBasePoolProvider] —
+/// the create-sprint cadence draft lifted into Riverpod (TM-388) — so it
+/// computes faithful counts like the other three surfaces.
 
 final class SidebarFacetCountsFamily extends $Family
     with
@@ -166,11 +158,9 @@ final class SidebarFacetCountsFamily extends $Family
   /// recompute — just an O(n) tally. `keepAlive` so switching back to a
   /// surface reuses the cached counts.
   ///
-  /// `plan` (the create-sprint flow) has no app-level base pool — it's
-  /// built from in-screen sprint-creation form state — so it yields
-  /// [SidebarFacetCounts.empty]. Faithful plan counts are tracked as
-  /// TM-388 (paired with restructuring the create-sprint flow to render
-  /// inside the wide shell).
+  /// `plan` (the create-sprint flow) draws from [planBasePoolProvider] —
+  /// the create-sprint cadence draft lifted into Riverpod (TM-388) — so it
+  /// computes faithful counts like the other three surfaces.
 
   SidebarFacetCountsProvider call(TaskListSurface surface) =>
       SidebarFacetCountsProvider._(argument: surface, from: this);

@@ -198,7 +198,12 @@ class _FamilyTabScreenState extends ConsumerState<FamilyTabScreen> {
                 ),
               ),
             ),
-      drawer: const AppDrawer(),
+      // TM-388: wide uses the sidebar profile footer to open the wide
+      // shell's drawer; suppress this inner-screen drawer + auto-burger
+      // on wide.
+      drawer: isWideLayout(MediaQuery.sizeOf(context))
+          ? null
+          : const AppDrawer(),
       // Hide the add-task FAB on wide layouts — same rationale as
       // `task_list_screen.dart`: the sidebar's "+ Add task" button is
       // the canonical entry point on wide.
