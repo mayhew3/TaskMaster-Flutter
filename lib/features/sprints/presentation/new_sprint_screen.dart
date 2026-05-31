@@ -187,8 +187,16 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
                     initialValue: draft.unitName,
                     labelText: 'Unit',
                     possibleValues: possibleRecurUnits,
-                    onChanged: (value) =>
-                        _draftNotifier.setUnitName(value ?? ''),
+                    // Only `valueSetter` — `NullableDropdown` invokes
+                    // both `valueSetter` and `onChanged` on every
+                    // change, so passing the same setter to both
+                    // (as we used to) wrote to the draft twice per
+                    // dropdown change → two rebuilds of every
+                    // TM-388-added consumer (PlanTaskList,
+                    // plan_filter_providers chain, sidebar facet
+                    // counts) per change. `CreateSprintDraftState`
+                    // is identity-equal so the redundant write
+                    // wasn't a no-op.
                     valueSetter: (value) =>
                         _draftNotifier.setUnitName(value ?? ''),
                   ),
