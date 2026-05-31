@@ -70,17 +70,26 @@ List<TaskItemRecurPreview> generatePlanPreviews({
 List<TaskItemRecurPreview> _previewsForSource(
   SprintDisplayTask source,
   DateTime endDate,
-  DateTime now, [
-  int depth = 0,
-]) {
-  if (depth >= 365) return const [];
-  final next = RecurrenceHelper.createNextIteration(source, now);
-  final inWindow = next.isDueBefore(endDate) ||
-      next.isUrgentBefore(endDate) ||
-      next.isTargetBefore(endDate) ||
-      next.isScheduledBefore(endDate);
-  if (!inWindow) return const [];
-  return [next, ..._previewsForSource(next, endDate, now, depth + 1)];
+  DateTime now,
+) {
+  // Iterative — the prior recursion built each level's return list via
+  // list-spread (`[next, ...recurse(...)]`), allocating a fresh list at
+  // every step (O(n²) work + GC pressure for n up to the 365 cap).
+  // Picker render + sidebar facet counts both call this on every
+  // filter/cadence change, so the constant matters. (R3 follow-up.)
+  final out = <TaskItemRecurPreview>[];
+  SprintDisplayTask current = source;
+  for (int depth = 0; depth < 365; depth++) {
+    final next = RecurrenceHelper.createNextIteration(current, now);
+    final inWindow = next.isDueBefore(endDate) ||
+        next.isUrgentBefore(endDate) ||
+        next.isTargetBefore(endDate) ||
+        next.isScheduledBefore(endDate);
+    if (!inWindow) break;
+    out.add(next);
+    current = next;
+  }
+  return out;
 }
 
 /// True for previews the picker auto-selects on first mount (matches the

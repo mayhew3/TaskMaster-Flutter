@@ -1,7 +1,6 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -37,17 +36,18 @@ void main() {
   Scaffold scaffoldOf(WidgetTester tester) =>
       tester.widget<Scaffold>(find.byType(Scaffold).first);
 
+  // Takes a pre-built ProviderContainer rather than a typed override list
+  // so we don't need to import `Override` from the non-public
+  // `flutter_riverpod/misc.dart` entrypoint (R3 follow-up).
   Future<void> pump(
     WidgetTester tester, {
     required Size size,
     required Widget child,
-    required List<Override> overrides,
+    required ProviderContainer container,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = size;
     addTearDown(tester.view.reset);
-
-    final container = ProviderContainer(overrides: overrides);
     addTearDown(container.dispose);
 
     await tester.pumpWidget(
@@ -61,12 +61,12 @@ void main() {
 
   // ── NewSprintScreen ──────────────────────────────────────────────
 
-  List<Override> newSprintOverrides() => [
+  ProviderContainer newSprintContainer() => ProviderContainer(overrides: [
         lastCompletedSprintProvider.overrideWith((ref) => null),
         personDocIdProvider.overrideWith((ref) => 'p'),
         connectivityProvider.overrideWith((ref) => Stream.value(true)),
         syncStatusControllerProvider.overrideWith(_FakeSyncStatus.new),
-      ];
+      ]);
 
   testWidgets('NewSprintScreen: wide → drawer is null (TM-388)',
       (tester) async {
@@ -74,7 +74,7 @@ void main() {
       tester,
       size: const Size(1280, 800),
       child: const NewSprintScreen(),
-      overrides: newSprintOverrides(),
+      container: newSprintContainer(),
     );
     expect(scaffoldOf(tester).drawer, isNull);
   });
@@ -85,26 +85,26 @@ void main() {
       tester,
       size: const Size(400, 800),
       child: const NewSprintScreen(),
-      overrides: newSprintOverrides(),
+      container: newSprintContainer(),
     );
     expect(scaffoldOf(tester).drawer, isNotNull);
   });
 
   // ── StatsScreen ──────────────────────────────────────────────────
 
-  List<Override> statsOverrides() => [
+  ProviderContainer statsContainer() => ProviderContainer(overrides: [
         tasksProvider.overrideWith((ref) => Stream.value(const [])),
         completedTaskCountProvider.overrideWith((ref) async => 0),
         personDocIdProvider.overrideWith((ref) => 'p'),
         connectivityProvider.overrideWith((ref) => Stream.value(true)),
-      ];
+      ]);
 
   testWidgets('StatsScreen: wide → drawer is null (TM-388)', (tester) async {
     await pump(
       tester,
       size: const Size(1280, 800),
       child: const StatsScreen(),
-      overrides: statsOverrides(),
+      container: statsContainer(),
     );
     expect(scaffoldOf(tester).drawer, isNull);
   });
@@ -115,7 +115,7 @@ void main() {
       tester,
       size: const Size(400, 800),
       child: const StatsScreen(),
-      overrides: statsOverrides(),
+      container: statsContainer(),
     );
     expect(scaffoldOf(tester).drawer, isNotNull);
   });
@@ -136,7 +136,7 @@ void main() {
       ..sprintAssignments = ListBuilder<SprintAssignment>());
   }
 
-  List<Override> sprintScreenOverrides() => [
+  ProviderContainer sprintScreenContainer() => ProviderContainer(overrides: [
         sprintGroupedTasksProvider
             .overrideWith((ref, _) async => const <TaskGroupResult>[]),
         sprintsProvider.overrideWith((ref) => Stream.value(const [])),
@@ -145,7 +145,7 @@ void main() {
         taskRecurrencesProvider.overrideWith((ref) => Stream.value(const [])),
         personDocIdProvider.overrideWith((ref) => 'p'),
         connectivityProvider.overrideWith((ref) => Stream.value(true)),
-      ];
+      ]);
 
   testWidgets('SprintTaskItemsScreen: wide → drawer is null (TM-388)',
       (tester) async {
@@ -153,7 +153,7 @@ void main() {
       tester,
       size: const Size(1280, 800),
       child: SprintTaskItemsScreen(sprint: testSprint()),
-      overrides: sprintScreenOverrides(),
+      container: sprintScreenContainer(),
     );
     expect(scaffoldOf(tester).drawer, isNull);
   });
@@ -165,7 +165,7 @@ void main() {
       tester,
       size: const Size(400, 800),
       child: SprintTaskItemsScreen(sprint: testSprint()),
-      overrides: sprintScreenOverrides(),
+      container: sprintScreenContainer(),
     );
     expect(scaffoldOf(tester).drawer, isNotNull);
   });
