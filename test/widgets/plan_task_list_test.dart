@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taskmaestro/features/shared/presentation/plan_task_list.dart';
 import 'package:taskmaestro/features/shared/providers/task_list_view_providers.dart';
 import 'package:taskmaestro/features/tasks/providers/task_providers.dart';
+import 'package:taskmaestro/features/sprints/providers/create_sprint_draft_provider.dart';
 import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaestro/features/sprints/services/sprint_service.dart';
 import 'package:taskmaestro/core/providers/auth_providers.dart';
@@ -42,6 +43,34 @@ class _FakeCreateSprint extends CreateSprint {
       ..numUnits = 1
       ..unitName = 'Weeks'
       ..personDocId = 'test_person_id'
+      ..sprintNumber = 1);
+  }
+}
+
+/// TM-388 (R0 follow-up): captures the SprintBlueprint passed to
+/// `call()` so a test can prove the in-shell submit used the picker's
+/// frozen cadence snapshot — NOT a stale-by-mutation live draft.
+class _CapturingCreateSprint extends CreateSprint {
+  SprintBlueprint? captured;
+
+  @override
+  FutureOr<void> build() {}
+
+  @override
+  Future<Sprint> call({
+    required SprintBlueprint sprintBlueprint,
+    required List<TaskItem> taskItems,
+    required List<TaskItemRecurPreview> taskItemRecurPreviews,
+  }) async {
+    captured = sprintBlueprint;
+    return Sprint((b) => b
+      ..docId = 'sprint-test'
+      ..dateAdded = DateTime.now().toUtc()
+      ..startDate = sprintBlueprint.startDate
+      ..endDate = sprintBlueprint.endDate
+      ..numUnits = sprintBlueprint.numUnits
+      ..unitName = sprintBlueprint.unitName
+      ..personDocId = sprintBlueprint.personDocId
       ..sprintNumber = 1);
   }
 }
@@ -870,6 +899,95 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Daily Work Task'), findsNothing);
+    });
+
+    testWidgets(
+        'in-shell submit uses the cadence SNAPSHOT taken when the picker '
+        'mounted — a draft mutation while the picker is open does NOT '
+        'leak into the SprintBlueprint (TM-388 R0)', (tester) async {
+      // A simple eligible TaskItem so the picker has at least one row
+      // available; the test pre-queues it programmatically so submit
+      // has something to send.
+      final eligible = TaskItem((b) => b
+        ..docId = 't1'
+        ..name = 'Eligible Task'
+        ..personDocId = 'p'
+        ..offCycle = false
+        ..dateAdded = DateTime.now().toUtc()
+        ..dueDate = DateTime.now().toUtc().add(const Duration(days: 1)));
+
+      final capture = _CapturingCreateSprint();
+      final container = ProviderContainer(overrides: [
+        tasksProvider.overrideWith((ref) => Stream.value([eligible])),
+        tasksWithRecurrencesProvider
+            .overrideWith((ref) => Stream.value([eligible])),
+        taskRecurrencesProvider.overrideWith((ref) => Stream.value(const [])),
+        sprintsProvider.overrideWith((ref) => Stream.value(const [])),
+        recentlyCompletedTasksProvider
+            .overrideWith(() => RecentlyCompletedTasks()),
+        personDocIdProvider.overrideWith((ref) => 'p'),
+        createSprintProvider.overrideWith(() => capture),
+      ]);
+      addTearDown(container.dispose);
+
+      // Seed the draft to a deterministic initial cadence before
+      // mounting the picker.
+      final initialStart = DateTime.utc(2026, 6, 1);
+      container
+          .read(createSprintDraftProvider.notifier)
+          .setNumUnits(1);
+      container
+          .read(createSprintDraftProvider.notifier)
+          .setUnitName('Weeks');
+      container
+          .read(createSprintDraftProvider.notifier)
+          .setStartDate(initialStart);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: Scaffold(
+              // Wide in-shell new-sprint path: inShell:true with null
+              // constructor params (the assert covered by the existing
+              // test pins this contract).
+              body: PlanTaskList(inShell: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Capture what the draft looked like at picker-mount time —
+      // this is exactly what the snapshot fields should equal.
+      final draftAtMount = container.read(createSprintDraftProvider);
+
+      // Now mutate the draft AFTER the picker mounted — this is the
+      // exact "draft re-seeds while picker is open" race Copilot
+      // flagged. A correct implementation ignores this in submit().
+      container.read(createSprintDraftProvider.notifier).setNumUnits(4);
+      container
+          .read(createSprintDraftProvider.notifier)
+          .setUnitName('Months');
+      container
+          .read(createSprintDraftProvider.notifier)
+          .setStartDate(DateTime.utc(2027, 7, 15));
+      await tester.pump();
+
+      // The Submit FAB is only visible when the queue is non-empty.
+      // The eligible task is due-before-endDate so
+      // `preSelectUrgentAndDueAndPreviousSprint` auto-queues it on mount.
+      expect(find.widgetWithText(FloatingActionButton, 'Submit'), findsOneWidget,
+          reason: 'auto-preselect should have queued the eligible task');
+      await tester.tap(find.widgetWithText(FloatingActionButton, 'Submit'));
+      await tester.pumpAndSettle();
+
+      expect(capture.captured, isNotNull, reason: 'submit should have run');
+      // The captured blueprint MUST match the draft as it was at
+      // picker-mount — not the post-mount mutation.
+      expect(capture.captured!.numUnits, draftAtMount.numUnits);
+      expect(capture.captured!.unitName, draftAtMount.unitName);
+      expect(capture.captured!.startDate, draftAtMount.sprintStart);
     });
   });
 }

@@ -77,6 +77,19 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
 
   late final DateTime endDate;
 
+  // TM-388 (R0 follow-up): in wide in-shell new-sprint mode we snapshot
+  // the draft cadence on first build alongside `endDate` so the picker
+  // is fully frozen. A late `lastCompletedSprint` emission that re-seeds
+  // `_cachedSeed` would otherwise leave the picker filtering by the old
+  // window but submitting a `SprintBlueprint` with the new cadence —
+  // user selects against one window, sprint is created against a
+  // different one. Left null for compact (constructor params) and
+  // existing-sprint paths; only read in `submit()` on the in-shell new
+  // path.
+  DateTime? _draftStartDateSnapshot;
+  int? _draftNumUnitsSnapshot;
+  String? _draftUnitNameSnapshot;
+
   void validateState() {
     if (activeSprint != null &&
         (widget.numUnits != null || widget.unitName != null || widget.startDate != null)) {
@@ -367,15 +380,17 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
 
     try {
       if (addMode()) {
-        // TM-388: in the wide in-shell path the cadence lives in the
-        // draft (constructor params are null); compact passes them
-        // directly. `??` resolves to whichever channel is populated.
-        final draft = _isInShellNewSprint
-            ? ref.read(createSprintDraftProvider)
-            : null;
-        final startDate = widget.startDate ?? draft!.sprintStart;
-        final numUnits = widget.numUnits ?? draft!.numUnits;
-        final unitName = widget.unitName ?? draft!.unitName;
+        // TM-388: in the wide in-shell path the cadence comes from the
+        // `_draft*Snapshot` fields captured on first build (NOT a live
+        // `ref.read(createSprintDraftProvider)` here), so the picker's
+        // filtering window (`endDate`) and the submitted blueprint
+        // (start/numUnits/unitName) stay consistent even if the draft
+        // re-seeds while the picker is open. Compact passes its values
+        // through constructor params directly. `??` resolves to whichever
+        // channel is populated.
+        final startDate = widget.startDate ?? _draftStartDateSnapshot!;
+        final numUnits = widget.numUnits ?? _draftNumUnitsSnapshot!;
+        final unitName = widget.unitName ?? _draftUnitNameSnapshot!;
         final sprint = SprintBlueprint(
             startDate: startDate,
             endDate: endDate,
@@ -498,6 +513,12 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
       activeSprint = activeSprintSelector(allSprintsBuilt);
       validateState();
       endDate = getEndDate();
+      if (_isInShellNewSprint) {
+        final draft = ref.read(createSprintDraftProvider);
+        _draftStartDateSnapshot = draft.sprintStart;
+        _draftNumUnitsSnapshot = draft.numUnits;
+        _draftUnitNameSnapshot = draft.unitName;
+      }
       final lastSprint = lastCompletedSprintSelector(allSprintsBuilt);
       preSelectUrgentAndDueAndPreviousSprint(allTasksBuilt, lastSprint);
       createTemporaryIterations(allTasksBuilt);

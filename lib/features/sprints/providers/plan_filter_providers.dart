@@ -26,10 +26,12 @@ part 'plan_filter_providers.g.dart';
 /// `task_selectors` family-exclusion + completion filters, against the
 /// same `tasksWithRecurrencesProvider` source and the same
 /// `createSprintEndDate` formula — so the counts can't drift from the
-/// rendered list. The synthesized recurrence-preview rows the picker
-/// also shows are intentionally NOT counted (consistent with how the
-/// other three surfaces count and how `applyTaskFilters` is designed —
-/// previews aren't `TaskItem`s the filter set was built for).
+/// rendered list. This pool is `TaskItem`-only by design;
+/// `applyTaskFilters` is built around `TaskItem`'s field shape, and the
+/// synthesized recurrence-preview rows live in a sibling provider
+/// (`planRecurrencePreviewsProvider`) that `sidebarFacetCounts._tallyPlan`
+/// folds in separately — so picker + sidebar still both count previews,
+/// just through different paths.
 @Riverpod(keepAlive: true)
 Future<List<TaskItem>> planBasePool(Ref ref) async {
   final allTasks = await ref.watch(tasksWithRecurrencesProvider.future);
