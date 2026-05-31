@@ -22,10 +22,9 @@ part of 'create_sprint_draft_provider.dart';
 ///     actually changes.
 ///   - **`_userEdited`** pins user edits against late stream emissions
 ///     so a sprints arrival doesn't clobber what the user typed.
-///   - **Resets** on user switch (`personDocId` change → cross-user pin
-///     leak) and when the `lastCompleted` sprint identity changes (a
-///     just-created sprint should re-seed the next form open from the
-///     rolled-forward cadence rather than the prior edited values).
+///   - **Reset on user switch only** (`personDocId` change → cross-user
+///     pin leak). A late-arriving `lastCompleted` sprint just refreshes
+///     the cached seed — user edits are preserved either way.
 
 @ProviderFor(CreateSprintDraft)
 final createSprintDraftProvider = CreateSprintDraftProvider._();
@@ -44,10 +43,9 @@ final createSprintDraftProvider = CreateSprintDraftProvider._();
 ///     actually changes.
 ///   - **`_userEdited`** pins user edits against late stream emissions
 ///     so a sprints arrival doesn't clobber what the user typed.
-///   - **Resets** on user switch (`personDocId` change → cross-user pin
-///     leak) and when the `lastCompleted` sprint identity changes (a
-///     just-created sprint should re-seed the next form open from the
-///     rolled-forward cadence rather than the prior edited values).
+///   - **Reset on user switch only** (`personDocId` change → cross-user
+///     pin leak). A late-arriving `lastCompleted` sprint just refreshes
+///     the cached seed — user edits are preserved either way.
 final class CreateSprintDraftProvider
     extends $NotifierProvider<CreateSprintDraft, CreateSprintDraftState> {
   /// Holds the create-sprint cadence draft (TM-388).
@@ -64,10 +62,9 @@ final class CreateSprintDraftProvider
   ///     actually changes.
   ///   - **`_userEdited`** pins user edits against late stream emissions
   ///     so a sprints arrival doesn't clobber what the user typed.
-  ///   - **Resets** on user switch (`personDocId` change → cross-user pin
-  ///     leak) and when the `lastCompleted` sprint identity changes (a
-  ///     just-created sprint should re-seed the next form open from the
-  ///     rolled-forward cadence rather than the prior edited values).
+  ///   - **Reset on user switch only** (`personDocId` change → cross-user
+  ///     pin leak). A late-arriving `lastCompleted` sprint just refreshes
+  ///     the cached seed — user edits are preserved either way.
   CreateSprintDraftProvider._()
     : super(
         from: null,
@@ -95,7 +92,7 @@ final class CreateSprintDraftProvider
   }
 }
 
-String _$createSprintDraftHash() => r'bcfcfe76aa5ea64736f41d68922400ca7477145e';
+String _$createSprintDraftHash() => r'b3a949918297656fe3a83b11efb28da6caad8a6a';
 
 /// Holds the create-sprint cadence draft (TM-388).
 ///
@@ -111,10 +108,9 @@ String _$createSprintDraftHash() => r'bcfcfe76aa5ea64736f41d68922400ca7477145e';
 ///     actually changes.
 ///   - **`_userEdited`** pins user edits against late stream emissions
 ///     so a sprints arrival doesn't clobber what the user typed.
-///   - **Resets** on user switch (`personDocId` change → cross-user pin
-///     leak) and when the `lastCompleted` sprint identity changes (a
-///     just-created sprint should re-seed the next form open from the
-///     rolled-forward cadence rather than the prior edited values).
+///   - **Reset on user switch only** (`personDocId` change → cross-user
+///     pin leak). A late-arriving `lastCompleted` sprint just refreshes
+///     the cached seed — user edits are preserved either way.
 
 abstract class _$CreateSprintDraft extends $Notifier<CreateSprintDraftState> {
   CreateSprintDraftState build();

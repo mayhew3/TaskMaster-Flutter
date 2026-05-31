@@ -115,6 +115,41 @@ void main() {
 
       expect(previews.length, equals(365));
     });
+
+    test(
+        'defensive: a task with recurrenceDocId but null recurIteration is '
+        'skipped, not crashed-on (TM-388 R2)', () {
+      // Construct a corrupt-shaped TaskItem directly — the builder
+      // would set recurIteration alongside recurrenceDocId, so bypass
+      // it. This is the data-integrity-violation path the R2 reviewer
+      // flagged: a single bad task previously force-unwrapped through
+      // recurIteration! during the sort and would have thrown,
+      // breaking the whole plan-mode sidebar tally.
+      final corrupt = TaskItem((b) => b
+        ..docId = 'corrupt'
+        ..name = 'Corrupt Task'
+        ..personDocId = 'p'
+        ..offCycle = false
+        ..dateAdded = DateTime.now().toUtc()
+        ..dueDate = DateTime.now().toUtc().add(const Duration(days: 2))
+        ..recurNumber = 1
+        ..recurUnit = 'Days'
+        ..recurWait = false
+        ..recurrenceDocId = 'rec-corrupt'
+        ..recurIteration = null);
+      final endDate = DateTime.now().toUtc().add(const Duration(days: 14));
+
+      // Must not throw; corrupt source produces no previews.
+      final previews = generatePlanPreviews(
+        allTasks: BuiltList<TaskItem>([corrupt]),
+        activeSprint: null,
+        endDate: endDate,
+        allRecurrences: const [],
+        now: DateTime.now(),
+      );
+
+      expect(previews, isEmpty);
+    });
   });
 
   group('previewShouldPreselect', () {

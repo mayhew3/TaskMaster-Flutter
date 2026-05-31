@@ -38,8 +38,15 @@ List<TaskItemRecurPreview> generatePlanPreviews({
   };
   final all = <TaskItemRecurPreview>[];
   for (final recurID in recurIDs) {
+    // Defensive against data corruption: a task with `recurrenceDocId`
+    // set is *supposed* to have `recurIteration` set too (they're
+    // populated together by recurrence creation), but the model
+    // doesn't enforce that — both fields are independently nullable.
+    // Skipping null iterations here keeps the plan-mode sidebar
+    // counts from going down on a single corrupt task. (R2 follow-up.)
     final recurItems = eligibleItems
-        .where((t) => t.recurrenceDocId == recurID)
+        .where((t) =>
+            t.recurrenceDocId == recurID && t.recurIteration != null)
         .sorted((a, b) => a.recurIteration!.compareTo(b.recurIteration!));
     if (recurItems.isEmpty) continue;
     var newest = recurItems.last;
