@@ -178,7 +178,15 @@ enum CreateSprintStepValue { form, picking, creating, addingToSprint }
 @Riverpod(keepAlive: true)
 class CreateSprintStep extends _$CreateSprintStep {
   @override
-  CreateSprintStepValue build() => CreateSprintStepValue.form;
+  CreateSprintStepValue build() {
+    // Reset on user switch — keepAlive UI state must not leak across
+    // sign-out/in. Without this, User A signing out while stuck in
+    // `picking` / `creating` would surface that same step in User B's
+    // wide Plan tab (R6 follow-up; same pattern as
+    // `RecentlyCompletedTasks` and `CreateSprintDraft`).
+    ref.watch(personDocIdProvider);
+    return CreateSprintStepValue.form;
+  }
 
   void toPicker() => state = CreateSprintStepValue.picking;
 

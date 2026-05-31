@@ -2,6 +2,7 @@ import 'package:built_collection/built_collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:taskmaestro/core/providers/auth_providers.dart';
 import 'package:taskmaestro/date_util.dart';
 import 'package:taskmaestro/features/sprints/providers/create_sprint_draft_provider.dart';
 import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
@@ -18,6 +19,17 @@ class _LastSprintSource extends Notifier<Sprint?> {
 
 final _lastSprintSource =
     NotifierProvider<_LastSprintSource, Sprint?>(_LastSprintSource.new);
+
+/// Mutable source for `personDocId` so a test can simulate sign-out
+/// and a new user signing in.
+class _PersonSource extends Notifier<String?> {
+  @override
+  String? build() => 'user-a';
+  void set(String? value) => state = value;
+}
+
+final _personSource =
+    NotifierProvider<_PersonSource, String?>(_PersonSource.new);
 
 /// TM-388 — the create-sprint cadence draft. Seeding mirrors the
 /// pre-TM-388 `NewSprintScreen._updateDatesOnInit` logic (inherit the
@@ -164,6 +176,26 @@ void main() {
           CreateSprintStepValue.addingToSprint);
 
       notifier.toForm();
+      expect(c.read(createSprintStepProvider), CreateSprintStepValue.form);
+    });
+
+    test(
+        'resets to form on user switch — keepAlive state must not leak '
+        'across sign-out/in (TM-388 R6)', () {
+      final c = ProviderContainer(overrides: [
+        personDocIdProvider
+            .overrideWith((ref) => ref.watch(_personSource)),
+      ]);
+      addTearDown(c.dispose);
+
+      // User A advances to a non-default step.
+      c.read(createSprintStepProvider.notifier).toPicker();
+      expect(c.read(createSprintStepProvider), CreateSprintStepValue.picking);
+
+      // Sign out → sign in as User B.
+      c.read(_personSource.notifier).set('user-b');
+
+      // User B must see the default `form` step, NOT inherit `picking`.
       expect(c.read(createSprintStepProvider), CreateSprintStepValue.form);
     });
   });
