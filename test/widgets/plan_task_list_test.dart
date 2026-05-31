@@ -931,8 +931,12 @@ void main() {
       addTearDown(container.dispose);
 
       // Seed the draft to a deterministic initial cadence before
-      // mounting the picker.
-      final initialStart = DateTime.utc(2026, 6, 1);
+      // mounting the picker. Pinned RELATIVE to today's clock so the
+      // eligible task (dueDate = now+1d) always sits inside the
+      // {start, start+1 week} window — a calendar-date constant
+      // would time-bomb once today passes that date.
+      final initialStart =
+          DateTime.now().toUtc().add(const Duration(hours: 1));
       container
           .read(createSprintDraftProvider.notifier)
           .setNumUnits(1);
@@ -969,9 +973,11 @@ void main() {
       container
           .read(createSprintDraftProvider.notifier)
           .setUnitName('Months');
+      // Mutation also pinned relative to the clock so the contrast
+      // with `initialStart` is preserved indefinitely.
       container
           .read(createSprintDraftProvider.notifier)
-          .setStartDate(DateTime.utc(2027, 7, 15));
+          .setStartDate(DateTime.now().toUtc().add(const Duration(days: 400)));
       await tester.pump();
 
       // The Submit FAB is only visible when the queue is non-empty.
