@@ -19,15 +19,15 @@ part of 'right_pane_width_provider.dart';
 ///   - `WideNavSidebar._activeFilterSurface` — which surface's filters
 ///     the sidebar's area/context active-state pulls from
 ///
-/// The Plan tab is the only branch that conditions on more than the
-/// destination: with an active sprint it maps to
-/// [TaskListSurface.sprint] (the sprint list's filters / group / sort
-/// drive everything visible on the tab); without one, it maps to
-/// [TaskListSurface.plan] (the sprint-creation / planning surface has
-/// its own filter pipeline). `ViewOptionsButton(surface: ...)` already
-/// makes this distinction at the call site in `plan_task_list.dart`;
-/// this provider is the read-side counterpart so the sidebar and right
-/// pane resolve the same surface for the same tab state.
+/// The Plan tab conditions on more than the destination:
+///   - In-shell task picker active (`createSprintStep` is `picking` or
+///     `addingToSprint`): always `.plan` — both pickers read plan-mode
+///     filters (`taskListViewStateProvider(.plan)`), so the sidebar +
+///     docked View Options pane must edit/show that surface or user
+///     edits won't propagate to the picker (TM-388).
+///   - Otherwise: with an active sprint → `.sprint` (the sprint list's
+///     filters drive what's visible); without one → `.plan` (the
+///     cadence-form surface).
 
 @ProviderFor(activeSurface)
 final activeSurfaceProvider = ActiveSurfaceProvider._();
@@ -43,15 +43,15 @@ final activeSurfaceProvider = ActiveSurfaceProvider._();
 ///   - `WideNavSidebar._activeFilterSurface` — which surface's filters
 ///     the sidebar's area/context active-state pulls from
 ///
-/// The Plan tab is the only branch that conditions on more than the
-/// destination: with an active sprint it maps to
-/// [TaskListSurface.sprint] (the sprint list's filters / group / sort
-/// drive everything visible on the tab); without one, it maps to
-/// [TaskListSurface.plan] (the sprint-creation / planning surface has
-/// its own filter pipeline). `ViewOptionsButton(surface: ...)` already
-/// makes this distinction at the call site in `plan_task_list.dart`;
-/// this provider is the read-side counterpart so the sidebar and right
-/// pane resolve the same surface for the same tab state.
+/// The Plan tab conditions on more than the destination:
+///   - In-shell task picker active (`createSprintStep` is `picking` or
+///     `addingToSprint`): always `.plan` — both pickers read plan-mode
+///     filters (`taskListViewStateProvider(.plan)`), so the sidebar +
+///     docked View Options pane must edit/show that surface or user
+///     edits won't propagate to the picker (TM-388).
+///   - Otherwise: with an active sprint → `.sprint` (the sprint list's
+///     filters drive what's visible); without one → `.plan` (the
+///     cadence-form surface).
 
 final class ActiveSurfaceProvider
     extends
@@ -72,15 +72,15 @@ final class ActiveSurfaceProvider
   ///   - `WideNavSidebar._activeFilterSurface` — which surface's filters
   ///     the sidebar's area/context active-state pulls from
   ///
-  /// The Plan tab is the only branch that conditions on more than the
-  /// destination: with an active sprint it maps to
-  /// [TaskListSurface.sprint] (the sprint list's filters / group / sort
-  /// drive everything visible on the tab); without one, it maps to
-  /// [TaskListSurface.plan] (the sprint-creation / planning surface has
-  /// its own filter pipeline). `ViewOptionsButton(surface: ...)` already
-  /// makes this distinction at the call site in `plan_task_list.dart`;
-  /// this provider is the read-side counterpart so the sidebar and right
-  /// pane resolve the same surface for the same tab state.
+  /// The Plan tab conditions on more than the destination:
+  ///   - In-shell task picker active (`createSprintStep` is `picking` or
+  ///     `addingToSprint`): always `.plan` — both pickers read plan-mode
+  ///     filters (`taskListViewStateProvider(.plan)`), so the sidebar +
+  ///     docked View Options pane must edit/show that surface or user
+  ///     edits won't propagate to the picker (TM-388).
+  ///   - Otherwise: with an active sprint → `.sprint` (the sprint list's
+  ///     filters drive what's visible); without one → `.plan` (the
+  ///     cadence-form surface).
   ActiveSurfaceProvider._()
     : super(
         from: null,
@@ -114,7 +114,7 @@ final class ActiveSurfaceProvider
   }
 }
 
-String _$activeSurfaceHash() => r'498d2179ca7caa05a2241552ad3d465cc9a2fafc';
+String _$activeSurfaceHash() => r'8d8309d3d5b9b009dd812a4da646853260d6ec40';
 
 /// Pixel width the right pane should occupy in the current frame
 /// (TM-385). Used by `_buildWideShell`'s `SizedBox(width: ...)`

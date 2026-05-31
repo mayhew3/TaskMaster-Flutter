@@ -163,7 +163,12 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
           );
         },
       ),
-      drawer: const AppDrawer(),
+      // TM-388: wide uses the sidebar profile footer to open the wide
+      // shell's drawer; suppress this inner-screen drawer + auto-burger
+      // on wide.
+      drawer: isWideLayout(MediaQuery.sizeOf(context))
+          ? null
+          : const AppDrawer(),
       // Hide the add-task FAB on wide layouts — the sidebar already
       // hosts an "+ Add task" affordance (which opens the docked
       // editor on two-pane wide, or pushes the route below that), so

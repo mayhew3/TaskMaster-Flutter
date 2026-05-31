@@ -5,12 +5,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taskmaestro/features/family/providers/family_task_filter_providers.dart';
 import 'package:taskmaestro/features/shared/providers/sidebar_facet_counts.dart';
 import 'package:taskmaestro/features/shared/providers/task_list_view_providers.dart';
+import 'package:taskmaestro/features/sprints/providers/plan_filter_providers.dart';
 import 'package:taskmaestro/features/sprints/providers/sprint_grouped_tasks_providers.dart';
 import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaestro/features/tasks/providers/task_filter_providers.dart';
 import 'package:taskmaestro/models/sprint.dart';
 import 'package:taskmaestro/models/task_context.dart';
 import 'package:taskmaestro/models/task_item.dart';
+import 'package:taskmaestro/models/task_item_recur_preview.dart';
 import 'package:taskmaestro/models/task_list_view.dart';
 
 import '../../../helpers/async_provider_helpers.dart';
@@ -144,16 +146,168 @@ void main() {
     expect(counts.contexts, {'phone': 1, 'email': 1});
   });
 
-  test('plan surface yields empty counts (no app-level base pool)',
+  test(
+      'plan surface: each facet ignores its own axis but respects the '
+      'other — base path (TM-388, replaces the old empty-counts contract)',
       () async {
-    final container = ProviderContainer();
+    final base = [
+      _task(docId: 'a', name: 'alpha', area: 'Work', contexts: ['Phone']),
+      _task(docId: 'b', name: 'beta', area: 'Home', contexts: ['Phone']),
+      _task(docId: 'c', name: 'gamma', area: 'Work', contexts: ['Email']),
+      _task(docId: 'd', name: 'delta', area: 'Home', contexts: ['Email']),
+    ];
+    final container = ProviderContainer(overrides: [
+      planBasePoolProvider.overrideWith((ref) async => base),
+      planRecurrencePreviewsProvider.overrideWith((ref) async => const []),
+    ]);
     addTearDown(container.dispose);
+
+    container
+        .read(taskListViewStateProvider(TaskListSurface.plan).notifier)
+        .setFilters(TaskFilters((b) => b
+          ..areas.add('Work')
+          ..contexts.add('Phone')));
+
     final counts = await readAsyncValue(
       container,
       sidebarFacetCountsProvider(TaskListSurface.plan),
     );
-    expect(counts.areas, isEmpty);
-    expect(counts.contexts, isEmpty);
+    // Areas axis cleared, context=Phone kept → a (Work) + b (Home).
+    expect(counts.areas, {'work': 1, 'home': 1});
+    // Contexts axis cleared, area=Work kept → a (Phone) + c (Email).
+    expect(counts.contexts, {'phone': 1, 'email': 1});
+  });
+
+  test(
+      'plan surface: recurrence-preview rows contribute to area + '
+      'context counts (TM-388) — and respect the OTHER axis when the '
+      'user has narrowed contexts (areas count) / areas (contexts count)',
+      () async {
+    TaskItemRecurPreview preview(String name, String area, List<String> ctxs) {
+      return TaskItemRecurPreview(name)
+        ..area = area
+        ..contexts = ctxs.map((n) => TaskContext((b) => b..name = n)).toList();
+    }
+
+    final base = [
+      _task(docId: 'a', name: 'alpha', area: 'Work', contexts: ['Phone']),
+    ];
+    final previews = [
+      preview('p1', 'Work', ['Email']),
+      preview('p2', 'Home', ['Phone']),
+      preview('p3', 'Home', ['Email']),
+    ];
+    final container = ProviderContainer(overrides: [
+      planBasePoolProvider.overrideWith((ref) async => base),
+      planFilteredTasksProvider.overrideWith((ref) async => base),
+      planRecurrencePreviewsProvider.overrideWith((ref) async => previews),
+    ]);
+    addTearDown(container.dispose);
+
+    // No filters narrowed → all previews contribute.
+    final counts = await readAsyncValue(
+      container,
+      sidebarFacetCountsProvider(TaskListSurface.plan),
+    );
+    // Areas: base 'work' (a) + previews 'work' (p1), 'home' (p2, p3).
+    expect(counts.areas, {'work': 2, 'home': 2});
+    // Contexts: base 'phone' (a) + previews 'email' (p1, p3), 'phone' (p2).
+    expect(counts.contexts, {'phone': 2, 'email': 2});
+  });
+
+  test(
+      'plan surface: with contexts narrowed, the areas count includes '
+      'only previews whose contexts pass the narrowing (TM-388 — same '
+      '"ignore own axis, respect others" contract as base TaskItems)',
+      () async {
+    TaskItemRecurPreview preview(String name, String area, List<String> ctxs) {
+      return TaskItemRecurPreview(name)
+        ..area = area
+        ..contexts = ctxs.map((n) => TaskContext((b) => b..name = n)).toList();
+    }
+
+    final previews = [
+      preview('p1', 'Work', ['Phone']),
+      preview('p2', 'Home', ['Email']),
+      preview('p3', 'Home', ['Phone']),
+    ];
+    final container = ProviderContainer(overrides: [
+      // No base TaskItems so the preview contribution is isolated.
+      planBasePoolProvider.overrideWith((ref) async => const []),
+      planFilteredTasksProvider.overrideWith((ref) async => const []),
+      planRecurrencePreviewsProvider.overrideWith((ref) async => previews),
+    ]);
+    addTearDown(container.dispose);
+
+    container
+        .read(taskListViewStateProvider(TaskListSurface.plan).notifier)
+        .setFilters(TaskFilters((b) => b..contexts.add('Phone')));
+
+    final counts = await readAsyncValue(
+      container,
+      sidebarFacetCountsProvider(TaskListSurface.plan),
+    );
+    // Areas (areas axis cleared, contexts=Phone kept): p1 (Work) + p3 (Home).
+    expect(counts.areas, {'work': 1, 'home': 1});
+  });
+
+  test(
+      'plan surface: with areas narrowed, the contexts count includes '
+      'only previews whose area passes the narrowing (TM-388 — mirror '
+      'of the areas-axis test, same "ignore own axis, respect others" '
+      'contract)', () async {
+    TaskItemRecurPreview preview(String name, String area, List<String> ctxs) {
+      return TaskItemRecurPreview(name)
+        ..area = area
+        ..contexts = ctxs.map((n) => TaskContext((b) => b..name = n)).toList();
+    }
+
+    final previews = [
+      preview('p1', 'Work', ['Phone']),
+      preview('p2', 'Home', ['Email']),
+      preview('p3', 'Work', ['Email']),
+    ];
+    final container = ProviderContainer(overrides: [
+      planBasePoolProvider.overrideWith((ref) async => const []),
+      planFilteredTasksProvider.overrideWith((ref) async => const []),
+      planRecurrencePreviewsProvider.overrideWith((ref) async => previews),
+    ]);
+    addTearDown(container.dispose);
+
+    container
+        .read(taskListViewStateProvider(TaskListSurface.plan).notifier)
+        .setFilters(TaskFilters((b) => b..areas.add('Work')));
+
+    final counts = await readAsyncValue(
+      container,
+      sidebarFacetCountsProvider(TaskListSurface.plan),
+    );
+    // Contexts (contexts axis cleared, areas=Work kept): p1 (Phone) +
+    // p3 (Email). p2 (Home) excluded by the area narrow.
+    expect(counts.contexts, {'phone': 1, 'email': 1});
+  });
+
+  test(
+      'plan surface: with no facet filter, counts reuse the body list — '
+      'no base-pool recompute (TM-388)', () async {
+    final visible = [
+      _task(docId: 'x', name: 'x', area: 'Work', contexts: ['Phone']),
+      _task(docId: 'y', name: 'y', area: 'Home', contexts: ['Email']),
+    ];
+    // planBasePool intentionally NOT overridden — the reuse path must
+    // consult only the body's filtered list.
+    final container = ProviderContainer(overrides: [
+      planFilteredTasksProvider.overrideWith((ref) async => visible),
+      planRecurrencePreviewsProvider.overrideWith((ref) async => const []),
+    ]);
+    addTearDown(container.dispose);
+
+    final counts = await readAsyncValue(
+      container,
+      sidebarFacetCountsProvider(TaskListSurface.plan),
+    );
+    expect(counts.areas, {'work': 1, 'home': 1});
+    expect(counts.contexts, {'phone': 1, 'email': 1});
   });
 
   test(

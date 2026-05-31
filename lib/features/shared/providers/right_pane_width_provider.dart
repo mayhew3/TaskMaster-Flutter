@@ -5,6 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/platform/form_factor.dart';
 import '../../../models/task_list_view.dart';
 import '../../../models/top_nav_item.dart';
+import '../../sprints/providers/create_sprint_draft_provider.dart';
 import '../../sprints/providers/sprint_providers.dart';
 import 'navigation_provider.dart';
 import 'selected_task_providers.dart';
@@ -23,15 +24,15 @@ part 'right_pane_width_provider.g.dart';
 ///   - `WideNavSidebar._activeFilterSurface` — which surface's filters
 ///     the sidebar's area/context active-state pulls from
 ///
-/// The Plan tab is the only branch that conditions on more than the
-/// destination: with an active sprint it maps to
-/// [TaskListSurface.sprint] (the sprint list's filters / group / sort
-/// drive everything visible on the tab); without one, it maps to
-/// [TaskListSurface.plan] (the sprint-creation / planning surface has
-/// its own filter pipeline). `ViewOptionsButton(surface: ...)` already
-/// makes this distinction at the call site in `plan_task_list.dart`;
-/// this provider is the read-side counterpart so the sidebar and right
-/// pane resolve the same surface for the same tab state.
+/// The Plan tab conditions on more than the destination:
+///   - In-shell task picker active (`createSprintStep` is `picking` or
+///     `addingToSprint`): always `.plan` — both pickers read plan-mode
+///     filters (`taskListViewStateProvider(.plan)`), so the sidebar +
+///     docked View Options pane must edit/show that surface or user
+///     edits won't propagate to the picker (TM-388).
+///   - Otherwise: with an active sprint → `.sprint` (the sprint list's
+///     filters drive what's visible); without one → `.plan` (the
+///     cadence-form surface).
 @Riverpod(keepAlive: true)
 TaskListSurface? activeSurface(Ref ref) {
   final dest = ref.watch(activeNavDestinationProvider);
@@ -41,6 +42,11 @@ TaskListSurface? activeSurface(Ref ref) {
     case NavDestination.family:
       return TaskListSurface.family;
     case NavDestination.plan:
+      final step = ref.watch(createSprintStepProvider);
+      if (step == CreateSprintStepValue.picking ||
+          step == CreateSprintStepValue.addingToSprint) {
+        return TaskListSurface.plan;
+      }
       return ref.watch(activeSprintProvider) != null
           ? TaskListSurface.sprint
           : TaskListSurface.plan;

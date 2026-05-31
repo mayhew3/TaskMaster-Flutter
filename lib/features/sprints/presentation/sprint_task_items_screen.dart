@@ -12,6 +12,7 @@ import '../../shared/presentation/app_drawer.dart';
 import '../../shared/presentation/connection_status_indicator.dart';
 import '../../shared/presentation/editable_task_item.dart';
 import '../../shared/presentation/plan_task_list.dart';
+import '../providers/create_sprint_draft_provider.dart';
 import '../../shared/presentation/refresh_button.dart';
 import '../../shared/presentation/snooze_dialog.dart';
 import '../../shared/presentation/task_action_error_helper.dart';
@@ -94,7 +95,12 @@ class SprintTaskItemsScreen extends ConsumerWidget {
           );
         },
       ),
-      drawer: const AppDrawer(),
+      // TM-388: wide uses the sidebar profile footer to open the wide
+      // shell's drawer; suppress this inner-screen drawer + auto-burger
+      // on wide.
+      drawer: isWideLayout(MediaQuery.sizeOf(context))
+          ? null
+          : const AppDrawer(),
     );
   }
 }
@@ -221,12 +227,12 @@ class _SprintTaskTile extends ConsumerWidget {
   }
 }
 
-class _AddMoreButton extends StatelessWidget {
+class _AddMoreButton extends ConsumerWidget {
   final Sprint sprint;
   const _AddMoreButton({required this.sprint});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // TextButton (instead of the prior GestureDetector-on-Text): full
     // Material affordances — focus + hover ring, ≥48dp tap target,
     // screen-reader "button" role — without changing the bold-text
@@ -235,9 +241,18 @@ class _AddMoreButton extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 17),
       child: Center(
         child: TextButton(
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => PlanTaskList()),
-          ),
+          // TM-388: on wide, swap the add-to-existing picker in place
+          // (sidebar stays visible) via the step provider; compact keeps
+          // the full-screen route.
+          onPressed: () {
+            if (isWideLayout(MediaQuery.sizeOf(context))) {
+              ref.read(createSprintStepProvider.notifier).toAddingToSprint();
+            } else {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => PlanTaskList()),
+              );
+            }
+          },
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(
                 horizontal: 32, vertical: 12),

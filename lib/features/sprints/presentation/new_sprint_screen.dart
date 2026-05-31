@@ -3,8 +3,10 @@ import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../core/platform/form_factor.dart';
 import '../../../date_util.dart';
 import '../../../parse_helper.dart';
+import '../providers/create_sprint_draft_provider.dart';
 import '../providers/sprint_providers.dart';
 import '../../shared/presentation/plan_task_list.dart';
 import '../../shared/presentation/widgets/editable_task_field.dart';
@@ -13,6 +15,19 @@ import '../../shared/presentation/connection_status_indicator.dart';
 import '../../shared/presentation/refresh_button.dart';
 import '../../shared/presentation/app_drawer.dart';
 
+/// Create-sprint cadence form.
+///
+/// TM-388: form state (numUnits / unitName / sprintStart) lives in
+/// [createSprintDraftProvider] now, not in this widget's State, so the
+/// wide in-shell task picker and `planBasePool` (sidebar faceted counts)
+/// read the same values. This widget owns only the two display text
+/// controllers, kept in sync with the watched draft.
+///
+/// "Create Sprint" branches by layout:
+///   - **wide** (sidebar visible): flip [createSprintStepProvider] to
+///     `picking` so `PlanningHome` swaps in `PlanTaskList` IN PLACE — no
+///     full-screen route that would cover the sidebar.
+///   - **compact**: push `PlanTaskList` as a full-screen route (unchanged).
 class NewSprintScreen extends ConsumerStatefulWidget {
   const NewSprintScreen({super.key});
 
@@ -21,12 +36,16 @@ class NewSprintScreen extends ConsumerStatefulWidget {
 }
 
 class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
-  DateTime sprintStart = DateTime.now();
   late TextEditingController sprintStartDateController;
   late TextEditingController sprintStartTimeController;
 
-  int numUnits = 1;
-  String unitName = 'Weeks';
+  // True while build() is force-syncing controller text from the draft.
+  // `controller.text = ...` notifies DateTimeField's internal listener
+  // synchronously, which fires `onChanged` → would call setStartDate /
+  // setStartTime on the notifier *inside build()* and trip Riverpod's
+  // "modify a provider while building" assertion. The onChanged handlers
+  // skip on this flag so only genuine picker selections write back.
+  bool _syncingFromDraft = false;
 
   final BuiltList<String> possibleRecurUnits = ListBuilder<String>([
     'Days',
@@ -49,75 +68,32 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
     super.dispose();
   }
 
-  void _updateDatesOnInit() {
-    final lastCompleted = ref.read(lastCompletedSprintProvider);
-
-    final nextScheduled = _getNextScheduledStart();
-    if (nextScheduled != null && lastCompleted != null) {
-      numUnits = lastCompleted.numUnits;
-      unitName = lastCompleted.unitName;
-      sprintStart = nextScheduled;
-    }
-
-    sprintStartDateController.text =
-        DateFormat('MM-dd-yyyy').format(sprintStart.toLocal());
-    sprintStartTimeController.text =
-        DateFormat('hh:mm a').format(sprintStart.toLocal());
-  }
-
-  DateTime? _getNextScheduledStart() {
-    final lastCompleted = ref.read(lastCompletedSprintProvider);
-
-    if (lastCompleted == null) {
-      return null;
-    }
-
-    DateTime nextStart;
-    DateTime nextEnd = lastCompleted.endDate;
-    DateTime now = DateTime.now();
-
-    do {
-      nextStart = nextEnd;
-      nextEnd = DateUtil.adjustToDate(
-        nextStart,
-        lastCompleted.numUnits,
-        lastCompleted.unitName,
-      );
-    } while (nextEnd.isBefore(now));
-
-    return nextStart;
-  }
-
-  void updateDateForDateField(DateTime? dateTime) {
-    DateTime base = dateTime ?? DateTime.now();
-    setState(() {
-      sprintStart = DateUtil.combineDateAndTime(base, sprintStart);
-      sprintStartDateController.text =
-          DateFormat('MM-dd-yyyy').format(base.toLocal());
-    });
-  }
-
-  void updateTimeForDateField(DateTime? dateTime) {
-    DateTime base = dateTime ?? DateTime.now();
-    setState(() {
-      sprintStart = DateUtil.combineDateAndTime(sprintStart, base);
-      sprintStartTimeController.text =
-          DateFormat('hh:mm a').format(base.toLocal());
-    });
-  }
+  CreateSprintDraft get _draftNotifier =>
+      ref.read(createSprintDraftProvider.notifier);
 
   void _openPlanning(BuildContext context) async {
+    // Compact-only full-screen route. Params sourced from the draft so
+    // the picker matches what the form showed (single source of truth).
+    final draft = ref.read(createSprintDraftProvider);
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) {
           return PlanTaskList(
-            numUnits: numUnits,
-            unitName: unitName,
-            startDate: sprintStart,
+            numUnits: draft.numUnits,
+            unitName: draft.unitName,
+            startDate: draft.sprintStart,
           );
         },
       ),
     );
+  }
+
+  void _onCreateSprint(BuildContext context) {
+    if (isWideLayout(MediaQuery.sizeOf(context))) {
+      ref.read(createSprintStepProvider.notifier).toPicker();
+    } else {
+      _openPlanning(context);
+    }
   }
 
   Widget _lastSprintSummary() {
@@ -142,12 +118,37 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Initialize dates on first build
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (sprintStartDateController.text.isEmpty) {
-        _updateDatesOnInit();
+    final draft = ref.watch(createSprintDraftProvider);
+    final wide = isWideLayout(MediaQuery.sizeOf(context));
+    // TM-388 (R1 follow-up): the Num/Unit fields take `initialText` /
+    // `initialValue` only at mount and don't react to subsequent changes
+    // (the shared widgets are read-once-on-init). When the draft
+    // re-seeds (a late `lastCompletedSprint` arrival on an untouched
+    // form), the displayed Num/Unit would diverge from the underlying
+    // draft. Forcing the ValueKey to track the seed identity remounts
+    // those fields with the freshly-seeded initial value. Typing into
+    // the field calls `_draftNotifier.set*` (writes to `_userEdited`)
+    // but doesn't change `lastCompleted.docId`, so this key stays
+    // stable across keystrokes — no spurious cursor-resetting remounts
+    // mid-edit.
+    final lastCompleted = ref.watch(lastCompletedSprintProvider);
+    final seedKey = lastCompleted?.docId ?? '__none__';
+
+    // Keep the display controllers in sync with the draft (these are
+    // picker-driven, never free-typed, so resetting text is safe).
+    final dateStr = DateFormat('MM-dd-yyyy').format(draft.sprintStart.toLocal());
+    final timeStr = DateFormat('hh:mm a').format(draft.sprintStart.toLocal());
+    if (sprintStartDateController.text != dateStr ||
+        sprintStartTimeController.text != timeStr) {
+      _syncingFromDraft = true;
+      if (sprintStartDateController.text != dateStr) {
+        sprintStartDateController.text = dateStr;
       }
-    });
+      if (sprintStartTimeController.text != timeStr) {
+        sprintStartTimeController.text = timeStr;
+      }
+      _syncingFromDraft = false;
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -170,22 +171,34 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
                 SizedBox(
                   width: 80.0,
                   child: EditableTaskField(
-                    initialText: numUnits.toString(),
+                    key: ValueKey('num-$seedKey'),
+                    initialText: draft.numUnits.toString(),
                     labelText: 'Num',
                     inputType: TextInputType.number,
-                    onChanged: (value) =>
-                        numUnits = ParseHelper.parseInt(value) ?? 1,
-                    fieldSetter: (value) =>
-                        numUnits = ParseHelper.parseInt(value) ?? 1,
+                    onChanged: (value) => _draftNotifier
+                        .setNumUnits(ParseHelper.parseInt(value) ?? 1),
+                    fieldSetter: (value) => _draftNotifier
+                        .setNumUnits(ParseHelper.parseInt(value) ?? 1),
                   ),
                 ),
                 Expanded(
                   child: NullableDropdown(
-                    initialValue: unitName,
+                    key: ValueKey('unit-$seedKey'),
+                    initialValue: draft.unitName,
                     labelText: 'Unit',
                     possibleValues: possibleRecurUnits,
-                    onChanged: (value) => unitName = value ?? '',
-                    valueSetter: (value) => unitName = value ?? '',
+                    // Only `valueSetter` — `NullableDropdown` invokes
+                    // both `valueSetter` and `onChanged` on every
+                    // change, so passing the same setter to both
+                    // (as we used to) wrote to the draft twice per
+                    // dropdown change → two rebuilds of every
+                    // TM-388-added consumer (PlanTaskList,
+                    // plan_filter_providers chain, sidebar facet
+                    // counts) per change. `CreateSprintDraftState`
+                    // is identity-equal so the redundant write
+                    // wasn't a no-op.
+                    valueSetter: (value) =>
+                        _draftNotifier.setUnitName(value ?? ''),
                   ),
                 ),
               ],
@@ -201,11 +214,14 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Start Date',
                       ),
-                      onChanged: (value) => updateDateForDateField(value),
+                      onChanged: (value) {
+                        if (_syncingFromDraft) return;
+                        _draftNotifier.setStartDate(value ?? DateTime.now());
+                      },
                       onShowPicker: (context, currentValue) async {
                         return await showDatePicker(
                           context: context,
-                          initialDate: currentValue ?? sprintStart,
+                          initialDate: currentValue ?? draft.sprintStart,
                           firstDate: _getLowerLimit(),
                           lastDate: DateTime(2100),
                         );
@@ -222,9 +238,12 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Start Time',
                       ),
-                      onChanged: (value) => updateTimeForDateField(value),
+                      onChanged: (value) {
+                        if (_syncingFromDraft) return;
+                        _draftNotifier.setStartTime(value ?? DateTime.now());
+                      },
                       onShowPicker: (context, currentValue) async {
-                        DateTime base = currentValue ?? sprintStart;
+                        DateTime base = currentValue ?? draft.sprintStart;
                         final time = await showTimePicker(
                           context: context,
                           initialTime: TimeOfDay.fromDateTime(base),
@@ -238,13 +257,16 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
               ],
             ),
             TextButton(
-              onPressed: () => _openPlanning(context),
+              onPressed: () => _onCreateSprint(context),
               child: const Text('Create Sprint'),
             ),
           ],
         ),
       ),
-      drawer: const AppDrawer(),
+      // TM-388: wide uses the sidebar profile footer to open the wide
+      // shell's drawer; suppress this inner-screen drawer + auto-burger
+      // on wide.
+      drawer: wide ? null : const AppDrawer(),
     );
   }
 }
