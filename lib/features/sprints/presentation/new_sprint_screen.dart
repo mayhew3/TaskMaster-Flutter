@@ -120,6 +120,19 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
   Widget build(BuildContext context) {
     final draft = ref.watch(createSprintDraftProvider);
     final wide = isWideLayout(MediaQuery.sizeOf(context));
+    // TM-388 (R1 follow-up): the Num/Unit fields take `initialText` /
+    // `initialValue` only at mount and don't react to subsequent changes
+    // (the shared widgets are read-once-on-init). When the draft
+    // re-seeds (a late `lastCompletedSprint` arrival on an untouched
+    // form), the displayed Num/Unit would diverge from the underlying
+    // draft. Forcing the ValueKey to track the seed identity remounts
+    // those fields with the freshly-seeded initial value. Typing into
+    // the field calls `_draftNotifier.set*` (writes to `_userEdited`)
+    // but doesn't change `lastCompleted.docId`, so this key stays
+    // stable across keystrokes — no spurious cursor-resetting remounts
+    // mid-edit.
+    final lastCompleted = ref.watch(lastCompletedSprintProvider);
+    final seedKey = lastCompleted?.docId ?? '__none__';
 
     // Keep the display controllers in sync with the draft (these are
     // picker-driven, never free-typed, so resetting text is safe).
@@ -158,6 +171,7 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
                 SizedBox(
                   width: 80.0,
                   child: EditableTaskField(
+                    key: ValueKey('num-$seedKey'),
                     initialText: draft.numUnits.toString(),
                     labelText: 'Num',
                     inputType: TextInputType.number,
@@ -169,6 +183,7 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
                 ),
                 Expanded(
                   child: NullableDropdown(
+                    key: ValueKey('unit-$seedKey'),
                     initialValue: draft.unitName,
                     labelText: 'Unit',
                     possibleValues: possibleRecurUnits,
