@@ -39,6 +39,14 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
   late TextEditingController sprintStartDateController;
   late TextEditingController sprintStartTimeController;
 
+  // True while build() is force-syncing controller text from the draft.
+  // `controller.text = ...` notifies DateTimeField's internal listener
+  // synchronously, which fires `onChanged` → would call setStartDate /
+  // setStartTime on the notifier *inside build()* and trip Riverpod's
+  // "modify a provider while building" assertion. The onChanged handlers
+  // skip on this flag so only genuine picker selections write back.
+  bool _syncingFromDraft = false;
+
   final BuiltList<String> possibleRecurUnits = ListBuilder<String>([
     'Days',
     'Weeks',
@@ -111,16 +119,22 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
   @override
   Widget build(BuildContext context) {
     final draft = ref.watch(createSprintDraftProvider);
+    final wide = isWideLayout(MediaQuery.sizeOf(context));
 
     // Keep the display controllers in sync with the draft (these are
     // picker-driven, never free-typed, so resetting text is safe).
     final dateStr = DateFormat('MM-dd-yyyy').format(draft.sprintStart.toLocal());
     final timeStr = DateFormat('hh:mm a').format(draft.sprintStart.toLocal());
-    if (sprintStartDateController.text != dateStr) {
-      sprintStartDateController.text = dateStr;
-    }
-    if (sprintStartTimeController.text != timeStr) {
-      sprintStartTimeController.text = timeStr;
+    if (sprintStartDateController.text != dateStr ||
+        sprintStartTimeController.text != timeStr) {
+      _syncingFromDraft = true;
+      if (sprintStartDateController.text != dateStr) {
+        sprintStartDateController.text = dateStr;
+      }
+      if (sprintStartTimeController.text != timeStr) {
+        sprintStartTimeController.text = timeStr;
+      }
+      _syncingFromDraft = false;
     }
 
     return Scaffold(
@@ -177,8 +191,10 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Start Date',
                       ),
-                      onChanged: (value) =>
-                          _draftNotifier.setStartDate(value ?? DateTime.now()),
+                      onChanged: (value) {
+                        if (_syncingFromDraft) return;
+                        _draftNotifier.setStartDate(value ?? DateTime.now());
+                      },
                       onShowPicker: (context, currentValue) async {
                         return await showDatePicker(
                           context: context,
@@ -199,8 +215,10 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Start Time',
                       ),
-                      onChanged: (value) =>
-                          _draftNotifier.setStartTime(value ?? DateTime.now()),
+                      onChanged: (value) {
+                        if (_syncingFromDraft) return;
+                        _draftNotifier.setStartTime(value ?? DateTime.now());
+                      },
                       onShowPicker: (context, currentValue) async {
                         DateTime base = currentValue ?? draft.sprintStart;
                         final time = await showTimePicker(
@@ -225,9 +243,7 @@ class _NewSprintScreenState extends ConsumerState<NewSprintScreen> {
       // TM-388: wide uses the sidebar profile footer to open the wide
       // shell's drawer; suppress this inner-screen drawer + auto-burger
       // on wide.
-      drawer: isWideLayout(MediaQuery.sizeOf(context))
-          ? null
-          : const AppDrawer(),
+      drawer: wide ? null : const AppDrawer(),
     );
   }
 }

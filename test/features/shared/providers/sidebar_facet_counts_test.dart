@@ -252,6 +252,42 @@ void main() {
   });
 
   test(
+      'plan surface: with areas narrowed, the contexts count includes '
+      'only previews whose area passes the narrowing (TM-388 — mirror '
+      'of the areas-axis test, same "ignore own axis, respect others" '
+      'contract)', () async {
+    TaskItemRecurPreview preview(String name, String area, List<String> ctxs) {
+      return TaskItemRecurPreview(name)
+        ..area = area
+        ..contexts = ctxs.map((n) => TaskContext((b) => b..name = n)).toList();
+    }
+
+    final previews = [
+      preview('p1', 'Work', ['Phone']),
+      preview('p2', 'Home', ['Email']),
+      preview('p3', 'Work', ['Email']),
+    ];
+    final container = ProviderContainer(overrides: [
+      planBasePoolProvider.overrideWith((ref) async => const []),
+      planFilteredTasksProvider.overrideWith((ref) async => const []),
+      planRecurrencePreviewsProvider.overrideWith((ref) async => previews),
+    ]);
+    addTearDown(container.dispose);
+
+    container
+        .read(taskListViewStateProvider(TaskListSurface.plan).notifier)
+        .setFilters(TaskFilters((b) => b..areas.add('Work')));
+
+    final counts = await readAsyncValue(
+      container,
+      sidebarFacetCountsProvider(TaskListSurface.plan),
+    );
+    // Contexts (contexts axis cleared, areas=Work kept): p1 (Phone) +
+    // p3 (Email). p2 (Home) excluded by the area narrow.
+    expect(counts.contexts, {'phone': 1, 'email': 1});
+  });
+
+  test(
       'plan surface: with no facet filter, counts reuse the body list — '
       'no base-pool recompute (TM-388)', () async {
     final visible = [

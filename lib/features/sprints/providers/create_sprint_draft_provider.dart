@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/providers/auth_providers.dart';
 import '../../../date_util.dart';
 import '../../../models/sprint.dart';
 import 'sprint_providers.dart';
@@ -43,18 +44,48 @@ class CreateSprintDraftState {
 /// and start at the next scheduled boundary; otherwise default to a
 /// 1-week sprint starting now.
 ///
-/// `build()` `watch`es `lastCompletedSprintProvider` so an untouched
-/// draft re-seeds if the sprints stream resolves after first read. Once
-/// the user edits any field, `_userEdited` pins their values so a later
-/// stream tick can't clobber them.
+/// `build()` `watch`es `personDocIdProvider` and `lastCompletedSprintProvider`:
+///   - **`_cachedSeed`** stops `DateTime.now()` inside `_seedFrom` from
+///     drifting on no-op stream re-emissions (Drift can re-emit when an
+///     unrelated watched table touches). Recomputed only when an input
+///     actually changes.
+///   - **`_userEdited`** pins user edits against late stream emissions
+///     so a sprints arrival doesn't clobber what the user typed.
+///   - **Reset on user switch only** (`personDocId` change → cross-user
+///     pin leak). A late-arriving `lastCompleted` sprint just refreshes
+///     the cached seed — user edits are preserved either way.
 @Riverpod(keepAlive: true)
 class CreateSprintDraft extends _$CreateSprintDraft {
   CreateSprintDraftState? _userEdited;
+  CreateSprintDraftState? _cachedSeed;
+  String? _lastPersonDocId;
+  // Sentinel string for "no last sprint" so we can distinguish
+  // "haven't seeded yet" from "seeded with no last sprint."
+  static const String _noLastSprint = '__none__';
+  String _lastSeededFromSprintDocId = '';
 
   @override
   CreateSprintDraftState build() {
+    final personDocId = ref.watch(personDocIdProvider);
+    final lastCompleted = ref.watch(lastCompletedSprintProvider);
+
+    if (_lastPersonDocId != personDocId) {
+      _userEdited = null;
+      _cachedSeed = null;
+      _lastSeededFromSprintDocId = '';
+      _lastPersonDocId = personDocId;
+    }
+    // Recompute the cached seed when `lastCompleted` identity changes,
+    // but DO NOT clear `_userEdited` — a sprints-stream emission after
+    // the user has typed must not clobber their input.
+    final lastCompletedKey = lastCompleted?.docId ?? _noLastSprint;
+    if (_lastSeededFromSprintDocId != lastCompletedKey) {
+      _cachedSeed = null;
+      _lastSeededFromSprintDocId = lastCompletedKey;
+    }
+
     if (_userEdited != null) return _userEdited!;
-    return _seedFrom(ref.watch(lastCompletedSprintProvider));
+    return _cachedSeed ??= _seedFrom(lastCompleted);
   }
 
   CreateSprintDraftState _seedFrom(Sprint? lastCompleted) {
@@ -78,6 +109,10 @@ class CreateSprintDraft extends _$CreateSprintDraft {
   /// roll-forward `NewSprintScreen._getNextScheduledStart` did.
   DateTime? _nextScheduledStart(Sprint? lastCompleted) {
     if (lastCompleted == null) return null;
+    // Defensive: a zero or negative cadence would loop forever because
+    // `adjustToDate(d, 0, _)` returns `d` unchanged. `Sprint.numUnits`
+    // is non-nullable `int` but the model doesn't constrain >0.
+    if (lastCompleted.numUnits <= 0) return null;
     final now = DateTime.now();
     DateTime nextStart;
     DateTime nextEnd = lastCompleted.endDate;
@@ -133,17 +168,14 @@ DateTime createSprintEndDate(Ref ref) {
 ///   - `picking` — new-sprint task picker
 ///   - `creating` — transient spinner covering the gap between a
 ///     successful submit and the Drift sprints stream emitting the new
-///     sprint (without it the form flashes back for ~1s). `PlanningHome`
-///     drops it back to `form` on the next sprints emission (so a
-///     future-dated sprint, which never becomes "active", returns to the
-///     form rather than spinning forever).
+///     sprint (without it the form flashes back for ~1s).
 ///
 /// Active sprint (add-to-existing flow):
 ///   - `addingToSprint` — the "Add More..." task picker; any other value
 ///     shows the sprint's task list.
 enum CreateSprintStepValue { form, picking, creating, addingToSprint }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class CreateSprintStep extends _$CreateSprintStep {
   @override
   CreateSprintStepValue build() => CreateSprintStepValue.form;

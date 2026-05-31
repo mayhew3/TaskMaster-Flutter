@@ -141,4 +141,30 @@ void main() {
     expect(s.hour, 14);
     expect(s.minute, 30);
   });
+
+  group('CreateSprintStep (TM-388)', () {
+    test('default = form; mutators round-trip through every step', () {
+      final c = ProviderContainer();
+      addTearDown(c.dispose);
+
+      final notifier = c.read(createSprintStepProvider.notifier);
+      expect(c.read(createSprintStepProvider), CreateSprintStepValue.form);
+
+      notifier.toPicker();
+      expect(c.read(createSprintStepProvider), CreateSprintStepValue.picking);
+
+      notifier.toCreating();
+      expect(c.read(createSprintStepProvider), CreateSprintStepValue.creating);
+
+      notifier.toForm();
+      expect(c.read(createSprintStepProvider), CreateSprintStepValue.form);
+
+      notifier.toAddingToSprint();
+      expect(c.read(createSprintStepProvider),
+          CreateSprintStepValue.addingToSprint);
+
+      notifier.toForm();
+      expect(c.read(createSprintStepProvider), CreateSprintStepValue.form);
+    });
+  });
 }

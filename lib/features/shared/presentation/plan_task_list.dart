@@ -39,7 +39,7 @@ class PlanTaskList extends ConsumerStatefulWidget {
   /// (PlanningHome swaps it in) rather than as a pushed full-screen
   /// route. In-shell there is NO route to pop — submit/back drive
   /// `createSprintStepProvider` instead (popping would tear down the
-  /// whole wide shell). Compact launches leave this false.
+  /// whole wide shell).
   final bool inShell;
 
   const PlanTaskList({
@@ -48,7 +48,12 @@ class PlanTaskList extends ConsumerStatefulWidget {
     this.unitName,
     this.startDate,
     this.inShell = false,
-  });
+  }) : assert(
+            !inShell ||
+                (numUnits == null && unitName == null && startDate == null),
+            'PlanTaskList(inShell: true) must not be constructed with cadence '
+            'params — in-shell resolves them from createSprintDraftProvider. '
+            'The compact pushed path is the only caller that passes them.');
 
   @override
   ConsumerState<PlanTaskList> createState() => _PlanTaskListState();
@@ -368,19 +373,26 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
         final draft = _isInShellNewSprint
             ? ref.read(createSprintDraftProvider)
             : null;
+        final startDate = widget.startDate ?? draft!.sprintStart;
+        final numUnits = widget.numUnits ?? draft!.numUnits;
+        final unitName = widget.unitName ?? draft!.unitName;
         final sprint = SprintBlueprint(
-            startDate: widget.startDate ?? draft!.sprintStart,
+            startDate: startDate,
             endDate: endDate,
-            numUnits: widget.numUnits ?? draft!.numUnits,
-            unitName: widget.unitName ?? draft!.unitName,
-            personDocId: personDocId
-        );
+            numUnits: numUnits,
+            unitName: unitName,
+            personDocId: personDocId);
         print('[TM-306] Submitting new sprint');
         await ref.read(createSprintProvider.notifier).call(
           sprintBlueprint: sprint,
           taskItems: taskItemQueue,
           taskItemRecurPreviews: taskItemRecurPreviewQueue,
         );
+        // TM-388: guard ref/context use after the await — the user can
+        // navigate away or sign out during the in-flight call, which
+        // disposes the ConsumerState; touching `ref` post-dispose
+        // throws.
+        if (!mounted) return;
       } else {
         print('[TM-306] Adding ${taskItemQueue.length} tasks to sprint ${activeSprint!.docId}');
         await ref.read(addTasksToSprintProvider.notifier).call(
@@ -388,6 +400,7 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
           taskItems: taskItemQueue,
           taskItemRecurPreviews: taskItemRecurPreviewQueue,
         );
+        if (!mounted) return;
         // Unlike CreateSprint (which lets failures propagate),
         // AddTasksToSprint.call() wraps its work in AsyncValue.guard, so a
         // failure is captured in the provider's error state instead of
@@ -402,9 +415,9 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
       }
 
       // TM-375: leave the screen deterministically on success for both
-      // modes (was: racy listener).
+      // modes.
       print('[TM-306] Submit complete, leaving picker');
-      if (context.mounted && !popped) {
+      if (mounted && !popped) {
         popped = true;
         if (widget.inShell) {
           // TM-388: no pushed route to pop. Show a transient spinner
@@ -435,8 +448,12 @@ class _PlanTaskListState extends ConsumerState<PlanTaskList> {
       // surface as a secondary unhandled async error after we've handled
       // the failure.
       print('[TM-375] Submit failed: ${e.runtimeType}');
-      ref.read(crashReporterProvider).logError(e, stack,
-          context: 'Create Sprint / Add to Sprint submit').ignore();
+      // Guard ref.read against post-dispose throw (the widget may have
+      // unmounted during the awaited call).
+      if (mounted) {
+        ref.read(crashReporterProvider).logError(e, stack,
+            context: 'Create Sprint / Add to Sprint submit').ignore();
+      }
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Could not save. Please try again.')),

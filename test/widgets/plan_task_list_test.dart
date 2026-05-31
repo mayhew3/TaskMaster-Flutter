@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taskmaestro/features/shared/presentation/plan_task_list.dart';
+import 'package:taskmaestro/features/shared/providers/task_list_view_providers.dart';
 import 'package:taskmaestro/features/tasks/providers/task_providers.dart';
 import 'package:taskmaestro/features/sprints/providers/sprint_providers.dart';
 import 'package:taskmaestro/features/sprints/services/sprint_service.dart';
@@ -11,8 +13,12 @@ import 'package:taskmaestro/core/providers/auth_providers.dart';
 import 'package:taskmaestro/core/services/crash_reporter.dart';
 import 'package:taskmaestro/models/task_item.dart';
 import 'package:taskmaestro/models/task_item_recur_preview.dart';
+import 'package:taskmaestro/models/task_list_view.dart';
 import 'package:taskmaestro/models/sprint.dart';
 import 'package:taskmaestro/models/sprint_blueprint.dart';
+
+import '../mocks/mock_data_builder.dart';
+import '../mocks/mock_recurrence_builder.dart';
 
 /// TM-375: a fake CreateSprint that "succeeds" without touching Drift/
 /// Firestore — returns a minimal Sprint and does NOT push it into
@@ -736,6 +742,134 @@ void main() {
       // The ListView should have bottom padding to prevent FAB overlap
       final listViewWidget = tester.widget<ListView>(listView);
       expect(listViewWidget.padding, isNotNull);
+    });
+  });
+
+  group('TM-388: preview filter on display', () {
+    // Reset SharedPreferences between tests so the
+    // taskListViewStateProvider (keepAlive + persisted) doesn't leak the
+    // first test's filter into the second.
+    setUp(() => SharedPreferences.setMockInitialValues({}));
+
+    // Recurring-source task with area='Work' so its synthesized preview
+    // rows inherit area='Work' and ride the same area-filter contract
+    // as base TaskItems.
+    TaskItem dailyWorkRecurring() {
+      final builder = MockTaskItemBuilder.withDates()
+        ..withDueDateAnchor()
+        ..area = 'Work'
+        ..name = 'Daily Work Task'
+        ..context = 'Office'
+        ..recurNumber = 1
+        ..recurUnit = 'Days'
+        ..recurWait = false
+        ..recurIteration = 1
+        ..recurrenceDocId = MockTaskItemBuilder.me;
+      builder.taskRecurrence = MockTaskRecurrenceBuilder()
+        ..docId = MockTaskItemBuilder.me
+        ..name = builder.name
+        ..recurNumber = 1
+        ..recurUnit = 'Days'
+        ..recurWait = false
+        ..recurIteration = 1
+        ..anchorDate = builder.getAnchorDate()!;
+      return builder.create();
+    }
+
+    testWidgets(
+        'preview rows from non-selected areas are hidden when the user '
+        'narrows the area filter (TM-388)', (tester) async {
+      final source = dailyWorkRecurring();
+      final container = ProviderContainer(overrides: [
+        tasksProvider.overrideWith((ref) => Stream.value([source])),
+        tasksWithRecurrencesProvider
+            .overrideWith((ref) => Stream.value([source])),
+        taskRecurrencesProvider.overrideWith((ref) => Stream.value([])),
+        sprintsProvider.overrideWith((ref) => Stream.value([])),
+        recentlyCompletedTasksProvider
+            .overrideWith(() => RecentlyCompletedTasks()),
+        personDocIdProvider.overrideWith((ref) => MockTaskItemBuilder.me),
+      ]);
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            home: Scaffold(
+              body: PlanTaskList(
+                numUnits: 2,
+                unitName: 'Weeks',
+                startDate: DateTime.now(),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // The source task itself is the parent — visible as a regular tile.
+      // Its preview rows ("Daily Work Task" repeats from the recurrence)
+      // are synthesized into `tempIterations` and rendered inside the
+      // groupings. With no filter, the source plus at least one preview
+      // should be present.
+      expect(find.text('Daily Work Task'), findsWidgets);
+      final unfilteredCount =
+          tester.widgetList(find.text('Daily Work Task')).length;
+      expect(unfilteredCount, greaterThan(1),
+          reason: 'source + at least one synthesized preview row');
+
+      // Now narrow to Home only — neither the source (area=Work) nor any
+      // of its previews should appear.
+      container
+          .read(taskListViewStateProvider(TaskListSurface.plan).notifier)
+          .setFilters(TaskFilters((b) => b..areas.add('Home')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Daily Work Task'), findsNothing,
+          reason: 'preview rows must respect the area-narrow, not just '
+              'the base TaskItem');
+    });
+
+    testWidgets(
+        'preview rows from non-selected contexts are hidden when the user '
+        'narrows the context filter (TM-388)', (tester) async {
+      final source = dailyWorkRecurring();
+      final container = ProviderContainer(overrides: [
+        tasksProvider.overrideWith((ref) => Stream.value([source])),
+        tasksWithRecurrencesProvider
+            .overrideWith((ref) => Stream.value([source])),
+        taskRecurrencesProvider.overrideWith((ref) => Stream.value([])),
+        sprintsProvider.overrideWith((ref) => Stream.value([])),
+        recentlyCompletedTasksProvider
+            .overrideWith(() => RecentlyCompletedTasks()),
+        personDocIdProvider.overrideWith((ref) => MockTaskItemBuilder.me),
+      ]);
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            home: Scaffold(
+              body: PlanTaskList(
+                numUnits: 2,
+                unitName: 'Weeks',
+                startDate: DateTime.now(),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Daily Work Task'), findsWidgets);
+
+      container
+          .read(taskListViewStateProvider(TaskListSurface.plan).notifier)
+          .setFilters(TaskFilters((b) => b..contexts.add('Home')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Daily Work Task'), findsNothing);
     });
   });
 }

@@ -57,8 +57,6 @@ Future<List<TaskItemRecurPreview>> planRecurrencePreviews(Ref ref) async {
   final endDate = activeSprint != null
       ? activeSprint.endDate
       : ref.watch(createSprintEndDateProvider);
-  // `taskRecurrencesProvider` is a Drift stream; awaiting its `.future`
-  // is the same pattern `tasksBasePool` etc. use.
   final allRecurrences = await ref.watch(taskRecurrencesProvider.future);
   return generatePlanPreviews(
     allTasks: BuiltList(allTasks),

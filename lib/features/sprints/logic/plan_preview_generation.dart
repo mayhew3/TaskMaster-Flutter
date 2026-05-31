@@ -66,7 +66,6 @@ List<TaskItemRecurPreview> _previewsForSource(
   DateTime now, [
   int depth = 0,
 ]) {
-  // Safety cap mirrored from the pre-TM-388 in-widget recursion.
   if (depth >= 365) return const [];
   final next = RecurrenceHelper.createNextIteration(source, now);
   final inWindow = next.isDueBefore(endDate) ||

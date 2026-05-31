@@ -15,10 +15,17 @@ part of 'create_sprint_draft_provider.dart';
 /// and start at the next scheduled boundary; otherwise default to a
 /// 1-week sprint starting now.
 ///
-/// `build()` `watch`es `lastCompletedSprintProvider` so an untouched
-/// draft re-seeds if the sprints stream resolves after first read. Once
-/// the user edits any field, `_userEdited` pins their values so a later
-/// stream tick can't clobber them.
+/// `build()` `watch`es `personDocIdProvider` and `lastCompletedSprintProvider`:
+///   - **`_cachedSeed`** stops `DateTime.now()` inside `_seedFrom` from
+///     drifting on no-op stream re-emissions (Drift can re-emit when an
+///     unrelated watched table touches). Recomputed only when an input
+///     actually changes.
+///   - **`_userEdited`** pins user edits against late stream emissions
+///     so a sprints arrival doesn't clobber what the user typed.
+///   - **Resets** on user switch (`personDocId` change → cross-user pin
+///     leak) and when the `lastCompleted` sprint identity changes (a
+///     just-created sprint should re-seed the next form open from the
+///     rolled-forward cadence rather than the prior edited values).
 
 @ProviderFor(CreateSprintDraft)
 final createSprintDraftProvider = CreateSprintDraftProvider._();
@@ -30,10 +37,17 @@ final createSprintDraftProvider = CreateSprintDraftProvider._();
 /// and start at the next scheduled boundary; otherwise default to a
 /// 1-week sprint starting now.
 ///
-/// `build()` `watch`es `lastCompletedSprintProvider` so an untouched
-/// draft re-seeds if the sprints stream resolves after first read. Once
-/// the user edits any field, `_userEdited` pins their values so a later
-/// stream tick can't clobber them.
+/// `build()` `watch`es `personDocIdProvider` and `lastCompletedSprintProvider`:
+///   - **`_cachedSeed`** stops `DateTime.now()` inside `_seedFrom` from
+///     drifting on no-op stream re-emissions (Drift can re-emit when an
+///     unrelated watched table touches). Recomputed only when an input
+///     actually changes.
+///   - **`_userEdited`** pins user edits against late stream emissions
+///     so a sprints arrival doesn't clobber what the user typed.
+///   - **Resets** on user switch (`personDocId` change → cross-user pin
+///     leak) and when the `lastCompleted` sprint identity changes (a
+///     just-created sprint should re-seed the next form open from the
+///     rolled-forward cadence rather than the prior edited values).
 final class CreateSprintDraftProvider
     extends $NotifierProvider<CreateSprintDraft, CreateSprintDraftState> {
   /// Holds the create-sprint cadence draft (TM-388).
@@ -43,10 +57,17 @@ final class CreateSprintDraftProvider
   /// and start at the next scheduled boundary; otherwise default to a
   /// 1-week sprint starting now.
   ///
-  /// `build()` `watch`es `lastCompletedSprintProvider` so an untouched
-  /// draft re-seeds if the sprints stream resolves after first read. Once
-  /// the user edits any field, `_userEdited` pins their values so a later
-  /// stream tick can't clobber them.
+  /// `build()` `watch`es `personDocIdProvider` and `lastCompletedSprintProvider`:
+  ///   - **`_cachedSeed`** stops `DateTime.now()` inside `_seedFrom` from
+  ///     drifting on no-op stream re-emissions (Drift can re-emit when an
+  ///     unrelated watched table touches). Recomputed only when an input
+  ///     actually changes.
+  ///   - **`_userEdited`** pins user edits against late stream emissions
+  ///     so a sprints arrival doesn't clobber what the user typed.
+  ///   - **Resets** on user switch (`personDocId` change → cross-user pin
+  ///     leak) and when the `lastCompleted` sprint identity changes (a
+  ///     just-created sprint should re-seed the next form open from the
+  ///     rolled-forward cadence rather than the prior edited values).
   CreateSprintDraftProvider._()
     : super(
         from: null,
@@ -74,7 +95,7 @@ final class CreateSprintDraftProvider
   }
 }
 
-String _$createSprintDraftHash() => r'ffcb94b3f6615dedaa38c74927d23e1f6271cd8e';
+String _$createSprintDraftHash() => r'bcfcfe76aa5ea64736f41d68922400ca7477145e';
 
 /// Holds the create-sprint cadence draft (TM-388).
 ///
@@ -83,10 +104,17 @@ String _$createSprintDraftHash() => r'ffcb94b3f6615dedaa38c74927d23e1f6271cd8e';
 /// and start at the next scheduled boundary; otherwise default to a
 /// 1-week sprint starting now.
 ///
-/// `build()` `watch`es `lastCompletedSprintProvider` so an untouched
-/// draft re-seeds if the sprints stream resolves after first read. Once
-/// the user edits any field, `_userEdited` pins their values so a later
-/// stream tick can't clobber them.
+/// `build()` `watch`es `personDocIdProvider` and `lastCompletedSprintProvider`:
+///   - **`_cachedSeed`** stops `DateTime.now()` inside `_seedFrom` from
+///     drifting on no-op stream re-emissions (Drift can re-emit when an
+///     unrelated watched table touches). Recomputed only when an input
+///     actually changes.
+///   - **`_userEdited`** pins user edits against late stream emissions
+///     so a sprints arrival doesn't clobber what the user typed.
+///   - **Resets** on user switch (`personDocId` change → cross-user pin
+///     leak) and when the `lastCompleted` sprint identity changes (a
+///     just-created sprint should re-seed the next form open from the
+///     rolled-forward cadence rather than the prior edited values).
 
 abstract class _$CreateSprintDraft extends $Notifier<CreateSprintDraftState> {
   CreateSprintDraftState build();
@@ -174,7 +202,7 @@ final class CreateSprintStepProvider
         argument: null,
         retry: null,
         name: r'createSprintStepProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -195,7 +223,7 @@ final class CreateSprintStepProvider
   }
 }
 
-String _$createSprintStepHash() => r'9465c4c25aa1704c6c697310072eaff854c3bffd';
+String _$createSprintStepHash() => r'2f77254f2bf8ad70e872ba9b8097deb2c3fd43b5';
 
 abstract class _$CreateSprintStep extends $Notifier<CreateSprintStepValue> {
   CreateSprintStepValue build();
